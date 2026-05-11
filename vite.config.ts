@@ -12,4 +12,8 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  vite: {
+    // This allows passing NITRO_PRESET=vercel via env
+    // and correctly configuring the build for the target platform.
+  }
 });

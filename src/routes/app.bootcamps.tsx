@@ -14,11 +14,7 @@ const camps = [
 
 function Bootcamps() {
   return (
-    <div className="px-5 pt-6">
-      <header>
-        <p className="text-xs text-muted-foreground">Cohort 03 · open enrollment</p>
-        <h1 className="mt-1 font-display text-3xl font-bold">Bootcamps</h1>
-      </header>
+    <div className="px-5">
 
       <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card/40 px-4 py-3">
         <Search className="h-4 w-4 text-muted-foreground" />

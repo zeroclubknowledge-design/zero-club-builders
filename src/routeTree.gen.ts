@@ -13,9 +13,12 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppWalletRouteImport } from './routes/app.wallet'
+import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
+import { Route as AppPremiumRouteImport } from './routes/app.premium'
 import { Route as AppClubsRouteImport } from './routes/app.clubs'
 import { Route as AppBootcampsRouteImport } from './routes/app.bootcamps'
+import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -37,9 +40,19 @@ const AppWalletRoute = AppWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTutorStudioRoute = AppTutorStudioRouteImport.update({
+  id: '/tutor-studio',
+  path: '/tutor-studio',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPremiumRoute = AppPremiumRouteImport.update({
+  id: '/premium',
+  path: '/premium',
   getParentRoute: () => AppRoute,
 } as any)
 const AppClubsRoute = AppClubsRouteImport.update({
@@ -52,21 +65,32 @@ const AppBootcampsRoute = AppBootcampsRouteImport.update({
   path: '/bootcamps',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBookmarksRoute = AppBookmarksRouteImport.update({
+  id: '/bookmarks',
+  path: '/bookmarks',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/bookmarks': typeof AppBookmarksRoute
   '/app/bootcamps': typeof AppBootcampsRoute
   '/app/clubs': typeof AppClubsRoute
+  '/app/premium': typeof AppPremiumRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/tutor-studio': typeof AppTutorStudioRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/bookmarks': typeof AppBookmarksRoute
   '/app/bootcamps': typeof AppBootcampsRoute
   '/app/clubs': typeof AppClubsRoute
+  '/app/premium': typeof AppPremiumRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/tutor-studio': typeof AppTutorStudioRoute
   '/app/wallet': typeof AppWalletRoute
   '/app': typeof AppIndexRoute
 }
@@ -74,9 +98,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/bookmarks': typeof AppBookmarksRoute
   '/app/bootcamps': typeof AppBootcampsRoute
   '/app/clubs': typeof AppClubsRoute
+  '/app/premium': typeof AppPremiumRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/tutor-studio': typeof AppTutorStudioRoute
   '/app/wallet': typeof AppWalletRoute
   '/app/': typeof AppIndexRoute
 }
@@ -85,26 +112,35 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/app/bookmarks'
     | '/app/bootcamps'
     | '/app/clubs'
+    | '/app/premium'
     | '/app/profile'
+    | '/app/tutor-studio'
     | '/app/wallet'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app/bookmarks'
     | '/app/bootcamps'
     | '/app/clubs'
+    | '/app/premium'
     | '/app/profile'
+    | '/app/tutor-studio'
     | '/app/wallet'
     | '/app'
   id:
     | '__root__'
     | '/'
     | '/app'
+    | '/app/bookmarks'
     | '/app/bootcamps'
     | '/app/clubs'
+    | '/app/premium'
     | '/app/profile'
+    | '/app/tutor-studio'
     | '/app/wallet'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -144,11 +180,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWalletRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/tutor-studio': {
+      id: '/app/tutor-studio'
+      path: '/tutor-studio'
+      fullPath: '/app/tutor-studio'
+      preLoaderRoute: typeof AppTutorStudioRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/profile': {
       id: '/app/profile'
       path: '/profile'
       fullPath: '/app/profile'
       preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/premium': {
+      id: '/app/premium'
+      path: '/premium'
+      fullPath: '/app/premium'
+      preLoaderRoute: typeof AppPremiumRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/clubs': {
@@ -165,21 +215,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBootcampsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/bookmarks': {
+      id: '/app/bookmarks'
+      path: '/bookmarks'
+      fullPath: '/app/bookmarks'
+      preLoaderRoute: typeof AppBookmarksRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppBookmarksRoute: typeof AppBookmarksRoute
   AppBootcampsRoute: typeof AppBootcampsRoute
   AppClubsRoute: typeof AppClubsRoute
+  AppPremiumRoute: typeof AppPremiumRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppTutorStudioRoute: typeof AppTutorStudioRoute
   AppWalletRoute: typeof AppWalletRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppBookmarksRoute: AppBookmarksRoute,
   AppBootcampsRoute: AppBootcampsRoute,
   AppClubsRoute: AppClubsRoute,
+  AppPremiumRoute: AppPremiumRoute,
   AppProfileRoute: AppProfileRoute,
+  AppTutorStudioRoute: AppTutorStudioRoute,
   AppWalletRoute: AppWalletRoute,
   AppIndexRoute: AppIndexRoute,
 }
