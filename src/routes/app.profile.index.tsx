@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   BadgeCheck, Flame, MapPin, LinkIcon, CalendarDays, ChevronLeft, 
   Search, MoreHorizontal, Hash, Users, MessageCircle, Heart,
-  Share2, Settings, UserPlus, Copy, X, Loader2, Star, Play, CheckCircle2,
+  Share2, Settings, UserPlus, Copy, X, Loader2, Star, Play, CheckCircle2, Link2,
   Edit3, Zap, Award, TrendingUp, Pen, Mail, Sparkles
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -256,25 +256,25 @@ function Profile() {
       </header>
 
       {/* ═══════════════════════════════════════════════
-          LINKEDIN STYLE HERO CARD
+          HENSOR STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-4xl px-0 sm:px-6 pt-0 sm:pt-4">
-        <div className="relative overflow-hidden sm:rounded-xl border-x-0 sm:border-x border-b sm:border-b-border/40 border-t-0 border-border/40 bg-card shadow-sm">
+      <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4">
+        <div className="relative overflow-hidden sm:rounded-[32px] border border-white/5 bg-[#0a0a0a] shadow-2xl">
           {/* Banner */}
-          <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="relative h-[160px] sm:h-[180px] w-full overflow-hidden bg-black flex items-center justify-center">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 
                 alt="Banner" 
-                className="h-full w-full object-contain object-center"
+                className="h-full w-full object-cover object-center"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.28),transparent_26%),linear-gradient(135deg,#171717_0%,#cc208f_48%,#f5b94b_100%)]" />
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
             )}
             
             {/* Edit Banner Button */}
              <div className="absolute top-4 right-4 z-10">
-                <Link to="/app/profile/edit" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80">
+                <Link to="/app/profile/edit" className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition-colors hover:bg-black/80">
                   <Pen className="h-4 w-4" />
                 </Link>
              </div>
@@ -285,74 +285,59 @@ function Profile() {
             {/* Avatar overlapping banner */}
             <div className="absolute -top-[55px] left-6 z-20">
               <div 
-                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-full border-[4px] border-card bg-muted shadow-sm transition-opacity hover:opacity-90"
+                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-[#0a0a0a] bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-primary/20 text-4xl font-black text-primary">
+                  <div className="h-full w-full flex items-center justify-center bg-[#FF1E3F]/20 text-4xl font-black text-[#FF1E3F]">
                     {initials}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Empty space for avatar height offset */}
-            <div className="flex justify-end pt-4 pb-2 h-10"></div>
-
-            <div className="mt-2 flex flex-col items-start gap-1">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[24px] font-bold tracking-tight text-foreground leading-none">
-                    {displayName}
-                  </h2>
-                  {profile?.tier === 'Premium' && <BadgeCheck className="h-5 w-5 fill-[#cc208f] text-white shrink-0" />}
-                  {profile?.tier === 'Premium+' && <BadgeCheck className="h-5 w-5 fill-[#ffcf00] text-black shrink-0" />}
-                </div>
-                <span className="text-sm text-muted-foreground mt-1">{profileHandle}</span>
-              </div>
-              
-              <div className="mt-2 text-[14px] text-foreground/90 leading-snug">
-                 {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Builder on Zero Club"}
-              </div>
-              
-              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
-                 <span>Level {level}</span>
-                 <span>•</span>
-                 <span className="font-semibold text-primary">{tier}</span>
-              </div>
-              
-              <div className="mt-2 flex items-center gap-3 text-[15px] font-medium text-foreground/60">
-                 <span className="hover:text-primary transition-colors cursor-pointer"><span className="font-bold text-foreground">{profile?.followers_count || "0"}</span> followers</span>
-                 <span className="hover:text-primary transition-colors cursor-pointer"><span className="font-bold text-foreground">{profile?.following_count || "0"}</span> following</span>
-                 <span className="hover:text-primary transition-colors cursor-pointer"><span className="font-bold text-foreground">{userPosts.length}</span> posts</span>
-              </div>
+            {/* Right side actions */}
+            <div className="flex justify-end pt-3 pb-2 h-14 items-start gap-4">
+                 <Link 
+                   to="/app/profile/edit"
+                   className="rounded-full px-5 py-2 text-[14px] font-bold transition-all flex items-center gap-2 active:scale-95 shadow-lg bg-white text-black hover:bg-white/90"
+                 >
+                   Edit Profile
+                 </Link>
             </div>
 
-            {/* Action Buttons */}
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-               <button 
-                  onClick={handleShare}
-                  className="rounded-full bg-primary px-5 py-1.5 text-[15px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
-                >
-                  Share Profile
-                </button>
-               <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile?.id}?ref=${profile?.referral_code}`);
-                    toast.success("Referral link copied!");
-                  }}
-                  className="rounded-full border border-border bg-transparent px-5 py-1.5 text-[15px] font-semibold text-foreground hover:bg-muted transition-colors"
-                >
-                  Copy Link
-                </button>
-                <Link
-                  to="/app/profile/edit"
-                  className="rounded-full border border-border bg-transparent px-5 py-1.5 text-[15px] font-semibold text-foreground hover:bg-muted transition-colors"
-                >
-                  Edit Profile
-                </Link>
+            <div className="mt-4 flex flex-col items-start gap-1">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-[22px] font-bold tracking-tight text-white leading-none">
+                    {displayName}
+                  </h2>
+                  <BadgeCheck className="h-[18px] w-[18px] fill-blue-500 text-white shrink-0" />
+                </div>
+                <span className="text-[15px] text-zinc-500 mt-1">{profileHandle}</span>
+              </div>
+              
+              <div className="mt-3 text-[15px] text-zinc-300 leading-relaxed pr-4">
+                 {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Dynamic builder and creator on Zero Club, specializing in shipping great products."}
+              </div>
+              
+              <div className="mt-4 flex items-center gap-4 text-[15px]">
+                 <span className="hover:opacity-80 transition-opacity cursor-pointer">
+                   <span className="font-bold text-white">{profile?.following_count || "0"}</span> <span className="text-zinc-500">Following</span>
+                 </span>
+                 <span className="hover:opacity-80 transition-opacity cursor-pointer">
+                   <span className="font-bold text-white">{profile?.followers_count || "0"}</span> <span className="text-zinc-500">Followers</span>
+                 </span>
+              </div>
+              
+              <div className="mt-3 flex items-center gap-1.5 text-[14px]">
+                 <Link2 className="h-4 w-4 text-zinc-500" />
+                 <a href="#" className="text-blue-500 hover:underline">
+                   {profileHandle.replace('@', '')}.net
+                 </a>
+              </div>
             </div>
           </div>
         </div>
