@@ -159,7 +159,7 @@ function ProfileNetwork() {
               <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
             ) : (activeTab === "following" ? following : followers)?.length > 0 ? (
               (activeTab === "following" ? following : followers)?.map((user: any) => (
-                <Link key={user.id} to={`/app/profile/${user.username || user.id}`} className="flex items-center gap-3 p-3.5 rounded-2xl bg-accent/10 border border-border/10 hover:bg-accent/20 transition-all active:scale-[0.98]">
+                <Link key={user.id} to="/app/profile/$id" params={{ id: user.username || user.id }} className="flex items-center gap-3 p-3.5 rounded-2xl bg-accent/10 border border-border/10 hover:bg-accent/20 transition-all active:scale-[0.98]">
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-accent border border-border/20 flex items-center justify-center font-bold text-muted-foreground text-xs">
                     {user.avatar_url ? (
                       <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
