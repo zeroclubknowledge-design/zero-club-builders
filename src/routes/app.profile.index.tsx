@@ -6,7 +6,7 @@ import {
   Share2, Settings, UserPlus, Copy, X, Loader2, Star, Play, CheckCircle2,
   Edit3, Zap, Award, TrendingUp, Pen, Mail, Sparkles
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProfile, enrichPosts } from "@/api";
 import { supabase } from "@/lib/supabase";
 import { getLevelFromXp } from "@/lib/utils";
@@ -30,6 +30,7 @@ const isVideoUrl = (url: string) => {
 };
 
 function Profile() {
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<typeof tabs[number]>("Posts");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -160,6 +161,8 @@ function Profile() {
   const tier = (profile?.tier || "Basic").charAt(0).toUpperCase() + (profile?.tier || "Basic").slice(1);
   const initials = (profile?.full_name || profile?.username || 'U').substring(0, 1).toUpperCase();
   const level = getLevelFromXp(profile?.xp || 0);
+  const displayName = profile?.full_name || profile?.account_name || profile?.username || "Builder";
+  const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
 
   const handleShare = async () => {
     const url = `${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`;
@@ -227,8 +230,8 @@ function Profile() {
                 <div className={`transition-all duration-300 transform ${
                   scrolled ?"opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}>
-                  <h1 className="font-display text-sm font-bold leading-tight text-foreground">
-                    {getFirstName(profile)}
+                  <h1 className="font-display max-w-[12rem] truncate text-sm font-bold leading-tight text-foreground">
+                    {displayName}
                   </h1>
                   <p className="text-[10px] text-muted-foreground">
                     {userPosts.length} {userPosts.length === 1 ? "Post" : "Posts"}
@@ -258,7 +261,7 @@ function Profile() {
          ═══════════════════════════════════════════════ */}
       <div className="relative w-full">
         {/* Hero image area */}
-        <div className="relative w-full aspect-[3/1] min-h-[200px] max-h-[320px] overflow-hidden">
+        <div className="relative h-[310px] w-full overflow-hidden sm:h-[360px]">
           {profile?.banner_url ? (
             <img 
               src={profile.banner_url} 
@@ -266,24 +269,34 @@ function Profile() {
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary/80 via-purple-600/70 to-blue-500/60 flex items-center justify-center" />
+            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.28),transparent_26%),linear-gradient(135deg,#171717_0%,#cc208f_48%,#f5b94b_100%)]" />
           )}
 
           {/* Gradient overlay — fades image into the background */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-black/45" />
+          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
+          <div className="absolute bottom-6 left-5 right-5 hidden items-end justify-between text-white/90 sm:flex">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/60">Builder profile</p>
+              <p className="mt-1 max-w-[24rem] text-sm font-medium text-white/80">Portfolio, network, ships, and signal in one place.</p>
+            </div>
+            <div className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 text-xs font-bold backdrop-blur-xl">
+              Level {level}
+            </div>
+          </div>
         </div>
 
         {/* ── Glassmorphic Profile Info Card ── */}
-        <div className="relative z-10 -mt-16 px-5">
-          <div className="relative rounded-[28px] bg-card/70 backdrop-blur-2xl border border-border/20 p-6 pt-14 shadow-[0_8px_40px_rgba(0,0,0,0.15)]">
+        <div className="relative z-10 -mt-24 px-4 sm:px-6">
+          <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-card/88 p-5 pt-16 shadow-[0_24px_80px_rgba(0,0,0,0.22)] backdrop-blur-2xl sm:p-6 sm:pt-16">
             {/* Subtle glass highlight */}
-            <div className="absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+            <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-primary/12 blur-3xl" />
             
             {/* Profile Avatar overlapping */}
             <div className="absolute -top-12 left-6 z-20">
               <div 
-                className="h-24 w-24 rounded-full border-4 border-background overflow-hidden bg-muted shadow-xl cursor-pointer hover:opacity-90 transition-opacity"
+                className="h-24 w-24 cursor-pointer overflow-hidden rounded-3xl border-4 border-background bg-muted shadow-2xl transition-opacity hover:opacity-90"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
@@ -298,25 +311,28 @@ function Profile() {
 
             <div className="relative z-10">
               {/* Name + Badges + Action buttons row */}
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <h2 className="font-display text-[28px] font-black tracking-tight leading-none text-foreground truncate">
-                      {profile?.full_name || profile?.username || 'Builder'}
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <h2 className="font-display max-w-full break-words text-[clamp(2rem,8vw,3.35rem)] font-black leading-[0.95] tracking-tight text-foreground">
+                      {displayName}
                     </h2>
                     {profile?.tier === 'Premium' && <BadgeCheck className="h-6 w-6 fill-[#cc208f] text-white shrink-0" />}
                     {profile?.tier === 'Premium+' && <BadgeCheck className="h-6 w-6 fill-[#ffcf00] text-black shrink-0" />}
                   </div>
-                  <p className="text-[14px] text-muted-foreground mt-1 font-medium">
-                    @{profile?.username}
-                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-border/40 bg-background/60 px-3 py-1 text-[13px] font-bold text-muted-foreground">{profileHandle}</span>
+                    <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[13px] font-bold text-primary">{tier}</span>
+                    <span className="rounded-full border border-border/40 bg-background/60 px-3 py-1 text-[13px] font-bold text-muted-foreground">Level {level}</span>
+                  </div>
                 </div>
 
                 {/* Share + Copy action circles */}
-                <div className="flex items-center gap-2 shrink-0 pt-1">
+                <div className="flex shrink-0 items-center gap-2">
                   <button 
                     onClick={handleShare}
-                    className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-primary shadow-lg shadow-primary/20 transition-all active:scale-95"
+                    aria-label="Share profile"
                   >
                     <Share2 className="h-[18px] w-[18px] text-white" />
                   </button>
@@ -325,7 +341,8 @@ function Profile() {
                       navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile?.id}?ref=${profile?.referral_code}`);
                       toast.success("Referral link copied!");
                     }}
-                    className="h-10 w-10 rounded-full bg-foreground/90 flex items-center justify-center shadow-lg active:scale-95 transition-all"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground/90 shadow-lg transition-all active:scale-95"
+                    aria-label="Copy referral link"
                   >
                     <Copy className="h-[18px] w-[18px] text-background" />
                   </button>
@@ -334,36 +351,34 @@ function Profile() {
 
               {/* Bio */}
               {profile?.bio && (
-                <p className="text-[14px] leading-relaxed text-foreground/75 mt-4">
+                <p className="mt-5 text-[15px] leading-7 text-foreground/75">
                   <LinkifiedText text={profile.bio} />
                 </p>
               )}
 
               {/* Stats row with dividers — Followers | Following | Posts */}
-              <div className="flex items-center mt-5 pt-5 border-t border-border/15">
-                <div className="flex-1 text-center">
-                  <span className="block font-display text-[22px] font-black text-foreground leading-none">
+              <div className="mt-6 grid grid-cols-3 gap-2 border-t border-border/15 pt-4">
+                <div className="rounded-2xl border border-border/25 bg-background/55 px-3 py-3 text-center">
+                  <span className="block font-display text-[22px] font-black leading-none text-foreground">
                     {profile?.followers_count || "0"}
                   </span>
-                  <span className="block text-[11px] text-muted-foreground font-semibold mt-1.5 tracking-wide">
+                  <span className="mt-1.5 block text-[11px] font-semibold tracking-wide text-muted-foreground">
                     Followers
                   </span>
                 </div>
-                <div className="w-px h-10 bg-border/20" />
-                <div className="flex-1 text-center">
-                  <span className="block font-display text-[22px] font-black text-foreground leading-none">
+                <div className="rounded-2xl border border-border/25 bg-background/55 px-3 py-3 text-center">
+                  <span className="block font-display text-[22px] font-black leading-none text-foreground">
                     {profile?.following_count || "0"}
                   </span>
-                  <span className="block text-[11px] text-muted-foreground font-semibold mt-1.5 tracking-wide">
+                  <span className="mt-1.5 block text-[11px] font-semibold tracking-wide text-muted-foreground">
                     Following
                   </span>
                 </div>
-                <div className="w-px h-10 bg-border/20" />
-                <div className="flex-1 text-center">
-                  <span className="block font-display text-[22px] font-black text-foreground leading-none">
+                <div className="rounded-2xl border border-border/25 bg-background/55 px-3 py-3 text-center">
+                  <span className="block font-display text-[22px] font-black leading-none text-foreground">
                     {userPosts.length}
                   </span>
-                  <span className="block text-[11px] text-muted-foreground font-semibold mt-1.5 tracking-wide">
+                  <span className="mt-1.5 block text-[11px] font-semibold tracking-wide text-muted-foreground">
                     Posts
                   </span>
                 </div>

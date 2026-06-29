@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useRouter, useSearch, redirect } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { ArrowRight, User, Mail, Lock, ChevronLeft, Box, Eye, EyeOff, Gift, Loader2 } from "lucide-react";
+import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowRight, Box, CheckCircle2, ChevronLeft, Gift, Loader2, Lock, Mail, ShieldCheck, Sparkles, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -24,54 +24,54 @@ export const Route = createFileRoute("/signup")({
   }),
   head: () => ({
     meta: [
-      { title: "Join Zero Club — Start Building" },
-      { name: "description", content: "Join the elite builder ecosystem. Learn, ship, and earn rewards." },
+      { title: "Join Zero Club - Start Building" },
+      { name: "description", content: "Join the builder ecosystem. Learn, ship, and earn rewards." },
       { property: "og:image", content: "/logo.png" },
-    ]
+    ],
   }),
 });
 
 function SignUpPage() {
   const router = useRouter();
   const { ref, club } = useSearch({ from: "/signup" });
-  const [username, setUsername] = useState(() => localStorage.getItem('signup_username') || "");
-  const [email, setEmail] = useState(() => localStorage.getItem('signup_email') || "");
-  const [referralCode, setReferralCode] = useState(() => localStorage.getItem('signup_ref') || ref || "");
-  const [step, setStep] = useState<'info' | 'code'>(() => (localStorage.getItem('signup_step') as 'info' | 'code') || 'info');
+  const [username, setUsername] = useState(() => localStorage.getItem("signup_username") || "");
+  const [email, setEmail] = useState(() => localStorage.getItem("signup_email") || "");
+  const [referralCode, setReferralCode] = useState(() => localStorage.getItem("signup_ref") || ref || "");
+  const [step, setStep] = useState<"info" | "code">(() => (localStorage.getItem("signup_step") as "info" | "code") || "info");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem('signup_terms') === 'true');
+  const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('signup_username', username);
+    localStorage.setItem("signup_username", username);
   }, [username]);
 
   useEffect(() => {
-    localStorage.setItem('signup_email', email);
+    localStorage.setItem("signup_email", email);
   }, [email]);
 
   useEffect(() => {
-    localStorage.setItem('signup_ref', referralCode);
+    localStorage.setItem("signup_ref", referralCode);
   }, [referralCode]);
 
   useEffect(() => {
-    localStorage.setItem('signup_step', step);
+    localStorage.setItem("signup_step", step);
   }, [step]);
 
   useEffect(() => {
-    localStorage.setItem('signup_terms', agreedToTerms ? 'true' : 'false');
+    localStorage.setItem("signup_terms", agreedToTerms ? "true" : "false");
   }, [agreedToTerms]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.navigate({ 
-          to: "/app", 
-          search: { 
+        router.navigate({
+          to: "/app",
+          search: {
             club: club || "",
-            ref: ref || ""
-          } 
+            ref: ref || "",
+          },
         });
       } else {
         setCheckingAuth(false);
@@ -89,13 +89,12 @@ function SignUpPage() {
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sign up attempt started...", { username, email, agreedToTerms });
 
     if (!username || !email) {
       toast.error("Please fill in all required fields.");
       return;
     }
-    
+
     if (!agreedToTerms) {
       toast.error("Please agree to the Terms of Service and Privacy Policy.");
       return;
@@ -109,12 +108,11 @@ function SignUpPage() {
     setLoading(true);
     try {
       const cleanUsername = username.toLowerCase().replace(/[^a-z0-9]/g, "");
-      
-      // Pre-flight check: ensure username is unique
+
       const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', cleanUsername)
+        .from("profiles")
+        .select("id")
+        .eq("username", cleanUsername)
         .maybeSingle();
 
       if (existingUser) {
@@ -123,14 +121,13 @@ function SignUpPage() {
         return;
       }
 
-      // Pre-flight check: ensure referral code is valid if provided
       if (referralCode) {
         const { data: existingRef } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('referral_code', referralCode)
+          .from("profiles")
+          .select("id")
+          .eq("referral_code", referralCode)
           .maybeSingle();
-          
+
         if (!existingRef) {
           toast.error("That referral code is invalid.");
           setLoading(false);
@@ -142,32 +139,27 @@ function SignUpPage() {
         username: cleanUsername,
         full_name: username,
       };
-      
+
       if (referralCode) {
         metadata.referral_code_used = referralCode;
       }
 
-      console.log("Calling Supabase signInWithOtp for signup with metadata:", metadata);
-      
-      const { data, error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           data: metadata,
-          shouldCreateUser: true
+          shouldCreateUser: true,
         },
       });
 
       if (error) {
-        console.error("Supabase signUp error details:", error);
         toast.error(`Sign Up Error: ${error.message}`);
       } else {
-        console.log("Supabase OTP sent:", data);
-        setStep('code');
-        toast.success("Confirmation code sent! Check your email.");
+        setStep("code");
+        toast.success("Confirmation code sent. Check your email.");
       }
     } catch (err: any) {
-      console.error("Unexpected error during signUp:", err);
-      toast.error(`Connection Error: ${err.message || 'Unknown error'}`);
+      toast.error(`Connection Error: ${err.message || "Unknown error"}`);
     } finally {
       setLoading(false);
     }
@@ -181,21 +173,21 @@ function SignUpPage() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
       if (error) throw error;
-      
-      toast.success("Welcome to Zero Club!");
-      localStorage.removeItem('signup_email');
-      localStorage.removeItem('signup_step');
-      localStorage.removeItem('signup_username');
-      localStorage.removeItem('signup_ref');
-      
-      router.navigate({ 
-        to: "/app", 
-        search: { 
+
+      toast.success("Welcome to Zero Club.");
+      localStorage.removeItem("signup_email");
+      localStorage.removeItem("signup_step");
+      localStorage.removeItem("signup_username");
+      localStorage.removeItem("signup_ref");
+
+      router.navigate({
+        to: "/app",
+        search: {
           club: club || "",
-          ref: ref || ""
-        } 
+          ref: ref || "",
+        },
       });
     } catch (err: any) {
       toast.error(`Invalid code: ${err.message}`);
@@ -204,163 +196,177 @@ function SignUpPage() {
     }
   };
 
-
+  const perks = ["Claim your builder profile", "Join clubs and bootcamps", "Earn XP when you ship"];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Fixed Header */}
-      <header className="sticky top-0 z-50 flex items-center h-[calc(60px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] px-6 bg-background/95 backdrop-blur-md border-b border-border/50">
-        <Link to="/signin" className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/50 transition active:scale-95">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_14%_10%,rgba(204,32,143,0.18),transparent_30%),radial-gradient(circle_at_84%_84%,rgba(245,185,75,0.16),transparent_32%)]" />
+
+      <header className="fixed left-0 right-0 top-0 z-50 flex h-[calc(64px+env(safe-area-inset-top))] items-center justify-between px-5 pt-[env(safe-area-inset-top)]">
+        <Link to="/signin" className="flex h-10 w-10 items-center justify-center rounded-full border border-border/50 bg-background/70 backdrop-blur-xl transition active:scale-95" aria-label="Back to sign in">
           <ChevronLeft className="h-5 w-5" />
+        </Link>
+        <Link to="/signin" className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-xs font-black text-foreground backdrop-blur-xl transition active:scale-95">
+          Sign in
         </Link>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 py-8">
-        <div className="max-w-md mx-auto">
-          <div className="mb-8 space-y-4">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Zero Club Logo" className="h-10 w-auto object-contain" />
-              <span className="font-display text-xl font-black tracking-tighter text-foreground">Zero Club</span>
+      <main className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-8 px-5 pb-10 pt-24 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:pt-16">
+        <section className="hidden lg:block">
+          <div className="max-w-xl">
+            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-border/50 bg-card/70 px-4 py-2 backdrop-blur-xl">
+              <img src="/logo.png" alt="Zero Club" className="h-7 w-auto object-contain" />
+              <span className="text-sm font-black">Zero Club</span>
             </div>
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold tracking-wider text-primary">
-                <Box className="h-3 w-3" /> Start your journey
-              </div>
-              <h1 className="font-display text-4xl font-bold tracking-tight text-foreground">Create account</h1>
-              <p className="text-muted-foreground leading-relaxed">
-                Join the elite club of builders and start earning rewards for your skills.
-              </p>
+            <h1 className="font-display text-6xl font-black leading-[0.95] tracking-tight">
+              Build your profile like a product people remember.
+            </h1>
+            <p className="mt-6 max-w-lg text-lg leading-8 text-muted-foreground">
+              Start with a clean identity, then turn your posts, ships, clubs, and network into public proof.
+            </p>
+            <div className="mt-10 grid gap-3">
+              {perks.map((perk) => (
+                <div key={perk} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
+                  <span className="text-sm font-bold text-foreground/85">{perk}</span>
+                </div>
+              ))}
             </div>
           </div>
+        </section>
 
-          {step === 'info' ? (
-            <form onSubmit={handleSendCode} className="space-y-5">
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold tracking-wider text-muted-foreground ml-1">Username</label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="adabuilds"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full rounded-2xl border border-border bg-card/40 p-4 pl-12 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-                    />
-                  </div>
-                </div>
+        <section className="mx-auto w-full max-w-md">
+          <div className="mb-8 lg:hidden">
+            <div className="mb-5 flex items-center gap-3">
+              <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
+              <span className="font-display text-xl font-black tracking-tight">Zero Club</span>
+            </div>
+            <h1 className="font-display text-4xl font-black leading-none tracking-tight">Create account</h1>
+          </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold tracking-wider text-muted-foreground ml-1">Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="email"
-                      placeholder="ada@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full rounded-2xl border border-border bg-card/40 p-4 pl-12 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-                    />
-                  </div>
-                </div>
+          <div className="overflow-hidden rounded-2xl border border-border/50 bg-card/82 shadow-[0_24px_80px_rgba(0,0,0,0.16)] backdrop-blur-2xl">
+            <div className="border-b border-border/40 bg-background/35 px-6 py-5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                <Box className="h-3.5 w-3.5" />
+                Builder access
+              </div>
+              <h2 className="mt-4 font-display text-3xl font-black tracking-tight">{step === "info" ? "Join Zero Club" : "Verify email"}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {step === "info" ? "Create your handle, add an email, and enter with a secure code." : "Enter the code we sent to finish your account."}
+              </p>
+            </div>
 
-                {/* Referral Code */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold tracking-wider text-muted-foreground ml-1">
-                    Referral Code <span className="text-muted-foreground/50">(optional)</span>
+            <div className="p-6">
+              {step === "info" ? (
+                <form onSubmit={handleSendCode} className="space-y-4">
+                  <label className="block space-y-2">
+                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Username</span>
+                    <span className="relative block">
+                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="adabuilds"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      />
+                    </span>
                   </label>
-                  <div className="relative">
-                    <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Enter referral code"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value)}
-                      className={`w-full rounded-2xl border bg-card/40 p-4 pl-12 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 ${referralCode ?"border-primary/50 bg-primary/5" : "border-border"}`}
-                    />
-                    {referralCode && (
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-primary tracking-wider">APPLIED</span>
-                    )}
-                  </div>
-                  {referralCode && (
-                    <p className="text-[10px] text-primary/70 ml-1 flex items-center gap-1">
-                      <Gift className="h-3 w-3" /> Referral code applied — you and your inviter earn bonus XP!
-                    </p>
-                  )}
-                </div>
-              </div>
 
-              <div className="flex items-start gap-3 px-1 py-2">
-                <input 
-                  type="checkbox" 
-                  id="terms" 
-                  checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-border bg-card accent-primary" 
-                />
-                <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
-                  By creating an account, you agree to our <span className="font-bold text-foreground underline">Terms of Service</span> and <span className="font-bold text-foreground underline">Privacy Policy</span>.
-                </label>
-              </div>
+                  <label className="block space-y-2">
+                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Email address</span>
+                    <span className="relative block">
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="email"
+                        placeholder="ada@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      />
+                    </span>
+                  </label>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-bold text-primary-foreground shadow-glow transition active:scale-[0.98] disabled:opacity-60"
-              >
-                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending Code…</> : <> Continue <ArrowRight className="h-4 w-4" /></>}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold tracking-wider text-muted-foreground ml-1">Confirmation Code</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <label className="block space-y-2">
+                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Referral code <span className="normal-case tracking-normal text-muted-foreground/60">optional</span></span>
+                    <span className="relative block">
+                      <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Enter referral code"
+                        value={referralCode}
+                        onChange={(e) => setReferralCode(e.target.value)}
+                        className={`h-14 w-full rounded-xl border bg-background/70 px-4 pl-12 pr-20 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 ${referralCode ? "border-primary/50 bg-primary/5" : "border-border"}`}
+                      />
+                      {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-[0.16em] text-primary">Applied</span>}
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-3 rounded-xl border border-border/35 bg-background/45 px-4 py-3">
                     <input
-                      type="text"
-                      placeholder="Enter confirmation code"
-                      maxLength={10}
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                      className="w-full rounded-2xl border border-border bg-card/40 p-4 pl-12 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 tracking-[0.5em] text-center font-bold text-lg"
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-border bg-card accent-primary"
                     />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 ml-1">
-                    We sent a code to <span className="text-foreground font-bold">{email}</span>.
+                    <span className="text-xs leading-5 text-muted-foreground">
+                      I agree to the <span className="font-black text-foreground underline">Terms of Service</span> and <span className="font-black text-foreground underline">Privacy Policy</span>.
+                    </span>
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                  >
+                    {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Continue <ArrowRight className="h-4 w-4" /></>}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyCode} className="space-y-5">
+                  <label className="block space-y-2">
+                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Confirmation code</span>
+                    <span className="relative block">
+                      <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="000000"
+                        maxLength={10}
+                        value={code}
+                        onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-center text-lg font-black tracking-[0.45em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      />
+                    </span>
+                  </label>
+
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Sent to <span className="font-black text-foreground">{email}</span>.
                   </p>
-                </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading || code.length < 6}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-bold text-primary-foreground shadow-glow transition active:scale-[0.98] disabled:opacity-60"
-              >
-                {loading ? "Verifying…" : <> Complete Signup <ArrowRight className="h-4 w-4" /></>}
-              </button>
+                  <button
+                    type="submit"
+                    disabled={loading || code.length < 6}
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                  >
+                    {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Complete signup <ArrowRight className="h-4 w-4" /></>}
+                  </button>
 
-              <div className="pt-4 text-center">
-                <button type="button" onClick={() => {
-                  setStep('info');
-                  setCode("");
-                }} className="text-sm font-bold text-muted-foreground hover:text-foreground">
-                  Go back
-                </button>
+                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                    Go back
+                  </button>
+                </form>
+              )}
+
+              <div className="mt-6 grid grid-cols-[auto_1fr] gap-3 rounded-xl border border-border/35 bg-background/45 px-4 py-3 text-xs font-bold text-muted-foreground">
+                <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
+                <span>Your account starts with secure email verification. No password setup needed.</span>
+                <Sparkles className="mt-0.5 h-4 w-4 text-primary" />
+                <span>Referral codes stay connected so both builders can earn their XP reward.</span>
               </div>
-            </form>
-          )}
-        </div>
+            </div>
+          </div>
+        </section>
       </main>
-
-
-      <footer className="px-6 py-6 text-center border-t border-border/50">
-        <p className="text-sm text-muted-foreground">
-          Already a builder?{" "}
-          <Link to="/signin" className="font-bold text-primary">Sign In</Link>
-        </p>
-      </footer>
     </div>
   );
 }

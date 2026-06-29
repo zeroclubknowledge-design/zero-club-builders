@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useRouter, useSearch, redirect } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { ArrowRight, Mail, Lock, ChevronLeft, Eye, EyeOff, Github, Loader2 } from "lucide-react";
+import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowRight, CheckCircle2, ChevronLeft, Loader2, Lock, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -24,41 +24,39 @@ export const Route = createFileRoute("/signin")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign In — Zero Club" },
+      { title: "Sign In - Zero Club" },
       { name: "description", content: "Sign in to your Zero Club account to access bootcamps and your builder feed." },
       { property: "og:image", content: "/logo.png" },
-    ]
+    ],
   }),
 });
 
 function SignInPage() {
   const router = useRouter();
   const { ref, club } = useSearch({ from: "/signin" });
-  const [email, setEmail] = useState(() => localStorage.getItem('signin_email') || "");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState(() => localStorage.getItem("signin_email") || "");
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [step, setStep] = useState<'email' | 'code'>(() => (localStorage.getItem('signin_step') as 'email' | 'code') || 'email');
+  const [step, setStep] = useState<"email" | "code">(() => (localStorage.getItem("signin_step") as "email" | "code") || "email");
   const [code, setCode] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('signin_email', email);
+    localStorage.setItem("signin_email", email);
   }, [email]);
 
   useEffect(() => {
-    localStorage.setItem('signin_step', step);
+    localStorage.setItem("signin_step", step);
   }, [step]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.navigate({ 
-          to: "/app", 
-          search: { 
+        router.navigate({
+          to: "/app",
+          search: {
             club: club || "",
-            ref: ref || ""
-          } 
+            ref: ref || "",
+          },
         });
       } else {
         setCheckingAuth(false);
@@ -84,8 +82,8 @@ function SignInPage() {
     try {
       const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) throw error;
-      setStep('code');
-      toast.success("Confirmation code sent! Check your email.");
+      setStep("code");
+      toast.success("Confirmation code sent. Check your email.");
     } catch (err: any) {
       toast.error(`Error: ${err.message}`);
     } finally {
@@ -101,19 +99,19 @@ function SignInPage() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
       if (error) throw error;
-      
-      toast.success("Welcome back!");
-      localStorage.removeItem('signin_email');
-      localStorage.removeItem('signin_step');
-      
-      router.navigate({ 
-        to: "/app", 
-        search: { 
+
+      toast.success("Welcome back.");
+      localStorage.removeItem("signin_email");
+      localStorage.removeItem("signin_step");
+
+      router.navigate({
+        to: "/app",
+        search: {
           club: club || "",
-          ref: ref || ""
-        } 
+          ref: ref || "",
+        },
       });
     } catch (err: any) {
       toast.error(`Invalid code: ${err.message}`);
@@ -122,122 +120,131 @@ function SignInPage() {
     }
   };
 
-
+  const featureLines = ["Ship faster with clubs and bootcamps", "Track profile signal, XP, and network", "Access your builder feed instantly"];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Fixed Header */}
-      <header className="sticky top-0 z-50 flex items-center h-[calc(60px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] px-6 bg-background/95 backdrop-blur-md border-b border-border/50">
-        <Link to="/" className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/50 transition active:scale-95">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(204,32,143,0.18),transparent_30%),radial-gradient(circle_at_80%_86%,rgba(245,185,75,0.16),transparent_30%)]" />
+
+      <header className="fixed left-0 right-0 top-0 z-50 flex h-[calc(64px+env(safe-area-inset-top))] items-center justify-between px-5 pt-[env(safe-area-inset-top)]">
+        <Link to="/" className="flex h-10 w-10 items-center justify-center rounded-full border border-border/50 bg-background/70 backdrop-blur-xl transition active:scale-95" aria-label="Back to home">
           <ChevronLeft className="h-5 w-5" />
+        </Link>
+        <Link to="/signup" search={{ ref, club }} className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-xs font-black text-foreground backdrop-blur-xl transition active:scale-95">
+          Create account
         </Link>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 py-8">
-        <div className="max-w-md mx-auto">
-          <div className="mb-8 space-y-4">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Zero Club Logo" className="h-10 w-auto object-contain" />
-              <span className="font-display text-xl font-black tracking-tighter text-foreground">Zero Club</span>
+      <main className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-8 px-5 pb-10 pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:pt-16">
+        <section className="hidden lg:block">
+          <div className="max-w-xl">
+            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-border/50 bg-card/70 px-4 py-2 backdrop-blur-xl">
+              <img src="/logo.png" alt="Zero Club" className="h-7 w-auto object-contain" />
+              <span className="text-sm font-black">Zero Club</span>
             </div>
-            <div className="space-y-2">
-              <h1 className="font-display text-4xl font-bold tracking-tight text-foreground">Welcome back</h1>
-              <p className="text-muted-foreground leading-relaxed">
-                Sign in to continue your builder journey and reach the next level.
-              </p>
+            <h1 className="font-display text-6xl font-black leading-[0.95] tracking-tight">
+              Come back to the place builders compound.
+            </h1>
+            <p className="mt-6 max-w-lg text-lg leading-8 text-muted-foreground">
+              Your ships, clubs, bootcamps, wallet, and network are waiting behind a quick email code.
+            </p>
+            <div className="mt-10 grid gap-3">
+              {featureLines.map((line) => (
+                <div key={line} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
+                  <span className="text-sm font-bold text-foreground/85">{line}</span>
+                </div>
+              ))}
             </div>
           </div>
+        </section>
 
-          {step === 'email' ? (
-            <form onSubmit={handleSendCode} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold tracking-wider text-muted-foreground ml-1">Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="email"
-                      placeholder="ada@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full rounded-2xl border border-border bg-card/40 p-4 pl-12 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-                    />
-                  </div>
-                </div>
+        <section className="mx-auto w-full max-w-md">
+          <div className="mb-8 lg:hidden">
+            <div className="mb-5 flex items-center gap-3">
+              <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
+              <span className="font-display text-xl font-black tracking-tight">Zero Club</span>
+            </div>
+            <h1 className="font-display text-4xl font-black leading-none tracking-tight">Welcome back</h1>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-border/50 bg-card/82 shadow-[0_24px_80px_rgba(0,0,0,0.16)] backdrop-blur-2xl">
+            <div className="border-b border-border/40 bg-background/35 px-6 py-5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Secure access
               </div>
+              <h2 className="mt-4 font-display text-3xl font-black tracking-tight">Sign in</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">Enter your email and we will send a one-time code.</p>
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-bold text-primary-foreground shadow-glow transition active:scale-[0.98] disabled:opacity-60"
-              >
-                {loading ? "Sending Code…" : <> Send Code <ArrowRight className="h-4 w-4" /></>}
-              </button>
+            <div className="p-6">
+              {step === "email" ? (
+                <form onSubmit={handleSendCode} className="space-y-5">
+                  <label className="block space-y-2">
+                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Email address</span>
+                    <span className="relative block">
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="email"
+                        placeholder="ada@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      />
+                    </span>
+                  </label>
 
-              <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-border" />
-                <span className="mx-4 shrink-0 text-xs font-medium text-muted-foreground">or</span>
-                <div className="flex-grow border-t border-border" />
-              </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                  >
+                    {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Send code <ArrowRight className="h-4 w-4" /></>}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyCode} className="space-y-5">
+                  <label className="block space-y-2">
+                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Confirmation code</span>
+                    <span className="relative block">
+                      <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="000000"
+                        maxLength={10}
+                        value={code}
+                        onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-center text-lg font-black tracking-[0.45em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      />
+                    </span>
+                  </label>
 
-              <div className="grid grid-cols-2 gap-4">
-                <button type="button" className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/40 py-3 text-sm font-bold transition active:scale-[0.98] active:bg-accent/30">
-                  <Github className="h-4 w-4" /> GitHub
-                </button>
-                <button type="button" className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/40 py-3 text-sm font-bold transition active:scale-[0.98] active:bg-accent/30">
-                  <img src="https://www.google.com/favicon.ico" className="h-4 w-4 grayscale opacity-70" alt="" /> Google
-                </button>
-              </div>
-
-              <div className="pt-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link to="/signup" search={{ ref, club }} className="font-bold text-primary hover:underline">Sign Up</Link>
-                </p>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold tracking-wider text-muted-foreground ml-1">Confirmation Code</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Enter confirmation code"
-                      maxLength={10}
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                      className="w-full rounded-2xl border border-border bg-card/40 p-4 pl-12 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 tracking-[0.5em] text-center font-bold text-lg"
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 ml-1">
-                    We sent a code to <span className="text-foreground font-bold">{email}</span>.
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Sent to <span className="font-black text-foreground">{email}</span>.
                   </p>
-                </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || code.length < 6}
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                  >
+                    {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Verify code <ArrowRight className="h-4 w-4" /></>}
+                  </button>
+
+                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                    Use a different email
+                  </button>
+                </form>
+              )}
+
+              <div className="mt-6 flex items-center gap-2 rounded-xl border border-border/35 bg-background/45 px-4 py-3 text-xs font-bold text-muted-foreground">
+                <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+                No password to remember. Just your inbox and a fresh code.
               </div>
-
-              <button
-                type="submit"
-                disabled={loading || code.length < 6}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-bold text-primary-foreground shadow-glow transition active:scale-[0.98] disabled:opacity-60"
-              >
-                {loading ? "Verifying…" : <> Verify Code <ArrowRight className="h-4 w-4" /></>}
-              </button>
-
-              <div className="pt-4 text-center">
-                <button type="button" onClick={() => {
-                  setStep('email');
-                  setCode("");
-                }} className="text-sm font-bold text-muted-foreground hover:text-foreground">
-                  Use a different email
-                </button>
-              </div>
-            </form>
-          )}
-
-        </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
