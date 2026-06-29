@@ -4,6 +4,10 @@ import { supabase } from '@/lib/supabase';
 let sessionPromise: Promise<{ data: { session: Session | null }, error: any }> | null = null;
 let sessionPromiseTime = 0;
 
+supabase.auth.onAuthStateChange(() => {
+  sessionPromiseTime = 0;
+});
+
 export const getCachedSession = () => {
   const now = Date.now();
   if (sessionPromise && now - sessionPromiseTime < 2000) {
@@ -13,4 +17,3 @@ export const getCachedSession = () => {
   sessionPromiseTime = now;
   return sessionPromise;
 };
-
