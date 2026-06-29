@@ -54,19 +54,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
   const isOwnPost = currentUser?.id === post.author_id;
   const isEditable = isOwnPost; // No time limit
 
-  const { data: isFollowingAuthor } = useQuery({
-    queryKey: ['followStatus', currentUser?.id, post.author_id],
-    enabled: !!currentUser && !isOwnPost,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('follows')
-        .select('*')
-        .eq('follower_id', currentUser.id)
-        .eq('following_id', post.author_id)
-        .maybeSingle();
-      return !!data;
-    }
-  });
+  const isFollowingAuthor = !!(currentUser?.following_ids?.includes(post.author_id));
 
   // Sync state with props
   useEffect(() => {
