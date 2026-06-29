@@ -469,15 +469,15 @@ function ProfileDetail() {
       {/* ═══════════════════════════════════════════════
           LINKEDIN STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 pt-24 md:pt-28">
-        <div className="relative overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm">
+      <div className="mx-auto max-w-4xl px-0 sm:px-6 pt-0 sm:pt-4">
+        <div className="relative overflow-hidden sm:rounded-xl border-x-0 sm:border-x border-b sm:border-b-border/40 border-t-0 border-border/40 bg-card shadow-sm">
           {/* Banner */}
-          <div className="relative h-[200px] w-full overflow-hidden bg-muted">
+          <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden bg-black flex items-center justify-center">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 
                 alt="Banner" 
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain object-center"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.28),transparent_26%),linear-gradient(135deg,#171717_0%,#cc208f_48%,#f5b94b_100%)]" />
@@ -487,15 +487,15 @@ function ProfileDetail() {
           {/* Profile Info Section */}
           <div className="relative px-6 pb-6">
             {/* Avatar overlapping banner */}
-            <div className="absolute -top-[76px] left-6 z-20">
+            <div className="absolute -top-[55px] left-6 z-20">
               <div 
-                className="h-[152px] w-[152px] cursor-pointer overflow-hidden rounded-full border-[4px] border-card bg-muted shadow-sm transition-opacity hover:opacity-90"
+                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-full border-[4px] border-card bg-muted shadow-sm transition-opacity hover:opacity-90"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-primary/20 text-5xl font-black text-primary">
+                  <div className="h-full w-full flex items-center justify-center bg-primary/20 text-4xl font-black text-primary">
                     {initials}
                   </div>
                 )}
@@ -503,7 +503,7 @@ function ProfileDetail() {
             </div>
 
             {/* Empty space for avatar height offset + right side buttons */}
-            <div className="flex justify-end pt-4 pb-2 h-14">
+            <div className="flex justify-end pt-4 pb-2 h-10">
               {/* Notifications and Message icons on top right */}
               {!isOwnProfile && (
                 <div className="flex items-center gap-2">
@@ -533,22 +533,23 @@ function ProfileDetail() {
               )}
             </div>
 
-            <div className="mt-4 flex flex-col items-start gap-1">
-              <div className="flex items-center gap-2">
-                <h2 className="text-[28px] font-bold tracking-tight text-foreground leading-none">
-                  {displayName}
-                </h2>
-                {profile?.tier === 'Premium' && <BadgeCheck className="h-6 w-6 fill-[#cc208f] text-white shrink-0" />}
-                {profile?.tier === 'Premium+' && <BadgeCheck className="h-6 w-6 fill-[#ffcf00] text-black shrink-0" />}
+            <div className="mt-2 flex flex-col items-start gap-1">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[24px] font-bold tracking-tight text-foreground leading-none">
+                    {displayName}
+                  </h2>
+                  {profile?.tier === 'Premium' && <BadgeCheck className="h-5 w-5 fill-[#cc208f] text-white shrink-0" />}
+                  {profile?.tier === 'Premium+' && <BadgeCheck className="h-5 w-5 fill-[#ffcf00] text-black shrink-0" />}
+                </div>
+                <span className="text-sm text-muted-foreground mt-1">{profileHandle}</span>
               </div>
               
-              <div className="mt-1 text-[17px] text-foreground/90 leading-snug">
+              <div className="mt-2 text-[14px] text-foreground/90 leading-snug">
                  {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Builder on Zero Club"}
               </div>
               
-              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-                 <span>{profileHandle}</span>
-                 <span>•</span>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
                  <span>Level {level}</span>
                  <span>•</span>
                  <span className="font-semibold text-primary">{tier}</span>

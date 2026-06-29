@@ -41,7 +41,6 @@ function SignUpPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
-  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     localStorage.setItem("signup_username", username);
@@ -64,28 +63,8 @@ function SignUpPage() {
   }, [agreedToTerms]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.navigate({
-          to: "/app",
-          search: {
-            club: club || "",
-            ref: ref || "",
-          },
-        });
-      } else {
-        setCheckingAuth(false);
-      }
-    });
-  }, [router, club, ref]);
-
-  if (checkingAuth) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+    localStorage.setItem("signup_terms", agreedToTerms ? "true" : "false");
+  }, [agreedToTerms]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();

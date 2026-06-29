@@ -36,7 +36,6 @@ function SignInPage() {
   const { ref, club } = useSearch({ from: "/signin" });
   const [email, setEmail] = useState(() => localStorage.getItem("signin_email") || "");
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const [step, setStep] = useState<"email" | "code">(() => (localStorage.getItem("signin_step") as "email" | "code") || "email");
   const [code, setCode] = useState("");
 
@@ -47,30 +46,6 @@ function SignInPage() {
   useEffect(() => {
     localStorage.setItem("signin_step", step);
   }, [step]);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.navigate({
-          to: "/app",
-          search: {
-            club: club || "",
-            ref: ref || "",
-          },
-        });
-      } else {
-        setCheckingAuth(false);
-      }
-    });
-  }, [router, club, ref]);
-
-  if (checkingAuth) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
