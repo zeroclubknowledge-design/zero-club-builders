@@ -9,7 +9,7 @@ import { getFirstName } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 
-export const Route = createFileRoute("/app/profile_/$id_/network")({
+export const Route = createFileRoute("/app/profile_/$id/network")({
   loader: async ({ params: { id } }) => {
     const { data: { session } } = await supabase.auth.getSession();
     

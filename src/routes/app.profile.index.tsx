@@ -316,17 +316,17 @@ function Profile() {
               </div>
               
               <div className="mt-4 flex items-center gap-4 text-[15px]">
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-white">{profile?.following_count || "0"}</span>
-                  <span className="text-zinc-500">Following</span>
+                <Link to="/app/profile_/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="font-bold text-foreground">{profile?.following_count || "0"}</span>
+                  <span className="text-muted-foreground">Following</span>
                 </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-white">{profile?.followers_count || "0"}</span>
-                  <span className="text-zinc-500">Followers</span>
+                <Link to="/app/profile_/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="font-bold text-foreground">{profile?.followers_count || "0"}</span>
+                  <span className="text-muted-foreground">Followers</span>
                 </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-white">{myClubs.length}</span>
-                  <span className="text-zinc-500">{myClubs.length === 1 ? 'Club' : 'Clubs'}</span>
+                <Link to="/app/profile_/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="font-bold text-foreground">{myClubs.length}</span>
+                  <span className="text-muted-foreground">{myClubs.length === 1 ? 'Club' : 'Clubs'}</span>
                 </Link>
               </div>
               

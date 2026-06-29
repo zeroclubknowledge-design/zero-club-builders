@@ -536,15 +536,15 @@ function ProfileDetail() {
               </div>
               
               <div className="mt-4 flex items-center gap-4 text-[15px]">
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                <Link to="/app/profile_/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
                   <span className="font-bold text-foreground">{followingCount}</span>
                   <span className="text-muted-foreground">Following</span>
                 </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                <Link to="/app/profile_/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
                   <span className="font-bold text-foreground">{followersCount}</span>
                   <span className="text-muted-foreground">Followers</span>
                 </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                <Link to="/app/profile_/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
                   <span className="font-bold text-foreground">{profileClubs.length}</span>
                   <span className="text-muted-foreground">{profileClubs.length === 1 ? 'Club' : 'Clubs'}</span>
                 </Link>
