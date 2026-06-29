@@ -472,7 +472,7 @@ function ProfileDetail() {
       <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4">
         <div className="relative overflow-hidden sm:rounded-[32px] border-x-0 sm:border border-white/5 bg-black shadow-2xl">
           {/* Banner */}
-          <div className="relative h-[250px] sm:h-[300px] w-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden bg-black flex items-center justify-center">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 
@@ -487,9 +487,9 @@ function ProfileDetail() {
           {/* Profile Info Section */}
           <div className="relative px-6 pb-6">
             {/* Avatar overlapping banner */}
-            <div className="absolute -top-[40px] left-6 z-20">
+            <div className="absolute -top-[55px] left-6 z-20">
               <div 
-                className="h-[80px] w-[80px] cursor-pointer overflow-hidden rounded-[20px] border-[4px] border-black bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
+                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-black bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
@@ -503,7 +503,7 @@ function ProfileDetail() {
             </div>
 
             {/* Right side actions */}
-            <div className="flex justify-end pt-3 pb-2 h-14 items-start gap-4">
+            <div className="flex justify-end h-[55px] items-center gap-4">
                {!isOwnProfile && (
                  <button 
                    onClick={handleFollow}
