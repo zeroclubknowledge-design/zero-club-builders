@@ -260,15 +260,16 @@ function Profile() {
       <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4" style={{ marginTop: 'calc(-1 * env(safe-area-inset-top))' }}>
         <div className="relative overflow-hidden sm:rounded-[32px] border-x-0 sm:border border-white/5 bg-black shadow-2xl">
           {/* Banner */}
-          <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="relative w-full overflow-hidden flex items-center justify-center bg-black">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 
                 alt="Banner" 
-                className="h-full w-full object-contain object-center"
+                className="w-full h-auto max-h-[400px] object-contain object-center"
+                style={{ paddingTop: 'env(safe-area-inset-top)' }}
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
+              <div className="flex h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
             )}
           </div>
           
