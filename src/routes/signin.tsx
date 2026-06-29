@@ -76,8 +76,14 @@ function SignInPage() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
       if (error) throw error;
+      
+      if (!data.session) {
+        toast.error("Session missing after verification. Are you registered?");
+        setLoading(false);
+        return;
+      }
 
       toast.success("Welcome back.");
       localStorage.removeItem("signin_email");

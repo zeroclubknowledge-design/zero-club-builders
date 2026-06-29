@@ -555,7 +555,7 @@ function AppLayout() {
       if (mounted) setLoading(false);
     }, 4000);
 
-    getCachedSession().then(({ data: { session }, error }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!mounted) return;
       if (error) console.error("getSession error:", error);
       
@@ -681,9 +681,6 @@ function AppLayout() {
   }
 
   if (!session) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/signup';
-    }
     return null;
   }
 
