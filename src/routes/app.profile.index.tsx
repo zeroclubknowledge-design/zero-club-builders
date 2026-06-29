@@ -22,7 +22,7 @@ export const Route = createFileRoute("/app/profile/")({
   component: Profile,
 });
 
-const tabs = ["Posts", "Ships", "Media", "Likes", "Clubs", "Network"] as const;
+const tabs = ["Posts", "Ships", "Media", "Likes"] as const;
 
 const isVideoUrl = (url: string) => {
   const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg', '.m4v'];
@@ -260,7 +260,7 @@ function Profile() {
       <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4">
         <div className="relative overflow-hidden sm:rounded-[32px] border-x-0 sm:border border-white/5 bg-black shadow-2xl">
           {/* Banner */}
-          <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="relative h-[250px] sm:h-[300px] w-full overflow-hidden bg-black flex items-center justify-center">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 
@@ -275,9 +275,9 @@ function Profile() {
           {/* Profile Info Section */}
           <div className="relative px-6 pb-6">
             {/* Avatar overlapping banner */}
-            <div className="absolute -top-[55px] left-6 z-20">
+            <div className="absolute -top-[40px] left-6 z-20">
               <div 
-                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-black bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
+                className="h-[80px] w-[80px] cursor-pointer overflow-hidden rounded-[20px] border-[4px] border-black bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
@@ -301,16 +301,20 @@ function Profile() {
             </div>
 
             <div className="mt-4 flex flex-col items-start gap-1">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-[22px] font-bold tracking-tight text-white leading-none">
-                    {displayName}
-                  </h2>
-                  <BadgeCheck className="h-[18px] w-[18px] fill-blue-500 text-white shrink-0" />
-                </div>
-                <span className="text-[15px] text-zinc-500 mt-1">{profileHandle}</span>
+              <div className="flex gap-4">
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="text-[14px] font-black text-foreground">{followingCount}</span>
+                  <span className="text-[12px] font-medium text-muted-foreground">Following</span>
+                </Link>
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="text-[14px] font-black text-foreground">{followersCount}</span>
+                  <span className="text-[12px] font-medium text-muted-foreground">Followers</span>
+                </Link>
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="text-[14px] font-black text-foreground">{profileClubs.length}</span>
+                  <span className="text-[12px] font-medium text-muted-foreground">{profileClubs.length === 1 ? 'Club' : 'Clubs'}</span>
+                </Link>
               </div>
-              
               <div className="mt-3 text-[15px] text-zinc-300 leading-relaxed pr-4">
                  {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Dynamic builder and creator on Zero Club, specializing in shipping great products."}
               </div>
@@ -466,76 +470,10 @@ function Profile() {
         )}
 
         {tab === "Likes" && (
-          <div className="space-y-4">
-            {likedPostsData && likedPostsData.length > 0 ? (
-              likedPostsData.map((post: any) => (
-                <PostCard 
-                  key={post.id} 
-                  post={post} 
-                  currentUser={currentUser} 
-                  onCommentClick={setCommentPost} 
-                />
-              ))
-            ) : (
-              <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Heart className="h-10 w-10 text-muted-foreground/40" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No likes yet</h3>
-                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">Posts you like will be saved here for easy access.</p>
-              </div>
-            )}
+          <div className="py-20 text-center text-muted-foreground">
+            Likes will appear here
           </div>
         )}
-
-        {tab === "Clubs" && (
-          <div className="space-y-3">
-            {myClubs.length > 0 ? myClubs.map((c: any) => (
-              <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition active:scale-[0.98]">
-                <article className="flex items-center gap-3.5 p-4 rounded-2xl bg-accent/20 border border-border/20 hover:bg-accent/40 transition-all">
-                  <div className="shrink-0">
-                    <div className="h-12 w-12 rounded-xl bg-accent/30 border border-border/30 flex items-center justify-center overflow-hidden">
-                      {c.logo_url || c.banner_url ? (
-                        <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <Hash className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <h4 className="truncate text-[14px] font-bold text-foreground tracking-tight">{c.name}</h4>
-                      <CheckCircle2 className="h-3.5 w-3.5 text-primary fill-primary/20 shrink-0" />
-                    </div>
-                    <p className="truncate text-[12px] text-muted-foreground">{c.description || "Welcome to the club!"}</p>
-                  </div>
-
-                  <div className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-accent/40 rounded-full px-2.5 py-1 border border-border/20">
-                    <Users className="h-3 w-3" />
-                    {c.members_count || 1}
-                  </div>
-                </article>
-              </Link>
-            )) : (
-              <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Users className="h-10 w-10 text-muted-foreground/40" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No clubs yet</h3>
-                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">Join a club to connect with like-minded builders.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {tab === "Network" && <NetworkTab profileId={profile?.id} />}
       </div>
 
       {commentPost && (
@@ -544,12 +482,14 @@ function Profile() {
           isOpen={!!commentPost} 
           onOpenChange={(open) => !open && setCommentPost(null)}
           onCommentAdded={() => {
-            queryClient.invalidateQueries({ queryKey: ['profilePosts'] });
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
+            queryClient.invalidateQueries({ queryKey: ['post'] });
           }}
         />
       )}
 
-      {isAvatarOpen && profile?.avatar_url && (
+      {/* Full Screen Avatar View */}
+      {isAvatarOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-zoom-out animate-in fade-in duration-200"
           onClick={() => setIsAvatarOpen(false)}
@@ -561,116 +501,13 @@ function Profile() {
             <X className="w-6 h-6" />
           </button>
           <img 
-            src={profile.avatar_url} 
+            src={profile?.avatar_url} 
             className="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl" 
             alt="Full Avatar" 
             onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
-    </div>
-  );
-}
-
-function NetworkTab({ profileId }: { profileId: string }) {
-  const [activeTab, setActiveTab] = useState<"following" | "followers">("following");
-
-  const { data: following, isLoading: followingLoading } = useQuery({
-    queryKey: ['following', profileId],
-    queryFn: async () => {
-      const { data: follows } = await supabase.from('follows').select('following_id').eq('follower_id', profileId);
-      const ids = follows?.map(f => f.following_id) || [];
-      if (ids.length === 0) return [];
-      const { data } = await supabase.from('profiles').select('*').in('id', ids);
-      return data || [];
-    }
-  });
-
-  const { data: followers, isLoading: followersLoading } = useQuery({
-    queryKey: ['followers', profileId],
-    queryFn: async () => {
-      const { data: follows } = await supabase.from('follows').select('follower_id').eq('following_id', profileId);
-      const ids = follows?.map(f => f.follower_id) || [];
-      if (ids.length === 0) return [];
-      const { data } = await supabase.from('profiles').select('*').in('id', ids);
-      return data || [];
-    }
-  });
-
-  const users = activeTab === "following" ? following : followers;
-  const isLoading = activeTab === "following" ? followingLoading : followersLoading;
-
-  return (
-    <div className="space-y-4">
-      {/* Line toggle */}
-      <div className="flex gap-6 border-b border-border/20">
-        <button 
-          onClick={() => setActiveTab("following")}
-          className={`pb-3 text-[14px] font-bold tracking-wide transition-all relative ${
-            activeTab === "following" 
-              ? "text-foreground" 
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Following
-          {activeTab === "following" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-t-full" />
-          )}
-        </button>
-        <button 
-          onClick={() => setActiveTab("followers")}
-          className={`pb-3 text-[14px] font-bold tracking-wide transition-all relative ${
-            activeTab === "followers" 
-              ? "text-foreground" 
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Followers
-          {activeTab === "followers" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-t-full" />
-          )}
-        </button>
-      </div>
-
-      <div className="space-y-2.5">
-        {isLoading ? (
-          <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-        ) : users && users.length > 0 ? (
-          users.map((user: any) => (
-            <Link key={user.id} to={`/app/profile/${user.username || user.id}`} className="flex items-center gap-3 p-3.5 rounded-2xl bg-accent/20 border border-border/20 hover:bg-accent/40 transition-all active:scale-[0.98]">
-              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-accent border border-border/30 flex items-center justify-center font-bold text-muted-foreground text-xs">
-                {user.avatar_url ? (
-                  <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  user.username?.charAt(0).toUpperCase() || "U"
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-foreground text-[14px] truncate">{user.full_name || user.username}</span>
-                  {user.tier === 'Premium' && <BadgeCheck className="h-3.5 w-3.5 fill-[#cc208f] text-white shrink-0" />}
-                  {user.tier === 'Premium+' && <BadgeCheck className="h-3.5 w-3.5 fill-[#ffcf00] text-black shrink-0" />}
-                </div>
-                <div className="text-[12px] text-muted-foreground">{getFirstName(user)}</div>
-                {user.bio && <div className="text-[12px] text-muted-foreground/80 mt-0.5 line-clamp-1"><LinkifiedText text={user.bio} /></div>}
-              </div>
-            </Link>
-          ))
-        ) : (
-          <div className="py-20 text-center">
-            <div className="relative mx-auto mb-6 w-fit">
-              <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-              <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                <Users className="h-10 w-10 text-muted-foreground/40" />
-              </div>
-            </div>
-            <h3 className="text-xl font-black tracking-tight mb-2">No {activeTab} yet</h3>
-            <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
-              {activeTab === "following" ? "Start following builders to see them here." : "When people follow you, they'll appear here."}
-            </p>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

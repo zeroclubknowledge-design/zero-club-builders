@@ -60,6 +60,7 @@ import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
+import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id_.network'
 import { Route as AppNotesIdEditRouteImport } from './routes/app.notes.$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
@@ -320,6 +321,11 @@ const AppSettingsPremiumFeaturesRoute =
     path: '/features',
     getParentRoute: () => AppSettingsPremiumRoute,
   } as any)
+const AppProfileIdNetworkRoute = AppProfileIdNetworkRouteImport.update({
+  id: '/profile_/$id_/network',
+  path: '/profile/$id/network',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -378,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
+  '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
 }
 export interface FileRoutesByTo {
@@ -428,6 +435,7 @@ export interface FileRoutesByTo {
   '/app/tutor-studio': typeof AppTutorStudioIndexRoute
   '/app/wallet': typeof AppWalletIndexRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
+  '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
 }
 export interface FileRoutesById {
@@ -483,6 +491,7 @@ export interface FileRoutesById {
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
+  '/app/profile_/$id_/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
 }
 export interface FileRouteTypes {
@@ -539,6 +548,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/app/notes/$id/edit'
+    | '/app/profile/$id/network'
     | '/app/settings/premium/features'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -589,6 +599,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio'
     | '/app/wallet'
     | '/app/notes/$id/edit'
+    | '/app/profile/$id/network'
     | '/app/settings/premium/features'
   id:
     | '__root__'
@@ -643,6 +654,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/app/notes/$id/edit'
+    | '/app/profile_/$id_/network'
     | '/app/settings/premium/features'
   fileRoutesById: FileRoutesById
 }
@@ -1012,6 +1024,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsPremiumFeaturesRouteImport
       parentRoute: typeof AppSettingsPremiumRoute
     }
+    '/app/profile_/$id_/network': {
+      id: '/app/profile_/$id_/network'
+      path: '/profile/$id/network'
+      fullPath: '/app/profile/$id/network'
+      preLoaderRoute: typeof AppProfileIdNetworkRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notes/$id/edit': {
       id: '/app/notes/$id/edit'
       path: '/edit'
@@ -1135,6 +1154,7 @@ interface AppRouteChildren {
   AppClubsIndexRoute: typeof AppClubsIndexRoute
   AppProfileIndexRoute: typeof AppProfileIndexRoute
   AppWalletIndexRoute: typeof AppWalletIndexRoute
+  AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1171,6 +1191,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppClubsIndexRoute: AppClubsIndexRoute,
   AppProfileIndexRoute: AppProfileIndexRoute,
   AppWalletIndexRoute: AppWalletIndexRoute,
+  AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
