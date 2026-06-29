@@ -301,31 +301,33 @@ function Profile() {
             </div>
 
             <div className="mt-4 flex flex-col items-start gap-1">
-              <div className="flex gap-4">
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="text-[14px] font-black text-foreground">{followingCount}</span>
-                  <span className="text-[12px] font-medium text-muted-foreground">Following</span>
-                </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="text-[14px] font-black text-foreground">{followersCount}</span>
-                  <span className="text-[12px] font-medium text-muted-foreground">Followers</span>
-                </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="text-[14px] font-black text-foreground">{profileClubs.length}</span>
-                  <span className="text-[12px] font-medium text-muted-foreground">{profileClubs.length === 1 ? 'Club' : 'Clubs'}</span>
-                </Link>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-[22px] font-bold tracking-tight text-white leading-none">
+                    {displayName}
+                  </h2>
+                  <BadgeCheck className="h-[18px] w-[18px] fill-blue-500 text-white shrink-0" />
+                </div>
+                <span className="text-[15px] text-zinc-500 mt-1">{profileHandle}</span>
               </div>
+              
               <div className="mt-3 text-[15px] text-zinc-300 leading-relaxed pr-4">
                  {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Dynamic builder and creator on Zero Club, specializing in shipping great products."}
               </div>
               
               <div className="mt-4 flex items-center gap-4 text-[15px]">
-                 <span className="hover:opacity-80 transition-opacity cursor-pointer">
-                   <span className="font-bold text-white">{profile?.following_count || "0"}</span> <span className="text-zinc-500">Following</span>
-                 </span>
-                 <span className="hover:opacity-80 transition-opacity cursor-pointer">
-                   <span className="font-bold text-white">{profile?.followers_count || "0"}</span> <span className="text-zinc-500">Followers</span>
-                 </span>
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="font-bold text-white">{profile?.following_count || "0"}</span>
+                  <span className="text-zinc-500">Following</span>
+                </Link>
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="font-bold text-white">{profile?.followers_count || "0"}</span>
+                  <span className="text-zinc-500">Followers</span>
+                </Link>
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                  <span className="font-bold text-white">{myClubs.length}</span>
+                  <span className="text-zinc-500">{myClubs.length === 1 ? 'Club' : 'Clubs'}</span>
+                </Link>
               </div>
               
               <div className="mt-3 flex items-center gap-1.5 text-[14px]">
