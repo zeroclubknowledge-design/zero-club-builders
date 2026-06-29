@@ -240,17 +240,16 @@ function Profile() {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Edit Profile button */}
-                <Link 
-                  to="/app/profile/edit" 
-                  className={`flex items-center gap-1.5 rounded-full px-4 py-[7px] text-[12px] font-bold tracking-wide transition-all active:scale-95 ${
-                    scrolled
-                      ? "bg-foreground text-background shadow-lg shadow-foreground/10"
-                      : "bg-white/15 text-white backdrop-blur-md border border-white/15 hover:bg-white/25"
+                 <button 
+                  onClick={handleShare}
+                  className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
+                    scrolled 
+                      ?"bg-accent/50 text-foreground hover:bg-accent" 
+                      : "bg-black/30 text-white backdrop-blur-md border border-white/10"
                   }`}
                 >
-                  Edit Profile
-                </Link>
+                  <Share2 className="h-[18px] w-[18px]" />
+                </button>
               </div>
         </div>
       </header>
@@ -266,7 +265,7 @@ function Profile() {
               <img 
                 src={profile.banner_url} 
                 alt="Banner" 
-                className="h-full w-full object-cover object-center"
+                className="h-full w-full object-contain object-center"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />

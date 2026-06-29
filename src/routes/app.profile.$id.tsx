@@ -477,7 +477,7 @@ function ProfileDetail() {
               <img 
                 src={profile.banner_url} 
                 alt="Banner" 
-                className="h-full w-full object-cover object-center"
+                className="h-full w-full object-contain object-center"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
