@@ -5,18 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
-  beforeLoad: async ({ search }) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      throw redirect({
-        to: "/app",
-        search: {
-          club: search.club || "",
-          ref: search.ref || "",
-        },
-      });
-    }
-  },
   component: SignUpPage,
   validateSearch: (search: Record<string, unknown>): { ref?: string; club?: string } => ({
     ref: (search.ref as string) || undefined,
@@ -41,6 +29,20 @@ function SignUpPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.navigate({
+          to: "/app",
+          search: {
+            club: club || "",
+            ref: ref || "",
+          },
+        });
+      }
+    });
+  }, [router, club, ref]);
 
   useEffect(() => {
     localStorage.setItem("signup_username", username);
