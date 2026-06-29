@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { supabase } from '@/lib/supabase';
+import { getCachedSession } from '@/lib/auth';
 
 // Fetch all active bootcamps
 export const getBootcamps = createServerFn({ method: 'GET' }).handler(async () => {
@@ -13,7 +14,7 @@ export const getBootcamps = createServerFn({ method: 'GET' }).handler(async () =
 
 // Fetch bootcamps created by current user
 export const getTutorBootcamps = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   if (!session) return [];
 
   const { data, error } = await supabase
@@ -132,7 +133,7 @@ export const getPosts = async () => {
     let myReposts: string[] = [];
     let myQuotes: string[] = [];
     
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await getCachedSession();
     
     if (session && (posts || reposts)) {
       const allPostIds = [
@@ -286,7 +287,7 @@ export const getProfile = createServerFn({ method: 'GET' }).handler(async ({ dat
 
 // Fetch current user's profile
 export const getCurrentProfile = createServerFn({ method: 'GET' }).handler(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   if (!session) return null;
 
   const { data, error } = await supabase
@@ -396,7 +397,7 @@ export const unfollowUserAction = createServerFn({ method: 'POST' }).handler(asy
 
 // Fetch profiles that follow the current user
 export const getFollowers = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   if (!session) return [];
 
   const { data, error } = await supabase
@@ -419,7 +420,7 @@ const getLocalDateString = () => {
 };
 
 export const getQuests = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   if (!session) return [];
 
   const TODAY_QUESTS = [
@@ -492,7 +493,7 @@ export const getQuests = async () => {
 
 // Claim a quest reward
 export const claimQuestRewardAction = async ({ data: questId }: { data: string }) => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   if (!session) throw new Error("Unauthorized");
 
   const dateStr = getLocalDateString();
@@ -528,7 +529,7 @@ export const claimQuestRewardAction = async ({ data: questId }: { data: string }
 
 // Send a message
 export const sendMessageAction = async ({ receiverId, content, reply_to_id }: { receiverId: string; content: string; reply_to_id?: string }) => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   const user = session?.user;
   if (!user) throw new Error("Unauthorized");
 
@@ -549,7 +550,7 @@ export const sendMessageAction = async ({ receiverId, content, reply_to_id }: { 
 
 // Fetch messages for a conversation
 export const getMessages = async (otherUserId: string) => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   const user = session?.user;
   if (!user) return [];
 
@@ -571,7 +572,7 @@ export const getMessages = async (otherUserId: string) => {
 
 // Fetch all conversations for current user
 export const getConversations = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   const user = session?.user;
   if (!user) return [];
 
@@ -632,7 +633,7 @@ export const getConversations = async () => {
 
 // Edit a message
 export const editMessageAction = async ({ messageId, content }: { messageId: string; content: string }) => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await getCachedSession();
   const user = session?.user;
   if (!user) throw new Error("Unauthorized");
 

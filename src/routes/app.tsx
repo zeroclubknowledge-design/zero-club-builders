@@ -19,7 +19,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
-import { getSettledSession } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
@@ -329,7 +329,7 @@ function AppLayout() {
     let unreadBadgeCount = 0;
 
     const updatePresenceAndBadges = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await getCachedSession();
       if (session) {
         // 1. Update presence
         await supabase
@@ -550,12 +550,12 @@ function AppLayout() {
   useEffect(() => {
     let mounted = true;
 
-    // Safety fallback: if session doesn't resolve in 1.5s, unblock UI
+    // Safety fallback: if session doesn't resolve in 4s, unblock UI
     const timeout = setTimeout(() => {
       if (mounted) setLoading(false);
-    }, 1500);
+    }, 4000);
 
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    getCachedSession().then(({ data: { session }, error }) => {
       if (!mounted) return;
       if (error) console.error("getSession error:", error);
       
@@ -680,7 +680,12 @@ function AppLayout() {
     );
   }
 
-  if (!session) return null;
+  if (!session) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/signup';
+    }
+    return null;
+  }
 
 
 

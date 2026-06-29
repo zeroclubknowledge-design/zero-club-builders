@@ -63,7 +63,7 @@ function Feed() {
   }, [searchQuery]);
 
   async function fetchFollowing() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await getCachedSession();
     if (!session) return;
 
     const { data } = await supabase

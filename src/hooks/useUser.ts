@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { getCachedSession } from "@/lib/auth";
 
 export function useUser() {
   return useQuery({
     queryKey: ["profile", "current"],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await getCachedSession();
       if (!session) return null;
 
       const { data, error } = await supabase
