@@ -31,7 +31,7 @@ export const Route = createFileRoute("/app/profile_/$id/network")({
 });
 
 function ProfileNetwork() {
-  const { profile, currentUser } = useLoaderData({ from: "/app/profile/$id/network" });
+  const { profile, currentUser } = useLoaderData({ from: "/app/profile_/$id/network" });
   const [activeTab, setActiveTab] = useState<"following" | "followers" | "clubs">("following");
   const [isFollowing, setIsFollowing] = useState(false);
   const [scrolled, setScrolled] = useState(false);
