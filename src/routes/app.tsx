@@ -305,9 +305,7 @@ function AppLayout() {
   const loaderData = Route.useLoaderData();
   const [visible, setVisible] = useState(true);
   const [session, setSession] = useState<any>(loaderData.isAuthenticated ? { user: { id: loaderData.userId } } : null);
-  const [loading, setLoading] = useState(true);
-  const initialAuthCheckDone = useRef(false);
-  const latestSession = useRef<any>(loaderData.isAuthenticated ? { user: { id: loaderData.userId } } : null);
+  const [loading, setLoading] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
@@ -557,54 +555,37 @@ function AppLayout() {
 
   // 1. Manage Session and Loading state
   useEffect(() => {
-    let cancelled = false;
-
-    const redirectToSignup = () => {
-      if (cancelled) return;
-      const search = new URLSearchParams(window.location.search);
-      router.navigate({ 
-        to: "/signup", 
-        search: { 
-          ref: search.get('ref') || "",
-          club: search.get('club') || ""
-        } 
-      });
-    };
-
-    getSettledSession(null, { attempts: 12, intervalMs: 125 }).then((resolvedSession) => {
-      if (cancelled) return;
-      const nextSession = resolvedSession || latestSession.current;
-      initialAuthCheckDone.current = true;
-      latestSession.current = nextSession;
-      setSession(nextSession);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
       setLoading(false);
-
-      if (!nextSession) {
-        redirectToSignup();
+      
+      if (!session) {
+        const search = new URLSearchParams(window.location.search);
+        router.navigate({ 
+          to: "/signup", 
+          search: { 
+            ref: search.get('ref') || "",
+            club: search.get('club') || ""
+          } 
+        });
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (cancelled) return;
-      latestSession.current = nextSession;
-      setSession(nextSession);
-
-      if (nextSession) {
-        initialAuthCheckDone.current = true;
-        setLoading(false);
-        return;
-      }
-
-      if (event === "SIGNED_OUT" || initialAuthCheckDone.current) {
-        setLoading(false);
-        redirectToSignup();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) {
+        const search = new URLSearchParams(window.location.search);
+        router.navigate({ 
+          to: "/signup", 
+          search: { 
+            ref: search.get('ref') || "",
+            club: search.get('club') || ""
+          } 
+        });
       }
     });
 
-    return () => {
-      cancelled = true;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [router]);
 
   // 2. Handle Club Invites from URL
