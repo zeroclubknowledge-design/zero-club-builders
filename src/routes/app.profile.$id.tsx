@@ -470,9 +470,9 @@ function ProfileDetail() {
           HENSOR STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
       <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4">
-        <div className="relative overflow-hidden sm:rounded-[32px] border border-white/5 bg-[#0a0a0a] shadow-2xl">
+        <div className="relative overflow-hidden sm:rounded-[32px] border-x-0 sm:border border-white/5 bg-black shadow-2xl">
           {/* Banner */}
-          <div className="relative h-[160px] sm:h-[180px] w-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden bg-black flex items-center justify-center">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 
@@ -489,7 +489,7 @@ function ProfileDetail() {
             {/* Avatar overlapping banner */}
             <div className="absolute -top-[55px] left-6 z-20">
               <div 
-                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-[#0a0a0a] bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
+                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-black bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
