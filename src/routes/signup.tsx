@@ -308,14 +308,13 @@ function SignUpPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Confirmation code</span>
                     <span className="relative block">
-                      <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="text"
                         placeholder="000000"
                         maxLength={10}
                         value={code}
                         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-center text-lg font-black tracking-[0.45em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 text-center text-lg font-black tracking-[0.45em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                       />
                     </span>
                   </label>
@@ -332,18 +331,16 @@ function SignUpPage() {
                     {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Complete signup <ArrowRight className="h-4 w-4" /></>}
                   </button>
 
-                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
-                    Go back
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button type="button" onClick={handleSendCode} disabled={loading} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                      Resend code
+                    </button>
+                    <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                      Go back
+                    </button>
+                  </div>
                 </form>
               )}
-
-              <div className="mt-6 grid grid-cols-[auto_1fr] gap-3 rounded-xl border border-border/35 bg-background/45 px-4 py-3 text-xs font-bold text-muted-foreground">
-                <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
-                <span>Your account starts with secure email verification. No password setup needed.</span>
-                <Sparkles className="mt-0.5 h-4 w-4 text-primary" />
-                <span>Referral codes stay connected so both builders can earn their XP reward.</span>
-              </div>
             </div>
           </div>
         </section>
