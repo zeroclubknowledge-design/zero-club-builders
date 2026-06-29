@@ -571,9 +571,9 @@ function AppLayout() {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      if (!session) {
+      if (event === 'SIGNED_OUT') {
         const search = new URLSearchParams(window.location.search);
         router.navigate({ 
           to: "/signup", 
