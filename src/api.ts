@@ -82,11 +82,13 @@ export const getPosts = async () => {
       supabase
         .from('posts')
         .select('*, profiles(username, full_name, avatar_url), quoted_posts:quoted_post_id(*, profiles(username, full_name, avatar_url))')
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .limit(50),
       supabase
         .from('reposts')
         .select('*, posts(*, profiles(username, full_name, avatar_url)), profiles(username, full_name)')
         .order('created_at', { ascending: false })
+        .limit(50)
     ]);
 
     if (postsError) {
@@ -132,17 +134,24 @@ export const getPosts = async () => {
     
     const { data: { session } } = await supabase.auth.getSession();
     
-    if (session) {
-      const [bmsRes, lksRes, repRes, quotesRes] = await Promise.all([
-        supabase.from('bookmarks').select('post_id').eq('profile_id', session.user.id),
-        supabase.from('likes').select('post_id').eq('profile_id', session.user.id),
-        supabase.from('reposts').select('post_id').eq('profile_id', session.user.id),
-        supabase.from('posts').select('quoted_post_id').eq('author_id', session.user.id).not('quoted_post_id', 'is', null)
-      ]);
-      myBookmarks = bmsRes.data?.map(b => b.post_id) || [];
-      myLikes = lksRes.data?.map(l => l.post_id) || [];
-      myReposts = repRes.data?.map(r => r.post_id) || [];
-      myQuotes = quotesRes.data?.map(q => q.quoted_post_id).filter(Boolean) as string[] || [];
+    if (session && (posts || reposts)) {
+      const allPostIds = [
+        ...(posts?.map(p => p.id) || []),
+        ...(repostedPosts.map(p => p.original_id) || [])
+      ].filter(Boolean);
+
+      if (allPostIds.length > 0) {
+        const [bmsRes, lksRes, repRes, quotesRes] = await Promise.all([
+          supabase.from('bookmarks').select('post_id').eq('profile_id', session.user.id).in('post_id', allPostIds),
+          supabase.from('likes').select('post_id').eq('profile_id', session.user.id).in('post_id', allPostIds),
+          supabase.from('reposts').select('post_id').eq('profile_id', session.user.id).in('post_id', allPostIds),
+          supabase.from('posts').select('quoted_post_id').eq('author_id', session.user.id).in('quoted_post_id', allPostIds)
+        ]);
+        myBookmarks = bmsRes.data?.map(b => b.post_id) || [];
+        myLikes = lksRes.data?.map(l => l.post_id) || [];
+        myReposts = repRes.data?.map(r => r.post_id) || [];
+        myQuotes = quotesRes.data?.map(q => q.quoted_post_id).filter(Boolean) as string[] || [];
+      }
     }
     
     // 4. Merge, flag bookmarks/likes, and sort
