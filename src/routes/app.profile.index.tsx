@@ -256,145 +256,111 @@ function Profile() {
       </header>
 
       {/* ═══════════════════════════════════════════════
-          IMMERSIVE HERO — Full-bleed banner
-          with glassmorphic profile card overlay
+          LINKEDIN STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
-      <div className="relative w-full">
-        {/* Hero image area */}
-        <div className="relative h-[310px] w-full overflow-hidden sm:h-[360px]">
-          {profile?.banner_url ? (
-            <img 
-              src={profile.banner_url} 
-              alt="Banner" 
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.28),transparent_26%),linear-gradient(135deg,#171717_0%,#cc208f_48%,#f5b94b_100%)]" />
-          )}
-
-          {/* Gradient overlay — fades image into the background */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-black/45" />
-          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
-          <div className="absolute bottom-6 left-5 right-5 hidden items-end justify-between text-white/90 sm:flex">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/60">Builder profile</p>
-              <p className="mt-1 max-w-[24rem] text-sm font-medium text-white/80">Portfolio, network, ships, and signal in one place.</p>
-            </div>
-            <div className="rounded-full border border-white/20 bg-black/20 px-3 py-1.5 text-xs font-bold backdrop-blur-xl">
-              Level {level}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Glassmorphic Profile Info Card ── */}
-        <div className="relative z-10 -mt-24 px-4 sm:px-6">
-          <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-card/88 p-5 pt-16 shadow-[0_24px_80px_rgba(0,0,0,0.22)] backdrop-blur-2xl sm:p-6 sm:pt-16">
-            {/* Subtle glass highlight */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-            <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-primary/12 blur-3xl" />
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 pt-24 md:pt-28">
+        <div className="relative overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm">
+          {/* Banner */}
+          <div className="relative h-[200px] w-full overflow-hidden bg-muted">
+            {profile?.banner_url ? (
+              <img 
+                src={profile.banner_url} 
+                alt="Banner" 
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.28),transparent_26%),linear-gradient(135deg,#171717_0%,#cc208f_48%,#f5b94b_100%)]" />
+            )}
             
-            {/* Profile Avatar overlapping */}
-            <div className="absolute -top-12 left-6 z-20">
+            {/* Edit Banner Button */}
+             <div className="absolute top-4 right-4 z-10">
+                <Link to="/app/profile/edit" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80">
+                  <Pen className="h-4 w-4" />
+                </Link>
+             </div>
+          </div>
+          
+          {/* Profile Info Section */}
+          <div className="relative px-6 pb-6">
+            {/* Avatar overlapping banner */}
+            <div className="absolute -top-[76px] left-6 z-20">
               <div 
-                className="h-24 w-24 cursor-pointer overflow-hidden rounded-3xl border-4 border-background bg-muted shadow-2xl transition-opacity hover:opacity-90"
+                className="h-[152px] w-[152px] cursor-pointer overflow-hidden rounded-full border-[4px] border-card bg-muted shadow-sm transition-opacity hover:opacity-90"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-primary/20 text-3xl font-black text-primary">
+                  <div className="h-full w-full flex items-center justify-center bg-primary/20 text-5xl font-black text-primary">
                     {initials}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="relative z-10">
-              {/* Name + Badges + Action buttons row */}
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <h2 className="font-display max-w-full break-words text-[clamp(2rem,8vw,3.35rem)] font-black leading-[0.95] tracking-tight text-foreground">
-                      {displayName}
-                    </h2>
-                    {profile?.tier === 'Premium' && <BadgeCheck className="h-6 w-6 fill-[#cc208f] text-white shrink-0" />}
-                    {profile?.tier === 'Premium+' && <BadgeCheck className="h-6 w-6 fill-[#ffcf00] text-black shrink-0" />}
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-border/40 bg-background/60 px-3 py-1 text-[13px] font-bold text-muted-foreground">{profileHandle}</span>
-                    <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[13px] font-bold text-primary">{tier}</span>
-                    <span className="rounded-full border border-border/40 bg-background/60 px-3 py-1 text-[13px] font-bold text-muted-foreground">Level {level}</span>
-                  </div>
-                </div>
+            {/* Empty space for avatar height offset */}
+            <div className="flex justify-end pt-4 pb-2 h-14"></div>
 
-                {/* Share + Copy action circles */}
-                <div className="flex shrink-0 items-center gap-2">
-                  <button 
-                    onClick={handleShare}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-primary shadow-lg shadow-primary/20 transition-all active:scale-95"
-                    aria-label="Share profile"
-                  >
-                    <Share2 className="h-[18px] w-[18px] text-white" />
-                  </button>
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile?.id}?ref=${profile?.referral_code}`);
-                      toast.success("Referral link copied!");
-                    }}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground/90 shadow-lg transition-all active:scale-95"
-                    aria-label="Copy referral link"
-                  >
-                    <Copy className="h-[18px] w-[18px] text-background" />
-                  </button>
-                </div>
+            <div className="mt-4 flex flex-col items-start gap-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-[28px] font-bold tracking-tight text-foreground leading-none">
+                  {displayName}
+                </h2>
+                {profile?.tier === 'Premium' && <BadgeCheck className="h-6 w-6 fill-[#cc208f] text-white shrink-0" />}
+                {profile?.tier === 'Premium+' && <BadgeCheck className="h-6 w-6 fill-[#ffcf00] text-black shrink-0" />}
               </div>
-
-              {/* Bio */}
-              {profile?.bio && (
-                <p className="mt-5 text-[15px] leading-7 text-foreground/75">
-                  <LinkifiedText text={profile.bio} />
-                </p>
-              )}
-
-              {/* Stats row with dividers — Followers | Following | Posts */}
-              <div className="mt-6 grid grid-cols-3 gap-2 border-t border-border/15 pt-4">
-                <div className="rounded-2xl border border-border/25 bg-background/55 px-3 py-3 text-center">
-                  <span className="block font-display text-[22px] font-black leading-none text-foreground">
-                    {profile?.followers_count || "0"}
-                  </span>
-                  <span className="mt-1.5 block text-[11px] font-semibold tracking-wide text-muted-foreground">
-                    Followers
-                  </span>
-                </div>
-                <div className="rounded-2xl border border-border/25 bg-background/55 px-3 py-3 text-center">
-                  <span className="block font-display text-[22px] font-black leading-none text-foreground">
-                    {profile?.following_count || "0"}
-                  </span>
-                  <span className="mt-1.5 block text-[11px] font-semibold tracking-wide text-muted-foreground">
-                    Following
-                  </span>
-                </div>
-                <div className="rounded-2xl border border-border/25 bg-background/55 px-3 py-3 text-center">
-                  <span className="block font-display text-[22px] font-black leading-none text-foreground">
-                    {userPosts.length}
-                  </span>
-                  <span className="mt-1.5 block text-[11px] font-semibold tracking-wide text-muted-foreground">
-                    Posts
-                  </span>
-                </div>
+              
+              <div className="mt-1 text-[17px] text-foreground/90 leading-snug">
+                 {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Builder on Zero Club"}
               </div>
+              
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                 <span>{profileHandle}</span>
+                 <span>•</span>
+                 <span>Level {level}</span>
+                 <span>•</span>
+                 <span className="font-semibold text-primary">{tier}</span>
+              </div>
+              
+              <div className="mt-2 flex items-center gap-3 text-[15px] font-medium text-foreground/60">
+                 <span className="hover:text-primary transition-colors cursor-pointer"><span className="font-bold text-foreground">{profile?.followers_count || "0"}</span> followers</span>
+                 <span className="hover:text-primary transition-colors cursor-pointer"><span className="font-bold text-foreground">{profile?.following_count || "0"}</span> following</span>
+                 <span className="hover:text-primary transition-colors cursor-pointer"><span className="font-bold text-foreground">{userPosts.length}</span> posts</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+               <button 
+                  onClick={handleShare}
+                  className="rounded-full bg-primary px-5 py-1.5 text-[15px] font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  Share Profile
+                </button>
+               <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile?.id}?ref=${profile?.referral_code}`);
+                    toast.success("Referral link copied!");
+                  }}
+                  className="rounded-full border border-border bg-transparent px-5 py-1.5 text-[15px] font-semibold text-foreground hover:bg-muted transition-colors"
+                >
+                  Copy Link
+                </button>
+                <Link
+                  to="/app/profile/edit"
+                  className="rounded-full border border-border bg-transparent px-5 py-1.5 text-[15px] font-semibold text-foreground hover:bg-muted transition-colors"
+                >
+                  Edit Profile
+                </Link>
             </div>
           </div>
         </div>
       </div>
-
-
-
-
+      
       {/* ═══════════════════════════════════════════
           CONTENT TABS
          ═══════════════════════════════════════════ */}
-      <div className="mt-6 px-5">
+      <div className="mx-auto max-w-4xl mt-6 px-4 sm:px-6">
         <div className="flex gap-6 overflow-x-auto no-scrollbar border-b border-border/20">
           {tabs.map((t) => {
             const active = tab === t;
