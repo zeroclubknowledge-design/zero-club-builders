@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "outputDirectory": "dist/client",
+  "cleanUrls": true,
+  "functions": {
+    "api/index.ts": {
+      "memory": 1024,
+      "maxDuration": 15
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/_next/(.*)",
+      "destination": "/_next/$1"
+    },
+    {
+      "source": "/assets/(.*)",
+      "destination": "/assets/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ]
+}
