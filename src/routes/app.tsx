@@ -26,11 +26,6 @@ import { getFirstName } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/app")({
-  loader: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return { isAuthenticated: false };
-    return { isAuthenticated: true, userId: session.user.id };
-  },
   component: AppLayout,
 });
 
@@ -302,10 +297,9 @@ function AppLayout() {
   const { pathname } = useLocation();
   const location = useLocation();
   const navigate = useNavigate();
-  const loaderData = Route.useLoaderData();
   const [visible, setVisible] = useState(true);
-  const [session, setSession] = useState<any>(loaderData.isAuthenticated ? { user: { id: loaderData.userId } } : null);
-  const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
