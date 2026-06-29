@@ -2,6 +2,7 @@ import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, ChevronLeft, Loader2, Lock, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { getSettledSession } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signin")({
@@ -74,15 +75,21 @@ function SignInPage() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
       if (error) throw error;
+
+      const session = await getSettledSession(data.session);
+      if (!session) {
+        throw new Error("Your code was accepted, but the session was not ready. Please try again.");
+      }
 
       toast.success("Welcome back.");
       localStorage.removeItem("signin_email");
       localStorage.removeItem("signin_step");
 
-      router.navigate({
+      await router.navigate({
         to: "/app",
+        replace: true,
         search: {
           club: club || "",
           ref: ref || "",

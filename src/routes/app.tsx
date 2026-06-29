@@ -14,11 +14,12 @@ import {
   MoreHorizontal, SlidersHorizontal, LifeBuoy, UserPlus, Crown, Rocket, Zap,
   Palette, Check, Sun, MessageCircle, GraduationCap, Globe, Feather
 } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
+import { getSettledSession } from "@/lib/auth";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
@@ -304,7 +305,9 @@ function AppLayout() {
   const loaderData = Route.useLoaderData();
   const [visible, setVisible] = useState(true);
   const [session, setSession] = useState<any>(loaderData.isAuthenticated ? { user: { id: loaderData.userId } } : null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const initialAuthCheckDone = useRef(false);
+  const latestSession = useRef<any>(loaderData.isAuthenticated ? { user: { id: loaderData.userId } } : null);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
@@ -554,37 +557,54 @@ function AppLayout() {
 
   // 1. Manage Session and Loading state
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
+    let cancelled = false;
+
+    const redirectToSignup = () => {
+      if (cancelled) return;
+      const search = new URLSearchParams(window.location.search);
+      router.navigate({ 
+        to: "/signup", 
+        search: { 
+          ref: search.get('ref') || "",
+          club: search.get('club') || ""
+        } 
+      });
+    };
+
+    getSettledSession(null, { attempts: 12, intervalMs: 125 }).then((resolvedSession) => {
+      if (cancelled) return;
+      const nextSession = resolvedSession || latestSession.current;
+      initialAuthCheckDone.current = true;
+      latestSession.current = nextSession;
+      setSession(nextSession);
       setLoading(false);
-      
-      if (!session) {
-        const search = new URLSearchParams(window.location.search);
-        router.navigate({ 
-          to: "/signup", 
-          search: { 
-            ref: search.get('ref') || "",
-            club: search.get('club') || ""
-          } 
-        });
+
+      if (!nextSession) {
+        redirectToSignup();
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) {
-        const search = new URLSearchParams(window.location.search);
-        router.navigate({ 
-          to: "/signup", 
-          search: { 
-            ref: search.get('ref') || "",
-            club: search.get('club') || ""
-          } 
-        });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (cancelled) return;
+      latestSession.current = nextSession;
+      setSession(nextSession);
+
+      if (nextSession) {
+        initialAuthCheckDone.current = true;
+        setLoading(false);
+        return;
+      }
+
+      if (event === "SIGNED_OUT" || initialAuthCheckDone.current) {
+        setLoading(false);
+        redirectToSignup();
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   // 2. Handle Club Invites from URL
