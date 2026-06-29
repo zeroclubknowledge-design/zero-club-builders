@@ -312,6 +312,7 @@ function Header({ referralCode }: ReferralProps) {
             to="/signin"
             search={{ ref: referralCode, club: undefined }}
             className="hidden text-[15px] font-medium text-[#8f929b] transition-colors hover:text-white sm:block"
+            preload={false}
           >
             Log in
           </Link>
@@ -319,6 +320,7 @@ function Header({ referralCode }: ReferralProps) {
             to="/signup"
             search={{ ref: referralCode, club: undefined }}
             className="inline-flex h-11 items-center justify-center rounded-full bg-[#cc208f] px-6 text-[15px] font-semibold text-white shadow-[0_0_28px_rgba(204,32,143,0.28)] transition-colors hover:bg-[#e033a8]"
+            preload={false}
           >
             Sign up
           </Link>
@@ -402,6 +404,7 @@ function Hero({ referralCode }: ReferralProps) {
               to="/signup"
               search={{ ref: referralCode, club: undefined }}
               className="group inline-flex h-12 items-center justify-center rounded-full bg-[#cc208f] px-6 text-[15px] font-semibold text-white shadow-[0_0_38px_rgba(204,32,143,0.28)] transition-colors hover:bg-[#e033a8]"
+              preload={false}
             >
               Start building
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
