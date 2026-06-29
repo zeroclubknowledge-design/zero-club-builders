@@ -547,9 +547,18 @@ function AppLayout() {
     localStorage.setItem('darkTheme', darkTheme);
   }, [darkMode, darkTheme, themeLoaded]);
 
-  // 1. Manage Session and Loading state
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    let mounted = true;
+
+    // Safety fallback: if session doesn't resolve in 1.5s, unblock UI
+    const timeout = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 1500);
+
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      if (error) console.error("getSession error:", error);
+      
       setSession(session);
       setLoading(false);
       
@@ -563,10 +572,16 @@ function AppLayout() {
           } 
         });
       }
+    }).catch((e) => {
+      if (!mounted) return;
+      console.error("getSession exception:", e);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
       setSession(session);
+      setLoading(false);
       if (event === 'SIGNED_OUT') {
         const search = new URLSearchParams(window.location.search);
         router.navigate({ 
@@ -579,7 +594,11 @@ function AppLayout() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   // 2. Handle Club Invites from URL
