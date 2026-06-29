@@ -240,16 +240,39 @@ function Profile() {
               </div>
 
               <div className="flex items-center gap-2">
-                 <button 
-                  onClick={handleShare}
-                  className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
-                    scrolled 
-                      ?"bg-accent/50 text-foreground hover:bg-accent" 
-                      : "bg-black/30 text-white backdrop-blur-md border border-white/10"
-                  }`}
-                >
-                  <Share2 className="h-[18px] w-[18px]" />
-                </button>
+                <Drawer>
+                  <DrawerTrigger asChild>
+                    <button className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
+                      scrolled 
+                        ?"bg-accent/50 text-foreground hover:bg-accent" 
+                        : "bg-black/30 text-white backdrop-blur-md border border-white/10"
+                    }`}>
+                      <MoreHorizontal className="h-[18px] w-[18px]" />
+                    </button>
+                  </DrawerTrigger>
+                  <DrawerContent className="border-none bg-background p-6">
+                    <DrawerHeader className="text-left mb-6">
+                      <DrawerTitle className="text-xl font-bold">Profile Actions</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="space-y-2">
+                      <button 
+                        onClick={handleShare}
+                        className="flex w-full items-center gap-3 rounded-2xl bg-white/5 p-4 text-sm font-semibold transition active:bg-white/10"
+                      >
+                        <Share2 className="h-5 w-5 text-primary" /> Share Profile Link
+                      </button>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
+                          toast.success("Profile link copied!");
+                        }}
+                        className="flex w-full items-center gap-3 rounded-2xl bg-white/5 p-4 text-sm font-semibold transition active:bg-white/10"
+                      >
+                        <Copy className="h-5 w-5 text-primary" /> Copy URL
+                      </button>
+                    </div>
+                  </DrawerContent>
+                </Drawer>
               </div>
         </div>
       </header>
