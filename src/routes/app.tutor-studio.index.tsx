@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
-  Layout, ChevronLeft, Plus, Settings, Users, Hash, UploadCloud, ChevronRight,
+  Layout, ChevronLeft, Plus, Settings, Users, Hash, UploadCloud,
   BarChart3, Calendar, DollarSign, GripVertical, MoreHorizontal, Edit3, Trash2,
   CheckCircle2, ShieldCheck, Check, Play, Clock, Filter, MessageCircle,
   UserMinus, Star, LayoutGrid, Sparkles, ArrowRight, ChevronDown, Search,
@@ -14,8 +14,9 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from 
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTutorBootcamps, getBootcampWithCurriculum, deleteBootcampAction } from "@/api";
+import { getTutorBootcamps, deleteBootcampAction } from "@/api";
 import { useEffect } from "react";
+import { uploadFile } from "@/lib/storage";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
@@ -25,13 +26,11 @@ function TutorStudioPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [view, setView] = useState<"dashboard" | "editor">("dashboard");
-  const [activeTab, setActiveTab] = useState<"curriculum" | "students" | "settings" | "club">("curriculum");
+  const [activeTab, setActiveTab] = useState<"details" | "curriculum" | "students" | "club">("details");
   const [hasAccess, setHasAccess] = useState(false);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
   const [activeBootcampId, setActiveBootcampId] = useState<string | null>(null);
-
-  const [openPayout, setOpenPayout] = useState(false);
-  const [openBooking, setOpenBooking] = useState(false);
 
   // Profile data for Payout/Booking
   const [profile, setProfile] = useState<any>(null);
@@ -40,7 +39,12 @@ function TutorStudioPage() {
   const [bootcampSettings, setBootcampSettings] = useState({
     title: "",
     description: "",
+    category: "Development",
     price: "0",
+    status: "active",
+    visibility: true,
+    banner_url: "",
+    video_url: "",
     coupon_code: "",
     coupon_discount_percent: "0"
   });
@@ -52,7 +56,31 @@ function TutorStudioPage() {
 
   const { data: curriculumData, isLoading: isLoadingCurriculum } = useQuery({
     queryKey: ['bootcamp-curriculum', activeBootcampId],
-    queryFn: () => getBootcampWithCurriculum({ data: { bootcampId: activeBootcampId! } }),
+    queryFn: async () => {
+      const { data: bootcamp, error: bootcampError } = await supabase
+        .from('bootcamps')
+        .select('*')
+        .eq('id', activeBootcampId!)
+        .single();
+
+      if (bootcampError) throw bootcampError;
+
+      const { data: fetchedModules, error: modulesError } = await supabase
+        .from('modules')
+        .select('*, lessons(*)')
+        .eq('bootcamp_id', activeBootcampId!)
+        .order('order_index', { ascending: true });
+
+      if (modulesError) throw modulesError;
+
+      return {
+        bootcamp,
+        modules: (fetchedModules || []).map((module: any) => ({
+          ...module,
+          lessons: [...(module.lessons || [])].sort((a: any, b: any) => a.order_index - b.order_index)
+        }))
+      };
+    },
     enabled: !!activeBootcampId && view === "editor"
   });
 
@@ -64,10 +92,17 @@ function TutorStudioPage() {
     setBootcampSettings({
       title: activeBootcamp.title || "",
       description: activeBootcamp.description || "",
+      category: activeBootcamp.category || "Development",
       price: String(activeBootcamp.price || "0"),
+      status: activeBootcamp.status || "active",
+      visibility: activeBootcamp.visibility ?? true,
+      banner_url: activeBootcamp.banner_url || "",
+      video_url: activeBootcamp.video_url || "",
       coupon_code: activeBootcamp.coupon_code || "",
       coupon_discount_percent: String(activeBootcamp.coupon_discount_percent || "0")
     });
+    setBannerUrl(activeBootcamp.banner_url || null);
+    setBootcampBannerFile(null);
   }, [activeBootcamp?.id]);
 
   // Fetch profile settings
@@ -110,8 +145,6 @@ function TutorStudioPage() {
       toast.error(`Failed to save ${type} settings: ${error.message}`);
     } else {
       toast.success(`${type} settings saved successfully!`);
-      if (type === 'Payout') setOpenPayout(false);
-      if (type === 'Booking') setOpenBooking(false);
     }
   };
 
@@ -120,13 +153,31 @@ function TutorStudioPage() {
 
     const discount = Math.min(100, Math.max(0, Number(bootcampSettings.coupon_discount_percent) || 0));
     const code = bootcampSettings.coupon_code.trim().toUpperCase();
+    let savedBannerUrl = bootcampSettings.banner_url;
+
+    if (bootcampBannerFile) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please sign in to update this bootcamp");
+        return;
+      }
+
+      const fileExt = bootcampBannerFile.name.split('.').pop();
+      const fileName = `bootcamp_${activeBootcampId}_${Date.now()}.${fileExt}`;
+      savedBannerUrl = await uploadFile('bootcamp-banners', bootcampBannerFile, `${session.user.id}/${fileName}`);
+    }
 
     const { error } = await supabase
       .from('bootcamps')
       .update({
         title: bootcampSettings.title,
         description: bootcampSettings.description,
+        category: bootcampSettings.category,
         price: Number(bootcampSettings.price) || 0,
+        status: bootcampSettings.status,
+        visibility: bootcampSettings.visibility,
+        banner_url: savedBannerUrl || null,
+        video_url: bootcampSettings.video_url || null,
         coupon_code: code || null,
         coupon_discount_percent: code ? discount : 0
       })
@@ -145,13 +196,14 @@ function TutorStudioPage() {
   const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setBootcampBannerFile(file);
       setBannerUrl(URL.createObjectURL(file));
     }
   };
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await deleteBootcampAction({ data: { bootcampId: id } });
+      await (deleteBootcampAction as any)({ data: { bootcampId: id } });
     },
     onSuccess: () => {
       toast.success("Bootcamp deleted successfully");
@@ -186,6 +238,62 @@ function TutorStudioPage() {
     } catch (err: any) {
       toast.error(err.message || "Failed to add module");
     }
+  };
+
+  const handleUpdateModuleTitle = async (moduleId: string, title: string) => {
+    if (!title.trim()) return;
+    const { error } = await supabase.from('modules').update({ title: title.trim() }).eq('id', moduleId);
+    if (error) {
+      toast.error(error.message || "Failed to update module");
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
+  };
+
+  const handleDeleteModule = async (moduleId: string) => {
+    if (!confirm("Delete this module and all its lessons?")) return;
+    const { error } = await supabase.from('modules').delete().eq('id', moduleId);
+    if (error) {
+      toast.error(error.message || "Failed to delete module");
+      return;
+    }
+    toast.success("Module deleted");
+    queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
+  };
+
+  const handleAddLesson = async (moduleId: string, lessonCount: number) => {
+    const { error } = await supabase.from('lessons').insert([{
+      module_id: moduleId,
+      title: `Lesson ${lessonCount + 1}`,
+      content_type: 'text',
+      duration: '5m',
+      order_index: lessonCount
+    }]);
+    if (error) {
+      toast.error(error.message || "Failed to add lesson");
+      return;
+    }
+    toast.success("Lesson added");
+    queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
+  };
+
+  const handleUpdateLesson = async (lessonId: string, updates: any) => {
+    const { error } = await supabase.from('lessons').update(updates).eq('id', lessonId);
+    if (error) {
+      toast.error(error.message || "Failed to update lesson");
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
+  };
+
+  const handleDeleteLesson = async (lessonId: string) => {
+    const { error } = await supabase.from('lessons').delete().eq('id', lessonId);
+    if (error) {
+      toast.error(error.message || "Failed to delete lesson");
+      return;
+    }
+    toast.success("Lesson deleted");
+    queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
   };
 
   // ═══════════════════════════════════════════════════════════════
@@ -256,8 +364,11 @@ function TutorStudioPage() {
               </h1>
             </div>
           </div>
-          <button className="rounded-full bg-foreground px-5 py-2.5 text-xs font-bold text-background shadow-lg transition hover:scale-105 active:scale-95 flex items-center gap-2">
-            <Check className="h-4 w-4" /> Publish
+          <button
+            onClick={handleSaveBootcampSettings}
+            className="rounded-full bg-foreground px-5 py-2.5 text-xs font-bold text-background shadow-lg transition hover:scale-105 active:scale-95 flex items-center gap-2"
+          >
+            <Check className="h-4 w-4" /> Save
           </button>
         </header>
 
@@ -265,10 +376,10 @@ function TutorStudioPage() {
         <div className="px-5 py-4">
           <div className="inline-flex items-center bg-accent/40 backdrop-blur-md p-1.5 rounded-2xl border border-border/40 overflow-x-auto no-scrollbar max-w-full gap-1">
             {[
+              { id: "details", label: "Details", icon: Layout },
               { id: "curriculum", label: "Curriculum", icon: BookOpen },
               { id: "students", label: "Students", icon: Users },
               { id: "club", label: "Club Setup", icon: Hash },
-              { id: "settings", label: "Settings", icon: Settings },
             ].map((tab) => {
               const active = activeTab === tab.id;
               return (
@@ -305,8 +416,26 @@ function TutorStudioPage() {
                 </button>
               </div>
 
-              <Accordion type="multiple" defaultValue={["m1"]} className="space-y-5">
-                {modules.map((m) => (
+              {isLoadingCurriculum && (
+                <div className="rounded-3xl border border-border/40 bg-card p-8 text-center text-sm font-bold text-muted-foreground">
+                  Loading curriculum...
+                </div>
+              )}
+
+              {!isLoadingCurriculum && modules.length === 0 && (
+                <div className="rounded-3xl border-2 border-dashed border-border/50 bg-card p-10 text-center">
+                  <BookOpen className="mx-auto h-10 w-10 text-primary" />
+                  <h3 className="mt-4 text-base font-black text-foreground">No modules yet</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">Add your first module to start building the syllabus.</p>
+                  <button onClick={handleAddModule} className="mt-5 rounded-full bg-foreground px-6 py-3 text-xs font-bold text-background">
+                    Add First Module
+                  </button>
+                </div>
+              )}
+
+              {!isLoadingCurriculum && modules.length > 0 && (
+              <Accordion type="multiple" defaultValue={modules.map((m: any) => m.id)} className="space-y-5">
+                {modules.map((m: any) => (
                   <AccordionItem
                     key={m.id}
                     value={m.id}
@@ -316,9 +445,14 @@ function TutorStudioPage() {
                       <div className="p-2 cursor-grab active:cursor-grabbing hover:bg-accent rounded-xl transition-colors">
                         <GripVertical className="h-5 w-5 text-muted-foreground/40" />
                       </div>
-                      <AccordionTrigger className="hover:no-underline py-4 flex-1 text-left font-black text-base text-foreground tracking-tight">
-                        {m.title}
-                      </AccordionTrigger>
+                      <div className="flex-1 py-3">
+                        <input
+                          defaultValue={m.title}
+                          onBlur={(e) => handleUpdateModuleTitle(m.id, e.target.value)}
+                          className="w-full bg-transparent text-base font-black text-foreground tracking-tight outline-none focus:text-primary"
+                        />
+                        <p className="mt-1 text-[10px] font-bold text-muted-foreground">{m.lessons?.length || 0} lessons</p>
+                      </div>
                       <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
                           <button className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-accent hover:text-foreground">
@@ -329,44 +463,71 @@ function TutorStudioPage() {
                           <DropdownMenuItem className="text-foreground text-sm font-bold gap-3 py-3 rounded-xl cursor-pointer hover:bg-accent focus:bg-accent">
                             <Edit3 className="h-4 w-4 text-muted-foreground" /> Rename Module
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive text-sm font-bold gap-3 py-3 rounded-xl cursor-pointer hover:bg-destructive/10 focus:bg-destructive/10">
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteModule(m.id)}
+                            className="text-destructive focus:text-destructive text-sm font-bold gap-3 py-3 rounded-xl cursor-pointer hover:bg-destructive/10 focus:bg-destructive/10"
+                          >
                             <Trash2 className="h-4 w-4" /> Delete Module
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                     <AccordionContent className="px-5 pb-5 pt-4 space-y-3">
-                      {m.lessons.map((l, j) => (
+                      {(m.lessons || []).map((l: any, j: number) => (
                         <div
                           key={j}
-                          className="group flex items-center justify-between gap-4 p-4 rounded-2xl bg-background border border-border/30 hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer relative overflow-hidden"
+                          className="group flex items-center justify-between gap-4 p-4 rounded-2xl bg-background border border-border/30 hover:border-primary/30 hover:shadow-lg transition-all relative overflow-hidden"
                         >
                           <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-transparent group-hover:bg-primary transition-colors rounded-r-full" />
-                          <div className="flex items-center gap-4 min-w-0 pl-2">
+                          <div className="flex items-center gap-4 min-w-0 pl-2 flex-1">
                             <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary shrink-0">
                               <Play className="h-4 w-4 ml-0.5" />
                             </div>
-                            <div>
-                              <span className="text-sm font-bold text-foreground block truncate">{l.title}</span>
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-1">
-                                <Clock className="h-3 w-3" /> {l.duration}
-                              </span>
+                            <div className="min-w-0 flex-1">
+                              <input
+                                defaultValue={l.title}
+                                onBlur={(e) => handleUpdateLesson(l.id, { title: e.target.value || "Untitled lesson" })}
+                                className="block w-full bg-transparent text-sm font-bold text-foreground outline-none focus:text-primary"
+                              />
+                              <div className="mt-2 grid grid-cols-[92px_1fr] gap-2">
+                                <input
+                                  defaultValue={l.duration || "5m"}
+                                  onBlur={(e) => handleUpdateLesson(l.id, { duration: e.target.value || "5m" })}
+                                  className="rounded-lg border border-border/40 bg-card px-2 py-1 text-[10px] font-bold text-muted-foreground outline-none focus:border-primary"
+                                />
+                                <select
+                                  defaultValue={l.content_type || "text"}
+                                  onChange={(e) => handleUpdateLesson(l.id, { content_type: e.target.value })}
+                                  className="rounded-lg border border-border/40 bg-card px-2 py-1 text-[10px] font-bold text-muted-foreground outline-none focus:border-primary"
+                                >
+                                  <option value="text">Text</option>
+                                  <option value="video">Video</option>
+                                  <option value="assignment">Assignment</option>
+                                </select>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-foreground hover:bg-accent/80 transition">
-                              <Edit3 className="h-4 w-4" />
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleDeleteLesson(l.id)}
+                              className="grid h-9 w-9 place-items-center rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition"
+                            >
+                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
                       ))}
-                      <button className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-border/50 rounded-2xl text-sm font-bold text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all">
+                      <button
+                        onClick={() => handleAddLesson(m.id, m.lessons?.length || 0)}
+                        className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-border/50 rounded-2xl text-sm font-bold text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all"
+                      >
                         <Plus className="h-4 w-4" /> Add Lesson
                       </button>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
+              )}
             </div>
           )}
 
@@ -542,23 +703,29 @@ function TutorStudioPage() {
           )}
 
           {/* ─── SETTINGS TAB ─────────────────── */}
-          {activeTab === "settings" && (
+          {activeTab === "details" && (
             <div className="space-y-8 max-w-2xl mx-auto pb-10">
               <div className="pb-5 border-b border-border/40 text-center">
-                <h2 className="text-2xl font-black text-foreground tracking-tight">Bootcamp Settings</h2>
-                <p className="text-xs text-muted-foreground mt-1">Configure the core details of your bootcamp.</p>
+                <h2 className="text-2xl font-black text-foreground tracking-tight">Bootcamp Details</h2>
+                <p className="text-xs text-muted-foreground mt-1">Edit the page students see before enrolling.</p>
               </div>
 
               <div className="space-y-6 bg-card p-6 rounded-3xl border border-border/40 shadow-sm">
                 {/* Cover */}
                 <div className="space-y-3">
                   <label className="text-[11px] text-muted-foreground ml-1">Cover Image</label>
-                  <div className="group border-2 border-dashed border-border/50 rounded-3xl h-48 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
-                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <UploadCloud className="h-10 w-10 mb-3 text-muted-foreground group-hover:text-primary transition-colors relative z-10" />
-                    <span className="text-sm font-bold text-foreground relative z-10">Click or drag to upload</span>
-                    <span className="text-xs mt-1 relative z-10">16:9 ratio recommended</span>
-                  </div>
+                  <label className="group border-2 border-dashed border-border/50 rounded-3xl h-48 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
+                    {(bannerUrl || bootcampSettings.banner_url) && (
+                      <>
+                        <img src={bannerUrl || bootcampSettings.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                        <div className="absolute inset-0 bg-black/45 opacity-70 transition-opacity group-hover:opacity-90" />
+                      </>
+                    )}
+                    <UploadCloud className="h-10 w-10 mb-3 text-white group-hover:text-primary transition-colors relative z-10" />
+                    <span className="text-sm font-bold text-white relative z-10">Click to upload cover</span>
+                    <span className="text-xs mt-1 relative z-10 text-white/75">16:9 ratio recommended</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
+                  </label>
                 </div>
 
                 {/* Title */}
@@ -573,6 +740,43 @@ function TutorStudioPage() {
                   />
                 </div>
 
+                {/* Category / Status */}
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-3">
+                    <label className="text-[11px] text-muted-foreground ml-1">Category</label>
+                    <div className="relative">
+                      <select
+                        value={bootcampSettings.category}
+                        onChange={(e) => setBootcampSettings({ ...bootcampSettings, category: e.target.value })}
+                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                      >
+                        <option>Design</option>
+                        <option>Development</option>
+                        <option>Marketing</option>
+                        <option>Business</option>
+                        <option>AI</option>
+                        <option>Motion</option>
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[11px] text-muted-foreground ml-1">Status</label>
+                    <div className="relative">
+                      <select
+                        value={bootcampSettings.status}
+                        onChange={(e) => setBootcampSettings({ ...bootcampSettings, status: e.target.value })}
+                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Description */}
                 <div className="space-y-3">
                   <label className="text-[11px] text-muted-foreground ml-1">Description</label>
@@ -583,6 +787,33 @@ function TutorStudioPage() {
                     onChange={(e) => setBootcampSettings({ ...bootcampSettings, description: e.target.value })}
                     placeholder="Describe what students will learn..."
                   />
+                </div>
+
+                {/* Video / Visibility */}
+                <div className="space-y-5 rounded-3xl border border-border/40 bg-background p-5">
+                  <div className="space-y-3">
+                    <label className="text-[11px] text-muted-foreground ml-1">Preview Video URL</label>
+                    <input
+                      type="url"
+                      value={bootcampSettings.video_url}
+                      onChange={(e) => setBootcampSettings({ ...bootcampSettings, video_url: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full bg-card border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBootcampSettings({ ...bootcampSettings, visibility: !bootcampSettings.visibility })}
+                    className="flex w-full items-center justify-between rounded-2xl bg-card border border-border/40 px-5 py-4 text-left"
+                  >
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Public listing</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Show this bootcamp in Learn and search.</p>
+                    </div>
+                    <span className={`h-7 w-12 rounded-full p-1 transition ${bootcampSettings.visibility ? "bg-primary" : "bg-accent"}`}>
+                      <span className={`block h-5 w-5 rounded-full bg-background shadow-sm transition ${bootcampSettings.visibility ? "translate-x-5" : "translate-x-0"}`} />
+                    </span>
+                  </button>
                 </div>
 
                 {/* Price / Capacity */}
@@ -700,6 +931,138 @@ function TutorStudioPage() {
           <div>
             <h1 className="font-display text-3xl font-black text-foreground tracking-tight drop-shadow-sm">Tutor Dashboard</h1>
           </div>
+          <Drawer>
+            <DrawerTrigger asChild>
+              <button
+                aria-label="Global settings"
+                className="grid h-11 w-11 place-items-center rounded-full border border-border/40 bg-card/80 text-foreground shadow-sm backdrop-blur-md transition hover:bg-accent active:scale-95"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
+            </DrawerTrigger>
+            <DrawerContent className="h-[90%] border-t border-border/40 bg-card p-0 flex flex-col shadow-[0_-10px_50px_rgba(0,0,0,0.12)] max-w-lg mx-auto">
+              <div className="w-12 h-1.5 bg-border/60 rounded-full mx-auto mt-4 mb-2 shrink-0" />
+              <DrawerHeader className="px-6 py-4 border-b border-border/30 shrink-0 text-left">
+                <DrawerTitle className="text-xl font-black text-foreground flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Settings className="h-5 w-5 text-primary" />
+                  </div>
+                  Global Settings
+                </DrawerTitle>
+              </DrawerHeader>
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
+                <section className="space-y-5">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Wallet className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-foreground">Payout Details</h3>
+                      <p className="text-xs text-muted-foreground">Manage bank accounts and earnings</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] text-muted-foreground ml-1">Bank Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Access Bank"
+                      value={payoutForm.bank_name}
+                      onChange={(e) => setPayoutForm({ ...payoutForm, bank_name: e.target.value })}
+                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] text-muted-foreground ml-1">Account Number</label>
+                    <input
+                      type="text"
+                      placeholder="0123456789"
+                      value={payoutForm.account_number}
+                      onChange={(e) => setPayoutForm({ ...payoutForm, account_number: e.target.value })}
+                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] text-muted-foreground ml-1">Account Name</label>
+                    <input
+                      type="text"
+                      placeholder="John Doe"
+                      value={payoutForm.account_name}
+                      onChange={(e) => setPayoutForm({ ...payoutForm, account_name: e.target.value })}
+                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
+                    />
+                  </div>
+                  <button onClick={() => handleSaveSettings('Payout')} className="w-full bg-foreground text-background font-bold py-4 rounded-full shadow-lg transition active:scale-95 text-sm">
+                    Save Payout Details
+                  </button>
+                </section>
+
+                <section className="space-y-5 border-t border-border/40 pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-foreground">Booking Availability</h3>
+                      <p className="text-xs text-muted-foreground">Set times for 1-on-1 tutoring</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] text-muted-foreground ml-1">Working Days</label>
+                    <div className="relative">
+                      <select
+                        value={bookingForm.availability_days}
+                        onChange={(e) => setBookingForm({ ...bookingForm, availability_days: e.target.value })}
+                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground cursor-pointer"
+                      >
+                        <option>Weekdays (Mon-Fri)</option>
+                        <option>Weekends (Sat-Sun)</option>
+                        <option>Everyday</option>
+                      </select>
+                      <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[11px] text-muted-foreground ml-1">Start Time</label>
+                      <input
+                        type="time"
+                        value={bookingForm.availability_start}
+                        onChange={(e) => setBookingForm({ ...bookingForm, availability_start: e.target.value })}
+                        className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] text-muted-foreground ml-1">End Time</label>
+                      <input
+                        type="time"
+                        value={bookingForm.availability_end}
+                        onChange={(e) => setBookingForm({ ...bookingForm, availability_end: e.target.value })}
+                        className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] text-muted-foreground ml-1">Session Duration</label>
+                    <div className="relative">
+                      <select
+                        value={bookingForm.availability_duration}
+                        onChange={(e) => setBookingForm({ ...bookingForm, availability_duration: e.target.value })}
+                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground cursor-pointer"
+                      >
+                        <option>30 minutes</option>
+                        <option>45 minutes</option>
+                        <option>60 minutes</option>
+                      </select>
+                      <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+                  <button onClick={() => handleSaveSettings('Booking')} className="w-full bg-blue-500 text-white font-bold py-4 rounded-full shadow-lg shadow-blue-500/20 transition active:scale-95 text-sm">
+                    Save Availability
+                  </button>
+                </section>
+              </div>
+            </DrawerContent>
+          </Drawer>
         </div>
       </div>
 
@@ -756,7 +1119,7 @@ function TutorStudioPage() {
             {bootcamps.length > 0 ? bootcamps.map((course) => (
               <div
                 key={course.id}
-                onClick={() => { setActiveBootcampId(course.id); setView("editor"); }}
+                onClick={() => { setActiveBootcampId(course.id); setActiveTab("details"); setView("editor"); }}
                 className="group relative flex flex-col rounded-3xl border border-border/40 bg-card transition-all hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 cursor-pointer overflow-hidden"
               >
                 {/* Thumbnail */}
@@ -813,164 +1176,6 @@ function TutorStudioPage() {
                 </button>
               </div>
             )}
-          </div>
-        </section>
-
-        {/* ── Global Settings ────────────────────────── */}
-        <section className="space-y-5 pb-12">
-          <h2 className="text-2xl font-black text-foreground tracking-tight">Global Settings</h2>
-          <div className="space-y-3">
-            {/* Payout Sheet */}
-            <Drawer open={openPayout} onOpenChange={setOpenPayout}>
-              <DrawerTrigger asChild>
-                <button className="group flex w-full items-center justify-between rounded-3xl border border-border/40 bg-card p-5 transition-all hover:border-primary/30 hover:shadow-md">
-                  <div className="flex items-center gap-4">
-                    <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary group-hover:scale-110 transition-transform duration-300">
-                      <Wallet className="h-6 w-6" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-black text-foreground">Payout Information</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Manage bank accounts and earnings</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
-                </button>
-              </DrawerTrigger>
-              <DrawerContent className="h-[90%] border-t border-border/40 bg-card p-0 flex flex-col shadow-[0_-10px_50px_rgba(0,0,0,0.12)] max-w-lg mx-auto">
-                <div className="w-12 h-1.5 bg-border/60 rounded-full mx-auto mt-4 mb-2 shrink-0" />
-                <DrawerHeader className="px-6 py-4 border-b border-border/30 shrink-0 text-left">
-                  <DrawerTitle className="text-xl font-black text-foreground flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Wallet className="h-5 w-5 text-primary" />
-                    </div>
-                    Payout Details
-                  </DrawerTitle>
-                </DrawerHeader>
-                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Bank Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Access Bank"
-                      value={payoutForm.bank_name}
-                      onChange={(e) => setPayoutForm({...payoutForm, bank_name: e.target.value})}
-                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Account Number</label>
-                    <input
-                      type="text"
-                      placeholder="0123456789"
-                      value={payoutForm.account_number}
-                      onChange={(e) => setPayoutForm({...payoutForm, account_number: e.target.value})}
-                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Account Name</label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      value={payoutForm.account_name}
-                      onChange={(e) => setPayoutForm({...payoutForm, account_name: e.target.value})}
-                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
-                    />
-                  </div>
-                  <div className="pt-4">
-                    <button onClick={() => handleSaveSettings('Payout')} className="w-full bg-foreground text-background font-bold py-4 rounded-full shadow-lg transition hover:scale-[1.02] active:scale-95 text-sm">
-                      Save Payout Details
-                    </button>
-                  </div>
-                </div>
-              </DrawerContent>
-            </Drawer>
-
-            {/* Booking Sheet */}
-            <Drawer open={openBooking} onOpenChange={setOpenBooking}>
-              <DrawerTrigger asChild>
-                <button className="group flex w-full items-center justify-between rounded-3xl border border-border/40 bg-card p-5 transition-all hover:border-blue-500/30 hover:shadow-md">
-                  <div className="flex items-center gap-4">
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-blue-500/15 to-blue-500/5 text-blue-500 group-hover:scale-110 transition-transform duration-300">
-                      <Calendar className="h-6 w-6" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-black text-foreground">Booking Availability</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Set times for 1-on-1 tutoring</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
-                </button>
-              </DrawerTrigger>
-              <DrawerContent className="h-[90%] border-t border-border/40 bg-card p-0 flex flex-col shadow-[0_-10px_50px_rgba(0,0,0,0.12)] max-w-lg mx-auto">
-                <div className="w-12 h-1.5 bg-border/60 rounded-full mx-auto mt-4 mb-2 shrink-0" />
-                <DrawerHeader className="px-6 py-4 border-b border-border/30 shrink-0 text-left">
-                  <DrawerTitle className="text-xl font-black text-foreground flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-blue-500" />
-                    </div>
-                    Availability Settings
-                  </DrawerTitle>
-                </DrawerHeader>
-                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Working Days</label>
-                    <div className="relative">
-                      <select
-                        value={bookingForm.availability_days}
-                        onChange={(e) => setBookingForm({...bookingForm, availability_days: e.target.value})}
-                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground cursor-pointer"
-                      >
-                        <option>Weekdays (Mon-Fri)</option>
-                        <option>Weekends (Sat-Sun)</option>
-                        <option>Everyday</option>
-                      </select>
-                      <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[11px] text-muted-foreground ml-1">Start Time</label>
-                      <input
-                        type="time"
-                        value={bookingForm.availability_start}
-                        onChange={(e) => setBookingForm({...bookingForm, availability_start: e.target.value})}
-                        className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[11px] text-muted-foreground ml-1">End Time</label>
-                      <input
-                        type="time"
-                        value={bookingForm.availability_end}
-                        onChange={(e) => setBookingForm({...bookingForm, availability_end: e.target.value})}
-                        className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Session Duration</label>
-                    <div className="relative">
-                      <select
-                        value={bookingForm.availability_duration}
-                        onChange={(e) => setBookingForm({...bookingForm, availability_duration: e.target.value})}
-                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground cursor-pointer"
-                      >
-                        <option>30 minutes</option>
-                        <option>45 minutes</option>
-                        <option>60 minutes</option>
-                      </select>
-                      <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="pt-4">
-                    <button onClick={() => handleSaveSettings('Booking')} className="w-full bg-blue-500 text-white font-bold py-4 rounded-full shadow-lg shadow-blue-500/20 transition hover:scale-[1.02] active:scale-95 text-sm">
-                      Save Availability
-                    </button>
-                  </div>
-                </div>
-              </DrawerContent>
-            </Drawer>
           </div>
         </section>
       </div>
