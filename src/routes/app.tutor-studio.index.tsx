@@ -1050,7 +1050,7 @@ function TutorStudioPage() {
                   </button>
                 </section>
 
-                <section className="space-y-5 border-t border-border/40 pt-6">
+                <section className="space-y-5 pt-6">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-blue-500" />
