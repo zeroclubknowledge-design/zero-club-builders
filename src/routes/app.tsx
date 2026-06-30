@@ -32,9 +32,16 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => (
-  <img src={src} alt="" className={`object-contain ${className}`} />
-);
+const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => {
+  const isMessage = src.includes('communities');
+  return (
+    <img 
+      src={src} 
+      alt="" 
+      className={`object-contain ${isMessage ? 'scale-[1.5]' : ''} ${className}`} 
+    />
+  );
+};
 
 const tabs = [
   { to: "/app/", label: "Feed", iconSrc: "/landing-feed-taskbar-icon-brand.png", exact: true },
