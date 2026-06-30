@@ -625,7 +625,7 @@ function TutorStudioPage() {
               </div>
 
               <div className="rounded-3xl border border-border/40 bg-card overflow-hidden divide-y divide-border/30 shadow-sm">
-                {learners.length > 0 ? learners.map((learner: any) => (
+                {learners.length > 0 && learners.map((learner: any) => (
                   <div key={learner.profiles?.id} className="flex items-center justify-between p-5 hover:bg-accent/20 transition-colors">
                     <div className="flex items-center gap-4">
                       {learner.profiles?.avatar_url ? (
