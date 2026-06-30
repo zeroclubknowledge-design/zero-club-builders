@@ -78,19 +78,16 @@ const platformHighlights = [
     title: "Build a profile that shows real progress",
     copy: "Bring posts, projects, clubs, XP, bootcamps, and public proof into one credible builder identity.",
     icon: UsersRound,
-    image: "/showcase-builder-profiles.png",
   },
   {
     title: "Learn in public with people moving in the same direction",
     copy: "Join bootcamps, follow structured paths, and make your learning visible through work and milestones.",
     icon: BookOpen,
-    image: "/showcase-bootcamps.png",
   },
   {
     title: "Create focused communities around work",
     copy: "Private clubs help cohorts, teams, tutors, and creators stay close to the conversations that matter.",
     icon: MessageCircle,
-    image: "/showcase-private-clubs.png",
   },
 ];
 
@@ -270,18 +267,20 @@ function Hero({ referralCode }: ReferralProps) {
             <div className="grid gap-px bg-[#ece7e1] md:grid-cols-2">
               <div className="bg-white p-5">
                 <img
-                  src="/showcase-builder-profiles.png"
+                  src="/landing-profile-proof-source.png"
                   alt="Zero Club profile preview"
                   className="h-[210px] w-full object-contain"
+                  style={{ filter: "hue-rotate(88deg) saturate(1.2)" }}
                 />
                 <h2 className="mt-4 text-[19px] font-bold tracking-[-0.02em] text-[#171717]">Profiles with proof</h2>
                 <p className="mt-2 text-[14px] leading-6 text-[#666a70]">Show progress through work, XP, posts, and community activity.</p>
               </div>
               <div className="bg-white p-5">
                 <img
-                  src="/showcase-private-clubs.png"
+                  src="/landing-focused-clubs-source.png"
                   alt="Zero Club communities preview"
                   className="h-[210px] w-full object-contain"
+                  style={{ filter: "hue-rotate(92deg) saturate(1.18)" }}
                 />
                 <h2 className="mt-4 text-[19px] font-bold tracking-[-0.02em] text-[#171717]">Focused clubs</h2>
                 <p className="mt-2 text-[14px] leading-6 text-[#666a70]">Build with cohorts, teams, tutors, and creator-led communities.</p>
@@ -344,7 +343,6 @@ function LearningSection() {
               <div className="mb-5 grid h-11 w-11 place-items-center rounded-[8px] bg-[#f4f2ef] text-[#cc208f]">
                 <item.icon className="h-6 w-6" />
               </div>
-              <img src={item.image} alt="" className="mb-5 h-28 w-full object-contain" />
               <h3 className="text-[18px] font-bold tracking-[-0.02em] text-[#171717]">{item.title}</h3>
               <p className="mt-3 text-[14px] leading-6 text-[#666a70]">{item.copy}</p>
             </article>
