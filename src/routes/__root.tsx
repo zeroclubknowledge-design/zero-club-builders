@@ -105,9 +105,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" },
-      { name: "theme-color", content: "#000000" },
+      { name: "theme-color", content: "#f4f2ef" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "Zero Club" },
       { title: "Zero Club — A private club for builders" },
       { name: "description", content: "Zero Club is a high-signal community for students and builders. Learn digital skills, ship real work, and earn XP that converts to cash." },
@@ -143,12 +143,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var dM = localStorage.getItem('darkMode') || 'on';
+                var dM = localStorage.getItem('darkMode') || 'off';
                 var dT = localStorage.getItem('darkTheme') || 'lights-out';
                 document.documentElement.classList.remove('dark', 'dim', 'lights-out', 'premium');
-                if (dM === 'premium') {
-                  document.documentElement.classList.add('premium');
-                } else {
+                if (dM !== 'premium') {
                   var isD = dM === 'on' || (dM === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
                   if (isD) {
                     document.documentElement.classList.add('dark');
@@ -205,4 +203,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

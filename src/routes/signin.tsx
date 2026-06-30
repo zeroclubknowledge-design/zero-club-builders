@@ -107,7 +107,7 @@ function SignInPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(204,32,143,0.18),transparent_30%),radial-gradient(circle_at_80%_86%,rgba(245,185,75,0.16),transparent_30%)]" />
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(204,32,143,0.10),transparent_30%)]" />
 
       <header className="fixed left-0 right-0 top-0 z-50 flex h-[calc(64px+env(safe-area-inset-top))] items-center justify-between px-5 pt-[env(safe-area-inset-top)]">
         <Link to="/" className="flex h-10 w-10 items-center justify-center rounded-full border border-border/50 bg-background/70 backdrop-blur-xl transition active:scale-95" aria-label="Back to home">

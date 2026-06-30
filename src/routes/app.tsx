@@ -515,7 +515,7 @@ function AppLayout() {
   const router = useRouter();
 
   // Theme State
-  const [darkMode, setDarkMode] = useState<'on' | 'off' | 'system' | 'premium'>('on');
+  const [darkMode, setDarkMode] = useState<'on' | 'off' | 'system' | 'premium'>('off');
   const [darkTheme, setDarkTheme] = useState<'dim' | 'lights-out'>('lights-out');
   const [themeLoaded, setThemeLoaded] = useState(false);
 
@@ -524,7 +524,7 @@ function AppLayout() {
       const storedDarkMode = localStorage.getItem('darkMode') as 'on' | 'off' | 'system' | 'premium';
       const storedDarkTheme = localStorage.getItem('darkTheme') as 'dim' | 'lights-out';
       
-      if (storedDarkMode) setDarkMode(storedDarkMode);
+      if (storedDarkMode) setDarkMode(storedDarkMode === 'premium' ? 'off' : storedDarkMode);
       if (storedDarkTheme) setDarkTheme(storedDarkTheme);
       setThemeLoaded(true);
     }
@@ -538,9 +538,7 @@ function AppLayout() {
     const applyTheme = () => {
       root.classList.remove('dark', 'dim', 'lights-out', 'premium');
 
-      if (darkMode === 'premium') {
-        root.classList.add('premium');
-      } else {
+      if (darkMode !== 'premium') {
         const isDark = darkMode === 'on' || (darkMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (isDark) {
           root.classList.add('dark');
@@ -775,7 +773,7 @@ function AppLayout() {
               onClick={() => { setDarkMode('off'); }}
               className="flex w-full items-center justify-between"
             >
-              <span className="font-bold">Light</span>
+              <span className="font-bold">Standard</span>
               <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${darkMode ==='off' ? "border-primary" : "border-muted"}`}>
                 {darkMode === 'off' && <div className="h-3 w-3 rounded-full bg-primary" />}
               </div>
@@ -785,7 +783,7 @@ function AppLayout() {
               onClick={() => { setDarkMode('on'); setDarkTheme('lights-out'); }}
               className="flex w-full items-center justify-between"
             >
-              <span className="font-bold">Dark</span>
+              <span className="font-bold">Black</span>
               <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${darkMode ==='on' && darkTheme === 'lights-out' ? "border-primary" : "border-muted"}`}>
                 {darkMode === 'on' && darkTheme === 'lights-out' && <div className="h-3 w-3 rounded-full bg-primary" />}
               </div>
@@ -801,21 +799,9 @@ function AppLayout() {
               </div>
             </button>
 
-            <div className="border-t border-border/40 pt-4 mt-2">
-              <button 
-                onClick={() => { setDarkMode('premium'); }}
-                className="flex w-full items-center justify-between"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="font-bold">Premium</span>
-                  <span className="text-[10px] bg-gradient-primary text-white px-2 py-0.5 rounded-full">Free 60 days</span>
-                </div>
-                <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${darkMode ==='premium' ? "border-primary" : "border-muted"}`}>
-                  {darkMode === 'premium' && <div className="h-3 w-3 rounded-full bg-primary" />}
-                </div>
-              </button>
-              <p className="text-[11px] text-muted-foreground mt-1.5 ml-0.5">A warm ivory tone designed for premium members.</p>
-            </div>
+            <p className="border-t border-border/40 pt-4 text-[11px] text-muted-foreground">
+              Standard uses the Zero Club landing page colors. Black remains available as a personal display option.
+            </p>
           </div>
 
           <button 
