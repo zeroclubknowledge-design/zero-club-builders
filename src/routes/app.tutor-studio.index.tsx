@@ -705,7 +705,7 @@ function TutorStudioPage() {
           {/* ─── SETTINGS TAB ─────────────────── */}
           {activeTab === "details" && (
             <div className="space-y-8 max-w-2xl mx-auto pb-10">
-              <div className="pb-5 border-b border-border/40 text-center">
+              <div className="pb-5 border-b border-border/40">
                 <h2 className="text-2xl font-black text-foreground tracking-tight">Bootcamp Details</h2>
                 <p className="text-xs text-muted-foreground mt-1">Edit the page students see before enrolling.</p>
               </div>
@@ -821,7 +821,7 @@ function TutorStudioPage() {
                   <div className="space-y-3">
                     <label className="text-[11px] text-muted-foreground ml-1">Price (₦)</label>
                     <div className="relative">
-                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground/60">₦</span>
                       <input
                         type="number"
                         value={bootcampSettings.price}
