@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Users, Hash, Lock, MessageCircle, Plus, Sparkles, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
@@ -190,6 +191,7 @@ function Clubs() {
 
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<any[]>([]);
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     if (clubData) {
@@ -221,15 +223,22 @@ function Clubs() {
           return new Date(msg.created_at).getTime() > lastRead;
         });
         
-        // Group by club to show latest unread message per club
-        const latestPerClub = new Map();
+        // Group by club to show message counts per club
+        const countsPerClub = new Map();
         unread.forEach((msg: any) => {
-          if (!latestPerClub.has(msg.club_id)) {
-            latestPerClub.set(msg.club_id, msg);
+          if (!countsPerClub.has(msg.club_id)) {
+            countsPerClub.set(msg.club_id, {
+              club_id: msg.club_id,
+              club_name: msg.clubs?.name || 'Club',
+              count: 1
+            });
+          } else {
+            const existing = countsPerClub.get(msg.club_id);
+            existing.count += 1;
           }
         });
         
-        setUnreadClubMessages(Array.from(latestPerClub.values()));
+        setUnreadClubMessages(Array.from(countsPerClub.values()));
       }
     }
     
@@ -347,7 +356,7 @@ function Clubs() {
             console.error("Error adding member to club:", memberError);
           }
           
-          setIncomingRequests(prev => prev.map(m => m.id === messageId ? { ...m, content: newContent } : m));
+          setIncomingRequests(prev => prev.filter(m => m.id !== messageId));
           toast.success("Request approved! Builder added to your private club.");
         }
       } else {
@@ -364,7 +373,7 @@ function Clubs() {
 
           if (msgError) throw msgError;
 
-          setIncomingRequests(prev => prev.map(m => m.id === messageId ? { ...m, content: newContent } : m));
+          setIncomingRequests(prev => prev.filter(m => m.id !== messageId));
           toast.error("Request declined.");
         }
       }
@@ -928,59 +937,76 @@ function Clubs() {
                     const clubName = parts[2];
                     const status = parts[3];
                     const sender = r.sender || {};
+                    const isExpanded = expandedRequestId === r.id;
 
                     return (
                       <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming')}>
-                        <article className="flex items-center gap-3 p-4 rounded-2xl border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)">
-                          {/* Sender Avatar */}
-                          <div className="h-10 w-10 rounded-full bg-accent/30 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-border/30">
-                            {sender.avatar_url ? (
-                              <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
-                            ) : (
-                              (sender.full_name || sender.username || 'U').substring(0, 1).toUpperCase()
-                            )}
+                        <article 
+                          className="flex flex-col gap-3 p-4 rounded-2xl border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] cursor-pointer"
+                          onClick={() => {
+                            if (status === 'pending') {
+                              setExpandedRequestId(isExpanded ? null : r.id);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-3 w-full">
+                            {/* Sender Avatar */}
+                            <div className="h-10 w-10 rounded-full bg-accent/30 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-border/30">
+                              {sender.avatar_url ? (
+                                <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                (sender.full_name || sender.username || 'U').substring(0, 1).toUpperCase()
+                              )}
+                            </div>
+
+                            {/* Request Meta */}
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-[13px] font-bold truncate text-foreground flex items-center gap-1.5 tracking-tight">
+                                {sender.full_name || sender.username} 
+                                <span className="font-medium text-muted-foreground/50 text-[10px]">{getFirstName(sender)}</span>
+                              </h4>
+                              <p className="text-[10px] text-muted-foreground/60 mt-0.5 font-medium">
+                                Wants to join <span className="font-bold text-foreground">{clubName}</span>
+                              </p>
+                            </div>
+                            
+                            <div className="shrink-0 text-muted-foreground/50">
+                              <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                            </div>
                           </div>
 
-                          {/* Request Meta */}
-                          <div className="min-w-0 flex-1">
-                            <h4 className="text-[13px] font-bold truncate text-foreground flex items-center gap-1.5 tracking-tight">
-                              {sender.full_name || sender.username} 
-                              <span className="font-medium text-muted-foreground/50 text-[10px]">{getFirstName(sender)}</span>
-                            </h4>
-                            <p className="text-[10px] text-muted-foreground/60 mt-0.5 font-medium">
-                              Wants to join <span className="font-bold text-foreground">{clubName}</span>
-                            </p>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="shrink-0 flex items-center gap-2">
-                            {status === 'pending' ? (
-                              <>
+                          {/* Action Buttons Dropdown */}
+                          <AnimatePresence>
+                            {isExpanded && status === 'pending' && (
+                              <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden flex items-center gap-2 pt-1"
+                              >
                                 <button
                                   disabled={decidingId === r.id}
-                                  onClick={() => handleDecideRequest(r.id, clubId, r.sender_id, 'accept')}
-                                  className="h-8 px-3.5 rounded-full bg-foreground text-background text-xs font-bold transition-all duration-300 hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDecideRequest(r.id, clubId, r.sender_id, 'decline');
+                                  }}
+                                  className="flex-1 h-9 rounded-full border border-border/40 bg-card text-muted-foreground transition-all duration-300 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 active:scale-95 disabled:opacity-50 flex items-center justify-center font-semibold text-xs"
+                                >
+                                  Reject
+                                </button>
+                                <button
+                                  disabled={decidingId === r.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDecideRequest(r.id, clubId, r.sender_id, 'accept');
+                                  }}
+                                  className="flex-1 h-9 rounded-full bg-foreground text-background text-xs font-bold transition-all duration-300 hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-sm"
                                 >
                                   Accept
                                 </button>
-                                <button
-                                  disabled={decidingId === r.id}
-                                  onClick={() => handleDecideRequest(r.id, clubId, r.sender_id, 'decline')}
-                                  className="h-8 w-8 rounded-full border border-border/40 bg-card text-muted-foreground transition-all duration-300 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 active:scale-95 disabled:opacity-50 flex items-center justify-center"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </>
-                            ) : status === 'accepted' ? (
-                              <span className="text-[10px] bg-success/10 text-success px-3 py-1.5 rounded-full border border-success/20 flex items-center gap-1">
-                                <Check className="h-3 w-3" strokeWidth={3} /> Approved
-                              </span>
-                            ) : (
-                              <span className="text-[10px] bg-destructive/10 text-destructive px-3 py-1.5 rounded-full border border-destructive/20 flex items-center gap-1">
-                                <X className="h-3 w-3" strokeWidth={3} /> Declined
-                              </span>
+                              </motion.div>
                             )}
-                          </div>
+                          </AnimatePresence>
                         </article>
                       </SwipeableNotification>
                     );
@@ -1071,40 +1097,27 @@ function Clubs() {
               
               {unreadClubMessages.length > 0 ? (
                 <div className="flex flex-col gap-3">
-                  {unreadClubMessages.map((msg: any) => (
+                  {unreadClubMessages.map((msgGroup: any) => (
                     <article 
-                      key={msg.id} 
+                      key={msgGroup.club_id} 
                       onClick={() => {
                         setShowNotifications(false);
-                        navigate({ to: "/app/clubs/chat", search: { clubId: msg.club_id } });
+                        navigate({ to: "/app/clubs/chat", search: { clubId: msgGroup.club_id } });
                       }}
                       className="flex items-center gap-3 p-4 rounded-2xl border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] cursor-pointer active:scale-95"
                     >
-                      {/* Sender Avatar */}
-                      <div className="h-10 w-10 rounded-full bg-accent/30 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-border/30">
-                        {msg.profiles?.avatar_url ? (
-                          <img src={msg.profiles.avatar_url} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          (msg.profiles?.full_name || msg.profiles?.username || 'U').substring(0, 1).toUpperCase()
-                        )}
+                      {/* Club Icon */}
+                      <div className="h-10 w-10 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20 text-primary">
+                        <MessageCircle className="h-4 w-4" />
                       </div>
 
                       {/* Message Meta */}
                       <div className="min-w-0 flex-1">
                         <h4 className="text-[13px] font-bold truncate text-foreground flex items-center gap-1.5 tracking-tight">
-                          {msg.clubs?.name}
+                          {msgGroup.club_name}
                         </h4>
-                        <p className="text-[11px] text-muted-foreground/80 mt-0.5 truncate">
-                          <span className="font-bold">{msg.profiles?.username}:</span> {msg.content.includes('$$MEDIA$$') ? (() => {
-                            const textPart = msg.content.split('$$MEDIA$$')[0].trim();
-                            if (textPart) return textPart;
-                            const urls = msg.content.split('$$MEDIA$$')[1] || '';
-                            const firstUrl = urls.split(',')[0]?.toLowerCase() || '';
-                            if (firstUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp)/i) || firstUrl.includes('image')) return 'Sent a picture';
-                            if (firstUrl.match(/\.(mp4|webm|ogg|mov)/i) || firstUrl.includes('video')) return 'Sent a video';
-                            if (firstUrl.match(/\.(mp3|wav|m4a|aac)/i) || firstUrl.includes('audio')) return 'Sent a voice note';
-                            return 'Sent an attachment';
-                          })() : msg.content}
+                        <p className="text-[11px] text-muted-foreground/80 mt-0.5 truncate font-medium">
+                          <span className="font-bold text-foreground">{msgGroup.count}</span> new message{msgGroup.count !== 1 ? 's' : ''} on the club
                         </p>
                       </div>
 
