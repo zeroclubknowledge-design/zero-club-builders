@@ -526,7 +526,8 @@ function ProfileDetail() {
                   <h2 className="text-[22px] font-bold tracking-tight text-white leading-none">
                     {displayName}
                   </h2>
-                  <BadgeCheck className="h-[18px] w-[18px] fill-blue-500 text-white shrink-0" />
+                  {profile?.tier === 'Premium' && <BadgeCheck className="h-[18px] w-[18px] fill-primary text-white shrink-0" />}
+                  {profile?.tier === 'Premium+' && <BadgeCheck className="h-[18px] w-[18px] fill-[#ffcf00] text-black shrink-0" />}
                 </div>
                 <span className="text-[15px] text-zinc-500 mt-1">{profileHandle}</span>
               </div>
