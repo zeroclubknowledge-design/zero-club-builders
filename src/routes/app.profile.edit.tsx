@@ -161,19 +161,19 @@ function EditProfile() {
 
       <main>
         {/* Banner Edit */}
-        <div className="relative h-32 w-full bg-accent/20 overflow-hidden">
+        <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full bg-black overflow-hidden flex items-center justify-center">
           {banner ? (
             <img src={banner} className="h-full w-full object-cover" alt="Banner" />
           ) : (
-            <div className="h-full w-full" style={{ background: "linear-gradient(135deg,#cc208f,#a78bfa,#60a5fa)" }} />
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
           )}
           <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/30">
             <button 
               onClick={() => bannerInputRef.current?.click()}
               disabled={loading}
-              className="grid h-10 w-10 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95 disabled:opacity-50"
+              className="grid h-12 w-12 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95 disabled:opacity-50"
             >
-              <Camera className="h-5 w-5" />
+              <Camera className="h-6 w-6" />
             </button>
             <input 
               type="file" 
@@ -183,45 +183,47 @@ function EditProfile() {
               onChange={(e) => onFileChange(e, 'banner')} 
             />
             {banner && (
-              <button className="grid h-10 w-10 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95">
-                <X className="h-5 w-5" />
+              <button 
+                onClick={() => setBanner(null)}
+                className="grid h-12 w-12 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
+              >
+                <X className="h-6 w-6" />
               </button>
             )}
           </div>
         </div>
 
         {/* Profile Pic Edit */}
-        <div className="px-5">
-          <div className="relative -mt-10 inline-block">
-            <div 
-              className="grid h-20 w-20 place-items-center rounded-[28%] border-4 border-background overflow-hidden shadow-glow" 
-              style={{ background: "linear-gradient(135deg,#cc208f,#a78bfa)" }}
-            >
+        <div className="relative px-6 pb-6">
+          <div className="absolute -top-[55px] left-6 z-20">
+            <div className="relative h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-background bg-zinc-900 shadow-xl flex items-center justify-center">
               {avatar ? (
                 <img src={avatar} alt="Avatar" className="h-full w-full object-cover" />
               ) : (
-                <span className="text-3xl font-display font-bold text-primary-foreground">
+                <span className="text-4xl font-display font-black text-[#FF1E3F]">
                   {(profile?.full_name || profile?.username || 'A').charAt(0).toUpperCase()}
                 </span>
               )}
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center rounded-[28%] bg-black/30">
-              <button 
-                onClick={() => avatarInputRef.current?.click()}
-                disabled={loading}
-                className="grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95 disabled:opacity-50"
-              >
-                <Camera className="h-4 w-4" />
-              </button>
-              <input 
-                type="file" 
-                ref={avatarInputRef} 
-                className="hidden" 
-                accept="image/*" 
-                onChange={(e) => onFileChange(e, 'avatar')} 
-              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                <button 
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={loading}
+                  className="grid h-10 w-10 place-items-center rounded-full bg-black/60 text-white backdrop-blur-md transition active:scale-95 disabled:opacity-50"
+                >
+                  <Camera className="h-5 w-5" />
+                </button>
+                <input 
+                  type="file" 
+                  ref={avatarInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={(e) => onFileChange(e, 'avatar')} 
+                />
+              </div>
             </div>
           </div>
+          {/* Spacer to push content down because avatar is absolute */}
+          <div className="h-[55px]" />
         </div>
 
         {/* Form Fields */}
