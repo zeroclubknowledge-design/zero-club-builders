@@ -2,18 +2,12 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import {
   ArrowRight,
   Bell,
-  BriefcaseBusiness,
-  Building2,
   CheckCircle2,
   ChevronDown,
-  GraduationCap,
   Menu,
-  MessageCircle,
   Search,
   ShieldCheck,
   Store,
-  UsersRound,
-  Wallet,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -41,11 +35,11 @@ type ReferralProps = {
 };
 
 const navItems = [
-  { label: "People", href: "#people", icon: UsersRound },
-  { label: "Learning", href: "#learning", icon: GraduationCap },
-  { label: "Clubs", href: "#clubs", icon: MessageCircle },
-  { label: "Opportunities", href: "#opportunities", icon: BriefcaseBusiness },
-  { label: "Wallet", href: "#wallet", icon: Wallet },
+  { label: "People", href: "#people", iconSrc: "/landing-builder-feed-icon-brand.png" },
+  { label: "Learning", href: "#learning", iconSrc: "/landing-learning-icon-brand.png" },
+  { label: "Clubs", href: "#clubs", iconSrc: "/landing-communities-icon-brand.png" },
+  { label: "Opportunities", href: "#opportunities", iconSrc: "/landing-proof-teams-icon-brand.png" },
+  { label: "Wallet", href: "#wallet", iconSrc: "/landing-wallet-icon-brand.png" },
 ];
 
 const searchTopics = [
@@ -158,7 +152,7 @@ function Header({ referralCode }: ReferralProps) {
               href={item.href}
               className="flex min-w-[86px] flex-col items-center gap-1 rounded-[6px] px-3 py-2 text-[12px] font-semibold text-[#5f6167] transition hover:bg-[#f4f2ef] hover:text-[#171717]"
             >
-              <item.icon className="h-5 w-5" />
+              <img src={item.iconSrc} alt="" className="h-5 w-5 object-contain" />
               {item.label}
             </a>
           ))}
@@ -203,7 +197,7 @@ function Header({ referralCode }: ReferralProps) {
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 rounded-[6px] px-3 py-3 text-[15px] font-semibold text-[#303236] hover:bg-[#f4f2ef]"
               >
-                <item.icon className="h-5 w-5 text-[#cc208f]" />
+                <img src={item.iconSrc} alt="" className="h-6 w-6 object-contain" />
                 {item.label}
               </a>
             ))}
@@ -436,7 +430,7 @@ function WalletSection() {
         </div>
         <div className="relative h-[360px] overflow-hidden rounded-[8px] border border-[#e2ddd6] bg-black">
           <img
-            src="/landing-creator-economy-phone-zero-club.png"
+            src="/landing-creator-economy-phone-final.png"
             alt="Zero Club wallet and store phone mockup"
             className="h-full w-full object-cover"
           />
