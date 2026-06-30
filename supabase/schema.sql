@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS bootcamps (
   description TEXT,
   category TEXT NOT NULL,
   price NUMERIC DEFAULT 0,
+  coupon_code TEXT,
+  coupon_discount_percent NUMERIC DEFAULT 0,
   banner_url TEXT,
   video_url TEXT,
   status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'completed')),
@@ -932,4 +934,3 @@ ALTER TABLE comment_reactions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "comment_reactions_select_public" ON comment_reactions FOR SELECT USING (true);
 CREATE POLICY "comment_reactions_insert_auth" ON comment_reactions FOR INSERT WITH CHECK (auth.uid() = profile_id);
 CREATE POLICY "comment_reactions_delete_auth" ON comment_reactions FOR DELETE USING (auth.uid() = profile_id);
-

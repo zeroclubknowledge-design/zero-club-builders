@@ -29,6 +29,9 @@ function CreateBootcamp() {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoPreviewFile, setVideoPreviewFile] = useState<File | null>(null);
+  const [couponEnabled, setCouponEnabled] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState("10");
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -36,6 +39,11 @@ function CreateBootcamp() {
   const [modules, setModules] = useState([
     { id: "m1", title: "Introduction", lessons: [{ id: "l1", title: "Welcome and Orientation", type: "text" }] }
   ]);
+
+  const numericPrice = isFree ? 0 : parseFloat(price || "0");
+  const numericCouponDiscount = Math.min(100, Math.max(0, Number(couponDiscount) || 0));
+  const couponPreviewPrice = Math.max(0, Math.round(numericPrice * (1 - numericCouponDiscount / 100)));
+  const normalizedCouponCode = couponCode.trim().toUpperCase();
 
   const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,7 +94,9 @@ function CreateBootcamp() {
           title,
           category,
           description,
-          price: isFree ? 0 : parseFloat(price || "0"),
+          price: numericPrice,
+          coupon_code: couponEnabled && !isFree && normalizedCouponCode ? normalizedCouponCode : null,
+          coupon_discount_percent: couponEnabled && !isFree && normalizedCouponCode ? numericCouponDiscount : 0,
           banner_url: bannerUrl,
           video_url: videoUrl,
           status: 'active'
@@ -136,7 +146,7 @@ function CreateBootcamp() {
           category: 'Bootcamp',
           creator_id: user.id,
           is_private: true,
-          price: isFree ? 0 : parseFloat(price || "0"),
+          price: numericPrice,
           banner_url: bannerUrl,
           logo_url: bannerUrl
         }])
@@ -625,6 +635,72 @@ function CreateBootcamp() {
                       disabled={loading || isFree}
                     />
                   </div>
+                </div>
+
+                {/* Coupon Setup */}
+                <div className="space-y-4 rounded-2xl border border-border/40 bg-background p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Launch Coupon</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        Let students apply a discount code at checkout.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCouponEnabled(!couponEnabled)}
+                      disabled={loading || isFree}
+                      className={`h-7 w-12 rounded-full p-1 transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                        couponEnabled && !isFree ? "bg-primary" : "bg-accent"
+                      }`}
+                    >
+                      <span
+                        className={`block h-5 w-5 rounded-full bg-background shadow-sm transition ${
+                          couponEnabled && !isFree ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {couponEnabled && !isFree && (
+                    <div className="grid grid-cols-[1fr_96px] gap-3">
+                      <div className="space-y-2">
+                        <label className="text-[11px] text-muted-foreground ml-1">Coupon Code</label>
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          placeholder="ZERO20"
+                          className="w-full bg-card border border-border/40 rounded-2xl px-4 py-3.5 text-sm font-black tracking-wide text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
+                          disabled={loading}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] text-muted-foreground ml-1">Off</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={couponDiscount}
+                            onChange={(e) => setCouponDiscount(e.target.value)}
+                            className="w-full bg-card border border-border/40 rounded-2xl px-4 py-3.5 pr-8 text-sm font-black text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                            disabled={loading}
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {couponEnabled && !isFree && normalizedCouponCode && (
+                    <div className="flex items-center justify-between rounded-2xl bg-primary/10 px-4 py-3 text-xs">
+                      <span className="font-bold text-primary">{normalizedCouponCode}</span>
+                      <span className="text-muted-foreground">
+                        Students pay NGN {couponPreviewPrice.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

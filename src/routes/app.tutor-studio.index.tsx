@@ -37,6 +37,13 @@ function TutorStudioPage() {
   const [profile, setProfile] = useState<any>(null);
   const [payoutForm, setPayoutForm] = useState({ bank_name: '', account_number: '', account_name: '' });
   const [bookingForm, setBookingForm] = useState({ availability_days: 'Weekdays (Mon-Fri)', availability_start: '09:00', availability_end: '17:00', availability_duration: '60 minutes' });
+  const [bootcampSettings, setBootcampSettings] = useState({
+    title: "",
+    description: "",
+    price: "0",
+    coupon_code: "",
+    coupon_discount_percent: "0"
+  });
 
   const { data: bootcamps = [] } = useQuery({
     queryKey: ['tutor-bootcamps'],
@@ -51,6 +58,17 @@ function TutorStudioPage() {
 
   const activeBootcamp = curriculumData?.bootcamp;
   const modules = curriculumData?.modules || [];
+
+  useEffect(() => {
+    if (!activeBootcamp) return;
+    setBootcampSettings({
+      title: activeBootcamp.title || "",
+      description: activeBootcamp.description || "",
+      price: String(activeBootcamp.price || "0"),
+      coupon_code: activeBootcamp.coupon_code || "",
+      coupon_discount_percent: String(activeBootcamp.coupon_discount_percent || "0")
+    });
+  }, [activeBootcamp?.id]);
 
   // Fetch profile settings
   useEffect(() => {
@@ -95,6 +113,33 @@ function TutorStudioPage() {
       if (type === 'Payout') setOpenPayout(false);
       if (type === 'Booking') setOpenBooking(false);
     }
+  };
+
+  const handleSaveBootcampSettings = async () => {
+    if (!activeBootcampId) return;
+
+    const discount = Math.min(100, Math.max(0, Number(bootcampSettings.coupon_discount_percent) || 0));
+    const code = bootcampSettings.coupon_code.trim().toUpperCase();
+
+    const { error } = await supabase
+      .from('bootcamps')
+      .update({
+        title: bootcampSettings.title,
+        description: bootcampSettings.description,
+        price: Number(bootcampSettings.price) || 0,
+        coupon_code: code || null,
+        coupon_discount_percent: code ? discount : 0
+      })
+      .eq('id', activeBootcampId);
+
+    if (error) {
+      toast.error(`Failed to save bootcamp settings: ${error.message}`);
+      return;
+    }
+
+    toast.success("Bootcamp settings saved");
+    queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
+    queryClient.invalidateQueries({ queryKey: ['tutor-bootcamps'] });
   };
 
   const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -521,7 +566,8 @@ function TutorStudioPage() {
                   <label className="text-[11px] text-muted-foreground ml-1">Title</label>
                   <input
                     type="text"
-                    defaultValue={activeBootcamp?.title || ""}
+                    value={bootcampSettings.title}
+                    onChange={(e) => setBootcampSettings({ ...bootcampSettings, title: e.target.value })}
                     className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-base font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
                     placeholder="e.g. Advanced UI/UX Design"
                   />
@@ -533,7 +579,8 @@ function TutorStudioPage() {
                   <textarea
                     rows={5}
                     className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40 resize-none"
-                    defaultValue={activeBootcamp?.description || ""}
+                    value={bootcampSettings.description}
+                    onChange={(e) => setBootcampSettings({ ...bootcampSettings, description: e.target.value })}
                     placeholder="Describe what students will learn..."
                   />
                 </div>
@@ -546,7 +593,8 @@ function TutorStudioPage() {
                       <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
                       <input
                         type="number"
-                        defaultValue={activeBootcamp?.price || "0"}
+                        value={bootcampSettings.price}
+                        onChange={(e) => setBootcampSettings({ ...bootcampSettings, price: e.target.value })}
                         className="w-full bg-background border border-border/40 rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
                       />
                     </div>
@@ -563,6 +611,48 @@ function TutorStudioPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Coupon */}
+                <div className="space-y-4 rounded-3xl border border-border/40 bg-background p-5">
+                  <div>
+                    <h3 className="text-sm font-black text-foreground">Coupon</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">Add a discount code learners can apply on the bootcamp details footer.</p>
+                  </div>
+
+                  <div className="grid grid-cols-[1fr_96px] gap-3">
+                    <div className="space-y-3">
+                      <label className="text-[11px] text-muted-foreground ml-1">Coupon Code</label>
+                      <input
+                        type="text"
+                        value={bootcampSettings.coupon_code}
+                        onChange={(e) => setBootcampSettings({ ...bootcampSettings, coupon_code: e.target.value.toUpperCase() })}
+                        placeholder="ZERO20"
+                        className="w-full bg-card border border-border/40 rounded-2xl px-5 py-4 text-sm font-black tracking-wide text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[11px] text-muted-foreground ml-1">Off</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={bootcampSettings.coupon_discount_percent}
+                          onChange={(e) => setBootcampSettings({ ...bootcampSettings, coupon_discount_percent: e.target.value })}
+                          className="w-full bg-card border border-border/40 rounded-2xl px-5 py-4 pr-9 text-sm font-black text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleSaveBootcampSettings}
+                  className="w-full rounded-full bg-foreground px-6 py-4 text-sm font-bold text-background shadow-lg transition active:scale-95"
+                >
+                  Save Bootcamp Settings
+                </button>
 
                 {/* Delete */}
                 <div className="pt-6 border-t border-border/30 mt-8">

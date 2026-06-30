@@ -65,6 +65,9 @@ function BootcampDetail() {
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(false);
+  const [couponMessage, setCouponMessage] = useState("");
 
   useEffect(() => {
     if (bootcamp?.id) checkEnrollment();
@@ -127,6 +130,27 @@ function BootcampDetail() {
     }
   }
 
+  function handleApplyCoupon() {
+    const code = couponInput.trim().toUpperCase();
+    const bootcampCode = bootcamp?.coupon_code?.trim().toUpperCase();
+
+    if (!code) {
+      setAppliedCoupon(false);
+      setCouponMessage("Enter a coupon code");
+      return;
+    }
+
+    if (!bootcampCode || code !== bootcampCode) {
+      setAppliedCoupon(false);
+      setCouponMessage("Coupon not found");
+      return;
+    }
+
+    setCouponInput(code);
+    setAppliedCoupon(true);
+    setCouponMessage("Coupon applied");
+  }
+
   if (isBootcampLoading || !bootcamp) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background py-20">
@@ -144,6 +168,8 @@ function BootcampDetail() {
   else if (tier === "Premium+") discountPct = 0.5;
 
   const finalPrice = Math.round(basePrice * (1 - discountPct));
+  const couponDiscountPct = Math.min(100, Math.max(0, Number(bootcamp.coupon_discount_percent) || 0));
+  const couponPrice = appliedCoupon ? Math.round(finalPrice * (1 - couponDiscountPct / 100)) : finalPrice;
   const formatPrice = (value: number) => `NGN ${value.toLocaleString()}`;
   const isTutor = currentUser?.id === bootcamp.creator_id;
 
@@ -272,8 +298,8 @@ function BootcampDetail() {
           </div>
         </section>
 
-        <footer className="mt-10 border-t border-border pb-8 pt-8">
-          <div className="rounded-lg border border-border bg-card p-5 shadow-soft">
+        <footer className="mt-10 -mx-5 border-t border-border bg-card/60 px-5 pb-8 pt-8">
+          <div className="space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Ready to join?</p>
@@ -285,20 +311,66 @@ function BootcampDetail() {
               <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
             </div>
 
-            <div className="mt-5 flex flex-wrap items-end gap-2">
-              <span className="font-display text-3xl font-black text-foreground">{formatPrice(finalPrice)}</span>
-              {discountPct > 0 && (
+            <div className="flex flex-wrap items-end gap-2">
+              <span className="font-display text-3xl font-black text-foreground">{formatPrice(couponPrice)}</span>
+              {(discountPct > 0 || appliedCoupon) && (
                 <>
-                  <span className="pb-1 text-sm font-bold text-muted-foreground/60 line-through">{formatPrice(basePrice)}</span>
-                  <span className="mb-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary">
-                    {discountPct * 100}% {tier} OFF
+                  <span className="pb-1 text-sm font-bold text-muted-foreground/60 line-through">
+                    {formatPrice(appliedCoupon ? finalPrice : basePrice)}
                   </span>
+                  {discountPct > 0 && (
+                    <span className="mb-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary">
+                      {discountPct * 100}% {tier} OFF
+                    </span>
+                  )}
+                  {appliedCoupon && (
+                    <span className="mb-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-500">
+                      {couponDiscountPct}% COUPON OFF
+                    </span>
+                  )}
                 </>
               )}
             </div>
 
+            {!isEnrolled && basePrice > 0 && (
+              <div className="border-t border-border/50 pt-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-black text-foreground">Apply Coupon</p>
+                  {couponMessage && (
+                    <span className={`text-[11px] font-bold ${appliedCoupon ? "text-emerald-500" : "text-muted-foreground"}`}>
+                      {couponMessage}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    value={couponInput}
+                    onChange={(e) => {
+                      setCouponInput(e.target.value.toUpperCase());
+                      setCouponMessage("");
+                      setAppliedCoupon(false);
+                    }}
+                    placeholder="Enter Coupon"
+                    className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold tracking-wide text-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    className="rounded-xl border border-primary/50 px-5 py-3 text-sm font-black text-primary transition active:scale-[0.98]"
+                  >
+                    Apply
+                  </button>
+                </div>
+                {appliedCoupon && (
+                  <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm">
+                    <span className="font-bold text-foreground">{couponInput}</span>
+                    <span className="font-bold text-emerald-500">Applied!</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {isEnrolled ? (
-              <div className="mt-5 space-y-3">
+              <div className="space-y-3">
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3.5 text-sm font-bold text-success">
                   <CheckCircle2 className="h-5 w-5" />
                   You are enrolled
