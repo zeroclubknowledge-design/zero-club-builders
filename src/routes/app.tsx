@@ -305,6 +305,7 @@ function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   
   const handleCloseSidebar = () => {
     setIsSidebarClosing(true);
@@ -401,7 +402,20 @@ function AppLayout() {
 
         setUnreadMessagesCount(pmCount || 0);
 
-        // 4. Update App Badge
+        // 4. Get unread notifications
+        try {
+          const { count: notifCount } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('recipient_id', session.user.id)
+            .eq('is_read', false);
+          setUnreadNotificationsCount(notifCount || 0);
+          totalUnread += notifCount || 0;
+        } catch (e) {
+          console.error("Error fetching notifications unread", e);
+        }
+
+        // 5. Update App Badge
         if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
           if (totalUnread > 0) {
             (navigator as any).setAppBadge(totalUnread).catch(console.error);
@@ -726,7 +740,9 @@ function AppLayout() {
           <div className="flex w-10 items-center justify-end">
             <Link to="/app/notifications" className="grid h-10 w-10 place-items-center rounded-full bg-white/5 border border-white/10 transition active:scale-95 text-foreground relative">
               <BellRing className="h-5 w-5" />
-              <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border border-background" />
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border border-background" />
+              )}
             </Link>
           </div>
         </header>
