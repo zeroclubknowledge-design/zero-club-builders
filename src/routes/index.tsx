@@ -34,12 +34,6 @@ export const Route = createFileRoute("/")({
           "Zero Club helps builders learn, ship, prove skill, and unlock opportunities in one focused product network.",
       },
     ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap",
-      },
-    ],
   }),
 });
 
