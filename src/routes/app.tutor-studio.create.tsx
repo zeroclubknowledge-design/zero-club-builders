@@ -144,11 +144,29 @@ function CreateBootcamp() {
         .single();
         
       if (!clubError && newClub) {
-        await supabase.from('club_members').insert([{
+        const membersToInsert = [{
           club_id: newClub.id,
           profile_id: user.id,
           role: 'Administrator'
-        }]);
+        }];
+
+        // Check if tutor is linked to any institutions and add them as Administrators
+        const { data: instTutors } = await supabase
+          .from('institution_tutors')
+          .select('institution_id')
+          .eq('tutor_id', user.id);
+
+        if (instTutors && instTutors.length > 0) {
+          instTutors.forEach(inst => {
+            membersToInsert.push({
+              club_id: newClub.id,
+              profile_id: inst.institution_id,
+              role: 'Administrator'
+            });
+          });
+        }
+
+        await supabase.from('club_members').insert(membersToInsert);
       }
 
       toast.success("Bootcamp launched successfully!");

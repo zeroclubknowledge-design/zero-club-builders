@@ -27,6 +27,33 @@ export const getTutorBootcamps = async () => {
   return data ?? [];
 };
 
+  // Fetch tutors linked to this institution
+  export const getInstitutionBootcamps = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return [];
+  
+    const { data: linkedTutors } = await supabase
+      .from('institution_tutors')
+      .select('tutor_id')
+      .eq('institution_id', session.user.id);
+  
+    if (!linkedTutors || linkedTutors.length === 0) return [];
+  
+    const tutorIds = linkedTutors.map(t => t.tutor_id);
+  
+    const { data, error } = await supabase
+      .from('bootcamps')
+      .select('*, profiles(username, full_name, avatar_url), club:clubs(id)')
+      .in('creator_id', tutorIds)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error(error);
+      return [];
+    }
+    return data ?? [];
+  };
+
 // Create a new bootcamp (for tutors)
 export const createBootcampAction = createServerFn({ method: 'POST' }).handler(async ({ data: payload }: { data: any }) => {
   const { data, error } = await supabase

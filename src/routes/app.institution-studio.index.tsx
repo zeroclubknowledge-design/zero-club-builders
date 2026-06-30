@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Plus, Users, LayoutGrid, GraduationCap, Building2 } from "lucide-react";
+import { Plus, Users, LayoutGrid, GraduationCap, Building2, MoreHorizontal } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getInstitutionBootcamps } from "@/api";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app/institution-studio/")({
   component: InstitutionStudioIndex,
@@ -13,6 +16,11 @@ function InstitutionStudioIndex() {
   const [tutors, setTutors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
+
+  const { data: bootcamps = [], isLoading: isLoadingBootcamps } = useQuery({
+    queryKey: ['institution-bootcamps'],
+    queryFn: () => getInstitutionBootcamps()
+  });
 
   useEffect(() => {
     fetchTutors();
@@ -171,9 +179,74 @@ function InstitutionStudioIndex() {
               <h1 className="text-3xl md:text-4xl font-black font-display">Organization Bootcamps</h1>
               <p className="text-muted-foreground mt-2">View all bootcamps created by your tutors.</p>
             </div>
-            <div className="text-center p-10 border border-dashed rounded-3xl border-border/50 text-muted-foreground">
-              Bootcamp tracking coming soon!
-            </div>
+            {isLoadingBootcamps ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse h-64 bg-card rounded-[24px]"></div>
+                ))}
+              </div>
+            ) : bootcamps.length === 0 ? (
+              <div className="text-center p-10 border border-dashed rounded-3xl border-border/50 text-muted-foreground">
+                No bootcamps have been created by your tutors yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {bootcamps.map((bootcamp) => (
+                  <div key={bootcamp.id} className="group relative flex flex-col overflow-hidden rounded-[24px] border border-border bg-card transition-all hover:border-border/80 hover:shadow-xl hover:shadow-black/5">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                      {bootcamp.cover_image_url ? (
+                        <img 
+                          src={bootcamp.cover_image_url} 
+                          alt={bootcamp.title}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                          <GraduationCap className="h-12 w-12 text-primary/40" />
+                        </div>
+                      )}
+                      <div className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs font-bold backdrop-blur-md border border-white/10 shadow-sm">
+                        {bootcamp.status === 'published' ? (
+                          <span className="text-green-500">Published</span>
+                        ) : (
+                          <span className="text-muted-foreground">Draft</span>
+                        )}
+                      </div>
+                      {bootcamp.price > 0 && (
+                        <div className="absolute right-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs font-black text-primary backdrop-blur-md border border-white/10 shadow-sm">
+                          ${bootcamp.price}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-1 flex-col p-5">
+                      <div className="mb-4">
+                        <h3 className="line-clamp-2 font-display text-lg font-bold leading-tight group-hover:text-primary transition-colors">
+                          {bootcamp.title}
+                        </h3>
+                      </div>
+                      
+                      <div className="mt-auto flex items-center justify-between border-t border-border/50 pt-4">
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={bootcamp.profiles?.avatar_url || "https://github.com/shadcn.png"} 
+                            className="h-6 w-6 rounded-full border border-border"
+                          />
+                          <span className="text-xs font-medium text-muted-foreground line-clamp-1">
+                            {bootcamp.profiles?.full_name || bootcamp.profiles?.username}
+                          </span>
+                        </div>
+                        {bootcamp.club && bootcamp.club.id && (
+                           <Link to={`/app/clubs/${bootcamp.club.id}`} className="text-xs font-bold text-primary hover:underline">
+                             View Class
+                           </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
