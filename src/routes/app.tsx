@@ -34,11 +34,20 @@ export const Route = createFileRoute("/app")({
 
 const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => {
   const isWallet = src.includes('wallet');
+  const isMessage = src.includes('communities'); // Now used ONLY for Messages since Clubs uses logo.png
+  
+  let scaleClass = '';
+  if (isMessage) {
+    scaleClass = 'scale-[1.6]'; // Make message icon even bigger
+  } else if (!isWallet && !src.includes('logo.png')) {
+    scaleClass = 'scale-[1.3]';
+  }
+
   return (
     <img 
       src={src} 
       alt="" 
-      className={`object-contain ${!isWallet ? 'scale-[1.3]' : ''} ${className}`} 
+      className={`object-contain ${scaleClass} ${className}`} 
     />
   );
 };
@@ -46,7 +55,7 @@ const BrandIcon = ({ src, className = "" }: { src: string; className?: string })
 const tabs = [
   { to: "/app/", label: "Feed", iconSrc: "/landing-builder-feed-icon-brand.png", exact: true },
   { to: "/app/bootcamps", label: "Learn", iconSrc: "/landing-learning-icon-brand.png" },
-  { to: "/app/clubs", label: "Clubs", iconSrc: "/landing-communities-icon-brand.png" },
+  { to: "/app/clubs", label: "Clubs", iconSrc: "/logo.png" },
   { to: "/app/wallet", label: "Wallet", iconSrc: "/landing-wallet-icon-brand.png" },
   { to: "/app/chat", label: "Messages", iconSrc: "/landing-communities-icon-brand.png" },
 ];
@@ -176,7 +185,7 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
         {[
           { iconSrc: "/landing-builder-feed-icon-brand.png", label: "Profile", to: "/app/profile" },
           { iconSrc: "/landing-wallet-icon-brand.png", label: "Membership", to: "/app/premium" },
-          { iconSrc: "/landing-communities-icon-brand.png", label: "Clubs", to: "/app/clubs" },
+          { iconSrc: "/logo.png", label: "Clubs", to: "/app/clubs" },
           { iconSrc: "/landing-proof-builders-icon-brand.png", label: "Bookmarks", to: "/app/bookmarks" },
           { iconSrc: "/landing-learning-icon-brand.png", label: "ZeroNotes", to: "/app/notes" },
           { iconSrc: "/landing-proof-teams-icon-brand.png", label: "ZeroHub", to: "/app/zerohub" },
