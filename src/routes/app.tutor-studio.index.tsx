@@ -14,7 +14,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from 
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTutorBootcamps, deleteBootcampAction } from "@/api";
+import { getTutorBootcamps, deleteBootcampAction, getBootcampLearners } from "@/api";
 import { useEffect } from "react";
 import { uploadFile } from "@/lib/storage";
 
@@ -43,7 +43,7 @@ function TutorStudioPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [view, setView] = useState<"dashboard" | "editor">("dashboard");
-  const [activeTab, setActiveTab] = useState<"details" | "curriculum" | "students" | "club">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "curriculum" | "learners" | "club">("details");
   const [hasAccess, setHasAccess] = useState(false);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
@@ -67,10 +67,23 @@ function TutorStudioPage() {
     coupon_discount_percent: "0"
   });
 
-  const { data: bootcamps = [] } = useQuery({
+  const { data: bootcamps = [], isLoading: bootcampsLoading } = useQuery({
     queryKey: ['tutor-bootcamps'],
-    queryFn: () => getTutorBootcamps()
+    queryFn: getTutorBootcamps,
   });
+
+  const { data: learners = [] } = useQuery({
+    queryKey: ['bootcamp-learners', activeBootcampId],
+    queryFn: () => getBootcampLearners(activeBootcampId!),
+    enabled: !!activeBootcampId
+  });
+
+  const [rooms, setRooms] = useState([
+    { name: "general", desc: "Main discussion area", color: "text-blue-500" },
+    { name: "q-and-a", desc: "Questions and answers", color: "text-emerald-500" },
+    { name: "assignments", desc: "Homework submission", color: "text-amber-500" },
+    { name: "announcements", desc: "Important updates", color: "text-rose-500" },
+  ]);
 
   const { data: curriculumData, isLoading: isLoadingCurriculum } = useQuery({
     queryKey: ['bootcamp-curriculum', activeBootcampId],
@@ -420,7 +433,7 @@ function TutorStudioPage() {
             {[
               { id: "details", label: "Details", icon: Layout },
               { id: "curriculum", label: "Curriculum", icon: BookOpen },
-              { id: "students", label: "Students", icon: Users },
+              { id: "learners", label: "Learners", icon: Users },
               { id: "club", label: "Club Setup", icon: Hash },
             ].map((tab) => {
               const active = activeTab === tab.id;
@@ -584,16 +597,16 @@ function TutorStudioPage() {
             </div>
           )}
 
-          {/* ─── STUDENTS TAB ─────────────────── */}
-          {activeTab === "students" && (
+          {/* ─── LEARNERS TAB ─────────────────── */}
+          {activeTab === "learners" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between pb-5 border-b border-border/40">
                 <div>
-                  <h2 className="text-2xl font-black text-foreground tracking-tight">Student Roster</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Manage and track your enrolled students.</p>
+                  <h2 className="text-2xl font-black text-foreground tracking-tight">Learner Roster</h2>
+                  <p className="text-xs text-muted-foreground mt-1">Manage and track your enrolled learners.</p>
                 </div>
                 <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-black flex items-center gap-2 border border-primary/20">
-                  <Users className="h-4 w-4" /> 1,240
+                  <Users className="h-4 w-4" /> {learners.length}
                 </div>
               </div>
 
@@ -602,7 +615,7 @@ function TutorStudioPage() {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <input
                     type="text"
-                    placeholder="Search students..."
+                    placeholder="Search learners..."
                     className="w-full bg-accent/30 border border-border/40 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/60"
                   />
                 </div>
@@ -612,15 +625,19 @@ function TutorStudioPage() {
               </div>
 
               <div className="rounded-3xl border border-border/40 bg-card overflow-hidden divide-y divide-border/30 shadow-sm">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center justify-between p-5 hover:bg-accent/20 transition-colors">
+                {learners.length > 0 ? learners.map((learner: any) => (
+                  <div key={learner.profiles?.id} className="flex items-center justify-between p-5 hover:bg-accent/20 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/15 to-blue-500/15 border border-border/40 flex items-center justify-center font-black text-sm text-primary">
-                        B{i}
-                      </div>
+                      {learner.profiles?.avatar_url ? (
+                        <img src={learner.profiles.avatar_url} alt={learner.profiles.full_name} className="h-12 w-12 rounded-2xl object-cover border border-border/40" />
+                      ) : (
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/15 to-blue-500/15 border border-border/40 flex items-center justify-center font-black text-sm text-primary">
+                          {(learner.profiles?.full_name || learner.profiles?.username || "?")[0].toUpperCase()}
+                        </div>
+                      )}
                       <div>
-                        <div className="text-sm font-bold text-foreground">Builder {i}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">Joined 2 days ago</div>
+                        <div className="text-sm font-bold text-foreground">{learner.profiles?.full_name || learner.profiles?.username || "Unknown"}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">Joined {new Date(learner.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -649,9 +666,14 @@ function TutorStudioPage() {
                   </div>
                 ))}
               </div>
-              <button className="w-full py-4 text-sm font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-2xl border border-primary/20 transition-colors">
-                Load More Students
-              </button>
+              {learners.length === 0 && (
+                <div className="p-8 text-center text-sm text-muted-foreground">No learners enrolled yet.</div>
+              )}
+              {learners.length > 5 && (
+                <button className="w-full py-4 text-sm font-bold text-primary hover:bg-accent/30 transition-colors">
+                  Load More Learners
+                </button>
+              )}
             </div>
           )}
 
@@ -718,17 +740,20 @@ function TutorStudioPage() {
                     </div>
                     <h3 className="text-lg font-black text-foreground tracking-tight">Classrooms</h3>
                   </div>
-                  <button className="flex items-center gap-2 text-xs font-bold text-background bg-foreground hover:scale-105 active:scale-95 px-4 py-2.5 rounded-full transition-all shadow-lg">
+                  <button
+                    onClick={() => {
+                      const name = prompt("Enter room name:");
+                      if (name) {
+                        setRooms([...rooms, { name: name.toLowerCase().replace(/\s+/g, '-'), desc: "New room", color: "text-blue-500" }]);
+                      }
+                    }}
+                    className="flex items-center gap-2 text-xs font-bold text-background bg-foreground hover:scale-105 active:scale-95 px-4 py-2.5 rounded-full transition-all shadow-lg"
+                  >
                     <Plus className="h-4 w-4" /> New Room
                   </button>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  {[
-                    { name: "general", desc: "Main discussion area", color: "text-blue-500" },
-                    { name: "q-and-a", desc: "Questions and answers", color: "text-emerald-500" },
-                    { name: "assignments", desc: "Homework submission", color: "text-amber-500" },
-                    { name: "announcements", desc: "Important updates", color: "text-rose-500" },
-                  ].map((room) => (
+                  {rooms.map((room) => (
                     <div
                       key={room.name}
                       className="group flex flex-col p-5 rounded-2xl bg-background border border-border/30 hover:border-violet-500/30 hover:shadow-lg transition-all"
@@ -760,7 +785,7 @@ function TutorStudioPage() {
             <div className="space-y-8 max-w-2xl mx-auto pb-10">
               <div className="pb-5 border-b border-border/40">
                 <h2 className="text-2xl font-black text-foreground tracking-tight">Bootcamp Details</h2>
-                <p className="text-xs text-muted-foreground mt-1">Edit the page students see before enrolling.</p>
+                <p className="text-xs text-muted-foreground mt-1">Edit the page learners see before enrolling.</p>
               </div>
 
               <div className="space-y-6 bg-card p-6 rounded-3xl border border-border/40 shadow-sm">
@@ -838,7 +863,7 @@ function TutorStudioPage() {
                     className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40 resize-none"
                     value={bootcampSettings.description}
                     onChange={(e) => setBootcampSettings({ ...bootcampSettings, description: e.target.value })}
-                    placeholder="Describe what students will learn..."
+                    placeholder="Describe what learners will learn..."
                   />
                 </div>
 
@@ -1102,7 +1127,7 @@ function TutorStudioPage() {
               <div className="h-10 w-10 rounded-2xl bg-blue-500/10 grid place-items-center shrink-0">
                 <Users className="h-5 w-5 text-blue-500" />
               </div>
-              <span className="text-[11px] leading-tight">Students</span>
+              <span className="text-[11px] leading-tight">Learners</span>
             </div>
             <p className="relative z-10 font-display text-3xl font-black text-foreground tracking-tight">0</p>
             <div className="relative z-10 flex items-center gap-1.5 mt-2 text-muted-foreground">
@@ -1157,18 +1182,12 @@ function TutorStudioPage() {
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-border/30">
-                    <div className="flex items-center gap-2.5 text-sm font-black text-foreground">
-                      <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500/10 to-transparent pl-3 pr-4 py-1.5 rounded-full text-xs border border-blue-500/10">
-                        <UsersRound className="h-3.5 w-3.5 text-blue-500" />
-                        <span className="text-blue-600 dark:text-blue-400">{course.students}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500/10 to-transparent pl-3 pr-4 py-1.5 rounded-full text-xs border border-emerald-500/10">
-                        <div className="h-4 w-4 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-[10px] font-black shrink-0">₦</div>
-                        <span className="text-emerald-600 dark:text-emerald-400">{course.revenue}</span>
-                      </div>
+                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500/10 to-transparent pl-3 pr-4 py-1.5 rounded-full text-xs border border-blue-500/10">
+                      <UsersRound className="h-3.5 w-3.5 text-blue-500" />
+                      <span className="text-blue-600 dark:text-blue-400">{course.enrollments?.[0]?.count || 0}</span>
                     </div>
-                    <div className="grid h-10 w-10 place-items-center rounded-full bg-foreground text-background shadow-md opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300">
-                      <ArrowRight className="h-4 w-4" />
+                    <div className="flex items-center gap-1.5 bg-gradient-to-l from-emerald-500/10 to-transparent pr-3 pl-4 py-1.5 rounded-full text-xs border border-emerald-500/10">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">₦{course.price || 0}</span>
                     </div>
                   </div>
                 </div>

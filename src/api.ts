@@ -19,7 +19,7 @@ export const getTutorBootcamps = async () => {
 
   const { data, error } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url)')
+    .select('*, profiles(username, full_name, avatar_url), enrollments(count)')
     .eq('creator_id', session.user.id)
     .order('created_at', { ascending: false });
   
@@ -338,6 +338,21 @@ export const enrollUserAction = createServerFn({ method: 'POST' }).handler(async
   if (error) throw new Error(error.message);
   return data;
 });
+
+// Fetch learners for a bootcamp
+export const getBootcampLearners = async (bootcampId: string) => {
+  const { data, error } = await supabase
+    .from('enrollments')
+    .select('created_at, profiles(*)')
+    .eq('bootcamp_id', bootcampId)
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error("Error fetching learners:", error);
+    return [];
+  }
+  return data || [];
+};
 
 // Create a new post
 export const createPostAction = createServerFn({ method: 'POST' }).handler(async ({ data: payload }: { data: { author_id: string; content: string; media_urls?: string[]; quoted_post_id?: string; is_build_post?: boolean; bootcamp_id?: string } }) => {
