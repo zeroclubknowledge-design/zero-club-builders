@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Box, CheckCircle2, ChevronLeft, Gift, Loader2, Lock, Mail, ShieldCheck, Sparkles, User } from "lucide-react";
+import { ArrowRight, Box, CheckCircle2, ChevronLeft, Gift, Loader2, Lock, Mail, ShieldCheck, Sparkles, User, BookOpen, GraduationCap, Building2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -29,6 +29,7 @@ function SignUpPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
+  const [accountType, setAccountType] = useState<"Learner" | "Tutor" | "Institution">(() => (localStorage.getItem("signup_account_type") as "Learner" | "Tutor" | "Institution") || "Learner");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -63,6 +64,10 @@ function SignUpPage() {
   useEffect(() => {
     localStorage.setItem("signup_terms", agreedToTerms ? "true" : "false");
   }, [agreedToTerms]);
+
+  useEffect(() => {
+    localStorage.setItem("signup_account_type", accountType);
+  }, [accountType]);
 
   useEffect(() => {
     localStorage.setItem("signup_terms", agreedToTerms ? "true" : "false");
@@ -119,6 +124,7 @@ function SignUpPage() {
       const metadata: any = {
         username: cleanUsername,
         full_name: username,
+        account_type: accountType,
       };
 
       if (referralCode) {
@@ -240,6 +246,36 @@ function SignUpPage() {
             <div className="p-6">
               {step === "info" ? (
                 <form onSubmit={handleSendCode} className="space-y-4">
+                  <div className="space-y-2 pb-2">
+                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">I am a...</span>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { id: "Learner", icon: BookOpen },
+                        { id: "Tutor", icon: GraduationCap },
+                        { id: "Institution", icon: Building2 },
+                      ].map((role) => (
+                        <button
+                          key={role.id}
+                          type="button"
+                          onClick={() => setAccountType(role.id as any)}
+                          className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-all ${
+                            accountType === role.id
+                              ? "border-primary bg-primary/10 text-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]"
+                              : "border-border/50 bg-background/50 text-muted-foreground hover:bg-card hover:text-foreground"
+                          }`}
+                        >
+                          <role.icon className={`h-6 w-6 ${accountType === role.id ? "text-primary" : "opacity-70"}`} />
+                          <span className="text-xs font-bold">{role.id}</span>
+                          {accountType === role.id && (
+                            <div className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white">
+                              <CheckCircle2 className="h-3 w-3" />
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Username</span>
                     <span className="relative block">
