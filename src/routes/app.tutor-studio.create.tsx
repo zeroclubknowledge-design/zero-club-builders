@@ -221,13 +221,14 @@ function CreateBootcamp() {
       {/* ─── Progress Stepper ─── */}
       <div className="px-6 py-7 border-b border-border/40">
         <div className="flex items-center justify-between relative">
-          {/* Track background */}
-          <div className="absolute top-5 left-0 w-full h-1 bg-accent rounded-full -translate-y-1/2 z-0" />
-          {/* Track fill */}
-          <div
-            className="absolute top-5 left-0 h-1 bg-primary rounded-full -translate-y-1/2 z-0 transition-all duration-500 ease-out"
-            style={{ width: `${(step - 1) * 50}%` }}
-          />
+          {/* Tracks */}
+          <div className="absolute top-5 left-5 right-5 h-1 -translate-y-1/2 z-0">
+            <div className="absolute inset-0 bg-accent rounded-full" />
+            <div
+              className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${(step - 1) * 50}%` }}
+            />
+          </div>
 
           {[1, 2, 3].map((s) => (
             <div key={s} className="relative z-10 flex flex-col items-center gap-2.5">
