@@ -182,6 +182,16 @@
   .glass-magenta { background: oklch(0.6 0.25 0 / 0.08); backdrop-filter: blur(16px); border: 1px solid oklch(0.6 0.25 0 / 0.25); }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
+  .lucide {
+    stroke-width: 2.9 !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .lucide :is(path, circle, rect, polygon, polyline, line) {
+    fill: currentColor !important;
+    fill-opacity: 0.42;
+    stroke-width: inherit;
+  }
   
   @keyframes progress {
     0% { transform: translateX(-100%); }
