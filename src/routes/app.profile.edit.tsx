@@ -298,7 +298,8 @@ function EditProfile() {
       {cropImage && (
         <ImageCropper 
           image={cropImage.src} 
-          aspect={cropImage.type === 'avatar' ? 1 : 16/5} 
+          aspect={cropImage.type === 'avatar' ? 1 : 16/7} 
+          allowRotation={cropImage.type === 'avatar'}
           onCropComplete={handleCropComplete} 
           onCancel={() => setCropImage(null)} 
         />

@@ -3,6 +3,7 @@ import Cropper from 'react-easy-crop';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { RotateCw } from 'lucide-react';
 import { getCroppedImg } from '@/lib/cropImage';
 
 interface ImageCropperProps {
@@ -10,11 +11,13 @@ interface ImageCropperProps {
   onCropComplete: (croppedImage: Blob) => void;
   onCancel: () => void;
   aspect?: number;
+  allowRotation?: boolean;
 }
 
-export function ImageCropper({ image, onCropComplete, onCancel, aspect = 1 }: ImageCropperProps) {
+export function ImageCropper({ image, onCropComplete, onCancel, aspect = 1, allowRotation = false }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   const onCropChange = (crop: any) => {
@@ -31,7 +34,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect = 1 }: Im
 
   const handleDone = useCallback(async () => {
     try {
-      const croppedImage = await getCroppedImg(image, croppedAreaPixels);
+      const croppedImage = await getCroppedImg(image, croppedAreaPixels, rotation);
       if (croppedImage) {
         onCropComplete(croppedImage);
       }
@@ -55,9 +58,11 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect = 1 }: Im
             image={image}
             crop={crop}
             zoom={zoom}
+            rotation={rotation}
             aspect={aspect}
             onCropChange={onCropChange}
             onCropComplete={onCropCompleteInternal}
+            onRotationChange={setRotation}
             onZoomChange={onZoomChange}
             classes={{
               containerClassName: "rounded-2xl",
@@ -80,6 +85,31 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect = 1 }: Im
             className="cursor-pointer"
           />
         </div>
+
+        {allowRotation && (
+          <div className="mt-4 px-2 flex items-center gap-4">
+            <button 
+              onClick={() => setRotation(r => r + 90)}
+              className="flex items-center gap-2 text-xs font-bold bg-accent hover:bg-accent/80 transition-colors px-3 py-2 rounded-xl text-foreground"
+            >
+              <RotateCw className="h-4 w-4" /> Rotate 90°
+            </button>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] text-muted-foreground">Fine Rotation</p>
+                <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{rotation}°</span>
+              </div>
+              <Slider
+                value={[rotation]}
+                min={0}
+                max={360}
+                step={1}
+                onValueChange={([val]) => setRotation(val)}
+                className="cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
 
         <DialogFooter className="mt-8 flex gap-3 sm:justify-center">
           <Button 
