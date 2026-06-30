@@ -282,9 +282,13 @@ function TutorStudioPage() {
 
   const handleUpdateModuleTitle = async (moduleId: string, title: string) => {
     if (!title.trim()) return;
-    const { error } = await supabase.from('modules').update({ title: title.trim() }).eq('id', moduleId);
+    const { data, error } = await supabase.from('modules').update({ title: title.trim() }).eq('id', moduleId).select();
     if (error) {
       toast.error(error.message || "Failed to update module");
+      return;
+    }
+    if (!data || data.length === 0) {
+      toast.error("Changes were not saved. You may not have permission to update this module.");
       return;
     }
     queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
@@ -318,9 +322,13 @@ function TutorStudioPage() {
   };
 
   const handleUpdateLesson = async (lessonId: string, updates: any) => {
-    const { error } = await supabase.from('lessons').update(updates).eq('id', lessonId);
+    const { data, error } = await supabase.from('lessons').update(updates).eq('id', lessonId).select();
     if (error) {
       toast.error(error.message || "Failed to update lesson");
+      return;
+    }
+    if (!data || data.length === 0) {
+      toast.error("Changes were not saved. You may not have permission to update this lesson.");
       return;
     }
     queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
