@@ -51,9 +51,8 @@ function TutorStudioPage() {
   const [bootcampVideoFile, setBootcampVideoFile] = useState<File | null>(null);
   const [activeBootcampId, setActiveBootcampId] = useState<string | null>(null);
 
-  // Profile data for Payout/Booking
+  // Profile data for Booking
   const [profile, setProfile] = useState<any>(null);
-  const [payoutForm, setPayoutForm] = useState({ bank_name: '', account_number: '', account_name: '' });
   const [bookingForm, setBookingForm] = useState({ availability_days: 'Weekdays (Mon-Fri)', availability_start: '09:00', availability_end: '17:00', availability_duration: '60 minutes' });
   const [bootcampSettings, setBootcampSettings] = useState({
     title: "",
@@ -134,11 +133,6 @@ function TutorStudioPage() {
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
         if (data) {
           setProfile(data);
-          setPayoutForm({
-            bank_name: data.bank_name || '',
-            account_number: data.account_number || '',
-            account_name: data.account_name || ''
-          });
           setBookingForm({
             availability_days: data.availability_days || 'Weekdays (Mon-Fri)',
             availability_start: data.availability_start || '09:00',
@@ -151,21 +145,19 @@ function TutorStudioPage() {
     loadProfile();
   }, []);
 
-  const handleSaveSettings = async (type: string) => {
+  const handleSaveSettings = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    const updates = type === 'Payout' ? payoutForm : bookingForm;
-
     const { error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(bookingForm)
       .eq('id', session.user.id);
 
     if (error) {
-      toast.error(`Failed to save ${type} settings: ${error.message}`);
+      toast.error(`Failed to save booking settings: ${error.message}`);
     } else {
-      toast.success(`${type} settings saved successfully!`);
+      toast.success(`Booking settings saved successfully!`);
     }
   };
 
@@ -1007,51 +999,6 @@ function TutorStudioPage() {
               <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
                 <section className="space-y-5">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <WalletIcon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-foreground">Payout Details</h3>
-                      <p className="text-xs text-muted-foreground">Manage bank accounts and earnings</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Bank Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Access Bank"
-                      value={payoutForm.bank_name}
-                      onChange={(e) => setPayoutForm({ ...payoutForm, bank_name: e.target.value })}
-                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Account Number</label>
-                    <input
-                      type="text"
-                      placeholder="0123456789"
-                      value={payoutForm.account_number}
-                      onChange={(e) => setPayoutForm({ ...payoutForm, account_number: e.target.value })}
-                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Account Name</label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      value={payoutForm.account_name}
-                      onChange={(e) => setPayoutForm({ ...payoutForm, account_name: e.target.value })}
-                      className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
-                    />
-                  </div>
-                  <button onClick={() => handleSaveSettings('Payout')} className="w-full bg-foreground text-background font-bold py-4 rounded-full shadow-lg transition active:scale-95 text-sm">
-                    Save Payout Details
-                  </button>
-                </section>
-
-                <section className="space-y-5 pt-6">
-                  <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-blue-500" />
                     </div>
@@ -1110,7 +1057,7 @@ function TutorStudioPage() {
                       <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   </div>
-                  <button onClick={() => handleSaveSettings('Booking')} className="w-full bg-blue-500 text-white font-bold py-4 rounded-full shadow-lg shadow-blue-500/20 transition active:scale-95 text-sm">
+                  <button onClick={handleSaveSettings} className="w-full bg-blue-500 text-white font-bold py-4 rounded-full shadow-lg shadow-blue-500/20 transition active:scale-95 text-sm">
                     Save Availability
                   </button>
                 </section>
