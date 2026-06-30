@@ -113,7 +113,7 @@ function SignInPage() {
         <Link to="/" className="flex h-10 w-10 items-center justify-center rounded-full border border-border/50 bg-background/70 backdrop-blur-xl transition active:scale-95" aria-label="Back to home">
           <ChevronLeft className="h-5 w-5" />
         </Link>
-        <Link to="/signup" search={{ ref, club }} className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-xs font-black text-foreground backdrop-blur-xl transition active:scale-95">
+        <Link to="/signup" search={{ ref, club }} className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground backdrop-blur-xl transition active:scale-95">
           Create account
         </Link>
       </header>
@@ -123,9 +123,9 @@ function SignInPage() {
           <div className="max-w-xl">
             <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-border/50 bg-card/70 px-4 py-2 backdrop-blur-xl">
               <img src="/logo.png" alt="Zero Club" className="h-7 w-auto object-contain" />
-              <span className="text-sm font-black">Zero Club</span>
+              <span className="text-sm font-semibold">Zero Club</span>
             </div>
-            <h1 className="font-display text-6xl font-black leading-[0.95] tracking-tight">
+            <h1 className="font-display text-[56px] font-normal leading-[1.05] tracking-[-0.04em] text-[#8f5849]">
               Come back to the place builders compound.
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-muted-foreground">
@@ -135,7 +135,7 @@ function SignInPage() {
               {featureLines.map((line) => (
                 <div key={line} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
                   <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
-                  <span className="text-sm font-bold text-foreground/85">{line}</span>
+                  <span className="text-sm font-medium text-foreground/85">{line}</span>
                 </div>
               ))}
             </div>
@@ -146,18 +146,18 @@ function SignInPage() {
           <div className="mb-8 lg:hidden">
             <div className="mb-5 flex items-center gap-3">
               <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
-              <span className="font-display text-xl font-black tracking-tight">Zero Club</span>
+              <span className="font-display text-xl font-semibold tracking-tight">Zero Club</span>
             </div>
-            <h1 className="font-display text-4xl font-black leading-none tracking-tight">Welcome back</h1>
+            <h1 className="font-display text-4xl font-normal leading-tight tracking-[-0.035em] text-[#8f5849]">Welcome back</h1>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border/50 bg-card/82 shadow-[0_24px_80px_rgba(0,0,0,0.16)] backdrop-blur-2xl">
+          <div className="overflow-hidden rounded-[8px] border border-border/50 bg-card shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
             <div className="border-b border-border/40 bg-background/35 px-6 py-5">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
                 <ShieldCheck className="h-3.5 w-3.5" />
                 Secure access
               </div>
-              <h2 className="mt-4 font-display text-3xl font-black tracking-tight">Sign in</h2>
+              <h2 className="mt-4 font-display text-3xl font-normal tracking-[-0.03em]">Sign in</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">Enter your email and we will send a one-time code.</p>
             </div>
 
@@ -165,7 +165,7 @@ function SignInPage() {
               {step === "email" ? (
                 <form onSubmit={handleSendCode} className="space-y-5">
                   <label className="block space-y-2">
-                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Email address</span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email address</span>
                     <span className="relative block">
                       <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <input
@@ -173,7 +173,7 @@ function SignInPage() {
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                       />
                     </span>
                   </label>
@@ -181,7 +181,7 @@ function SignInPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-sm font-semibold text-white shadow-[0_10px_28px_rgba(204,32,143,0.22)] transition hover:bg-[#a71973] active:scale-[0.98] disabled:opacity-60"
                   >
                     {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Send code <ArrowRight className="h-4 w-4" /></>}
                   </button>
@@ -189,7 +189,7 @@ function SignInPage() {
               ) : (
                 <form onSubmit={handleVerifyCode} className="space-y-5">
                   <label className="block space-y-2">
-                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Confirmation code</span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Confirmation code</span>
                     <span className="relative block">
                       <input
                         type="text"
@@ -197,28 +197,28 @@ function SignInPage() {
                         maxLength={10}
                         value={code}
                         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 text-center text-lg font-black tracking-[0.45em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 text-center text-lg font-semibold tracking-[0.38em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                       />
                     </span>
                   </label>
 
                   <p className="text-sm leading-6 text-muted-foreground">
-                    Sent to <span className="font-black text-foreground">{email}</span>.
+                    Sent to <span className="font-semibold text-foreground">{email}</span>.
                   </p>
 
                   <button
                     type="submit"
                     disabled={loading || code.length < 6}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-sm font-semibold text-white shadow-[0_10px_28px_rgba(204,32,143,0.22)] transition hover:bg-[#a71973] active:scale-[0.98] disabled:opacity-60"
                   >
                     {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Verify code <ArrowRight className="h-4 w-4" /></>}
                   </button>
 
                   <div className="flex flex-col gap-2">
-                    <button type="button" onClick={handleSendCode} disabled={loading} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                    <button type="button" onClick={handleSendCode} disabled={loading} className="w-full py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground">
                       Resend code
                     </button>
-                    <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                    <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="w-full py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground">
                       Use a different email
                     </button>
                   </div>

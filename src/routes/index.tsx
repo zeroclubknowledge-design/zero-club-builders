@@ -94,22 +94,22 @@ const audienceCards = [
   {
     title: "For builders",
     copy: "Share what you are learning, document your work, join clubs, and build a profile that compounds.",
-    icon: UsersRound,
+    iconSrc: "/landing-proof-builders-icon-brand.png",
   },
   {
     title: "For tutors",
     copy: "Run bootcamps, manage curriculum, create coupons, teach communities, and earn from your knowledge.",
-    icon: GraduationCap,
+    iconSrc: "/landing-proof-tutors-icon-brand.png",
   },
   {
     title: "For institutions",
     copy: "Create structured learning spaces, support cohorts, and track real learner participation.",
-    icon: Building2,
+    iconSrc: "/landing-proof-institutions-icon-brand.png",
   },
   {
     title: "For teams",
     copy: "Find people through proof of work, contribution history, learning activity, and community signal.",
-    icon: BriefcaseBusiness,
+    iconSrc: "/landing-proof-teams-icon-brand.png",
   },
 ];
 
@@ -220,7 +220,7 @@ function Hero({ referralCode }: ReferralProps) {
       <div className="mx-auto grid min-h-[calc(100vh-64px)] max-w-[1180px] items-center gap-10 px-4 py-10 md:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:py-14">
         <div>
           <h1 className="max-w-[620px] text-[46px] font-normal leading-[1.08] tracking-[-0.035em] text-[#8f5849] md:text-[64px]">
-            Welcome to Zero Club
+            A professional network for builders
           </h1>
           <p className="mt-5 max-w-[560px] text-[21px] leading-8 text-[#303236]">
             The professional social network where builders learn in public, join serious communities, and turn proof of work into opportunity.
@@ -254,8 +254,8 @@ function Hero({ referralCode }: ReferralProps) {
           <div className="overflow-hidden rounded-[8px] border border-[#ddd6ce] bg-white shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
             <div className="border-b border-[#ece7e1] px-5 py-4">
               <div className="flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-[#cc208f]/10">
-                  <img src="/landing-builder-feed-icon-brand.png" alt="" className="h-7 w-7 object-contain" />
+                <div className="grid h-14 w-14 place-items-center rounded-full bg-[#cc208f]/10">
+                  <img src="/landing-builder-feed-icon-brand.png" alt="" className="h-11 w-11 object-contain" />
                 </div>
                 <div>
                   <p className="text-[15px] font-bold text-[#171717]">Builder feed</p>
@@ -302,10 +302,15 @@ function TopicExplorer() {
           </h2>
         </div>
         <div>
-          <div className="mb-5 flex items-center gap-3 rounded-[6px] border border-[#d9d5cf] bg-white px-4 py-3">
-            <Search className="h-5 w-5 text-[#666a70]" />
-            <span className="text-[15px] text-[#666a70]">Search skills, people, clubs, bootcamps, and projects</span>
-          </div>
+          <label className="mb-5 flex min-h-14 items-center gap-3 rounded-full border border-[#b7b0a8] bg-white px-5 py-3 shadow-[0_8px_28px_rgba(0,0,0,0.05)]">
+            <Search className="h-5 w-5 shrink-0 text-[#666a70]" />
+            <input
+              type="text"
+              aria-label="Search Zero Club"
+              placeholder="Search goals, people, clubs, bootcamps, and projects"
+              className="w-full bg-transparent text-[15px] text-[#171717] outline-none placeholder:text-[#666a70]"
+            />
+          </label>
           <div className="flex flex-wrap gap-3">
             {searchTopics.map((topic) => (
               <a
@@ -399,7 +404,9 @@ function OpportunitiesSection() {
         <div className="grid gap-4 sm:grid-cols-2">
           {audienceCards.map((card) => (
             <article key={card.title} className="rounded-[8px] border border-[#d9d3ca] bg-white p-6">
-              <card.icon className="h-7 w-7 text-[#cc208f]" />
+              <div className="grid h-12 w-12 place-items-center rounded-[8px] bg-[#cc208f]/10">
+                <img src={card.iconSrc} alt="" className="h-9 w-9 object-contain" />
+              </div>
               <h3 className="mt-5 text-[20px] font-bold tracking-[-0.02em] text-[#171717]">{card.title}</h3>
               <p className="mt-3 text-[15px] leading-6 text-[#666a70]">{card.copy}</p>
             </article>
@@ -429,16 +436,10 @@ function WalletSection() {
         </div>
         <div className="relative h-[360px] overflow-hidden rounded-[8px] border border-[#e2ddd6] bg-black">
           <img
-            src="/landing-creator-economy-phone.png"
+            src="/landing-creator-economy-phone-zero-club.png"
             alt="Zero Club wallet and store phone mockup"
             className="h-full w-full object-cover"
           />
-          <div className="absolute left-[29%] top-[31%] grid h-[58px] w-[58px] place-items-center rounded-[16px] border border-white/18 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
-            <img src="/logo.png" alt="Zero Club" className="h-11 w-11 object-contain" />
-          </div>
-          <p className="absolute left-[29%] top-[49%] text-[13px] font-bold tracking-[-0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]">
-            Zero Club
-          </p>
         </div>
       </div>
     </section>

@@ -193,7 +193,7 @@ function SignUpPage() {
         <Link to="/signin" className="flex h-10 w-10 items-center justify-center rounded-full border border-border/50 bg-background/70 backdrop-blur-xl transition active:scale-95" aria-label="Back to sign in">
           <ChevronLeft className="h-5 w-5" />
         </Link>
-        <Link to="/signin" className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-xs font-black text-foreground backdrop-blur-xl transition active:scale-95">
+        <Link to="/signin" className="rounded-full border border-border/50 bg-background/70 px-4 py-2 text-sm font-semibold text-foreground backdrop-blur-xl transition active:scale-95">
           Sign in
         </Link>
       </header>
@@ -203,9 +203,9 @@ function SignUpPage() {
           <div className="max-w-xl">
             <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-border/50 bg-card/70 px-4 py-2 backdrop-blur-xl">
               <img src="/logo.png" alt="Zero Club" className="h-7 w-auto object-contain" />
-              <span className="text-sm font-black">Zero Club</span>
+              <span className="text-sm font-semibold">Zero Club</span>
             </div>
-            <h1 className="font-display text-6xl font-black leading-[0.95] tracking-tight">
+            <h1 className="font-display text-[56px] font-normal leading-[1.05] tracking-[-0.04em] text-[#8f5849]">
               Build your profile like a product people remember.
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-muted-foreground">
@@ -215,7 +215,7 @@ function SignUpPage() {
               {perks.map((perk) => (
                 <div key={perk} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
                   <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
-                  <span className="text-sm font-bold text-foreground/85">{perk}</span>
+                  <span className="text-sm font-medium text-foreground/85">{perk}</span>
                 </div>
               ))}
             </div>
@@ -226,18 +226,18 @@ function SignUpPage() {
           <div className="mb-8 lg:hidden">
             <div className="mb-5 flex items-center gap-3">
               <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
-              <span className="font-display text-xl font-black tracking-tight">Zero Club</span>
+              <span className="font-display text-xl font-semibold tracking-tight">Zero Club</span>
             </div>
-            <h1 className="font-display text-4xl font-black leading-none tracking-tight">Create account</h1>
+            <h1 className="font-display text-4xl font-normal leading-tight tracking-[-0.035em] text-[#8f5849]">Create account</h1>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border/50 bg-card/82 shadow-[0_24px_80px_rgba(0,0,0,0.16)] backdrop-blur-2xl">
+          <div className="overflow-hidden rounded-[8px] border border-border/50 bg-card shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
             <div className="border-b border-border/40 bg-background/35 px-6 py-5">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
                 <Box className="h-3.5 w-3.5" />
                 Builder access
               </div>
-              <h2 className="mt-4 font-display text-3xl font-black tracking-tight">{step === "info" ? "Join Zero Club" : "Verify email"}</h2>
+              <h2 className="mt-4 font-display text-3xl font-normal tracking-[-0.03em]">{step === "info" ? "Join Zero Club" : "Verify email"}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 {step === "info" ? "Create your handle, add an email, and enter with a secure code." : "Enter the code we sent to finish your account."}
               </p>
@@ -247,7 +247,7 @@ function SignUpPage() {
               {step === "info" ? (
                 <form onSubmit={handleSendCode} className="space-y-4">
                   <div className="space-y-2 pb-2">
-                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">I am a...</span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">I am a...</span>
                     <div className="grid grid-cols-3 gap-3">
                       {[
                         { id: "Learner", icon: BookOpen },
@@ -258,14 +258,14 @@ function SignUpPage() {
                           key={role.id}
                           type="button"
                           onClick={() => setAccountType(role.id as any)}
-                          className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-all ${
+                          className={`relative flex flex-col items-center justify-center gap-2 rounded-[8px] border p-4 text-center transition-all ${
                             accountType === role.id
                               ? "border-primary bg-primary/10 text-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]"
                               : "border-border/50 bg-background/50 text-muted-foreground hover:bg-card hover:text-foreground"
                           }`}
                         >
                           <role.icon className={`h-6 w-6 ${accountType === role.id ? "text-primary" : "opacity-70"}`} />
-                          <span className="text-xs font-bold">{role.id}</span>
+                          <span className="text-xs font-semibold">{role.id}</span>
                           {accountType === role.id && (
                             <div className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white">
                               <CheckCircle2 className="h-3 w-3" />
@@ -277,7 +277,7 @@ function SignUpPage() {
                   </div>
 
                   <label className="block space-y-2">
-                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Username</span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Username</span>
                     <span className="relative block">
                       <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <input
@@ -285,13 +285,13 @@ function SignUpPage() {
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                       />
                     </span>
                   </label>
 
                   <label className="block space-y-2">
-                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Email address</span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email address</span>
                     <span className="relative block">
                       <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <input
@@ -299,13 +299,13 @@ function SignUpPage() {
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 pl-12 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                       />
                     </span>
                   </label>
 
                   <label className="block space-y-2">
-                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Referral code <span className="normal-case tracking-normal text-muted-foreground/60">optional</span></span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Referral code <span className="normal-case tracking-normal text-muted-foreground/60">optional</span></span>
                     <span className="relative block">
                       <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <input
@@ -313,13 +313,13 @@ function SignUpPage() {
                         placeholder="Enter referral code"
                         value={referralCode}
                         onChange={(e) => setReferralCode(e.target.value)}
-                        className={`h-14 w-full rounded-xl border bg-background/70 px-4 pl-12 pr-20 text-[15px] font-semibold outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 ${referralCode ? "border-primary/50 bg-primary/5" : "border-border"}`}
+                        className={`h-14 w-full rounded-[8px] border bg-background/70 px-4 pl-12 pr-20 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 ${referralCode ? "border-primary/50 bg-primary/5" : "border-border"}`}
                       />
-                      {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-[0.16em] text-primary">Applied</span>}
+                      {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Applied</span>}
                     </span>
                   </label>
 
-                  <label className="flex items-start gap-3 rounded-xl border border-border/35 bg-background/45 px-4 py-3">
+                  <label className="flex items-start gap-3 rounded-[8px] border border-border/35 bg-background/45 px-4 py-3">
                     <input
                       type="checkbox"
                       checked={agreedToTerms}
@@ -327,14 +327,14 @@ function SignUpPage() {
                       className="mt-1 h-4 w-4 rounded border-border bg-card accent-primary"
                     />
                     <span className="text-xs leading-5 text-muted-foreground">
-                      I agree to the <span className="font-black text-foreground underline">Terms of Service</span> and <span className="font-black text-foreground underline">Privacy Policy</span>.
+                      I agree to the <span className="font-semibold text-foreground underline">Terms of Service</span> and <span className="font-semibold text-foreground underline">Privacy Policy</span>.
                     </span>
                   </label>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-sm font-semibold text-white shadow-[0_10px_28px_rgba(204,32,143,0.22)] transition hover:bg-[#a71973] active:scale-[0.98] disabled:opacity-60"
                   >
                     {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Continue <ArrowRight className="h-4 w-4" /></>}
                   </button>
@@ -342,7 +342,7 @@ function SignUpPage() {
               ) : (
                 <form onSubmit={handleVerifyCode} className="space-y-5">
                   <label className="block space-y-2">
-                    <span className="ml-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Confirmation code</span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Confirmation code</span>
                     <span className="relative block">
                       <input
                         type="text"
@@ -350,28 +350,28 @@ function SignUpPage() {
                         maxLength={10}
                         value={code}
                         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                        className="h-14 w-full rounded-xl border border-border bg-background/70 px-4 text-center text-lg font-black tracking-[0.45em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 text-center text-lg font-semibold tracking-[0.38em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                       />
                     </span>
                   </label>
 
                   <p className="text-sm leading-6 text-muted-foreground">
-                    Sent to <span className="font-black text-foreground">{email}</span>.
+                    Sent to <span className="font-semibold text-foreground">{email}</span>.
                   </p>
 
                   <button
                     type="submit"
                     disabled={loading || code.length < 6}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-black text-white shadow-glow transition active:scale-[0.98] disabled:opacity-60"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-sm font-semibold text-white shadow-[0_10px_28px_rgba(204,32,143,0.22)] transition hover:bg-[#a71973] active:scale-[0.98] disabled:opacity-60"
                   >
                     {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Complete signup <ArrowRight className="h-4 w-4" /></>}
                   </button>
 
                   <div className="flex flex-col gap-2">
-                    <button type="button" onClick={handleSendCode} disabled={loading} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                    <button type="button" onClick={handleSendCode} disabled={loading} className="w-full py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground">
                       Resend code
                     </button>
-                    <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="w-full py-2 text-sm font-black text-muted-foreground transition hover:text-foreground">
+                    <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="w-full py-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground">
                       Go back
                     </button>
                   </div>
