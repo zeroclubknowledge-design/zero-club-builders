@@ -509,11 +509,7 @@ function PostDetail() {
   };
 
   const handleBack = () => {
-    if (window.history.length <= 1) {
-      router.navigate({ to: "/app" });
-    } else {
-      window.history.back();
-    }
+    router.navigate({ to: "/app" });
   };
 
   const initials = (post?.profiles?.full_name || post?.profiles?.username || 'U').substring(0, 1).toUpperCase();

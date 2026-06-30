@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Search, ChevronLeft, UserPlus, MessageCircle, Check } from "lucide-react";
 import { getFollowers } from "@/api";
 import { useQuery } from "@tanstack/react-query";
@@ -33,7 +33,7 @@ function NewMessagePage() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] space-y-4">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => window.history.back()} 
+            onClick={() => navigate({ to: '/app/chat' })} 
             className="grid h-10 w-10 place-items-center rounded-full bg-accent/20 border border-border transition active:scale-95"
           >
             <ChevronLeft className="h-5 w-5" />

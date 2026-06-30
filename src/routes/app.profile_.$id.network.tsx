@@ -1,4 +1,4 @@
-import { useLoaderData, createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useLoaderData, createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { 
   BadgeCheck, ChevronLeft, Users, Loader2, Hash, CheckCircle2, Shield, X
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/app/profile_/$id/network")({
 });
 
 function ProfileNetwork() {
+  const navigate = useNavigate();
   const { profile, currentUser } = useLoaderData({ from: "/app/profile_/$id/network" });
   const [activeTab, setActiveTab] = useState<"following" | "followers" | "clubs">("following");
   const [isFollowing, setIsFollowing] = useState(false);
@@ -114,7 +115,7 @@ function ProfileNetwork() {
       }`}>
         <div className="relative z-20 flex items-center px-4 h-full gap-3">
           <button 
-            onClick={() => window.history.back()}
+            onClick={() => navigate({ to: `/app/profile/${profile.id}` })}
             className="grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 bg-accent/50 text-foreground hover:bg-accent"
           >
             <ChevronLeft className="h-[18px] w-[18px]" />

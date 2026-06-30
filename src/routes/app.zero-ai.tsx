@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, Sparkles, Brain, Rocket, Zap, MessageSquare, Cpu, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -25,7 +25,7 @@ function ZeroAIPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center gap-4 bg-background/50 backdrop-blur-xl border-b border-border/50">
         <button 
-          onClick={() => window.history.back()}
+          onClick={() => navigate({ to: '/app' })}
           className="grid h-10 w-10 place-items-center rounded-full bg-card border border-border transition active:scale-90"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -96,7 +96,7 @@ function ZeroAIPage() {
       {/* Bottom Footer */}
       <footer className="px-6 pb-10 text-center">
         <button 
-          onClick={() => window.history.back()}
+          onClick={() => navigate({ to: '/app' })}
           className="w-full py-4 rounded-2xl bg-card border border-border text-sm font-bold transition active:scale-95 hover:bg-accent"
         >
           Back to Club

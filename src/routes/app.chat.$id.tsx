@@ -357,6 +357,7 @@ function ChatViewPage() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
   const { data: currentUserProfile } = useUser();
+  const navigate = useNavigate();
 
   const { data: otherUser } = useQuery({
     queryKey: ["profile", id],
@@ -646,15 +647,6 @@ function ChatViewPage() {
     }
   };
 
-  const navigate = useNavigate();
-  const handleBack = () => {
-    if (window.history.length <= 1) {
-      navigate({ to: "/app" });
-    } else {
-      window.history.back();
-    }
-  };
-
   if (messagesLoading && messages.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -670,7 +662,7 @@ function ChatViewPage() {
     >
       <header className="flex items-center justify-between border-b border-border bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <button onClick={handleBack} className="grid h-9 w-9 place-items-center rounded-full transition active:scale-95 active:bg-accent/50">
+          <button onClick={() => navigate({ to: '/app/chat' })} className="grid h-9 w-9 place-items-center rounded-full transition active:scale-95 active:bg-accent/50">
             <ChevronLeft className="h-6 w-6" />
           </button>
 

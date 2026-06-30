@@ -1,4 +1,4 @@
-import { useLoaderData, createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useLoaderData, createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { 
   BadgeCheck, Flame, MapPin, LinkIcon, CalendarDays, ChevronLeft, 
@@ -82,6 +82,7 @@ const isVideoUrl = (url: string) => {
 };
 
 function ProfileDetail() {
+  const navigate = useNavigate();
   const { profile } = Route.useLoaderData();
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
@@ -394,7 +395,7 @@ function ProfileDetail() {
             <>
               <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => window.history.back()}
+                  onClick={() => navigate({ to: '/app' })}
                   className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
                     scrolled 
                       ?"bg-accent/50 text-foreground hover:bg-accent" 
@@ -565,7 +566,7 @@ function ProfileDetail() {
       {/* ═══════════════════════════════════════════
           CONTENT TABS
          ═══════════════════════════════════════════ */}
-      <div className="mx-auto max-w-4xl mt-8 px-4 sm:px-6">
+      <div className="mx-auto max-w-md mt-8 px-4">
         <div className="flex justify-between overflow-x-auto no-scrollbar border-b border-border/20">
           {tabs.map((t) => {
             const active = tab === t;
