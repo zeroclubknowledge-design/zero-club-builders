@@ -12,7 +12,7 @@ import {
   Compass, Sparkles, CircleUser, UsersRound, 
   Plus, BellRing, BookmarkCheck, Clapperboard, 
   MoreHorizontal, SlidersHorizontal, LifeBuoy, UserPlus, Crown, Rocket, Zap,
-  Palette, Check, Sun, MessageCircle, GraduationCap, Globe, Feather
+  Palette, Check, Sun, MessageCircle, GraduationCap, Globe, Feather, Building2
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -205,7 +205,8 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
           { icon: Feather, label: "ZeroNotes", to: "/app/notes" },
           { icon: Rocket, label: "ZeroHub", to: "/app/zerohub" },
           { icon: GraduationCap, label: "Bootcamps", to: "/app/bootcamps" },
-          { icon: Clapperboard, label: "Tutor Studio", to: "/app/tutor-studio" },
+          ...(profile?.account_type === 'Tutor' || profile?.account_type === 'Institution' ? [{ icon: Clapperboard, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
+          ...(profile?.account_type === 'Institution' ? [{ icon: Building2, label: "Institution Hub", to: "/app/institution-studio" }] : []),
         ].map((item) => (
           <Link 
             key={item.label} 

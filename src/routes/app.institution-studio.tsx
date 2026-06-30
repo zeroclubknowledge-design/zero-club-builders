@@ -4,11 +4,11 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/app/tutor-studio")({
-  component: TutorStudioLayout,
+export const Route = createFileRoute("/app/institution-studio")({
+  component: InstitutionStudioLayout,
 });
 
-function TutorStudioLayout() {
+function InstitutionStudioLayout() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -19,9 +19,9 @@ function TutorStudioLayout() {
         router.navigate({ to: "/signin" });
         return;
       }
-      const { data: profile } = await supabase.from('profiles').select('account_type').eq('id', session.user.id).single();
-      if (profile?.account_type === 'Learner') {
-        toast.error("You do not have access to the Tutor Studio.");
+      const { data: profile } = await supabase.from("profiles").select("account_type").eq("id", session.user.id).single();
+      if (profile?.account_type !== "Institution") {
+        toast.error("You do not have access to the Institution Hub.");
         router.navigate({ to: "/app" });
         return;
       }
