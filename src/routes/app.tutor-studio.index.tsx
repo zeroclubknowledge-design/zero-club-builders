@@ -1167,6 +1167,9 @@ function TutorStudioPage() {
               >
                 {/* Thumbnail */}
                 <div className="h-36 w-full bg-accent/20 relative overflow-hidden">
+                  {course.banner_url && (
+                    <img src={course.banner_url} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-40 group-hover:opacity-80 transition-opacity" />
                   <div className="absolute top-3 right-3">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] backdrop-blur-md shadow-sm ${ course.status ==="Active" ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/25" :
