@@ -1,5 +1,5 @@
 import { useLoaderData, createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Star, Clock, Users, PlayCircle, CheckCircle2, FileText, Smartphone, Globe, Award, Loader2, Video } from "lucide-react";
+import { ChevronLeft, Star, Clock, Users, PlayCircle, CheckCircle2, FileText, Smartphone, Globe, Award, Loader2, Video, BookOpen, Sparkles } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
@@ -285,12 +285,11 @@ function BootcampDetail() {
           <h2 className="text-lg font-bold">This bootcamp includes:</h2>
           <div className="mt-4 grid grid-cols-2 gap-4">
             {[
-              { icon: PlayCircle, t: "Lifetime access" },
-              { icon: FileText, t: "Articles & Resources" },
-              { icon: Smartphone, t: "Access on mobile" },
-              { icon: Globe, t: "Certificate" },
-              { icon: Award, t: "Verified Badge" },
-              { icon: Users, t: "Discord channel" },
+              { icon: Award, t: "Proof of Work Certificate" },
+              { icon: BookOpen, t: "Proof of Knowledge" },
+              { icon: FileText, t: "ZeroNotes" },
+              { icon: Sparkles, t: "Earn XP" },
+              { icon: Users, t: "Tutor Access" },
             ].map((item) => (
               <div key={item.t} className="flex items-center gap-2 text-xs text-muted-foreground">
                 <item.icon className="h-4 w-4 text-primary" />

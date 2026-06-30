@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft, ChevronDown, UploadCloud, Play,
   Plus, Trash2, GripVertical, CheckCircle2,
-  DollarSign, Globe, Lock, Sparkles, Save, Loader2, X
+  DollarSign, Globe, Lock, Rocket, Save, Loader2, X
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
@@ -534,7 +534,7 @@ function CreateBootcamp() {
             {/* Hero */}
             <div className="space-y-4 text-center">
               <div className="h-20 w-20 rounded-[28px] bg-primary/15 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-primary/10">
-                <Sparkles className="h-9 w-9 text-primary" />
+                <Rocket className="h-9 w-9 text-primary" />
               </div>
               <h2 className="text-2xl font-black tracking-tight">Ready to Launch?</h2>
               <p className="text-sm text-muted-foreground">

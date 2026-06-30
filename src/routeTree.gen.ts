@@ -24,6 +24,7 @@ import { Route as AppQuestsRouteImport } from './routes/app.quests'
 import { Route as AppPremiumRouteImport } from './routes/app.premium'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
+import { Route as AppInstitutionStudioRouteImport } from './routes/app.institution-studio'
 import { Route as AppDraftsRouteImport } from './routes/app.drafts'
 import { Route as AppComposeRouteImport } from './routes/app.compose'
 import { Route as AppBoostRouteImport } from './routes/app.boost'
@@ -33,6 +34,7 @@ import { Route as AppTutorStudioIndexRouteImport } from './routes/app.tutor-stud
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
 import { Route as AppProfileIndexRouteImport } from './routes/app.profile.index'
 import { Route as AppNotesIndexRouteImport } from './routes/app.notes.index'
+import { Route as AppInstitutionStudioIndexRouteImport } from './routes/app.institution-studio.index'
 import { Route as AppClubsIndexRouteImport } from './routes/app.clubs.index'
 import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
@@ -138,6 +140,11 @@ const AppNotesRoute = AppNotesRouteImport.update({
   path: '/notes',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInstitutionStudioRoute = AppInstitutionStudioRouteImport.update({
+  id: '/institution-studio',
+  path: '/institution-studio',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDraftsRoute = AppDraftsRouteImport.update({
   id: '/drafts',
   path: '/drafts',
@@ -183,6 +190,12 @@ const AppNotesIndexRoute = AppNotesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppNotesRoute,
 } as any)
+const AppInstitutionStudioIndexRoute =
+  AppInstitutionStudioIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppInstitutionStudioRoute,
+  } as any)
 const AppClubsIndexRoute = AppClubsIndexRouteImport.update({
   id: '/clubs/',
   path: '/clubs/',
@@ -341,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
+  '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
@@ -378,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/clubs/': typeof AppClubsIndexRoute
+  '/app/institution-studio/': typeof AppInstitutionStudioIndexRoute
   '/app/notes/': typeof AppNotesIndexRoute
   '/app/profile/': typeof AppProfileIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
@@ -429,6 +444,7 @@ export interface FileRoutesByTo {
   '/app/bootcamps': typeof AppBootcampsIndexRoute
   '/app/chat': typeof AppChatIndexRoute
   '/app/clubs': typeof AppClubsIndexRoute
+  '/app/institution-studio': typeof AppInstitutionStudioIndexRoute
   '/app/notes': typeof AppNotesIndexRoute
   '/app/profile': typeof AppProfileIndexRoute
   '/app/settings': typeof AppSettingsIndexRoute
@@ -448,6 +464,7 @@ export interface FileRoutesById {
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
+  '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
@@ -485,6 +502,7 @@ export interface FileRoutesById {
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/clubs/': typeof AppClubsIndexRoute
+  '/app/institution-studio/': typeof AppInstitutionStudioIndexRoute
   '/app/notes/': typeof AppNotesIndexRoute
   '/app/profile/': typeof AppProfileIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
@@ -505,6 +523,7 @@ export interface FileRouteTypes {
     | '/app/boost'
     | '/app/compose'
     | '/app/drafts'
+    | '/app/institution-studio'
     | '/app/notes'
     | '/app/notifications'
     | '/app/premium'
@@ -542,6 +561,7 @@ export interface FileRouteTypes {
     | '/app/bootcamps/'
     | '/app/chat/'
     | '/app/clubs/'
+    | '/app/institution-studio/'
     | '/app/notes/'
     | '/app/profile/'
     | '/app/settings/'
@@ -593,6 +613,7 @@ export interface FileRouteTypes {
     | '/app/bootcamps'
     | '/app/chat'
     | '/app/clubs'
+    | '/app/institution-studio'
     | '/app/notes'
     | '/app/profile'
     | '/app/settings'
@@ -611,6 +632,7 @@ export interface FileRouteTypes {
     | '/app/boost'
     | '/app/compose'
     | '/app/drafts'
+    | '/app/institution-studio'
     | '/app/notes'
     | '/app/notifications'
     | '/app/premium'
@@ -648,6 +670,7 @@ export interface FileRouteTypes {
     | '/app/bootcamps/'
     | '/app/chat/'
     | '/app/clubs/'
+    | '/app/institution-studio/'
     | '/app/notes/'
     | '/app/profile/'
     | '/app/settings/'
@@ -772,6 +795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNotesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/institution-studio': {
+      id: '/app/institution-studio'
+      path: '/institution-studio'
+      fullPath: '/app/institution-studio'
+      preLoaderRoute: typeof AppInstitutionStudioRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/drafts': {
       id: '/app/drafts'
       path: '/drafts'
@@ -834,6 +864,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/notes/'
       preLoaderRoute: typeof AppNotesIndexRouteImport
       parentRoute: typeof AppNotesRoute
+    }
+    '/app/institution-studio/': {
+      id: '/app/institution-studio/'
+      path: '/'
+      fullPath: '/app/institution-studio/'
+      preLoaderRoute: typeof AppInstitutionStudioIndexRouteImport
+      parentRoute: typeof AppInstitutionStudioRoute
     }
     '/app/clubs/': {
       id: '/app/clubs/'
@@ -1041,6 +1078,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppInstitutionStudioRouteChildren {
+  AppInstitutionStudioIndexRoute: typeof AppInstitutionStudioIndexRoute
+}
+
+const AppInstitutionStudioRouteChildren: AppInstitutionStudioRouteChildren = {
+  AppInstitutionStudioIndexRoute: AppInstitutionStudioIndexRoute,
+}
+
+const AppInstitutionStudioRouteWithChildren =
+  AppInstitutionStudioRoute._addFileChildren(AppInstitutionStudioRouteChildren)
+
 interface AppNotesIdRouteChildren {
   AppNotesIdEditRoute: typeof AppNotesIdEditRoute
 }
@@ -1125,6 +1173,7 @@ interface AppRouteChildren {
   AppBoostRoute: typeof AppBoostRoute
   AppComposeRoute: typeof AppComposeRoute
   AppDraftsRoute: typeof AppDraftsRoute
+  AppInstitutionStudioRoute: typeof AppInstitutionStudioRouteWithChildren
   AppNotesRoute: typeof AppNotesRouteWithChildren
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppPremiumRoute: typeof AppPremiumRoute
@@ -1162,6 +1211,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBoostRoute: AppBoostRoute,
   AppComposeRoute: AppComposeRoute,
   AppDraftsRoute: AppDraftsRoute,
+  AppInstitutionStudioRoute: AppInstitutionStudioRouteWithChildren,
   AppNotesRoute: AppNotesRouteWithChildren,
   AppNotificationsRoute: AppNotificationsRoute,
   AppPremiumRoute: AppPremiumRoute,
