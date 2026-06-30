@@ -22,6 +22,23 @@ export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
 });
 
+const WalletIcon = ({ className, ...props }: React.ComponentProps<"div">) => (
+  <div
+    className={`bg-current inline-block ${className}`}
+    style={{
+      WebkitMaskImage: "url('/wallet_icon.png')",
+      maskImage: "url('/wallet_icon.png')",
+      WebkitMaskSize: "contain",
+      maskSize: "contain",
+      WebkitMaskRepeat: "no-repeat",
+      maskRepeat: "no-repeat",
+      WebkitMaskPosition: "center",
+      maskPosition: "center"
+    }}
+    {...props}
+  />
+);
+
 function TutorStudioPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -976,7 +993,7 @@ function TutorStudioPage() {
             </DrawerTrigger>
             <DrawerContent className="h-[90%] border-t border-border/40 bg-card p-0 flex flex-col shadow-[0_-10px_50px_rgba(0,0,0,0.12)] max-w-lg mx-auto">
               <div className="w-12 h-1.5 bg-border/60 rounded-full mx-auto mt-4 mb-2 shrink-0" />
-              <DrawerHeader className="px-6 py-4 border-b border-border/30 shrink-0 text-left">
+              <DrawerHeader className="px-6 py-4 shrink-0 text-left">
                 <DrawerTitle className="text-xl font-black text-foreground flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Settings className="h-5 w-5 text-primary" />
@@ -988,7 +1005,7 @@ function TutorStudioPage() {
                 <section className="space-y-5">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Wallet className="h-5 w-5 text-primary" />
+                      <WalletIcon className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="text-sm font-black text-foreground">Payout Details</h3>
@@ -1105,11 +1122,11 @@ function TutorStudioPage() {
         <section className="grid grid-cols-2 gap-4">
           <div className="relative rounded-3xl border border-border/40 bg-card p-6 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
             <div className="absolute -top-8 -right-8 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
-              <Wallet className="h-32 w-32 text-primary" />
+              <WalletIcon className="h-32 w-32 text-primary" />
             </div>
             <div className="relative z-10 flex items-center gap-3 text-muted-foreground mb-4">
               <div className="h-10 w-10 rounded-2xl bg-primary/10 grid place-items-center shrink-0">
-                <Wallet className="h-5 w-5 text-primary" />
+                <WalletIcon className="h-5 w-5 text-primary" />
               </div>
               <span className="text-[11px] leading-tight">Total Earned</span>
             </div>
