@@ -201,7 +201,7 @@ function TutorStudioPage() {
       savedVideoUrl = await uploadFile('bootcamp-banners', bootcampVideoFile, `${session.user.id}/${fileName}`);
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('bootcamps')
       .update({
         title: bootcampSettings.title,
@@ -215,10 +215,16 @@ function TutorStudioPage() {
         coupon_code: code || null,
         coupon_discount_percent: code ? discount : 0
       })
-      .eq('id', activeBootcampId);
+      .eq('id', activeBootcampId)
+      .select();
 
     if (error) {
       toast.error(`Failed to save bootcamp settings: ${error.message}`);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      toast.error(`Changes were not saved. You may not have permission to update this bootcamp or it doesn't exist.`);
       return;
     }
 
@@ -406,12 +412,6 @@ function TutorStudioPage() {
               </h1>
             </div>
           </div>
-          <button
-            onClick={handleSaveBootcampSettings}
-            className="rounded-full bg-foreground px-5 py-2.5 text-xs font-bold text-background shadow-lg transition hover:scale-105 active:scale-95 flex items-center gap-2"
-          >
-            <Check className="h-4 w-4" /> Save
-          </button>
         </header>
 
         {/* ── Floating Pill Tabs ────────────────────────── */}
@@ -569,6 +569,17 @@ function TutorStudioPage() {
                   </AccordionItem>
                 ))}
               </Accordion>
+              )}
+
+              {!isLoadingCurriculum && modules.length > 0 && (
+                <div className="flex justify-end pt-4 border-t border-border/40 mt-6">
+                  <button
+                    onClick={handleSaveBootcampSettings}
+                    className="rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-primary-foreground shadow-glow transition hover:scale-105 active:scale-95 flex items-center gap-2"
+                  >
+                    Save Changes
+                  </button>
+                </div>
               )}
             </div>
           )}
