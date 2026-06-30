@@ -1,5 +1,19 @@
-import { useLoaderData, createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Star, Clock, Users, PlayCircle, CheckCircle2, FileText, Smartphone, Globe, Award, Loader2, Video, BookOpen, Sparkles } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  Award,
+  BookOpen,
+  CheckCircle2,
+  ChevronLeft,
+  FileText,
+  Layers3,
+  Loader2,
+  PlayCircle,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Users,
+  Video,
+} from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
@@ -13,39 +27,40 @@ export const Route = createFileRoute("/app/bootcamps/$id")({
 
 function BootcampDetail() {
   const { id } = Route.useParams();
-  
+
   const { data: bootcampData, isLoading: isBootcampLoading } = useQuery({
-    queryKey: ['bootcamp', id],
+    queryKey: ["bootcamp", id],
     queryFn: async () => {
       const { data: bootcamp, error } = await supabase
-        .from('bootcamps')
-        .select('*, profiles(*)')
-        .eq('id', id)
+        .from("bootcamps")
+        .select("*, profiles(*)")
+        .eq("id", id)
         .single();
-      
+
       if (error) throw error;
 
       const { data: modules, error: modulesError } = await supabase
-        .from('modules')
-        .select('*, lessons(*)')
-        .eq('bootcamp_id', id)
-        .order('order_index', { ascending: true });
+        .from("modules")
+        .select("*, lessons(*)")
+        .eq("bootcamp_id", id)
+        .order("order_index", { ascending: true });
 
       if (modulesError) throw modulesError;
 
       const { data: club } = await supabase
-        .from('clubs')
-        .select('*')
-        .eq('name', bootcamp.title)
-        .eq('creator_id', bootcamp.creator_id)
-        .eq('category', 'Bootcamp')
+        .from("clubs")
+        .select("*")
+        .eq("name", bootcamp.title)
+        .eq("creator_id", bootcamp.creator_id)
+        .eq("category", "Bootcamp")
         .single();
 
       return { bootcamp, modules, club };
-    }
+    },
   });
 
-  const { bootcamp, modules = [], club = null } = bootcampData || {};
+  const { bootcamp, modules: rawModules = [], club = null } = bootcampData || {};
+  const modules = rawModules || [];
 
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -56,20 +71,23 @@ function BootcampDetail() {
   }, [bootcamp?.id]);
 
   async function checkEnrollment() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     if (session) {
       const { data: prof } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
         .single();
       setCurrentUser(prof || session.user);
-      
+
       const { data } = await supabase
-        .from('enrollments')
-        .select('*')
-        .eq('profile_id', session.user.id)
-        .eq('bootcamp_id', bootcamp.id)
+        .from("enrollments")
+        .select("*")
+        .eq("profile_id", session.user.id)
+        .eq("bootcamp_id", bootcamp.id)
         .single();
       setIsEnrolled(!!data);
     }
@@ -80,21 +98,26 @@ function BootcampDetail() {
       toast.error("Please sign in to enroll");
       return;
     }
+
     setLoading(true);
     try {
-      await enrollUserAction({ 
-        data: { 
-          bootcampId: bootcamp.id, 
-          profileId: currentUser.id 
-        } 
+      await (enrollUserAction as any)({
+        data: {
+          bootcampId: bootcamp.id,
+          profileId: currentUser.id,
+        },
       });
+
       if (club) {
-        await supabase.from('club_members').insert([{
-          club_id: club.id,
-          profile_id: currentUser.id,
-          role: 'Member'
-        }]);
+        await supabase.from("club_members").insert([
+          {
+            club_id: club.id,
+            profile_id: currentUser.id,
+            role: "Member",
+          },
+        ]);
       }
+
       setIsEnrolled(true);
       toast.success("Enrolled successfully!");
     } catch (error: any) {
@@ -106,198 +129,238 @@ function BootcampDetail() {
 
   if (isBootcampLoading || !bootcamp) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen py-20 bg-background">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-4 text-sm text-muted-foreground font-medium">Loading bootcamp details...</p>
+        <p className="mt-4 text-sm font-medium text-muted-foreground">Loading bootcamp details...</p>
       </div>
     );
   }
 
+  const totalLessons = modules.reduce((sum: number, module: any) => sum + (module.lessons?.length || 0), 0);
+  const basePrice = Number(bootcamp.price) || 0;
+  const tier = currentUser?.tier || "Basic";
+  let discountPct = 0;
+  if (tier === "Premium") discountPct = 0.3;
+  else if (tier === "Premium+") discountPct = 0.5;
+
+  const finalPrice = Math.round(basePrice * (1 - discountPct));
+  const formatPrice = (value: number) => `NGN ${value.toLocaleString()}`;
+  const isTutor = currentUser?.id === bootcamp.creator_id;
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero / Cover */}
+    <div className="min-h-screen bg-background pb-12">
       <div className="relative h-48 w-full">
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent z-10" />
-        <div className="h-full w-full bg-muted overflow-hidden">
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-background to-transparent" />
+        <div className="h-full w-full overflow-hidden bg-muted">
           {bootcamp.banner_url ? (
-            <img src={bootcamp.banner_url} alt="" className="w-full h-full object-cover" />
+            <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-gradient-primary" style={{ background: "linear-gradient(135deg,#cc208f,#a78bfa)" }} />
+            <div className="h-full w-full bg-gradient-primary" style={{ background: "linear-gradient(135deg,#cc208f,#a78bfa)" }} />
           )}
         </div>
-        <Link to="/app/bootcamps" className="absolute top-4 left-4 z-20 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95">
+        <Link
+          to="/app/bootcamps"
+          className="absolute left-4 top-4 z-20 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
+        >
           <ChevronLeft className="h-5 w-5" />
         </Link>
       </div>
 
-      <div className="px-5 -mt-12 relative z-20">
-        {/* Bootcamp Header */}
+      <div className="relative z-20 -mt-12 px-5">
         <div className="space-y-3">
-          <div className="inline-flex rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-bold text-primary border border-primary/20 uppercase">
+          <div className="inline-flex rounded-full border border-primary/20 bg-primary/15 px-2.5 py-1 text-[10px] font-bold uppercase text-primary">
             {bootcamp.category}
           </div>
           <h1 className="font-display text-2xl font-bold leading-tight">{bootcamp.title}</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {bootcamp.description}
-          </p>
-          
+          <p className="text-sm leading-relaxed text-muted-foreground">{bootcamp.description}</p>
+
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
             <div className="flex items-center gap-1">
               <span className="font-bold text-warning">5.0</span>
-              <div className="flex text-warning"><Star className="h-3 w-3 fill-current" /><Star className="h-3 w-3 fill-current" /><Star className="h-3 w-3 fill-current" /><Star className="h-3 w-3 fill-current" /><Star className="h-3 w-3 fill-current" /></div>
+              <div className="flex text-warning">
+                <Star className="h-3 w-3 fill-current" />
+                <Star className="h-3 w-3 fill-current" />
+                <Star className="h-3 w-3 fill-current" />
+                <Star className="h-3 w-3 fill-current" />
+                <Star className="h-3 w-3 fill-current" />
+              </div>
               <span className="text-muted-foreground">(New)</span>
             </div>
           </div>
 
           <div className="text-xs text-muted-foreground">
-            Created by <span className="text-primary font-bold">{bootcamp.profiles?.full_name || bootcamp.profiles?.username}</span>
+            Created by <span className="font-bold text-primary">{bootcamp.profiles?.full_name || bootcamp.profiles?.username}</span>
           </div>
-        </div>
 
-        {/* Pricing Card */}
-        <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-soft">
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-muted-foreground">Price</span>
-            <div className="flex flex-wrap items-baseline gap-2">
-              {(() => {
-                const basePrice = Number(bootcamp.price) || 0;
-                const tier = currentUser?.tier || "Basic";
-                let pct = 0;
-                if (tier === "Premium") pct = 0.3;
-                else if (tier === "Premium+") pct = 0.5;
-
-                const discountedPrice = Math.round(basePrice * (1 - pct));
-
-                if (pct > 0) {
-                  return (
-                    <>
-                      <span className="font-display text-3xl font-black text-foreground">₦{discountedPrice.toLocaleString()}</span>
-                      <span className="text-sm font-bold text-muted-foreground/60 line-through">₦{basePrice.toLocaleString()}</span>
-                      <span className="text-[10px] font-black bg-primary/10 text-primary px-2.5 py-1 rounded-full border border-primary/20 shrink-0">
-                        {pct * 100}% {tier} OFF
-                      </span>
-                    </>
-                  );
-                }
-                return <span className="font-display text-3xl font-black text-foreground">₦{basePrice.toLocaleString()}</span>;
-              })()}
-            </div>
-          </div>
-          
-          {isEnrolled ? (
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-center gap-2 py-3.5 bg-success/10 text-success rounded-xl font-bold text-sm">
-                <CheckCircle2 className="h-5 w-5" />
-                You are enrolled
+          <div className="mt-5 grid grid-cols-3 rounded-lg border border-border bg-card/70 text-center shadow-soft">
+            <div className="px-3 py-3">
+              <div className="flex items-center justify-center gap-1 text-warning">
+                <Star className="h-3.5 w-3.5 fill-current" />
+                <span className="text-sm font-black text-foreground">5.0</span>
               </div>
-              <Link 
-                to="/app/live/$classId" 
-                params={{ classId: bootcamp.id }}
-                className="w-full rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98] flex items-center justify-center gap-2"
-              >
-                <Video className="h-5 w-5" />
-                Join Live Class
-              </Link>
-              {club && (
-                <Link 
-                  to="/app/clubs/chat" 
-                  search={{ clubId: club.id }}
-                  className="w-full rounded-xl bg-primary/10 text-primary py-3.5 text-sm font-bold shadow-sm transition active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                  <Users className="h-5 w-5" />
-                  Enter Club
-                </Link>
-              )}
+              <p className="mt-1 text-[11px] text-muted-foreground">Rating</p>
             </div>
-          ) : (
-            <button 
-              onClick={handleEnroll}
-              disabled={loading}
-              className="mt-4 w-full rounded-xl bg-gradient-primary py-3.5 text-sm font-bold text-primary-foreground shadow-glow transition active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Enroll Now
-            </button>
-          )}
-
-          {(!isEnrolled && currentUser?.id === bootcamp.creator_id) && (
-            <div className="mt-4 space-y-3">
-              <Link 
-                to="/app/live/$classId" 
-                params={{ classId: bootcamp.id }}
-                className="w-full rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98] flex items-center justify-center gap-2"
-              >
-                <Video className="h-5 w-5" />
-                Go Live (Tutor)
-              </Link>
-              {club && (
-                <Link 
-                  to="/app/clubs/chat" 
-                  search={{ clubId: club.id }}
-                  className="w-full rounded-xl bg-primary/10 text-primary py-3.5 text-sm font-bold shadow-sm transition active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                  <Users className="h-5 w-5" />
-                  Enter Club (Admin)
-                </Link>
-              )}
+            <div className="border-x border-border px-3 py-3">
+              <Layers3 className="mx-auto h-4 w-4 text-primary" />
+              <p className="mt-1 text-sm font-black text-foreground">{modules.length}</p>
+              <p className="text-[11px] text-muted-foreground">Sections</p>
             </div>
-          )}
-          
-          <button className="mt-2 w-full rounded-xl border border-border py-3.5 text-sm font-bold transition active:bg-accent/30">
-            Add to Wishlist
-          </button>
+            <div className="px-3 py-3">
+              <Users className="mx-auto h-4 w-4 text-primary" />
+              <p className="mt-1 text-sm font-black text-foreground">Live</p>
+              <p className="text-[11px] text-muted-foreground">Cohort</p>
+            </div>
+          </div>
         </div>
 
-        {/* Bootcamp Content */}
-        <div className="mt-10">
-          <div className="flex items-center justify-between mb-4">
+        <section className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold">Bootcamp content</h2>
             <span className="text-xs text-muted-foreground">{modules.length} sections</span>
           </div>
-          
-          <Accordion type="single" collapsible className="space-y-3">
-            {modules.map((m: any, i: number) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border border-border rounded-2xl bg-card/40 px-4 overflow-hidden">
-                <AccordionTrigger className="hover:no-underline py-4 text-left font-semibold text-sm">
-                  {m.title}
+          <p className="mb-3 text-xs text-muted-foreground">
+            {modules.length} sections / {totalLessons} lessons / Live projects and tutor guidance
+          </p>
+
+          <Accordion type="single" collapsible className="overflow-hidden rounded-lg border border-border bg-card/30">
+            {modules.map((module: any, i: number) => (
+              <AccordionItem key={i} value={`item-${i}`} className="border-border px-4 last:border-b-0">
+                <AccordionTrigger className="py-4 text-left text-sm font-semibold hover:no-underline">
+                  <span className="flex flex-col items-start gap-1">
+                    <span>{module.title}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground">{module.lessons?.length || 0} lessons</span>
+                  </span>
                 </AccordionTrigger>
-                <AccordionContent className="pb-4 pt-1 space-y-4">
-                  {m.lessons?.sort((a: any, b: any) => a.order_index - b.order_index).map((l: any, j: number) => (
+                <AccordionContent className="space-y-4 pb-4 pt-1">
+                  {module.lessons?.sort((a: any, b: any) => a.order_index - b.order_index).map((lesson: any, j: number) => (
                     <div key={j} className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        {l.content_type === "video" ? <PlayCircle className="h-4 w-4 text-primary" /> : <FileText className="h-4 w-4 text-muted-foreground" />}
-                        <span className="text-xs leading-snug">{l.title}</span>
+                        {lesson.content_type === "video" ? (
+                          <PlayCircle className="h-4 w-4 text-primary" />
+                        ) : (
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="text-xs leading-snug">{lesson.title}</span>
                       </div>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{l.duration || '5m'}</span>
+                      <span className="shrink-0 text-[10px] text-muted-foreground">{lesson.duration || "5m"}</span>
                     </div>
                   ))}
-                  {(!m.lessons || m.lessons.length === 0) && (
-                    <p className="text-xs text-muted-foreground italic">No lessons in this module yet.</p>
+                  {(!module.lessons || module.lessons.length === 0) && (
+                    <p className="text-xs italic text-muted-foreground">No lessons in this module yet.</p>
                   )}
                 </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
+        </section>
 
-        {/* Includes Section */}
-        <div className="mt-10 mb-10">
+        <section className="mt-10">
           <h2 className="text-lg font-bold">This bootcamp includes:</h2>
           <div className="mt-4 grid grid-cols-2 gap-4">
             {[
-              { icon: Award, t: "Proof of Work Certificate" },
-              { icon: BookOpen, t: "Proof of Knowledge" },
-              { icon: FileText, t: "ZeroNotes" },
-              { icon: Sparkles, t: "Earn XP" },
-              { icon: Users, t: "Tutor Access" },
+              { icon: Award, label: "Proof of Work Certificate" },
+              { icon: BookOpen, label: "Proof of Knowledge" },
+              { icon: FileText, label: "ZeroNotes" },
+              { icon: Sparkles, label: "Earn XP" },
+              { icon: Users, label: "Tutor Access" },
             ].map((item) => (
-              <div key={item.t} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div key={item.label} className="flex items-center gap-2 text-xs text-muted-foreground">
                 <item.icon className="h-4 w-4 text-primary" />
-                <span>{item.t}</span>
+                <span>{item.label}</span>
               </div>
             ))}
           </div>
-        </div>
+        </section>
+
+        <footer className="mt-10 border-t border-border pb-8 pt-8">
+          <div className="rounded-lg border border-border bg-card p-5 shadow-soft">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Ready to join?</p>
+                <h2 className="mt-1 text-xl font-black text-foreground">Enroll in this bootcamp</h2>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Get the curriculum, live class access, ZeroNotes, XP rewards, and the cohort club.
+                </p>
+              </div>
+              <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-end gap-2">
+              <span className="font-display text-3xl font-black text-foreground">{formatPrice(finalPrice)}</span>
+              {discountPct > 0 && (
+                <>
+                  <span className="pb-1 text-sm font-bold text-muted-foreground/60 line-through">{formatPrice(basePrice)}</span>
+                  <span className="mb-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary">
+                    {discountPct * 100}% {tier} OFF
+                  </span>
+                </>
+              )}
+            </div>
+
+            {isEnrolled ? (
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3.5 text-sm font-bold text-success">
+                  <CheckCircle2 className="h-5 w-5" />
+                  You are enrolled
+                </div>
+                <Link
+                  to="/app/live/$classId"
+                  params={{ classId: bootcamp.id }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"
+                >
+                  <Video className="h-5 w-5" />
+                  Join Live Class
+                </Link>
+                {club && (
+                  <Link
+                    to="/app/clubs/chat"
+                    search={{ clubId: club.id, showRules: "false" }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"
+                  >
+                    <Users className="h-5 w-5" />
+                    Enter Club
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={handleEnroll}
+                disabled={loading}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary py-3.5 text-sm font-bold text-primary-foreground shadow-glow transition active:scale-[0.98] disabled:opacity-70"
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                Enroll Now
+              </button>
+            )}
+
+            {(!isEnrolled && isTutor) && (
+              <div className="mt-3 space-y-3">
+                <Link
+                  to="/app/live/$classId"
+                  params={{ classId: bootcamp.id }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"
+                >
+                  <Video className="h-5 w-5" />
+                  Go Live (Tutor)
+                </Link>
+                {club && (
+                  <Link
+                    to="/app/clubs/chat"
+                    search={{ clubId: club.id, showRules: "false" }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"
+                  >
+                    <Users className="h-5 w-5" />
+                    Enter Club (Admin)
+                  </Link>
+                )}
+              </div>
+            )}
+
+            <button className="mt-3 w-full rounded-xl border border-border py-3.5 text-sm font-bold transition active:bg-accent/30">
+              Add to Wishlist
+            </button>
+          </div>
+        </footer>
       </div>
     </div>
   );
