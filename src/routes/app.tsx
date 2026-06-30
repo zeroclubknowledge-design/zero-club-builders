@@ -236,7 +236,7 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
         if (active) {
           return (
             <Link key={t.to} to={t.to} className="relative mx-auto flex h-11 w-[68px] items-center justify-center gap-1.5 rounded-full bg-primary px-2 transition active:scale-95">
-              <BrandIcon src={t.iconSrc} className="h-5 w-5 shrink-0 rounded-full bg-primary-foreground/95 p-1" />
+              <BrandIcon src={t.iconSrc} className="h-[24px] w-[24px] shrink-0 rounded-full bg-primary-foreground/95 p-1" />
               <span className="min-w-0 truncate text-[10px] font-bold text-primary-foreground">{t.label}</span>
               {t.label === "Messages" && unreadCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-foreground text-primary px-1 text-[9px] font-black shadow-sm">
@@ -249,7 +249,7 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
 
         return (
           <Link key={t.to} to={t.to} className="relative mx-auto flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-accent/50 active:scale-95">
-            <BrandIcon src={t.iconSrc} className="h-8 w-8 opacity-95" />
+            <BrandIcon src={t.iconSrc} className="h-[24px] w-[24px] opacity-95" />
             {t.label === "Messages" && unreadCount > 0 && (
               <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-sm border border-card">
                 {unreadCount}
