@@ -30,6 +30,8 @@ function TutorStudioPage() {
   const [hasAccess, setHasAccess] = useState(false);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [bootcampVideoFile, setBootcampVideoFile] = useState<File | null>(null);
   const [activeBootcampId, setActiveBootcampId] = useState<string | null>(null);
 
   // Profile data for Payout/Booking
@@ -103,6 +105,8 @@ function TutorStudioPage() {
     });
     setBannerUrl(activeBootcamp.banner_url || null);
     setBootcampBannerFile(null);
+    setVideoPreviewUrl(activeBootcamp.video_url || null);
+    setBootcampVideoFile(null);
   }, [activeBootcamp?.id]);
 
   // Fetch profile settings
@@ -154,6 +158,7 @@ function TutorStudioPage() {
     const discount = Math.min(100, Math.max(0, Number(bootcampSettings.coupon_discount_percent) || 0));
     const code = bootcampSettings.coupon_code.trim().toUpperCase();
     let savedBannerUrl = bootcampSettings.banner_url;
+    let savedVideoUrl = bootcampSettings.video_url;
 
     if (bootcampBannerFile) {
       const { data: { session } } = await supabase.auth.getSession();
@@ -167,6 +172,18 @@ function TutorStudioPage() {
       savedBannerUrl = await uploadFile('bootcamp-banners', bootcampBannerFile, `${session.user.id}/${fileName}`);
     }
 
+    if (bootcampVideoFile) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please sign in to update this bootcamp");
+        return;
+      }
+
+      const fileExt = bootcampVideoFile.name.split('.').pop();
+      const fileName = `bootcamp_video_${activeBootcampId}_${Date.now()}.${fileExt}`;
+      savedVideoUrl = await uploadFile('bootcamp-banners', bootcampVideoFile, `${session.user.id}/${fileName}`);
+    }
+
     const { error } = await supabase
       .from('bootcamps')
       .update({
@@ -177,7 +194,7 @@ function TutorStudioPage() {
         status: bootcampSettings.status,
         visibility: bootcampSettings.visibility,
         banner_url: savedBannerUrl || null,
-        video_url: bootcampSettings.video_url || null,
+        video_url: savedVideoUrl || null,
         coupon_code: code || null,
         coupon_discount_percent: code ? discount : 0
       })
@@ -198,6 +215,14 @@ function TutorStudioPage() {
     if (file) {
       setBootcampBannerFile(file);
       setBannerUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBootcampVideoFile(file);
+      setVideoPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -792,14 +817,23 @@ function TutorStudioPage() {
                 {/* Video / Visibility */}
                 <div className="space-y-5 rounded-3xl border border-border/40 bg-background p-5">
                   <div className="space-y-3">
-                    <label className="text-[11px] text-muted-foreground ml-1">Preview Video URL</label>
-                    <input
-                      type="url"
-                      value={bootcampSettings.video_url}
-                      onChange={(e) => setBootcampSettings({ ...bootcampSettings, video_url: e.target.value })}
-                      placeholder="https://..."
-                      className="w-full bg-card border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
-                    />
+                    <label className="text-[11px] text-muted-foreground ml-1">Preview Video</label>
+                    <label className="group border-2 border-dashed border-border/50 rounded-3xl h-48 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
+                      {(videoPreviewUrl || bootcampSettings.video_url) ? (
+                        <>
+                          <video src={videoPreviewUrl || bootcampSettings.video_url} className="absolute inset-0 h-full w-full object-cover" muted loop playsInline />
+                          <div className="absolute inset-0 bg-black/45 opacity-70 transition-opacity group-hover:opacity-90" />
+                          <UploadCloud className="h-10 w-10 mb-3 text-white group-hover:text-primary transition-colors relative z-10" />
+                          <span className="text-sm font-bold text-white relative z-10">Click to change video</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="h-10 w-10 mb-3 group-hover:text-primary transition-colors relative z-10" />
+                          <span className="text-sm font-bold relative z-10">Click to upload preview video</span>
+                        </>
+                      )}
+                      <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
+                    </label>
                   </div>
                   <button
                     type="button"
