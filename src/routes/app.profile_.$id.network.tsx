@@ -86,7 +86,7 @@ function ProfileNetwork() {
       const { data: members } = await supabase
         .from('club_members')
         .select('club_id')
-        .eq('user_id', profile.id);
+        .eq('profile_id', profile.id);
       
       const clubIds = members?.map(m => m.club_id) || [];
       if (clubIds.length === 0) return [];

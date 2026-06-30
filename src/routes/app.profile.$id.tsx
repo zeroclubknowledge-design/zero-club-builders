@@ -565,7 +565,7 @@ function ProfileDetail() {
           CONTENT TABS
          ═══════════════════════════════════════════ */}
       <div className="mx-auto max-w-4xl mt-8 px-4 sm:px-6">
-        <div className="flex gap-6 overflow-x-auto no-scrollbar border-b border-border/20">
+        <div className="flex justify-between overflow-x-auto no-scrollbar border-b border-border/20">
           {tabs.map((t) => {
             const active = tab === t;
             return (
