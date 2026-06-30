@@ -471,7 +471,7 @@ function ProfileDetail() {
           HENSOR STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
       <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4" style={{ marginTop: 'calc(-1 * env(safe-area-inset-top))' }}>
-        <div className="relative overflow-hidden sm:rounded-[32px] border-x-0 sm:border border-border/40 bg-background shadow-xl">
+        <div className="relative overflow-hidden sm:rounded-[32px] bg-background">
           {/* Banner */}
           <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full overflow-hidden bg-muted flex items-center justify-center">
             {profile?.banner_url ? (
@@ -509,10 +509,10 @@ function ProfileDetail() {
                  <button 
                    onClick={handleFollow}
                    disabled={followLoading}
-                   className={`rounded-full px-5 py-2 text-[14px] font-bold transition-all flex items-center gap-2 active:scale-95 shadow-lg ${
+                   className={`rounded-full px-5 py-2 text-[14px] font-bold transition-all flex items-center gap-2 active:scale-95 ${
                      isFollowing 
-                       ? "border border-white/20 bg-transparent text-white hover:bg-white/10" 
-                       : "bg-white text-black hover:bg-white/90"
+                       ? "border border-border bg-transparent text-foreground hover:bg-accent" 
+                       : "bg-foreground text-background hover:opacity-90"
                    }`}
                  >
                    {followLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
@@ -524,16 +524,16 @@ function ProfileDetail() {
             <div className="mt-4 flex flex-col items-start gap-1">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-[22px] font-bold tracking-tight text-white leading-none">
+                  <h2 className="text-[22px] font-bold tracking-tight text-foreground leading-none">
                     {displayName}
                   </h2>
-                  {profile?.tier === 'Premium' && <BadgeCheck className="h-[18px] w-[18px] fill-primary text-white shrink-0" />}
+                  {profile?.tier === 'Premium' && <BadgeCheck className="h-[18px] w-[18px] fill-primary text-background shrink-0" />}
                   {profile?.tier === 'Premium+' && <BadgeCheck className="h-[18px] w-[18px] fill-[#ffcf00] text-black shrink-0" />}
                 </div>
-                <span className="text-[15px] text-zinc-500 mt-1">{profileHandle}</span>
+                <span className="text-[15px] text-muted-foreground mt-1">{profileHandle}</span>
               </div>
               
-              <div className="mt-3 text-[15px] text-zinc-300 leading-relaxed pr-4">
+              <div className="mt-3 text-[15px] text-foreground leading-relaxed pr-4">
                  {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Dynamic builder and creator on Zero Club, specializing in shipping great products."}
               </div>
               
@@ -553,8 +553,8 @@ function ProfileDetail() {
               </div>
               
               <div className="mt-3 flex items-center gap-1.5 text-[14px]">
-                 <Link2 className="h-4 w-4 text-zinc-500" />
-                 <a href="#" className="text-blue-500 hover:underline">
+                 <Link2 className="h-4 w-4 text-muted-foreground" />
+                 <a href="#" className="text-primary font-medium hover:underline">
                    {profileHandle.replace('@', '')}.net
                  </a>
               </div>

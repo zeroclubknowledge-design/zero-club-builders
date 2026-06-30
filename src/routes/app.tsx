@@ -32,28 +32,12 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => {
-  const isWallet = src.includes('wallet');
-  const isMessage = src.includes('communities'); // Now used ONLY for Messages since Clubs uses logo.png
-  
-  let scaleClass = '';
-  if (isMessage) {
-    scaleClass = 'scale-[1.6]'; // Make message icon even bigger
-  } else if (!isWallet && !src.includes('logo.png')) {
-    scaleClass = 'scale-[1.3]';
-  }
-
-  return (
-    <img 
-      src={src} 
-      alt="" 
-      className={`object-contain ${scaleClass} ${className}`} 
-    />
-  );
-};
+const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => (
+  <img src={src} alt="" className={`object-contain ${className}`} />
+);
 
 const tabs = [
-  { to: "/app/", label: "Feed", iconSrc: "/landing-builder-feed-icon-brand.png", exact: true },
+  { to: "/app/", label: "Feed", iconSrc: "/landing-feed-taskbar-icon-brand.png", exact: true },
   { to: "/app/bootcamps", label: "Learn", iconSrc: "/landing-learning-icon-brand.png" },
   { to: "/app/clubs", label: "Clubs", iconSrc: "/logo.png" },
   { to: "/app/wallet", label: "Wallet", iconSrc: "/landing-wallet-icon-brand.png" },
@@ -242,7 +226,7 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
       visible && !isDetail && !pathname.includes("/app/live") && !pathname.includes("/app/notes") && (!isChat || pathname === "/app/chat" || pathname === "/app/chat/") ? "translate-y-0 opacity-100" : "translate-y-[150%] opacity-0 pointer-events-none"
     }`}
   >
-    <div className="flex items-center justify-between rounded-full bg-card border border-border/50 p-2 shadow-2xl dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)">
+    <div className="grid grid-cols-5 items-center rounded-full bg-card border border-border/50 p-2 shadow-2xl dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)">
       {tabs.map((t) => {
         const normalize = (p: string) => p.replace(/\/$/, "");
         const active = t.exact 
@@ -251,11 +235,11 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
         
         if (active) {
           return (
-            <Link key={t.to} to={t.to} className="relative flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 transition active:scale-95">
-              <BrandIcon src={t.iconSrc} className="h-5 w-5 rounded-full bg-primary-foreground/95 p-0.5" />
-              <span className="text-xs font-bold text-primary-foreground">{t.label}</span>
+            <Link key={t.to} to={t.to} className="relative mx-auto flex h-11 w-[68px] items-center justify-center gap-1.5 rounded-full bg-primary px-2 transition active:scale-95">
+              <BrandIcon src={t.iconSrc} className="h-5 w-5 shrink-0 rounded-full bg-primary-foreground/95 p-1" />
+              <span className="min-w-0 truncate text-[10px] font-bold text-primary-foreground">{t.label}</span>
               {t.label === "Messages" && unreadCount > 0 && (
-                <span className="ml-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-foreground text-primary px-1 text-[9px] font-black shadow-sm">
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-foreground text-primary px-1 text-[9px] font-black shadow-sm">
                   {unreadCount}
                 </span>
               )}
@@ -264,8 +248,8 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
         }
 
         return (
-          <Link key={t.to} to={t.to} className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-accent/50 active:scale-95">
-            <BrandIcon src={t.iconSrc} className="h-5 w-5 opacity-90" />
+          <Link key={t.to} to={t.to} className="relative mx-auto flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-accent/50 active:scale-95">
+            <BrandIcon src={t.iconSrc} className="h-8 w-8 opacity-95" />
             {t.label === "Messages" && unreadCount > 0 && (
               <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-sm border border-card">
                 {unreadCount}
