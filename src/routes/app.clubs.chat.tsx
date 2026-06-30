@@ -728,7 +728,7 @@ function ClubChat() {
         </div>
 
             <Drawer open={showLiveMenu} onOpenChange={setShowLiveMenu}>
-                  <DrawerContent className="h-auto max-h-[85vh] border-0 bg-transparent p-0 pb-0 shadow-none z-[90] [&>button]:hidden outline-none">
+                  <DrawerContent className="h-auto max-h-[85vh] border-0 bg-transparent p-0 pb-0 shadow-none z-[90] [&>div:first-child]:hidden outline-none">
                     <div className="bg-card rounded-t-[32px] shadow-2xl overflow-hidden outline-none border-t border-border/10">
 
                       {/* Drag Handle */}
