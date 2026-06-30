@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
 import { useUser } from "@/hooks/useUser";
 
@@ -16,15 +16,18 @@ function LiveClassEntrypoint() {
   const { classId } = Route.useParams();
   const { data: profile, isLoading } = useUser();
   const liveSession = useLiveSession();
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if (!isLoading && profile) {
+    if (!isLoading && profile && !hasInitialized.current) {
       // If we navigate here and it's already active/minimized, restore it
       if (liveSession.isActive && liveSession.channelId === classId && liveSession.isMinimized) {
         liveSession.restore();
+        hasInitialized.current = true;
       } else if (!liveSession.isActive || liveSession.channelId !== classId) {
         // Start a fresh session
         liveSession.startSession(classId, profile.username || "You", profile.avatar_url || null);
+        hasInitialized.current = true;
       }
     }
   }, [classId, profile, isLoading, liveSession]);
