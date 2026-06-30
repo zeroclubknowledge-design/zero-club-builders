@@ -152,7 +152,7 @@ function Header({ referralCode }: ReferralProps) {
               href={item.href}
               className="flex min-w-[86px] flex-col items-center gap-1 rounded-[6px] px-3 py-2 text-[12px] font-semibold text-[#5f6167] transition hover:bg-[#f4f2ef] hover:text-[#171717]"
             >
-              <img src={item.iconSrc} alt="" className="h-5 w-5 object-contain" />
+              <img src={item.iconSrc} alt="" className={`h-5 w-5 object-contain ${!item.iconSrc.includes('wallet') ? 'scale-[1.3]' : ''}`} />
               {item.label}
             </a>
           ))}
@@ -197,7 +197,7 @@ function Header({ referralCode }: ReferralProps) {
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 rounded-[6px] px-3 py-3 text-[15px] font-semibold text-[#303236] hover:bg-[#f4f2ef]"
               >
-                <img src={item.iconSrc} alt="" className="h-6 w-6 object-contain" />
+                <img src={item.iconSrc} alt="" className={`h-6 w-6 object-contain ${!item.iconSrc.includes('wallet') ? 'scale-[1.3]' : ''}`} />
                 {item.label}
               </a>
             ))}
@@ -339,7 +339,7 @@ function LearningSection() {
           {platformHighlights.map((item) => (
             <article key={item.title} className="rounded-[8px] border border-[#e2ddd6] bg-white p-5">
               <div className="mb-5 grid h-14 w-14 place-items-center rounded-[8px] bg-[#f4f2ef]">
-                <img src={item.iconSrc} alt="" className="h-10 w-10 object-contain" />
+                <img src={item.iconSrc} alt="" className={`h-10 w-10 object-contain ${!item.iconSrc.includes('wallet') ? 'scale-[1.3]' : ''}`} />
               </div>
               <h3 className="text-[18px] font-bold tracking-[-0.02em] text-[#171717]">{item.title}</h3>
               <p className="mt-3 text-[14px] leading-6 text-[#666a70]">{item.copy}</p>

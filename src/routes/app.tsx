@@ -32,9 +32,16 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => (
-  <img src={src} alt="" className={`object-contain ${className}`} />
-);
+const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => {
+  const isWallet = src.includes('wallet');
+  return (
+    <img 
+      src={src} 
+      alt="" 
+      className={`object-contain ${!isWallet ? 'scale-[1.3]' : ''} ${className}`} 
+    />
+  );
+};
 
 const tabs = [
   { to: "/app/", label: "Feed", iconSrc: "/landing-builder-feed-icon-brand.png", exact: true },
