@@ -724,7 +724,7 @@ function ClubChat() {
           </div>
 
           {/* Invisible spacer to give the banner height without obscuring content */}
-          <div className="h-[calc(4rem+env(safe-area-inset-top))] w-full relative z-10"></div>
+          <div className="h-[calc(7rem+env(safe-area-inset-top))] w-full relative z-10"></div>
         </div>
 
             <Drawer open={showLiveMenu} onOpenChange={setShowLiveMenu}>
