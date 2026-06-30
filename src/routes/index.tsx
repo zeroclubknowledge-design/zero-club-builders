@@ -2,7 +2,6 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import {
   ArrowRight,
   Bell,
-  BookOpen,
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
@@ -77,17 +76,17 @@ const platformHighlights = [
   {
     title: "Build a profile that shows real progress",
     copy: "Bring posts, projects, clubs, XP, bootcamps, and public proof into one credible builder identity.",
-    icon: UsersRound,
+    iconSrc: "/landing-bootcamp-icon.svg",
   },
   {
     title: "Learn in public with people moving in the same direction",
     copy: "Join bootcamps, follow structured paths, and make your learning visible through work and milestones.",
-    icon: BookOpen,
+    iconSrc: "/landing-learning-icon-brand.png",
   },
   {
     title: "Create focused communities around work",
     copy: "Private clubs help cohorts, teams, tutors, and creators stay close to the conversations that matter.",
-    icon: MessageCircle,
+    iconSrc: "/landing-communities-icon-brand.png",
   },
 ];
 
@@ -256,7 +255,7 @@ function Hero({ referralCode }: ReferralProps) {
             <div className="border-b border-[#ece7e1] px-5 py-4">
               <div className="flex items-center gap-3">
                 <div className="grid h-12 w-12 place-items-center rounded-full bg-[#cc208f]/10">
-                  <UsersRound className="h-6 w-6 text-[#cc208f]" />
+                  <img src="/landing-builder-feed-icon-brand.png" alt="" className="h-7 w-7 object-contain" />
                 </div>
                 <div>
                   <p className="text-[15px] font-bold text-[#171717]">Builder feed</p>
@@ -340,8 +339,8 @@ function LearningSection() {
         <div className="grid gap-4 md:grid-cols-3">
           {platformHighlights.map((item) => (
             <article key={item.title} className="rounded-[8px] border border-[#e2ddd6] bg-white p-5">
-              <div className="mb-5 grid h-11 w-11 place-items-center rounded-[8px] bg-[#f4f2ef] text-[#cc208f]">
-                <item.icon className="h-6 w-6" />
+              <div className="mb-5 grid h-14 w-14 place-items-center rounded-[8px] bg-[#f4f2ef]">
+                <img src={item.iconSrc} alt="" className="h-10 w-10 object-contain" />
               </div>
               <h3 className="text-[18px] font-bold tracking-[-0.02em] text-[#171717]">{item.title}</h3>
               <p className="mt-3 text-[14px] leading-6 text-[#666a70]">{item.copy}</p>
@@ -359,9 +358,9 @@ function ClubsSection() {
       <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-4 py-16 md:px-6 lg:grid-cols-2 lg:py-24">
         <div className="order-2 lg:order-1">
           <img
-            src="/showcase-private-clubs.png"
+            src="/landing-communities-purpose.png"
             alt="Zero Club private clubs"
-            className="h-[360px] w-full rounded-[8px] border border-[#e2ddd6] bg-[#f7f5f2] object-contain p-5"
+            className="h-[360px] w-full rounded-[8px] border border-[#e2ddd6] bg-[#f7f5f2] object-cover"
           />
         </div>
         <div className="order-1 lg:order-2">
@@ -428,11 +427,19 @@ function WalletSection() {
             ))}
           </div>
         </div>
-        <img
-          src="/showcase-wallet-and-store.png"
-          alt="Zero Club wallet and store"
-          className="h-[360px] w-full rounded-[8px] border border-[#e2ddd6] bg-[#f7f5f2] object-contain p-5"
-        />
+        <div className="relative h-[360px] overflow-hidden rounded-[8px] border border-[#e2ddd6] bg-black">
+          <img
+            src="/landing-creator-economy-phone.png"
+            alt="Zero Club wallet and store phone mockup"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute left-[29%] top-[31%] grid h-[58px] w-[58px] place-items-center rounded-[16px] border border-white/18 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+            <img src="/logo.png" alt="Zero Club" className="h-11 w-11 object-contain" />
+          </div>
+          <p className="absolute left-[29%] top-[49%] text-[13px] font-bold tracking-[-0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]">
+            Zero Club
+          </p>
+        </div>
       </div>
     </section>
   );

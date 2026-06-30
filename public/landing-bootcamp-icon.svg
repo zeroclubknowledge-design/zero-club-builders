@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M105 175L172 108H363C391.167 108 414 130.833 414 159V337L337 414H149C120.833 414 98 391.167 98 363V198C98 189.373 100.576 181.132 105 175Z" fill="#171717"/>
+  <path d="M139 154C139 128.595 159.595 108 185 108H363C391.167 108 414 130.833 414 159V337C414 362.405 393.405 383 368 383H190C161.833 383 139 360.167 139 332V154Z" fill="white" stroke="#171717" stroke-width="8"/>
+  <path d="M181 196H326" stroke="#171717" stroke-width="10" stroke-linecap="round"/>
+  <text x="183" y="192" fill="#cc208f" font-family="Montserrat, Arial, sans-serif" font-size="58" font-weight="900" letter-spacing="-3">BOOT</text>
+  <text x="183" y="256" fill="#171717" font-family="Montserrat, Arial, sans-serif" font-size="50" font-weight="500" letter-spacing="-2">camp</text>
+</svg>
