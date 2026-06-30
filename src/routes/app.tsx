@@ -226,7 +226,7 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
       visible && !isDetail && !pathname.includes("/app/live") && !pathname.includes("/app/notes") && (!isChat || pathname === "/app/chat" || pathname === "/app/chat/") ? "translate-y-0 opacity-100" : "translate-y-[150%] opacity-0 pointer-events-none"
     }`}
   >
-    <div className="grid grid-cols-5 items-center rounded-full bg-card border border-border/50 p-2 shadow-2xl dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)">
+    <div className="flex items-center justify-between gap-1 rounded-full bg-card border border-border/50 p-2 shadow-2xl dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]">
       {tabs.map((t) => {
         const normalize = (p: string) => p.replace(/\/$/, "");
         const active = t.exact 
@@ -235,9 +235,9 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
         
         if (active) {
           return (
-            <Link key={t.to} to={t.to} className="relative mx-auto flex h-11 w-[68px] items-center justify-center gap-1.5 rounded-full bg-primary px-2 transition active:scale-95">
+            <Link key={t.to} to={t.to} className="relative flex h-11 w-auto shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 transition active:scale-95">
               <BrandIcon src={t.iconSrc} className="h-[24px] w-[24px] shrink-0 rounded-full bg-primary-foreground/95 p-1" />
-              <span className="min-w-0 truncate text-[10px] font-bold text-primary-foreground">{t.label}</span>
+              <span className="font-bold text-[11px] text-primary-foreground whitespace-nowrap">{t.label}</span>
               {t.label === "Messages" && unreadCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-foreground text-primary px-1 text-[9px] font-black shadow-sm">
                   {unreadCount}
@@ -248,7 +248,7 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
         }
 
         return (
-          <Link key={t.to} to={t.to} className="relative mx-auto flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-accent/50 active:scale-95">
+          <Link key={t.to} to={t.to} className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition hover:bg-accent/50 active:scale-95">
             <BrandIcon src={t.iconSrc} className="h-[24px] w-[24px] opacity-95" />
             {t.label === "Messages" && unreadCount > 0 && (
               <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-sm border border-card">
