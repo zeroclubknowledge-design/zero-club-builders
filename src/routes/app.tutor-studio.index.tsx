@@ -589,7 +589,7 @@ function TutorStudioPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* ── Immersive Hero Header ────────────────────────── */}
-      <div className="relative h-72 w-full overflow-hidden bg-background">
+      <div className="relative w-full overflow-hidden bg-background pt-[calc(3rem+env(safe-area-inset-top))] pb-6 px-5">
         {bannerUrl ? (
           <>
             <img src={bannerUrl} alt="Studio Banner" className="absolute inset-0 w-full h-full object-cover z-0" />
@@ -598,18 +598,17 @@ function TutorStudioPage() {
           </>
         ) : (
           <>
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/15 blur-[140px] rounded-full translate-x-1/3 -translate-y-1/3 z-0" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full -translate-x-1/3 translate-y-1/3 z-0" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-0" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/15 blur-[140px] rounded-full translate-x-1/3 -translate-y-1/3 z-0 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full -translate-x-1/3 translate-y-1/3 z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-0 pointer-events-none" />
             {/* Subtle grid pattern */}
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4=')] z-0 opacity-50" />
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4=')] z-0 opacity-50 pointer-events-none" />
           </>
         )}
 
-        <div className="absolute inset-x-5 bottom-8 z-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-
-            <h1 className="font-display text-4xl font-black text-foreground tracking-tight drop-shadow-sm">Tutor Dashboard</h1>
+            <h1 className="font-display text-3xl font-black text-foreground tracking-tight drop-shadow-sm">Tutor Dashboard</h1>
           </div>
         </div>
       </div>
