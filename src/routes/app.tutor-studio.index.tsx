@@ -927,7 +927,7 @@ function TutorStudioPage() {
           </>
         )}
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="relative z-10 flex items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-3xl font-black text-foreground tracking-tight drop-shadow-sm">Tutor Dashboard</h1>
           </div>
