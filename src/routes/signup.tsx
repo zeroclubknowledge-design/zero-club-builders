@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Box, CheckCircle2, ChevronLeft, Gift, Loader2, Lock, Mail, ShieldCheck, Sparkles, User, BookOpen, GraduationCap, Building2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -183,7 +183,17 @@ function SignUpPage() {
     }
   };
 
-  const perks = ["Claim your builder profile", "Join clubs and bootcamps", "Earn XP when you ship"];
+  const perks = [
+    { text: "Claim your builder profile", iconSrc: "/landing-builder-feed-icon-brand.png" },
+    { text: "Join clubs and bootcamps", iconSrc: "/landing-communities-icon-brand.png" },
+    { text: "Earn XP when you ship", iconSrc: "/landing-proof-builders-icon-brand.png" },
+  ];
+
+  const accountTypeOptions = [
+    { id: "Learner", iconSrc: "/landing-learning-icon-brand.png" },
+    { id: "Tutor", iconSrc: "/landing-proof-tutors-icon-brand.png" },
+    { id: "Institution", iconSrc: "/landing-proof-institutions-icon-brand.png" },
+  ] as const;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -213,9 +223,9 @@ function SignUpPage() {
             </p>
             <div className="mt-10 grid gap-3">
               {perks.map((perk) => (
-                <div key={perk} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
-                  <span className="text-sm font-medium text-foreground/85">{perk}</span>
+                <div key={perk.text} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
+                  <img src={perk.iconSrc} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                  <span className="text-sm font-medium text-foreground/85">{perk.text}</span>
                 </div>
               ))}
             </div>
@@ -234,7 +244,7 @@ function SignUpPage() {
           <div className="overflow-hidden rounded-[8px] border border-border/50 bg-card shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
             <div className="border-b border-border/40 bg-background/35 px-6 py-5">
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-                <Box className="h-3.5 w-3.5" />
+                <img src="/landing-bootcamp-icon.svg" alt="" className="h-4 w-4 object-contain" />
                 Builder access
               </div>
               <h2 className="mt-4 font-display text-3xl font-normal tracking-[-0.03em]">{step === "info" ? "Join Zero Club" : "Verify email"}</h2>
@@ -249,26 +259,22 @@ function SignUpPage() {
                   <div className="space-y-2 pb-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">I am a...</span>
                     <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { id: "Learner", icon: BookOpen },
-                        { id: "Tutor", icon: GraduationCap },
-                        { id: "Institution", icon: Building2 },
-                      ].map((role) => (
+                      {accountTypeOptions.map((role) => (
                         <button
                           key={role.id}
                           type="button"
-                          onClick={() => setAccountType(role.id as any)}
+                          onClick={() => setAccountType(role.id)}
                           className={`relative flex flex-col items-center justify-center gap-2 rounded-[8px] border p-4 text-center transition-all ${
                             accountType === role.id
                               ? "border-primary bg-primary/10 text-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]"
                               : "border-border/50 bg-background/50 text-muted-foreground hover:bg-card hover:text-foreground"
                           }`}
                         >
-                          <role.icon className={`h-6 w-6 ${accountType === role.id ? "text-primary" : "opacity-70"}`} />
+                          <img src={role.iconSrc} alt="" className={`h-7 w-7 object-contain ${accountType === role.id ? "" : "opacity-70"}`} />
                           <span className="text-xs font-semibold">{role.id}</span>
                           {accountType === role.id && (
                             <div className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white">
-                              <CheckCircle2 className="h-3 w-3" />
+                              <span className="h-1.5 w-1.5 rounded-full bg-white" />
                             </div>
                           )}
                         </button>
@@ -279,7 +285,7 @@ function SignUpPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Username</span>
                     <span className="relative block">
-                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <img src="/landing-builder-feed-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
                       <input
                         type="text"
                         placeholder="adabuilds"
@@ -293,7 +299,7 @@ function SignUpPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email address</span>
                     <span className="relative block">
-                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <img src="/landing-proof-builders-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
                       <input
                         type="email"
                         placeholder="ada@example.com"
@@ -307,7 +313,7 @@ function SignUpPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Referral code <span className="normal-case tracking-normal text-muted-foreground/60">optional</span></span>
                     <span className="relative block">
-                      <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <img src="/landing-proof-teams-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
                       <input
                         type="text"
                         placeholder="Enter referral code"

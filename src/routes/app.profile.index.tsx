@@ -282,9 +282,9 @@ function Profile() {
           HENSOR STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
       <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4" style={{ marginTop: 'calc(-1 * env(safe-area-inset-top))' }}>
-        <div className="relative overflow-hidden sm:rounded-[32px] border-x-0 sm:border border-white/5 bg-black shadow-2xl">
+        <div className="relative overflow-hidden sm:rounded-[32px] border-x-0 sm:border border-border/40 bg-background shadow-xl">
           {/* Banner */}
-          <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full overflow-hidden bg-muted flex items-center justify-center">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 

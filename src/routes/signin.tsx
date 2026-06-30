@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, CheckCircle2, ChevronLeft, Loader2, Lock, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -103,7 +103,11 @@ function SignInPage() {
     }
   };
 
-  const featureLines = ["Ship faster with clubs and bootcamps", "Track profile signal, XP, and network", "Access your builder feed instantly"];
+  const featureLines = [
+    { text: "Ship faster with clubs and bootcamps", iconSrc: "/landing-bootcamp-icon.svg" },
+    { text: "Track profile signal, XP, and network", iconSrc: "/landing-proof-builders-icon-brand.png" },
+    { text: "Access your builder feed instantly", iconSrc: "/landing-builder-feed-icon-brand.png" },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -133,9 +137,9 @@ function SignInPage() {
             </p>
             <div className="mt-10 grid gap-3">
               {featureLines.map((line) => (
-                <div key={line} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
-                  <span className="text-sm font-medium text-foreground/85">{line}</span>
+                <div key={line.text} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
+                  <img src={line.iconSrc} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                  <span className="text-sm font-medium text-foreground/85">{line.text}</span>
                 </div>
               ))}
             </div>
@@ -154,7 +158,7 @@ function SignInPage() {
           <div className="overflow-hidden rounded-[8px] border border-border/50 bg-card shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
             <div className="border-b border-border/40 bg-background/35 px-6 py-5">
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-                <ShieldCheck className="h-3.5 w-3.5" />
+                <img src="/landing-proof-builders-icon-brand.png" alt="" className="h-4 w-4 object-contain" />
                 Secure access
               </div>
               <h2 className="mt-4 font-display text-3xl font-normal tracking-[-0.03em]">Sign in</h2>
@@ -167,7 +171,7 @@ function SignInPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email address</span>
                     <span className="relative block">
-                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <img src="/landing-builder-feed-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
                       <input
                         type="email"
                         placeholder="ada@example.com"

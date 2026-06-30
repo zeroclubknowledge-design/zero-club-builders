@@ -9,10 +9,13 @@ import {
 } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  Compass, Sparkles, CircleUser, UsersRound, 
-  Plus, BellRing, BookmarkCheck, Clapperboard, 
-  MoreHorizontal, SlidersHorizontal, LifeBuoy, UserPlus, Crown, Rocket, Zap,
-  Palette, Check, Sun, MessageCircle, GraduationCap, Globe, Feather, Building2
+  BellRing,
+  MoreHorizontal,
+  SlidersHorizontal,
+  LifeBuoy,
+  Zap,
+  Palette,
+  Check,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -29,50 +32,16 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-const WalletIcon = ({ className, ...props }: React.ComponentProps<"div">) => (
-  <div 
-    className={className}
-    style={{
-      backgroundColor: "currentColor",
-      WebkitMaskImage: "url('/wallet_icon.png')",
-      WebkitMaskSize: "contain",
-      WebkitMaskRepeat: "no-repeat",
-      WebkitMaskPosition: "center",
-      maskImage: "url('/wallet_icon.png')",
-      maskSize: "contain",
-      maskRepeat: "no-repeat",
-      maskPosition: "center",
-      ...props.style
-    }}
-    {...props}
-  />
-);
-
-const ZeroNotesIcon = ({ className, ...props }: React.ComponentProps<"div">) => (
-  <div 
-    className={className}
-    style={{
-      backgroundColor: "currentColor",
-      WebkitMaskImage: "url('/zeronotes_icon.png')",
-      WebkitMaskSize: "contain",
-      WebkitMaskRepeat: "no-repeat",
-      WebkitMaskPosition: "center",
-      maskImage: "url('/zeronotes_icon.png')",
-      maskSize: "contain",
-      maskRepeat: "no-repeat",
-      maskPosition: "center",
-      ...props.style
-    }}
-    {...props}
-  />
+const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => (
+  <img src={src} alt="" className={`object-contain ${className}`} />
 );
 
 const tabs = [
-  { to: "/app/", label: "Feed", icon: Compass, exact: true },
-  { to: "/app/bootcamps", label: "Learn", icon: GraduationCap },
-  { to: "/app/clubs", label: "Clubs", icon: UsersRound },
-  { to: "/app/wallet", label: "Wallet", icon: WalletIcon },
-  { to: "/app/chat", label: "Messages", icon: MessageCircle },
+  { to: "/app/", label: "Feed", iconSrc: "/landing-builder-feed-icon-brand.png", exact: true },
+  { to: "/app/bootcamps", label: "Learn", iconSrc: "/landing-learning-icon-brand.png" },
+  { to: "/app/clubs", label: "Clubs", iconSrc: "/landing-communities-icon-brand.png" },
+  { to: "/app/wallet", label: "Wallet", iconSrc: "/landing-wallet-icon-brand.png" },
+  { to: "/app/chat", label: "Messages", iconSrc: "/landing-communities-icon-brand.png" },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -98,7 +67,7 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
     }
   }}>
   <div className="flex items-start justify-between shrink-0">
-      <Link to="/app/profile/" className="group block transition active:opacity-70">
+      <Link to="/app/profile" className="group block transition active:opacity-70">
         {profile?.avatar_url ? (
           <img src={profile.avatar_url} alt={profile.username} className="h-9 w-9 rounded-full object-cover border border-white/10" />
         ) : (
@@ -198,22 +167,22 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
     <div className="overflow-y-auto pr-2 -mr-2 mt-6 flex-1 no-scrollbar flex flex-col">
       <nav className="flex flex-col gap-1.5 flex-1">
         {[
-          { icon: CircleUser, label: "Profile", to: "/app/profile/" },
-          { icon: Crown, label: "Membership", to: "/app/premium" },
-          { icon: UsersRound, label: "Clubs", to: "/app/clubs" },
-          { icon: BookmarkCheck, label: "Bookmarks", to: "/app/bookmarks" },
-          { icon: Feather, label: "ZeroNotes", to: "/app/notes" },
-          { icon: Rocket, label: "ZeroHub", to: "/app/zerohub" },
-          { icon: GraduationCap, label: "Bootcamps", to: "/app/bootcamps" },
-          ...(profile?.account_type === 'Tutor' || profile?.account_type === 'Institution' ? [{ icon: Clapperboard, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
-          ...(profile?.account_type === 'Institution' ? [{ icon: Building2, label: "Institution Hub", to: "/app/institution-studio" }] : []),
+          { iconSrc: "/landing-builder-feed-icon-brand.png", label: "Profile", to: "/app/profile" },
+          { iconSrc: "/landing-wallet-icon-brand.png", label: "Membership", to: "/app/premium" },
+          { iconSrc: "/landing-communities-icon-brand.png", label: "Clubs", to: "/app/clubs" },
+          { iconSrc: "/landing-proof-builders-icon-brand.png", label: "Bookmarks", to: "/app/bookmarks" },
+          { iconSrc: "/landing-learning-icon-brand.png", label: "ZeroNotes", to: "/app/notes" },
+          { iconSrc: "/landing-proof-teams-icon-brand.png", label: "ZeroHub", to: "/app/zerohub" },
+          { iconSrc: "/landing-bootcamp-icon.svg", label: "Bootcamps", to: "/app/bootcamps" },
+          ...(profile?.account_type === 'Tutor' || profile?.account_type === 'Institution' ? [{ iconSrc: "/landing-proof-tutors-icon-brand.png", label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
+          ...(profile?.account_type === 'Institution' ? [{ iconSrc: "/landing-proof-institutions-icon-brand.png", label: "Institution Hub", to: "/app/institution-studio" }] : []),
         ].map((item) => (
           <Link 
             key={item.label} 
             to={item.to}
             className="flex items-center gap-4 rounded-xl px-3 py-3 text-[16px] font-bold transition hover:bg-accent/30 active:bg-accent/50"
           >
-            <item.icon className="h-[24px] w-[24px] opacity-80" />
+            <BrandIcon src={item.iconSrc} className="h-[24px] w-[24px] opacity-95" />
             <span>{item.label}</span>
           </Link>
         ))}
@@ -263,12 +232,11 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
         const active = t.exact 
           ? normalize(pathname) === normalize(t.to) 
           : pathname.startsWith(t.to);
-        const Icon = t.icon;
         
         if (active) {
           return (
             <Link key={t.to} to={t.to} className="relative flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 transition active:scale-95">
-              <Icon className="h-4 w-4 text-primary-foreground" />
+              <BrandIcon src={t.iconSrc} className="h-5 w-5 rounded-full bg-primary-foreground/95 p-0.5" />
               <span className="text-xs font-bold text-primary-foreground">{t.label}</span>
               {t.label === "Messages" && unreadCount > 0 && (
                 <span className="ml-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-foreground text-primary px-1 text-[9px] font-black shadow-sm">
@@ -281,7 +249,7 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
 
         return (
           <Link key={t.to} to={t.to} className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-accent/50 active:scale-95">
-            <Icon className="h-5 w-5 text-muted-foreground" />
+            <BrandIcon src={t.iconSrc} className="h-5 w-5 opacity-90" />
             {t.label === "Messages" && unreadCount > 0 && (
               <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-sm border border-card">
                 {unreadCount}
@@ -435,37 +403,39 @@ function AppLayout() {
       if (session) {
         pmSub = supabase.channel('badge_pms')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, async (payload) => {
-            if (payload.new && (payload.new.receiver_id === session.user.id || payload.new.sender_id === session.user.id)) {
+            const message = payload.new as { receiver_id?: string; sender_id?: string; content?: string };
+            if (message && (message.receiver_id === session.user.id || message.sender_id === session.user.id)) {
               updatePresenceAndBadges();
 
               // Trigger a high-fidelity toast notification for new incoming unseen DMs
               if (
                 payload.eventType === 'INSERT' && 
-                payload.new.receiver_id === session.user.id && 
-                !window.location.pathname.includes(`/app/chat/${payload.new.sender_id}`)
+                message.receiver_id === session.user.id && 
+                !window.location.pathname.includes(`/app/chat/${message.sender_id}`)
               ) {
                 try {
                   const { data: sender } = await supabase
                     .from('profiles')
                     .select('username, full_name, avatar_url')
-                    .eq('id', payload.new.sender_id)
+                    .eq('id', message.sender_id)
                     .single();
 
                   const senderName = sender?.full_name || sender?.username || "Someone";
                   const avatarUrl = sender?.avatar_url;
-                  const isRequest = payload.new.content.startsWith('CLUB_REQUEST:');
+                  const content = message.content || "";
+                  const isRequest = content.startsWith('CLUB_REQUEST:');
                   
-                  let displayContent = payload.new.content;
+                  let displayContent = content;
                   if (isRequest) {
-                    const parts = payload.new.content.split(':');
+                    const parts = content.split(':');
                     const clubName = parts[2] || 'Club';
                     displayContent = `🔒 Requested to join your club: ${clubName}`;
-                  } else if (payload.new.content.includes('$$MEDIA$$')) {
-                    const textPart = payload.new.content.split('$$MEDIA$$')[0].trim();
+                  } else if (content.includes('$$MEDIA$$')) {
+                    const textPart = content.split('$$MEDIA$$')[0].trim();
                     if (textPart) {
                       displayContent = textPart;
                     } else {
-                      const urls = payload.new.content.split('$$MEDIA$$')[1] || '';
+                      const urls = content.split('$$MEDIA$$')[1] || '';
                       const firstUrl = urls.split(',')[0]?.toLowerCase() || '';
                       if (firstUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp)/i) || firstUrl.includes('image')) displayContent = "📷 Sent you a picture";
                       else if (firstUrl.match(/\.(mp4|webm|ogg|mov)/i) || firstUrl.includes('video')) displayContent = "🎥 Sent you a video";
@@ -487,7 +457,7 @@ function AppLayout() {
                     ),
                     action: {
                       label: "Reply",
-                      onClick: () => router.navigate({ to: '/app/chat/$id', params: { id: payload.new.sender_id } })
+                      onClick: () => router.navigate({ to: '/app/chat/$id', params: { id: message.sender_id || "" } })
                     }
                   });
                 } catch (e) {

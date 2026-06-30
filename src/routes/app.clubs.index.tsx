@@ -902,40 +902,45 @@ function Clubs() {
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 relative">
                 <Bell className="h-5 w-5 text-primary" />
-                {(incomingRequests.length > 0 || outgoingRequests.length > 0) && (
+              {(incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length + unreadClubMessages.length) > 0 && (
                   <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-background" />
                 )}
               </div>
               <div className="text-left">
                 <DrawerTitle className="text-lg font-black text-foreground tracking-tight">Notifications</DrawerTitle>
                 <DrawerDescription className="text-[11px] font-medium text-muted-foreground/60 mt-0.5">
-                  Manage admissions and your club invites
+                  Manage admissions and club messages
                 </DrawerDescription>
               </div>
             </div>
           </DrawerHeader>
 
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 no-scrollbar">
-            {/* Section 1: Received Admission Requests */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-[11px] text-muted-foreground">
-                  Incoming Requests
-                </h3>
-                {incomingRequests.length > 0 && (
-                  <span className="bg-foreground text-background text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                    {incomingRequests.length}
-                  </span>
-                )}
-              </div>
-              
-              {incomingRequests.length > 0 ? (
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-3 no-scrollbar">
+            {(() => {
+              const pendingRequests = incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending');
+              const hasNotifications = pendingRequests.length > 0 || unreadClubMessages.length > 0;
+
+              if (!hasNotifications) {
+                return (
+                  <div className="py-4 px-5 flex items-center gap-4 rounded-2xl border border-border/20 bg-card/50">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Bell className="h-4 w-4 text-muted-foreground/40" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground tracking-tight">All caught up</p>
+                      <p className="text-[11px] text-muted-foreground/50 mt-0.5 font-medium">You have no new notifications.</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
                 <div className="flex flex-col gap-3">
-                  {incomingRequests.map((r: any) => {
+                  {/* Pending Requests */}
+                  {pendingRequests.map((r: any) => {
                     const parts = r.content.split(':');
                     const clubId = parts[1];
                     const clubName = parts[2];
-                    const status = parts[3];
                     const sender = r.sender || {};
                     const isExpanded = expandedRequestId === r.id;
 
@@ -943,14 +948,9 @@ function Clubs() {
                       <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming')}>
                         <article 
                           className="flex flex-col gap-3 p-4 rounded-2xl border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] cursor-pointer"
-                          onClick={() => {
-                            if (status === 'pending') {
-                              setExpandedRequestId(isExpanded ? null : r.id);
-                            }
-                          }}
+                          onClick={() => setExpandedRequestId(isExpanded ? null : r.id)}
                         >
                           <div className="flex items-center gap-3 w-full">
-                            {/* Sender Avatar */}
                             <div className="h-10 w-10 rounded-full bg-accent/30 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-border/30">
                               {sender.avatar_url ? (
                                 <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -959,7 +959,6 @@ function Clubs() {
                               )}
                             </div>
 
-                            {/* Request Meta */}
                             <div className="min-w-0 flex-1">
                               <h4 className="text-[13px] font-bold truncate text-foreground flex items-center gap-1.5 tracking-tight">
                                 {sender.full_name || sender.username} 
@@ -975,9 +974,8 @@ function Clubs() {
                             </div>
                           </div>
 
-                          {/* Action Buttons Dropdown */}
                           <AnimatePresence>
-                            {isExpanded && status === 'pending' && (
+                            {isExpanded && (
                               <motion.div 
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: "auto", opacity: 1 }}
@@ -1011,92 +1009,8 @@ function Clubs() {
                       </SwipeableNotification>
                     );
                   })}
-                </div>
-              ) : (
-                <div className="py-4 px-5 flex items-center gap-4 rounded-2xl border border-border/20 bg-card/50">
-                  <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center">
-                    <Bell className="h-4 w-4 text-muted-foreground/40" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground tracking-tight">All caught up</p>
-                    <p className="text-[11px] text-muted-foreground/50 mt-0.5 font-medium">No incoming requests right now.</p>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            {/* Section 2: Outgoing Accepted Invites */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-[11px] text-muted-foreground">
-                  Approved Invites
-                </h3>
-              </div>
-              
-              {outgoingRequests.length > 0 ? (
-                <div className="flex flex-col gap-3">
-                  {outgoingRequests.map((r: any) => {
-                    const parts = r.content.split(':');
-                    const clubId = parts[1];
-                    const clubName = parts[2];
-                    const receiver = r.receiver || {};
-
-                    return (
-                      <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'outgoing')}>
-                        <article className="p-4 rounded-2xl bg-success/5 border border-success/20 flex items-center gap-3 relative overflow-hidden transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(34,197,94,0.1)">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-success rounded-full" />
-                          <div className="grid h-10 w-10 place-items-center rounded-full bg-success/10 text-success shrink-0 ml-1">
-                            <Check className="h-5 w-5" strokeWidth={3} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[13px] font-semibold text-foreground leading-tight tracking-tight">
-                              You've been accepted into <span className="text-success font-bold">{clubName}</span>!
-                            </p>
-                            <span className="text-[10px] text-success/60 mt-0.5 block">
-                              HOSTED BY @{receiver.username?.toUpperCase()}
-                            </span>
-                          </div>
-                          <Link 
-                            to="/app/clubs/chat" 
-                            search={{ clubId: clubId }}
-                            onClick={() => setShowNotifications(false)}
-                            className="h-8 px-4 rounded-full bg-success text-success-foreground text-xs font-bold transition-all duration-300 hover:opacity-90 active:scale-95 shadow-sm flex items-center justify-center"
-                          >
-                            Enter
-                          </Link>
-                        </article>
-                      </SwipeableNotification>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="py-4 px-5 flex items-center gap-4 rounded-2xl border border-border/20 bg-card/50">
-                  <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center">
-                    <Award className="h-4 w-4 text-muted-foreground/40" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground tracking-tight">No approved invites</p>
-                    <p className="text-[11px] text-muted-foreground/50 mt-0.5 font-medium">When accepted, they appear here.</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Section 3: Unread Club Messages */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-[11px] text-muted-foreground flex items-center gap-2">
-                  <MessageCircle className="h-3.5 w-3.5" /> Club Messages
-                </h3>
-                {unreadClubMessages.length > 0 && (
-                  <span className="bg-primary/20 text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                    {unreadClubMessages.length} New
-                  </span>
-                )}
-              </div>
-              
-              {unreadClubMessages.length > 0 ? (
-                <div className="flex flex-col gap-3">
+                  {/* Club Messages */}
                   {unreadClubMessages.map((msgGroup: any) => (
                     <article 
                       key={msgGroup.club_id} 
@@ -1106,22 +1020,19 @@ function Clubs() {
                       }}
                       className="flex items-center gap-3 p-4 rounded-2xl border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] cursor-pointer active:scale-95"
                     >
-                      {/* Club Icon */}
                       <div className="h-10 w-10 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20 text-primary">
                         <MessageCircle className="h-4 w-4" />
                       </div>
 
-                      {/* Message Meta */}
                       <div className="min-w-0 flex-1">
                         <h4 className="text-[13px] font-bold truncate text-foreground flex items-center gap-1.5 tracking-tight">
                           {msgGroup.club_name}
                         </h4>
                         <p className="text-[11px] text-muted-foreground/80 mt-0.5 truncate font-medium">
-                          <span className="font-bold text-foreground">{msgGroup.count}</span> new message{msgGroup.count !== 1 ? 's' : ''} on the club
+                          <span className="font-bold text-foreground">{msgGroup.count > 24 ? '24+' : msgGroup.count}</span> unseen message{msgGroup.count !== 1 ? 's' : ''} on the club
                         </p>
                       </div>
 
-                      {/* Action Icon */}
                       <div className="shrink-0">
                         <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
                           <ArrowRight className="h-4 w-4" />
@@ -1130,18 +1041,8 @@ function Clubs() {
                     </article>
                   ))}
                 </div>
-              ) : (
-                <div className="py-4 px-5 flex items-center gap-4 rounded-2xl border border-border/20 bg-card/50">
-                  <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center">
-                    <MessageCircle className="h-4 w-4 text-muted-foreground/40" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground tracking-tight">No club messages</p>
-                    <p className="text-[11px] text-muted-foreground/50 mt-0.5 font-medium">No new messages in your clubs.</p>
-                  </div>
-                </div>
-              )}
-            </div>
+              );
+            })()}
           </div>
         </DrawerContent>
       </Drawer>
