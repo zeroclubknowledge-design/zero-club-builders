@@ -258,10 +258,11 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
     
     if (navigator.share) {
       try {
-        // Strip HTML tags before sharing
+        // Strip HTML tags and Markdown asterisks before sharing
         const tmp = document.createElement("DIV");
         tmp.innerHTML = displayContent || "";
-        const plainText = tmp.textContent || tmp.innerText || "";
+        let plainText = tmp.textContent || tmp.innerText || "";
+        plainText = plainText.replace(/\*/g, '');
         
         await navigator.share({
           title: 'Check out this shipped work on Zero Club!',
