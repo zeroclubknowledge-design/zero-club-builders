@@ -33,12 +33,18 @@ export const Route = createFileRoute("/app")({
 });
 
 const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => {
-  const needsScale = src.includes('communities') || src.includes('builder-feed') || src.includes('proof-');
+  let scaleClass = "";
+  if (src.includes('communities')) {
+    scaleClass = "scale-[1.5]";
+  } else if (src.includes('builder-feed') || src.includes('proof-')) {
+    scaleClass = "scale-[1.2]";
+  }
+
   return (
     <img 
       src={src} 
       alt="" 
-      className={`object-contain ${needsScale ? 'scale-[1.5]' : ''} ${className}`} 
+      className={`object-contain ${scaleClass} ${className}`} 
     />
   );
 };
