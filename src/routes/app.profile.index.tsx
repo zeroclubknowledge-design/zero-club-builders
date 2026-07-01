@@ -355,12 +355,14 @@ function Profile() {
                 </Link>
               </div>
               
-              <div className="mt-3 flex items-center gap-1.5 text-[14px]">
-                 <Link2 className="h-4 w-4 text-muted-foreground" />
-                 <a href="#" className="text-primary font-medium hover:underline">
-                   {profileHandle.replace('@', '')}.net
-                 </a>
-              </div>
+              {profile?.website && (
+                <div className="mt-3 flex items-center gap-1.5 text-[14px]">
+                   <Link2 className="h-4 w-4 text-muted-foreground" />
+                   <a href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">
+                     {profile.website.replace(/^https?:\/\//, '')}
+                   </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
