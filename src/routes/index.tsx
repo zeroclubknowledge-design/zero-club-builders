@@ -461,16 +461,16 @@ function FaqSection() {
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <div key={i} className="rounded-2xl border border-[#d9d3ca] bg-white overflow-hidden transition-all">
+              <div key={i} className="rounded-[8px] border border-[#d9d3ca] bg-white overflow-hidden transition-all">
                 <button 
                   onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="flex w-full items-center justify-between p-6 text-left"
+                  className="flex w-full items-center justify-between px-6 py-4 text-left"
                 >
-                  <h3 className="text-[18px] font-bold text-[#171717]">{faq.q}</h3>
+                  <h3 className="text-[17px] font-bold text-[#171717]">{faq.q}</h3>
                   <ChevronDown className={`h-5 w-5 text-[#666a70] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 <div 
-                  className={`px-6 pb-6 pt-0 transition-all duration-300 overflow-hidden ${
+                  className={`px-6 pb-5 pt-0 transition-all duration-300 overflow-hidden ${
                     isOpen ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0 pb-0"
                   }`}
                 >
