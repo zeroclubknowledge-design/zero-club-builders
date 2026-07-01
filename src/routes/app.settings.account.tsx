@@ -16,6 +16,8 @@ function AccountSettings() {
   const [newUsername, setNewUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isAccountTypeSheetOpen, setIsAccountTypeSheetOpen] = useState(false);
+  const [newAccountType, setNewAccountType] = useState<string>("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -25,6 +27,7 @@ function AccountSettings() {
           .then(({ data }) => {
             setProfile(data);
             setNewUsername(data?.username || "");
+            setNewAccountType(data?.account_type || "Learner");
           });
       }
     });
@@ -52,6 +55,28 @@ function AccountSettings() {
       setProfile({ ...profile, username: newUsername.toLowerCase() });
       toast.success("Username updated!");
       setIsSheetOpen(false);
+    }
+    setLoading(false);
+  };
+
+  const handleUpdateAccountType = async () => {
+    if (newAccountType === profile?.account_type) {
+      setIsAccountTypeSheetOpen(false);
+      return;
+    }
+    
+    setLoading(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ account_type: newAccountType })
+      .eq('id', profile.id);
+      
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setProfile({ ...profile, account_type: newAccountType });
+      toast.success(`Account type switched to ${newAccountType}!`);
+      setIsAccountTypeSheetOpen(false);
     }
     setLoading(false);
   };
@@ -149,6 +174,60 @@ function AccountSettings() {
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
+
+          <Drawer open={isAccountTypeSheetOpen} onOpenChange={setIsAccountTypeSheetOpen}>
+            <DrawerTrigger asChild>
+              <button className="flex items-center gap-5 px-5 py-4 transition active:bg-accent/10 text-left group">
+                <div className="shrink-0">
+                  <User className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1">
+                  <div className="text-[10px] text-muted-foreground">Account Type</div>
+                  <div className="text-[15px] font-medium text-foreground">{profile?.account_type || "Learner"}</div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </DrawerTrigger>
+            <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
+              <div className="flex h-full flex-col p-6">
+                <DrawerHeader className="mb-8 flex flex-row items-center justify-between space-y-0">
+                  <DrawerTitle className="text-xl font-bold">Account Type</DrawerTitle>
+                  <button 
+                    onClick={handleUpdateAccountType}
+                    disabled={loading || newAccountType === profile?.account_type}
+                    className="rounded-full bg-primary px-5 py-1.5 text-sm font-bold text-primary-foreground transition active:scale-95 disabled:opacity-50 disabled:grayscale"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+                  </button>
+                </DrawerHeader>
+
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed px-1">
+                    Select your primary role on Zero Club. This will tailor your experience and access to features.
+                  </p>
+                  
+                  <div className="grid gap-3">
+                    {["Learner", "Tutor", "Institution"].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setNewAccountType(type)}
+                        className={`flex items-center justify-between rounded-2xl border p-4 transition-all ${
+                          newAccountType === type 
+                            ? "border-primary bg-primary/5 shadow-sm" 
+                            : "border-border bg-card hover:bg-accent/50"
+                        }`}
+                      >
+                        <span className={`font-bold ${newAccountType === type ? "text-primary" : "text-foreground"}`}>
+                          {type}
+                        </span>
+                        {newAccountType === type && <Check className="h-5 w-5 text-primary" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DrawerContent>
+          </Drawer>
         </section>
 
         <section className="mt-4 flex flex-col border-b border-white/5">
