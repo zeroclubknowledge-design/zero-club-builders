@@ -440,23 +440,45 @@ function WalletSection() {
   );
 }
 
-function RoleExplorer() {
+const faqs = [
+  { q: "What is Zero Club?", a: "Zero Club is a professional network designed specifically for the next generation of builders, creators, and institutions to learn, connect, and grow." },
+  { q: "Who can join Zero Club?", a: "Whether you're a student learning new skills, a tutor looking to monetize your expertise, or an institution managing bootcamps, Zero Club is built for you." },
+  { q: "How does the Creator Wallet work?", a: "The built-in wallet lets you manage earnings from paid bootcamps, digital products, and private access seamlessly directly within the platform." },
+  { q: "Can I host my own bootcamps?", a: "Yes! Tutors and Institutions have access to dedicated studios where they can create, manage, and monetize their own bootcamps." },
+  { q: "Is Zero Club free to use?", a: "It is free to join and start building your network. We also offer Premium memberships for advanced features, and creators can charge for their own content." },
+];
+
+function FaqSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
   return (
     <section className="border-b border-[#e8e3dc] bg-[#fbfaf8]">
-      <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-24">
-        <h2 className="text-[38px] font-normal leading-[1.16] tracking-[-0.03em] text-[#171717] md:text-[48px]">
-          Who is Zero Club for?
+      <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
+        <h2 className="text-[38px] font-normal leading-[1.16] tracking-[-0.03em] text-[#171717] md:text-[48px] mb-10 md:mb-14 text-center">
+          Frequently Asked Questions
         </h2>
-        <div className="flex flex-wrap gap-3">
-          {roleTopics.map((topic) => (
-            <a
-              key={topic}
-              href="#opportunities"
-              className="rounded-full border border-[#b7b0a8] px-4 py-2.5 text-[15px] font-bold text-[#4d4f55] transition hover:border-[#171717] hover:bg-white"
-            >
-              {topic}
-            </a>
-          ))}
+        <div className="mx-auto max-w-[800px] flex flex-col gap-4">
+          {faqs.map((faq, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <div key={i} className="rounded-2xl border border-[#d9d3ca] bg-white overflow-hidden transition-all">
+                <button 
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  className="flex w-full items-center justify-between p-6 text-left"
+                >
+                  <h3 className="text-[18px] font-bold text-[#171717]">{faq.q}</h3>
+                  <ChevronDown className={`h-5 w-5 text-[#666a70] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                </button>
+                <div 
+                  className={`px-6 pb-6 pt-0 transition-all duration-300 overflow-hidden ${
+                    isOpen ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0 pb-0"
+                  }`}
+                >
+                  <p className="text-[16px] leading-relaxed text-[#666a70]">{faq.a}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -532,7 +554,7 @@ function Landing() {
         <ClubsSection />
         <OpportunitiesSection />
         <WalletSection />
-        <RoleExplorer />
+        <FaqSection />
         <FinalCta referralCode={ref} />
       </main>
       <Footer />
