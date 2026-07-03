@@ -6,10 +6,7 @@ export interface SavedAccount {
   username: string;
   full_name?: string;
   avatar_url?: string;
-  session: {
-    access_token: string;
-    refresh_token: string;
-  };
+  session: any; // Store the full Supabase Session object
 }
 
 const STORAGE_KEY = "zero_club_multi_accounts";
@@ -46,8 +43,12 @@ export function removeSavedAccount(id: string) {
   saveAccounts(accounts.filter(a => a.id !== id));
 }
 
+function getSupabaseStorageKey() {
+  return Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+}
+
 export async function switchAccount(account: SavedAccount) {
-  // Proactively save current account before switching to avoid losing its latest tokens
+  // Proactively save current account before switching
   const { data: { session: currentSession } } = await supabase.auth.getSession();
   if (currentSession && currentSession.user.id !== account.id) {
     try {
@@ -63,36 +64,39 @@ export async function switchAccount(account: SavedAccount) {
         username: profile?.username || "unknown",
         full_name: profile?.full_name || "",
         avatar_url: profile?.avatar_url || "",
-        session: {
-          access_token: currentSession.access_token,
-          refresh_token: currentSession.refresh_token
-        }
+        session: currentSession
       });
     } catch (e) {
       console.error("Failed to save current account state", e);
     }
   }
 
-  // Set the session using the saved tokens directly (overwrites active session)
+  const storageKey = getSupabaseStorageKey();
+
+  if (storageKey && account.session.user) {
+    // Direct localStorage injection bypasses all Supabase cross-session state bugs!
+    localStorage.setItem(storageKey, JSON.stringify(account.session));
+    window.location.href = "/app";
+    return;
+  }
+
+  // Fallback for older accounts that only saved access_token & refresh_token
   const { error } = await supabase.auth.setSession({
     access_token: account.session.access_token,
     refresh_token: account.session.refresh_token
   });
 
   if (error) {
-    console.error("Failed to switch account - session may have expired globally", error);
+    console.error("Failed to switch account", error);
     removeSavedAccount(account.id);
     window.location.href = "/signin";
     return;
   }
   
-  // Hard redirect to /app to avoid any intermediate router navigations (like /signup) 
-  // that might have been triggered by SIGNED_OUT events during the switch.
   window.location.href = "/app";
 }
 
 export async function prepareAddAccount() {
-  // Proactively save the active session just to be absolutely certain it isn't lost
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     try {
@@ -108,20 +112,15 @@ export async function prepareAddAccount() {
         username: profile?.username || "unknown",
         full_name: profile?.full_name || "",
         avatar_url: profile?.avatar_url || "",
-        session: {
-          access_token: session.access_token,
-          refresh_token: session.refresh_token
-        }
+        session: session
       });
     } catch (e) {
       console.error("Failed to proactively save account", e);
     }
   }
 
-  // Log out locally to allow a new account to sign in, WITHOUT invalidating the server token
-  await supabase.auth.signOut({ scope: 'local' });
-  
-  window.location.href = "/signin";
+  // Do NOT sign out. Just redirect to signin with a special flag.
+  window.location.href = "/signin?add_account=true";
 }
 
 export async function logoutCurrentAccount(userId: string) {
@@ -129,20 +128,16 @@ export async function logoutCurrentAccount(userId: string) {
   const accounts = getSavedAccounts();
   
   if (accounts.length > 0) {
-    // If there are other accounts, switch to the first one available
     await switchAccount(accounts[0]);
   } else {
-    // If no accounts left, do a full sign out
     await supabase.auth.signOut();
     window.location.href = "/signin";
   }
 }
 
-// Keep the saved tokens fresh when Supabase automatically refreshes them
 export function setupMultiAccountSync() {
   supabase.auth.onAuthStateChange(async (event, session) => {
     if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
-      // We wrap the profile fetch in a try/catch so we don't crash the auth listener
       try {
         const { data: profile } = await supabase
           .from('profiles')
@@ -156,10 +151,7 @@ export function setupMultiAccountSync() {
           username: profile?.username || "unknown",
           full_name: profile?.full_name || "",
           avatar_url: profile?.avatar_url || "",
-          session: {
-            access_token: session.access_token,
-            refresh_token: session.refresh_token
-          }
+          session: session
         });
       } catch (e) {
         console.error("Failed to sync account profile details", e);

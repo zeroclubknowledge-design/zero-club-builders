@@ -29,7 +29,10 @@ function SignInPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isAddingAccount = searchParams.get('add_account') === 'true';
+      
+      if (session && !isAddingAccount) {
         router.navigate({
           to: "/app",
           search: {
