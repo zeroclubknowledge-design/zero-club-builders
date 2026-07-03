@@ -61,7 +61,33 @@ export async function switchAccount(account: SavedAccount) {
   window.location.reload();
 }
 
-export function prepareAddAccount() {
+export async function prepareAddAccount() {
+  // Proactively save the active session just to be absolutely certain it isn't lost
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, full_name, avatar_url')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      addOrUpdateSavedAccount({
+        id: session.user.id,
+        email: session.user.email || "",
+        username: profile?.username || "unknown",
+        full_name: profile?.full_name || "",
+        avatar_url: profile?.avatar_url || "",
+        session: {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        }
+      });
+    } catch (e) {
+      console.error("Failed to proactively save account", e);
+    }
+  }
+
   // Clear the local storage keys related to supabase auth to log out locally 
   // WITHOUT invalidating the current session on the server
   Object.keys(localStorage).forEach(key => {
@@ -90,7 +116,7 @@ export async function logoutCurrentAccount(userId: string) {
 // Keep the saved tokens fresh when Supabase automatically refreshes them
 export function setupMultiAccountSync() {
   supabase.auth.onAuthStateChange(async (event, session) => {
-    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
       // We wrap the profile fetch in a try/catch so we don't crash the auth listener
       try {
         const { data: profile } = await supabase
