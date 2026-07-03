@@ -73,10 +73,7 @@ export async function switchAccount(account: SavedAccount) {
     }
   }
 
-  // Sign out locally to clear the current active user state cleanly
-  await supabase.auth.signOut({ scope: 'local' });
-
-  // Set the session using the saved tokens
+  // Set the session using the saved tokens directly (overwrites active session)
   const { error } = await supabase.auth.setSession({
     access_token: account.session.access_token,
     refresh_token: account.session.refresh_token
