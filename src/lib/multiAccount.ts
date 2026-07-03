@@ -47,6 +47,35 @@ export function removeSavedAccount(id: string) {
 }
 
 export async function switchAccount(account: SavedAccount) {
+  // Proactively save current account before switching to avoid losing its latest tokens
+  const { data: { session: currentSession } } = await supabase.auth.getSession();
+  if (currentSession && currentSession.user.id !== account.id) {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, full_name, avatar_url')
+        .eq('id', currentSession.user.id)
+        .maybeSingle();
+
+      addOrUpdateSavedAccount({
+        id: currentSession.user.id,
+        email: currentSession.user.email || "",
+        username: profile?.username || "unknown",
+        full_name: profile?.full_name || "",
+        avatar_url: profile?.avatar_url || "",
+        session: {
+          access_token: currentSession.access_token,
+          refresh_token: currentSession.refresh_token
+        }
+      });
+    } catch (e) {
+      console.error("Failed to save current account state", e);
+    }
+  }
+
+  // Sign out locally to clear the current active user state cleanly
+  await supabase.auth.signOut({ scope: 'local' });
+
   // Set the session using the saved tokens
   const { error } = await supabase.auth.setSession({
     access_token: account.session.access_token,
@@ -54,11 +83,17 @@ export async function switchAccount(account: SavedAccount) {
   });
 
   if (error) {
-    throw error;
+    console.error("Failed to switch account - session may have expired globally", error);
+    // If the token is completely invalid on the server (e.g. revoked), we have no choice
+    // but to prompt them to sign in to that account again. We can remove the invalid account
+    // from the switcher to keep it clean.
+    removeSavedAccount(account.id);
+    window.location.href = "/signin";
+    return;
   }
   
-  // Reload the window to clear all app state and query cache
-  window.location.reload();
+  // Reload the window to clear all app state and query cache and boot up with the new session
+  window.location.href = window.location.pathname;
 }
 
 export async function prepareAddAccount() {
