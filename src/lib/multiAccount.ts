@@ -88,13 +88,8 @@ export async function prepareAddAccount() {
     }
   }
 
-  // Clear the local storage keys related to supabase auth to log out locally 
-  // WITHOUT invalidating the current session on the server
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-      localStorage.removeItem(key);
-    }
-  });
+  // Log out locally to allow a new account to sign in, WITHOUT invalidating the server token
+  await supabase.auth.signOut({ scope: 'local' });
   
   window.location.href = "/signin";
 }
