@@ -22,7 +22,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
-import { prepareAddAccount, logoutCurrentAccount } from "@/lib/multiAccount";
+import { prepareAddAccount, logoutCurrentAccount, getSavedAccounts, switchAccount } from "@/lib/multiAccount";
 import { getCachedSession } from "@/lib/auth";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
@@ -79,14 +79,21 @@ const formatCompactNumber = (value?: number | null) => {
   return number.toLocaleString();
 };
 
-const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile: any; onOpenTheme: () => void; onClose?: () => void }) => (
-  <div className="flex h-full flex-col p-5" onClick={(e) => {
-    // Close sidebar if user clicked a link (navigation)
-    const target = e.target as HTMLElement;
-    if (target.closest('a')) {
-      onClose?.();
-    }
-  }}>
+const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile: any; onOpenTheme: () => void; onClose?: () => void }) => {
+  const [accounts, setAccounts] = React.useState<any[]>([]);
+  
+  React.useEffect(() => {
+    setAccounts(getSavedAccounts());
+  }, []);
+
+  return (
+    <div className="flex h-full flex-col p-5" onClick={(e) => {
+      // Close sidebar if user clicked a link (navigation)
+      const target = e.target as HTMLElement;
+      if (target.closest('a')) {
+        onClose?.();
+      }
+    }}>
   <div className="flex items-start justify-between shrink-0">
       <Link to="/app/profile" className="group block transition active:opacity-70">
         {profile?.avatar_url ? (
@@ -134,27 +141,63 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
             <h2 className="text-2xl font-bold text-foreground">Accounts</h2>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
-                  {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center font-bold text-muted-foreground">
-                      {profile?.username?.charAt(0).toUpperCase() || 'U'}
+            {accounts.length === 0 && profile && (
+              <div className="flex items-center justify-between p-2 rounded-xl bg-accent/10">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center font-bold text-muted-foreground">
+                        {profile?.username?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-sm">{profile?.full_name || profile?.username || 'Zero Builder'}</span>
+                    <span className="text-xs text-muted-foreground">{getFirstName(profile)}</span>
+                  </div>
+                </div>
+                <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center text-white">
+                  <Check className="h-3 w-3 text-white" />
+                </div>
+              </div>
+            )}
+            {accounts.map(acc => {
+              const isActive = acc.id === profile?.id;
+              return (
+                <div 
+                  key={acc.id}
+                  className={`flex items-center justify-between p-2 rounded-xl transition cursor-pointer ${isActive ? 'bg-accent/10' : 'hover:bg-accent/20'}`}
+                  onClick={async () => {
+                    if (!isActive) {
+                      await switchAccount(acc);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
+                      {acc.avatar_url ? (
+                        <img src={acc.avatar_url} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center font-bold text-muted-foreground">
+                          {acc.username?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm">{acc.full_name || acc.username || 'Zero Builder'}</span>
+                      <span className="text-xs text-muted-foreground">{getFirstName(acc)}</span>
+                    </div>
+                  </div>
+                  {isActive && (
+                    <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center text-white">
+                      <Check className="h-3 w-3 text-white" />
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-bold text-sm">{profile?.full_name || profile?.username || 'Zero Builder'}</span>
-                  <span className="text-xs text-muted-foreground">{getFirstName(profile)}</span>
-                </div>
-              </div>
-              <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center text-white">
-                <Check className="h-3 w-3 text-white" />
-              </div>
-            </div>
-
+              );
+            })}
             <button 
               onClick={() => {
                 prepareAddAccount();
@@ -240,8 +283,8 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
         </button>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
 
 const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount }: { pathname: string, visible: boolean, isChat: boolean, isDetail: boolean, unreadCount: number }) => (
@@ -799,14 +842,14 @@ function AppLayout() {
 
 
   return (
-    <div className="mx-auto min-h-screen w-full bg-background md:flex md:justify-center">
+    <div className="mx-auto min-h-screen w-full bg-background md:flex md:max-w-[1440px] md:justify-center">
       {/* Desktop Sidebar (Left Column) */}
-      <div className="hidden md:flex flex-col w-[280px] shrink-0 sticky top-0 h-screen border-r border-border/40 bg-background z-40 overflow-y-auto no-scrollbar">
+      <div className="hidden md:flex flex-col w-[292px] shrink-0 sticky top-0 h-screen border-r border-border/40 bg-background z-40 overflow-y-auto no-scrollbar">
         <SidebarContent profile={profile} onOpenTheme={() => setIsThemeOpen(true)} />
       </div>
 
       {/* Main Center Column */}
-      <div className="w-full max-w-md mx-auto md:mx-0 md:max-w-[600px] flex-1 flex flex-col relative min-h-screen md:border-r border-border/10">
+      <div className="w-full max-w-md mx-auto md:mx-0 md:max-w-[760px] 2xl:max-w-[812px] flex-1 flex flex-col relative min-h-screen md:border-r border-border/10">
         {!hideHeader && (
           <header className={`fixed top-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 md:sticky md:left-0 md:translate-x-0 md:max-w-full flex items-center justify-between bg-background/95 backdrop-blur-xl border-b border-border px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] transition-all duration-200 ${
             visible ?"translate-y-0 opacity-100" : "-translate-y-full opacity-0"
@@ -919,6 +962,12 @@ function AppLayout() {
 
       <BottomNav pathname={pathname} visible={visible} isChat={isChat} isDetail={isDetail} unreadCount={unreadMessagesCount} />
       </div>
+      <DesktopWorkspaceRail
+        profile={profile}
+        pathname={pathname}
+        unreadMessagesCount={unreadMessagesCount}
+        unreadNotificationsCount={unreadNotificationsCount}
+      />
     </div>
   );
 }
