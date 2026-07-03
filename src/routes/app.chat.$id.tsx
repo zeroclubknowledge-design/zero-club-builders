@@ -1,6 +1,6 @@
 import { getFirstName } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus } from "lucide-react";
+import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMessages, sendMessageAction, editMessageAction } from "@/api";
 import { useUser } from "@/hooks/useUser";
@@ -127,6 +127,38 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
 
   const repliedMessage = m.reply_to_id ? messages.find((msg: any) => msg.id === m.reply_to_id) : null;
 
+  const handleAcceptInvite = async (messageId: string, instId: string, instName: string) => {
+    if (!currentUser) return;
+    try {
+      const { error: insertError } = await supabase
+        .from('institution_tutors')
+        .insert({ institution_id: instId, tutor_id: currentUser.id });
+      
+      if (insertError && insertError.code !== '23505') throw insertError;
+      
+      await supabase
+        .from('messages')
+        .update({ content: `ACCEPTED_TUTOR_INVITE:${instName}` })
+        .eq('id', messageId);
+      
+      toast.success(`You are now a tutor at ${instName}!`);
+    } catch (e: any) {
+      toast.error('Failed to accept: ' + e.message);
+    }
+  };
+
+  const handleRejectInvite = async (messageId: string, instName: string) => {
+    try {
+      await supabase
+        .from('messages')
+        .update({ content: `REJECTED_TUTOR_INVITE:${instName}` })
+        .eq('id', messageId);
+      toast.success(`Declined invitation from ${instName}`);
+    } catch (e: any) {
+      toast.error('Failed to decline: ' + e.message);
+    }
+  };
+
   return (
     <div 
       id={`message-${m.id}`}
@@ -241,10 +273,44 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                   </div>
                 )}
 
-                <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-primary-foreground' : 'text-foreground'}`}>
-                  <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-primary-foreground underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
-                  {!m.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
-                </p>
+                {m.content.startsWith('TUTOR_INVITE:') ? (
+                  <div className="flex flex-col gap-3 min-w-[200px]">
+                    <div className="font-bold flex items-center gap-2">
+                      <Building2 className="h-4 w-4" /> Tutor Invitation
+                    </div>
+                    <p className={`text-[14px] ${isMe ?'text-primary-foreground/90' : 'text-foreground/90'}`}>
+                      You have been invited to join <strong>{m.content.split(':')[2]}</strong> as a Tutor.
+                    </p>
+                    {!isMe && (
+                      <div className="flex gap-2 mt-1">
+                        <button 
+                          onClick={() => handleAcceptInvite(m.id, m.content.split(':')[1], m.content.split(':')[2])}
+                          className="flex-1 bg-primary text-primary-foreground py-1.5 rounded-lg font-bold text-xs hover:opacity-90 transition"
+                        >
+                          Accept
+                        </button>
+                        <button 
+                          onClick={() => handleRejectInvite(m.id, m.content.split(':')[2])}
+                          className="flex-1 bg-background text-foreground border border-border py-1.5 rounded-lg font-bold text-xs hover:bg-accent transition text-center"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                    {isMe && (
+                      <p className="text-xs opacity-70 mt-1">Invitation sent to user.</p>
+                    )}
+                  </div>
+                ) : m.content.startsWith('ACCEPTED_TUTOR_INVITE:') ? (
+                   <p className={`text-[14px] font-bold ${isMe ? 'text-primary-foreground' : 'text-green-600 dark:text-green-400'}`}>✅ Accepted invitation to join {m.content.split(':')[1]}</p>
+                ) : m.content.startsWith('REJECTED_TUTOR_INVITE:') ? (
+                   <p className={`text-[14px] font-bold ${isMe ? 'text-primary-foreground' : 'text-red-600 dark:text-red-400'}`}>❌ Rejected invitation to join {m.content.split(':')[1]}</p>
+                ) : (
+                  <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-primary-foreground' : 'text-foreground'}`}>
+                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-primary-foreground underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
+                    {!m.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
+                  </p>
+                )}
                 
                 {m.content.includes('$$MEDIA$$') && (
                   <div className={`mt-2 rounded-xl overflow-hidden transition-colors ${

@@ -45,6 +45,25 @@ function InstitutionStudioIndex() {
     setLoading(false);
   }
 
+  async function handleRemoveTutor(tutorId: string) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    
+    if (!confirm("Are you sure you want to remove this tutor from your organization?")) return;
+
+    const { error } = await supabase
+      .from("institution_tutors")
+      .delete()
+      .match({ institution_id: session.user.id, tutor_id: tutorId });
+      
+    if (error) {
+      toast.error("Failed to remove tutor.");
+    } else {
+      toast.success("Tutor removed.");
+      fetchTutors();
+    }
+  }
+
   async function handleAddTutor(e: React.FormEvent) {
     e.preventDefault();
     if (!inviteEmail) return;
@@ -69,24 +88,43 @@ function InstitutionStudioIndex() {
       return;
     }
 
-    // 2. Add them to institution_tutors
-    const { error } = await supabase
+    // 2. Instead of inserting to institution_tutors directly, send an invite DM
+    // First check if they are already a tutor
+    const { data: existing } = await supabase
       .from("institution_tutors")
+      .select("id")
+      .eq("institution_id", session.user.id)
+      .eq("tutor_id", profile.id)
+      .maybeSingle();
+
+    if (existing) {
+      toast.error("This tutor is already in your organization.");
+      return;
+    }
+
+    // Get current institution name (from user profile)
+    const { data: myProfile } = await supabase
+      .from("profiles")
+      .select("full_name, username")
+      .eq("id", session.user.id)
+      .single();
+
+    const instName = myProfile?.full_name || myProfile?.username || "Unknown Institution";
+
+    // Send DM
+    const { error } = await supabase
+      .from("messages")
       .insert({
-        institution_id: session.user.id,
-        tutor_id: profile.id
+        sender_id: session.user.id,
+        receiver_id: profile.id,
+        content: `TUTOR_INVITE:${session.user.id}:${instName}`
       });
 
     if (error) {
-      if (error.code === "23505") {
-        toast.error("This tutor is already in your organization.");
-      } else {
-        toast.error("Failed to add tutor.");
-      }
+      toast.error("Failed to send invitation.");
     } else {
-      toast.success("Tutor added successfully!");
+      toast.success("Invitation sent to tutor's inbox!");
       setInviteEmail("");
-      fetchTutors();
     }
   }
 
@@ -161,10 +199,17 @@ function InstitutionStudioIndex() {
                           {t.tutor?.username?.charAt(0).toUpperCase() || "T"}
                         </div>
                       )}
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-bold">{t.tutor?.full_name || t.tutor?.username || "Unknown"}</h4>
                         <p className="text-xs text-muted-foreground">@{t.tutor?.username || "unknown"}</p>
                       </div>
+                      <button 
+                        onClick={() => handleRemoveTutor(t.tutor_id)}
+                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Remove tutor"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   ))}
                 </div>
