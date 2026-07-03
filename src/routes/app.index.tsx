@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { Star, Users, Rocket, UserPlus, FileText, Pencil, Sparkles } from "lucide-react";
-import { getCachedSession } from "@/api";
+import { getCachedSession } from "@/lib/auth";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
