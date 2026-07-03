@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
+import { Users, LogOut, PlusCircle } from "lucide-react";
+import { getSavedAccounts, switchAccount, prepareAddAccount, removeSavedAccount, SavedAccount } from "@/lib/multiAccount";
 
 export const Route = createFileRoute("/app/settings/account")({
   component: AccountSettings,
@@ -17,7 +19,9 @@ function AccountSettings() {
   const [loading, setLoading] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isAccountTypeSheetOpen, setIsAccountTypeSheetOpen] = useState(false);
+  const [isAccountsSheetOpen, setIsAccountsSheetOpen] = useState(false);
   const [newAccountType, setNewAccountType] = useState<string>("");
+  const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>([]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -31,6 +35,7 @@ function AccountSettings() {
           });
       }
     });
+    setSavedAccounts(getSavedAccounts());
   }, []);
 
   const handleUpdateUsername = async () => {
@@ -224,6 +229,93 @@ function AccountSettings() {
                       </button>
                     ))}
                   </div>
+                </div>
+              </div>
+            </DrawerContent>
+          </Drawer>
+          <Drawer open={isAccountsSheetOpen} onOpenChange={setIsAccountsSheetOpen}>
+            <DrawerTrigger asChild>
+              <button className="flex items-center gap-5 px-5 py-4 transition active:bg-accent/10 text-left group">
+                <div className="shrink-0">
+                  <Users className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1">
+                  <div className="text-[10px] text-muted-foreground">Accounts</div>
+                  <div className="text-[15px] font-medium text-foreground">Switch or add account</div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </DrawerTrigger>
+            <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
+              <div className="flex h-full flex-col p-6 overflow-y-auto">
+                <DrawerHeader className="mb-6 flex flex-row items-center justify-between space-y-0 px-0">
+                  <DrawerTitle className="text-xl font-bold">Switch accounts</DrawerTitle>
+                </DrawerHeader>
+
+                <div className="space-y-4">
+                  {savedAccounts.map((account) => {
+                    const isCurrent = account.id === profile?.id;
+                    return (
+                      <div key={account.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 transition-all hover:bg-accent/50">
+                        <button
+                          className="flex flex-1 items-center gap-3 text-left"
+                          onClick={() => {
+                            if (isCurrent) {
+                              setIsAccountsSheetOpen(false);
+                            } else {
+                              toast.loading("Switching accounts...");
+                              switchAccount(account).catch(e => {
+                                toast.dismiss();
+                                toast.error("Failed to switch account: " + e.message);
+                              });
+                            }
+                          }}
+                        >
+                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/50 bg-accent flex items-center justify-center text-muted-foreground font-bold text-sm">
+                            {account.avatar_url ? (
+                              <img src={account.avatar_url} className="h-full w-full object-cover" />
+                            ) : (
+                              (account.full_name || account.username || "U").charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-bold flex items-center gap-2">
+                              {account.username}
+                              {isCurrent && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">Active</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{account.email}</div>
+                          </div>
+                        </button>
+                        {!isCurrent && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeSavedAccount(account.id);
+                              setSavedAccounts(getSavedAccounts());
+                              toast.success("Account removed");
+                            }}
+                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors ml-2"
+                            title="Log out of this account"
+                          >
+                            <LogOut className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => prepareAddAccount()}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-transparent p-4 text-left transition-all hover:bg-accent hover:border-solid hover:border-primary/50"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
+                      <PlusCircle className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold">Add existing account</div>
+                      <div className="text-xs text-muted-foreground">Log into another Zero Club account</div>
+                    </div>
+                  </button>
                 </div>
               </div>
             </DrawerContent>

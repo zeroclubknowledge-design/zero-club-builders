@@ -22,6 +22,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
+import { prepareAddAccount, logoutCurrentAccount } from "@/lib/multiAccount";
 import { getCachedSession } from "@/lib/auth";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
@@ -69,6 +70,13 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/notifications": "Notifications",
   "/app/quests": "Quests",
   "/app/notes": "ZeroNotes",
+};
+
+const formatCompactNumber = (value?: number | null) => {
+  const number = value || 0;
+  if (number >= 1000000) return `${(number / 1000000).toFixed(1)}M`;
+  if (number >= 1000) return `${(number / 1000).toFixed(1)}K`;
+  return number.toLocaleString();
 };
 
 const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile: any; onOpenTheme: () => void; onClose?: () => void }) => (
@@ -148,17 +156,16 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
             </div>
 
             <button 
-              onClick={async () => {
-                await supabase.auth.signOut();
+              onClick={() => {
+                prepareAddAccount();
                 window.location.href = '/signup';
               }}
               className="w-full py-4 rounded-full border border-border bg-transparent text-sm font-bold text-foreground hover:bg-accent/30 transition mt-2">
               Create a new account
             </button>
             <button 
-              onClick={async () => {
-                await supabase.auth.signOut();
-                window.location.href = '/signin';
+              onClick={() => {
+                prepareAddAccount();
               }}
               className="w-full py-4 rounded-full border border-border bg-transparent text-sm font-bold text-foreground hover:bg-accent/30 transition">
               Add an existing account
@@ -166,8 +173,12 @@ const SidebarContent = React.memo(({ profile, onOpenTheme, onClose }: { profile:
             
             <button 
               onClick={async () => {
-                await supabase.auth.signOut();
-                window.location.href = '/signin';
+                if (profile) {
+                  await logoutCurrentAccount(profile.id);
+                } else {
+                  await supabase.auth.signOut();
+                  window.location.href = '/signin';
+                }
               }}
               className="w-full py-4 rounded-full bg-destructive/10 text-destructive text-sm font-bold hover:bg-destructive/20 transition mt-2">
               Log out
@@ -274,6 +285,111 @@ const BottomNav = React.memo(({ pathname, visible, isChat, isDetail, unreadCount
     </div>
   </nav>
 ));
+
+const DesktopWorkspaceRail = React.memo(({ profile, pathname, unreadMessagesCount, unreadNotificationsCount }: { profile: any; pathname: string; unreadMessagesCount: number; unreadNotificationsCount: number }) => {
+  const role = profile?.account_type || "Learner";
+  const isTutor = role === "Tutor" || role === "Institution";
+  const isInstitution = role === "Institution";
+
+  const primaryActions = isInstitution
+    ? [
+        { label: "Institution Hub", to: "/app/institution-studio", iconSrc: "/landing-proof-institutions-icon-brand.png" },
+        { label: "Tutor Studio", to: "/app/tutor-studio", iconSrc: "/landing-proof-tutors-icon-brand.png" },
+        { label: "Organization bootcamps", to: "/app/institution-studio", iconSrc: "/landing-bootcamp-icon.svg" },
+      ]
+    : isTutor
+      ? [
+          { label: "Tutor Studio", to: "/app/tutor-studio", iconSrc: "/landing-proof-tutors-icon-brand.png" },
+          { label: "Create bootcamp", to: "/app/tutor-studio/create", iconSrc: "/landing-bootcamp-icon.svg" },
+          { label: "Wallet", to: "/app/wallet", iconSrc: "/landing-wallet-icon-brand.png" },
+        ]
+      : [
+          { label: "Ship work", to: "/app/ship", iconSrc: "/landing-feed-taskbar-icon-brand.png" },
+          { label: "Find bootcamps", to: "/app/bootcamps", iconSrc: "/landing-learning-icon-brand.png" },
+          { label: "Create note", to: "/app/notes/create", iconSrc: "/landing-learning-icon-brand.png" },
+        ];
+
+  const proofItems = [
+    { label: "XP", value: formatCompactNumber(profile?.xp), iconSrc: "/landing-proof-builders-icon-brand.png" },
+    { label: "Wallet", value: formatCompactNumber(profile?.coins), iconSrc: "/landing-wallet-icon-brand.png" },
+    { label: "Messages", value: formatCompactNumber(unreadMessagesCount), iconSrc: "/landing-communities-icon-brand.png" },
+  ];
+
+  const workspaceNotes = isInstitution
+    ? ["Tutor visibility", "Cohort outcomes", "Credentials and reporting"]
+    : isTutor
+      ? ["Bootcamp curriculum", "Learner progress", "Creator earnings"]
+      : ["Proof of work", "Learning progress", "Reputation signals"];
+
+  return (
+    <aside className="hidden xl:flex h-screen w-[336px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 no-scrollbar">
+      <div className="rounded-[8px] border border-border/50 bg-card p-5 shadow-soft">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Desktop workspace</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-foreground">{role}</h2>
+          </div>
+          <img src="/logo.png" alt="" className="h-10 w-10 object-contain" />
+        </div>
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          Zero Club connects learning, proof, reputation, and earning into one operating workspace.
+        </p>
+      </div>
+
+      <div className="rounded-[8px] border border-border/50 bg-card p-4 shadow-soft">
+        <div className="grid grid-cols-3 gap-2">
+          {proofItems.map((item) => (
+            <div key={item.label} className="rounded-[8px] border border-border/35 bg-background/70 px-3 py-3 text-center">
+              <img src={item.iconSrc} alt="" className="mx-auto h-7 w-7 object-contain" />
+              <div className="mt-2 text-lg font-bold leading-none text-foreground">{item.value}</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{item.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-[8px] border border-border/50 bg-card p-4 shadow-soft">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-foreground">Primary actions</h3>
+          {unreadNotificationsCount > 0 && (
+            <Link to="/app/notifications" className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">
+              {unreadNotificationsCount} new
+            </Link>
+          )}
+        </div>
+        <div className="grid gap-2">
+          {primaryActions.map((action) => (
+            <Link
+              key={action.label}
+              to={action.to}
+              className="flex items-center gap-3 rounded-[8px] border border-border/35 bg-background/60 px-3 py-3 text-sm font-bold transition hover:border-primary/35 hover:bg-primary/5"
+            >
+              <img src={action.iconSrc} alt="" className="h-7 w-7 object-contain" />
+              <span>{action.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-[8px] border border-border/50 bg-card p-4 shadow-soft">
+        <h3 className="text-sm font-bold text-foreground">What this workspace tracks</h3>
+        <div className="mt-3 grid gap-2">
+          {workspaceNotes.map((note) => (
+            <div key={note} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span>{note}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-[8px] border border-primary/20 bg-primary/5 p-4">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">Current section</p>
+        <p className="mt-2 text-sm font-semibold text-foreground">{pathname.replace("/app", "Zero Club") || "Zero Club"}</p>
+      </div>
+    </aside>
+  );
+});
 
 function AppLayout() {
   const { pathname } = useLocation();
