@@ -84,16 +84,14 @@ export async function switchAccount(account: SavedAccount) {
 
   if (error) {
     console.error("Failed to switch account - session may have expired globally", error);
-    // If the token is completely invalid on the server (e.g. revoked), we have no choice
-    // but to prompt them to sign in to that account again. We can remove the invalid account
-    // from the switcher to keep it clean.
     removeSavedAccount(account.id);
     window.location.href = "/signin";
     return;
   }
   
-  // Reload the window to clear all app state and query cache and boot up with the new session
-  window.location.href = window.location.pathname;
+  // Hard redirect to /app to avoid any intermediate router navigations (like /signup) 
+  // that might have been triggered by SIGNED_OUT events during the switch.
+  window.location.href = "/app";
 }
 
 export async function prepareAddAccount() {
