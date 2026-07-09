@@ -598,13 +598,25 @@ function DesktopWorkspaceRail({
   );
 }
 
+const getInitialSession = () => {
+  if (typeof window === "undefined") return null;
+  const key = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+  if (key) {
+    try {
+      const data = localStorage.getItem(key);
+      if (data) return JSON.parse(data);
+    } catch (e) {}
+  }
+  return null;
+};
+
 function AppLayout() {
-  const { pathname } = useLocation();
   const location = useLocation();
+  const { pathname } = location;
   const navigate = useNavigate();
   const [visible, setVisible] = useState(true);
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<any>(getInitialSession);
+  const [loading, setLoading] = useState(!getInitialSession());
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
