@@ -44,7 +44,6 @@ function ComposePage() {
   const { data: profile } = useUser();
   
   // Single Post State
-  const [title, setTitle] = useState("");
   const [bodyText, setBodyText] = useState("");
   const bodyTextRef = useRef('');
   const [hasBodyText, setHasBodyText] = useState(false);
@@ -78,7 +77,6 @@ function ComposePage() {
     if (draftId) {
       const activeDraft = JSON.parse(localStorage.getItem('zero_club_active_draft') || 'null');
       if (activeDraft && activeDraft.id === draftId) {
-        setTitle(activeDraft.title || "");
         setBodyText(activeDraft.bodyText || "");
         bodyTextRef.current = activeDraft.bodyText || "";
         setHasBodyText(!!(activeDraft.bodyText || "").replace(/<[^>]*>?/gm, '').trim());
@@ -97,19 +95,9 @@ function ComposePage() {
         .single();
       
       if (data) {
-        // Extract title if present (using simple bold markdown check)
-        const titleMatch = data.content.match(/^\*\*([^*]+)\*\*\n\n/);
-        if (titleMatch) {
-          setTitle(titleMatch[1]);
-          const remainingContent = data.content.replace(/^\*\*([^*]+)\*\*\n\n/, '');
-          setBodyText(remainingContent);
-          bodyTextRef.current = remainingContent;
-          setHasBodyText(!!remainingContent.replace(/<[^>]*>?/gm, '').trim());
-        } else {
-          setBodyText(data.content || "");
-          bodyTextRef.current = data.content || "";
-          setHasBodyText(!!(data.content || "").replace(/<[^>]*>?/gm, '').trim());
-        }
+        setBodyText(data.content || "");
+        bodyTextRef.current = data.content || "";
+        setHasBodyText(!!(data.content || "").replace(/<[^>]*>?/gm, '').trim());
         
         if (data.media_urls) {
           setPreviews(data.media_urls);
@@ -171,7 +159,6 @@ function ComposePage() {
       id: crypto.randomUUID(),
       updatedAt: new Date().toISOString(),
       audience,
-      title,
       bodyText: bodyTextRef.current,
     };
     const drafts = JSON.parse(localStorage.getItem('zero_club_drafts') || '[]');
@@ -350,7 +337,7 @@ function ComposePage() {
       const keptExistingUrls = previews.filter(p => p.startsWith('http'));
       media_urls = [...keptExistingUrls, ...media_urls];
 
-      const finalContent = title.trim() ? `**${title.trim()}**\n\n${bodyTextRef.current}` : bodyTextRef.current;
+      const finalContent = bodyTextRef.current;
 
       const isBuild = !!selectedBootcampId;
 
@@ -450,7 +437,7 @@ function ComposePage() {
     }
   };
 
-  const canPost = (title.trim().length > 0 || hasBodyText || images.length > 0) && !uploading;
+  const canPost = (hasBodyText || images.length > 0) && !uploading;
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-muted/20">
@@ -472,18 +459,6 @@ function ComposePage() {
       <div className="flex-1 overflow-y-auto px-4 pb-56 no-scrollbar">
         {/* Post Card */}
         <div className="bg-card rounded-[32px] p-6 shadow-sm border border-border/50 flex flex-col relative">
-          <textarea 
-            placeholder="Title" 
-            value={title}
-            rows={1}
-            onChange={e => {
-              setTitle(e.target.value);
-              e.target.style.height = 'auto';
-              e.target.style.height = e.target.scrollHeight + 'px';
-            }}
-            className="text-2xl font-bold bg-transparent outline-none placeholder:text-muted-foreground/40 mb-3 text-foreground resize-none overflow-hidden"
-          />
-          <div className="h-px w-full bg-border/40 mb-4" />
           <div className="relative min-h-[150px] w-full text-lg">
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
