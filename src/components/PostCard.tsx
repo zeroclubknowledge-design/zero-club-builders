@@ -284,21 +284,22 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
   };
 
   return (
-    <article className="border-b border-white/5 transition active:bg-white/[0.02">
-      <div className="p-4">
+    <article className="border-b hairline transition-colors duration-200 hover:bg-foreground/[0.015]">
+      <div className="px-5 py-5">
         {post.type === 'repost' && (
-          <div className="flex items-center gap-2 mb-2 px-1 text-muted-foreground">
-            <span className="text-[11px] font-bold text-muted-foreground/60">{post.reposted_by} reposted</span>
+          <div className="flex items-center gap-2 mb-2.5 pl-[52px] text-muted-foreground">
+            <Repeat className="h-3 w-3 opacity-60" />
+            <span className="text-[11px] font-medium tracking-tight text-muted-foreground/70">{post.reposted_by} reposted</span>
           </div>
         )}
-        <header className="flex items-center justify-between mb-3">
-          <Link 
-            to="/app/profile/$id" 
+        <header className="flex items-start justify-between mb-3">
+          <Link
+            to="/app/profile/$id"
             params={{ id: post.author_id }}
-            className="flex items-center gap-3 transition active:opacity-70"
+            className="flex items-center gap-3 tap min-w-0"
           >
-            <div className="relative">
-              <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xs">
+            <div className="relative shrink-0">
+              <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-semibold text-muted-foreground text-xs ring-1 ring-border">
                 {post.profiles?.avatar_url ? (
                   <img src={post.profiles.avatar_url} alt={post.profiles.username} className="h-full w-full object-cover" />
                 ) : (
@@ -306,39 +307,42 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                 )}
               </div>
               {post.profiles?.tier === 'Premium' && (
-                <CheckCircle2 className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 fill-[#cc208f] text-white border-2 border-black rounded-full" />
+                <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-primary ring-2 ring-background">
+                  <CheckCircle2 className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
+                </span>
               )}
               {post.profiles?.tier === 'Premium+' && (
-                <CheckCircle2 className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 fill-[#ffcf00] text-black border-2 border-black rounded-full" />
+                <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#ffcf00] ring-2 ring-background">
+                  <CheckCircle2 className="h-2.5 w-2.5 text-black" strokeWidth={3} />
+                </span>
               )}
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[15px] font-bold text-foreground leading-none">{post.profiles?.full_name || post.profiles?.username}</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[15px] font-semibold tracking-tight text-foreground leading-tight">{post.profiles?.full_name || post.profiles?.username}</span>
                 {post.is_build_post && (
                   <div className="flex items-center gap-1">
-                    <span className="flex items-center gap-0.5 rounded-full bg-primary/20 px-2 py-0.5 text-[9px] text-primary border border-primary/20">
-                      <Rocket className="h-2.5 w-2.5 fill-current" /> Ship
+                    <span className="flex items-center gap-1 rounded-full bg-primary/8 px-2 py-0.5 text-[10px] font-medium text-primary ring-1 ring-primary/15">
+                      <Rocket className="h-2.5 w-2.5" /> Ship
                     </span>
                     {post.is_verified_build && (
-                      <span className="flex items-center gap-0.5 rounded-full bg-success/20 px-2 py-0.5 text-[9px] text-success border border-success/20">
-                        <CheckCircle2 className="h-2.5 w-2.5 fill-current" /> Proof
+                      <span className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success ring-1 ring-success/20">
+                        <CheckCircle2 className="h-2.5 w-2.5" /> Proof
                       </span>
                     )}
                   </div>
                 )}
               </div>
-              <span className="text-xs text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                <span className="truncate max-w-[100px] sm:max-w-[150px]">@{post.profiles?.username}</span>
-                <span className="text-[8px] opacity-40 shrink-0">•</span>
-                <span className="flex items-center gap-1 text-[10px] shrink-0">
-                  <Clock className="h-3 w-3 opacity-60" />
-                  {post.created_at ? `${formatDistanceToNow(new Date(post.created_at))} ago · ${format(new Date(post.created_at), 'h:mm a')}` : 'just now'}
+              <span className="text-[12px] text-muted-foreground mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-tight">
+                <span className="truncate max-w-[110px] sm:max-w-[160px] font-medium">@{post.profiles?.username}</span>
+                <span className="opacity-40 shrink-0">·</span>
+                <span className="shrink-0 tabular-nums">
+                  {post.created_at ? formatDistanceToNow(new Date(post.created_at)).replace('about ', '').replace(' minutes', 'm').replace(' minute', 'm').replace(' hours', 'h').replace(' hour', 'h').replace(' days', 'd').replace(' day', 'd').replace(' months', 'mo').replace(' month', 'mo').replace(' years', 'y').replace(' year', 'y').replace('less than am', '<1m') : 'now'}
                 </span>
                 {post.location && (
                   <>
-                    <span className="text-[8px] opacity-40 shrink-0 hidden sm:inline">•</span>
-                    <span className="flex items-center gap-1 text-[10px] shrink-0 truncate max-w-[120px]">
+                    <span className="opacity-40 shrink-0 hidden sm:inline">·</span>
+                    <span className="flex items-center gap-1 shrink-0 truncate max-w-[120px] hidden sm:inline-flex">
                       <MapPin className="h-3 w-3 opacity-60" />
                       {post.location}
                     </span>
@@ -349,18 +353,18 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-2 -mr-2 text-muted-foreground hover:text-foreground transition rounded-full hover:bg-accent/50">
+              <button className="grid h-8 w-8 place-items-center -mr-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-foreground/5 transition-colors">
                 <MoreHorizontal className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-xl border-border">
-              <DropdownMenuItem className="flex items-center gap-3 py-3 cursor-pointer" onClick={handleShare}>
+            <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
+              <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleShare}>
                 <Send className="h-4 w-4" />
                 <span className="font-medium text-sm">Send</span>
               </DropdownMenuItem>
               {!isOwnPost && (
                 <DropdownMenuItem 
-                  className="flex items-center gap-3 py-3 cursor-pointer"
+                  className="flex items-center gap-3 py-2.5 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     router.navigate({ to: `/app/chat/${post.author_id}` });
@@ -372,7 +376,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
               )}
               {!isOwnPost && (
                 <DropdownMenuItem 
-                  className="flex items-center gap-3 py-3 cursor-pointer"
+                  className="flex items-center gap-3 py-2.5 cursor-pointer"
                   onClick={async (e) => {
                     e.stopPropagation();
                     if (!currentUser) return;
@@ -401,7 +405,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
               )}
               {isOwnPost && (
                 <DropdownMenuItem 
-                  className="flex items-center gap-3 py-3 cursor-pointer text-destructive focus:text-destructive font-bold"
+                  className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive font-bold"
                   onClick={handleDeletePost}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -409,7 +413,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem 
-                className="flex items-center gap-3 py-3 cursor-pointer text-destructive focus:text-destructive"
+                className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive"
                 onClick={(e) => {
                   e.stopPropagation();
                   toast.success("Post reported. Thank you for keeping the club safe!");
@@ -423,33 +427,33 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
           </DropdownMenu>
         </header>
 
-        <Link 
-          to="/app/post/$id" 
+        <Link
+          to="/app/post/$id"
           params={{ id: postId }}
           className="block group"
         >
           <div className="space-y-3">
             <div className="relative">
-              <div className="text-[15px] text-foreground/90 leading-relaxed group-hover:text-foreground transition whitespace-pre-wrap line-clamp-3">
+              <div className="text-[15px] text-foreground/90 leading-[1.55] tracking-[-0.005em] whitespace-pre-wrap line-clamp-3">
                 <LinkifiedText text={displayContent} />
                 {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
-                  <span className="text-[10px] text-muted-foreground/50 ml-2 font-medium italic">(edited)</span>
+                  <span className="text-[10px] text-muted-foreground/60 ml-1.5 font-medium">· edited</span>
                 )}
               </div>
               {displayContent?.length > 150 && (
-                <span className="text-primary text-[13px] font-bold mt-1 block hover:underline">Read more</span>
+                <span className="text-muted-foreground hover:text-foreground text-[13px] font-medium mt-1.5 inline-block transition-colors">Read more →</span>
               )}
             </div>
-            
+
             {post.media_urls && post.media_urls.length > 0 && (
-              <div className={`mt-3 rounded-2xl overflow-hidden transition-colors ${
-                post.media_urls.length === 2 
-                  ?"grid grid-cols-2 gap-0.5 max-h-[320px] border border-white/10 bg-white/5 group-hover:border-white/20" 
+              <div className={`mt-3 overflow-hidden rounded-2xl ${
+                post.media_urls.length === 2
+                  ? "grid grid-cols-2 gap-0.5 max-h-[320px] ring-1 ring-border bg-muted/40"
                   : "flex justify-start"
               }`}>
                 {post.media_urls.slice(0, 2).map((url: string, i: number) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -458,47 +462,47 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                       setLightboxOpen(true);
                     }}
                     className={`relative overflow-hidden rounded-2xl cursor-pointer ${
-                      post.media_urls.length === 2 
-                        ?"h-[320px] w-full" 
-                        : "max-w-full border border-white/10 bg-white/5 hover:border-white/20 transition-colors"
+                      post.media_urls.length === 2
+                        ? "h-[320px] w-full"
+                        : "max-w-full ring-1 ring-border bg-muted/40 transition"
                     }`}
                   >
                     {isVideoUrl(url) ? (
                       <div className="relative h-full w-full flex items-center justify-center">
-                        <video 
+                        <video
                           ref={videoRef}
-                          src={url} 
+                          src={url}
                           className={`rounded-2xl ${
-                            post.media_urls.length === 2 
-                              ?"w-full h-full object-cover" 
+                            post.media_urls.length === 2
+                              ? "w-full h-full object-cover"
                               : "max-w-full max-h-[600px] w-auto h-auto"
-                          }`} 
-                          muted={isMuted} 
-                          loop 
+                          }`}
+                          muted={isMuted}
+                          loop
                           playsInline
                         />
-                        <button 
+                        <button
                           onClick={toggleMute}
-                          className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white transition active:scale-95 hover:bg-black/60 z-10"
+                          className="absolute bottom-3 right-3 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white transition tap hover:bg-black/70 z-10"
                         >
                           {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                         </button>
                       </div>
                     ) : (
-                        <img 
-                          src={url} 
-                          alt={`Post media ${i + 1}`} 
+                        <img
+                          src={url}
+                          alt={`Post media ${i + 1}`}
                           className={`rounded-2xl ${
-                            post.media_urls.length === 2 
-                              ?"w-full h-full object-cover" 
+                            post.media_urls.length === 2
+                              ? "w-full h-full object-cover"
                               : "max-w-full max-h-[600px] w-auto h-auto"
-                          }`} 
+                          }`}
                         />
                       )}
-                      
+
                       {post.media_urls.length > 2 && i === 1 && (
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
-                          <span className="text-white text-3xl font-bold tracking-tight">+{post.media_urls.length - 2}</span>
+                        <div className="absolute inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                          <span className="text-white text-2xl font-semibold tracking-tight">+{post.media_urls.length - 2}</span>
                         </div>
                       )}
                     </div>
@@ -508,31 +512,31 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
 
             {/* Quoted Post Mini-Card */}
             {post.quoted_posts && (
-              <div 
-                className="mt-3 rounded-2xl border border-border/50 bg-card/30 p-3 hover:bg-card/50 transition cursor-pointer"
+              <div
+                className="mt-3 rounded-2xl ring-1 ring-border bg-card/50 p-3.5 hover:bg-card transition-colors cursor-pointer"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   router.navigate({ to: '/app/post/$id', params: { id: post.quoted_posts.id } });
                 }}
               >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="h-5 w-5 rounded-full overflow-hidden bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-5 w-5 rounded-full overflow-hidden bg-muted flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
                     {post.quoted_posts.profiles?.avatar_url ? (
                       <img src={post.quoted_posts.profiles.avatar_url} className="h-full w-full object-cover" />
                     ) : (
                       (post.quoted_posts.profiles?.username || 'U')[0].toUpperCase()
                     )}
                   </div>
-                  <span className="text-[13px] font-bold truncate">{post.quoted_posts.profiles?.full_name || post.quoted_posts.profiles?.username}</span>
-                  <span className="text-[11px] text-muted-foreground truncate">{getFirstName(post.quoted_posts.profiles)}</span>
+                  <span className="text-[13px] font-semibold tracking-tight truncate">{post.quoted_posts.profiles?.full_name || post.quoted_posts.profiles?.username}</span>
+                  <span className="text-[11px] text-muted-foreground truncate">@{post.quoted_posts.profiles?.username}</span>
                 </div>
-                <div className="text-[13px] line-clamp-2 text-foreground/80 leading-relaxed mb-2">
+                <div className="text-[13px] line-clamp-2 text-foreground/85 leading-[1.55] mb-1">
                   <LinkifiedText text={quotedDisplayContent} />
                 </div>
                 {post.quoted_posts.media_urls?.[0] && (
-                  <div 
-                    className="mt-3 relative h-[200px] w-full rounded-2xl overflow-hidden border border-white/10 cursor-pointer"
+                  <div
+                    className="mt-3 relative h-[200px] w-full rounded-xl overflow-hidden ring-1 ring-border cursor-pointer"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -553,83 +557,82 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
           </div>
         </Link>
 
-        <footer className="mt-4 flex items-center justify-between">
-          <div className="flex items-center justify-between w-full text-muted-foreground gap-x-2 flex-wrap pr-1 sm:pr-4">
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onCommentClick?.(post);
-              }}
-              className="flex items-center gap-1.5 transition hover:text-primary active:scale-95 group/btn"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span className="text-xs">{commentsCount}</span>
-            </button>
-            <button 
-              onClick={handleLike}
-              className="flex items-center gap-1.5 transition active:scale-95 group/btn"
-            >
-              <Heart className={`h-4 w-4 ${liked ?"fill-primary text-primary" : "group-hover/btn:text-primary"}`} />
-              <span className={`text-xs ${liked ?"text-primary" : ""}`}>
-                {likesCount}
-              </span>
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  className={`flex items-center gap-1.5 transition active:scale-95 ${hasReposted || hasQuoted ?'text-primary font-bold' : 'hover:text-primary'}`}
-                >
-                  <Repeat className={`h-4 w-4 ${hasReposted || hasQuoted ?'text-primary font-bold' : ''}`} />
-                  <span className="text-xs">
-                    {Math.max(0, 
+        <footer className="mt-4 -ml-2 flex items-center justify-between max-w-md">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onCommentClick?.(post);
+            }}
+            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground"
+          >
+            <MessageCircle className="h-[17px] w-[17px]" />
+            <span className="text-[12px] font-medium tabular-nums">{commentsCount || ''}</span>
+          </button>
+          <button
+            onClick={handleLike}
+            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8"
+          >
+            <Heart className={`h-[17px] w-[17px] transition-colors ${liked ? "fill-primary text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`} strokeWidth={liked ? 2 : 1.75} />
+            <span className={`text-[12px] font-medium tabular-nums transition-colors ${liked ? "text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`}>
+              {likesCount || ''}
+            </span>
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 ${hasReposted || hasQuoted ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+              >
+                <Repeat className="h-[17px] w-[17px]" />
+                <span className="text-[12px] font-medium tabular-nums">
+                  {(() => {
+                    const n = Math.max(0,
                       (post.computed_reposts_count ?? post.reposts_count ?? 0) + (hasReposted && !post.hasReposted ? 1 : (!hasReposted && post.hasReposted ? -1 : 0)) +
                       (post.computed_quotes_count ?? 0) + (hasQuoted && !post.hasQuoted ? 1 : (!hasQuoted && post.hasQuoted ? -1 : 0))
-                    )}
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-background/95 backdrop-blur-xl border-border">
-                <DropdownMenuItem className="gap-3 py-3 cursor-pointer" onClick={handleRepost}>
-                  <Repeat className="h-4 w-4" />
-                  <span className="font-bold">{hasReposted ? 'Undo Repost' : 'Repost'}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="gap-3 py-3 cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    router.navigate({ 
-                      to: '/app/compose', 
-                      search: { quote: postId } 
-                    });
-                  }}
-                >
-                  <Quote className="h-4 w-4" />
-                  <span className="font-bold">Quote</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <button 
-              onClick={handleBookmark}
-              className={`flex items-center gap-1.5 transition active:scale-95 ${isBookmarked ?'text-primary font-bold' : 'hover:text-primary text-muted-foreground'}`}
-            >
-              <Bookmark className={`h-4 w-4 ${isBookmarked ?'fill-current' : ''}`} />
-              <span className="text-xs">{isBookmarked ? 'Saved' : 'Save'}</span>
-            </button>
+                    );
+                    return n || '';
+                  })()}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
+              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={handleRepost}>
+                <Repeat className="h-4 w-4" />
+                <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-3 py-2.5 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.navigate({
+                    to: '/app/compose',
+                    search: { quote: postId }
+                  });
+                }}
+              >
+                <Quote className="h-4 w-4" />
+                <span className="font-medium text-sm">Quote</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <button
+            onClick={handleBookmark}
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 ${isBookmarked ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+          >
+            <Bookmark className={`h-[17px] w-[17px] ${isBookmarked ? 'fill-current' : ''}`} strokeWidth={isBookmarked ? 2 : 1.75} />
+          </button>
 
-            <button 
-              onClick={handleShare}
-              className="flex items-center gap-1.5 transition hover:text-primary active:scale-95 text-muted-foreground"
-            >
-              <Share2 className="h-4 w-4" />
-              <span className="text-xs">Share</span>
-            </button>
-          </div>
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-foreground/[0.04] text-muted-foreground hover:text-foreground"
+          >
+            <Share2 className="h-[17px] w-[17px]" />
+          </button>
         </footer>
       </div>
 

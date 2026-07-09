@@ -128,33 +128,33 @@ function SidebarContent({
           )}
           <div className="mt-3">
             <div
-              className="h-5 w-32 bg-white/5 rounded animate-pulse mb-1"
+              className="h-5 w-32 bg-foreground/[0.04] rounded animate-pulse mb-1"
               style={{ display: profile?.username ? "none" : "block" }}
             />
             <h2
-              className="font-display text-base font-bold group-hover:text-primary transition-colors"
+              className="font-display text-[17px] font-semibold tracking-tight group-hover:text-primary transition-colors"
               style={{ display: profile?.username ? "block" : "none" }}
             >
               {profile?.full_name || profile?.username || "Builder"}
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-0.5">
               <p className="text-[13px] text-muted-foreground">
-                {profile?.username ? `${getFirstName(profile)}` : "Fetching identity..."}
+                {profile?.username ? `@${profile.username}` : "Fetching identity..."}
               </p>
               {profile?.xp !== undefined && (
-                <span className="flex items-center gap-0.5 rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-black text-primary border border-primary/20 animate-in fade-in duration-500">
-                  <Zap className="h-2.5 w-2.5 fill-current" /> {profile.xp} XP
+                <span className="flex items-center gap-0.5 rounded-full bg-primary/8 px-1.5 py-0.5 text-[10px] font-semibold text-primary ring-1 ring-primary/15 tabular-nums animate-in fade-in duration-500">
+                  <Zap className="h-2.5 w-2.5" /> {formatCompactNumber(profile.xp)}
                 </span>
               )}
             </div>
           </div>
-          <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] min-w-0 w-full">
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13px] min-w-0 w-full">
             <div className="flex gap-1 items-center shrink-0 min-w-0">
-              <span className="font-bold text-foreground">{profile?.following_count || 0}</span>
+              <span className="font-semibold text-foreground tabular-nums">{profile?.following_count || 0}</span>
               <span className="text-muted-foreground">Following</span>
             </div>
             <div className="flex gap-1 items-center shrink-0 min-w-0">
-              <span className="font-bold text-foreground">{profile?.followers_count || 0}</span>
+              <span className="font-semibold text-foreground tabular-nums">{profile?.followers_count || 0}</span>
               <span className="text-muted-foreground">Followers</span>
             </div>
           </div>
@@ -236,7 +236,7 @@ function SidebarContent({
                   prepareAddAccount();
                   window.location.href = "/signup";
                 }}
-                className="w-full py-4 rounded-full border border-border bg-transparent text-sm font-bold text-foreground hover:bg-accent/30 transition mt-2"
+                className="w-full py-3.5 rounded-full ring-1 ring-border bg-transparent text-sm font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap mt-2"
               >
                 Create a new account
               </button>
@@ -244,7 +244,7 @@ function SidebarContent({
                 onClick={() => {
                   prepareAddAccount();
                 }}
-                className="w-full py-4 rounded-full border border-border bg-transparent text-sm font-bold text-foreground hover:bg-accent/30 transition"
+                className="w-full py-3.5 rounded-full ring-1 ring-border bg-transparent text-sm font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
               >
                 Add an existing account
               </button>
@@ -258,7 +258,7 @@ function SidebarContent({
                     window.location.href = "/signin";
                   }
                 }}
-                className="w-full py-4 rounded-full bg-destructive/10 text-destructive text-sm font-bold hover:bg-destructive/20 transition mt-2"
+                className="w-full py-3.5 rounded-full bg-destructive/8 text-destructive text-sm font-semibold tracking-tight hover:bg-destructive/15 tap mt-2"
               >
                 Log out
               </button>
@@ -311,9 +311,9 @@ function SidebarContent({
             <Link
               key={item.label}
               to={item.to}
-              className="flex items-center gap-4 rounded-xl px-3 py-3 text-[16px] font-bold transition hover:bg-accent/30 active:bg-accent/50"
+              className="flex items-center gap-4 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]"
             >
-              <BrandIcon src={item.iconSrc} className="h-[24px] w-[24px] opacity-95" />
+              <BrandIcon src={item.iconSrc} className="h-[22px] w-[22px] opacity-80" />
               <span>{item.label}</span>
             </Link>
           ))}
@@ -375,7 +375,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
           : "translate-y-[150%] opacity-0 pointer-events-none"
       }`}
     >
-      <div className="flex items-center justify-between gap-1 rounded-full bg-card border border-border/50 p-2 shadow-2xl dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]">
+      <div className="flex items-center justify-between gap-1 rounded-full bg-card/95 backdrop-blur-xl ring-1 ring-border p-1.5 shadow-lift">
         {tabs.map((t) => {
           const normalize = (p: string) => p.replace(/\/$/, "");
           const active = t.exact
@@ -387,17 +387,17 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
               <Link
                 key={t.to}
                 to={t.to}
-                className="relative flex h-11 w-auto shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 transition active:scale-95"
+                className="relative flex h-11 w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-foreground text-background px-4 tap"
               >
                 <BrandIcon
                   src={t.iconSrc}
-                  className="h-[24px] w-[24px] shrink-0 rounded-full bg-primary-foreground/95 p-1"
+                  className="h-[22px] w-[22px] shrink-0 [filter:brightness(0)_invert(1)]"
                 />
-                <span className="font-bold text-[11px] text-primary-foreground whitespace-nowrap">
+                <span className="font-semibold text-[12px] tracking-tight whitespace-nowrap">
                   {t.label}
                 </span>
                 {t.label === "Messages" && unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-foreground text-primary px-1 text-[9px] font-black shadow-sm">
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-primary-foreground px-1 text-[9px] font-bold ring-2 ring-card">
                     {unreadCount}
                   </span>
                 )}
@@ -409,11 +409,11 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
             <Link
               key={t.to}
               to={t.to}
-              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition hover:bg-accent/50 active:scale-95"
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full tap hover:bg-foreground/5"
             >
-              <BrandIcon src={t.iconSrc} className="h-[24px] w-[24px] opacity-95" />
+              <BrandIcon src={t.iconSrc} className="h-[22px] w-[22px] opacity-70" />
               {t.label === "Messages" && unreadCount > 0 && (
-                <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-sm border border-card">
+                <span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground ring-2 ring-card">
                   {unreadCount}
                 </span>
               )}
@@ -514,7 +514,7 @@ function DesktopWorkspaceRail({
 
   return (
     <aside className="hidden xl:flex h-screen w-[336px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 no-scrollbar">
-      <div className="rounded-[8px] border border-border/50 bg-card p-5 shadow-soft">
+      <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -529,12 +529,12 @@ function DesktopWorkspaceRail({
         </p>
       </div>
 
-      <div className="rounded-[8px] border border-border/50 bg-card p-4 shadow-soft">
+      <div className="rounded-2xl ring-1 ring-border bg-card p-4 shadow-soft">
         <div className="grid grid-cols-3 gap-2">
           {proofItems.map((item) => (
             <div
               key={item.label}
-              className="rounded-[8px] border border-border/35 bg-background/70 px-3 py-3 text-center"
+              className="rounded-xl ring-1 ring-border bg-background/60 px-3 py-3 text-center"
             >
               <img src={item.iconSrc} alt="" className="mx-auto h-7 w-7 object-contain" />
               <div className="mt-2 text-lg font-bold leading-none text-foreground">
@@ -548,7 +548,7 @@ function DesktopWorkspaceRail({
         </div>
       </div>
 
-      <div className="rounded-[8px] border border-border/50 bg-card p-4 shadow-soft">
+      <div className="rounded-2xl ring-1 ring-border bg-card p-4 shadow-soft">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">Primary actions</h3>
           {unreadNotificationsCount > 0 && (
@@ -565,7 +565,7 @@ function DesktopWorkspaceRail({
             <Link
               key={action.label}
               to={action.to}
-              className="flex items-center gap-3 rounded-[8px] border border-border/35 bg-background/60 px-3 py-3 text-sm font-bold transition hover:border-primary/35 hover:bg-primary/5"
+              className="flex items-center gap-3 rounded-xl ring-1 ring-border bg-background/60 px-3 py-3 text-sm font-semibold tracking-tight transition-colors hover:ring-primary/30 hover:bg-primary/5"
             >
               <img src={action.iconSrc} alt="" className="h-7 w-7 object-contain" />
               <span>{action.label}</span>
@@ -574,7 +574,7 @@ function DesktopWorkspaceRail({
         </div>
       </div>
 
-      <div className="rounded-[8px] border border-border/50 bg-card p-4 shadow-soft">
+      <div className="rounded-2xl ring-1 ring-border bg-card p-4 shadow-soft">
         <h3 className="text-sm font-bold text-foreground">What this workspace tracks</h3>
         <div className="mt-3 grid gap-2">
           {workspaceNotes.map((note) => (
@@ -586,7 +586,7 @@ function DesktopWorkspaceRail({
         </div>
       </div>
 
-      <div className="rounded-[8px] border border-primary/20 bg-primary/5 p-4">
+      <div className="rounded-2xl ring-1 ring-primary/20 bg-primary/[0.04] p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
           Current section
         </p>
@@ -1047,8 +1047,11 @@ function AppLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
+        <img src="/logo.png" alt="Zero Club" className="h-10 w-auto opacity-90" />
+        <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
+          <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
+        </div>
       </div>
     );
   }
@@ -1068,14 +1071,14 @@ function AppLayout() {
       <div className="zc-app-main w-full max-w-md mx-auto md:mx-0 md:max-w-none flex-1 flex flex-col relative min-h-screen md:border-r border-border/10">
         {!hideHeader && (
           <header
-            className={`fixed top-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 md:sticky md:left-0 md:translate-x-0 md:max-w-full flex items-center justify-between bg-background/95 backdrop-blur-xl border-b border-border px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] transition-all duration-200 ${
-              visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+            className={`fixed top-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 md:sticky md:left-0 md:translate-x-0 md:max-w-full flex items-center justify-between bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] transition-transform duration-300 ease-out-expo ${
+              visible ? "translate-y-0" : "-translate-y-full"
             }`}
           >
             <div className="flex w-10 items-center md:hidden">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="h-9 w-9 overflow-hidden rounded-full border border-border transition active:scale-95"
+                className="h-9 w-9 overflow-hidden rounded-full ring-1 ring-border tap"
               >
                 {profile?.avatar_url ? (
                   <img
@@ -1084,7 +1087,7 @@ function AppLayout() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-[10px] font-bold text-white uppercase">
+                  <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-[10px] font-semibold text-white uppercase">
                     {profile?.username?.substring(0, 1) || "U"}
                   </div>
                 )}
@@ -1095,18 +1098,18 @@ function AppLayout() {
               {isFeed ? (
                 <img src="/logo.png" alt="Zero Club" className="h-8 w-auto object-contain" />
               ) : (
-                <h1 className="font-display text-lg font-bold">{getPageTitle}</h1>
+                <h1 className="font-display text-[17px] font-semibold tracking-tight">{getPageTitle}</h1>
               )}
             </div>
 
             <div className="flex w-10 items-center justify-end">
               <Link
                 to="/app/notifications"
-                className="grid h-10 w-10 place-items-center rounded-full bg-white/5 border border-white/10 transition active:scale-95 text-foreground relative"
+                className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04] text-foreground relative"
               >
-                <BellRing className="h-5 w-5" />
+                <BellRing className="h-[18px] w-[18px]" />
                 {unreadNotificationsCount > 0 && (
-                  <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border border-background" />
+                  <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                 )}
               </Link>
             </div>
@@ -1141,66 +1144,38 @@ function AppLayout() {
         {/* Theme Selection Sheet */}
         <Drawer open={isThemeOpen} onOpenChange={setIsThemeOpen}>
           <DrawerContent className="border-none bg-background p-6 focus:ring-0">
-            <h2 className="text-xl font-bold mb-6">Display Settings</h2>
+            <h2 className="text-[22px] font-semibold tracking-tight mb-1">Display</h2>
+            <p className="text-[13px] text-muted-foreground mb-6">Choose how Zero Club looks to you.</p>
 
-            <div className="space-y-4">
-              <button
-                onClick={() => {
-                  setDarkMode("off");
-                }}
-                className="flex w-full items-center justify-between"
-              >
-                <span className="font-bold">Standard</span>
-                <div
-                  className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${darkMode === "off" ? "border-primary" : "border-muted"}`}
+            <div className="space-y-1">
+              {[
+                { key: "standard", label: "Standard", desc: "Warm ivory, editorial", active: darkMode === "off", onClick: () => setDarkMode("off") },
+                { key: "black", label: "Black", desc: "Lights out — pure contrast", active: darkMode === "on" && darkTheme === "lights-out", onClick: () => { setDarkMode("on"); setDarkTheme("lights-out"); } },
+                { key: "dim", label: "Dim", desc: "Softer dark for evenings", active: darkMode === "on" && darkTheme === "dim", onClick: () => { setDarkMode("on"); setDarkTheme("dim"); } },
+              ].map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={opt.onClick}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3 tap transition-colors ${opt.active ? "bg-primary/[0.06] ring-1 ring-primary/20" : "hover:bg-foreground/[0.03]"}`}
                 >
-                  {darkMode === "off" && <div className="h-3 w-3 rounded-full bg-primary" />}
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setDarkMode("on");
-                  setDarkTheme("lights-out");
-                }}
-                className="flex w-full items-center justify-between"
-              >
-                <span className="font-bold">Black</span>
-                <div
-                  className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${darkMode === "on" && darkTheme === "lights-out" ? "border-primary" : "border-muted"}`}
-                >
-                  {darkMode === "on" && darkTheme === "lights-out" && (
-                    <div className="h-3 w-3 rounded-full bg-primary" />
-                  )}
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setDarkMode("on");
-                  setDarkTheme("dim");
-                }}
-                className="flex w-full items-center justify-between"
-              >
-                <span className="font-bold">Dim</span>
-                <div
-                  className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${darkMode === "on" && darkTheme === "dim" ? "border-primary" : "border-muted"}`}
-                >
-                  {darkMode === "on" && darkTheme === "dim" && (
-                    <div className="h-3 w-3 rounded-full bg-primary" />
-                  )}
-                </div>
-              </button>
-
-              <p className="border-t border-border/40 pt-4 text-[11px] text-muted-foreground">
-                Standard uses the Zero Club landing page colors. Black remains available as a
-                personal display option.
-              </p>
+                  <div className="text-left">
+                    <div className="text-[15px] font-semibold tracking-tight">{opt.label}</div>
+                    <div className="text-[12px] text-muted-foreground mt-0.5">{opt.desc}</div>
+                  </div>
+                  <div className={`h-5 w-5 rounded-full grid place-items-center transition-colors ${opt.active ? "bg-primary" : "ring-1 ring-border"}`}>
+                    {opt.active && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
+                  </div>
+                </button>
+              ))}
             </div>
+
+            <p className="mt-6 border-t hairline pt-4 text-[11px] leading-relaxed text-muted-foreground">
+              Standard uses the Zero Club editorial palette. Dark variants are personal display options.
+            </p>
 
             <button
               onClick={() => setIsThemeOpen(false)}
-              className="mt-10 w-full rounded-2xl bg-primary py-4 font-bold text-primary-foreground transition active:scale-95"
+              className="mt-8 w-full rounded-full bg-foreground py-3.5 font-semibold tracking-tight text-background tap"
             >
               Done
             </button>
