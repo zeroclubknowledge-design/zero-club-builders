@@ -13,7 +13,7 @@ export function useUser() {
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -24,26 +24,25 @@ export function useUser() {
         supabase.from("follows").select("following_id").eq("follower_id", session.user.id)
       ]);
 
-      let profileData = { ...data };
+      let profileData = data || {};
 
       // REPAIR LOGIC: If username is an email or missing, try to recover from metadata
       const metaUsername = session.user.user_metadata?.username;
       const metaFullName = session.user.user_metadata?.full_name;
 
       if (profileData.username?.includes('@') || !profileData.username) {
-        if (metaUsername && metaUsername !== profileData.username) {
-          // Update local object immediately
+        if (metaUsername) {
           profileData.username = metaUsername;
           profileData.full_name = metaFullName || profileData.full_name;
           
-          // Silently update database for future
           await supabase
             .from('profiles')
-            .update({ 
+            .upsert({ 
+              id: session.user.id,
               username: metaUsername,
-              full_name: metaFullName || profileData.full_name
-            })
-            .eq('id', session.user.id);
+              full_name: metaFullName || profileData.full_name,
+              avatar_url: profileData.avatar_url || null
+            });
         }
       }
 
