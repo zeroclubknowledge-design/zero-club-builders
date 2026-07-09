@@ -359,9 +359,9 @@ function WalletPage() {
               </div>
             )}
           </button>
-          <div className="flex items-center gap-1.5 bg-accent/30 px-2.5 py-1 rounded-full border border-border/40">
-            <Star className="h-3.5 w-3.5 text-[#ffcf00] fill-[#ffcf00]" />
-            <span className="text-[12px] font-bold tracking-wide">{profile?.xp || 0} XP</span>
+          <div className="flex items-center gap-1.5 bg-card px-3 py-1.5 rounded-full ring-1 ring-border">
+            <Star className="h-3.5 w-3.5 text-[#eab308] fill-[#eab308]" />
+            <span className="text-[12px] font-semibold tracking-tight tabular-nums">{(profile?.xp || 0).toLocaleString()} XP</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -396,43 +396,56 @@ function WalletPage() {
       {/* ── Main Content Container ── */}
       <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] flex flex-col w-full">
 
-          {/* Red Balance Card (3D Design) */}
-          <div 
-            className="relative overflow-hidden rounded-[32px] bg-primary p-10 text-center text-primary-foreground mb-4 shadow-[0_20px_40px_-15px_rgba(var(--primary),0.5)] transition-all duration-300 transform perspective-[1000px] hover:rotate-x-[2deg] hover:rotate-y-[-2deg]"
-          >
-            <div className="absolute inset-0 opacity-[0.15] pointer-events-none" style={{ backgroundImage: "url('/logo.png')", backgroundSize: '50px 50px', backgroundPosition: 'center', transform: 'rotate(-10deg) scale(1.5)' }} />
+          {/* Premium Balance Card */}
+          <div className="relative overflow-hidden rounded-[28px] bg-[#141117] p-8 text-white mb-4 shadow-lift ring-1 ring-white/[0.06]">
+            {/* Quiet brand glow */}
+            <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
+            <div className="pointer-events-none absolute -bottom-32 -left-16 h-64 w-64 rounded-full bg-[#cc208f]/10 blur-[90px]" />
 
-            <div className="relative z-10 flex flex-col items-center justify-center">
-              <h2 className="text-5xl font-medium tracking-tight mb-2 flex items-center justify-center drop-shadow-md">
-                <span className="text-4xl mr-1 font-normal opacity-90">{currentCurrency.symbol}</span>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Balance</p>
+                <button
+                  onClick={() => setShowBalance(!showBalance)}
+                  className="grid h-7 w-7 place-items-center rounded-full bg-white/[0.06] text-white/60 hover:text-white tap"
+                >
+                  {showBalance ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+
+              <h2 className="mt-3 text-[42px] font-semibold tracking-tight leading-none tabular-nums">
+                <span className="mr-1 text-[26px] font-normal align-top text-white/70">{currentCurrency.symbol}</span>
                 {showBalance ? displayBalance : "••••"}
               </h2>
-              <p className="text-sm font-medium text-primary-foreground/90">Balance</p>
-              <div className="flex items-center gap-1.5 mt-4 bg-black/20 dark:bg-white/10 px-4 py-2 rounded-full border border-primary-foreground/20 backdrop-blur-md shadow-inner">
-                <span className="text-[11px] font-bold text-primary-foreground tracking-widest">
-                  ZC - {profile?.id?.slice(0, 10).toUpperCase() || "9710478080"}
-                </span>
-                <button onClick={handleCopyDetails} className="active:scale-90 transition-transform hover:opacity-70 ml-1">
-                  <Copy className="h-3.5 w-3.5 text-primary-foreground" />
-                </button>
+
+              <div className="mt-6 flex items-center justify-between">
+                <div className="flex items-center gap-2 rounded-full bg-white/[0.06] px-3.5 py-1.5 ring-1 ring-white/10">
+                  <span className="text-[10.5px] font-medium tracking-[0.14em] text-white/70">
+                    ZC · {profile?.id?.slice(0, 10).toUpperCase() || "9710478080"}
+                  </span>
+                  <button onClick={handleCopyDetails} className="text-white/50 hover:text-white tap">
+                    <Copy className="h-3 w-3" />
+                  </button>
+                </div>
+                <img src="/logo.png" alt="" className="h-6 w-6 object-contain opacity-60" />
               </div>
             </div>
           </div>
 
           {/* Action Buttons (Add Money & Send) */}
           <div className="flex gap-3 w-full mt-2">
-            <Link to="/app/wallet/add-money" className="flex-1 flex flex-row items-center justify-center gap-2.5 rounded-[24px] bg-card py-4 px-2 shadow-sm border border-border/50 transition-all hover:shadow-md active:scale-[0.98]">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Plus className="h-4 w-4 text-primary" strokeWidth={3} />
+            <Link to="/app/wallet/add-money" className="flex-1 flex flex-row items-center justify-center gap-2.5 rounded-2xl bg-card py-4 px-2 ring-1 ring-border shadow-soft transition-all hover:ring-foreground/15 tap">
+              <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
+                <Plus className="h-4 w-4 text-primary" strokeWidth={2.25} />
               </div>
-              <span className="text-[14px] font-bold text-foreground">Add Money</span>
+              <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Add money</span>
             </Link>
 
-            <Link to="/app/wallet/send" className="flex-1 flex flex-row items-center justify-center gap-2.5 rounded-[24px] bg-card py-4 px-2 shadow-sm border border-border/50 transition-all hover:shadow-md active:scale-[0.98]">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Send className="h-4 w-4 text-primary -ml-0.5" strokeWidth={2.5} />
+            <Link to="/app/wallet/send" className="flex-1 flex flex-row items-center justify-center gap-2.5 rounded-2xl bg-card py-4 px-2 ring-1 ring-border shadow-soft transition-all hover:ring-foreground/15 tap">
+              <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
+                <Send className="h-4 w-4 text-primary -ml-0.5" strokeWidth={2} />
               </div>
-              <span className="text-[14px] font-bold text-foreground">Send</span>
+              <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Send</span>
             </Link>
           </div>
       </section>
@@ -472,10 +485,10 @@ function WalletPage() {
 
       {/* ── Transaction History ── */}
       <section id="transactions" className="px-6 mt-12 scroll-mt-24">
-        <div className="flex justify-between items-center mb-10">
-          <h3 className="text-[22px] font-black text-foreground tracking-tight">History</h3>
-          <button className="text-sm font-medium text-primary">
-            View All
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-[19px] font-semibold text-foreground tracking-tight">History</h3>
+          <button className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
+            View all →
           </button>
         </div>
 

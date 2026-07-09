@@ -197,8 +197,10 @@ function Profile() {
 
   if (profileLoading && !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
+        <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
+          <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
+        </div>
       </div>
     );
   }
@@ -252,24 +254,24 @@ function Profile() {
                     </button>
                   </DrawerTrigger>
                   <DrawerContent className="border-none bg-background p-6">
-                    <DrawerHeader className="text-left mb-6">
-                      <DrawerTitle className="text-xl font-bold">Profile Actions</DrawerTitle>
+                    <DrawerHeader className="text-left mb-4">
+                      <DrawerTitle className="text-[20px] font-semibold tracking-tight">Profile actions</DrawerTitle>
                     </DrawerHeader>
                     <div className="space-y-2">
-                      <button 
+                      <button
                         onClick={handleShare}
-                        className="flex w-full items-center gap-3 rounded-2xl bg-white/5 p-4 text-sm font-semibold transition active:bg-white/10"
+                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
                       >
-                        <Share2 className="h-5 w-5 text-primary" /> Share Profile Link
+                        <Share2 className="h-[18px] w-[18px] text-primary" /> Share profile link
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
                           toast.success("Profile link copied!");
                         }}
-                        className="flex w-full items-center gap-3 rounded-2xl bg-white/5 p-4 text-sm font-semibold transition active:bg-white/10"
+                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
                       >
-                        <Copy className="h-5 w-5 text-primary" /> Copy URL
+                        <Copy className="h-[18px] w-[18px] text-primary" /> Copy URL
                       </button>
                     </div>
                   </DrawerContent>
@@ -286,28 +288,28 @@ function Profile() {
           {/* Banner */}
           <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full overflow-hidden bg-muted flex items-center justify-center">
             {profile?.banner_url ? (
-              <img 
-                src={profile.banner_url} 
-                alt="Banner" 
+              <img
+                src={profile.banner_url}
+                alt="Banner"
                 className="h-full w-full object-cover object-center"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
+              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklab,var(--primary)_28%,transparent),transparent_60%),radial-gradient(circle_at_80%_80%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_55%)] bg-muted" />
             )}
           </div>
-          
+
           {/* Profile Info Section */}
           <div className="relative px-6 pb-6">
             {/* Avatar overlapping banner */}
             <div className="absolute -top-[55px] left-6 z-20">
-              <div 
-                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-black bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
+              <div
+                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] ring-4 ring-background bg-muted shadow-lift transition-opacity hover:opacity-90 flex items-center justify-center"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-[#FF1E3F]/20 text-4xl font-black text-[#FF1E3F]">
+                  <div className="h-full w-full flex items-center justify-center bg-primary/10 text-4xl font-semibold text-primary">
                     {initials}
                   </div>
                 )}
@@ -316,41 +318,49 @@ function Profile() {
 
             {/* Right side actions */}
             <div className="flex justify-end h-[55px] items-center gap-4">
-                 <Link 
+                 <Link
                    to="/app/profile/edit"
-                   className="rounded-full px-5 py-2 text-[14px] font-bold transition-all flex items-center gap-2 active:scale-95 bg-foreground text-background hover:opacity-90"
+                   className="rounded-full px-5 py-2 text-[13.5px] font-semibold tracking-tight flex items-center gap-2 tap bg-foreground text-background hover:opacity-90"
                  >
-                   Edit Profile
+                   Edit profile
                  </Link>
             </div>
 
             <div className="mt-4 flex flex-col items-start gap-1">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-[22px] font-bold tracking-tight text-foreground leading-none">
+                  <h2 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
                     {displayName}
                   </h2>
-                  {profile?.tier === 'Premium' && <BadgeCheck className="h-[18px] w-[18px] fill-primary text-background shrink-0" />}
-                  {profile?.tier === 'Premium+' && <BadgeCheck className="h-[18px] w-[18px] fill-[#ffcf00] text-black shrink-0" />}
+                  {profile?.tier === 'Premium' && (
+                    <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-primary shrink-0">
+                      <BadgeCheck className="h-3 w-3 text-primary-foreground" strokeWidth={2.5} />
+                    </span>
+                  )}
+                  {profile?.tier === 'Premium+' && (
+                    <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-[#ffcf00] shrink-0">
+                      <BadgeCheck className="h-3 w-3 text-black" strokeWidth={2.5} />
+                    </span>
+                  )}
                 </div>
-                <span className="text-[15px] text-muted-foreground mt-1">{profileHandle}</span>
+                <span className="text-[14px] text-muted-foreground mt-1.5 font-medium">{profileHandle}</span>
               </div>
-              
-              <div className="mt-3 text-[15px] text-foreground leading-relaxed pr-4">
+
+              <div className="mt-3 text-[15px] text-foreground/90 leading-[1.55] pr-4">
                  {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Dynamic builder and creator on Zero Club, specializing in shipping great products."}
               </div>
-              
-              <div className="mt-4 flex items-center gap-4 text-[15px]">
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-foreground">{profile?.following_count || "0"}</span>
+
+              <div className="mt-4 flex items-center gap-5 text-[14px]">
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity">
+                  <span className="font-semibold text-foreground tabular-nums">{profile?.following_count || "0"}</span>
                   <span className="text-muted-foreground">Following</span>
                 </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-foreground">{profile?.followers_count || "0"}</span>
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity">
+                  <span className="font-semibold text-foreground tabular-nums">{profile?.followers_count || "0"}</span>
                   <span className="text-muted-foreground">Followers</span>
                 </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-foreground">{myClubs.length}</span>
+                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity">
+                  <span className="font-semibold text-foreground tabular-nums">{myClubs.length}</span>
                   <span className="text-muted-foreground">{myClubs.length === 1 ? 'Club' : 'Clubs'}</span>
                 </Link>
               </div>
@@ -412,17 +422,14 @@ function Profile() {
               ))
             ) : (
               <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Pen className="h-10 w-10 text-muted-foreground/40" />
-                  </div>
+                <div className="mx-auto mb-5 h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center">
+                  <Pen className="h-6 w-6 text-muted-foreground/60" />
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No posts yet</h3>
-                <p className="text-sm text-muted-foreground mb-8 max-w-[260px] mx-auto leading-relaxed">Share what you're building with the Zero Club community.</p>
-                <Link to="/app/compose" className="inline-flex items-center gap-2 bg-foreground text-background px-7 py-3.5 rounded-full text-sm font-bold shadow-xl hover:opacity-90 active:scale-95 transition-all">
+                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No posts yet</h3>
+                <p className="text-[13.5px] text-muted-foreground mb-7 max-w-[260px] mx-auto leading-relaxed">Share what you're building with the Zero Club community.</p>
+                <Link to="/app/compose" className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-2.5 rounded-full text-[13px] font-semibold tracking-tight tap hover:opacity-90">
                   <Edit3 className="h-4 w-4" />
-                  Create Post
+                  Create post
                 </Link>
               </div>
             )}
@@ -442,14 +449,11 @@ function Profile() {
               ))
             ) : (
               <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Zap className="h-10 w-10 text-muted-foreground/40" />
-                  </div>
+                <div className="mx-auto mb-5 h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center">
+                  <Zap className="h-6 w-6 text-muted-foreground/60" />
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No ships yet</h3>
-                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">Ship your first project and show the world what you're creating.</p>
+                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No ships yet</h3>
+                <p className="text-[13.5px] text-muted-foreground max-w-[260px] mx-auto leading-relaxed">Ship your first project and show the world what you're creating.</p>
               </div>
             )}
           </div>
@@ -485,14 +489,11 @@ function Profile() {
               </div>
             ) : (
               <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Play className="h-10 w-10 text-muted-foreground/40" />
-                  </div>
+                <div className="mx-auto mb-5 h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center">
+                  <Play className="h-6 w-6 text-muted-foreground/60" />
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No media yet</h3>
-                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">Photos and videos from your posts will appear here.</p>
+                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No media yet</h3>
+                <p className="text-[13.5px] text-muted-foreground max-w-[260px] mx-auto leading-relaxed">Photos and videos from your posts will appear here.</p>
               </div>
             )}
           </div>

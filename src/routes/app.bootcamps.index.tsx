@@ -26,16 +26,16 @@ function Bootcamps() {
 
   return (
     <div className="flex flex-col">
-      <div className="fixed top-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 bg-background/80 backdrop-blur-md px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between border-b border-border">
-        <h1 className="font-display text-2xl font-bold">Bootcamps</h1>
-        <Link to="/app/notifications" className="grid h-10 w-10 place-items-center rounded-full bg-accent/30 transition active:scale-95 text-foreground relative">
-          <Bell className="h-5 w-5" />
+      <div className="fixed top-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 bg-background/85 backdrop-blur-xl backdrop-saturate-150 px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between border-b hairline">
+        <h1 className="font-display text-[19px] font-semibold tracking-tight">Bootcamps</h1>
+        <Link to="/app/notifications" className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04] text-foreground relative">
+          <Bell className="h-[18px] w-[18px]" />
           <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-primary border-2 border-background" />
         </Link>
       </div>
       
       <div className="px-5 pt-[88px">
-        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card/40 px-4 py-3">
+        <div className="mt-5 flex items-center gap-2.5 rounded-full bg-foreground/[0.04] ring-1 ring-transparent focus-within:ring-primary/40 focus-within:bg-background px-4 py-3 transition-all">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input 
             placeholder="Search by skill or tutor" 
@@ -52,7 +52,7 @@ function Bootcamps() {
               <button 
                 key={c} 
                 onClick={() => setActiveCategory(c)}
-                className={`shrink-0 pb-3 text-[14px] font-bold tracking-wide transition-all relative whitespace-nowrap ${
+                className={`shrink-0 pb-3 text-[13.5px] font-semibold tracking-tight transition-colors relative whitespace-nowrap ${
                   active 
                     ? "text-foreground" 
                     : "text-muted-foreground hover:text-foreground"
@@ -60,7 +60,7 @@ function Bootcamps() {
               >
                 {c}
                 {active && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-t-full" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-foreground rounded-t-full" />
                 )}
               </button>
             );
@@ -70,7 +70,7 @@ function Bootcamps() {
         {/* Featured - Only show when All or category is selected and we have data */}
         {isLoading && (
           <div className="mt-6 flex justify-center py-10">
-             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+             <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]"><div className="h-full w-1/3 rounded-full bg-primary animate-progress" /></div>
           </div>
         )}
         
@@ -79,14 +79,14 @@ function Bootcamps() {
             <Link 
               to="/app/bootcamps/$id" 
               params={{ id: filteredCamps[0].id }}
-              className="block relative overflow-hidden rounded-3xl bg-gradient-primary p-6 shadow-glow transition active:scale-[0.98"
+              className="block relative overflow-hidden rounded-3xl bg-[#141117] ring-1 ring-white/[0.06] p-6 shadow-lift tap"
             >
-              <span className="rounded-full bg-background/15 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Featured</span>
-              <h2 className="mt-3 font-display text-2xl font-bold text-primary-foreground">{filteredCamps[0].title}</h2>
-              <p className="mt-2 text-sm text-primary-foreground/85 line-clamp-2">{filteredCamps[0].description}</p>
-              <div className="mt-5 flex items-center justify-between">
-                <div className="text-primary-foreground"><span className="font-display text-2xl font-bold">₦{Number(filteredCamps[0].price).toLocaleString()}</span></div>
-                <div className="rounded-full bg-background px-4 py-2 text-xs font-semibold text-foreground">Enroll →</div>
+              <div className="pointer-events-none absolute -top-20 -right-12 h-56 w-56 rounded-full bg-[#cc208f]/25 blur-[80px]" /><span className="relative rounded-full bg-white/[0.08] ring-1 ring-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">Featured</span>
+              <h2 className="relative mt-3 font-display text-[22px] font-semibold tracking-tight text-white">{filteredCamps[0].title}</h2>
+              <p className="relative mt-2 text-[13.5px] leading-relaxed text-white/60 line-clamp-2">{filteredCamps[0].description}</p>
+              <div className="relative mt-5 flex items-center justify-between">
+                <div className="text-white"><span className="font-display text-[22px] font-semibold tracking-tight tabular-nums">₦{Number(filteredCamps[0].price).toLocaleString()}</span></div>
+                <div className="rounded-full bg-white px-4 py-2 text-xs font-semibold tracking-tight text-black">Enroll →</div>
               </div>
             </Link>
           </section>
@@ -95,7 +95,7 @@ function Bootcamps() {
         {/* Grid */}
         <section className="mt-6 space-y-4 pb-10">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-muted-foreground">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               {activeCategory === "All" ? "All cohorts" : `${activeCategory} cohorts`}
             </h3>
             {filteredCamps.length === 0 && (
@@ -105,15 +105,15 @@ function Bootcamps() {
           
           <div className="grid gap-4">
             {filteredCamps?.map((c: any) => (
-              <Link key={c.id} to="/app/bootcamps/$id" params={{ id: c.id }} className="block transition active:scale-[0.98">
-                <article className="overflow-hidden rounded-3xl bg-gradient-card shadow-soft border border-border/5">
+              <Link key={c.id} to="/app/bootcamps/$id" params={{ id: c.id }} className="block tap">
+                <article className="overflow-hidden rounded-3xl bg-card ring-1 ring-border shadow-soft hover:ring-foreground/15 transition-all">
                   <div className="h-24 bg-muted relative">
                     {c.banner_url && <img src={c.banner_url} alt="" className="w-full h-full object-cover" />}
                     {!c.banner_url && <div className="w-full h-full bg-gradient-to-br from-primary/20 to-purple-500/20" />}
                   </div>
                   <div className="p-5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold tracking-wider text-primary">{c.category}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">{c.category}</span>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Star className="h-3 w-3 fill-warning text-warning" /> 5.0
                       </div>
@@ -140,13 +140,13 @@ function Bootcamps() {
           {filteredCamps.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="relative mb-6">
-                <div className="absolute inset-0 animate-pulse bg-primary/20 blur-2xl rounded-full" />
-                <div className="relative grid h-20 w-20 place-items-center rounded-3xl bg-card border border-border/50 shadow-glow">
-                  <Rocket className="h-10 w-10 text-primary" strokeWidth={1.5} />
+                
+                <div className="relative grid h-14 w-14 place-items-center rounded-full ring-1 ring-border">
+                  <Rocket className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-foreground">New cohorts are fueling up</h3>
-              <p className="mt-2 text-sm text-muted-foreground max-w-[200px] mx-auto">
+              <h3 className="text-[17px] font-semibold tracking-tight text-foreground">New cohorts are fueling up</h3>
+              <p className="mt-1.5 text-[13.5px] text-muted-foreground max-w-[220px] mx-auto leading-relaxed">
                 We're curating the best builders to lead the next session in this category.
               </p>
             </div>

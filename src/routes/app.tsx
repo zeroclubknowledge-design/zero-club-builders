@@ -16,6 +16,20 @@ import {
   Zap,
   Palette,
   Check,
+  Home,
+  GraduationCap,
+  Users,
+  Wallet,
+  MessageCircle,
+  User,
+  Gem,
+  Bookmark,
+  NotebookPen,
+  Compass,
+  Rocket,
+  PenLine,
+  Presentation,
+  Building2,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -47,23 +61,12 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-const BrandIcon = ({ src, className = "" }: { src: string; className?: string }) => {
-  let scaleClass = "";
-  if (src.includes("communities")) {
-    scaleClass = "scale-[1.5]";
-  } else if (src.includes("builder-feed") || src.includes("proof-")) {
-    scaleClass = "scale-[1.2]";
-  }
-
-  return <img src={src} alt="" className={`object-contain ${scaleClass} ${className}`} />;
-};
-
 const tabs = [
-  { to: "/app/", label: "Feed", iconSrc: "/landing-feed-taskbar-icon-brand.png", exact: true },
-  { to: "/app/bootcamps", label: "Learn", iconSrc: "/landing-learning-icon-brand.png" },
-  { to: "/app/clubs", label: "Clubs", iconSrc: "/logo.png" },
-  { to: "/app/wallet", label: "Wallet", iconSrc: "/landing-wallet-icon-brand.png" },
-  { to: "/app/chat", label: "Messages", iconSrc: "/landing-communities-icon-brand.png" },
+  { to: "/app/", label: "Feed", Icon: Home, exact: true },
+  { to: "/app/bootcamps", label: "Learn", Icon: GraduationCap },
+  { to: "/app/clubs", label: "Clubs", Icon: Users },
+  { to: "/app/wallet", label: "Wallet", Icon: Wallet },
+  { to: "/app/chat", label: "Messages", Icon: MessageCircle },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -270,50 +273,26 @@ function SidebarContent({
       <div className="overflow-y-auto pr-2 -mr-2 mt-6 flex-1 no-scrollbar flex flex-col">
         <nav className="flex flex-col gap-1.5 flex-1">
           {[
-            {
-              iconSrc: "/landing-builder-feed-icon-brand.png",
-              label: "Profile",
-              to: "/app/profile",
-            },
-            { iconSrc: "/landing-wallet-icon-brand.png", label: "Membership", to: "/app/premium" },
-            { iconSrc: "/logo.png", label: "Clubs", to: "/app/clubs" },
-            {
-              iconSrc: "/landing-proof-builders-icon-brand.png",
-              label: "Bookmarks",
-              to: "/app/bookmarks",
-            },
-            { iconSrc: "/landing-learning-icon-brand.png", label: "ZeroNotes", to: "/app/notes" },
-            {
-              iconSrc: "/landing-proof-teams-icon-brand.png",
-              label: "ZeroHub",
-              to: "/app/zerohub",
-            },
-            { iconSrc: "/landing-bootcamp-icon.svg", label: "Bootcamps", to: "/app/bootcamps" },
+            { Icon: User, label: "Profile", to: "/app/profile" },
+            { Icon: Gem, label: "Membership", to: "/app/premium" },
+            { Icon: Users, label: "Clubs", to: "/app/clubs" },
+            { Icon: Bookmark, label: "Bookmarks", to: "/app/bookmarks" },
+            { Icon: NotebookPen, label: "ZeroNotes", to: "/app/notes" },
+            { Icon: Compass, label: "ZeroHub", to: "/app/zerohub" },
+            { Icon: GraduationCap, label: "Bootcamps", to: "/app/bootcamps" },
             ...(profile?.account_type === "Tutor" || profile?.account_type === "Institution"
-              ? [
-                  {
-                    iconSrc: "/landing-proof-tutors-icon-brand.png",
-                    label: "Tutor Studio",
-                    to: "/app/tutor-studio",
-                  },
-                ]
+              ? [{ Icon: Presentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
               : []),
             ...(profile?.account_type === "Institution"
-              ? [
-                  {
-                    iconSrc: "/landing-proof-institutions-icon-brand.png",
-                    label: "Institution Hub",
-                    to: "/app/institution-studio",
-                  },
-                ]
+              ? [{ Icon: Building2, label: "Institution Hub", to: "/app/institution-studio" }]
               : []),
           ].map((item) => (
             <Link
               key={item.label}
               to={item.to}
-              className="flex items-center gap-4 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]"
+              className="group flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]"
             >
-              <BrandIcon src={item.iconSrc} className="h-[22px] w-[22px] opacity-80" />
+              <item.Icon className="h-[20px] w-[20px] text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.75} />
               <span>{item.label}</span>
             </Link>
           ))}
@@ -389,10 +368,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
                 to={t.to}
                 className="relative flex h-11 w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-foreground text-background px-4 tap"
               >
-                <BrandIcon
-                  src={t.iconSrc}
-                  className="h-[22px] w-[22px] shrink-0 [filter:brightness(0)_invert(1)]"
-                />
+                <t.Icon className="h-[19px] w-[19px] shrink-0" strokeWidth={2} />
                 <span className="font-semibold text-[12px] tracking-tight whitespace-nowrap">
                   {t.label}
                 </span>
@@ -409,9 +385,9 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
             <Link
               key={t.to}
               to={t.to}
-              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full tap hover:bg-foreground/5"
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full tap hover:bg-foreground/5 text-muted-foreground"
             >
-              <BrandIcon src={t.iconSrc} className="h-[22px] w-[22px] opacity-70" />
+              <t.Icon className="h-[21px] w-[21px]" strokeWidth={1.75} />
               {t.label === "Messages" && unreadCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground ring-2 ring-card">
                   {unreadCount}
@@ -444,66 +420,26 @@ function DesktopWorkspaceRail({
 
   const primaryActions = isInstitution
     ? [
-        {
-          label: "Institution Hub",
-          to: "/app/institution-studio",
-          iconSrc: "/landing-proof-institutions-icon-brand.png",
-        },
-        {
-          label: "Tutor Studio",
-          to: "/app/tutor-studio",
-          iconSrc: "/landing-proof-tutors-icon-brand.png",
-        },
-        {
-          label: "Organization bootcamps",
-          to: "/app/institution-studio",
-          iconSrc: "/landing-bootcamp-icon.svg",
-        },
+        { label: "Institution Hub", to: "/app/institution-studio", Icon: Building2 },
+        { label: "Tutor Studio", to: "/app/tutor-studio", Icon: Presentation },
+        { label: "Organization bootcamps", to: "/app/institution-studio", Icon: GraduationCap },
       ]
     : isTutor
       ? [
-          {
-            label: "Tutor Studio",
-            to: "/app/tutor-studio",
-            iconSrc: "/landing-proof-tutors-icon-brand.png",
-          },
-          {
-            label: "Create bootcamp",
-            to: "/app/tutor-studio/create",
-            iconSrc: "/landing-bootcamp-icon.svg",
-          },
-          { label: "Wallet", to: "/app/wallet", iconSrc: "/landing-wallet-icon-brand.png" },
+          { label: "Tutor Studio", to: "/app/tutor-studio", Icon: Presentation },
+          { label: "Create bootcamp", to: "/app/tutor-studio/create", Icon: GraduationCap },
+          { label: "Wallet", to: "/app/wallet", Icon: Wallet },
         ]
       : [
-          { label: "Ship work", to: "/app/ship", iconSrc: "/landing-feed-taskbar-icon-brand.png" },
-          {
-            label: "Find bootcamps",
-            to: "/app/bootcamps",
-            iconSrc: "/landing-learning-icon-brand.png",
-          },
-          {
-            label: "Create note",
-            to: "/app/notes/create",
-            iconSrc: "/landing-learning-icon-brand.png",
-          },
+          { label: "Ship work", to: "/app/ship", Icon: Rocket },
+          { label: "Find bootcamps", to: "/app/bootcamps", Icon: GraduationCap },
+          { label: "Create note", to: "/app/notes/create", Icon: PenLine },
         ];
 
   const proofItems = [
-    {
-      label: "XP",
-      value: formatCompactNumber(profile?.xp),
-      iconSrc: "/landing-proof-builders-icon-brand.png",
-    },
-    {
-      label: "Wallet",
-      value: formatCompactNumber(profile?.coins),
-      iconSrc: "/landing-wallet-icon-brand.png",
-    },
-    {
-      label: "Messages",
-      value: formatCompactNumber(unreadMessagesCount),
-      iconSrc: "/landing-communities-icon-brand.png",
-    },
+    { label: "XP", value: formatCompactNumber(profile?.xp), Icon: Zap },
+    { label: "Wallet", value: formatCompactNumber(profile?.coins), Icon: Wallet },
+    { label: "Messages", value: formatCompactNumber(unreadMessagesCount), Icon: MessageCircle },
   ];
 
   const workspaceNotes = isInstitution
@@ -534,13 +470,13 @@ function DesktopWorkspaceRail({
           {proofItems.map((item) => (
             <div
               key={item.label}
-              className="rounded-xl ring-1 ring-border bg-background/60 px-3 py-3 text-center"
+              className="rounded-xl ring-1 ring-border bg-background/60 px-3 py-3.5 text-center"
             >
-              <img src={item.iconSrc} alt="" className="mx-auto h-7 w-7 object-contain" />
-              <div className="mt-2 text-lg font-bold leading-none text-foreground">
+              <item.Icon className="mx-auto h-[18px] w-[18px] text-muted-foreground" strokeWidth={1.75} />
+              <div className="mt-2.5 text-lg font-semibold tracking-tight leading-none text-foreground tabular-nums">
                 {item.value}
               </div>
-              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              <div className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
                 {item.label}
               </div>
             </div>
@@ -565,9 +501,9 @@ function DesktopWorkspaceRail({
             <Link
               key={action.label}
               to={action.to}
-              className="flex items-center gap-3 rounded-xl ring-1 ring-border bg-background/60 px-3 py-3 text-sm font-semibold tracking-tight transition-colors hover:ring-primary/30 hover:bg-primary/5"
+              className="group flex items-center gap-3 rounded-xl ring-1 ring-border bg-background/60 px-3.5 py-3 text-sm font-semibold tracking-tight transition-colors hover:ring-primary/30 hover:bg-primary/5"
             >
-              <img src={action.iconSrc} alt="" className="h-7 w-7 object-contain" />
+              <action.Icon className="h-[18px] w-[18px] text-muted-foreground group-hover:text-primary transition-colors" strokeWidth={1.75} />
               <span>{action.label}</span>
             </Link>
           ))}

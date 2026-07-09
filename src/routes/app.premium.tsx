@@ -40,9 +40,9 @@ const categories = [
 ];
 
 const plans = [
-  { id: "free", name: "Basic", price: "₦0", priceValue: 0, color: "bg-accent/40 border-border" },
-  { id: "pro", name: "Premium", price: "₦5,000", priceValue: 5000, color: "bg-gradient-to-br from-[#cc208f] to-[#801050]" },
-  { id: "elite", name: "Premium+", price: "₦12,000", priceValue: 12000, color: "bg-gradient-to-br from-[#ffcf00] to-[#b08000]", textColor: "text-black" },
+  { id: "free", name: "Basic", price: "₦0", priceValue: 0, tagline: "Start building", color: "bg-card ring-1 ring-border", textColor: "text-foreground", subColor: "text-muted-foreground" },
+  { id: "pro", name: "Premium", price: "₦5,000", priceValue: 5000, tagline: "For serious builders", color: "bg-[#141117] ring-1 ring-white/[0.06]", glow: "bg-[#cc208f]/30", textColor: "text-white", subColor: "text-white/60" },
+  { id: "elite", name: "Premium+", price: "₦12,000", priceValue: 12000, tagline: "The complete studio", color: "bg-[#141117] ring-1 ring-[#ffcf00]/20", glow: "bg-[#ffcf00]/20", textColor: "text-white", subColor: "text-white/60" },
 ];
 
 function PremiumPage() {
@@ -131,31 +131,45 @@ function PremiumPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center bg-background/80 px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-md border-b border-border">
-        <Link to="/app" className="mr-4">
-          <ChevronLeft className="h-6 w-6" />
+      <header className="sticky top-0 z-50 flex items-center bg-background/85 px-4 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-xl backdrop-saturate-150 border-b hairline">
+        <Link to="/app" className="mr-3 grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]">
+          <ChevronLeft className="h-[18px] w-[18px]" />
         </Link>
-        <h1 className="text-xl font-bold">Subscribe</h1>
+        <h1 className="text-[17px] font-semibold tracking-tight">Membership</h1>
       </header>
 
       {/* Plan Selector Carousel */}
-      <div 
+      <div
         ref={scrollRef}
         onScroll={handleScroll}
         className="mt-6 flex gap-4 overflow-x-auto px-4 snap-x snap-mandatory no-scrollbar"
       >
         {plans.map((p, idx) => (
-          <div 
+          <div
             key={p.id}
             onClick={() => {
               setActivePlanIdx(idx);
               scrollRef.current?.scrollTo({ left: idx * (scrollRef.current.offsetWidth * 0.85 + 16), behavior: 'smooth' });
             }}
-            className={`relative shrink-0 w-[85%] snap-center rounded-xl p-6 h-32 flex flex-col justify-center items-center cursor-pointer transition-all duration-300 border ${
-              activePlanIdx === idx ?"scale-100 opacity-100 border-primary/40 ring-1 ring-primary/20" : "opacity-40 scale-95 border-transparent"
+            className={`relative shrink-0 w-[85%] snap-center overflow-hidden rounded-3xl p-6 h-36 flex flex-col justify-between cursor-pointer transition-all duration-300 ${
+              activePlanIdx === idx ? "scale-100 opacity-100 shadow-lift" : "opacity-45 scale-[0.96]"
             } ${p.color}`}
           >
-            <span className={`text-2xl ${p.textColor || (idx === 0 ?"text-foreground" : "text-white")}`}>{p.name}</span>
+            {p.glow && (
+              <div className={`pointer-events-none absolute -top-20 -right-12 h-52 w-52 rounded-full blur-[70px] ${p.glow}`} />
+            )}
+            <div className="relative z-10 flex items-start justify-between">
+              <span className={`font-display text-[22px] font-semibold tracking-tight ${p.textColor}`}>{p.name}</span>
+              {activePlanIdx === idx && (
+                <span className={`grid h-6 w-6 place-items-center rounded-full ${idx === 0 ? "bg-foreground text-background" : "bg-white text-black"}`}>
+                  <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+              )}
+            </div>
+            <div className="relative z-10">
+              <div className={`text-[15px] font-semibold tabular-nums ${p.textColor}`}>{p.price}<span className={`text-[11px] font-normal ml-1 ${p.subColor}`}>/ month</span></div>
+              <div className={`text-[11.5px] mt-0.5 ${p.subColor}`}>{p.tagline}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -163,27 +177,30 @@ function PremiumPage() {
       {/* Features Content */}
       <div className="mt-8 px-4 space-y-8">
         {categories.map((cat) => (
-          <section key={cat.title} className="rounded-2xl bg-card border border-border overflow-hidden">
-            <div className="px-5 py-4 border-b border-border bg-accent/10">
-              <h3 className="text-muted-foreground text-[11px]">{cat.title}</h3>
+          <section key={cat.title} className="rounded-2xl bg-card ring-1 ring-border overflow-hidden shadow-soft">
+            <div className="px-5 py-3.5 border-b hairline">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{cat.title}</h3>
             </div>
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-hairline">
               {cat.features.map((f) => {
                 const isLocked = f.locked?.includes(activePlan.name);
                 const value = f.values?.[activePlan.name as keyof typeof f.values];
 
                 return (
-                  <div key={f.name} className="flex items-center justify-between px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[13px] font-medium ${isLocked ?"text-muted-foreground" : "text-foreground"}`}>{f.name}</span>
+                  <div key={f.name} className="flex items-center justify-between px-5 py-3.5">
+                    <div className="min-w-0 pr-4">
+                      <span className={`text-[13.5px] font-medium tracking-tight ${isLocked ? "text-muted-foreground/70" : "text-foreground"}`}>{f.name}</span>
+                      <p className="text-[11.5px] text-muted-foreground mt-0.5 leading-snug">{f.desc}</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       {value ? (
-                        <span className="text-[13px] font-bold text-foreground">{value}</span>
+                        <span className={`text-[13px] font-semibold tabular-nums ${isLocked ? "text-muted-foreground/70" : "text-foreground"}`}>{value}</span>
                       ) : isLocked ? (
-                        <Lock className="h-4 w-4 text-muted-foreground/30" />
+                        <Lock className="h-4 w-4 text-muted-foreground/40" />
                       ) : (
-                        <Check className="h-4 w-4 text-[#cc208f" />
+                        <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/10">
+                          <Check className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                        </span>
                       )}
                     </div>
                   </div>
@@ -205,16 +222,16 @@ function PremiumPage() {
       {/* Fixed Bottom CTA */}
       <div className="fixed bottom-0 left-0 z-50 w-full p-4 bg-gradient-to-t from-background via-background/95 to-transparent">
         <div className="mx-auto max-w-md">
-          <button 
+          <button
             onClick={() => subscribeMutation.mutate(activePlan)}
             disabled={subscribeMutation.isPending || isLoading}
-            className="w-full flex justify-center items-center gap-2 rounded-full bg-foreground py-4 text-center font-black text-background transition active:scale-95 shadow-xl disabled:opacity-50"
+            className="w-full flex justify-center items-center gap-2 rounded-full bg-foreground py-4 text-center text-[15px] font-semibold tracking-tight text-background tap shadow-lift disabled:opacity-50"
           >
             {subscribeMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : (
-               profile?.tier === activePlan.name ? "Current Plan" : `Starting at ${activePlan.price}`
+               profile?.tier === activePlan.name ? "Current plan" : `Continue with ${activePlan.name} · ${activePlan.price}`
             )}
           </button>
-          <p className="mt-3 text-center text-[10px] text-muted-foreground font-medium">
+          <p className="mt-3 text-center text-[11px] text-muted-foreground">
             Price excludes VAT. Cancel anytime in settings.
           </p>
         </div>

@@ -102,19 +102,19 @@ function ChatInboxPage() {
               {currentUser?.avatar_url ? (
                 <img src={currentUser.avatar_url} className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[11px] font-black text-white">
+                <div className="h-full w-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[11px] font-semibold text-white">
                   {currentUser?.username?.[0].toUpperCase() || "U"}
                 </div>
               )}
             </button>
-            <h1 className="text-xl font-black tracking-tight text-foreground">Messages</h1>
+            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Messages</h1>
           </div>
 
           <div className="flex items-center gap-2">
             {/* Filter Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent/30 hover:bg-accent/50 transition-all duration-300 active:scale-95 border border-border/30 shadow-[0_1px_8px_-2px_rgba(0,0,0,0.05)">
+                <button className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent/30 hover:bg-accent/50 transition-all duration-300 active:scale-95 ring-1 ring-border">
                   <span className="text-[11px]">{activeTab}</span>
                   <ChevronDown className="h-3 w-3 text-muted-foreground" />
                 </button>
@@ -178,7 +178,7 @@ function ChatInboxPage() {
                 {chat.user?.avatar_url ? (
                   <img src={chat.user.avatar_url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-muted-foreground/20 to-accent flex items-center justify-center font-black text-muted-foreground text-lg">
+                  <div className="h-full w-full bg-gradient-to-br from-muted-foreground/20 to-accent flex items-center justify-center font-semibold text-muted-foreground text-lg">
                     {(chat.user?.full_name || chat.user?.username || 'U').substring(0, 1).toUpperCase()}
                   </div>
                 )}
@@ -193,18 +193,18 @@ function ChatInboxPage() {
             <div className="flex flex-1 flex-col justify-center min-w-0 gap-0.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 truncate">
-                  <span className="text-sm font-bold text-foreground truncate leading-none tracking-tight">
+                  <span className="text-[14px] font-semibold text-foreground truncate leading-none tracking-tight">
                     {chat.user?.full_name || chat.user?.username}
                   </span>
                   {chat.user?.verified && <Check className="h-3.5 w-3.5 text-primary fill-primary shrink-0" />}
                 </div>
                 <div className="flex items-center gap-2.5 shrink-0 ml-3">
                   <span className="text-[10px] text-muted-foreground/70 font-medium">{chat.time || '4h'}</span>
-                  {chat.unread && <div className="h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(204,32,143,0.4)" />}
+                  {chat.unread && <div className="h-2 w-2 rounded-full bg-primary" />}
                 </div>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <p className={`text-xs truncate max-w-[200px] leading-relaxed ${chat.unread ?"font-bold text-foreground" : "text-muted-foreground"}`}>
+                <p className={`text-xs truncate max-w-[200px] leading-relaxed ${chat.unread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
                   {chat.lastMessage?.includes('$$MEDIA$$') ? (() => {
                     const textPart = chat.lastMessage.split('$$MEDIA$$')[0].trim();
                     if (textPart) return textPart;
@@ -225,20 +225,20 @@ function ChatInboxPage() {
         {/* Premium Empty State */}
         {filteredConversations.length === 0 && (
           <div className="flex flex-1 flex-col items-center justify-center py-32 text-center px-10 animate-in fade-in duration-700">
-            <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 flex items-center justify-center mb-8 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)">
-              <MessageCircle className="h-11 w-11 text-primary/40" strokeWidth={1.5} />
+            <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
+              <MessageCircle className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
             </div>
-            <h3 className="text-xl font-black tracking-tight mb-2.5 text-foreground">
+            <h3 className="text-[17px] font-semibold tracking-tight mb-1.5 text-foreground">
               {searchQuery ? 'No matches found' : 'No conversations yet'}
             </h3>
-            <p className="text-sm text-muted-foreground/70 leading-relaxed max-w-[260px] mb-8">
+            <p className="text-[13.5px] text-muted-foreground leading-relaxed max-w-[260px] mb-7">
               {searchQuery 
                 ? 'Try searching for someone else or adjust your filters.' 
                 : 'Start a new conversation to connect with someone.'}
             </p>
             <Link 
               to="/app/chat/new" 
-              className="rounded-full bg-foreground text-background px-6 py-3 font-bold text-sm inline-flex items-center gap-2 transition-all duration-300 hover:opacity-90 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] active:scale-95"
+              className="rounded-full bg-foreground text-background px-6 py-2.5 font-semibold tracking-tight text-[13px] inline-flex items-center gap-2 transition-all duration-300 hover:opacity-90 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] active:scale-95"
             >
               <MessageSquarePlus className="h-4 w-4" />
               New Message

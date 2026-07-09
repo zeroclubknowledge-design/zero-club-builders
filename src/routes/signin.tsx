@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2, Mail, ShieldCheck, GraduationCap, TrendingUp, Newspaper } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -107,9 +107,9 @@ function SignInPage() {
   };
 
   const featureLines = [
-    { text: "Ship faster with clubs and bootcamps", iconSrc: "/landing-bootcamp-icon.svg" },
-    { text: "Track profile signal, XP, and network", iconSrc: "/landing-proof-builders-icon-brand.png" },
-    { text: "Access your builder feed instantly", iconSrc: "/landing-builder-feed-icon-brand.png" },
+    { text: "Ship faster with clubs and bootcamps", Icon: GraduationCap },
+    { text: "Track profile signal, XP, and network", Icon: TrendingUp },
+    { text: "Access your builder feed instantly", Icon: Newspaper },
   ];
 
   return (
@@ -140,8 +140,8 @@ function SignInPage() {
             </p>
             <div className="mt-10 grid gap-3">
               {featureLines.map((line) => (
-                <div key={line.text} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
-                  <img src={line.iconSrc} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                <div key={line.text} className="flex items-center gap-3 rounded-xl ring-1 ring-border bg-card/55 px-4 py-3 backdrop-blur-xl">
+                  <line.Icon className="h-[18px] w-[18px] shrink-0 text-primary" strokeWidth={1.75} />
                   <span className="text-sm font-medium text-foreground/85">{line.text}</span>
                 </div>
               ))}
@@ -158,10 +158,10 @@ function SignInPage() {
             <h1 className="font-display text-4xl font-normal leading-tight tracking-[-0.035em] text-[#8f5849]">Welcome back</h1>
           </div>
 
-          <div className="overflow-hidden rounded-[8px] border border-border/50 bg-card shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
-            <div className="border-b border-border/40 bg-background/35 px-6 py-5">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-                <img src="/landing-proof-builders-icon-brand.png" alt="" className="h-4 w-4 object-contain" />
+          <div className="overflow-hidden rounded-3xl ring-1 ring-border bg-card shadow-lift">
+            <div className="border-b hairline bg-background/35 px-6 py-5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/8 ring-1 ring-primary/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
+                <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
                 Secure access
               </div>
               <h2 className="mt-4 font-display text-3xl font-normal tracking-[-0.03em]">Sign in</h2>
@@ -174,13 +174,13 @@ function SignInPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email address</span>
                     <span className="relative block">
-                      <img src="/landing-builder-feed-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
                       <input
                         type="email"
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-2xl ring-1 ring-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:ring-2 focus:ring-primary/40"
                       />
                     </span>
                   </label>
@@ -204,7 +204,7 @@ function SignInPage() {
                         maxLength={10}
                         value={code}
                         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 text-center text-lg font-semibold tracking-[0.38em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-2xl ring-1 ring-border bg-background/70 px-4 text-center text-lg font-semibold tracking-[0.38em] tabular-nums outline-none transition focus:ring-2 focus:ring-primary/40"
                       />
                     </span>
                   </label>

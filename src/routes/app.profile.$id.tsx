@@ -437,7 +437,7 @@ function ProfileDetail() {
                     <div className="space-y-2">
                       <button 
                         onClick={handleShare}
-                        className="flex w-full items-center gap-3 rounded-2xl bg-white/5 p-4 text-sm font-semibold transition active:bg-white/10"
+                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
                       >
                         <Share2 className="h-5 w-5 text-primary" /> Share Profile Link
                       </button>
@@ -446,14 +446,14 @@ function ProfileDetail() {
                           navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
                           toast.success("Profile link copied!");
                         }}
-                        className="flex w-full items-center gap-3 rounded-2xl bg-white/5 p-4 text-sm font-semibold transition active:bg-white/10"
+                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
                       >
                         <Copy className="h-5 w-5 text-primary" /> Copy URL
                       </button>
                       {!isOwnProfile && (
                         <button 
                           onClick={() => toast.success("Report submitted. Thank you!")}
-                          className="flex w-full items-center gap-3 rounded-2xl bg-white/5 p-4 text-sm font-semibold transition active:bg-white/10 text-red-400"
+                          className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-destructive/5 text-destructive"
                         >
                           <Flag className="h-5 w-5" /> Report Profile
                         </button>
@@ -481,7 +481,7 @@ function ProfileDetail() {
                 className="h-full w-full object-cover object-center"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
+              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklab,var(--primary)_28%,transparent),transparent_60%),radial-gradient(circle_at_80%_80%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_55%)] bg-muted" />
             )}
           </div>
           
@@ -490,13 +490,13 @@ function ProfileDetail() {
             {/* Avatar overlapping banner */}
             <div className="absolute -top-[55px] left-6 z-20">
               <div 
-                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-black bg-zinc-900 shadow-xl transition-opacity hover:opacity-90 flex items-center justify-center"
+                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] ring-4 ring-background bg-muted shadow-lift transition-opacity hover:opacity-90 flex items-center justify-center"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-[#FF1E3F]/20 text-4xl font-black text-[#FF1E3F]">
+                  <div className="h-full w-full flex items-center justify-center bg-primary/10 text-4xl font-semibold text-primary">
                     {initials}
                   </div>
                 )}
@@ -612,12 +612,12 @@ function ProfileDetail() {
             ) : (
               <div className="py-20 text-center">
                 <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Pen className="h-10 w-10 text-muted-foreground/40" />
+                  
+                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
+                    <Pen className="h-6 w-6 text-muted-foreground/60" />
                   </div>
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No posts yet</h3>
+                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No posts yet</h3>
                 <p className="text-sm text-muted-foreground mb-8 max-w-[260px] mx-auto leading-relaxed">
                   {getFirstName(profile)} hasn't posted anything yet.
                 </p>
@@ -642,12 +642,12 @@ function ProfileDetail() {
             ) : (
               <div className="py-20 text-center">
                 <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Zap className="h-10 w-10 text-muted-foreground/40" />
+                  
+                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
+                    <Zap className="h-6 w-6 text-muted-foreground/60" />
                   </div>
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No ships yet</h3>
+                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No ships yet</h3>
                 <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
                   {getFirstName(profile)} hasn't shared any shipped projects yet.
                 </p>
@@ -687,12 +687,12 @@ function ProfileDetail() {
             ) : (
               <div className="py-20 text-center">
                 <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Play className="h-10 w-10 text-muted-foreground/40" />
+                  
+                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
+                    <Play className="h-6 w-6 text-muted-foreground/60" />
                   </div>
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No media yet</h3>
+                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No media yet</h3>
                 <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
                   Photos and videos from {getFirstName(profile)}'s posts will appear here.
                 </p>
@@ -717,12 +717,12 @@ function ProfileDetail() {
             ) : (
               <div className="py-20 text-center">
                 <div className="relative mx-auto mb-6 w-fit">
-                  <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-[2]" />
-                  <div className="relative h-24 w-24 rounded-3xl bg-accent/40 border border-border/30 flex items-center justify-center mx-auto shadow-inner">
-                    <Heart className="h-10 w-10 text-muted-foreground/40" />
+                  
+                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
+                    <Heart className="h-6 w-6 text-muted-foreground/60" />
                   </div>
                 </div>
-                <h3 className="text-xl font-black tracking-tight mb-2">No likes yet</h3>
+                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No likes yet</h3>
                 <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
                   {getFirstName(profile)} hasn't liked any posts yet.
                 </p>

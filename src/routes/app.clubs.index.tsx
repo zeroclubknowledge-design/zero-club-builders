@@ -471,7 +471,7 @@ function Clubs() {
             <div>
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="Zero Club" className="h-6 w-auto object-contain" />
-                <h1 className="text-xl font-black tracking-tight text-foreground">Clubs</h1>
+                <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Clubs</h1>
               </div>
               <p className="text-[10px] font-medium text-muted-foreground/70 mt-0.5 whitespace-nowrap">Learn, Ship, Network & <span className="text-primary font-bold">Earn</span></p>
             </div>
@@ -482,7 +482,7 @@ function Clubs() {
               >
                 <Bell className="h-4 w-4" />
                 {((incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length) + unreadClubMessages.length) > 0 && (
-                  <span className="absolute -top-1 -right-1 grid h-4.5 w-4.5 place-items-center rounded-full bg-primary text-[8px] font-bold text-white shadow-[0_0_8px_rgba(204,32,143,0.5)] border-2 border-background">
+                  <span className="absolute -top-1 -right-1 grid h-4.5 w-4.5 place-items-center rounded-full bg-primary text-[8px] font-bold text-white ring-2 ring-background">
                     {(incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length) + unreadClubMessages.length}
                   </span>
                 )}
@@ -507,16 +507,16 @@ function Clubs() {
               <Users className="h-3.5 w-3.5" />
             </div>
             <div className="text-center">
-              <span className="block text-sm font-black text-foreground tracking-tight">{myClubs.length}</span>
+              <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">{myClubs.length}</span>
               <span className="block text-[8px] font-medium text-muted-foreground/60">Clubs Active</span>
             </div>
           </div>
           <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-success/10 text-success">
-              <div className="h-2.5 w-2.5 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)" />
+              <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
             </div>
             <div className="text-center">
-              <span className="block text-sm font-black text-foreground tracking-tight">{totalOnlineBuilders || 0}</span>
+              <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">{totalOnlineBuilders || 0}</span>
               <span className="block text-[8px] font-medium text-muted-foreground/60">Online Now</span>
             </div>
           </div>
@@ -525,7 +525,7 @@ function Clubs() {
               <Radio className="h-3.5 w-3.5" />
             </div>
             <div className="text-center">
-              <span className="block text-sm font-black text-foreground tracking-tight">{myClubs.filter((c: any) => c.is_private).length}</span>
+              <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">{myClubs.filter((c: any) => c.is_private).length}</span>
               <span className="block text-[8px] font-medium text-muted-foreground/60">Live Sessions</span>
             </div>
           </div>
@@ -534,7 +534,7 @@ function Clubs() {
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
             <div className="text-center">
-              <span className="block text-sm font-black text-foreground tracking-tight">+{profile?.xp || 0}</span>
+              <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">+{profile?.xp || 0}</span>
               <span className="block text-[8px] font-medium text-muted-foreground/60">XP Today</span>
             </div>
           </div>
@@ -580,7 +580,7 @@ function Clubs() {
         {/* Discover / Featured Clubs */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-black tracking-tight flex items-center gap-2 text-foreground">
+            <h2 className="text-[15px] font-semibold tracking-tight flex items-center gap-2 text-foreground">
               Discover <Sparkles className="h-4 w-4 text-primary fill-primary/20" />
             </h2>
             <button 
@@ -622,7 +622,7 @@ function Clubs() {
                   <div className={`absolute inset-0 bg-gradient-to-b ${bgClass} via-transparent to-transparent opacity-40 pointer-events-none`} />
                   
                   <div className="w-full flex items-start justify-between z-10 mb-3">
-                    <span className={`rounded-full ${tagClass} px-2 py-0.5 text-[8px] font-black uppercase tracking-wider shadow-sm`}>
+                    <span className={`rounded-full ${tagClass} px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.1em]`}>
                       {isAlreadyJoined ? "MEMBER" : (isFeatured ? "FEATURED 🎁" : (i % 2 === 0 ? "LIVE" : "HOT"))}
                     </span>
                     {d.is_private && (
@@ -654,7 +654,7 @@ function Clubs() {
                   
                   <div className="w-full flex items-center justify-between text-[9px] font-bold z-10 pt-2 border-t border-border/20">
                     <div className="flex items-center gap-1.5 text-success">
-                      <div className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_5px_rgba(34,197,94,0.8)] animate-pulse" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                       <span className="font-semibold">{d.online_count || 0} Online</span>
                     </div>
                     <span className="text-primary bg-primary/10 px-2 py-0.5 rounded-full text-[8px] font-bold border border-primary/20">2X XP</span>
@@ -698,7 +698,7 @@ function Clubs() {
         {/* My Clubs */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-black tracking-tight flex items-center gap-2 text-foreground">
+            <h2 className="text-[15px] font-semibold tracking-tight flex items-center gap-2 text-foreground">
               My Clubs <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-foreground/10 px-1.5 text-[10px] font-bold text-muted-foreground">{myClubs.length}</span>
             </h2>
             <button className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-300">See all</button>
@@ -770,7 +770,7 @@ function Clubs() {
         <DrawerContent className="border-none bg-background p-0">
           <div className="px-6 pt-6 pb-8">
             <DrawerHeader className="text-left mb-6 p-0">
-              <DrawerTitle className="text-xl font-black tracking-tight text-foreground">
+              <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">
                 {isBasic ? "Create Your Private Club" : "Create a New Club"}
               </DrawerTitle>
               <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
@@ -860,14 +860,14 @@ function Clubs() {
           <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-primary via-purple-600 to-blue-500">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")` }} />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-16 w-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-[0_4px_30px_-4px_rgba(255,255,255,0.2)">
+              <div className="h-14 w-14 rounded-full ring-1 ring-border bg-card flex items-center justify-center">
                 <ShieldCheck className="h-8 w-8 text-white" />
               </div>
             </div>
           </div>
           
           <div className="px-6 py-8 text-center">
-            <h2 className="text-xl font-black text-foreground tracking-tight">Limit Reached</h2>
+            <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Limit Reached</h2>
             <p className="mt-3 text-sm text-muted-foreground/70 leading-relaxed font-medium">
               {totalClubsCount >= 20 && isBasic && !hasCreatedClub ? (
                 <>The platform has reached its 20-club limit for basic users. Upgrade your plan to create unlimited communities.</>
@@ -907,7 +907,7 @@ function Clubs() {
                 )}
               </div>
               <div className="text-left">
-                <DrawerTitle className="text-lg font-black text-foreground tracking-tight">Notifications</DrawerTitle>
+                <DrawerTitle className="text-[17px] font-semibold text-foreground tracking-tight">Notifications</DrawerTitle>
                 <DrawerDescription className="text-[11px] font-medium text-muted-foreground/60 mt-0.5">
                   Manage admissions and club messages
                 </DrawerDescription>
@@ -1059,7 +1059,7 @@ function Clubs() {
                   <Hash className="h-8 w-8 text-primary/70" />
                 )}
               </div>
-              <h2 className="text-xl font-black text-foreground mb-1 tracking-tight">Join {selectedClub.name}?</h2>
+              <h2 className="text-[19px] font-semibold text-foreground mb-1 tracking-tight">Join {selectedClub.name}?</h2>
               <p className="text-sm text-muted-foreground/60 mb-8 font-medium leading-relaxed">
                 {selectedClub.is_private 
                   ? "This is a private club. An admin will need to approve your request before you can enter."

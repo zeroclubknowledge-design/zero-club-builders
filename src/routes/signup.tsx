@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, ChevronLeft, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2, Mail, User, Gift, GraduationCap, Presentation, Building2, UserCircle, Users, Zap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -184,15 +184,15 @@ function SignUpPage() {
   };
 
   const perks = [
-    { text: "Claim your builder profile", iconSrc: "/landing-builder-feed-icon-brand.png" },
-    { text: "Join clubs and bootcamps", iconSrc: "/landing-communities-icon-brand.png" },
-    { text: "Earn XP when you ship", iconSrc: "/landing-proof-builders-icon-brand.png" },
+    { text: "Claim your builder profile", Icon: UserCircle },
+    { text: "Join clubs and bootcamps", Icon: Users },
+    { text: "Earn XP when you ship", Icon: Zap },
   ];
 
   const accountTypeOptions = [
-    { id: "Learner", iconSrc: "/landing-learning-icon-brand.png" },
-    { id: "Tutor", iconSrc: "/landing-proof-tutors-icon-brand.png" },
-    { id: "Institution", iconSrc: "/landing-proof-institutions-icon-brand.png" },
+    { id: "Learner", Icon: GraduationCap },
+    { id: "Tutor", Icon: Presentation },
+    { id: "Institution", Icon: Building2 },
   ] as const;
 
   return (
@@ -224,7 +224,7 @@ function SignUpPage() {
             <div className="mt-10 grid gap-3">
               {perks.map((perk) => (
                 <div key={perk.text} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/55 px-4 py-3 backdrop-blur-xl">
-                  <img src={perk.iconSrc} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                  <perk.Icon className="h-[18px] w-[18px] shrink-0 text-primary" strokeWidth={1.75} />
                   <span className="text-sm font-medium text-foreground/85">{perk.text}</span>
                 </div>
               ))}
@@ -241,10 +241,10 @@ function SignUpPage() {
             <h1 className="font-display text-4xl font-normal leading-tight tracking-[-0.035em] text-[#8f5849]">Create account</h1>
           </div>
 
-          <div className="overflow-hidden rounded-[8px] border border-border/50 bg-card shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
+          <div className="overflow-hidden rounded-3xl ring-1 ring-border bg-card shadow-lift">
             <div className="border-b border-border/40 bg-background/35 px-6 py-5">
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-                <img src="/landing-bootcamp-icon.svg" alt="" className="h-4 w-4 object-contain" />
+                <GraduationCap className="h-3.5 w-3.5" strokeWidth={2} />
                 Builder access
               </div>
               <h2 className="mt-4 font-display text-3xl font-normal tracking-[-0.03em]">{step === "info" ? "Join Zero Club" : "Verify email"}</h2>
@@ -264,13 +264,13 @@ function SignUpPage() {
                           key={role.id}
                           type="button"
                           onClick={() => setAccountType(role.id)}
-                          className={`relative flex flex-col items-center justify-center gap-2 rounded-[8px] border p-4 text-center transition-all ${
+                          className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-all ${
                             accountType === role.id
                               ? "border-primary bg-primary/10 text-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]"
                               : "border-border/50 bg-background/50 text-muted-foreground hover:bg-card hover:text-foreground"
                           }`}
                         >
-                          <img src={role.iconSrc} alt="" className={`h-7 w-7 object-contain ${accountType === role.id ? "" : "opacity-70"}`} />
+                          <role.Icon className={`h-6 w-6 ${accountType === role.id ? "text-primary" : "text-muted-foreground"}`} strokeWidth={1.75} />
                           <span className="text-xs font-semibold">{role.id}</span>
                           {accountType === role.id && (
                             <div className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white">
@@ -285,13 +285,13 @@ function SignUpPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Username</span>
                     <span className="relative block">
-                      <img src="/landing-builder-feed-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
                       <input
                         type="text"
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-2xl ring-1 ring-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:ring-2 focus:ring-primary/40"
                       />
                     </span>
                   </label>
@@ -299,13 +299,13 @@ function SignUpPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email address</span>
                     <span className="relative block">
-                      <img src="/landing-proof-builders-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
+                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
                       <input
                         type="email"
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-2xl ring-1 ring-border bg-background/70 px-4 pl-12 text-[15px] font-medium outline-none transition focus:ring-2 focus:ring-primary/40"
                       />
                     </span>
                   </label>
@@ -313,19 +313,19 @@ function SignUpPage() {
                   <label className="block space-y-2">
                     <span className="ml-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Referral code <span className="normal-case tracking-normal text-muted-foreground/60">optional</span></span>
                     <span className="relative block">
-                      <img src="/landing-proof-teams-icon-brand.png" alt="" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 object-contain" />
+                      <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
                       <input
                         type="text"
                         placeholder="Enter referral code"
                         value={referralCode}
                         onChange={(e) => setReferralCode(e.target.value)}
-                        className={`h-14 w-full rounded-[8px] border bg-background/70 px-4 pl-12 pr-20 text-[15px] font-medium outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10 ${referralCode ? "border-primary/50 bg-primary/5" : "border-border"}`}
+                        className={`h-14 w-full rounded-2xl ring-1 bg-background/70 px-4 pl-12 pr-20 text-[15px] font-medium outline-none transition focus:ring-2 focus:ring-primary/40 ${referralCode ? "ring-primary/50 bg-primary/5" : "ring-border"}`}
                       />
                       {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Applied</span>}
                     </span>
                   </label>
 
-                  <label className="flex items-start gap-3 rounded-[8px] border border-border/35 bg-background/45 px-4 py-3">
+                  <label className="flex items-start gap-3 rounded-2xl ring-1 ring-border bg-background/45 px-4 py-3">
                     <input
                       type="checkbox"
                       checked={agreedToTerms}
@@ -356,7 +356,7 @@ function SignUpPage() {
                         maxLength={10}
                         value={code}
                         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                        className="h-14 w-full rounded-[8px] border border-border bg-background/70 px-4 text-center text-lg font-semibold tracking-[0.38em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                        className="h-14 w-full rounded-2xl ring-1 ring-border bg-background/70 px-4 text-center text-lg font-semibold tracking-[0.38em] tabular-nums outline-none transition focus:ring-2 focus:ring-primary/40"
                       />
                     </span>
                   </label>

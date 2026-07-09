@@ -95,14 +95,14 @@ function NotificationsPage() {
 
   const getNotifUI = (type: string, actorName?: string, isActorMe?: boolean, recipientName?: string) => {
     switch (type) {
-      case 'like': return { icon: HeartHandshake, bg: 'bg-[#FF1493]', text: 'text-white', action: 'liked your post' };
-      case 'comment': return { icon: MessageCircleMore, bg: 'bg-[#00BFFF]', text: 'text-white', action: 'commented on your post' };
-      case 'follow': return { icon: UserRoundPlus, bg: 'bg-[#00FA9A]', text: 'text-black', action: 'started following you' };
-      case 'repost': return { icon: ArrowUpFromLine, bg: 'bg-[#32CD32]', text: 'text-white', action: 'reposted your post' };
-      case 'mention': return { icon: AtSign, bg: 'bg-[#FF8C00]', text: 'text-white', action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };
-      case 'build_tagged': return { icon: Trophy, bg: 'bg-[#9370DB]', text: 'text-white', action: 'tagged their post for verification' };
-      case 'system': return { icon: Zap, bg: 'bg-[#FFD700]', text: 'text-black', action: `Referral Reward: You and ${actorName} both earned 200XP!` };
-      default: return { icon: BellRing, bg: 'bg-muted-foreground', text: 'text-white', action: 'interacted with you' };
+      case 'like': return { icon: HeartHandshake, bg: 'bg-primary', text: 'text-primary-foreground', action: 'liked your post' };
+      case 'comment': return { icon: MessageCircleMore, bg: 'bg-sky-600', text: 'text-white', action: 'commented on your post' };
+      case 'follow': return { icon: UserRoundPlus, bg: 'bg-emerald-600', text: 'text-white', action: 'started following you' };
+      case 'repost': return { icon: ArrowUpFromLine, bg: 'bg-emerald-600', text: 'text-white', action: 'reposted your post' };
+      case 'mention': return { icon: AtSign, bg: 'bg-amber-600', text: 'text-white', action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };
+      case 'build_tagged': return { icon: Trophy, bg: 'bg-violet-600', text: 'text-white', action: 'tagged their post for verification' };
+      case 'system': return { icon: Zap, bg: 'bg-amber-500', text: 'text-black', action: `Referral Reward: You and ${actorName} both earned 200XP!` };
+      default: return { icon: BellRing, bg: 'bg-muted-foreground', text: 'text-background', action: 'interacted with you' };
     }
   };
 
@@ -173,33 +173,33 @@ function NotificationsPage() {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-140px)">
-      <div className="flex border-b border-border/40 sticky top-0 pt-[calc(0.5rem+env(safe-area-inset-top))] bg-background/70 backdrop-blur-2xl z-20">
+      <div className="flex border-b hairline sticky top-0 pt-[calc(0.5rem+env(safe-area-inset-top))] bg-background/85 backdrop-blur-xl backdrop-saturate-150 z-20">
         {["all", "verified", "mentions"].map((tab) => (
-          <button 
+          <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-4 text-sm font-black tracking-tight transition relative ${
-              activeTab === tab ?"text-foreground" : "text-muted-foreground hover:bg-accent/30"
+            className={`flex-1 py-3.5 text-[13.5px] font-semibold tracking-tight transition-colors relative ${
+              activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
             {activeTab === tab && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1.5 w-12 bg-foreground rounded-t-full" />
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-10 bg-foreground rounded-t-full" />
             )}
           </button>
         ))}
       </div>
 
-      <div className="flex items-center justify-between px-6 py-4 bg-accent/20 border-b border-border/30 h-[56px]">
-        <span className="text-[10px] text-muted-foreground">
-          {unreadCount > 0 ? `${unreadCount} Unread Updates` : "All Caught Up"}
+      <div className="flex items-center justify-between px-6 py-3 border-b hairline">
+        <span className="text-[11px] font-medium text-muted-foreground">
+          {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
         </span>
         {unreadCount > 0 && (
-          <button 
+          <button
             onClick={markAllRead}
-            className="flex items-center gap-1.5 text-[10px] text-primary transition hover:opacity-80 active:scale-95"
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground hover:text-primary transition-colors tap"
           >
-            <CheckCheck className="h-4 w-4" /> Mark all read
+            <CheckCheck className="h-3.5 w-3.5" /> Mark all read
           </button>
         )}
       </div>
@@ -251,10 +251,10 @@ function NotificationsPage() {
             <div 
               key={n.id} 
               onClick={handleNotificationClick}
-              className={`flex flex-col gap-3 p-5 rounded-[28px] transition-all duration-300 active:scale-[0.98] border cursor-pointer relative overflow-hidden group ${(!n.is_read && !isActorMe) ?"bg-card border-primary/20 shadow-sm shadow-primary/5" : "bg-background border-transparent hover:bg-accent/10 hover:border-border/40"}`}
+              className={`flex flex-col gap-3 p-5 rounded-2xl transition-all duration-200 tap cursor-pointer relative overflow-hidden group ${(!n.is_read && !isActorMe) ? "bg-card ring-1 ring-primary/15 shadow-soft" : "bg-transparent hover:bg-foreground/[0.02]"}`}
             >
               {(!n.is_read && !isActorMe) && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1.5 bg-primary rounded-r-full shadow-[0_0_12px_rgba(var(--primary),0.6)]" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-[3px] bg-primary rounded-r-full" />
               )}
               
               {/* Avatar Row */}
@@ -328,11 +328,11 @@ function NotificationsPage() {
 
       {(activeTab === 'mentions' ? (!mentionsLoading && (!mentionsFeed || mentionsFeed.length === 0)) : filteredNotifs.length === 0) && (
         <div className="flex flex-1 flex-col items-center justify-center py-24 text-center px-10">
-          <div className="h-24 w-24 rounded-full bg-accent/30 flex items-center justify-center mb-6 border border-border/50 shadow-inner">
-            <BellRing className="h-10 w-10 text-muted-foreground/40" />
+          <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
+            <BellRing className="h-6 w-6 text-muted-foreground/60" />
           </div>
-          <h3 className="text-2xl font-black tracking-tight mb-2">Nothing to show yet</h3>
-          <p className="text-[15px] text-muted-foreground font-medium leading-relaxed max-w-[250px]">
+          <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">Nothing to show yet</h3>
+          <p className="text-[13.5px] text-muted-foreground leading-relaxed max-w-[250px]">
             {activeTab === "verified" 
               ? "Verified notifications from Zero Club will appear here once you reach Level 5." 
               : activeTab === "mentions" 
