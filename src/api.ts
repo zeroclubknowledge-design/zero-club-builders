@@ -7,7 +7,8 @@ export const getBootcamps = createServerFn({ method: 'GET' }).handler(async () =
   const { data, error } = await supabase
     .from('bootcamps')
     .select('*, profiles(username, full_name, avatar_url, account_type)')
-    .eq('status', 'active');
+    .ilike('status', 'active')
+    .or('visibility.eq.true,visibility.is.null');
   if (error) return [];
   return data ?? [];
 });
