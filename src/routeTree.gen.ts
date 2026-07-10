@@ -44,6 +44,7 @@ import { Route as AppWalletSendRouteImport } from './routes/app.wallet.send'
 import { Route as AppWalletAddMoneyRouteImport } from './routes/app.wallet.add-money'
 import { Route as AppTutorStudioSettingsRouteImport } from './routes/app.tutor-studio.settings'
 import { Route as AppTutorStudioCreateRouteImport } from './routes/app.tutor-studio.create'
+import { Route as AppStoreNewRouteImport } from './routes/app.store.new'
 import { Route as AppSettingsSecurityRouteImport } from './routes/app.settings.security'
 import { Route as AppSettingsResourcesRouteImport } from './routes/app.settings.resources'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/app.settings.privacy'
@@ -242,6 +243,11 @@ const AppTutorStudioCreateRoute = AppTutorStudioCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => AppTutorStudioRoute,
 } as any)
+const AppStoreNewRoute = AppStoreNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppStoreRoute,
+} as any)
 const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -367,7 +373,7 @@ export interface FileRoutesByFullPath {
   '/app/quests': typeof AppQuestsRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
-  '/app/store': typeof AppStoreRoute
+  '/app/store': typeof AppStoreRouteWithChildren
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
@@ -390,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
+  '/app/store/new': typeof AppStoreNewRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -421,7 +428,7 @@ export interface FileRoutesByTo {
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
   '/app/ship': typeof AppShipRoute
-  '/app/store': typeof AppStoreRoute
+  '/app/store': typeof AppStoreRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/app': typeof AppIndexRoute
@@ -443,6 +450,7 @@ export interface FileRoutesByTo {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
+  '/app/store/new': typeof AppStoreNewRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -479,7 +487,7 @@ export interface FileRoutesById {
   '/app/quests': typeof AppQuestsRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
-  '/app/store': typeof AppStoreRoute
+  '/app/store': typeof AppStoreRouteWithChildren
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
@@ -502,6 +510,7 @@ export interface FileRoutesById {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
+  '/app/store/new': typeof AppStoreNewRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -562,6 +571,7 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
+    | '/app/store/new'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -615,6 +625,7 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
+    | '/app/store/new'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -673,6 +684,7 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
+    | '/app/store/new'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -947,6 +959,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTutorStudioCreateRouteImport
       parentRoute: typeof AppTutorStudioRoute
     }
+    '/app/store/new': {
+      id: '/app/store/new'
+      path: '/new'
+      fullPath: '/app/store/new'
+      preLoaderRoute: typeof AppStoreNewRouteImport
+      parentRoute: typeof AppStoreRoute
+    }
     '/app/settings/security': {
       id: '/app/settings/security'
       path: '/security'
@@ -1173,6 +1192,18 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
   AppSettingsRouteChildren,
 )
 
+interface AppStoreRouteChildren {
+  AppStoreNewRoute: typeof AppStoreNewRoute
+}
+
+const AppStoreRouteChildren: AppStoreRouteChildren = {
+  AppStoreNewRoute: AppStoreNewRoute,
+}
+
+const AppStoreRouteWithChildren = AppStoreRoute._addFileChildren(
+  AppStoreRouteChildren,
+)
+
 interface AppTutorStudioRouteChildren {
   AppTutorStudioCreateRoute: typeof AppTutorStudioCreateRoute
   AppTutorStudioSettingsRoute: typeof AppTutorStudioSettingsRoute
@@ -1201,7 +1232,7 @@ interface AppRouteChildren {
   AppQuestsRoute: typeof AppQuestsRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppShipRoute: typeof AppShipRoute
-  AppStoreRoute: typeof AppStoreRoute
+  AppStoreRoute: typeof AppStoreRouteWithChildren
   AppTutorStudioRoute: typeof AppTutorStudioRouteWithChildren
   AppZeroAiRoute: typeof AppZeroAiRoute
   AppZerohubRoute: typeof AppZerohubRoute
@@ -1239,7 +1270,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppQuestsRoute: AppQuestsRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppShipRoute: AppShipRoute,
-  AppStoreRoute: AppStoreRoute,
+  AppStoreRoute: AppStoreRouteWithChildren,
   AppTutorStudioRoute: AppTutorStudioRouteWithChildren,
   AppZeroAiRoute: AppZeroAiRoute,
   AppZerohubRoute: AppZerohubRoute,
@@ -1276,3 +1307,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
