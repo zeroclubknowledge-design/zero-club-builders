@@ -96,7 +96,7 @@ function NotesIndexPage() {
           </button>
           
           {!isSearchExpanded && (
-            <span className="font-black tracking-[0.1em] text-[15px] absolute left-1/2 -translate-x-1/2 text-foreground/90">
+            <span className="font-display font-semibold tracking-tight text-[16px] absolute left-1/2 -translate-x-1/2 text-foreground">
               ZeroNotes
             </span>
           )}
@@ -129,10 +129,10 @@ function NotesIndexPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2 text-[13px] font-bold rounded-full transition-all whitespace-nowrap tracking-wide ${
-                activeTab === tab 
-                  ? 'bg-foreground text-background shadow-md' 
-                  : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+              className={`px-4 py-2 text-[12.5px] font-semibold rounded-full tap transition-colors whitespace-nowrap tracking-tight ${
+                activeTab === tab
+                  ? 'bg-foreground text-background'
+                  : 'ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]'
               }`}
             >
               {tab}
@@ -153,28 +153,25 @@ function NotesIndexPage() {
             </div>
           </div>
         ) : filteredNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 md:py-32 text-center px-6 bg-muted/20 rounded-[32px] border border-border/40 shadow-sm mt-4">
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full" />
-              <div className="h-24 w-24 rounded-full bg-background flex items-center justify-center relative border border-border/50 shadow-xl">
-                <Edit3 className="h-10 w-10 text-foreground" strokeWidth={1.5} />
-              </div>
+          <div className="flex flex-col items-center justify-center py-20 md:py-32 text-center px-6 mt-4">
+            <div className="mb-6 h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center">
+              <Edit3 className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
             </div>
-            <h3 className="text-3xl md:text-4xl font-black tracking-tight mb-4 font-serif">
-              {searchQuery ? "No matches found" : "Your Blank Canvas"}
+            <h3 className="text-[22px] md:text-[26px] font-semibold tracking-tight mb-2.5 font-serif">
+              {searchQuery ? "No matches found" : "Your blank canvas"}
             </h3>
-            <p className="text-muted-foreground text-[16px] max-w-[340px] leading-relaxed mb-8">
-              {searchQuery 
-                ? `We couldn't find any notes matching "${searchQuery}". Try a different keyword.` 
-                : "The world is waiting. Share your deepest thoughts, audio insights, or video essays in a beautiful format."}
+            <p className="text-muted-foreground text-[14px] max-w-[340px] leading-relaxed mb-7">
+              {searchQuery
+                ? `We couldn't find any notes matching "${searchQuery}". Try a different keyword.`
+                : "Share your thoughts, audio insights, or video essays in a beautiful format."}
             </p>
             {!searchQuery && (
-              <Link 
+              <Link
                 to="/app/notes/create"
-                className="bg-foreground text-background px-8 py-4 rounded-full font-bold text-[15px] shadow-xl hover:shadow-foreground/20 hover:-translate-y-1 active:translate-y-0 transition-all tracking-wide flex items-center gap-2"
+                className="bg-foreground text-background px-6 py-3 rounded-full font-semibold tracking-tight text-[13.5px] tap hover:opacity-90 flex items-center gap-2"
               >
                 <Edit3 className="h-4 w-4" />
-                Start Writing Now
+                Start writing
               </Link>
             )}
           </div>
@@ -198,8 +195,8 @@ function NotesIndexPage() {
                   {/* Content Overlay */}
                   <div className="absolute inset-0 p-6 md:p-12 flex flex-col justify-end pointer-events-none text-white">
                     <div className="mb-4 md:mb-6 flex items-center justify-between">
-                      <span className="px-3 py-1.5 text-[10px] font-black tracking-[0.2em] bg-white/20 backdrop-blur-md rounded-full text-white uppercase">
-                        My Note
+                      <span className="px-3 py-1.5 text-[10px] font-medium tracking-[0.16em] bg-white/15 ring-1 ring-white/20 backdrop-blur-md rounded-full text-white/90 uppercase">
+                        Featured
                       </span>
                       {profile?.id === featuredNote.author_id ? (
                         <div onClick={(e) => e.preventDefault()} className="pointer-events-auto">
@@ -239,7 +236,7 @@ function NotesIndexPage() {
                       )}
                     </div>
 
-                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[1.05] mb-4 text-white font-serif drop-shadow-sm">
+                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05] mb-4 text-white font-serif drop-shadow-sm">
                       {featuredNote.title || "Untitled Note"}
                     </h2>
                     
@@ -258,10 +255,10 @@ function NotesIndexPage() {
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[14px] md:text-[15px] font-bold text-white tracking-wide">
+                        <span className="text-[14px] md:text-[15px] font-semibold text-white tracking-tight">
                           {featuredNote.profiles?.full_name || featuredNote.profiles?.username}
                         </span>
-                        <span className="text-[11px] md:text-[12px] text-white/70 font-semibold tracking-wide flex items-center gap-2">
+                        <span className="text-[11px] md:text-[12px] text-white/70 font-medium flex items-center gap-2">
                           {featuredNote.created_at ? formatDistanceToNow(new Date(featuredNote.created_at)) : 'New'}
                           <span className="h-1 w-1 rounded-full bg-white/40" />
                           5 min read
@@ -277,7 +274,7 @@ function NotesIndexPage() {
             {recentNotes.length > 0 && (
               <div className="space-y-8 md:space-y-10">
                 <div className="flex items-center justify-between border-b border-border/20 pb-4">
-                  <h3 className="font-bold text-[13px] tracking-[0.2em] text-muted-foreground uppercase">
+                  <h3 className="font-semibold text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
                     Latest publications
                   </h3>
                 </div>
@@ -300,7 +297,7 @@ function NotesIndexPage() {
                             </div>
                           )}
                           {/* Read time badge (desktop only, over image) */}
-                          <div className="hidden md:flex absolute top-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full text-white text-[10px] font-black tracking-widest items-center gap-1.5">
+                          <div className="hidden md:flex absolute top-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full text-white/90 text-[10px] font-medium tracking-[0.14em] items-center gap-1.5">
                             3 MIN READ
                           </div>
 
@@ -344,7 +341,7 @@ function NotesIndexPage() {
                         </div>
                         
                         <div className="flex flex-col flex-1 py-1 md:py-0 justify-center md:justify-start min-w-0">
-                          <h3 className="font-black text-[17px] md:text-[22px] tracking-tight leading-[1.2] text-foreground group-hover:text-primary transition-colors mb-2 md:mb-3 line-clamp-2 md:line-clamp-2 font-serif">
+                          <h3 className="font-semibold text-[17px] md:text-[21px] tracking-tight leading-[1.25] text-foreground group-hover:text-primary transition-colors mb-2 md:mb-3 line-clamp-2 md:line-clamp-2 font-serif">
                             {note.title || "Untitled Note"}
                           </h3>
                           <p className="text-muted-foreground text-[14px] md:text-[15px] leading-relaxed line-clamp-2 md:line-clamp-2 mb-3 md:mb-5 hidden sm:block">
@@ -361,11 +358,11 @@ function NotesIndexPage() {
                                 </div>
                               )}
                             </div>
-                            <span className="text-[13px] md:text-[14px] font-bold text-foreground truncate tracking-tight shrink">
+                            <span className="text-[13px] md:text-[14px] font-semibold text-foreground truncate tracking-tight shrink">
                               {note.profiles?.full_name || note.profiles?.username}
                             </span>
                             <span className="h-1 w-1 rounded-full bg-muted-foreground/40 shrink-0" />
-                            <span className="text-[12px] md:text-[13px] text-muted-foreground font-semibold tracking-wide whitespace-nowrap">
+                            <span className="text-[12px] md:text-[13px] text-muted-foreground whitespace-nowrap">
                               {note.created_at ? formatDistanceToNow(new Date(note.created_at)) : 'New'}
                             </span>
                           </div>
@@ -383,29 +380,29 @@ function NotesIndexPage() {
       {/* Floating Action Button */}
       <Link 
         to="/app/notes/create"
-        className="fixed bottom-24 right-6 z-50 grid h-14 w-14 place-items-center rounded-full bg-[#10b981] text-black shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] transition-all duration-300 active:scale-90 hover:-translate-y-1"
+        className="fixed bottom-24 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lift tap hover:opacity-90"
       >
-        <Plus className="h-7 w-7" strokeWidth={2.5} />
+        <Plus className="h-6 w-6" strokeWidth={2} />
       </Link>
 
       {/* Delete Confirmation Modal */}
       {noteToDelete && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-background border border-border/50 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-bold mb-3 tracking-tight">Delete this note?</h3>
-            <p className="text-muted-foreground mb-8 leading-relaxed">
+          <div className="bg-background ring-1 ring-border rounded-3xl p-6 md:p-7 max-w-sm w-full shadow-lift animate-in zoom-in-95 duration-200">
+            <h3 className="text-[19px] font-semibold mb-2 tracking-tight">Delete this note?</h3>
+            <p className="text-[13.5px] text-muted-foreground mb-7 leading-relaxed">
               Are you sure you want to delete this note? This action cannot be undone and it will be permanently removed.
             </p>
             <div className="flex flex-col gap-3">
               <button 
                 onClick={handleDelete}
-                className="w-full py-3.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all"
+                className="w-full py-3.5 bg-destructive text-destructive-foreground font-semibold tracking-tight rounded-full tap hover:opacity-90"
               >
                 Yes, delete note
               </button>
               <button 
                 onClick={() => setNoteToDelete(null)}
-                className="w-full py-3.5 bg-muted text-foreground font-bold rounded-xl hover:bg-muted/80 active:scale-[0.98] transition-all"
+                className="w-full py-3.5 ring-1 ring-border text-foreground font-semibold tracking-tight rounded-full tap hover:bg-foreground/[0.03]"
               >
                 No, cancel
               </button>

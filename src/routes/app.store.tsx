@@ -100,161 +100,151 @@ function StorePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground px-6 pt-20 pb-24 relative flex flex-col items-center text-center">
-      {/* Premium Background Blurs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-10%] h-[50vh] w-[50vw] rounded-full bg-primary/20 blur-[100px" />
-        <div className="absolute bottom-[-10%] left-[-10%] h-[50vh] w-[50vw] rounded-full bg-purple-600/15 blur-[100px" />
-      </div>
-
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/40 px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4">
-        <div className="max-w-2xl mx-auto w-full flex flex-col gap-5">
-          {/* Top Bar: Action & Balances */}
+    <div className="min-h-screen bg-background text-foreground pb-24">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-4">
+        <div className="max-w-2xl mx-auto w-full">
           <div className="flex items-center justify-between w-full">
-            <Link 
-              to="/app/wallet" 
-              className="grid h-10 w-10 place-items-center rounded-full bg-accent/20 border border-border text-foreground hover:bg-accent/40 transition active:scale-90 shadow-soft shrink-0"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/app/wallet"
+                className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04] text-foreground shrink-0"
+              >
+                <ArrowLeft className="h-[18px] w-[18px]" />
+              </Link>
+              <h1 className="text-[17px] font-display font-semibold tracking-tight text-foreground">Zero Store</h1>
+            </div>
 
-            {/* Sleek Combined Balances Capsule */}
-            <div className="flex items-center bg-card/80 border border-border/80 rounded-full p-1 shadow-soft backdrop-blur-md">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full">
-                <span className="text-[9px] text-muted-foreground">XP</span>
-                <span className="text-sm font-black text-primary">{profile?.xp || 0}</span>
+            {/* Balances capsule */}
+            <div className="flex items-center bg-card ring-1 ring-border rounded-full p-0.5">
+              <div className="flex items-center gap-1.5 px-3 py-1.5">
+                <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">XP</span>
+                <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">{(profile?.xp || 0).toLocaleString()}</span>
               </div>
-              <div className="w-[1px] h-4 bg-border/80 mx-1" />
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full">
-                <span className="text-sm font-black text-emerald-500">
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-1.5 px-3 py-1.5">
+                <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">
                   {currentCurrency.symbol}{((profile?.coins || 0) / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
           </div>
-          
-          {/* Title & Subtext Group */}
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-primary bg-clip-text text-transparent">
-              Zero Store
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md">
-              Redeem your hard-earned builder rewards, subscriptions, and exclusive gear.
-            </p>
-          </div>
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-2xl mx-auto flex flex-col items-center pt-24">
+      <div className="w-full max-w-2xl mx-auto px-5">
+        {/* Intro */}
+        <p className="mt-6 text-[13.5px] leading-relaxed text-muted-foreground max-w-md">
+          Redeem your builder rewards for subscriptions, gear, and exclusive perks.
+        </p>
 
-      {/* Category Tabs */}
-      <div className="mt-10 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full max-w-md mx-auto justify-start sm:justify-center">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-bold transition duration-300 border ${
-              activeCategory === cat
-                ?"bg-primary border-primary text-white shadow-glow"
-                : "bg-card border-border hover:bg-accent/50 text-muted-foreground"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Interactive Catalog Grid */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mx-auto">
-        {filteredItems.map(item => {
-          const Icon = item.icon;
-          return (
-            <div 
-              key={item.id} 
-              className="relative overflow-hidden rounded-3xl bg-card border border-border/80 hover:border-primary/40 hover:shadow-soft transition-all duration-300 group flex flex-col justify-between"
+        {/* Category Tabs */}
+        <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[12.5px] font-semibold tracking-tight tap transition-colors ${
+                activeCategory === cat
+                  ? "bg-foreground text-background"
+                  : "ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
+              }`}
             >
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/25 border border-border/50 px-2.5 py-0.5 text-[9px] font-bold text-muted-foreground">
-                    {item.category}
-                  </div>
-                  {item.badge && (
-                    <span className="text-[8px] text-primary border border-primary/20 px-2 py-0.5 rounded-full bg-primary/5">
-                      {item.badge}
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Catalog */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {filteredItems.map(item => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.id}
+                className="group relative overflow-hidden rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 shadow-soft transition-all flex flex-col justify-between"
+              >
+                <div className="p-5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {item.category}
                     </span>
-                  )}
-                </div>
-                
-                <div className="mt-4 flex gap-4">
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/25 text-primary">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-base font-bold text-foreground group-hover:text-primary transition duration-300">
-                      {item.name}
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="border-t border-border/50 bg-accent/5 px-6 py-4 flex items-center justify-between gap-4">
-                <div className="text-left">
-                  <p className="text-[9px] text-muted-foreground">PRICE</p>
-                  <div className="flex items-baseline gap-1 mt-0.5">
-                    <span className="text-base font-black text-foreground">
-                      {item.priceType === "Coins" 
-                        ? `${currentCurrency.symbol}${((item.price) / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}` 
-                        : `${item.price.toLocaleString()}`}
-                    </span>
-                    {item.priceType !== "Coins" && (
-                      <span className="text-[10px] font-bold text-primary">
-                        {item.priceType}
+                    {item.badge && (
+                      <span className="text-[9.5px] font-medium text-primary ring-1 ring-primary/15 px-2 py-0.5 rounded-full bg-primary/5">
+                        {item.badge}
                       </span>
                     )}
                   </div>
+
+                  <div className="mt-4 flex gap-3.5">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary">
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                    </div>
+                    <div className="text-left min-w-0">
+                      <h3 className="text-[15px] font-semibold tracking-tight text-foreground">
+                        {item.name}
+                      </h3>
+                      <p className="mt-1 text-[12.5px] text-muted-foreground leading-relaxed line-clamp-2">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                
-                <button 
-                  onClick={() => handlePreorder(item.name)}
-                  className="flex items-center gap-1 rounded-xl bg-foreground hover:bg-foreground/90 px-4 py-2 text-xs font-bold text-background transition active:scale-95 shadow-soft"
-                >
-                  Pre-order <ArrowUpRight className="h-3 w-3" />
-                </button>
+
+                <div className="border-t hairline px-5 py-3.5 flex items-center justify-between gap-4">
+                  <div className="text-left">
+                    <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Price</p>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-[15px] font-semibold tracking-tight text-foreground tabular-nums">
+                        {item.priceType === "Coins"
+                          ? `${currentCurrency.symbol}${((item.price) / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+                          : `${item.price.toLocaleString()}`}
+                      </span>
+                      {item.priceType !== "Coins" && (
+                        <span className="text-[10px] font-semibold text-primary">
+                          {item.priceType}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handlePreorder(item.name)}
+                    className="flex items-center gap-1 rounded-full bg-foreground px-4 py-2 text-[12px] font-semibold tracking-tight text-background tap hover:opacity-90"
+                  >
+                    Pre-order <ArrowUpRight className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Early Access Notification Container */}
-      <div className="mt-12 w-full max-w-md rounded-3xl bg-card border border-border p-8 backdrop-blur-md mx-auto shadow-soft">
-        <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary mx-auto mb-4 border border-primary/20">
-          <Bell className="h-6 w-6" />
+            );
+          })}
         </div>
-        <h3 className="text-lg font-bold text-foreground">Get Early Access</h3>
-        <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-          We are rolling out items gradually to top builders. Join the priority waitlist to unlock early VIP redemptions!
-        </p>
-        <button 
-          onClick={handleNotify}
-          disabled={notified}
-          className={`mt-6 w-full rounded-2xl py-4 font-bold transition active:scale-95 shadow-soft border ${
-            notified 
-              ?"bg-accent/20 text-muted-foreground border-border cursor-not-allowed" 
-              : "bg-primary border-primary text-white hover:bg-primary/95"
-          }`}
-        >
-          {notified ? "You are on the list! 🚀" : "Notify Me"}
-        </button>
-      </div>
 
-      <p className="mt-12 text-[10px] text-muted-foreground">
-        Launch Target: Q3 2026
-      </p>
+        {/* Early access */}
+        <div className="mt-10 w-full max-w-md rounded-2xl ring-1 ring-border bg-card p-6 mx-auto shadow-soft text-center">
+          <div className="grid h-11 w-11 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary mx-auto mb-4">
+            <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
+          </div>
+          <h3 className="text-[16px] font-semibold tracking-tight text-foreground">Get early access</h3>
+          <p className="mt-1.5 text-[12.5px] text-muted-foreground leading-relaxed">
+            Items roll out gradually to top builders. Join the priority waitlist for early redemptions.
+          </p>
+          <button
+            onClick={handleNotify}
+            disabled={notified}
+            className={`mt-5 w-full rounded-full py-3 text-[13.5px] font-semibold tracking-tight tap transition-colors ${
+              notified
+                ? "ring-1 ring-border text-muted-foreground cursor-not-allowed"
+                : "bg-foreground text-background hover:opacity-90"
+            }`}
+          >
+            {notified ? "You're on the list" : "Notify me"}
+          </button>
+        </div>
+
+        <p className="mt-10 text-center text-[11px] text-muted-foreground">
+          Launch target · Q3 2026
+        </p>
       </div>
     </div>
   );

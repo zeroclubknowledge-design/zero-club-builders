@@ -162,71 +162,72 @@ function QuestsPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-background pb-28 text-foreground overflow-x-hidden">
-      {/* Sleek top radial gradient glow background */}
-      <div className="absolute top-0 right-0 left-0 h-[260px] bg-gradient-to-b from-primary/15 via-purple-500/5 to-transparent blur-3xl pointer-events-none -z-10" />
-
-      {/* Revamped Header */}
-      <div className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/40 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between gap-4">
+      {/* Header */}
+      <div className="fixed top-0 left-0 right-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link to="/app/wallet" className="grid h-10 w-10 place-items-center rounded-full transition active:bg-accent/10">
-            <ChevronLeft className="h-6 w-6 text-foreground" />
+          <Link to="/app/wallet" className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]">
+            <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
           </Link>
-          <h1 className="font-display text-lg font-bold text-foreground">
+          <h1 className="font-display text-[17px] font-semibold tracking-tight text-foreground">
             Quests
           </h1>
         </div>
 
         {/* Real Profile XP badge */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full text-xs font-black text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.1)">
-            <Zap className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-            <span>{isMounted ? `${profileXp} XP` : "0 XP"}</span>
+          <div className="flex items-center gap-1.5 bg-card ring-1 ring-border px-3 py-1.5 rounded-full text-[12px] font-semibold tracking-tight text-foreground tabular-nums">
+            <Zap className="h-3.5 w-3.5 text-amber-500" />
+            <span>{isMounted ? `${profileXp.toLocaleString()} XP` : "0 XP"}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-6 p-5 pt-24">
+      <div className="flex flex-col gap-5 p-5 pt-24">
         {isLoading ? (
-          <div className="py-24 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+          <div className="py-24 flex flex-col items-center gap-4">
+            <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
+              <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
+            </div>
+          </div>
         ) : (
           <>
             {/* Rank & Progress Card */}
-            <section className="rounded-2xl bg-gradient-to-br from-primary to-purple-800 p-6 text-white shadow-[0_0_35px_rgba(204,32,143,0.25)] relative overflow-hidden">
-              <div className="absolute -right-10 -bottom-10 h-32 w-32 bg-white/5 rounded-full blur-2xl" />
-              
-              <div className="flex items-center gap-4">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/10">
-                  <Trophy className="h-6 w-6 text-white" />
+            <section className="relative overflow-hidden rounded-[28px] bg-[#141117] p-6 text-white shadow-lift ring-1 ring-white/[0.06]">
+              <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
+
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10">
+                  <Trophy className="h-5 w-5 text-white/90" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <h2 className="text-[10px] opacity-80">Builder Rank</h2>
-                  <p className="text-xl font-black">Level {level} Master</p>
+                  <h2 className="text-[10px] font-medium uppercase tracking-[0.16em] text-white/50">Builder rank</h2>
+                  <p className="mt-0.5 text-[19px] font-semibold tracking-tight">Level {level} Master</p>
                 </div>
               </div>
-              <div className="mt-6 space-y-2">
-                <div className="flex justify-between text-[10px] opacity-85">
+              <div className="relative z-10 mt-6 space-y-2">
+                <div className="flex justify-between text-[11px] text-white/60 tabular-nums">
                   <span>Progress to Level {level + 1}</span>
                   <span>{currentXP} / {maxXP} XP</span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-black/20">
-                  <div 
-                    className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.6)] transition-all duration-1000 ease-out" 
-                    style={{ width: `${percent}%` }} 
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-[#cc208f] transition-all duration-1000 ease-out"
+                    style={{ width: `${percent}%` }}
                   />
                 </div>
               </div>
             </section>
 
             {/* Redesigned Daily Streaks Section */}
-            <section className="rounded-2xl border border-border/40 bg-card/65 backdrop-blur-md p-5 shadow-lg relative overflow-hidden">
+            <section className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft relative overflow-hidden">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-[10px] text-muted-foreground">Daily Streaks</h3>
-                <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/10">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Daily streaks</h3>
+                <span className="text-[10px] font-semibold text-primary bg-primary/8 px-2.5 py-0.5 rounded-full ring-1 ring-primary/15">
                   Active
                 </span>
               </div>
-              
-              <div className="flex justify-between items-center px-2 py-4 bg-black/25 rounded-2xl mb-4 border border-white/5 overflow-visible">
+
+              <div className="flex justify-between items-center px-2 py-4 bg-foreground/[0.03] rounded-2xl mb-4 overflow-visible">
                 {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
                   const now = new Date();
                   const currentDayIndex = (now.getDay() + 6) % 7; // Convert to Monday=0 start
@@ -234,20 +235,20 @@ function QuestsPage() {
                   const isCurrent = idx === currentDayIndex;
                   return (
                     <div key={idx} className="flex flex-col items-center gap-1.5 flex-1 min-w-[28px]">
-                      <span className="text-[9px] font-black text-muted-foreground">{day}</span>
+                      <span className="text-[9px] font-medium text-muted-foreground">{day}</span>
                       <div className={`h-7 w-7 sm:h-8 sm:w-8 shrink-0 rounded-full flex items-center justify-center transition-all ${
-                        isCompleted 
-                          ?'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.15)]' 
-                          : isCurrent 
-                            ? 'bg-primary/20 border border-primary/50 text-primary animate-pulse shadow-[0_0_10px_rgba(204,32,143,0.2)]' 
-                            : 'bg-muted/5 border border-muted/10 text-muted-foreground'
+                        isCompleted
+                          ? 'bg-success/10 ring-1 ring-success/25 text-success'
+                          : isCurrent
+                            ? 'bg-primary/10 ring-1 ring-primary/40 text-primary'
+                            : 'ring-1 ring-border text-muted-foreground'
                       }`}>
                         {isCompleted ? (
-                          <CheckCircle2 className="h-4 w-4 stroke-[3px" />
+                          <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} />
                         ) : isCurrent ? (
-                          <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                          <div className="h-2 w-2 rounded-full bg-primary" />
                         ) : (
-                          <span className="text-[9px] font-bold opacity-60">{idx + 1}</span>
+                          <span className="text-[9px] font-medium opacity-60">{idx + 1}</span>
                         )}
                       </div>
                     </div>
@@ -257,27 +258,27 @@ function QuestsPage() {
 
               {/* Day Streak Claim Banner */}
               {isMounted && (localClaimedIds['streak_reward'] || (typeof window !== 'undefined' && localStorage.getItem('streak_claimed') === getLocalDateString())) ? (
-                <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl opacity-80">
+                <div className="flex items-center justify-between bg-success/5 ring-1 ring-success/15 p-3.5 rounded-2xl">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
-                      <CheckCircle2 className="h-4.5 w-4.5" />
+                    <div className="h-9 w-9 rounded-full bg-success/10 ring-1 ring-success/20 flex items-center justify-center text-success">
+                      <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-foreground">Daily Login Reward</h4>
-                      <p className="text-[10px] text-emerald-500 mt-0.5">Claimed for today</p>
+                      <h4 className="text-[13px] font-semibold tracking-tight text-foreground">Daily login reward</h4>
+                      <p className="text-[11px] text-success mt-0.5">Claimed for today</p>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-between bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/15 p-3.5 rounded-2xl">
+                <div className="flex items-center justify-between bg-primary/[0.04] ring-1 ring-primary/15 p-3.5 rounded-2xl">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl shrink-0 bg-primary/25 flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_15px_rgba(204,32,143,0.15)">
-                      <Trophy className="h-4.5 w-4.5" />
+                    <div className="h-9 w-9 rounded-full shrink-0 bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center text-primary">
+                      <Trophy className="h-4 w-4" strokeWidth={1.75} />
                     </div>
                     <div className="flex flex-col justify-center">
-                      <h4 className="text-xs font-black text-foreground leading-tight">Daily Login Reward</h4>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1.5 font-bold">
-                        <span className="text-amber-400">⚡ +100 XP</span>
+                      <h4 className="text-[13px] font-semibold tracking-tight text-foreground leading-tight">Daily login reward</h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5 font-medium">
+                        <span className="text-amber-600 dark:text-amber-400">+100 XP</span>
                       </p>
                     </div>
                   </div>
@@ -305,9 +306,9 @@ function QuestsPage() {
                         return next;
                       });
                     }}
-                    className="text-[10px] font-black text-primary hover:brightness-110 active:scale-95 transition-all flex items-center gap-0.5"
+                    className="rounded-full bg-foreground px-3.5 py-1.5 text-[11px] font-semibold tracking-tight text-background tap hover:opacity-90"
                   >
-                    Claim Reward »
+                    Claim
                   </button>
                 </div>
               )}
@@ -315,57 +316,57 @@ function QuestsPage() {
 
             {/* Redesigned Available Quests Section */}
             <section>
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-[10px] text-muted-foreground">Available Quests</h3>
-                <div className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[9px] font-black text-primary border border-primary/10">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Available quests</h3>
+                <div className="flex items-center gap-1 rounded-full bg-primary/8 px-2.5 py-0.5 text-[10px] font-semibold text-primary ring-1 ring-primary/15">
                   <Zap className="h-2.5 w-2.5" />
-                  <span>Double XP Active</span>
+                  <span>Double XP active</span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {activeQuests.length > 0 ? (
                   activeQuests.map((q: any) => {
                     const Icon = ICON_MAP[q.icon_name] || Rocket;
                     const isReady = q.isCompleted && !q.isClaimed;
 
                     return (
-                      <div 
-                        key={q.id} 
-                        className={`group relative overflow-hidden rounded-[24px] border transition-all duration-300 ${
-                          isReady 
-                            ?"border-primary/45 bg-primary/5 shadow-[0_0_20px_rgba(204,32,143,0.08)]" 
-                            : "border-border/30 bg-card/65 backdrop-blur-md"
+                      <div
+                        key={q.id}
+                        className={`group relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                          isReady
+                            ? "ring-1 ring-primary/30 bg-primary/[0.03] shadow-soft"
+                            : "ring-1 ring-border bg-card shadow-soft"
                         }`}
                       >
                         <div className="p-5">
-                          <div className="flex gap-4">
-                            <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-muted/5 border border-border/20 ${
-                              isReady ?'text-primary' : 'text-muted-foreground'
+                          <div className="flex gap-3.5">
+                            <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ring-1 ${
+                              isReady ? 'ring-primary/20 bg-primary/8 text-primary' : 'ring-border bg-background/60 text-muted-foreground'
                             }`}>
-                              <Icon className="h-5.5 w-5.5" />
+                              <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <h4 className="font-bold text-sm text-foreground truncate">{q.title}</h4>
-                                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                                  <h4 className="font-semibold tracking-tight text-[14px] text-foreground truncate">{q.title}</h4>
+                                  <p className="mt-1 text-[12.5px] text-muted-foreground leading-relaxed line-clamp-2">
                                     {q.description}
                                   </p>
                                 </div>
-                                <div className="shrink-0 bg-gradient-to-r from-primary to-purple-600 px-2.5 py-1 rounded-lg text-[9px] font-black text-white shadow-md">
+                                <div className="shrink-0 rounded-full bg-primary/8 ring-1 ring-primary/15 px-2.5 py-1 text-[10px] font-semibold text-primary tabular-nums">
                                   +{q.reward_xp} XP
                                 </div>
                               </div>
 
                               <div className="mt-4 flex items-center gap-3">
-                                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/25">
-                                  <div 
-                                    className={`h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-700`} 
+                                <div className="h-1 flex-1 overflow-hidden rounded-full bg-foreground/[0.06]">
+                                  <div
+                                    className="h-full rounded-full bg-primary transition-all duration-700"
                                     style={{ width: `${(q.progress / q.criteria_count) * 100}%` }}
                                   />
                                 </div>
-                                <span className="text-[9px] font-black text-muted-foreground tabular-nums">
+                                <span className="text-[10px] font-medium text-muted-foreground tabular-nums">
                                   {q.progress}/{q.criteria_count}
                                 </span>
                               </div>
@@ -373,7 +374,7 @@ function QuestsPage() {
                           </div>
 
                           {isReady && (
-                            <button 
+                            <button
                               onClick={() => {
                                 if (isQuestClaimedLocal(q.id)) {
                                   toast.error("Quest already claimed today!");
@@ -383,17 +384,17 @@ function QuestsPage() {
                                 claimMutation.mutate(q.id);
                               }}
                               disabled={claimingId === q.id}
-                              className="mt-4 w-full rounded-xl bg-gradient-to-r from-primary to-purple-600 py-3 text-xs font-black text-white shadow-glow transition-all active:scale-95 hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                              className="mt-4 w-full rounded-full bg-foreground py-3 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-1.5"
                             >
                               {claimingId === q.id ? (
                                 <>
                                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                  <span>Claiming...</span>
+                                  <span>Claiming</span>
                                 </>
                               ) : (
                                 <>
                                   <CheckCircle2 className="h-3.5 w-3.5" />
-                                  <span>Claim Reward</span>
+                                  <span>Claim reward</span>
                                 </>
                               )}
                             </button>
@@ -403,10 +404,12 @@ function QuestsPage() {
                     );
                   })
                 ) : (
-                  <div className="py-12 text-center rounded-[24px] bg-card/65 backdrop-blur-md border border-dashed border-border/40">
-                    <CheckCircle2 className="mx-auto h-10 w-10 text-muted-foreground/30 mb-3" />
-                    <h4 className="text-foreground font-bold text-sm">All caught up!</h4>
-                    <p className="text-xs text-muted-foreground mt-1">Check back later for new quests.</p>
+                  <div className="py-14 text-center rounded-2xl ring-1 ring-border bg-card">
+                    <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full ring-1 ring-border">
+                      <CheckCircle2 className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
+                    </div>
+                    <h4 className="text-[15px] font-semibold tracking-tight text-foreground">All caught up</h4>
+                    <p className="text-[12.5px] text-muted-foreground mt-1">Check back later for new quests.</p>
                   </div>
                 )}
               </div>
@@ -415,20 +418,20 @@ function QuestsPage() {
             {/* Redesigned Completed Quests Section */}
             {completedQuests.length > 0 && (
               <section className="mt-2">
-                <h3 className="mb-4 text-[10px] text-muted-foreground"> Recently Completed</h3>
-                <div className="flex flex-col gap-3">
+                <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recently completed</h3>
+                <div className="flex flex-col divide-y divide-hairline rounded-2xl ring-1 ring-border bg-card overflow-hidden">
                   {completedQuests.map((q: any) => (
-                    <div key={q.id} className="flex items-center justify-between rounded-2xl bg-card/35 border border-border/20 p-4 opacity-70">
-                      <div className="flex items-start gap-3 flex-1 min-w-0 pr-4">
-                        <div className="h-9 w-9 shrink-0 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mt-0.5">
-                          <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                    <div key={q.id} className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">
+                        <div className="h-8 w-8 shrink-0 rounded-full bg-success/10 ring-1 ring-success/20 flex items-center justify-center">
+                          <CheckCircle2 className="h-4 w-4 text-success" strokeWidth={2} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-xs font-bold text-foreground leading-snug break-words">{q.title}</h4>
-                          <p className="text-[8px] text-muted-foreground mt-1">Claimed • {new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          <h4 className="text-[13px] font-medium tracking-tight text-foreground leading-snug break-words">{q.title}</h4>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Claimed · {new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
                         </div>
                       </div>
-                      <div className="text-xs font-black text-primary shrink-0">+{q.reward_xp} XP</div>
+                      <div className="text-[12px] font-semibold text-muted-foreground tabular-nums shrink-0">+{q.reward_xp} XP</div>
                     </div>
                   ))}
                 </div>
