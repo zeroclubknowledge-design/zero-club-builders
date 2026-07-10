@@ -81,7 +81,13 @@ function Bootcamps() {
               params={{ id: filteredCamps[0].id }}
               className="block relative overflow-hidden rounded-3xl bg-[#141117] ring-1 ring-white/[0.06] p-6 md:p-8 lg:p-10 shadow-lift tap"
             >
-              <div className="pointer-events-none absolute -top-20 -right-12 h-56 w-56 md:h-80 md:w-80 rounded-full bg-[#cc208f]/25 blur-[80px]" /><span className="relative rounded-full bg-white/[0.08] ring-1 ring-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">Featured</span>
+              <div className="pointer-events-none absolute -top-20 -right-12 h-56 w-56 md:h-80 md:w-80 rounded-full bg-[#cc208f]/25 blur-[80px]" />
+              <div className="flex gap-2 relative">
+                <span className="rounded-full bg-white/[0.08] ring-1 ring-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white/80">Featured</span>
+                {filteredCamps[0].profiles?.account_type === "Institution" && (
+                  <span className="rounded-full bg-primary/20 ring-1 ring-primary/30 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-primary">Institution</span>
+                )}
+              </div>
               <h2 className="relative mt-3 font-display text-[22px] md:text-[28px] lg:text-[32px] font-semibold tracking-tight text-white md:max-w-2xl">{filteredCamps[0].title}</h2>
               <p className="relative mt-2 text-[13.5px] md:text-[15px] leading-relaxed text-white/60 line-clamp-2 md:max-w-xl">{filteredCamps[0].description}</p>
               <div className="relative mt-5 flex items-center justify-between">
@@ -110,6 +116,13 @@ function Bootcamps() {
                   <div className="h-24 md:h-32 bg-muted relative shrink-0">
                     {c.banner_url && <img src={c.banner_url} alt="" className="w-full h-full object-cover" />}
                     {!c.banner_url && <div className="w-full h-full bg-gradient-to-br from-primary/20 to-purple-500/20" />}
+                    {c.profiles?.account_type === "Institution" && (
+                      <div className="absolute top-3 left-3">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-[9px] font-bold bg-background/95 text-foreground shadow-sm uppercase tracking-wider backdrop-blur-md">
+                          Institution
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="flex items-center justify-between">

@@ -409,7 +409,7 @@ function InstitutionHub() {
 
       {/* ═══ MAIN CONTENT ═══ */}
       <div className="flex-1 overflow-auto pb-20 lg:pb-6 min-w-0">
-        <div className="max-w-5xl mx-auto p-5 md:p-8 lg:p-10">
+        <div className="w-full p-5 md:p-8 lg:px-10 lg:py-8">
 
           {/* ────────────────── OVERVIEW TAB ────────────────── */}
           {activeTab === "overview" && (

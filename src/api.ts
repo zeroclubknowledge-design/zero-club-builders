@@ -6,7 +6,7 @@ import { getCachedSession } from '@/lib/auth';
 export const getBootcamps = createServerFn({ method: 'GET' }).handler(async () => {
   const { data, error } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url)')
+    .select('*, profiles(username, full_name, avatar_url, account_type)')
     .eq('status', 'active');
   if (error) return [];
   return data ?? [];
@@ -19,8 +19,8 @@ export const getTutorBootcamps = async () => {
 
   const { data, error } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url), enrollments(count)')
-    .eq('creator_id', session.user.id)
+    .select('*, profiles(username, full_name, avatar_url, account_type), enrollments(count)')
+    .or(`creator_id.eq.${session.user.id},assigned_tutor_id.eq.${session.user.id}`)
     .order('created_at', { ascending: false });
   
   if (error) return [];

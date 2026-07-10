@@ -214,8 +214,13 @@ function BootcampDetail() {
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground">
-            Created by <span className="font-bold text-primary">{bootcamp.profiles?.full_name || bootcamp.profiles?.username}</span>
+          <div className="text-xs text-muted-foreground flex items-center gap-2">
+            <div>Created by <span className="font-bold text-primary">{bootcamp.profiles?.full_name || bootcamp.profiles?.username}</span></div>
+            {bootcamp.profiles?.account_type === "Institution" && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/10 text-primary uppercase tracking-wide">
+                Institution
+              </span>
+            )}
           </div>
 
           <div className="mt-5 grid grid-cols-3 rounded-lg border border-border bg-card/70 text-center shadow-soft">

@@ -1232,6 +1232,13 @@ function TutorStudioPage() {
                   {course.banner_url && (
                     <img src={course.banner_url} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
                   )}
+                  {course.creator_id !== profile?.id && (
+                    <div className="absolute top-3 left-3">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary text-primary-foreground shadow-sm uppercase tracking-wide">
+                        Assigned
+                      </span>
+                    </div>
+                  )}
                   <div className="absolute top-3 right-3">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium backdrop-blur-md ${course.status === "Active" ? "bg-black/50 text-white ring-1 ring-white/20" :
                       "bg-black/50 text-white/80 ring-1 ring-white/15"
