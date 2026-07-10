@@ -442,7 +442,7 @@ function ComposePage() {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-muted/20">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 relative z-50">
+      <header className="flex items-center justify-between px-6 py-4 relative z-50 w-full md:max-w-[760px] md:mx-auto">
         <button 
           onClick={() => navigate({ to: "/app" })}
           className="h-10 w-10 bg-card rounded-full grid place-items-center shadow-sm border border-border/50 transition hover:bg-accent active:scale-95"
@@ -456,7 +456,7 @@ function ComposePage() {
       </header>
 
       {/* Main Form Area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-6 no-scrollbar">
+      <div className="flex-1 overflow-y-auto px-4 pb-6 no-scrollbar w-full md:max-w-[760px] md:mx-auto">
         {/* Post Card */}
         <div className="bg-card rounded-[32px] p-6 shadow-sm border border-border/50 flex flex-col relative">
           {/* Static Formatting Toolbar */}
@@ -680,7 +680,7 @@ function ComposePage() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 flex gap-4 bg-background border-t border-border/50 pb-8 z-50">
+      <div className="fixed bottom-0 left-0 right-0 p-6 flex gap-4 bg-background border-t border-border/50 pb-8 z-50 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-full md:max-w-[760px] md:border-x md:rounded-t-3xl md:pb-6">
         <button 
           onClick={saveDraft}
           className="flex-1 py-3.5 bg-card ring-1 ring-border rounded-full text-[14px] font-semibold tracking-tight text-foreground tap hover:bg-foreground/[0.03]"

@@ -606,7 +606,7 @@ function ClubChat() {
 
   if (club && isBasic && isExpired) {
     return (
-      <div className="flex fixed inset-x-0 z-[100] flex-col items-center justify-center bg-background max-w-md mx-auto h-dvh px-6 text-center">
+      <div className="zc-keep-width flex fixed inset-x-0 md:left-[292px] xl:right-[336px] z-[100] flex-col items-center justify-center bg-background max-w-md mx-auto h-dvh px-6 text-center">
         <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-6">
           <ShieldAlert className="w-10 h-10 text-primary" />
         </div>
@@ -640,7 +640,7 @@ function ClubChat() {
 
   return (
     <div 
-      className="flex fixed inset-x-0 z-40 flex-col bg-gradient-to-b from-accent/5 via-background to-background dark:bg-background max-w-md mx-auto overflow-hidden border-x border-border"
+      className="zc-keep-width flex fixed inset-x-0 md:left-[292px] xl:right-[336px] z-40 flex-col bg-gradient-to-b from-accent/5 via-background to-background dark:bg-background max-w-md mx-auto overflow-hidden border-x border-border"
       style={{ height: viewportHeight, top: viewportTop }}
     >
 
