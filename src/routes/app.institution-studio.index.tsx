@@ -376,7 +376,7 @@ function InstitutionHub() {
   return (
     <div className="flex h-[calc(100vh-env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-background">
       {/* ═══ DESKTOP SIDEBAR ═══ */}
-      <div className="w-[260px] border-r hairline bg-card/30 flex-col hidden md:flex shrink-0">
+      <div className="w-[260px] border-r hairline bg-card/30 flex-col hidden lg:flex shrink-0">
         <div className="p-6 pb-0">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-11 w-11 rounded-2xl bg-primary/8 ring-1 ring-primary/15 text-primary flex items-center justify-center overflow-hidden">
@@ -424,7 +424,7 @@ function InstitutionHub() {
       </div>
 
       {/* ═══ MOBILE TAB BAR ═══ */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur-xl border-t hairline px-2 pb-[env(safe-area-inset-bottom)]">
+      <div className="lg:hidden fixed bottom-0 inset-x-0 md:left-[292px] z-50 bg-background/95 backdrop-blur-xl border-t hairline px-2 pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around">
           {sidebarItems.map(({ key, label, Icon }) => (
             <button
@@ -442,7 +442,7 @@ function InstitutionHub() {
       </div>
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <div className="flex-1 overflow-auto pb-20 md:pb-6">
+      <div className="flex-1 overflow-auto pb-20 lg:pb-6 min-w-0">
         <div className="max-w-5xl mx-auto p-5 md:p-8 lg:p-10">
 
           {/* ────────────────── OVERVIEW TAB ────────────────── */}

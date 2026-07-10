@@ -394,7 +394,9 @@ function WalletPage() {
       </header>
 
       {/* ── Main Content Container ── */}
-      <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] flex flex-col w-full">
+      <div className="md:grid md:grid-cols-[minmax(340px,420px)_minmax(0,1fr)] md:items-start md:gap-10 lg:gap-12 md:px-8 lg:px-10 md:pt-8 md:pb-16 md:max-w-[1200px]">
+      <div className="md:min-w-0">
+      <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pt-0 flex flex-col w-full">
 
           {/* Premium Balance Card */}
           <div className="relative overflow-hidden rounded-[28px] bg-[#141117] p-8 text-white mb-4 shadow-lift ring-1 ring-white/[0.06]">
@@ -451,7 +453,7 @@ function WalletPage() {
       </section>
 
       {/* ── Quick Actions Grid (Under Add Money & Send) ── */}
-      <section className="px-6 mt-6">
+      <section className="px-6 mt-6 md:px-0 md:mt-8">
         <div className="grid grid-cols-4 gap-3">
           <Link to="/app/store" className="flex flex-col items-center gap-2 group transition-transform active:scale-95">
             <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40">
@@ -483,8 +485,10 @@ function WalletPage() {
         </div>
       </section>
 
+      </div>
+
       {/* ── Transaction History ── */}
-      <section id="transactions" className="px-6 mt-12 scroll-mt-24">
+      <section id="transactions" className="px-6 mt-12 scroll-mt-24 md:px-8 lg:px-10 md:mt-0 md:min-w-0 md:rounded-3xl md:ring-1 md:ring-border md:bg-card md:py-8 md:shadow-soft">
         <div className="flex justify-between items-center mb-8">
           <h3 className="text-[19px] font-semibold text-foreground tracking-tight">History</h3>
           <button className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
@@ -543,6 +547,7 @@ function WalletPage() {
           </div>
         )}
       </section>
+      </div>
     </div>
   );
 }

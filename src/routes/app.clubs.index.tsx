@@ -465,7 +465,7 @@ function Clubs() {
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
       {/* Frosted Glass Header */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md pt-[calc(1.5rem+env(safe-area-inset-top))] pb-3 px-5 z-40 bg-background/80 backdrop-blur-md border-b border-border/40">
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-5 pb-3 px-5 md:px-8 lg:px-10 z-40 bg-background/80 backdrop-blur-md border-b border-border/40">
         <div className="w-full">
           <div className="flex items-center justify-between">
             <div>
@@ -499,9 +499,9 @@ function Clubs() {
         </div>
       </div>
 
-      <div className="px-5 pt-24">
+      <div className="px-5 pt-24 md:px-8 lg:px-10 md:pt-6 md:pb-12 w-full max-w-[1200px]">
         {/* Top Stats */}
-        <div className="grid grid-cols-4 gap-2 mb-5">
+        <div className="grid grid-cols-4 gap-2 md:gap-4 mb-5 md:mb-8">
           <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-primary">
               <Users className="h-3.5 w-3.5" />
@@ -591,7 +591,7 @@ function Clubs() {
             </button>
           </div>
           
-          <div className={showAllDiscover ? "grid grid-cols-2 gap-3 pb-4" : "flex gap-3 overflow-x-auto snap-x no-scrollbar pb-4 -mx-5 px-5"}>
+          <div className={showAllDiscover ? "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-4" : "flex gap-3 overflow-x-auto snap-x no-scrollbar pb-4 -mx-5 px-5 md:mx-0 md:px-0 md:grid md:grid-cols-3 xl:grid-cols-4 md:gap-4 md:overflow-visible"}>
             {discover
               .filter((d: any) => activeCategory === "All" || (d.category && d.category.includes(activeCategory)))
               .length > 0 ? discover
@@ -613,7 +613,7 @@ function Clubs() {
               return (
                 <article 
                   key={d.id} 
-                  className={`relative ${showAllDiscover ?'w-full' : 'w-[165px]'} h-[220px] shrink-0 snap-center overflow-hidden rounded-3xl border ${
+                  className={`relative ${showAllDiscover ?'w-full' : 'w-[165px] md:w-full'} h-[220px] md:h-[240px] shrink-0 snap-center overflow-hidden rounded-3xl border ${
                     isFeatured 
                       ? 'border-amber-500/40 shadow-[0_4px_30px_-4px_rgba(245,158,11,0.25)] bg-gradient-to-br from-amber-950/40 via-card to-card' 
                       : 'border-border/30 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)]'
@@ -704,7 +704,7 @@ function Clubs() {
             <button className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-300">See all</button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
             {myClubs.length > 0 ? myClubs.map((c: any) => (
               <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition-all duration-300 active:scale-[0.98]">
                 <article className="flex items-center gap-3.5 p-3.5 rounded-3xl border border-border/30 bg-card overflow-hidden hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.12)]">
@@ -742,7 +742,7 @@ function Clubs() {
                 </article>
               </Link>
             )) : (
-              <div className="py-10 text-center px-4 border border-dashed border-border/30 rounded-3xl bg-card/50">
+              <div className="py-10 text-center px-4 border border-dashed border-border/30 rounded-3xl bg-card/50 md:col-span-2">
                 <p className="text-xs text-muted-foreground/60 font-medium mb-4">You haven't joined any clubs yet.</p>
                 <button onClick={handleCreateClick} className="text-xs font-bold text-background bg-foreground px-5 py-2.5 rounded-full transition-all duration-300 active:scale-95 hover:opacity-90 shadow-sm">
                   Create a Club
@@ -751,7 +751,7 @@ function Clubs() {
             )}
             
             {myClubs.length > 0 && (
-              <button className="w-full flex items-center justify-between p-4 rounded-3xl border border-border/20 bg-card/50 hover:bg-card hover:border-border/40 transition-all duration-300 group">
+              <button className="w-full md:col-span-2 flex items-center justify-between p-4 rounded-3xl border border-border/20 bg-card/50 hover:bg-card hover:border-border/40 transition-all duration-300 group">
                 <div className="flex items-center gap-2.5 text-xs font-bold text-foreground">
                   <div className="grid h-7 w-7 place-items-center rounded-xl bg-accent/30">
                     <LayoutGrid className="h-3.5 w-3.5 text-primary" />

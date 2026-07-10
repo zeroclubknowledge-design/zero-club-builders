@@ -38,6 +38,22 @@ function Feed() {
   const [commentPost, setCommentPost] = useState<any>(null);
   const [searchResults, setSearchResults] = useState<{ posts: any[], bootcamps: any[], profiles: any[] }>({ posts: [], bootcamps: [], profiles: [] });
   const [isSearching, setIsSearching] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const y = window.scrollY;
+      const diff = y - lastScrollY;
+      if (Math.abs(diff) > 10) {
+        setHeaderVisible(!(y > 80 && diff > 0));
+        lastScrollY = y;
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     fetchFollowing();
@@ -113,9 +129,9 @@ function Feed() {
   }, [filteredPosts, currentUser]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-20">
+    <div className="flex flex-col min-h-screen bg-background pb-20 md:pb-12">
       {/* Top Header Tabs */}
-      <header className="sticky top-[72px] z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline">
+      <header className={`sticky ${headerVisible ? "top-[calc(72px+env(safe-area-inset-top))]" : "top-0"} md:!top-[66px] z-40 transition-[top] duration-300 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline md:w-full md:max-w-[720px] md:mx-auto md:border-x md:border-border/40`}>
         <div className="flex items-center px-4 py-1 justify-between min-h-[48px]">
           {!showSearch ? (
             <>
@@ -133,12 +149,19 @@ function Feed() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-4 pl-4">
+              <div className="flex items-center gap-2 pl-4">
                 <button
                   onClick={() => setShowSearch(true)}
                   className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/5 tap"
                 >
                   <Search className="h-[18px] w-[18px]" />
+                </button>
+                <button
+                  onClick={() => setCreateOpen(true)}
+                  className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[12.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
+                >
+                  <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Create
                 </button>
               </div>
             </>
@@ -167,7 +190,7 @@ function Feed() {
 
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 md:w-full md:max-w-[720px] md:mx-auto md:border-x md:border-border/40 md:bg-background">
         {isSearching ? (
           <div className="flex flex-col items-center justify-center pt-20">
             <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
@@ -344,13 +367,13 @@ function Feed() {
       />
 
       {/* Floating Action Button Action Sheet */}
-      <Drawer>
+      <Drawer open={createOpen} onOpenChange={setCreateOpen}>
         <DrawerTrigger asChild>
-          <button className="fixed bottom-24 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lift tap hover:opacity-90">
+          <button className="fixed bottom-24 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lift tap hover:opacity-90 md:hidden">
             <Plus className="h-6 w-6" strokeWidth={2} />
           </button>
         </DrawerTrigger>
-        <DrawerContent className="bg-background/95 backdrop-blur-xl border-t hairline focus:ring-0 p-6">
+        <DrawerContent className="bg-background/95 backdrop-blur-xl border-t hairline focus:ring-0 p-6 md:max-w-lg md:mx-auto md:rounded-t-3xl">
           <DrawerTitle className="text-[22px] font-semibold tracking-tight mb-1 text-foreground">Create</DrawerTitle>
           <p className="text-[13px] text-muted-foreground mb-6">What would you like to make?</p>
           <div className="flex flex-col gap-2">

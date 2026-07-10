@@ -474,7 +474,7 @@ function TutorStudioPage() {
         </header>
 
         {/* ── Floating Pill Tabs ────────────────────────── */}
-        <div className="px-5 py-4">
+        <div className="px-5 py-4 max-w-5xl mx-auto w-full">
           <div className="inline-flex items-center bg-foreground/[0.04] p-1 rounded-full overflow-x-auto no-scrollbar max-w-full gap-0.5">
             {[
               { id: "details", label: "Details", icon: Layout },
@@ -1147,7 +1147,7 @@ function TutorStudioPage() {
     <div className="min-h-screen bg-background pb-20">
       {/* ── Header ────────────────────────── */}
       <div className="relative w-full bg-background pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2 px-5">
-        <div className="flex items-center justify-between gap-4 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between gap-4 max-w-4xl lg:max-w-[1100px] mx-auto">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Tutor Studio</p>
             <h1 className="mt-1 font-display text-[26px] font-semibold text-foreground tracking-tight">Dashboard</h1>
@@ -1162,9 +1162,9 @@ function TutorStudioPage() {
         </div>
       </div>
 
-      <div className="px-5 mt-8 space-y-10 max-w-4xl mx-auto">
+      <div className="px-5 mt-8 space-y-10 max-w-4xl lg:max-w-[1100px] mx-auto md:pb-12">
         {/* ── Quick Stats ────────────────────────── */}
-        <section className="grid grid-cols-2 gap-3">
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
             <div className="flex items-center gap-2.5 text-muted-foreground">
               <Wallet className="h-4 w-4" strokeWidth={1.75} />
@@ -1186,6 +1186,26 @@ function TutorStudioPage() {
               <span className="text-[11px] font-medium">Across all bootcamps</span>
             </div>
           </div>
+          <div className="hidden lg:block rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+            <div className="flex items-center gap-2.5 text-muted-foreground">
+              <BookOpen className="h-4 w-4" strokeWidth={1.75} />
+              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Bootcamps</span>
+            </div>
+            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">{bootcamps.length}</p>
+            <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
+              <span className="text-[11px] font-medium">Published & drafts</span>
+            </div>
+          </div>
+          <div className="hidden lg:block rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+            <div className="flex items-center gap-2.5 text-muted-foreground">
+              <Zap className="h-4 w-4" strokeWidth={1.75} />
+              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Active</span>
+            </div>
+            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">{bootcamps.filter((b: any) => (b.status || "").toLowerCase() === "active").length}</p>
+            <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
+              <span className="text-[11px] font-medium">Live cohorts running</span>
+            </div>
+          </div>
         </section>
 
         {/* ── Bootcamps Grid ────────────────────────── */}
@@ -1200,7 +1220,7 @@ function TutorStudioPage() {
             </button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 md:gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {bootcamps.length > 0 ? bootcamps.map((course) => (
               <div
                 key={course.id}
@@ -1240,7 +1260,7 @@ function TutorStudioPage() {
                 </div>
               </div>
             )) : (
-              <div className="sm:col-span-2 rounded-2xl ring-1 ring-border bg-card p-14 flex flex-col items-center justify-center text-center">
+              <div className="sm:col-span-2 xl:col-span-3 rounded-2xl ring-1 ring-border bg-card p-14 flex flex-col items-center justify-center text-center">
                 <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
                   <BookOpen className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
                 </div>

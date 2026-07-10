@@ -94,8 +94,9 @@ function ZeroHubPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto p-4 space-y-5 mt-2">
+      <main className="max-w-3xl mx-auto p-4 space-y-5 mt-2 md:max-w-[1200px] md:mx-0 md:px-8 lg:px-10 md:py-8 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:gap-10 lg:space-y-0 lg:items-start">
 
+        <div className="space-y-5 lg:sticky lg:top-24">
         {/* Hero summary — premium dark card */}
         <section className="relative overflow-hidden rounded-[28px] bg-[#141117] p-6 text-white shadow-lift ring-1 ring-white/[0.06]">
           <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
@@ -162,6 +163,7 @@ function ZeroHubPage() {
             <span>More</span>
           </div>
         </section>
+        </div>
 
         {/* Portfolio Feed */}
         <section>

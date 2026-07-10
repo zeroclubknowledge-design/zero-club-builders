@@ -111,6 +111,13 @@ function ChatInboxPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              to="/app/chat/new"
+              className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[12.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
+            >
+              <MessageSquarePlus className="h-3.5 w-3.5" />
+              New chat
+            </Link>
             {/* Filter Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -150,7 +157,7 @@ function ChatInboxPage() {
       </header>
 
       {/* Premium Search Bar */}
-      <div className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] pb-2">
+      <div className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] pb-2 md:px-8 lg:px-10 md:pt-4 md:max-w-[860px] md:w-full">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <input 
@@ -164,7 +171,7 @@ function ChatInboxPage() {
       </div>
 
       {/* Conversation List */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 md:flex-none md:mx-8 lg:mx-10 md:mt-3 md:mb-16 md:max-w-[780px] md:rounded-3xl md:ring-1 md:ring-border md:bg-card md:shadow-soft md:overflow-hidden">
         {filteredConversations.map((chat: any) => (
           <Link 
             key={chat.id} 
@@ -250,7 +257,7 @@ function ChatInboxPage() {
       {/* Premium Floating Action Button */}
       <Link 
         to="/app/chat/new" 
-        className="fixed bottom-24 right-6 z-50 h-14 w-14 rounded-full bg-foreground text-background shadow-[0_4px_24px_-4px_rgba(0,0,0,0.3)] flex items-center justify-center transition-all duration-300 active:scale-90 hover:shadow-[0_6px_32px_-4px_rgba(0,0,0,0.4)] hover:scale-105"
+        className="fixed bottom-24 right-6 z-50 h-14 w-14 rounded-full bg-foreground text-background shadow-[0_4px_24px_-4px_rgba(0,0,0,0.3)] flex items-center justify-center transition-all duration-300 active:scale-90 hover:shadow-[0_6px_32px_-4px_rgba(0,0,0,0.4)] hover:scale-105 md:hidden"
       >
         <MessageSquarePlus className="h-6 w-6" />
       </Link>

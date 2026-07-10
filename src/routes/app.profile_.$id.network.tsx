@@ -108,7 +108,7 @@ function ProfileNetwork() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
+      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
         scrolled 
           ? "bg-background/80 backdrop-blur-2xl border-b border-border/10 shadow-[0_1px_20px_rgba(0,0,0,0.08)]" 
           : "bg-background border-b border-border/20"
@@ -132,7 +132,7 @@ function ProfileNetwork() {
         </div>
       </header>
 
-      <main className="pt-[calc(3.5rem+env(safe-area-inset-top))] max-w-md mx-auto">
+      <main className="pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-6 max-w-md mx-auto md:max-w-[720px] md:mx-8 lg:mx-10">
         {/* Tabs */}
         <div className="flex px-4 border-b border-border/20 mt-2">
           {["following", "followers", "clubs"].map((t) => (

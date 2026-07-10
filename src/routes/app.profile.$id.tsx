@@ -385,7 +385,7 @@ function ProfileDetail() {
       {/* ═══════════════════════════════════════════
           FROSTED HEADER — Back + @handle + Actions
          ═══════════════════════════════════════════ */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
+      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
         scrolled || searchOpen
           ?"bg-background/80 backdrop-blur-2xl border-b border-border/10 shadow-[0_1px_20px_rgba(0,0,0,0.08)]" 
           : "bg-transparent border-b border-transparent"

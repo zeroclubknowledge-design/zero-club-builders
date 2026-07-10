@@ -442,7 +442,7 @@ function DesktopWorkspaceRail({
       : ["Proof of work", "Learning progress", "Reputation signals"];
 
   return (
-    <aside className="hidden xl:flex h-screen w-[336px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 no-scrollbar">
+    <aside className="hidden xl:flex sticky top-0 h-screen w-[336px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 no-scrollbar">
       <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -1014,7 +1014,7 @@ function AppLayout() {
           <header
             className={`fixed top-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 md:sticky md:left-0 md:translate-x-0 md:max-w-full flex items-center justify-between bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] transition-transform duration-300 ease-out-expo ${
               visible ? "translate-y-0" : "-translate-y-full"
-            }`}
+            } md:translate-y-0`}
           >
             <div className="flex w-10 items-center md:hidden">
               <button
