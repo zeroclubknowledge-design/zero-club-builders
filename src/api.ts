@@ -3,15 +3,14 @@ import { supabase } from '@/lib/supabase';
 import { getCachedSession } from '@/lib/auth';
 
 // Fetch all active bootcamps
-export const getBootcamps = createServerFn({ method: 'GET' }).handler(async () => {
+export const getBootcamps = async () => {
   const { data, error } = await supabase
     .from('bootcamps')
     .select('*, profiles(username, full_name, avatar_url, account_type)')
-    .ilike('status', 'active')
-    .or('visibility.eq.true,visibility.is.null');
+    .ilike('status', 'active');
   if (error) return [];
   return data ?? [];
-});
+};
 
 // Fetch bootcamps created by current user
 export const getTutorBootcamps = async () => {
@@ -77,10 +76,10 @@ export const deleteBootcampAction = createServerFn({ method: 'POST' }).handler(a
 });
 
 // Fetch a single bootcamp with its curriculum (modules and lessons)
-export const getBootcampWithCurriculum = createServerFn({ method: 'GET' }).handler(async ({ data: { bootcampId } }: { data: { bootcampId: string } }) => {
+export const getBootcampWithCurriculum = async ({ data: { bootcampId } }: { data: { bootcampId: string } }) => {
   const { data: bootcamp, error: bootcampError } = await supabase
     .from('bootcamps')
-    .select('*')
+    .select('*, profiles(username, full_name, avatar_url, account_type)')
     .eq('id', bootcampId)
     .single();
     
@@ -101,7 +100,7 @@ export const getBootcampWithCurriculum = createServerFn({ method: 'GET' }).handl
   }));
 
   return { bootcamp, modules: sortedModules };
-});
+};
 
 // Fetch all posts for the feed (including reposts)
 export const getPosts = async () => {
