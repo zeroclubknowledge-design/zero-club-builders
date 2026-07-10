@@ -24,6 +24,7 @@ import { Route as AppQuestsRouteImport } from './routes/app.quests'
 import { Route as AppPremiumRouteImport } from './routes/app.premium'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
+import { Route as AppMyStoreRouteImport } from './routes/app.my-store'
 import { Route as AppInstitutionStudioRouteImport } from './routes/app.institution-studio'
 import { Route as AppDraftsRouteImport } from './routes/app.drafts'
 import { Route as AppComposeRouteImport } from './routes/app.compose'
@@ -44,7 +45,6 @@ import { Route as AppWalletSendRouteImport } from './routes/app.wallet.send'
 import { Route as AppWalletAddMoneyRouteImport } from './routes/app.wallet.add-money'
 import { Route as AppTutorStudioSettingsRouteImport } from './routes/app.tutor-studio.settings'
 import { Route as AppTutorStudioCreateRouteImport } from './routes/app.tutor-studio.create'
-import { Route as AppStoreNewRouteImport } from './routes/app.store.new'
 import { Route as AppSettingsSecurityRouteImport } from './routes/app.settings.security'
 import { Route as AppSettingsResourcesRouteImport } from './routes/app.settings.resources'
 import { Route as AppSettingsPrivacyRouteImport } from './routes/app.settings.privacy'
@@ -140,6 +140,11 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
 const AppNotesRoute = AppNotesRouteImport.update({
   id: '/notes',
   path: '/notes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMyStoreRoute = AppMyStoreRouteImport.update({
+  id: '/my-store',
+  path: '/my-store',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInstitutionStudioRoute = AppInstitutionStudioRouteImport.update({
@@ -242,11 +247,6 @@ const AppTutorStudioCreateRoute = AppTutorStudioCreateRouteImport.update({
   id: '/create',
   path: '/create',
   getParentRoute: () => AppTutorStudioRoute,
-} as any)
-const AppStoreNewRoute = AppStoreNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AppStoreRoute,
 } as any)
 const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
   id: '/security',
@@ -367,13 +367,14 @@ export interface FileRoutesByFullPath {
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
   '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
+  '/app/my-store': typeof AppMyStoreRoute
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
-  '/app/store': typeof AppStoreRouteWithChildren
+  '/app/store': typeof AppStoreRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
@@ -396,7 +397,6 @@ export interface FileRoutesByFullPath {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
-  '/app/store/new': typeof AppStoreNewRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -424,11 +424,12 @@ export interface FileRoutesByTo {
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
+  '/app/my-store': typeof AppMyStoreRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
   '/app/ship': typeof AppShipRoute
-  '/app/store': typeof AppStoreRouteWithChildren
+  '/app/store': typeof AppStoreRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/app': typeof AppIndexRoute
@@ -450,7 +451,6 @@ export interface FileRoutesByTo {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
-  '/app/store/new': typeof AppStoreNewRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -481,13 +481,14 @@ export interface FileRoutesById {
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
   '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
+  '/app/my-store': typeof AppMyStoreRoute
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
-  '/app/store': typeof AppStoreRouteWithChildren
+  '/app/store': typeof AppStoreRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
@@ -510,7 +511,6 @@ export interface FileRoutesById {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
-  '/app/store/new': typeof AppStoreNewRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -542,6 +542,7 @@ export interface FileRouteTypes {
     | '/app/compose'
     | '/app/drafts'
     | '/app/institution-studio'
+    | '/app/my-store'
     | '/app/notes'
     | '/app/notifications'
     | '/app/premium'
@@ -571,7 +572,6 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
-    | '/app/store/new'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -599,6 +599,7 @@ export interface FileRouteTypes {
     | '/app/boost'
     | '/app/compose'
     | '/app/drafts'
+    | '/app/my-store'
     | '/app/notifications'
     | '/app/premium'
     | '/app/quests'
@@ -625,7 +626,6 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
-    | '/app/store/new'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -655,6 +655,7 @@ export interface FileRouteTypes {
     | '/app/compose'
     | '/app/drafts'
     | '/app/institution-studio'
+    | '/app/my-store'
     | '/app/notes'
     | '/app/notifications'
     | '/app/premium'
@@ -684,7 +685,6 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
-    | '/app/store/new'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -817,6 +817,13 @@ declare module '@tanstack/react-router' {
       path: '/notes'
       fullPath: '/app/notes'
       preLoaderRoute: typeof AppNotesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/my-store': {
+      id: '/app/my-store'
+      path: '/my-store'
+      fullPath: '/app/my-store'
+      preLoaderRoute: typeof AppMyStoreRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/institution-studio': {
@@ -958,13 +965,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/tutor-studio/create'
       preLoaderRoute: typeof AppTutorStudioCreateRouteImport
       parentRoute: typeof AppTutorStudioRoute
-    }
-    '/app/store/new': {
-      id: '/app/store/new'
-      path: '/new'
-      fullPath: '/app/store/new'
-      preLoaderRoute: typeof AppStoreNewRouteImport
-      parentRoute: typeof AppStoreRoute
     }
     '/app/settings/security': {
       id: '/app/settings/security'
@@ -1192,18 +1192,6 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
   AppSettingsRouteChildren,
 )
 
-interface AppStoreRouteChildren {
-  AppStoreNewRoute: typeof AppStoreNewRoute
-}
-
-const AppStoreRouteChildren: AppStoreRouteChildren = {
-  AppStoreNewRoute: AppStoreNewRoute,
-}
-
-const AppStoreRouteWithChildren = AppStoreRoute._addFileChildren(
-  AppStoreRouteChildren,
-)
-
 interface AppTutorStudioRouteChildren {
   AppTutorStudioCreateRoute: typeof AppTutorStudioCreateRoute
   AppTutorStudioSettingsRoute: typeof AppTutorStudioSettingsRoute
@@ -1226,13 +1214,14 @@ interface AppRouteChildren {
   AppComposeRoute: typeof AppComposeRoute
   AppDraftsRoute: typeof AppDraftsRoute
   AppInstitutionStudioRoute: typeof AppInstitutionStudioRouteWithChildren
+  AppMyStoreRoute: typeof AppMyStoreRoute
   AppNotesRoute: typeof AppNotesRouteWithChildren
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppPremiumRoute: typeof AppPremiumRoute
   AppQuestsRoute: typeof AppQuestsRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppShipRoute: typeof AppShipRoute
-  AppStoreRoute: typeof AppStoreRouteWithChildren
+  AppStoreRoute: typeof AppStoreRoute
   AppTutorStudioRoute: typeof AppTutorStudioRouteWithChildren
   AppZeroAiRoute: typeof AppZeroAiRoute
   AppZerohubRoute: typeof AppZerohubRoute
@@ -1264,13 +1253,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppComposeRoute: AppComposeRoute,
   AppDraftsRoute: AppDraftsRoute,
   AppInstitutionStudioRoute: AppInstitutionStudioRouteWithChildren,
+  AppMyStoreRoute: AppMyStoreRoute,
   AppNotesRoute: AppNotesRouteWithChildren,
   AppNotificationsRoute: AppNotificationsRoute,
   AppPremiumRoute: AppPremiumRoute,
   AppQuestsRoute: AppQuestsRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppShipRoute: AppShipRoute,
-  AppStoreRoute: AppStoreRouteWithChildren,
+  AppStoreRoute: AppStoreRoute,
   AppTutorStudioRoute: AppTutorStudioRouteWithChildren,
   AppZeroAiRoute: AppZeroAiRoute,
   AppZerohubRoute: AppZerohubRoute,

@@ -35,7 +35,7 @@ import {
 import {
   IconHome, IconLearn, IconClubs, IconWallet, IconMessages,
   IconProfile, IconGem, IconBookmark, IconNotes, IconCompass,
-  IconPresentation, IconInstitution,
+  IconPresentation, IconInstitution, IconStore,
 } from "@/components/icons";
 import { supabase } from "@/lib/supabase";
 import {
@@ -267,6 +267,7 @@ function SidebarContent({
           {[
             { Icon: IconProfile, label: "Profile", to: "/app/profile" },
             { Icon: IconGem, label: "Membership", to: "/app/premium" },
+            { Icon: IconStore, label: "My Store", to: "/app/my-store" },
             { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
             { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
             { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },

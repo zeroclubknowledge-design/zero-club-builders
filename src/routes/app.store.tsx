@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Store as StoreIcon, Bell, ArrowLeft, Gift, Sparkles, Laptop, Award, ArrowUpRight, ShieldCheck, Search, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, Gift, ArrowUpRight, Search, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
@@ -111,17 +111,9 @@ function StorePage() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <p className="text-[13.5px] leading-relaxed text-muted-foreground max-w-sm">
-              Redeem your builder rewards for subscriptions, gear, and exclusive perks.
-            </p>
-            <Link 
-              to="/app/store/new"
-              className="shrink-0 flex items-center gap-1.5 rounded-full bg-foreground text-background px-4 py-2 text-xs font-semibold tap hover:opacity-90 transition-opacity"
-            >
-              <Plus className="w-3.5 h-3.5" /> Sell Product
-            </Link>
-          </div>
+          <p className="mt-6 text-[13.5px] leading-relaxed text-muted-foreground max-w-sm">
+            Redeem your builder rewards for subscriptions, gear, and exclusive perks.
+          </p>
 
           {/* Search Box */}
           <div className="mt-5 relative pb-1">
@@ -192,18 +184,30 @@ function StorePage() {
 
                   <div className="border-t hairline px-5 py-3.5 flex items-center justify-between gap-4">
                     <div className="text-left">
-                      <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Price</p>
-                      <div className="flex items-baseline gap-1 mt-0.5">
-                        <span className="text-[15px] font-semibold tracking-tight text-foreground tabular-nums">
-                          {item.price_type === "Coins"
-                            ? `${currentCurrency.symbol}${((item.price) / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-                            : `${item.price.toLocaleString()}`}
-                        </span>
-                        {item.price_type !== "Coins" && (
-                          <span className="text-[10px] font-semibold text-primary">
-                            {item.price_type}
-                          </span>
-                        )}
+                      <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        {item.discount_percent > 0 ? `Price · ${item.discount_percent}% off` : "Price"}
+                      </p>
+                      <div className="flex items-baseline gap-1.5 mt-0.5">
+                        {(() => {
+                          const effective = item.discount_percent > 0
+                            ? Math.round(item.price * (100 - item.discount_percent) / 100)
+                            : item.price;
+                          const fmt = (n: number) =>
+                            item.price_type === "Coins"
+                              ? `${currentCurrency.symbol}${(n / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+                              : n.toLocaleString();
+                          return (
+                            <>
+                              <span className="text-[15px] font-semibold tracking-tight text-foreground tabular-nums">{fmt(effective)}</span>
+                              {item.discount_percent > 0 && (
+                                <span className="text-[11px] text-muted-foreground line-through tabular-nums">{fmt(item.price)}</span>
+                              )}
+                              {item.price_type !== "Coins" && (
+                                <span className="text-[10px] font-semibold text-primary">{item.price_type}</span>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
 

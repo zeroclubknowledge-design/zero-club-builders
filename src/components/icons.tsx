@@ -159,6 +159,19 @@ export const IconPresentation = ({ className, active }: ZeroIconProps) => {
   );
 };
 
+export const IconStore = ({ className, active }: ZeroIconProps) => {
+  const { fo, sw } = useIconStyle(active);
+  return (
+    <Svg className={className}>
+      <path d="M4.6 10.5v8.1c0 1 .8 1.9 1.9 1.9h11c1 0 1.9-.9 1.9-1.9v-8.1" fill="currentColor" fillOpacity={fo} />
+      <path d="M4.6 10.5v8.1c0 1 .8 1.9 1.9 1.9h11c1 0 1.9-.9 1.9-1.9v-8.1" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 6.8 5.5 4c.2-.4.6-.6 1-.6h11c.4 0 .8.2 1 .6L20 6.8c.8 1.6-.3 3.7-2.2 3.7-1 0-1.9-.6-2.3-1.4-.4.8-1.3 1.4-2.3 1.4h-2.4c-1 0-1.9-.6-2.3-1.4-.4.8-1.3 1.4-2.3 1.4C4.3 10.5 3.2 8.4 4 6.8Z" fill="currentColor" fillOpacity={fo} />
+      <path d="M4 6.8 5.5 4c.2-.4.6-.6 1-.6h11c.4 0 .8.2 1 .6L20 6.8c.8 1.6-.3 3.7-2.2 3.7-1 0-1.9-.6-2.3-1.4-.4.8-1.3 1.4-2.3 1.4h-2.4c-1 0-1.9-.6-2.3-1.4-.4.8-1.3 1.4-2.3 1.4C4.3 10.5 3.2 8.4 4 6.8Z" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.4 20.3v-4.2c0-.9.7-1.6 1.6-1.6h2c.9 0 1.6.7 1.6 1.6v4.2" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+};
+
 export const IconInstitution = ({ className, active }: ZeroIconProps) => {
   const { fo, sw } = useIconStyle(active);
   return (

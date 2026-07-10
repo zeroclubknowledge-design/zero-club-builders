@@ -207,15 +207,22 @@ function NotesIndexPage() {
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-border z-[200]">
-                              <DropdownMenuItem 
-                                className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground" 
+                              <DropdownMenuItem
+                                className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
+                                onClick={(e) => { e.preventDefault(); navigate({ to: `/app/notes/${featuredNote.id}/edit` }); }}
+                              >
+                                <Edit3 className="h-4 w-4" />
+                                <span className="font-medium">Edit Note</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
                                 onClick={(e) => handleShare(e, featuredNote.id, featuredNote.title)}
                               >
                                 <Share2 className="h-4 w-4" />
                                 <span className="font-medium">Share Note</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="flex items-center gap-3 py-2.5 cursor-pointer text-red-500 focus:text-red-500" 
+                              <DropdownMenuItem
+                                className="flex items-center gap-3 py-2.5 cursor-pointer text-red-500 focus:text-red-500"
                                 onClick={(e) => { e.preventDefault(); setNoteToDelete(featuredNote.id); }}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -311,15 +318,22 @@ function NotesIndexPage() {
                                   </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-border z-[200]">
-                                  <DropdownMenuItem 
-                                    className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground" 
+                                  <DropdownMenuItem
+                                    className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
+                                    onClick={(e) => { e.preventDefault(); navigate({ to: `/app/notes/${note.id}/edit` }); }}
+                                  >
+                                    <Edit3 className="h-4 w-4" />
+                                    <span className="font-medium">Edit Note</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
                                     onClick={(e) => handleShare(e, note.id, note.title)}
                                   >
                                     <Share2 className="h-4 w-4" />
                                     <span className="font-medium">Share Note</span>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    className="flex items-center gap-3 py-2.5 cursor-pointer text-red-500 focus:text-red-500" 
+                                  <DropdownMenuItem
+                                    className="flex items-center gap-3 py-2.5 cursor-pointer text-red-500 focus:text-red-500"
                                     onClick={(e) => { e.preventDefault(); setNoteToDelete(note.id); }}
                                   >
                                     <Trash2 className="h-4 w-4" />

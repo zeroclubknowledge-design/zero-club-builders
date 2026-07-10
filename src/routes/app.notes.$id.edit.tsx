@@ -137,6 +137,14 @@ function NotesEditPage() {
     enabled: !!noteId && !isNoteLoaded
   });
 
+  // Only the author may edit — redirect anyone else back to the note
+  useEffect(() => {
+    if (noteData && profile && noteData.author_id && noteData.author_id !== profile.id) {
+      toast.error("You can only edit your own notes.");
+      navigate({ to: `/app/notes/${noteId}` });
+    }
+  }, [noteData, profile, noteId, navigate]);
+
   // Effect to load note data into state once
   useEffect(() => {
     if (noteData && !isNoteLoaded) {
