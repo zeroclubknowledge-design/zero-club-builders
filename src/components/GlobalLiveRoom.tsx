@@ -242,8 +242,20 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* ── Agora hooks ── */
   useJoin({ appid: APP_ID, channel, token }, true);
   const client = useRTCClient();
-  const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
-  const { localCameraTrack } = useLocalCameraTrack(cameraOn && !isScreenSharing, { encoderConfig: "720p_1" });
+  const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
+  const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, { encoderConfig: "720p_1" });
+
+  useEffect(() => {
+    if (localMicrophoneTrack) {
+      localMicrophoneTrack.setEnabled(micOn).catch(console.error);
+    }
+  }, [micOn, localMicrophoneTrack]);
+
+  useEffect(() => {
+    if (localCameraTrack) {
+      localCameraTrack.setEnabled(cameraOn).catch(console.error);
+    }
+  }, [cameraOn, localCameraTrack]);
 
   const videoTrackToPublish = isScreenSharing && screenTrack ? screenTrack : localCameraTrack;
 
