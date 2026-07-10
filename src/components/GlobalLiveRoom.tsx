@@ -259,9 +259,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   const videoTrackToPublish = isScreenSharing && screenTrack ? screenTrack : localCameraTrack;
 
-  // Agora usePublish accepts null values and uses array positioning
-  const tracksToPublish = [localMicrophoneTrack || null, videoTrackToPublish || null];
-  usePublish(tracksToPublish);
+  // Filter out tracks when they are muted so usePublish actively unpublishes them
+  // This causes Agora to update the remote users' hasVideo/hasAudio state properly
+  const tracksToPublish = [
+    micOn ? localMicrophoneTrack : null,
+    (cameraOn || isScreenSharing) ? videoTrackToPublish : null
+  ].filter(Boolean);
+  
+  usePublish(tracksToPublish as any);
 
   const remoteUsers = useRemoteUsers();
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
