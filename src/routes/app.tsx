@@ -16,20 +16,7 @@ import {
   Zap,
   Palette,
   Check,
-  Home,
-  GraduationCap,
-  Users,
-  Wallet,
-  MessageCircle,
-  User,
-  Gem,
-  Bookmark,
-  NotebookPen,
-  Compass,
   Rocket,
-  PenLine,
-  Presentation,
-  Building2,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -45,6 +32,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  IconHome, IconLearn, IconClubs, IconWallet, IconMessages,
+  IconProfile, IconGem, IconBookmark, IconNotes, IconCompass,
+  IconPresentation, IconInstitution,
+} from "@/components/icons";
 import { supabase } from "@/lib/supabase";
 import {
   prepareAddAccount,
@@ -62,11 +54,11 @@ export const Route = createFileRoute("/app")({
 });
 
 const tabs = [
-  { to: "/app/", label: "Feed", Icon: Home, exact: true },
-  { to: "/app/bootcamps", label: "Learn", Icon: GraduationCap },
-  { to: "/app/clubs", label: "Clubs", Icon: Users },
-  { to: "/app/wallet", label: "Wallet", Icon: Wallet },
-  { to: "/app/chat", label: "Messages", Icon: MessageCircle },
+  { to: "/app/", label: "Feed", Icon: IconHome, exact: true },
+  { to: "/app/bootcamps", label: "Learn", Icon: IconLearn },
+  { to: "/app/clubs", label: "Clubs", Icon: IconClubs },
+  { to: "/app/wallet", label: "Wallet", Icon: IconWallet },
+  { to: "/app/chat", label: "Messages", Icon: IconMessages },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -273,18 +265,18 @@ function SidebarContent({
       <div className="overflow-y-auto pr-2 -mr-2 mt-6 flex-1 no-scrollbar flex flex-col">
         <nav className="flex flex-col gap-1.5 flex-1">
           {[
-            { Icon: User, label: "Profile", to: "/app/profile" },
-            { Icon: Gem, label: "Membership", to: "/app/premium" },
-            { Icon: Users, label: "Clubs", to: "/app/clubs" },
-            { Icon: Bookmark, label: "Bookmarks", to: "/app/bookmarks" },
-            { Icon: NotebookPen, label: "ZeroNotes", to: "/app/notes" },
-            { Icon: Compass, label: "ZeroHub", to: "/app/zerohub" },
-            { Icon: GraduationCap, label: "Bootcamps", to: "/app/bootcamps" },
+            { Icon: IconProfile, label: "Profile", to: "/app/profile" },
+            { Icon: IconGem, label: "Membership", to: "/app/premium" },
+            { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
+            { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
+            { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
+            { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
+            { Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" },
             ...(profile?.account_type === "Tutor" || profile?.account_type === "Institution"
-              ? [{ Icon: Presentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
+              ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
               : []),
             ...(profile?.account_type === "Institution"
-              ? [{ Icon: Building2, label: "Institution Hub", to: "/app/institution-studio" }]
+              ? [{ Icon: IconInstitution, label: "Institution Hub", to: "/app/institution-studio" }]
               : []),
           ].map((item) => (
             <Link
@@ -292,7 +284,7 @@ function SidebarContent({
               to={item.to}
               className="group flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]"
             >
-              <item.Icon className="h-[20px] w-[20px] text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.75} />
+              <item.Icon className="h-[20px] w-[20px] text-muted-foreground group-hover:text-foreground transition-colors" />
               <span>{item.label}</span>
             </Link>
           ))}
@@ -368,7 +360,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
                 to={t.to}
                 className="relative flex h-11 w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-foreground text-background px-4 tap"
               >
-                <t.Icon className="h-[19px] w-[19px] shrink-0" strokeWidth={2} />
+                <t.Icon className="h-[19px] w-[19px] shrink-0" active />
                 <span className="font-semibold text-[12px] tracking-tight whitespace-nowrap">
                   {t.label}
                 </span>
@@ -387,7 +379,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
               to={t.to}
               className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full tap hover:bg-foreground/5 text-muted-foreground"
             >
-              <t.Icon className="h-[21px] w-[21px]" strokeWidth={1.75} />
+              <t.Icon className="h-[21px] w-[21px]" />
               {t.label === "Messages" && unreadCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground ring-2 ring-card">
                   {unreadCount}
@@ -420,26 +412,26 @@ function DesktopWorkspaceRail({
 
   const primaryActions = isInstitution
     ? [
-        { label: "Institution Hub", to: "/app/institution-studio", Icon: Building2 },
-        { label: "Tutor Studio", to: "/app/tutor-studio", Icon: Presentation },
-        { label: "Organization bootcamps", to: "/app/institution-studio", Icon: GraduationCap },
+        { label: "Institution Hub", to: "/app/institution-studio", Icon: IconInstitution },
+        { label: "Tutor Studio", to: "/app/tutor-studio", Icon: IconPresentation },
+        { label: "Organization bootcamps", to: "/app/institution-studio", Icon: IconLearn },
       ]
     : isTutor
       ? [
-          { label: "Tutor Studio", to: "/app/tutor-studio", Icon: Presentation },
-          { label: "Create bootcamp", to: "/app/tutor-studio/create", Icon: GraduationCap },
-          { label: "Wallet", to: "/app/wallet", Icon: Wallet },
+          { label: "Tutor Studio", to: "/app/tutor-studio", Icon: IconPresentation },
+          { label: "Create bootcamp", to: "/app/tutor-studio/create", Icon: IconLearn },
+          { label: "Wallet", to: "/app/wallet", Icon: IconWallet },
         ]
       : [
           { label: "Ship work", to: "/app/ship", Icon: Rocket },
-          { label: "Find bootcamps", to: "/app/bootcamps", Icon: GraduationCap },
-          { label: "Create note", to: "/app/notes/create", Icon: PenLine },
+          { label: "Find bootcamps", to: "/app/bootcamps", Icon: IconLearn },
+          { label: "Create note", to: "/app/notes/create", Icon: IconNotes },
         ];
 
   const proofItems = [
     { label: "XP", value: formatCompactNumber(profile?.xp), Icon: Zap },
-    { label: "Wallet", value: formatCompactNumber(profile?.coins), Icon: Wallet },
-    { label: "Messages", value: formatCompactNumber(unreadMessagesCount), Icon: MessageCircle },
+    { label: "Wallet", value: formatCompactNumber(profile?.coins), Icon: IconWallet },
+    { label: "Messages", value: formatCompactNumber(unreadMessagesCount), Icon: IconMessages },
   ];
 
   const workspaceNotes = isInstitution
@@ -472,7 +464,7 @@ function DesktopWorkspaceRail({
               key={item.label}
               className="rounded-xl ring-1 ring-border bg-background/60 px-3 py-3.5 text-center"
             >
-              <item.Icon className="mx-auto h-[18px] w-[18px] text-muted-foreground" strokeWidth={1.75} />
+              <item.Icon className="mx-auto h-[18px] w-[18px] text-muted-foreground" />
               <div className="mt-2.5 text-lg font-semibold tracking-tight leading-none text-foreground tabular-nums">
                 {item.value}
               </div>
@@ -503,7 +495,7 @@ function DesktopWorkspaceRail({
               to={action.to}
               className="group flex items-center gap-3 rounded-xl ring-1 ring-border bg-background/60 px-3.5 py-3 text-sm font-semibold tracking-tight transition-colors hover:ring-primary/30 hover:bg-primary/5"
             >
-              <action.Icon className="h-[18px] w-[18px] text-muted-foreground group-hover:text-primary transition-colors" strokeWidth={1.75} />
+              <action.Icon className="h-[18px] w-[18px] text-muted-foreground group-hover:text-primary transition-colors" />
               <span>{action.label}</span>
             </Link>
           ))}

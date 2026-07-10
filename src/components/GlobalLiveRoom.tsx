@@ -382,7 +382,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           toast.info("The tutor has ended the live session.");
           liveSession.endSession();
           if (window.location.pathname.includes(`/app/live/`)) {
-            navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
+            if (window.history.length > 2) {
+              window.history.back();
+            } else {
+              navigate({ to: "/app" });
+            }
           }
         }
       }
@@ -404,7 +408,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     e?.stopPropagation();
     liveSession.minimize();
     if (window.location.pathname.includes(`/app/live/`)) {
-      navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
+      if (window.history.length > 2) {
+        window.history.back();
+      } else {
+        navigate({ to: "/app" });
+      }
     }
   };
 
@@ -413,7 +421,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     e?.preventDefault();
     liveSession.endSession();
     if (window.location.pathname.includes(`/app/live/`)) {
-      navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
+      if (window.history.length > 2) {
+        window.history.back();
+      } else {
+        navigate({ to: "/app" });
+      }
     }
   };
 
@@ -453,16 +465,35 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
     try {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const track = await AgoraRTC.createScreenVideoTrack({
-        // Lighter encode on mobile keeps the share smooth on cellular
-        encoderConfig: isMobile ? "720p_2" : "1080p_1",
-        optimizationMode: "detail",
-      });
-      const video = Array.isArray(track) ? track[0] : track;
+      let video;
+
+      if (isMobile) {
+        // Bypass Agora's built-in block on mobile screen sharing
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "monitor" } });
+        const mediaStreamTrack = stream.getVideoTracks()[0];
+        video = AgoraRTC.createCustomVideoTrack({ 
+          mediaStreamTrack,
+          bitrateMin: 400,
+          bitrateMax: 1500
+        });
+        
+        mediaStreamTrack.onended = () => {
+          setIsScreenSharing(false);
+          setScreenTrack(null);
+        };
+      } else {
+        const track = await AgoraRTC.createScreenVideoTrack({
+          encoderConfig: "1080p_1",
+          optimizationMode: "detail",
+        });
+        video = Array.isArray(track) ? track[0] : track;
+      }
+
       video.on("track-ended", () => {
         setIsScreenSharing(false);
         setScreenTrack(null);
       });
+      
       setScreenTrack(video);
       setIsScreenSharing(true);
     } catch (err: any) {
