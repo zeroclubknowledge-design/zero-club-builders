@@ -34,8 +34,10 @@ function LiveClassEntrypoint() {
 
   // The actual UI is rendered by <GlobalLiveRoom /> which overlays the entire app.
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    <div className="min-h-screen bg-[#0A0A0C] flex flex-col items-center justify-center gap-4">
+      <div className="h-1 w-24 overflow-hidden rounded-full bg-white/[0.08]">
+        <div className="h-full w-1/3 rounded-full bg-[#cc208f] animate-progress" />
+      </div>
     </div>
   );
 }

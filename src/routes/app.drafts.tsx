@@ -33,7 +33,7 @@ function DraftsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center gap-4">
         <button 
           onClick={() => navigate({ to: "/app" })}

@@ -63,7 +63,7 @@ function BookmarksPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/app" className="p-1 transition active:opacity-60 lg:hidden">

@@ -408,7 +408,7 @@ function Profile() {
       {/* ═══════════════════════════════════════════
           TAB CONTENT
          ═══════════════════════════════════════════ */}
-      <div className="px-5 pt-2 pb-28">
+      <div className="px-5 pt-2 pb-20">
         {tab === "Posts" && (
           <div className="space-y-4">
             {filteredPosts.length > 0 ? (

@@ -456,7 +456,7 @@ function ComposePage() {
       </header>
 
       {/* Main Form Area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-56 no-scrollbar">
+      <div className="flex-1 overflow-y-auto px-4 pb-6 no-scrollbar">
         {/* Post Card */}
         <div className="bg-card rounded-[32px] p-6 shadow-sm border border-border/50 flex flex-col relative">
           {/* Static Formatting Toolbar */}

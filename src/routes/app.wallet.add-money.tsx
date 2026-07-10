@@ -15,7 +15,7 @@ function AddMoneyPage() {
   const numericAmount = parseInt(amount) || 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
+    <div className="min-h-screen bg-background text-foreground pb-20">
       <header className="flex items-center gap-3 px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-4">
         <button
           onClick={() => navigate({ to: "/app/wallet" })}

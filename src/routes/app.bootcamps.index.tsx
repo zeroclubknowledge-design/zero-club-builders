@@ -93,7 +93,7 @@ function Bootcamps() {
         )}
 
         {/* Grid */}
-        <section className="mt-6 space-y-4 pb-10">
+        <section className="mt-6 space-y-4 pb-20">
           <div className="flex items-center justify-between">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               {activeCategory === "All" ? "All cohorts" : `${activeCategory} cohorts`}

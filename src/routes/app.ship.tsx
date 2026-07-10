@@ -299,7 +299,7 @@ function ShipPage() {
   const canShip = projectName.trim().length > 0 && !uploading;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline h-[calc(72px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between px-4 h-[72px]">

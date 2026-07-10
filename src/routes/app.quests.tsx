@@ -161,7 +161,7 @@ function QuestsPage() {
   const level = getLevelFromXp(profileXp);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-background pb-28 text-foreground overflow-x-hidden">
+    <div className="relative flex flex-col min-h-screen bg-background pb-20 text-foreground overflow-x-hidden">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">

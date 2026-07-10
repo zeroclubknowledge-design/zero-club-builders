@@ -1354,6 +1354,53 @@ function ClubChat() {
                       </button>
                     ))}
                   </div>
+
+                  {/* Go Live / Join Live actions */}
+                  <div className="mt-8 pt-6 border-t border-border/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground">Live Session</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {isAdmin ? "Start a live broadcast" : (liveAdminsCount > 0 ? "An admin is live now" : "No active broadcast")}
+                        </p>
+                      </div>
+                      
+                      {isAdmin ? (
+                        <button 
+                          onClick={() => {
+                            setShowRoomSwitcher(false);
+                            setShowScheduleForm(false);
+                            setShowLiveMenu(true);
+                          }} 
+                          className="flex items-center gap-1.5 h-9 px-4 rounded-xl transition active:scale-95 shadow-sm border bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20"
+                        >
+                          <Video className="h-4 w-4" />
+                          <span className="text-sm font-bold mt-0.5">Go Live</span>
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            if (liveAdminsCount > 0) {
+                              setShowRoomSwitcher(false);
+                              setShowScheduleForm(false);
+                              setShowLiveMenu(true);
+                            }
+                          }} 
+                          disabled={liveAdminsCount === 0}
+                          className={`flex items-center gap-1.5 h-9 px-4 rounded-xl transition active:scale-95 shadow-sm border ${
+                            liveAdminsCount > 0 
+                              ? "bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20 animate-pulse" 
+                              : "bg-accent border-border/50 text-muted-foreground cursor-not-allowed"
+                          }`}
+                        >
+                          <Video className="h-4 w-4" />
+                          <span className="text-sm font-bold mt-0.5">
+                            {liveAdminsCount > 0 ? "Join Live" : "Offline"}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </DrawerContent>
             </Drawer>

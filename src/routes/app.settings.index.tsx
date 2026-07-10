@@ -94,7 +94,7 @@ function SettingsIndex() {
       </div>
 
       {/* Settings List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
         <div className="flex flex-col divide-y divide-hairline">
           {settingsItems.map((item) => (
             <Link

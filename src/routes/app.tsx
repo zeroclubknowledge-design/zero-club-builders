@@ -1131,7 +1131,7 @@ function AppLayout() {
         </Drawer>
 
         <div
-          className={`zc-desktop-content ${!hideHeader ? "pt-[calc(72px+env(safe-area-inset-top))] md:pt-0" : "pt-[env(safe-area-inset-top)]"} ${(!isChat || isChatInbox) && !isDetail && !pathname.includes("/app/notes") ? "pb-24 md:pb-0" : "pb-0"}`}
+          className={`zc-desktop-content ${!hideHeader ? "pt-[calc(72px+env(safe-area-inset-top))] md:pt-0" : "pt-[env(safe-area-inset-top)]"} pb-0`}
         >
           <Outlet />
         </div>

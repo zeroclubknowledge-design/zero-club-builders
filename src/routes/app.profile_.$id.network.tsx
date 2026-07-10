@@ -106,7 +106,7 @@ function ProfileNetwork() {
   const isOwnProfile = currentUser?.id === profile.id;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
         scrolled 

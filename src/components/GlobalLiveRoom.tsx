@@ -6,7 +6,8 @@ import { useUser } from "@/hooks/useUser";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
-  MessageSquare, Loader2, Send, X, Radio, Zap, Share2, Minimize2, Maximize2, Lock,
+  MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2, Lock,
+  Expand, Shrink, GraduationCap, Radio,
 } from "lucide-react";
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
@@ -37,11 +38,18 @@ interface ChatMessage {
   sender_id?: string;
 }
 
+interface PresenceUser {
+  uid: string;
+  name: string;
+  avatar: string;
+  isAdmin: boolean;
+}
+
 /**
  * Global component that maintains the Agora connection across route changes.
- * Displays as fullscreen when maximized, and as a draggable PiP when minimized.
- * The live stage is a committed dark surface regardless of app theme — like every
- * world-class video product.
+ * Broadcast-style live classroom: the tutor owns the stage, learners watch,
+ * chat, and can raise their mic/camera. Committed dark surface regardless of
+ * app theme — like every world-class video product.
  */
 export function GlobalLiveRoom() {
   const { isActive, channelId } = useLiveSession();
@@ -99,7 +107,7 @@ export function GlobalLiveRoom() {
         <div className="relative grid h-14 w-14 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10">
           <Zap className="w-6 h-6 text-white/90" strokeWidth={1.75} />
         </div>
-        <h2 className="text-[19px] font-semibold text-white tracking-tight mt-6">Preparing your stage</h2>
+        <h2 className="text-[19px] font-semibold text-white tracking-tight mt-6">Preparing your classroom</h2>
         <p className="text-[13px] text-white/50 mt-1.5">Connecting to Zero Club Live</p>
         <div className="mt-6 h-1 w-24 overflow-hidden rounded-full bg-white/[0.08]">
           <div className="h-full w-1/3 rounded-full bg-[#cc208f] animate-progress" />
@@ -141,43 +149,24 @@ export function GlobalLiveRoom() {
 }
 
 /* ── Small shared bits ── */
-const NamePlate = ({ name, role, presenting }: { name: string; role?: string; presenting?: boolean }) => (
-  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pb-2.5 pt-8 z-10 pointer-events-none">
-    <div className="flex items-center gap-1.5">
-      <span className="text-[12.5px] font-semibold tracking-tight text-white truncate">{name}</span>
-      {role && (
-        <span className={`shrink-0 text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full ${role === "Admin" ? "bg-[#cc208f]/90 text-white" : "bg-white/15 text-white/80"}`}>
-          {role}
-        </span>
-      )}
-      {presenting && (
-        <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-emerald-500/90 text-white">
-          Presenting
-        </span>
-      )}
-    </div>
+const Avatar = ({ url, name, className = "" }: { url?: string | null; name: string; className?: string }) => (
+  <div className={`rounded-full bg-white/[0.08] ring-1 ring-white/10 flex items-center justify-center overflow-hidden ${className}`}>
+    {url ? (
+      <img src={url} alt="" className="w-full h-full object-cover" />
+    ) : (
+      <span className="font-semibold text-white/80" style={{ fontSize: "0.9em" }}>
+        {(name || "U")[0].toUpperCase()}
+      </span>
+    )}
   </div>
 );
 
-const MicBadge = ({ on }: { on: boolean }) => (
-  <div className={`absolute top-2 right-2 z-10 grid h-6 w-6 place-items-center rounded-full backdrop-blur-md ${on ? "bg-black/40 ring-1 ring-white/10" : "bg-red-500/85"}`}>
-    {on ? <Mic className="w-3 h-3 text-emerald-400" /> : <MicOff className="w-3 h-3 text-white" />}
-  </div>
-);
-
-const AvatarFallback = ({ url, name, size = "lg" }: { url?: string | null; name: string; size?: "lg" | "sm" }) => (
-  <div className="absolute inset-0 flex items-center justify-center bg-[#141117]">
-    <div className={`${size === "lg" ? "w-16 h-16 md:w-20 md:h-20" : "w-10 h-10"} rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center overflow-hidden`}>
-      {url ? (
-        <img src={url} alt="" className="w-full h-full object-cover" />
-      ) : (
-        <span className={`${size === "lg" ? "text-xl" : "text-sm"} font-semibold text-white/80`}>
-          {(name || "U")[0].toUpperCase()}
-        </span>
-      )}
-    </div>
-  </div>
-);
+const MicDot = ({ on }: { on: boolean }) =>
+  on ? (
+    <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+  ) : (
+    <MicOff className="w-3.5 h-3.5 text-white/35 shrink-0" />
+  );
 
 function LiveRoomContent({ channel, token }: { channel: string; token: string }) {
   const navigate = useNavigate();
@@ -185,11 +174,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const liveSession = useLiveSession();
   const { isMinimized } = liveSession;
   const [isAdmin, setIsAdmin] = useState(false);
+  const [clubName, setClubName] = useState<string>("");
 
   useEffect(() => {
     async function checkAdmin() {
       if (!profile?.id) return;
-      const { data: club } = await supabase.from("clubs").select("creator_id").eq("id", channel).single();
+      const { data: club } = await supabase.from("clubs").select("creator_id, name").eq("id", channel).single();
+      if (club?.name) setClubName(club.name);
       if (club?.creator_id === profile.id) {
         setIsAdmin(true);
         return;
@@ -213,6 +204,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [cameraOn, setCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenTrack, setScreenTrack] = useState<any>(null);
+  const [theater, setTheater] = useState(false);
 
   /* ── Session timer ── */
   const [elapsed, setElapsed] = useState(0);
@@ -235,15 +227,17 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     liveSession.setMicState(micOn);
   }, [micOn]);
 
-  /* ── Chat state ── */
-  const [chatOpen, setChatOpen] = useState(false);
+  /* ── Panel / chat state ── */
+  const [activeTab, setActiveTab] = useState<"chat" | "learners">("chat");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatChannelRef = useRef<any>(null);
-  const chatOpenRef = useRef(chatOpen);
-  useEffect(() => { chatOpenRef.current = chatOpen; }, [chatOpen]);
+  const chatVisibleRef = useRef(true);
+  useEffect(() => {
+    chatVisibleRef.current = activeTab === "chat" && !theater;
+  }, [activeTab, theater]);
 
   /* ── Agora hooks ── */
   useJoin({ appid: APP_ID, channel, token }, true);
@@ -271,7 +265,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     });
     ch.on("broadcast", { event: "chat" }, ({ payload }: any) => {
       setChatMessages((prev) => [...prev, payload as ChatMessage]);
-      if (!chatOpenRef.current) setUnreadCount((c) => c + 1);
+      if (!chatVisibleRef.current) setUnreadCount((c) => c + 1);
     });
     ch.on("broadcast", { event: "presenting" }, ({ payload }: any) => {
       if (payload?.presenting && payload?.uid != null) {
@@ -314,9 +308,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     return () => clearInterval(id);
   }, []);
 
-  /* ── User Names Presence Mapping ── */
+  /* ── Presence: names, avatars, and who the tutors are ── */
   const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [userAvatars, setUserAvatars] = useState<Record<string, string>>({});
+  const [adminUids, setAdminUids] = useState<Set<string>>(new Set());
+  const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
 
   const presencePayload = profile?.id && client?.uid ? {
     agora_uid: client.uid,
@@ -339,20 +335,35 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   useEffect(() => {
     const newNames: Record<string, string> = {};
     const newAvatars: Record<string, string> = {};
+    const newAdminUids = new Set<string>();
+    const people: PresenceUser[] = [];
     let adminCount = 0;
 
     Object.values(presenceState).forEach((users: any[]) => {
       users.forEach((u) => {
         if (u.agora_uid && u.name) newNames[u.agora_uid] = u.name;
         if (u.agora_uid && u.avatar_url) newAvatars[u.agora_uid] = u.avatar_url;
-        if (u.isAdmin) adminCount++;
+        if (u.isAdmin) {
+          adminCount++;
+          if (u.agora_uid != null) newAdminUids.add(String(u.agora_uid));
+        }
+        if (u.agora_uid != null) {
+          people.push({
+            uid: String(u.agora_uid),
+            name: u.name || "Builder",
+            avatar: u.avatar_url || "",
+            isAdmin: !!u.isAdmin,
+          });
+        }
       });
     });
 
     setUserNames(newNames);
     setUserAvatars(newAvatars);
+    setAdminUids(newAdminUids);
+    setPresenceUsers(people);
 
-    // Auto-leave logic for members when admin leaves
+    // Auto-leave logic for members when the tutor leaves
     if (!isAdmin) {
       if (adminCount > 0) {
         if (!hasSeenAdmin.current && !confirmAdminTimer.current) {
@@ -368,7 +379,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           confirmAdminTimer.current = null;
         }
         if (hasSeenAdmin.current) {
-          toast.info("The admin has ended the live session.");
+          toast.info("The tutor has ended the live session.");
           liveSession.endSession();
           if (window.location.pathname.includes(`/app/live/`)) {
             navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
@@ -383,21 +394,17 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  /* ── Reset unread when chat opened ── */
+  /* ── Reset unread when chat visible ── */
   useEffect(() => {
-    if (chatOpen) setUnreadCount(0);
-  }, [chatOpen]);
+    if (activeTab === "chat" && !theater) setUnreadCount(0);
+  }, [activeTab, theater]);
 
   /* ── Handlers ── */
   const handleMinimize = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     liveSession.minimize();
     if (window.location.pathname.includes(`/app/live/`)) {
-      if (window.history.length > 2) {
-        window.history.back();
-      } else {
-        navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
-      }
+      navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
     }
   };
 
@@ -406,11 +413,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     e?.preventDefault();
     liveSession.endSession();
     if (window.location.pathname.includes(`/app/live/`)) {
-      if (window.history.length > 2) {
-        window.history.back();
-      } else {
-        navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
-      }
+      navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
     }
   };
 
@@ -430,7 +433,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   const toggleScreenShare = async () => {
     if (!isAdmin) {
-      toast.error("Only admins and the club creator can present.");
+      toast.error("Only the tutor and club admins can present.");
       return;
     }
     if (isScreenSharing) {
@@ -530,41 +533,112 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   const initial = (liveSession.userName || "U")[0].toUpperCase();
 
-  /* ── Stage composition ── */
+  /* ══════════ STAGE COMPOSITION ══════════ */
   const remotePresenterUser = remotePresenter
     ? remoteUsers.find((u) => String(u.uid) === remotePresenter.uid)
     : undefined;
-  const hasHero = isScreenSharing || !!remotePresenterUser;
-  const gridUsers = remotePresenterUser
-    ? remoteUsers.filter((u) => u.uid !== remotePresenterUser.uid)
-    : remoteUsers;
+  const remoteTutor = remoteUsers.find((u) => adminUids.has(String(u.uid)));
+  const tutorName = isAdmin
+    ? (profile?.username || "You")
+    : remoteTutor
+      ? (userNames[remoteTutor.uid] || "Your tutor")
+      : (presenceUsers.find((p) => p.isAdmin)?.name || "your tutor");
 
-  const totalTiles = gridUsers.length + 1;
-  const gridClass =
-    totalTiles <= 1
-      ? "grid-cols-1"
-      : totalTiles === 2
-        ? "grid-cols-1 sm:grid-cols-2"
-        : totalTiles <= 4
-          ? "grid-cols-2"
-          : "grid-cols-2 md:grid-cols-3";
+  const findVideo = (uid: any) => videoTracks.find((t) => t.getUserId() === uid);
 
-  const renderRemoteVideo = (user: any, contain = false) => {
-    const track = videoTracks.find((t) => t.getUserId() === user.uid);
+  // Learners = everyone who isn't on stage
+  const stageUid = isAdmin ? null : (remotePresenterUser?.uid ?? remoteTutor?.uid ?? null);
+  const audienceRemote = remoteUsers.filter((u) => u.uid !== stageUid);
+  const cameraOnUsers = audienceRemote.filter((u) => u.hasVideo);
+  const audioOnlyUsers = audienceRemote.filter((u) => !u.hasVideo);
+  const selfHasCamera = cameraOn && !isScreenSharing && !!localCameraTrack;
+  const cameraCount = cameraOnUsers.length + (!isAdmin && selfHasCamera ? 1 : 0);
+  const audioCount = audioOnlyUsers.length + (!isAdmin && !selfHasCamera ? 1 : 0);
+  const totalCount = remoteUsers.length + 1;
+
+  const waitingFaces = presenceUsers.filter((p) => !p.isAdmin).slice(0, 3);
+  const waitingExtra = Math.max(0, presenceUsers.filter((p) => !p.isAdmin).length - 3);
+
+  const renderStage = () => {
+    // Tutor sees their own output — exactly what learners see
+    if (isAdmin) {
+      if (isScreenSharing && screenTrack) {
+        return <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain" />;
+      }
+      if (cameraOn && localCameraTrack) {
+        return <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />;
+      }
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
+          <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-20 h-20 text-2xl" />
+          <div>
+            <p className="text-[15px] font-semibold tracking-tight text-white">Your camera is off</p>
+            <p className="text-[12.5px] text-white/45 mt-1">Learners see this screen — turn on your camera or present to begin teaching.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Learner: presenter's screen wins the stage
+    if (remotePresenterUser) {
+      const track = findVideo(remotePresenterUser.uid);
+      return track
+        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full object-contain" />
+        : null;
+    }
+    // Then the tutor's camera
+    if (remoteTutor && remoteTutor.hasVideo) {
+      const track = findVideo(remoteTutor.uid);
+      return track
+        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full object-cover" />
+        : null;
+    }
+    // Tutor is here, audio only
+    if (remoteTutor) {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
+          <div className="relative">
+            <Avatar url={userAvatars[remoteTutor.uid]} name={tutorName} className="w-20 h-20 text-2xl" />
+            {remoteTutor.hasAudio && (
+              <span className="absolute inset-0 rounded-full ring-2 ring-emerald-400/50 animate-pulse" />
+            )}
+          </div>
+          <div>
+            <p className="text-[15px] font-semibold tracking-tight text-white">{tutorName} is live</p>
+            <p className="text-[12.5px] text-white/45 mt-1">Audio only — video will appear here when they share.</p>
+          </div>
+        </div>
+      );
+    }
+    // Waiting for the tutor
     return (
-      <>
-        {track ? (
-          <RemoteVideoTrack track={track} play={true} className={`w-full h-full ${contain ? "object-contain bg-black" : "object-cover"}`} />
-        ) : null}
-        {!user.hasVideo && (
-          <AvatarFallback url={userAvatars[user.uid]} name={userNames[user.uid] || "U"} />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-8 text-center">
+        <div className="relative grid place-items-center">
+          <span className="absolute h-14 w-14 rounded-full bg-red-500/20 animate-ping" style={{ animationDuration: "2s" }} />
+          <span className="absolute h-10 w-10 rounded-full bg-red-500/25" />
+          <span className="relative h-5 w-5 rounded-full bg-red-500" />
+        </div>
+        <div>
+          <p className="text-[17px] font-semibold tracking-tight text-white">Waiting for {tutorName} to start</p>
+          <p className="text-[12.5px] text-white/45 mt-1.5">{clubName ? `${clubName} — the` : "The"} session hasn't begun sharing yet.</p>
+        </div>
+        {waitingFaces.length > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {waitingFaces.map((p) => (
+                <Avatar key={p.uid} url={p.avatar} name={p.name} className="w-9 h-9 ring-2 ring-[#0A0A0C]" />
+              ))}
+            </div>
+            {waitingExtra > 0 && <span className="text-[12px] text-white/45">+{waitingExtra} waiting</span>}
+          </div>
         )}
-        {audioTracks.find((t) => t.getUserId() === user.uid) && (
-          <RemoteAudioTrack track={audioTracks.find((t) => t.getUserId() === user.uid)!} play={true} />
-        )}
-      </>
+      </div>
     );
   };
+
+  const stageIsLive = isAdmin
+    ? (isScreenSharing || cameraOn)
+    : !!(remotePresenterUser || remoteTutor);
 
   /* ══════════ MINI PLAYER ══════════ */
   if (isMinimized) {
@@ -636,24 +710,30 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     );
   }
 
-  /* ══════════ FULL SCREEN STAGE ══════════ */
+  /* ══════════ FULL SCREEN CLASSROOM ══════════ */
   return (
     <div className="fixed inset-0 h-[100dvh] bg-[#0A0A0C] text-white flex flex-col z-[9999] overflow-hidden">
-      {/* Ambient stage glow */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-[#cc208f]/10 blur-[120px]" />
+      {/* Hidden: play every remote audio stream regardless of layout */}
+      <div className="hidden">
+        {audioTracks.map((t) => (
+          <RemoteAudioTrack key={String(t.getUserId())} track={t} play={true} />
+        ))}
+      </div>
 
       {/* ═══ HEADER ═══ */}
       <header className="shrink-0 flex items-center justify-between px-3 md:px-5 pb-2.5 pt-[calc(0.5rem+env(safe-area-inset-top))] md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))] z-20">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={handleMinimize}
-            className="h-9 w-9 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center hover:bg-white/[0.12] transition tap"
+            className="h-9 w-9 shrink-0 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center hover:bg-white/[0.12] transition tap"
             title="Minimize live session"
           >
             <Minimize2 className="w-4 h-4 text-white/80" />
           </button>
-          <div>
-            <h1 className="font-display font-semibold text-[15px] tracking-tight leading-tight text-white">Zero Club Live</h1>
+          <div className="min-w-0">
+            <h1 className="font-display font-semibold text-[15px] tracking-tight leading-tight text-white truncate">
+              {clubName || "Zero Club Live"}
+            </h1>
             <div className="mt-0.5 flex items-center gap-2 text-[10px]">
               <span className="flex items-center gap-1 bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
@@ -662,246 +742,306 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               <span className="text-white/50 tabular-nums font-medium">{formatElapsed(elapsed)}</span>
               <span className="flex items-center gap-1 text-white/50 font-medium">
                 <Users className="w-3 h-3" />
-                <span className="tabular-nums">{remoteUsers.length + 1}</span>
+                <span className="tabular-nums">{totalCount}</span>
               </span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-2.5 py-1.5">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-2.5 py-1.5">
             <Zap className="w-3 h-3 text-amber-400" />
             <span className="font-semibold text-[10.5px] text-white/90 tabular-nums">25 XP</span>
           </div>
+          <button
+            onClick={handleShare}
+            title="Copy invite link"
+            className="h-9 w-9 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center text-white/80 hover:bg-white/[0.12] transition tap"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
         </div>
       </header>
 
-      {/* ═══ MAIN CONTENT ═══ */}
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0 relative px-2.5 md:px-4 pb-2">
-        {/* Chat Drawer Overlay */}
-        {chatOpen && (
-          <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-[#101014]/95 backdrop-blur-xl border-l border-white/[0.06] z-30 flex flex-col shadow-lift animate-in slide-in-from-right-full duration-300">
-            <div className="shrink-0 flex items-center justify-between px-5 h-14 border-b border-white/[0.06]">
-              <h2 className="font-semibold tracking-tight text-[15px] text-white">Live chat</h2>
-              <button onClick={() => setChatOpen(false)} className="h-8 w-8 rounded-full bg-white/[0.06] flex items-center justify-center hover:bg-white/[0.12] transition tap">
-                <X className="w-4 h-4 text-white/60" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
-              {chatMessages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center px-6">
-                  <div className="w-12 h-12 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center mb-4">
-                    <MessageSquare className="w-5 h-5 text-white/40" strokeWidth={1.75} />
-                  </div>
-                  <p className="font-semibold tracking-tight text-white/70 text-[14px]">No messages yet</p>
-                  <p className="text-white/40 text-[12px] mt-1">Say hello to the room.</p>
-                </div>
-              ) : (
-                chatMessages.map((msg: any) => {
-                  const isMe = msg.sender_id === (profile?.userId || profile?.id);
-                  return (
-                    <div key={msg.id} className="flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                      <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-white/[0.08] flex items-center justify-center mt-0.5 ring-1 ring-white/10">
-                        {msg.sender_avatar ? (
-                          <img src={msg.sender_avatar} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-[10px] font-semibold text-white/80">{msg.sender_name[0]?.toUpperCase()}</span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[12px] font-semibold tracking-tight truncate ${isMe ? "text-[#f28fd0]" : "text-white/90"}`}>
-                            {isMe ? "You" : msg.sender_name}
-                          </span>
-                          <span className="text-[10px] text-white/35 shrink-0 tabular-nums">{formatTime(msg.timestamp)}</span>
-                        </div>
-                        <div className={`mt-1 rounded-xl rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
-                          <p className="text-[13px] text-white/85 leading-relaxed break-words">{msg.content}</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={chatEndRef} />
-            </div>
-            <div className="shrink-0 p-3 border-t border-white/[0.06] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-              <div className="flex gap-2 items-center">
-                <div className="flex-1 flex items-center gap-2 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-4 py-2.5 focus-within:ring-[#cc208f]/50 transition-all">
-                  <input
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                    placeholder="Message the room"
-                    className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none min-w-0"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={!chatInput.trim()}
-                    className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center hover:opacity-90 transition tap disabled:opacity-25 disabled:cursor-not-allowed shrink-0"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── PRESENTING BANNER ── */}
-        {isScreenSharing && (
-          <div className="shrink-0 mb-2 flex items-center justify-between rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/25 px-4 py-2 animate-in fade-in slide-in-from-top-2 duration-300">
-            <span className="flex items-center gap-2 text-[12px] font-medium text-emerald-400">
-              <MonitorUp className="w-3.5 h-3.5" />
-              You're presenting to the room
-            </span>
-            <button
-              onClick={toggleScreenShare}
-              className="rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30 px-3 py-1 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/25 transition tap"
-            >
-              Stop
-            </button>
-          </div>
-        )}
-
+      {/* ═══ STAGE + PANEL ═══ */}
+      <div className="flex-1 flex flex-col md:flex-row min-h-0 gap-2 px-2.5 md:px-4 pb-2">
         {/* ── STAGE ── */}
-        {hasHero ? (
-          <div className="flex-1 flex flex-col min-h-0 gap-2">
-            {/* Hero: the shared screen */}
-            <div className="relative flex-1 min-h-0 rounded-2xl overflow-hidden bg-black ring-1 ring-white/[0.08]">
-              {isScreenSharing && screenTrack ? (
-                <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain" />
-              ) : remotePresenterUser ? (
-                renderRemoteVideo(remotePresenterUser, true)
-              ) : null}
-              <NamePlate
-                name={isScreenSharing ? (profile?.username || "You") : (userNames[remotePresenterUser!.uid] || "Presenter")}
-                presenting
-              />
-            </div>
+        <div className={`relative overflow-hidden rounded-2xl bg-black ring-1 ring-white/[0.08] min-h-0 ${theater ? "flex-1" : "shrink-0 aspect-video md:aspect-auto md:flex-1"}`}>
+          {renderStage()}
 
-            {/* Filmstrip: everyone else */}
-            <div className="shrink-0 flex gap-2 overflow-x-auto no-scrollbar">
-              {!isScreenSharing && (
-                <div className="relative shrink-0 w-32 aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
-                  {cameraOn && localCameraTrack ? (
-                    <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />
-                  ) : (
-                    <AvatarFallback url={profile?.avatar_url} name={profile?.username || "U"} size="sm" />
-                  )}
-                  <MicBadge on={micOn} />
-                  <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow">You</div>
-                </div>
+          {/* Stage overlays */}
+          {stageIsLive && (
+            <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
+              <span className="flex items-center gap-1 bg-red-600/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
+                <Radio className="w-2.5 h-2.5 animate-pulse" />
+                <span className="text-[8px] font-medium tracking-[0.08em]">LIVE</span>
+              </span>
+              {(isScreenSharing || remotePresenterUser) && (
+                <span className="flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
+                  <MonitorUp className="w-2.5 h-2.5" />
+                  <span className="text-[8px] font-medium tracking-[0.08em]">
+                    {isScreenSharing ? "PRESENTING" : "SCREEN"}
+                  </span>
+                </span>
               )}
-              {gridUsers.map((user) => (
-                <div key={user.uid} className="relative shrink-0 w-32 aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
-                  {renderRemoteVideo(user)}
-                  <MicBadge on={!!user.hasAudio} />
-                  <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow truncate max-w-[85%]">
-                    {userNames[user.uid] || "Builder"}
-                  </div>
-                </div>
-              ))}
             </div>
-          </div>
-        ) : (
-          /* ── GRID (no presenter) ── */
-          <div className={`flex-1 min-h-0 grid ${gridClass} auto-rows-fr gap-2`}>
-            {/* Local tile */}
-            <div className="relative rounded-2xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
-              {cameraOn && localCameraTrack ? (
-                <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />
-              ) : (
-                <AvatarFallback url={profile?.avatar_url} name={profile?.username || "U"} />
-              )}
-              <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5">
-                <span className="flex items-center gap-1 bg-red-600/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
-                  <Radio className="w-2.5 h-2.5 animate-pulse" />
-                  <span className="text-[8px] font-medium tracking-[0.08em]">LIVE</span>
+          )}
+
+          {isAdmin && (
+            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-[#cc208f]/90 backdrop-blur-md px-2 py-1 rounded-full">
+              <GraduationCap className="w-3 h-3 text-white" />
+              <span className="text-[9px] font-medium text-white tracking-[0.06em]">
+                Teaching {Math.max(0, totalCount - 1)} {totalCount - 1 === 1 ? "learner" : "learners"}
+              </span>
+            </div>
+          )}
+
+          {/* Tutor nameplate (learner view, when live) */}
+          {!isAdmin && stageIsLive && (
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3.5 pb-3 pt-10 z-10 pointer-events-none">
+              <div className="flex items-center gap-2">
+                <Avatar
+                  url={remotePresenterUser ? userAvatars[remotePresenterUser.uid] : remoteTutor ? userAvatars[remoteTutor.uid] : undefined}
+                  name={tutorName}
+                  className="w-6 h-6"
+                />
+                <span className="text-[13px] font-semibold tracking-tight text-white">{tutorName}</span>
+                <span className="text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
+                  Tutor
                 </span>
               </div>
-              <MicBadge on={micOn} />
-              <NamePlate name={profile?.username || "You"} role={isAdmin ? "Admin" : "Member"} />
+            </div>
+          )}
+
+          {/* Theater toggle */}
+          <button
+            onClick={() => setTheater((t) => !t)}
+            title={theater ? "Show panel" : "Expand stage"}
+            className="absolute bottom-2.5 left-2.5 z-10 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap"
+          >
+            {theater ? <Shrink className="w-4 h-4" /> : <Expand className="w-4 h-4" />}
+          </button>
+
+          {/* Self preview PiP for the tutor while presenting */}
+          {isAdmin && isScreenSharing && cameraOn && localCameraTrack && (
+            <div className="absolute bottom-2.5 right-2.5 z-10 w-24 aspect-video rounded-lg overflow-hidden ring-1 ring-white/20 shadow-lift">
+              <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />
+            </div>
+          )}
+        </div>
+
+        {/* ── PANEL: Chat / Learners ── */}
+        {!theater && (
+          <div className="flex-1 md:flex-none md:w-[380px] min-h-0 flex flex-col rounded-2xl bg-[#101014] ring-1 ring-white/[0.06] overflow-hidden">
+            {/* Tabs */}
+            <div className="shrink-0 flex border-b border-white/[0.06]">
+              <button
+                onClick={() => setActiveTab("chat")}
+                className={`relative flex-1 flex items-center justify-center gap-2 py-3 text-[13px] font-semibold tracking-tight transition-colors ${activeTab === "chat" ? "text-white" : "text-white/45 hover:text-white/70"}`}
+              >
+                <Send className="w-3.5 h-3.5" />
+                Chat
+                {unreadCount > 0 && activeTab !== "chat" && (
+                  <span className="h-4 min-w-[16px] rounded-full bg-[#cc208f] text-white text-[8px] font-bold flex items-center justify-center px-1">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+                {activeTab === "chat" && <span className="absolute bottom-0 inset-x-6 h-[2px] rounded-t-full bg-[#cc208f]" />}
+              </button>
+              <button
+                onClick={() => setActiveTab("learners")}
+                className={`relative flex-1 flex items-center justify-center gap-2 py-3 text-[13px] font-semibold tracking-tight transition-colors ${activeTab === "learners" ? "text-white" : "text-white/45 hover:text-white/70"}`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                Learners · <span className="tabular-nums">{totalCount}</span>
+                {activeTab === "learners" && <span className="absolute bottom-0 inset-x-6 h-[2px] rounded-t-full bg-[#cc208f]" />}
+              </button>
             </div>
 
-            {/* Remote tiles (cap at 7 + overflow badge) */}
-            {gridUsers.slice(0, 7).map((user) => (
-              <div key={user.uid} className="relative rounded-2xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
-                {renderRemoteVideo(user)}
-                <MicBadge on={!!user.hasAudio} />
-                <NamePlate name={userNames[user.uid] || `Builder`} role="Builder" />
-              </div>
-            ))}
-            {gridUsers.length > 7 && (
-              <div className="relative rounded-2xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08] flex items-center justify-center">
-                <span className="text-[20px] font-semibold text-white/70 tabular-nums">+{gridUsers.length - 7}</span>
+            {/* ── Chat tab ── */}
+            {activeTab === "chat" && (
+              <>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+                  {chatMessages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                      <div className="w-12 h-12 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center mb-4">
+                        <MessageSquare className="w-5 h-5 text-white/40" strokeWidth={1.75} />
+                      </div>
+                      <p className="font-semibold tracking-tight text-white/70 text-[14px]">No messages yet</p>
+                      <p className="text-white/40 text-[12px] mt-1">Questions and answers land here.</p>
+                    </div>
+                  ) : (
+                    chatMessages.map((msg: any) => {
+                      const isMe = msg.sender_id === (profile?.userId || profile?.id);
+                      return (
+                        <div key={msg.id} className="flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                          <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-white/[0.08] flex items-center justify-center mt-0.5 ring-1 ring-white/10">
+                            {msg.sender_avatar ? (
+                              <img src={msg.sender_avatar} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[10px] font-semibold text-white/80">{msg.sender_name[0]?.toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[12px] font-semibold tracking-tight truncate ${isMe ? "text-[#f28fd0]" : "text-white/90"}`}>
+                                {isMe ? "You" : msg.sender_name}
+                              </span>
+                              <span className="text-[10px] text-white/35 shrink-0 tabular-nums">{formatTime(msg.timestamp)}</span>
+                            </div>
+                            <div className={`mt-1 rounded-xl rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
+                              <p className="text-[13px] text-white/85 leading-relaxed break-words">{msg.content}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+                <div className="shrink-0 p-3 border-t border-white/[0.06]">
+                  <div className="flex items-center gap-2 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-4 py-2.5 focus-within:ring-[#cc208f]/50 transition-all">
+                    <input
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                      placeholder={isAdmin ? "Message your learners" : "Ask a question"}
+                      className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none min-w-0"
+                    />
+                    <button
+                      onClick={sendMessage}
+                      disabled={!chatInput.trim()}
+                      className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center hover:opacity-90 transition tap disabled:opacity-25 disabled:cursor-not-allowed shrink-0"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Learners tab ── */}
+            {activeTab === "learners" && (
+              <div className="flex-1 overflow-y-auto p-4 space-y-5 no-scrollbar">
+                {/* Camera on */}
+                <div>
+                  <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-white/40 mb-2.5">
+                    <Video className="w-3 h-3" /> Camera on ({cameraCount})
+                  </p>
+                  {cameraCount === 0 ? (
+                    <p className="text-[12px] text-white/30">No cameras on yet.</p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {!isAdmin && selfHasCamera && (
+                        <div className="relative aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+                          <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
+                          <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow">You</div>
+                          <span className={`absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full ${micOn ? "bg-emerald-400" : "bg-red-500"}`} />
+                        </div>
+                      )}
+                      {cameraOnUsers.map((user) => (
+                        <div key={user.uid} className="relative aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+                          {findVideo(user.uid) && (
+                            <RemoteVideoTrack track={findVideo(user.uid)!} play={true} className="w-full h-full object-cover" />
+                          )}
+                          <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow truncate max-w-[80%]">
+                            {userNames[user.uid] || "Builder"}
+                          </div>
+                          <span className={`absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full ${user.hasAudio ? "bg-emerald-400" : "bg-red-500"}`} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Audio only */}
+                <div>
+                  <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-white/40 mb-2.5">
+                    <Mic className="w-3 h-3" /> Audio only ({audioCount})
+                  </p>
+                  {audioCount === 0 ? (
+                    <p className="text-[12px] text-white/30">Everyone else has their camera on.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {!isAdmin && !selfHasCamera && (
+                        <div className="flex items-center justify-between rounded-xl bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-8 h-8" />
+                            <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">You</span>
+                          </div>
+                          <MicDot on={micOn} />
+                        </div>
+                      )}
+                      {audioOnlyUsers.map((user) => (
+                        <div key={user.uid} className="flex items-center justify-between rounded-xl bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Avatar url={userAvatars[user.uid]} name={userNames[user.uid] || "B"} className="w-8 h-8" />
+                            <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">
+                              {userNames[user.uid] || "Builder"}
+                            </span>
+                            {adminUids.has(String(user.uid)) && (
+                              <span className="shrink-0 text-[8px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
+                                Tutor
+                              </span>
+                            )}
+                          </div>
+                          <MicDot on={!!user.hasAudio} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* ═══ FLOATING CONTROL BAR ═══ */}
+      {/* ═══ CONTROL BAR ═══ */}
       <div className="shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 z-20">
-        <div className="mx-auto flex w-fit items-center gap-1.5 rounded-full bg-white/[0.06] ring-1 ring-white/10 backdrop-blur-xl p-1.5 shadow-lift">
+        <div className="mx-auto flex w-fit max-w-full items-center gap-1.5 rounded-full bg-white/[0.06] ring-1 ring-white/10 backdrop-blur-xl p-1.5 shadow-lift overflow-x-auto no-scrollbar">
           <button
             onClick={() => setMicOn((p) => !p)}
-            title={micOn ? "Mute" : "Unmute"}
-            className={`h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${micOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500 text-white"}`}
+            className={`h-11 shrink-0 rounded-full px-4 flex items-center gap-2 transition-all tap ${micOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
           >
-            {micOn ? <Mic className="w-[18px] h-[18px]" /> : <MicOff className="w-[18px] h-[18px]" />}
+            {micOn ? <Mic className="w-[17px] h-[17px]" /> : <MicOff className="w-[17px] h-[17px]" />}
+            <span className="text-[12px] font-semibold tracking-tight">{micOn ? "Mic on" : "Mic off"}</span>
           </button>
           <button
             onClick={() => setCameraOn((p) => !p)}
-            title={cameraOn ? "Turn camera off" : "Turn camera on"}
-            className={`h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${cameraOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500 text-white"}`}
+            className={`h-11 shrink-0 rounded-full px-4 flex items-center gap-2 transition-all tap ${cameraOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
           >
-            {cameraOn ? <Video className="w-[18px] h-[18px]" /> : <VideoOff className="w-[18px] h-[18px]" />}
+            {cameraOn ? <Video className="w-[17px] h-[17px]" /> : <VideoOff className="w-[17px] h-[17px]" />}
+            <span className="text-[12px] font-semibold tracking-tight">{cameraOn ? "Cam on" : "Cam off"}</span>
           </button>
-          <button
-            onClick={toggleScreenShare}
-            title={isAdmin ? (isScreenSharing ? "Stop presenting" : "Present your screen") : "Admins only"}
-            className={`relative h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${
-              isScreenSharing
-                ? "bg-emerald-500 text-white"
-                : "bg-white/[0.08] text-white hover:bg-white/[0.14]"
-            } ${!isAdmin ? "opacity-50" : ""}`}
-          >
-            {isScreenSharing ? <MonitorOff className="w-[18px] h-[18px]" /> : <MonitorUp className="w-[18px] h-[18px]" />}
-            {!isAdmin && (
+          {isAdmin ? (
+            <button
+              onClick={toggleScreenShare}
+              className={`h-11 shrink-0 rounded-full px-4 flex items-center gap-2 transition-all tap ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.08] text-white hover:bg-white/[0.14]"}`}
+            >
+              {isScreenSharing ? <MonitorOff className="w-[17px] h-[17px]" /> : <MonitorUp className="w-[17px] h-[17px]" />}
+              <span className="text-[12px] font-semibold tracking-tight">{isScreenSharing ? "Stop" : "Present"}</span>
+            </button>
+          ) : (
+            <button
+              onClick={toggleScreenShare}
+              title="Only the tutor can present"
+              className="h-11 w-11 shrink-0 rounded-full bg-white/[0.05] text-white/40 flex items-center justify-center relative tap"
+            >
+              <MonitorUp className="w-[17px] h-[17px]" />
               <span className="absolute -top-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
                 <Lock className="w-2 h-2 text-white/60" />
               </span>
-            )}
-          </button>
-          <button
-            onClick={() => setChatOpen(!chatOpen)}
-            title="Live chat"
-            className={`relative h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${chatOpen ? "bg-white text-black" : "bg-white/[0.08] text-white hover:bg-white/[0.14]"}`}
-          >
-            <MessageSquare className="w-[18px] h-[18px]" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full bg-[#cc208f] text-white text-[8px] font-bold flex items-center justify-center px-1 ring-2 ring-[#0A0A0C]">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={handleShare}
-            title="Copy invite link"
-            className="h-11 w-11 rounded-full bg-white/[0.08] flex items-center justify-center text-white hover:bg-white/[0.14] transition-all tap"
-          >
-            <Share2 className="w-[18px] h-[18px]" />
-          </button>
+            </button>
+          )}
 
-          <div className="mx-0.5 h-6 w-px bg-white/10" />
+          <div className="mx-0.5 h-6 w-px bg-white/10 shrink-0" />
 
           <button
             onClick={handleLeave}
-            title="Leave session"
-            className="h-11 rounded-full bg-red-500 px-5 text-white flex items-center gap-1.5 justify-center transition-all tap hover:bg-red-600"
+            className="h-11 shrink-0 rounded-full bg-red-500 px-5 text-white flex items-center gap-1.5 justify-center transition-all tap hover:bg-red-600"
           >
-            <PhoneOff className="w-[18px] h-[18px]" />
-            <span className="text-[12px] font-semibold tracking-tight hidden sm:inline">Leave</span>
+            <PhoneOff className="w-[17px] h-[17px]" />
+            <span className="text-[12px] font-semibold tracking-tight">Leave</span>
           </button>
         </div>
       </div>

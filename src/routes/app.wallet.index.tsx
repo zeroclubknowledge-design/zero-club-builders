@@ -346,7 +346,7 @@ function WalletPage() {
   // ActionContent has been moved to separate premium pages
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24 transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground pb-20">
       {/* ── Header ── */}
       <header className={`fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-full z-20 bg-background/70 backdrop-blur-2xl px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-[1.5rem] pb-3 transition-all duration-300 flex items-center justify-between ${isScrolled ? "border-b border-border/40" : ""}`}>
         <div className="flex items-center gap-3">

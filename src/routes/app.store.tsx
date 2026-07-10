@@ -100,7 +100,7 @@ function StorePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
+    <div className="min-h-screen bg-background text-foreground pb-6">
       {/* Sticky Header Section */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-4">
         <div className="max-w-2xl mx-auto w-full">

@@ -174,7 +174,7 @@ function BootcampDetail() {
   const isTutor = currentUser?.id === bootcamp.creator_id;
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="min-h-screen bg-background pb-6">
       <div className="relative h-48 w-full">
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-background to-transparent" />
         <div className="h-full w-full overflow-hidden bg-muted">

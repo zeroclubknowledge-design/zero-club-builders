@@ -34,9 +34,7 @@ function TutorStudioPage() {
   const [bootcampVideoFile, setBootcampVideoFile] = useState<File | null>(null);
   const [activeBootcampId, setActiveBootcampId] = useState<string | null>(null);
 
-  // Profile data for Booking
   const [profile, setProfile] = useState<any>(null);
-  const [bookingForm, setBookingForm] = useState({ availability_days: 'Weekdays (Mon-Fri)', availability_start: '09:00', availability_end: '17:00', availability_duration: '60 minutes' });
   const [bootcampSettings, setBootcampSettings] = useState({
     title: "",
     description: "",
@@ -60,6 +58,10 @@ function TutorStudioPage() {
     queryFn: () => getBootcampLearners(activeBootcampId!),
     enabled: !!activeBootcampId
   });
+
+  // Club linked to the active bootcamp (created alongside it with the same name)
+  const [roleDrawer, setRoleDrawer] = useState<null | "rep" | "admins">(null);
+  const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
 
   const [rooms, setRooms] = useState([
     { name: "general", desc: "Main discussion area", color: "text-blue-500" },
@@ -101,6 +103,88 @@ function TutorStudioPage() {
   const activeBootcamp = curriculumData?.bootcamp;
   const modules = curriculumData?.modules || [];
 
+  const { data: clubData } = useQuery({
+    queryKey: ['bootcamp-club', activeBootcampId, activeBootcamp?.title],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('clubs')
+        .select('*')
+        .eq('creator_id', activeBootcamp!.creator_id)
+        .eq('name', activeBootcamp!.title)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!activeBootcamp?.title && view === "editor"
+  });
+
+  const { data: clubMembers = [] } = useQuery({
+    queryKey: ['club-members', clubData?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('club_members')
+        .select('*, profiles(id, username, full_name, avatar_url)')
+        .eq('club_id', clubData!.id)
+        .order('joined_at', { ascending: true });
+      return data || [];
+    },
+    enabled: !!clubData?.id
+  });
+
+  const studyRep = clubMembers.find((m: any) => m.role === 'Study Rep');
+  const clubAdmins = clubMembers.filter((m: any) => m.role === 'Administrator');
+
+  const updateMemberRole = async (profileId: string, newRole: string) => {
+    if (!clubData) return false;
+    setUpdatingMemberId(profileId);
+    const { data, error } = await supabase
+      .from('club_members')
+      .update({ role: newRole })
+      .eq('club_id', clubData.id)
+      .eq('profile_id', profileId)
+      .select();
+    setUpdatingMemberId(null);
+
+    if (error) {
+      if (error.message?.includes('club_members_role_check')) {
+        toast.error("Your database doesn't allow the 'Study Rep' role yet. Run supabase/migrations/add_study_rep_and_club_member_updates.sql in the Supabase SQL editor.");
+      } else {
+        toast.error(error.message || 'Failed to update role');
+      }
+      return false;
+    }
+    if (!data || data.length === 0) {
+      toast.error('Not saved — the database blocked the update. Run the included club_members migration to enable role changes.');
+      return false;
+    }
+    queryClient.invalidateQueries({ queryKey: ['club-members', clubData.id] });
+    return true;
+  };
+
+  const handleAssignRep = async (profileId: string) => {
+    const currentRep = clubMembers.find((m: any) => m.role === 'Study Rep');
+    if (currentRep && currentRep.profile_id !== profileId) {
+      const demoted = await updateMemberRole(currentRep.profile_id, 'Member');
+      if (!demoted) return;
+    }
+    const ok = await updateMemberRole(profileId, 'Study Rep');
+    if (ok) {
+      toast.success('Study Rep updated');
+      setRoleDrawer(null);
+    }
+  };
+
+  const handleToggleAdmin = async (member: any) => {
+    if (member.profile_id === profile?.id) {
+      toast.error("You're the club owner — you always have admin access.");
+      return;
+    }
+    const newRole = member.role === 'Administrator' ? 'Member' : 'Administrator';
+    const ok = await updateMemberRole(member.profile_id, newRole);
+    if (ok) toast.success(newRole === 'Administrator' ? 'Promoted to Administrator' : 'Administrator access removed');
+  };
+
   useEffect(() => {
     if (!activeBootcamp) return;
     setBootcampSettings({
@@ -121,41 +205,17 @@ function TutorStudioPage() {
     setBootcampVideoFile(null);
   }, [activeBootcamp?.id]);
 
-  // Fetch profile settings
+  // Fetch profile (used for role checks)
   useEffect(() => {
     async function loadProfile() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        if (data) {
-          setProfile(data);
-          setBookingForm({
-            availability_days: data.availability_days || 'Weekdays (Mon-Fri)',
-            availability_start: data.availability_start || '09:00',
-            availability_end: data.availability_end || '17:00',
-            availability_duration: data.availability_duration || '60 minutes'
-          });
-        }
+        if (data) setProfile(data);
       }
     }
     loadProfile();
   }, []);
-
-  const handleSaveSettings = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update(bookingForm)
-      .eq('id', session.user.id);
-
-    if (error) {
-      toast.error(`Failed to save booking settings: ${error.message}`);
-    } else {
-      toast.success(`Booking settings saved successfully!`);
-    }
-  };
 
   const handleSaveBootcampSettings = async () => {
     if (!activeBootcampId) return;
@@ -673,49 +733,152 @@ function TutorStudioPage() {
 
               {/* Roles & Permissions */}
               <section className="rounded-2xl ring-1 ring-border bg-card p-6 relative overflow-hidden shadow-soft">
-                <div className="absolute -top-6 -right-6 opacity-[0.04]">
-                  <ShieldCheck className="h-40 w-40 text-primary" />
-                </div>
                 <div className="relative z-10 flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-2xl bg-primary/10 text-primary">
-                    <ShieldCheck className="h-5 w-5" />
+                  <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary">
+                    <ShieldCheck className="h-4 w-4" strokeWidth={1.75} />
                   </div>
-                  <h3 className="text-[16px] font-semibold text-foreground tracking-tight">Roles & Permissions</h3>
+                  <h3 className="text-[16px] font-semibold text-foreground tracking-tight">Roles & permissions</h3>
                 </div>
+
+                {!clubData ? (
+                  <div className="rounded-2xl border border-dashed border-border-strong p-6 text-center text-[13px] text-muted-foreground">
+                    No club is linked to this bootcamp yet. A club is created automatically when a bootcamp launches — if you renamed the bootcamp, the link by name may be broken.
+                  </div>
+                ) : (
                 <div className="relative z-10 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background border border-border/30 hover:border-primary/30 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/15 grid place-items-center text-amber-500 shrink-0">
-                        <Star className="h-6 w-6" />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background ring-1 ring-border">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="h-11 w-11 rounded-full bg-amber-500/8 ring-1 ring-amber-500/15 grid place-items-center text-amber-600 dark:text-amber-400 shrink-0">
+                        <Star className="h-5 w-5" strokeWidth={1.75} />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Study Rep</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Oversees daily activities and answers questions</p>
+                        {studyRep ? (
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            <span className="font-medium text-foreground">{studyRep.profiles?.full_name || studyRep.profiles?.username}</span> oversees daily activities
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground mt-0.5">Not assigned yet — pick a member to lead daily activities</p>
+                        )}
                       </div>
                     </div>
-                    <button className="shrink-0 px-4 py-2 rounded-full bg-accent text-xs font-bold text-foreground hover:bg-accent/80 transition-colors border border-border/30">
-                      Change Rep
+                    <button
+                      onClick={() => setRoleDrawer("rep")}
+                      className="shrink-0 px-4 py-2 rounded-full ring-1 ring-border text-xs font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
+                    >
+                      {studyRep ? "Change Rep" : "Assign Rep"}
                     </button>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background border border-border/30 hover:border-blue-500/30 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 border border-blue-500/15 grid place-items-center text-blue-500 shrink-0">
-                        <ShieldCheck className="h-6 w-6" />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background ring-1 ring-border">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="h-11 w-11 rounded-full bg-blue-500/8 ring-1 ring-blue-500/15 grid place-items-center text-blue-600 dark:text-blue-400 shrink-0">
+                        <ShieldCheck className="h-5 w-5" strokeWidth={1.75} />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Administrators</p>
                         <p className="text-xs text-muted-foreground mt-0.5">Can moderate chat and manage members</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-foreground bg-accent px-3 py-1.5 rounded-full border border-border/30">2 users</span>
-                      <button className="shrink-0 px-4 py-2 rounded-full bg-accent text-xs font-bold text-foreground hover:bg-accent/80 transition-colors border border-border/30">
+                      <span className="text-xs font-semibold tracking-tight text-foreground ring-1 ring-border px-3 py-1.5 rounded-full tabular-nums">
+                        {clubAdmins.length} {clubAdmins.length === 1 ? "admin" : "admins"}
+                      </span>
+                      <button
+                        onClick={() => setRoleDrawer("admins")}
+                        className="shrink-0 px-4 py-2 rounded-full ring-1 ring-border text-xs font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
+                      >
                         Manage
                       </button>
                     </div>
                   </div>
                 </div>
+                )}
               </section>
+
+              {/* Role management drawer */}
+              <Drawer open={roleDrawer !== null} onOpenChange={(open) => !open && setRoleDrawer(null)}>
+                <DrawerContent className="border-none bg-background p-6 focus:ring-0 max-w-lg mx-auto">
+                  <DrawerTitle className="text-[20px] font-semibold tracking-tight text-foreground">
+                    {roleDrawer === "rep" ? "Assign Study Rep" : "Manage administrators"}
+                  </DrawerTitle>
+                  <p className="mt-1 text-[13px] text-muted-foreground">
+                    {roleDrawer === "rep"
+                      ? "The Study Rep oversees daily activities and answers questions. Only one member holds this role."
+                      : "Administrators can moderate the club chat and manage members."}
+                  </p>
+
+                  <div className="mt-5 max-h-[50vh] overflow-y-auto no-scrollbar divide-y divide-hairline">
+                    {clubMembers.length === 0 && (
+                      <p className="py-10 text-center text-[13px] text-muted-foreground">No members in this club yet.</p>
+                    )}
+                    {clubMembers.map((member: any) => {
+                      const isOwner = member.profile_id === profile?.id;
+                      const isRep = member.role === "Study Rep";
+                      const isAdmin = member.role === "Administrator";
+                      const busy = updatingMemberId === member.profile_id;
+                      return (
+                        <div key={member.profile_id} className="flex items-center justify-between gap-3 py-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-10 w-10 rounded-full bg-muted overflow-hidden ring-1 ring-border shrink-0 flex items-center justify-center text-[13px] font-semibold text-muted-foreground">
+                              {member.profiles?.avatar_url ? (
+                                <img src={member.profiles.avatar_url} className="h-full w-full object-cover" />
+                              ) : (
+                                (member.profiles?.username || "U")[0].toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[14px] font-semibold tracking-tight text-foreground truncate">
+                                {member.profiles?.full_name || member.profiles?.username}
+                                {isOwner && <span className="ml-1.5 text-[10px] font-medium text-muted-foreground">(you)</span>}
+                              </p>
+                              <p className="text-[11.5px] text-muted-foreground truncate">
+                                @{member.profiles?.username} · {member.role}
+                              </p>
+                            </div>
+                          </div>
+
+                          {roleDrawer === "rep" ? (
+                            isRep ? (
+                              <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/8 ring-1 ring-primary/15 px-3 py-1.5 text-[11px] font-semibold text-primary">
+                                <Check className="h-3 w-3" strokeWidth={2.5} /> Current Rep
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleAssignRep(member.profile_id)}
+                                disabled={busy || updatingMemberId !== null}
+                                className="shrink-0 rounded-full bg-foreground px-4 py-1.5 text-[11.5px] font-semibold tracking-tight text-background tap hover:opacity-90 disabled:opacity-40"
+                              >
+                                {busy ? "Saving…" : "Make Rep"}
+                              </button>
+                            )
+                          ) : isOwner ? (
+                            <span className="shrink-0 rounded-full ring-1 ring-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground">Owner</span>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleAdmin(member)}
+                              disabled={busy || updatingMemberId !== null}
+                              className={`shrink-0 rounded-full px-4 py-1.5 text-[11.5px] font-semibold tracking-tight tap disabled:opacity-40 ${
+                                isAdmin
+                                  ? "ring-1 ring-destructive/25 text-destructive hover:bg-destructive/5"
+                                  : "bg-foreground text-background hover:opacity-90"
+                              }`}
+                            >
+                              {busy ? "Saving…" : isAdmin ? "Remove admin" : "Make admin"}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setRoleDrawer(null)}
+                    className="mt-6 w-full rounded-full ring-1 ring-border py-3 text-[13.5px] font-semibold tracking-tight text-foreground hover:bg-foreground/[0.03] tap"
+                  >
+                    Done
+                  </button>
+                </DrawerContent>
+              </Drawer>
 
               {/* Classrooms */}
               <section className="rounded-2xl ring-1 ring-border bg-card p-6 shadow-soft">
@@ -981,7 +1144,7 @@ function TutorStudioPage() {
   // DASHBOARD VIEW
   // ═══════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-20">
       {/* ── Header ────────────────────────── */}
       <div className="relative w-full bg-background pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2 px-5">
         <div className="flex items-center justify-between gap-4 max-w-4xl mx-auto">
@@ -989,93 +1152,13 @@ function TutorStudioPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Tutor Studio</p>
             <h1 className="mt-1 font-display text-[26px] font-semibold text-foreground tracking-tight">Dashboard</h1>
           </div>
-          <Drawer>
-            <DrawerTrigger asChild>
-              <button
-                aria-label="Global settings"
-                className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border bg-card text-foreground tap hover:bg-foreground/[0.04]"
-              >
-                <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />
-              </button>
-            </DrawerTrigger>
-            <DrawerContent className="h-[90%] border-t border-border/40 bg-card p-0 flex flex-col shadow-[0_-10px_50px_rgba(0,0,0,0.12)] max-w-lg mx-auto">
-              <div className="w-12 h-1.5 bg-border/60 rounded-full mx-auto mt-4 mb-2 shrink-0" />
-              <DrawerHeader className="px-6 py-4 shrink-0 text-left">
-                <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Settings className="h-5 w-5 text-primary" />
-                  </div>
-                  Global Settings
-                </DrawerTitle>
-              </DrawerHeader>
-              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
-                <section className="space-y-5">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-blue-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-[13.5px] font-semibold tracking-tight text-foreground">Booking Availability</h3>
-                      <p className="text-xs text-muted-foreground">Set times for 1-on-1 tutoring</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Working Days</label>
-                    <div className="relative">
-                      <select
-                        value={bookingForm.availability_days}
-                        onChange={(e) => setBookingForm({ ...bookingForm, availability_days: e.target.value })}
-                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground cursor-pointer"
-                      >
-                        <option>Weekdays (Mon-Fri)</option>
-                        <option>Weekends (Sat-Sun)</option>
-                        <option>Everyday</option>
-                      </select>
-                      <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Start Time</label>
-                      <input
-                        type="time"
-                        value={bookingForm.availability_start}
-                        onChange={(e) => setBookingForm({ ...bookingForm, availability_start: e.target.value })}
-                        className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">End Time</label>
-                      <input
-                        type="time"
-                        value={bookingForm.availability_end}
-                        onChange={(e) => setBookingForm({ ...bookingForm, availability_end: e.target.value })}
-                        className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Session Duration</label>
-                    <div className="relative">
-                      <select
-                        value={bookingForm.availability_duration}
-                        onChange={(e) => setBookingForm({ ...bookingForm, availability_duration: e.target.value })}
-                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground cursor-pointer"
-                      >
-                        <option>30 minutes</option>
-                        <option>45 minutes</option>
-                        <option>60 minutes</option>
-                      </select>
-                      <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                  </div>
-                  <button onClick={handleSaveSettings} className="w-full bg-foreground text-background font-semibold tracking-tight py-3.5 rounded-full tap shadow-lift hover:opacity-90 text-[14px]">
-                    Save Availability
-                  </button>
-                </section>
-              </div>
-            </DrawerContent>
-          </Drawer>
+          <Link
+            to="/app/tutor-studio/settings"
+            aria-label="Studio settings"
+            className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border bg-card text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />
+          </Link>
         </div>
       </div>
 

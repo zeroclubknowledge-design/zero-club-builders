@@ -142,7 +142,7 @@ function NotesIndexPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 md:px-6 py-6 md:py-8 pb-32 space-y-10 md:space-y-16 max-w-5xl mx-auto w-full">
+      <div className="flex-1 px-4 md:px-6 py-6 md:py-8 pb-24 space-y-10 md:space-y-16 max-w-5xl mx-auto w-full">
         
         {loading ? (
           <div className="flex flex-col gap-8 animate-pulse">
@@ -380,7 +380,7 @@ function NotesIndexPage() {
       {/* Floating Action Button */}
       <Link 
         to="/app/notes/create"
-        className="fixed bottom-24 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lift tap hover:opacity-90"
+        className="fixed bottom-6 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lift tap hover:opacity-90"
       >
         <Plus className="h-6 w-6" strokeWidth={2} />
       </Link>

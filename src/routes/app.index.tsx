@@ -113,7 +113,7 @@ function Feed() {
   }, [filteredPosts, currentUser]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-24">
+    <div className="flex flex-col min-h-screen bg-background pb-20">
       {/* Top Header Tabs */}
       <header className="sticky top-[72px] z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline">
         <div className="flex items-center px-4 py-1 justify-between min-h-[48px]">

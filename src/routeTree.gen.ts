@@ -42,6 +42,7 @@ import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withd
 import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
 import { Route as AppWalletSendRouteImport } from './routes/app.wallet.send'
 import { Route as AppWalletAddMoneyRouteImport } from './routes/app.wallet.add-money'
+import { Route as AppTutorStudioSettingsRouteImport } from './routes/app.tutor-studio.settings'
 import { Route as AppTutorStudioCreateRouteImport } from './routes/app.tutor-studio.create'
 import { Route as AppSettingsSecurityRouteImport } from './routes/app.settings.security'
 import { Route as AppSettingsResourcesRouteImport } from './routes/app.settings.resources'
@@ -231,6 +232,11 @@ const AppWalletAddMoneyRoute = AppWalletAddMoneyRouteImport.update({
   path: '/wallet/add-money',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTutorStudioSettingsRoute = AppTutorStudioSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppTutorStudioRoute,
+} as any)
 const AppTutorStudioCreateRoute = AppTutorStudioCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -385,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
+  '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
@@ -437,6 +444,7 @@ export interface FileRoutesByTo {
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
+  '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
@@ -495,6 +503,7 @@ export interface FileRoutesById {
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
+  '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
@@ -554,6 +563,7 @@ export interface FileRouteTypes {
     | '/app/settings/resources'
     | '/app/settings/security'
     | '/app/tutor-studio/create'
+    | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
     | '/app/wallet/send'
     | '/app/wallet/settings'
@@ -606,6 +616,7 @@ export interface FileRouteTypes {
     | '/app/settings/resources'
     | '/app/settings/security'
     | '/app/tutor-studio/create'
+    | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
     | '/app/wallet/send'
     | '/app/wallet/settings'
@@ -663,6 +674,7 @@ export interface FileRouteTypes {
     | '/app/settings/resources'
     | '/app/settings/security'
     | '/app/tutor-studio/create'
+    | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
     | '/app/wallet/send'
     | '/app/wallet/settings'
@@ -921,6 +933,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWalletAddMoneyRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/tutor-studio/settings': {
+      id: '/app/tutor-studio/settings'
+      path: '/settings'
+      fullPath: '/app/tutor-studio/settings'
+      preLoaderRoute: typeof AppTutorStudioSettingsRouteImport
+      parentRoute: typeof AppTutorStudioRoute
+    }
     '/app/tutor-studio/create': {
       id: '/app/tutor-studio/create'
       path: '/create'
@@ -1156,11 +1175,13 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 
 interface AppTutorStudioRouteChildren {
   AppTutorStudioCreateRoute: typeof AppTutorStudioCreateRoute
+  AppTutorStudioSettingsRoute: typeof AppTutorStudioSettingsRoute
   AppTutorStudioIndexRoute: typeof AppTutorStudioIndexRoute
 }
 
 const AppTutorStudioRouteChildren: AppTutorStudioRouteChildren = {
   AppTutorStudioCreateRoute: AppTutorStudioCreateRoute,
+  AppTutorStudioSettingsRoute: AppTutorStudioSettingsRoute,
   AppTutorStudioIndexRoute: AppTutorStudioIndexRoute,
 }
 
@@ -1255,13 +1276,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
