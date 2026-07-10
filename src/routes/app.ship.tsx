@@ -299,7 +299,7 @@ function ShipPage() {
   const canShip = projectName.trim().length > 0 && !uploading;
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline h-[calc(72px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between px-4 h-[72px]">
@@ -317,13 +317,6 @@ function ShipPage() {
               <p className="text-[11px] text-muted-foreground">What did you ship today?</p>
             </div>
           </div>
-          <button 
-            onClick={handleShip}
-            disabled={!canShip}
-            className="rounded-full bg-foreground text-background px-6 py-2.5 text-[13.5px] font-semibold tracking-tight tap hover:opacity-90 disabled:opacity-40"
-          >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ship"}
-          </button>
         </div>
       </header>
 
@@ -569,15 +562,21 @@ function ShipPage() {
           </div>
         </section>
 
-        {/* XP Preview */}
-        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl p-6 border border-primary/20 text-center">
-          <div className="inline-flex items-center justify-center h-11 w-11 rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary mb-3">
-            <Coins className="h-6 w-6" />
-          </div>
-          <h3 className="text-[16px] font-semibold tracking-tight text-foreground mb-1">Earn +50 XP</h3>
-          <p className="text-sm text-muted-foreground max-w-[250px] mx-auto">
-            Shipping real work builds your portfolio and increases your reputation.
-          </p>
+        {/* Bottom Ship Button */}
+        <div className="mt-6 px-1">
+          <button 
+            onClick={handleShip}
+            disabled={!canShip}
+            className="w-full rounded-2xl bg-gradient-primary py-4 text-[16px] font-bold tracking-tight text-primary-foreground shadow-glow tap hover:opacity-95 disabled:opacity-40 flex items-center justify-center gap-2"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" /> Shipping...
+              </>
+            ) : (
+              "Ship Project"
+            )}
+          </button>
         </div>
 
       </div>

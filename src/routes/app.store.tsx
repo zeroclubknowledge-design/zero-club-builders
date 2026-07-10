@@ -100,9 +100,9 @@ function StorePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-4">
+    <div className="min-h-screen bg-background text-foreground pb-20">
+      {/* Sticky Header Section */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-4">
         <div className="max-w-2xl mx-auto w-full">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3">
@@ -129,31 +129,32 @@ function StorePage() {
               </div>
             </div>
           </div>
+
+          {/* Intro */}
+          <p className="mt-6 text-[13.5px] leading-relaxed text-muted-foreground max-w-md">
+            Redeem your builder rewards for subscriptions, gear, and exclusive perks.
+          </p>
+
+          {/* Category Tabs */}
+          <div className="mt-5 flex flex-wrap items-center gap-2 pb-1">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`rounded-full px-4 py-1.5 text-[12.5px] font-semibold tracking-tight tap transition-colors ${
+                  activeCategory === cat
+                    ? "bg-foreground text-background"
+                    : "ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="w-full max-w-2xl mx-auto px-5">
-        {/* Intro */}
-        <p className="mt-6 text-[13.5px] leading-relaxed text-muted-foreground max-w-md">
-          Redeem your builder rewards for subscriptions, gear, and exclusive perks.
-        </p>
-
-        {/* Category Tabs */}
-        <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[12.5px] font-semibold tracking-tight tap transition-colors ${
-                activeCategory === cat
-                  ? "bg-foreground text-background"
-                  : "ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
 
         {/* Catalog */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">

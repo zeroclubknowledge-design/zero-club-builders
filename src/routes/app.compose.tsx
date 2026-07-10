@@ -459,6 +459,31 @@ function ComposePage() {
       <div className="flex-1 overflow-y-auto px-4 pb-56 no-scrollbar">
         {/* Post Card */}
         <div className="bg-card rounded-[32px] p-6 shadow-sm border border-border/50 flex flex-col relative">
+          {/* Static Formatting Toolbar */}
+          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/40">
+            <button 
+              onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
+              className="h-9 w-9 flex items-center justify-center rounded-xl text-foreground/80 bg-accent/50 hover:bg-accent hover:text-foreground transition active:scale-95"
+              title="Bold"
+            >
+              <Bold className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+            <button 
+              onMouseDown={(e) => { e.preventDefault(); insertFormatting('italic'); }}
+              className="h-9 w-9 flex items-center justify-center rounded-xl text-foreground/80 bg-accent/50 hover:bg-accent hover:text-foreground transition active:scale-95"
+              title="Italic"
+            >
+              <Italic className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+            <button 
+              onMouseDown={(e) => { e.preventDefault(); insertFormatting('bullet'); }}
+              className="h-9 w-9 flex items-center justify-center rounded-xl text-foreground/80 bg-accent/50 hover:bg-accent hover:text-foreground transition active:scale-95"
+              title="Bullet List"
+            >
+              <List className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+          </div>
+
           <div className="relative min-h-[150px] w-full text-lg">
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
@@ -514,36 +539,6 @@ function ComposePage() {
           )}
 
           {/* Mention Suggestions */}
-          {/* Floating Formatting Toolbar */}
-      {isEditorFocused && (
-        <div className="fixed bottom-[110px] left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 fade-in duration-200">
-          <div className="flex items-center gap-1 p-1.5 bg-background/95 backdrop-blur-xl rounded-full shadow-lift ring-1 ring-border">
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
-              title="Bold"
-            >
-              <Bold className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); insertFormatting('italic'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
-              title="Italic"
-            >
-              <Italic className="h-4 w-4" strokeWidth={2} />
-            </button>
-            <div className="w-px h-5 bg-border mx-1" />
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); insertFormatting('bullet'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
-              title="Bullet List"
-            >
-              <List className="h-4 w-4" strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-      )}
-
       {showMentions && mentionSuggestions.length > 0 && (
             <div className="absolute z-50 left-6 right-6 top-16 rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[250px] overflow-y-auto">
               {mentionSuggestions.map((prof) => (
