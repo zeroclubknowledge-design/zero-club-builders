@@ -74,6 +74,16 @@ function InstitutionHub() {
   // ── Search ──
   const [bootcampSearch, setBootcampSearch] = useState("");
 
+  /* ── Listen for tab changes from the unified main sidebar (desktop) ── */
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail;
+      if (tab) setActiveTab(tab);
+    };
+    window.addEventListener("institution-tab-change", handler);
+    return () => window.removeEventListener("institution-tab-change", handler);
+  }, []);
+
   /* ── Load institution profile ── */
   useEffect(() => {
     async function load() {
@@ -375,53 +385,9 @@ function InstitutionHub() {
 
   return (
     <div className="flex h-[calc(100vh-env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-background">
-      {/* ═══ DESKTOP SIDEBAR ═══ */}
-      <div className="w-[260px] border-r hairline bg-card/30 flex-col hidden lg:flex shrink-0">
-        <div className="p-6 pb-0">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-11 w-11 rounded-2xl bg-primary/8 ring-1 ring-primary/15 text-primary flex items-center justify-center overflow-hidden">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} className="h-full w-full object-cover" />
-              ) : (
-                <Building2 className="h-5 w-5" strokeWidth={1.75} />
-              )}
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-display font-semibold tracking-tight text-[16px] truncate">{profile?.full_name || "Institution"}</h2>
-              <p className="text-[11px] text-muted-foreground font-medium">@{profile?.username}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 px-3 pt-6">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60 px-3 mb-2">Navigation</p>
-          <nav className="space-y-0.5">
-            {sidebarItems.map(({ key, label, Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold tracking-tight tap transition-all ${
-                  activeTab === key
-                    ? "bg-foreground text-background shadow-sm"
-                    : "hover:bg-foreground/[0.04] text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className="h-[17px] w-[17px]" strokeWidth={1.75} />
-                {label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="p-4 border-t hairline">
-          <Link
-            to="/app"
-            className="flex items-center gap-2 text-[12px] font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-2"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" /> Back to app
-          </Link>
-        </div>
-      </div>
+      {/* ═══ DESKTOP SIDEBAR — hidden; tabs are in main app sidebar ═══ */}
+      {/* The main sidebar in app.tsx now renders institution hub tabs on desktop.
+          We keep the mobile bottom tab bar below for small screens. */}
 
       {/* ═══ MOBILE TAB BAR ═══ */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 md:left-[292px] z-50 bg-background/95 backdrop-blur-xl border-t hairline px-2 pb-[env(safe-area-inset-bottom)]">

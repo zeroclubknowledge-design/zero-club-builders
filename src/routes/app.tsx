@@ -17,6 +17,13 @@ import {
   Palette,
   Check,
   Rocket,
+  Activity,
+  Users,
+  LayoutGrid,
+  BarChart3,
+  Settings,
+  ChevronLeft,
+  Building2,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -82,20 +89,42 @@ const formatCompactNumber = (value?: number | null) => {
   return number.toLocaleString();
 };
 
+const INSTITUTION_SIDEBAR_TABS = [
+  { key: "overview", label: "Overview", Icon: Activity },
+  { key: "tutors", label: "Tutors", Icon: Users },
+  { key: "bootcamps", label: "Bootcamps", Icon: LayoutGrid },
+  { key: "analytics", label: "Analytics", Icon: BarChart3 },
+  { key: "settings", label: "Settings", Icon: Settings },
+] as const;
+
 function SidebarContent({
   profile,
   onOpenTheme,
   onClose,
+  isInstitutionStudio,
 }: {
   profile: any;
   onOpenTheme: () => void;
   onClose?: () => void;
+  isInstitutionStudio?: boolean;
 }) {
   const [accounts, setAccounts] = React.useState<any[]>([]);
+  const [institutionActiveTab, setInstitutionActiveTab] = React.useState("overview");
 
   React.useEffect(() => {
     setAccounts(getSavedAccounts());
   }, []);
+
+  // Sync institution tab active state when tab changes (from this sidebar or from mobile)
+  React.useEffect(() => {
+    if (!isInstitutionStudio) return;
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail;
+      if (tab) setInstitutionActiveTab(tab);
+    };
+    window.addEventListener("institution-tab-change", handler);
+    return () => window.removeEventListener("institution-tab-change", handler);
+  }, [isInstitutionStudio]);
 
   return (
     <div
@@ -263,39 +292,84 @@ function SidebarContent({
       </div>
 
       <div className="overflow-y-auto pr-2 -mr-2 mt-6 flex-1 no-scrollbar flex flex-col">
-        <nav className="flex flex-col gap-1.5 flex-1">
-          {[
-            // Desktop-only: mirror the mobile bottom nav (hidden on md+)
-            { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
-            { Icon: IconWallet, label: "Wallet", to: "/app/wallet", desktopOnly: true },
-            { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
-            { Icon: IconProfile, label: "Profile", to: "/app/profile" },
-            { Icon: IconGem, label: "Membership", to: "/app/premium" },
-            { Icon: IconStore, label: "My Store", to: "/app/my-store" },
-            { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
-            { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
-            { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
-            { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
-            { Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" },
-            ...(profile?.account_type === "Tutor" || profile?.account_type === "Institution"
-              ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
-              : []),
-            ...(profile?.account_type === "Institution"
-              ? [{ Icon: IconInstitution, label: "Institution Hub", to: "/app/institution-studio" }]
-              : []),
-          ].map((item: any) => (
-            <Link
-              key={item.label}
-              to={item.to}
-              activeOptions={{ exact: !!item.exact }}
-              activeProps={{ className: "bg-foreground/[0.05] !text-foreground [&_svg]:text-foreground" }}
-              className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]`}
-            >
-              <item.Icon className="h-[20px] w-[20px] text-muted-foreground group-hover:text-foreground transition-colors" />
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </nav>
+        {isInstitutionStudio ? (
+          /* ── Institution Hub sidebar: replaces regular nav when on institution-studio ── */
+          <div className="flex flex-col flex-1">
+            <div className="flex items-center gap-2 px-3 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-primary/8 ring-1 ring-primary/15 text-primary flex items-center justify-center">
+                <Building2 className="h-4 w-4" strokeWidth={1.75} />
+              </div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Institution Hub</p>
+            </div>
+            <nav className="flex flex-col gap-1 flex-1">
+              {INSTITUTION_SIDEBAR_TABS.map(({ key, label, Icon }) => {
+                const isActive = institutionActiveTab === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      setInstitutionActiveTab(key);
+                      window.dispatchEvent(new CustomEvent("institution-tab-change", { detail: key }));
+                      onClose?.();
+                    }}
+                    className={`group flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap transition-colors ${
+                      isActive
+                        ? "bg-foreground/[0.05] text-foreground [&_svg]:text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
+                    }`}
+                  >
+                    <Icon className={`h-[20px] w-[20px] transition-colors ${isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`} strokeWidth={1.75} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="mt-auto pb-2">
+              <Link
+                to="/app"
+                className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] tap transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Back to app</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          /* ── Regular app sidebar nav ── */
+          <nav className="flex flex-col gap-1.5 flex-1">
+            {[
+              // Desktop-only: mirror the mobile bottom nav (hidden on md+)
+              { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
+              { Icon: IconWallet, label: "Wallet", to: "/app/wallet", desktopOnly: true },
+              { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
+              { Icon: IconProfile, label: "Profile", to: "/app/profile" },
+              { Icon: IconGem, label: "Membership", to: "/app/premium" },
+              { Icon: IconStore, label: "My Store", to: "/app/my-store" },
+              { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
+              { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
+              { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
+              { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
+              { Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" },
+              ...(profile?.account_type === "Tutor" || profile?.account_type === "Institution"
+                ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
+                : []),
+              ...(profile?.account_type === "Institution"
+                ? [{ Icon: IconInstitution, label: "Institution Hub", to: "/app/institution-studio" }]
+                : []),
+            ].map((item: any) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                activeOptions={{ exact: !!item.exact }}
+                activeProps={{ className: "bg-foreground/[0.05] !text-foreground [&_svg]:text-foreground" }}
+                className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]`}
+              >
+                <item.Icon className="h-[20px] w-[20px] text-muted-foreground group-hover:text-foreground transition-colors" />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+        )}
 
         <div className="mt-auto pb-2 pt-2">
           <Accordion type="single" collapsible className="w-full border-none">
@@ -1011,7 +1085,7 @@ function AppLayout() {
     <div className="zc-app-shell mx-auto min-h-screen w-full bg-background md:flex md:max-w-none md:justify-center">
       {/* Desktop Sidebar (Left Column) */}
       <div className="hidden md:flex flex-col w-[292px] shrink-0 sticky top-0 h-screen border-r border-border/40 bg-background z-40 overflow-y-auto no-scrollbar">
-        <SidebarContent profile={profile} onOpenTheme={() => setIsThemeOpen(true)} />
+        <SidebarContent profile={profile} onOpenTheme={() => setIsThemeOpen(true)} isInstitutionStudio={pathname.startsWith("/app/institution-studio")} />
       </div>
 
       {/* Main Center Column */}
@@ -1077,6 +1151,7 @@ function AppLayout() {
             >
               <SidebarContent
                 profile={profile}
+                isInstitutionStudio={pathname.startsWith("/app/institution-studio")}
                 onClose={handleCloseSidebar}
                 onOpenTheme={() => {
                   setIsSidebarOpen(false);
@@ -1143,12 +1218,14 @@ function AppLayout() {
           unreadCount={unreadMessagesCount}
         />
       </div>
-      <DesktopWorkspaceRail
-        profile={profile}
-        pathname={pathname}
-        unreadMessagesCount={unreadMessagesCount}
-        unreadNotificationsCount={unreadNotificationsCount}
-      />
+      {!pathname.startsWith("/app/institution-studio") && (
+        <DesktopWorkspaceRail
+          profile={profile}
+          pathname={pathname}
+          unreadMessagesCount={unreadMessagesCount}
+          unreadNotificationsCount={unreadNotificationsCount}
+        />
+      )}
     </div>
   );
 }

@@ -394,8 +394,8 @@ function WalletPage() {
       </header>
 
       {/* ── Main Content Container ── */}
-      <div className="md:grid md:grid-cols-[minmax(340px,420px)_minmax(0,1fr)] md:items-start md:gap-10 lg:gap-12 md:px-8 lg:px-10 md:pt-8 md:pb-16 md:max-w-[1200px]">
-      <div className="md:min-w-0">
+      <div className="lg:grid lg:grid-cols-[minmax(300px,340px)_minmax(0,1fr)] lg:items-start lg:gap-10 md:px-8 lg:px-10 md:pt-8 md:pb-16 md:max-w-[1200px]">
+      <div className="md:min-w-0 md:max-w-[560px] lg:max-w-none">
       <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pt-0 flex flex-col w-full">
 
           {/* Premium Balance Card */}
@@ -488,9 +488,9 @@ function WalletPage() {
       </div>
 
       {/* ── Transaction History ── */}
-      <section id="transactions" className="px-6 mt-12 scroll-mt-24 md:px-8 lg:px-10 md:mt-0 md:min-w-0 md:rounded-3xl md:ring-1 md:ring-border md:bg-card md:py-8 md:shadow-soft">
-        <div className="flex justify-between items-center mb-8">
-          <h3 className="text-[19px] font-semibold text-foreground tracking-tight">History</h3>
+      <section id="transactions" className="px-6 mt-12 scroll-mt-24 md:px-7 md:mt-10 lg:mt-0 md:min-w-0 md:max-w-[560px] lg:max-w-none md:rounded-3xl md:ring-1 md:ring-border md:bg-card md:py-7 md:shadow-soft">
+        <div className="flex justify-between items-center mb-8 md:mb-5 md:pb-4 md:border-b md:hairline">
+          <h3 className="text-[19px] md:text-[17px] font-semibold text-foreground tracking-tight">History</h3>
           <button className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
             View all →
           </button>
@@ -498,11 +498,11 @@ function WalletPage() {
 
         {activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center mt-6">
-            <div className="relative mb-10">
+            <div className="relative mb-10 w-full max-w-[280px]">
               {/* Skeletons to mimic the uploaded UI */}
-              <div className="w-[200px] h-12 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-40 shadow-sm" />
-              <div className="w-[240px] h-14 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-70 shadow-sm" />
-              <div className="w-[280px] bg-card border border-border/40 rounded-2xl p-4 shadow-sm flex items-center gap-3 relative z-10">
+              <div className="w-[200px] max-w-[71%] h-12 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-40 shadow-sm" />
+              <div className="w-[240px] max-w-[86%] h-14 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-70 shadow-sm" />
+              <div className="w-[280px] max-w-full bg-card border border-border/40 rounded-2xl p-4 shadow-sm flex items-center gap-3 relative z-10">
                 <div className="h-10 w-10 rounded-full bg-primary/10" />
                 <div className="flex-1 space-y-2">
                   <div className="h-2.5 w-3/4 rounded-full bg-primary/10" />
@@ -516,13 +516,15 @@ function WalletPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-5 md:space-y-0 md:divide-y md:divide-border/30">
             {activities.map((activity) => {
-              const isIncome = activity.content?.includes("Received") || activity.content?.includes("Claimed") || activity.content?.includes("reward");
+              const isIncome = activity.content?.includes("Received") || activity.content?.includes("Earned") || activity.content?.includes("Claimed") || activity.content?.includes("reward");
+              const amountMatch = activity.content?.match(/(\d[\d,]*)\s*XP/i);
+              const amount = amountMatch ? amountMatch[1] : null;
               return (
-                <div key={activity.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full overflow-hidden bg-secondary border border-border/40 shrink-0">
+                <div key={activity.id} className="flex items-center justify-between gap-3 md:py-3.5 md:first:pt-0 md:last:pb-0">
+                  <div className="flex items-center gap-4 md:gap-3 min-w-0">
+                    <div className="h-12 w-12 md:h-10 md:w-10 rounded-full overflow-hidden bg-secondary border border-border/40 shrink-0">
                       {activity.actor?.avatar_url ? (
                         <img src={activity.actor.avatar_url} className="h-full w-full object-cover" />
                       ) : (
@@ -531,14 +533,14 @@ function WalletPage() {
                         </div>
                       )}
                     </div>
-                    <div>
-                      <h5 className="text-sm font-medium text-foreground">{activity.content}</h5>
+                    <div className="min-w-0">
+                      <h5 className="text-sm font-medium text-foreground md:text-[13px] md:leading-snug md:line-clamp-2">{activity.content}</h5>
                       <p className="text-xs text-muted-foreground mt-0.5">{new Date(activity.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`text-sm font-bold ${isIncome ?'text-emerald-500' : 'text-foreground'}`}>
-                      {isIncome ? '+' : '-'} XP
+                    <p className={`text-sm font-bold tabular-nums whitespace-nowrap ${isIncome ?'text-emerald-500' : 'text-foreground'}`}>
+                      {amount ? `${isIncome ? '+' : '-'}${amount} XP` : '—'}
                     </p>
                   </div>
                 </div>
