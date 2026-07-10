@@ -313,6 +313,32 @@ function Feed() {
           </div>
         ) : (
           <>
+            {/* Desktop inline composer */}
+            <div className="hidden md:flex items-center gap-3.5 px-5 py-4 border-b hairline">
+              <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-border shrink-0">
+                {currentUser?.avatar_url ? (
+                  <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-[12px] font-semibold text-white uppercase">
+                    {currentUser?.username?.substring(0, 1) || "U"}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setCreateOpen(true)}
+                className="flex-1 text-left rounded-full bg-foreground/[0.04] ring-1 ring-transparent hover:ring-border hover:bg-foreground/[0.06] px-5 py-3 text-[14px] text-muted-foreground transition-all tap"
+              >
+                Share what you're building…
+              </button>
+              <Link
+                to="/app/ship"
+                className="inline-flex items-center gap-1.5 rounded-full ring-1 ring-border px-4 py-2.5 text-[12.5px] font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
+              >
+                <Rocket className="h-3.5 w-3.5 text-[#cc208f]" strokeWidth={1.75} />
+                Ship
+              </Link>
+            </div>
+
             {isLoading ? (
               <div className="flex flex-col pt-2">
                 {[0, 1, 2].map((i) => (

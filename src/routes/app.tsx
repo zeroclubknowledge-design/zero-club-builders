@@ -265,6 +265,10 @@ function SidebarContent({
       <div className="overflow-y-auto pr-2 -mr-2 mt-6 flex-1 no-scrollbar flex flex-col">
         <nav className="flex flex-col gap-1.5 flex-1">
           {[
+            // Desktop-only: mirror the mobile bottom nav (hidden on md+)
+            { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
+            { Icon: IconWallet, label: "Wallet", to: "/app/wallet", desktopOnly: true },
+            { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
             { Icon: IconProfile, label: "Profile", to: "/app/profile" },
             { Icon: IconGem, label: "Membership", to: "/app/premium" },
             { Icon: IconStore, label: "My Store", to: "/app/my-store" },
@@ -279,11 +283,13 @@ function SidebarContent({
             ...(profile?.account_type === "Institution"
               ? [{ Icon: IconInstitution, label: "Institution Hub", to: "/app/institution-studio" }]
               : []),
-          ].map((item) => (
+          ].map((item: any) => (
             <Link
               key={item.label}
               to={item.to}
-              className="group flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]"
+              activeOptions={{ exact: !!item.exact }}
+              activeProps={{ className: "bg-foreground/[0.05] !text-foreground [&_svg]:text-foreground" }}
+              className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]`}
             >
               <item.Icon className="h-[20px] w-[20px] text-muted-foreground group-hover:text-foreground transition-colors" />
               <span>{item.label}</span>

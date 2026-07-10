@@ -454,33 +454,33 @@ function WalletPage() {
 
       {/* ── Quick Actions Grid (Under Add Money & Send) ── */}
       <section className="px-6 mt-6 md:px-0 md:mt-8">
-        <div className="grid grid-cols-4 gap-3">
-          <Link to="/app/store" className="flex flex-col items-center gap-2 group transition-transform active:scale-95">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40">
-              <Store className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+        <div className="grid grid-cols-4 gap-3 md:grid-cols-2 md:gap-3">
+          <Link to="/app/store" className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
+            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+              <Store className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">Store</span>
-          </Link>
-          
-          <Link to="/app/quests" className="flex flex-col items-center gap-2 group transition-transform active:scale-95">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40">
-              <TrendingUp className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">Earn</span>
+            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Store</span>
           </Link>
 
-          <Link to="/app/wallet/withdraw" className="flex flex-col items-center gap-2 group transition-transform active:scale-95">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40">
-              <CustomWalletIcon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <Link to="/app/quests" className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
+            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+              <TrendingUp className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">Withdraw</span>
+            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Earn</span>
           </Link>
 
-          <button className="flex flex-col items-center gap-2 group transition-transform active:scale-95">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40">
-              <Box className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <Link to="/app/wallet/withdraw" className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
+            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+              <CustomWalletIcon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">More</span>
+            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Withdraw</span>
+          </Link>
+
+          <button className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
+            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+              <Box className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
+            </div>
+            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">More</span>
           </button>
         </div>
       </section>

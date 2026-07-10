@@ -177,7 +177,7 @@ function ChatInboxPage() {
             key={chat.id} 
             to="/app/chat/$id"
             params={{ id: chat.id }}
-            className={`flex items-center gap-4 px-5 py-4 hover:bg-accent/30 transition-all duration-200 cursor-pointer border-b border-border/10 active:bg-accent/20 group ${chat.unread ?"bg-primary/[0.03]" : ""}`}
+            className={`flex items-center gap-4 px-5 py-4 md:px-6 md:py-[18px] hover:bg-accent/30 transition-all duration-200 cursor-pointer border-b border-border/10 last:border-b-0 active:bg-accent/20 group ${chat.unread ?"bg-primary/[0.03]" : ""}`}
           >
             {/* Avatar with Online Status */}
             <div className="relative shrink-0" onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate({ to: '/app/profile/$id', params: { id: chat.user?.id } }); }}>
@@ -211,7 +211,7 @@ function ChatInboxPage() {
                 </div>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <p className={`text-xs truncate max-w-[200px] leading-relaxed ${chat.unread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                <p className={`text-xs md:text-[12.5px] truncate max-w-[200px] md:max-w-[420px] leading-relaxed ${chat.unread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
                   {chat.lastMessage?.includes('$$MEDIA$$') ? (() => {
                     const textPart = chat.lastMessage.split('$$MEDIA$$')[0].trim();
                     if (textPart) return textPart;
