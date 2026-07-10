@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
-  Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, Users,
-  MessageSquare, ChevronLeft, Loader2, Send, X, Radio, Zap, Search, Share2, PictureInPicture, Minimize2, Maximize2
+  Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
+  MessageSquare, Loader2, Send, X, Radio, Zap, Share2, Minimize2, Maximize2, Lock,
 } from "lucide-react";
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
@@ -14,7 +14,6 @@ import { useSharedPresence } from "@/hooks/useSharedPresence";
 import AgoraRTC, {
   AgoraRTCProvider,
   LocalVideoTrack,
-  RemoteUser,
   useJoin,
   useLocalCameraTrack,
   useLocalMicrophoneTrack,
@@ -41,6 +40,8 @@ interface ChatMessage {
 /**
  * Global component that maintains the Agora connection across route changes.
  * Displays as fullscreen when maximized, and as a draggable PiP when minimized.
+ * The live stage is a committed dark surface regardless of app theme — like every
+ * world-class video product.
  */
 export function GlobalLiveRoom() {
   const { isActive, channelId } = useLiveSession();
@@ -80,8 +81,7 @@ export function GlobalLiveRoom() {
         setIsFetchingToken(false);
       }
     }
-    
-    // Only fetch if we are active and don't have a token for this channel
+
     if (isActive && channelId) {
       fetchToken();
     } else {
@@ -94,15 +94,16 @@ export function GlobalLiveRoom() {
   /* ── Loading State ── */
   if (isFetchingToken) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
-        <div className="relative">
-          <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-            <Zap className="w-7 h-7 text-primary-foreground fill-current" />
-          </div>
-          <Loader2 className="w-6 h-6 animate-spin text-primary absolute -bottom-1 -right-1" />
+      <div className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center">
+        <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[100px]" />
+        <div className="relative grid h-14 w-14 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10">
+          <Zap className="w-6 h-6 text-white/90" strokeWidth={1.75} />
         </div>
-        <h2 className="text-xl font-black text-foreground tracking-tight mt-6">Preparing Live Room</h2>
-        <p className="text-sm text-muted-foreground mt-2">Setting up your Zero Club session…</p>
+        <h2 className="text-[19px] font-semibold text-white tracking-tight mt-6">Preparing your stage</h2>
+        <p className="text-[13px] text-white/50 mt-1.5">Connecting to Zero Club Live</p>
+        <div className="mt-6 h-1 w-24 overflow-hidden rounded-full bg-white/[0.08]">
+          <div className="h-full w-1/3 rounded-full bg-[#cc208f] animate-progress" />
+        </div>
       </div>
     );
   }
@@ -110,20 +111,20 @@ export function GlobalLiveRoom() {
   /* ── Error State ── */
   if (!token && !isFetchingToken) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center p-6">
-        <div className="bg-card p-8 rounded-3xl border border-border max-w-md w-full text-center shadow-xl">
-          <div className="w-16 h-16 bg-destructive/10 text-destructive rounded-2xl flex items-center justify-center mx-auto mb-6 border border-destructive/20">
-            <PhoneOff className="w-8 h-8" />
+      <div className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center p-6">
+        <div className="bg-[#141117] p-8 rounded-[28px] ring-1 ring-white/[0.06] max-w-md w-full text-center shadow-lift">
+          <div className="w-14 h-14 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6 ring-1 ring-red-500/20">
+            <PhoneOff className="w-6 h-6" strokeWidth={1.75} />
           </div>
-          <h2 className="text-2xl font-black text-foreground tracking-tight mb-2">Connection Failed</h2>
-          <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
-            We couldn't generate a secure access token.
+          <h2 className="text-[21px] font-semibold text-white tracking-tight mb-2">Connection failed</h2>
+          <p className="text-white/50 mb-8 text-[13.5px] leading-relaxed">
+            We couldn't generate a secure access token for this session.
           </p>
           <button
             onClick={() => window.history.back()}
-            className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-2xl hover:brightness-110 transition-colors"
+            className="w-full py-3.5 bg-white text-black text-[14px] font-semibold tracking-tight rounded-full tap hover:opacity-90"
           >
-            Go Back
+            Go back
           </button>
         </div>
       </div>
@@ -138,6 +139,45 @@ export function GlobalLiveRoom() {
     </AgoraRTCProvider>
   );
 }
+
+/* ── Small shared bits ── */
+const NamePlate = ({ name, role, presenting }: { name: string; role?: string; presenting?: boolean }) => (
+  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pb-2.5 pt-8 z-10 pointer-events-none">
+    <div className="flex items-center gap-1.5">
+      <span className="text-[12.5px] font-semibold tracking-tight text-white truncate">{name}</span>
+      {role && (
+        <span className={`shrink-0 text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full ${role === "Admin" ? "bg-[#cc208f]/90 text-white" : "bg-white/15 text-white/80"}`}>
+          {role}
+        </span>
+      )}
+      {presenting && (
+        <span className="shrink-0 text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-emerald-500/90 text-white">
+          Presenting
+        </span>
+      )}
+    </div>
+  </div>
+);
+
+const MicBadge = ({ on }: { on: boolean }) => (
+  <div className={`absolute top-2 right-2 z-10 grid h-6 w-6 place-items-center rounded-full backdrop-blur-md ${on ? "bg-black/40 ring-1 ring-white/10" : "bg-red-500/85"}`}>
+    {on ? <Mic className="w-3 h-3 text-emerald-400" /> : <MicOff className="w-3 h-3 text-white" />}
+  </div>
+);
+
+const AvatarFallback = ({ url, name, size = "lg" }: { url?: string | null; name: string; size?: "lg" | "sm" }) => (
+  <div className="absolute inset-0 flex items-center justify-center bg-[#141117]">
+    <div className={`${size === "lg" ? "w-16 h-16 md:w-20 md:h-20" : "w-10 h-10"} rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center overflow-hidden`}>
+      {url ? (
+        <img src={url} alt="" className="w-full h-full object-cover" />
+      ) : (
+        <span className={`${size === "lg" ? "text-xl" : "text-sm"} font-semibold text-white/80`}>
+          {(name || "U")[0].toUpperCase()}
+        </span>
+      )}
+    </div>
+  </div>
+);
 
 function LiveRoomContent({ channel, token }: { channel: string; token: string }) {
   const navigate = useNavigate();
@@ -154,8 +194,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         setIsAdmin(true);
         return;
       }
-      const { data: member } = await supabase.from("club_members").select("role").eq("club_id", channel).eq("user_id", profile.id).single();
-      if (member?.role === "admin" || member?.role === "moderator") {
+      const { data: member } = await supabase
+        .from("club_members")
+        .select("role")
+        .eq("club_id", channel)
+        .eq("profile_id", profile.id)
+        .maybeSingle();
+      const role = (member?.role || "").toLowerCase();
+      if (role === "administrator" || role === "admin" || role === "moderator") {
         setIsAdmin(true);
       }
     }
@@ -167,6 +213,22 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [cameraOn, setCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenTrack, setScreenTrack] = useState<any>(null);
+
+  /* ── Session timer ── */
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const formatElapsed = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return h > 0
+      ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`
+      : `${m}:${String(sec).padStart(2, "0")}`;
+  };
 
   /* ── Sync mic state to global context for mini player ── */
   useEffect(() => {
@@ -190,16 +252,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const { localCameraTrack } = useLocalCameraTrack(cameraOn && !isScreenSharing, { encoderConfig: "720p_1" });
 
   const videoTrackToPublish = isScreenSharing && screenTrack ? screenTrack : localCameraTrack;
-  
+
   // Agora usePublish accepts null values and uses array positioning
   const tracksToPublish = [localMicrophoneTrack || null, videoTrackToPublish || null];
   usePublish(tracksToPublish);
-  
+
   const remoteUsers = useRemoteUsers();
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
   const { videoTracks } = useRemoteVideoTracks(remoteUsers);
 
-  /* ── Chat broadcast channel ── */
+  /* ── Remote presenter tracking (broadcast + heartbeat, expires when stale) ── */
+  const [remotePresenter, setRemotePresenter] = useState<{ uid: string; at: number } | null>(null);
+
+  /* ── Chat + presenting broadcast channel ── */
   useEffect(() => {
     const ch = supabase.channel(`live-chat-${channel}`, {
       config: { broadcast: { self: false } },
@@ -207,16 +272,52 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     ch.on("broadcast", { event: "chat" }, ({ payload }: any) => {
       setChatMessages((prev) => [...prev, payload as ChatMessage]);
       if (!chatOpenRef.current) setUnreadCount((c) => c + 1);
-    }).subscribe();
+    });
+    ch.on("broadcast", { event: "presenting" }, ({ payload }: any) => {
+      if (payload?.presenting && payload?.uid != null) {
+        setRemotePresenter({ uid: String(payload.uid), at: Date.now() });
+      } else {
+        setRemotePresenter((cur) => (cur && cur.uid === String(payload?.uid) ? null : cur));
+      }
+    });
+    ch.subscribe();
 
     chatChannelRef.current = ch;
     return () => { supabase.removeChannel(ch); };
   }, [channel]);
 
+  /* Presenter heartbeat while sharing; stale-expiry for remote presenter */
+  useEffect(() => {
+    if (!isScreenSharing || !chatChannelRef.current || client?.uid == null) return;
+    const send = () =>
+      chatChannelRef.current?.send({
+        type: "broadcast",
+        event: "presenting",
+        payload: { uid: client.uid, presenting: true },
+      });
+    send();
+    const id = setInterval(send, 4000);
+    return () => {
+      clearInterval(id);
+      chatChannelRef.current?.send({
+        type: "broadcast",
+        event: "presenting",
+        payload: { uid: client.uid, presenting: false },
+      });
+    };
+  }, [isScreenSharing, client?.uid]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setRemotePresenter((cur) => (cur && Date.now() - cur.at > 10000 ? null : cur));
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
   /* ── User Names Presence Mapping ── */
   const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [userAvatars, setUserAvatars] = useState<Record<string, string>>({});
-  
+
   const presencePayload = profile?.id && client?.uid ? {
     agora_uid: client.uid,
     name: profile?.username || "Unknown",
@@ -239,7 +340,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     const newNames: Record<string, string> = {};
     const newAvatars: Record<string, string> = {};
     let adminCount = 0;
-    
+
     Object.values(presenceState).forEach((users: any[]) => {
       users.forEach((u) => {
         if (u.agora_uid && u.name) newNames[u.agora_uid] = u.name;
@@ -247,7 +348,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         if (u.isAdmin) adminCount++;
       });
     });
-    
+
     setUserNames(newNames);
     setUserAvatars(newAvatars);
 
@@ -291,10 +392,12 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const handleMinimize = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     liveSession.minimize();
-    // Do NOT navigate away here, the router might be on /app/live but they can navigate themselves later
-    // Actually, navigate to clubs chat if they were on /app/live
     if (window.location.pathname.includes(`/app/live/`)) {
-      navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
+      if (window.history.length > 2) {
+        window.history.back();
+      } else {
+        navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
+      }
     }
   };
 
@@ -303,7 +406,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     e?.preventDefault();
     liveSession.endSession();
     if (window.location.pathname.includes(`/app/live/`)) {
-      navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
+      if (window.history.length > 2) {
+        window.history.back();
+      } else {
+        navigate({ to: "/app/clubs/chat", search: { clubId: channel } });
+      }
     }
   };
 
@@ -316,35 +423,50 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   };
 
+  const screenShareSupported =
+    typeof navigator !== "undefined" &&
+    !!navigator.mediaDevices &&
+    typeof (navigator.mediaDevices as any).getDisplayMedia === "function";
+
   const toggleScreenShare = async () => {
     if (!isAdmin) {
-      toast.error("Only Admins or the Club Creator can share their screen");
+      toast.error("Only admins and the club creator can present.");
       return;
     }
     if (isScreenSharing) {
-      if (screenTrack) {
-        screenTrack.close();
-      }
+      if (screenTrack) screenTrack.close();
       setScreenTrack(null);
       setIsScreenSharing(false);
-    } else {
-      try {
-        const track = await AgoraRTC.createScreenVideoTrack({
-          encoderConfig: "1080p_1",
-          optimizationMode: "detail",
-        });
-        if (Array.isArray(track)) {
-          track[0].on("track-ended", () => { setIsScreenSharing(false); setScreenTrack(null); });
-          setScreenTrack(track[0]);
-        } else {
-          track.on("track-ended", () => { setIsScreenSharing(false); setScreenTrack(null); });
-          setScreenTrack(track);
-        }
-        setIsScreenSharing(true);
-      } catch (err) {
-        console.error("Screen share error:", err);
-        toast.error("Could not start screen sharing");
-      }
+      return;
+    }
+    if (!screenShareSupported) {
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      toast.error(
+        isIOS
+          ? "iOS browsers don't allow web screen capture yet. Use Chrome or Edge on Android, or a desktop browser, to present."
+          : "This browser doesn't support screen sharing. Try Chrome or Edge."
+      );
+      return;
+    }
+    try {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const track = await AgoraRTC.createScreenVideoTrack({
+        // Lighter encode on mobile keeps the share smooth on cellular
+        encoderConfig: isMobile ? "720p_2" : "1080p_1",
+        optimizationMode: "detail",
+      });
+      const video = Array.isArray(track) ? track[0] : track;
+      video.on("track-ended", () => {
+        setIsScreenSharing(false);
+        setScreenTrack(null);
+      });
+      setScreenTrack(video);
+      setIsScreenSharing(true);
+    } catch (err: any) {
+      // User dismissed the OS picker — not an error
+      if (err?.code === "PERMISSION_DENIED" || err?.name === "NotAllowedError") return;
+      console.error("Screen share error:", err);
+      toast.error("Could not start screen sharing on this device.");
     }
   };
 
@@ -374,7 +496,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
   const wasDragged = useRef(false);
 
-  // Touch/mouse drag handlers
   const onDragStart = (e: React.TouchEvent | React.MouseEvent) => {
     dragging.current = true;
     wasDragged.current = false;
@@ -409,7 +530,43 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   const initial = (liveSession.userName || "U")[0].toUpperCase();
 
-  // If minimized, render the Mini-Player UI
+  /* ── Stage composition ── */
+  const remotePresenterUser = remotePresenter
+    ? remoteUsers.find((u) => String(u.uid) === remotePresenter.uid)
+    : undefined;
+  const hasHero = isScreenSharing || !!remotePresenterUser;
+  const gridUsers = remotePresenterUser
+    ? remoteUsers.filter((u) => u.uid !== remotePresenterUser.uid)
+    : remoteUsers;
+
+  const totalTiles = gridUsers.length + 1;
+  const gridClass =
+    totalTiles <= 1
+      ? "grid-cols-1"
+      : totalTiles === 2
+        ? "grid-cols-1 sm:grid-cols-2"
+        : totalTiles <= 4
+          ? "grid-cols-2"
+          : "grid-cols-2 md:grid-cols-3";
+
+  const renderRemoteVideo = (user: any, contain = false) => {
+    const track = videoTracks.find((t) => t.getUserId() === user.uid);
+    return (
+      <>
+        {track ? (
+          <RemoteVideoTrack track={track} play={true} className={`w-full h-full ${contain ? "object-contain bg-black" : "object-cover"}`} />
+        ) : null}
+        {!user.hasVideo && (
+          <AvatarFallback url={userAvatars[user.uid]} name={userNames[user.uid] || "U"} />
+        )}
+        {audioTracks.find((t) => t.getUserId() === user.uid) && (
+          <RemoteAudioTrack track={audioTracks.find((t) => t.getUserId() === user.uid)!} play={true} />
+        )}
+      </>
+    );
+  };
+
+  /* ══════════ MINI PLAYER ══════════ */
   if (isMinimized) {
     return (
       <div
@@ -422,65 +579,56 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         className="fixed z-[9999] select-none cursor-grab active:cursor-grabbing"
         style={{ right: `${position.x}px`, bottom: `${position.y}px` }}
       >
-        <div className="w-[150px] rounded-md overflow-hidden shadow-2xl shadow-black/50 border-2 border-primary/40 bg-card animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
+        <div className="w-[152px] rounded-2xl overflow-hidden shadow-lift ring-1 ring-white/15 bg-[#141117] animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
           <div
-            className="relative aspect-[4/3] bg-gradient-to-br from-card via-accent/30 to-card flex items-center justify-center cursor-pointer overflow-hidden"
+            className="relative aspect-[4/3] bg-[#0A0A0C] flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={handleRestore}
           >
-            {/* If camera is on and not sharing screen, show mini local video, else show avatar */}
-            {cameraOn && localCameraTrack ? (
+            {isScreenSharing && screenTrack ? (
+              <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain bg-black pointer-events-none" />
+            ) : cameraOn && localCameraTrack ? (
               <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover pointer-events-none" />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-accent flex items-center justify-center border-2 border-primary/30 overflow-hidden shadow-lg">
+              <div className="w-14 h-14 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center overflow-hidden">
                 {liveSession.userAvatar ? (
                   <img src={liveSession.userAvatar} alt="" className="w-full h-full object-cover pointer-events-none" />
                 ) : (
-                  <span className="text-xl font-black text-primary">{initial}</span>
+                  <span className="text-xl font-semibold text-white/80">{initial}</span>
                 )}
               </div>
             )}
 
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[72px] h-[72px] rounded-full border-2 border-primary/20 animate-ping" style={{ animationDuration: "2s" }} />
-            </div>
-
             <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600/90 backdrop-blur-md px-2 py-0.5 rounded-full">
               <Radio className="w-2.5 h-2.5 text-white animate-pulse" />
-              <span className="text-[7px] text-white">Live</span>
+              <span className="text-[8px] font-medium text-white tracking-[0.08em]">LIVE</span>
             </div>
 
             <div className="absolute top-2 right-2">
-              {!micOn ? (
-                <div className="h-5 w-5 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                  <MicOff className="w-2.5 h-2.5 text-red-400" />
-                </div>
-              ) : (
-                <div className="h-5 w-5 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                  <Mic className="w-2.5 h-2.5 text-green-400" />
-                </div>
-              )}
+              <div className={`h-5 w-5 rounded-full flex items-center justify-center ${micOn ? "bg-black/50 ring-1 ring-white/10" : "bg-red-500/85"}`}>
+                {micOn ? <Mic className="w-2.5 h-2.5 text-emerald-400" /> : <MicOff className="w-2.5 h-2.5 text-white" />}
+              </div>
             </div>
 
             <div className="absolute bottom-1.5 inset-x-0 text-center pointer-events-none">
-              <span className="text-[8px] font-bold text-muted-foreground/60 bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded-full">
+              <span className="text-[8px] font-medium text-white/70 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full">
                 Tap to return
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-2 py-1.5 bg-card border-t border-border/30">
+          <div className="flex items-center justify-between px-2 py-1.5 bg-[#141117] border-t border-white/[0.06]">
             <button
               onClick={handleRestore}
-              className="h-7 w-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25 transition active:scale-95"
+              className="h-7 w-7 rounded-full bg-white/[0.08] text-white/80 flex items-center justify-center hover:bg-white/15 transition tap"
             >
               <Maximize2 className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleLeave}
-              className="h-7 px-2.5 rounded-lg bg-red-500 text-white flex items-center justify-center gap-1 hover:bg-red-600 transition active:scale-95"
+              className="h-7 px-2.5 rounded-full bg-red-500 text-white flex items-center justify-center gap-1 hover:bg-red-600 transition tap"
             >
               <PhoneOff className="w-3 h-3" />
-              <span className="text-[9px] font-bold">Leave</span>
+              <span className="text-[9px] font-semibold">Leave</span>
             </button>
           </div>
         </div>
@@ -488,87 +636,86 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     );
   }
 
-  // Full Screen Render
+  /* ══════════ FULL SCREEN STAGE ══════════ */
   return (
-    <div className="fixed inset-0 h-[100dvh] bg-background text-foreground flex flex-col z-[9999] overflow-hidden">
+    <div className="fixed inset-0 h-[100dvh] bg-[#0A0A0C] text-white flex flex-col z-[9999] overflow-hidden">
+      {/* Ambient stage glow */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-[#cc208f]/10 blur-[120px]" />
+
       {/* ═══ HEADER ═══ */}
-      <header className="shrink-0 flex items-center justify-between px-3 md:px-5 pb-2.5 pt-[calc(0.5rem+env(safe-area-inset-top))] md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))] bg-background/95 backdrop-blur-xl z-20 border-b border-border/20">
+      <header className="shrink-0 flex items-center justify-between px-3 md:px-5 pb-2.5 pt-[calc(0.5rem+env(safe-area-inset-top))] md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))] z-20">
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleMinimize}
-            className="h-8 w-8 rounded-full bg-accent/60 flex items-center justify-center hover:bg-accent transition active:scale-95"
+            className="h-9 w-9 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center hover:bg-white/[0.12] transition tap"
             title="Minimize live session"
           >
-            <Minimize2 className="w-4 h-4" />
+            <Minimize2 className="w-4 h-4 text-white/80" />
           </button>
           <div>
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-black text-sm tracking-tight leading-tight">Zero Club Live</h1>
-              <ChevronLeft className="w-3 h-3 text-muted-foreground rotate-[270deg]" />
-            </div>
-            <p className="text-[9px] font-bold flex items-center gap-1.5">
-              <span className="flex items-center gap-1 bg-red-500/15 text-red-500 px-1.5 py-0.5 rounded-full">
+            <h1 className="font-display font-semibold text-[15px] tracking-tight leading-tight text-white">Zero Club Live</h1>
+            <div className="mt-0.5 flex items-center gap-2 text-[10px]">
+              <span className="flex items-center gap-1 bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                LIVE NOW
+                LIVE
               </span>
-              <span className="text-muted-foreground">
-                <Users className="w-3 h-3 inline mr-0.5" />
-                {remoteUsers.length + 1} Builders
+              <span className="text-white/50 tabular-nums font-medium">{formatElapsed(elapsed)}</span>
+              <span className="flex items-center gap-1 text-white/50 font-medium">
+                <Users className="w-3 h-3" />
+                <span className="tabular-nums">{remoteUsers.length + 1}</span>
               </span>
-            </p>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full px-2.5 py-1">
-            <Zap className="w-3 h-3 text-amber-500 fill-current" />
-            <span className="font-black text-[10px] text-amber-500">25 XP</span>
+          <div className="flex items-center gap-1.5 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-2.5 py-1.5">
+            <Zap className="w-3 h-3 text-amber-400" />
+            <span className="font-semibold text-[10.5px] text-white/90 tabular-nums">25 XP</span>
           </div>
         </div>
       </header>
 
-      {/* ═══ SCROLLABLE MAIN CONTENT ═══ */}
-      <div className="flex-1 flex flex-col overflow-y-auto min-h-0 no-scrollbar relative">
+      {/* ═══ MAIN CONTENT ═══ */}
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0 relative px-2.5 md:px-4 pb-2">
         {/* Chat Drawer Overlay */}
         {chatOpen && (
-          <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-background/95 backdrop-blur-xl border-l border-border/20 z-30 flex flex-col shadow-2xl animate-in slide-in-from-right-full">
-            {/* Header */}
-            <div className="shrink-0 flex items-center justify-between px-5 h-14 border-b border-border/50">
-              <h2 className="font-black text-base tracking-tight text-foreground">Chat Room</h2>
-              <button onClick={() => setChatOpen(false)} className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center hover:bg-accent/80 transition">
-                <X className="w-4 h-4 text-muted-foreground" />
+          <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-[#101014]/95 backdrop-blur-xl border-l border-white/[0.06] z-30 flex flex-col shadow-lift animate-in slide-in-from-right-full duration-300">
+            <div className="shrink-0 flex items-center justify-between px-5 h-14 border-b border-white/[0.06]">
+              <h2 className="font-semibold tracking-tight text-[15px] text-white">Live chat</h2>
+              <button onClick={() => setChatOpen(false)} className="h-8 w-8 rounded-full bg-white/[0.06] flex items-center justify-center hover:bg-white/[0.12] transition tap">
+                <X className="w-4 h-4 text-white/60" />
               </button>
             </div>
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
               {chatMessages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-6">
-                  <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center mb-4 border border-border/30">
-                    <MessageSquare className="w-6 h-6 text-muted-foreground/40" />
+                  <div className="w-12 h-12 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center mb-4">
+                    <MessageSquare className="w-5 h-5 text-white/40" strokeWidth={1.75} />
                   </div>
-                  <p className="font-bold text-muted-foreground/60 text-sm">No messages yet</p>
-                  <p className="text-muted-foreground/40 text-xs mt-1">Start the conversation!</p>
+                  <p className="font-semibold tracking-tight text-white/70 text-[14px]">No messages yet</p>
+                  <p className="text-white/40 text-[12px] mt-1">Say hello to the room.</p>
                 </div>
               ) : (
                 chatMessages.map((msg: any) => {
                   const isMe = msg.sender_id === (profile?.userId || profile?.id);
                   return (
                     <div key={msg.id} className="flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                      <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-accent flex items-center justify-center mt-0.5 border border-border/40">
+                      <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-white/[0.08] flex items-center justify-center mt-0.5 ring-1 ring-white/10">
                         {msg.sender_avatar ? (
                           <img src={msg.sender_avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-[10px] font-bold text-primary">{msg.sender_name[0]?.toUpperCase()}</span>
+                          <span className="text-[10px] font-semibold text-white/80">{msg.sender_name[0]?.toUpperCase()}</span>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className={`text-xs font-bold truncate ${isMe ?"text-primary" : "text-foreground"}`}>
+                          <span className={`text-[12px] font-semibold tracking-tight truncate ${isMe ? "text-[#f28fd0]" : "text-white/90"}`}>
                             {isMe ? "You" : msg.sender_name}
                           </span>
-                          <span className="text-[10px] text-muted-foreground/50 shrink-0">{formatTime(msg.timestamp)}</span>
+                          <span className="text-[10px] text-white/35 shrink-0 tabular-nums">{formatTime(msg.timestamp)}</span>
                         </div>
-                        <div className={`mt-1 rounded-xl px-3 py-2 inline-block max-w-full ${isMe ?"bg-primary/10 rounded-tl-sm border border-primary/15" : "bg-accent rounded-tl-sm border border-border/20"}`}>
-                          <p className="text-sm text-foreground/80 leading-relaxed break-words">{msg.content}</p>
+                        <div className={`mt-1 rounded-xl rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
+                          <p className="text-[13px] text-white/85 leading-relaxed break-words">{msg.content}</p>
                         </div>
                       </div>
                     </div>
@@ -577,21 +724,20 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               )}
               <div ref={chatEndRef} />
             </div>
-            {/* Input */}
-            <div className="shrink-0 p-3 border-t border-border/50 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="shrink-0 p-3 border-t border-white/[0.06] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <div className="flex gap-2 items-center">
-                <div className="flex-1 flex items-center gap-2 bg-accent/60 border border-border/30 rounded-2xl px-4 py-2.5">
+                <div className="flex-1 flex items-center gap-2 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-4 py-2.5 focus-within:ring-[#cc208f]/50 transition-all">
                   <input
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                    placeholder="Type your message..."
-                    className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 outline-none min-w-0"
+                    placeholder="Message the room"
+                    className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none min-w-0"
                   />
                   <button
                     onClick={sendMessage}
                     disabled={!chatInput.trim()}
-                    className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground hover:brightness-110 transition active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                    className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center hover:opacity-90 transition tap disabled:opacity-25 disabled:cursor-not-allowed shrink-0"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
@@ -601,197 +747,161 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           </div>
         )}
 
-        {/* ── VIDEO GRID ── */}
-        <div className="shrink-0 px-2.5 md:px-4 pt-2.5 md:pt-3">
-          <div className="grid grid-cols-2 gap-2 md:gap-2.5">
-            <div className={`relative rounded-md overflow-hidden bg-card border-2 border-primary/30 shadow-lg ${isScreenSharing ?"col-span-2 aspect-video" : "aspect-[4/3]"}`}>
+        {/* ── PRESENTING BANNER ── */}
+        {isScreenSharing && (
+          <div className="shrink-0 mb-2 flex items-center justify-between rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/25 px-4 py-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            <span className="flex items-center gap-2 text-[12px] font-medium text-emerald-400">
+              <MonitorUp className="w-3.5 h-3.5" />
+              You're presenting to the room
+            </span>
+            <button
+              onClick={toggleScreenShare}
+              className="rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30 px-3 py-1 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/25 transition tap"
+            >
+              Stop
+            </button>
+          </div>
+        )}
+
+        {/* ── STAGE ── */}
+        {hasHero ? (
+          <div className="flex-1 flex flex-col min-h-0 gap-2">
+            {/* Hero: the shared screen */}
+            <div className="relative flex-1 min-h-0 rounded-2xl overflow-hidden bg-black ring-1 ring-white/[0.08]">
               {isScreenSharing && screenTrack ? (
-                <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain bg-black/80" />
-              ) : cameraOn && localCameraTrack ? (
-                <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-card">
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-accent flex items-center justify-center border-2 border-border/40">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      <span className="text-lg md:text-xl font-black text-primary">
-                        {(profile?.username || "U")[0].toUpperCase()}
-                      </span>
-                    )}
+                <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain" />
+              ) : remotePresenterUser ? (
+                renderRemoteVideo(remotePresenterUser, true)
+              ) : null}
+              <NamePlate
+                name={isScreenSharing ? (profile?.username || "You") : (userNames[remotePresenterUser!.uid] || "Presenter")}
+                presenting
+              />
+            </div>
+
+            {/* Filmstrip: everyone else */}
+            <div className="shrink-0 flex gap-2 overflow-x-auto no-scrollbar">
+              {!isScreenSharing && (
+                <div className="relative shrink-0 w-32 aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+                  {cameraOn && localCameraTrack ? (
+                    <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />
+                  ) : (
+                    <AvatarFallback url={profile?.avatar_url} name={profile?.username || "U"} size="sm" />
+                  )}
+                  <MicBadge on={micOn} />
+                  <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow">You</div>
+                </div>
+              )}
+              {gridUsers.map((user) => (
+                <div key={user.uid} className="relative shrink-0 w-32 aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+                  {renderRemoteVideo(user)}
+                  <MicBadge on={!!user.hasAudio} />
+                  <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow truncate max-w-[85%]">
+                    {userNames[user.uid] || "Builder"}
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* ── GRID (no presenter) ── */
+          <div className={`flex-1 min-h-0 grid ${gridClass} auto-rows-fr gap-2`}>
+            {/* Local tile */}
+            <div className="relative rounded-2xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+              {cameraOn && localCameraTrack ? (
+                <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />
+              ) : (
+                <AvatarFallback url={profile?.avatar_url} name={profile?.username || "U"} />
               )}
               <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5">
                 <span className="flex items-center gap-1 bg-red-600/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
                   <Radio className="w-2.5 h-2.5 animate-pulse" />
-                  <span className="text-[8px]">Live</span>
-                </span>
-                <span className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-full text-white">
-                  <Users className="w-2.5 h-2.5" />
-                  <span className="text-[8px] font-bold">{remoteUsers.length + 1}</span>
+                  <span className="text-[8px] font-medium tracking-[0.08em]">LIVE</span>
                 </span>
               </div>
-              {!micOn ? (
-                <div className="absolute top-2 right-2 z-10 h-5 w-5 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center">
-                  <MicOff className="w-2.5 h-2.5 text-red-400" />
-                </div>
-              ) : (
-                <div className="absolute top-2 right-2 z-10">
-                  <div className="h-5 w-5 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center">
-                    <Mic className="w-2.5 h-2.5 text-green-400 animate-pulse" />
-                  </div>
-                </div>
-              )}
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 z-10">
-                <div className="flex items-center gap-1.5">
-                  {profile?.avatar_url && (
-                    <img src={profile.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover border border-white/30" />
-                  )}
-                  <span className="text-xs font-bold text-white drop-shadow-sm">{profile?.username || "You"}</span>
-                </div>
-                <span className="inline-block mt-0.5 text-[7px] bg-primary/80 text-primary-foreground px-1.5 py-0.5 rounded-sm">
-                  {isAdmin ? "Admin" : "Member"}
-                </span>
-              </div>
+              <MicBadge on={micOn} />
+              <NamePlate name={profile?.username || "You"} role={isAdmin ? "Admin" : "Member"} />
             </div>
 
-            {remoteUsers.slice(0, 3).map((user) => (
-              <div key={user.uid} className="relative aspect-[4/3] rounded-md overflow-hidden bg-card border border-border/30 shadow-lg">
-                {/* We use explicit videoTracks mapping to render videos securely */}
-                {videoTracks.find(t => t.getUserId() === user.uid) ? (
-                  <RemoteVideoTrack track={videoTracks.find(t => t.getUserId() === user.uid)!} play={true} className="w-full h-full object-cover" />
-                ) : null}
-                
-                {!user.hasVideo && (
-                  <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-card">
-                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-accent flex items-center justify-center border-2 border-border/40 overflow-hidden">
-                      {userAvatars[user.uid] ? (
-                        <img src={userAvatars[user.uid]} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-lg md:text-xl font-black text-primary">
-                          {(userNames[user.uid] || "U")[0].toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {!user.hasAudio ? (
-                  <div className="absolute top-2 right-2 z-10 h-5 w-5 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center">
-                    <MicOff className="w-2.5 h-2.5 text-red-400" />
-                  </div>
-                ) : (
-                  <div className="absolute top-2 right-2 z-10">
-                    <div className="h-5 w-5 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center">
-                      <Mic className="w-2.5 h-2.5 text-green-400 animate-pulse" />
-                    </div>
-                  </div>
-                )}
-                
-                {/* Render Audio Track safely via component to bypass browser autoplay issues */}
-                {audioTracks.find(t => t.getUserId() === user.uid) && (
-                  <RemoteAudioTrack track={audioTracks.find(t => t.getUserId() === user.uid)!} play={true} />
-                )}
-
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 z-10">
-                  <span className="text-xs font-bold text-white drop-shadow-sm">
-                    {userNames[user.uid] || `User ${String(user.uid).slice(-4)}`}
-                  </span>
-                  <br />
-                  <span className="inline-block mt-0.5 text-[7px] bg-accent/80 text-foreground px-1.5 py-0.5 rounded-sm">
-                    Builder
-                  </span>
-                </div>
+            {/* Remote tiles (cap at 7 + overflow badge) */}
+            {gridUsers.slice(0, 7).map((user) => (
+              <div key={user.uid} className="relative rounded-2xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+                {renderRemoteVideo(user)}
+                <MicBadge on={!!user.hasAudio} />
+                <NamePlate name={userNames[user.uid] || `Builder`} role="Builder" />
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* ── PARTICIPANT STRIP ── */}
-        <div className="shrink-0 px-2.5 md:px-4 py-2 border-t border-border/10 mt-auto">
-          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
-            <div className="shrink-0 w-8 h-8 rounded-full bg-accent/50 flex items-center justify-center">
-              <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground rotate-[270deg]" />
-            </div>
-            <div className="shrink-0 flex flex-col items-center gap-1">
-              <div className="relative">
-                <div className="w-11 h-11 rounded-full border-2 border-primary p-0.5">
-                  <div className="w-full h-full rounded-full overflow-hidden bg-accent flex items-center justify-center">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-[10px] font-black text-primary">{(profile?.username || "U")[0].toUpperCase()}</span>
-                    )}
-                  </div>
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-background" />
+            {gridUsers.length > 7 && (
+              <div className="relative rounded-2xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08] flex items-center justify-center">
+                <span className="text-[20px] font-semibold text-white/70 tabular-nums">+{gridUsers.length - 7}</span>
               </div>
-              <span className="text-[9px] font-bold text-foreground/70">You</span>
-            </div>
-            {remoteUsers.map((user) => (
-              <div key={user.uid} className="shrink-0 flex flex-col items-center gap-1">
-                <div className="relative">
-                  <div className="w-11 h-11 rounded-full border-2 border-border/30 p-0.5">
-                    <div className="w-full h-full rounded-full overflow-hidden bg-accent flex items-center justify-center">
-                      {userAvatars[user.uid] ? (
-                        <img src={userAvatars[user.uid]} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[10px] font-black text-muted-foreground">{(userNames[user.uid] || "U")[0].toUpperCase()}</span>
-                      )}
-                    </div>
-                  </div>
-                  {user.hasAudio && (
-                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-background" />
-                  )}
-                </div>
-                <span className="text-[9px] font-bold text-foreground/70 max-w-[48px] truncate">
-                  {userNames[user.uid] || `User`}
-                </span>
-              </div>
-            ))}
+            )}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ═══ BOTTOM CONTROL BAR ═══ */}
-      <div className="shrink-0 bg-card/80 backdrop-blur-xl border-t border-border/20 px-3 md:px-6 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] z-20">
-        <div className="flex items-center justify-center gap-3 md:gap-5 max-w-md mx-auto">
-          <button onClick={() => setMicOn((p) => !p)} className="flex flex-col items-center gap-1 group">
-            <div className={`h-11 w-11 rounded-full flex items-center justify-center transition-all active:scale-95 ${micOn ?"bg-accent text-foreground" : "bg-red-500/20 text-red-400 border border-red-500/25"}`}>
-              {micOn ? <Mic className="w-[18px] h-[18px]" /> : <MicOff className="w-[18px] h-[18px]" />}
-            </div>
-            <span className="text-[9px] font-bold text-muted-foreground">Mic</span>
+      {/* ═══ FLOATING CONTROL BAR ═══ */}
+      <div className="shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 z-20">
+        <div className="mx-auto flex w-fit items-center gap-1.5 rounded-full bg-white/[0.06] ring-1 ring-white/10 backdrop-blur-xl p-1.5 shadow-lift">
+          <button
+            onClick={() => setMicOn((p) => !p)}
+            title={micOn ? "Mute" : "Unmute"}
+            className={`h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${micOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500 text-white"}`}
+          >
+            {micOn ? <Mic className="w-[18px] h-[18px]" /> : <MicOff className="w-[18px] h-[18px]" />}
           </button>
-          <button onClick={() => setCameraOn((p) => !p)} className="flex flex-col items-center gap-1 group">
-            <div className={`h-11 w-11 rounded-full flex items-center justify-center transition-all active:scale-95 ${cameraOn ?"bg-primary text-primary-foreground shadow-md shadow-primary/20" : "bg-red-500/20 text-red-400 border border-red-500/25"}`}>
-              {cameraOn ? <Video className="w-[18px] h-[18px]" /> : <VideoOff className="w-[18px] h-[18px]" />}
-            </div>
-            <span className="text-[9px] font-bold text-muted-foreground">Camera</span>
+          <button
+            onClick={() => setCameraOn((p) => !p)}
+            title={cameraOn ? "Turn camera off" : "Turn camera on"}
+            className={`h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${cameraOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500 text-white"}`}
+          >
+            {cameraOn ? <Video className="w-[18px] h-[18px]" /> : <VideoOff className="w-[18px] h-[18px]" />}
           </button>
-          <button onClick={toggleScreenShare} className="flex flex-col items-center gap-1 group">
-            <div className={`h-11 w-11 rounded-full flex items-center justify-center transition-all active:scale-95 ${isScreenSharing ?"bg-primary/20 text-primary border border-primary/25" : "bg-accent text-foreground"}`}>
-              <MonitorUp className="w-[18px] h-[18px]" />
-            </div>
-            <span className="text-[9px] font-bold text-muted-foreground">Share</span>
+          <button
+            onClick={toggleScreenShare}
+            title={isAdmin ? (isScreenSharing ? "Stop presenting" : "Present your screen") : "Admins only"}
+            className={`relative h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${
+              isScreenSharing
+                ? "bg-emerald-500 text-white"
+                : "bg-white/[0.08] text-white hover:bg-white/[0.14]"
+            } ${!isAdmin ? "opacity-50" : ""}`}
+          >
+            {isScreenSharing ? <MonitorOff className="w-[18px] h-[18px]" /> : <MonitorUp className="w-[18px] h-[18px]" />}
+            {!isAdmin && (
+              <span className="absolute -top-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
+                <Lock className="w-2 h-2 text-white/60" />
+              </span>
+            )}
           </button>
-          <button onClick={() => setChatOpen(!chatOpen)} className="flex flex-col items-center gap-1 group relative">
-            <div className={`h-11 w-11 rounded-full flex items-center justify-center transition-all active:scale-95 ${chatOpen ?"bg-primary/20 text-primary border border-primary/25" : "bg-accent text-foreground"}`}>
-              <MessageSquare className="w-[18px] h-[18px]" />
-              {unreadCount > 0 && <span className="absolute top-0 right-1 h-4 min-w-[16px] rounded-full bg-red-500 text-white text-[8px] font-black flex items-center justify-center px-1">{unreadCount > 99 ? "99+" : unreadCount}</span>}
-            </div>
-            <span className="text-[9px] font-bold text-muted-foreground">Chat</span>
+          <button
+            onClick={() => setChatOpen(!chatOpen)}
+            title="Live chat"
+            className={`relative h-11 w-11 rounded-full flex items-center justify-center transition-all tap ${chatOpen ? "bg-white text-black" : "bg-white/[0.08] text-white hover:bg-white/[0.14]"}`}
+          >
+            <MessageSquare className="w-[18px] h-[18px]" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full bg-[#cc208f] text-white text-[8px] font-bold flex items-center justify-center px-1 ring-2 ring-[#0A0A0C]">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </button>
-          <button onClick={handleShare} className="flex flex-col items-center gap-1 group">
-            <div className="h-11 w-11 rounded-full bg-accent flex items-center justify-center text-foreground transition-all active:scale-95">
-              <Share2 className="w-[18px] h-[18px]" />
-            </div>
-            <span className="text-[9px] font-bold text-muted-foreground">Invite</span>
+          <button
+            onClick={handleShare}
+            title="Copy invite link"
+            className="h-11 w-11 rounded-full bg-white/[0.08] flex items-center justify-center text-white hover:bg-white/[0.14] transition-all tap"
+          >
+            <Share2 className="w-[18px] h-[18px]" />
           </button>
-          <button onClick={handleLeave} className="flex flex-col items-center gap-1 group">
-            <div className="h-11 w-11 rounded-full bg-red-500 text-white shadow-md shadow-red-500/20 flex items-center justify-center transition-all active:scale-95 hover:bg-red-600">
-              <PhoneOff className="w-[18px] h-[18px]" />
-            </div>
-            <span className="text-[9px] font-bold text-red-500">Leave</span>
+
+          <div className="mx-0.5 h-6 w-px bg-white/10" />
+
+          <button
+            onClick={handleLeave}
+            title="Leave session"
+            className="h-11 rounded-full bg-red-500 px-5 text-white flex items-center gap-1.5 justify-center transition-all tap hover:bg-red-600"
+          >
+            <PhoneOff className="w-[18px] h-[18px]" />
+            <span className="text-[12px] font-semibold tracking-tight hidden sm:inline">Leave</span>
           </button>
         </div>
       </div>
