@@ -500,7 +500,11 @@ function InstitutionHub() {
                 ) : (
                   <div className="space-y-2">
                     {allBootcamps.slice(0, 4).map((b: any) => (
-                      <div key={b.id} className="flex items-center gap-4 p-4 rounded-2xl bg-card ring-1 ring-border shadow-soft">
+                      <div 
+                        key={b.id} 
+                        onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })}
+                        className="flex items-center gap-4 p-4 rounded-2xl bg-card ring-1 ring-border shadow-soft cursor-pointer hover:ring-foreground/15 transition-all tap"
+                      >
                         <div className="h-12 w-12 rounded-xl overflow-hidden bg-muted shrink-0">
                           {b.banner_url ? (
                             <img src={b.banner_url} className="h-full w-full object-cover" />
@@ -775,7 +779,11 @@ function InstitutionHub() {
                     const isOwnBootcamp = b.creator_id === profile?.id;
 
                     return (
-                      <div key={b.id} className="group relative flex flex-col overflow-hidden rounded-2xl ring-1 ring-border bg-card hover:ring-foreground/15 shadow-soft transition-all">
+                      <div 
+                        key={b.id} 
+                        onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })}
+                        className="group relative flex flex-col overflow-hidden rounded-2xl ring-1 ring-border bg-card hover:ring-foreground/15 shadow-soft transition-all cursor-pointer"
+                      >
                         {/* Banner */}
                         <div className="relative aspect-[16/9] overflow-hidden bg-muted">
                           {b.banner_url ? (
