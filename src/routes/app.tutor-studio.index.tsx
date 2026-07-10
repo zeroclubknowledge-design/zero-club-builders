@@ -22,23 +22,6 @@ export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
 });
 
-const WalletIcon = ({ className, ...props }: React.ComponentProps<"div">) => (
-  <div
-    className={`bg-current inline-block ${className}`}
-    style={{
-      WebkitMaskImage: "url('/wallet_icon.png')",
-      maskImage: "url('/wallet_icon.png')",
-      WebkitMaskSize: "contain",
-      maskSize: "contain",
-      WebkitMaskRepeat: "no-repeat",
-      maskRepeat: "no-repeat",
-      WebkitMaskPosition: "center",
-      maskPosition: "center"
-    }}
-    {...props}
-  />
-);
-
 function TutorStudioPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -362,35 +345,38 @@ function TutorStudioPage() {
   // ═══════════════════════════════════════════════════════════════
   if (!hasAccess) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center bg-background relative overflow-hidden">
-        {/* Ambient blurs */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/15 blur-[150px] rounded-full" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full translate-x-1/4 translate-y-1/4" />
-
-        <div className="relative z-10 flex flex-col items-center max-w-sm">
-          <div className="h-20 w-20 rounded-[28px] bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 grid place-items-center mb-8 shadow-lg shadow-primary/10">
-            <GraduationCap className="h-10 w-10 text-primary" />
+      <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center bg-background">
+        <div className="flex flex-col items-center max-w-sm">
+          {/* Premium dark card intro */}
+          <div className="relative w-full overflow-hidden rounded-[28px] bg-[#141117] p-8 ring-1 ring-white/[0.06] shadow-lift mb-8">
+            <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="grid h-14 w-14 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10 mb-5">
+                <GraduationCap className="h-6 w-6 text-white/90" strokeWidth={1.75} />
+              </div>
+              <h1 className="font-display text-[26px] font-semibold text-white tracking-tight">Tutor Studio</h1>
+              <p className="mt-2 text-[13.5px] text-white/60 leading-relaxed">
+                Launch bootcamps, build curricula, and earn from your knowledge.
+              </p>
+            </div>
           </div>
 
-
-
-          <h1 className="font-display text-3xl font-black text-foreground mb-3 tracking-tight">Tutor Studio</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-10">
-            You need an active <span className="font-bold text-foreground">Premium+ Plan</span> subscription to access the Tutor Studio and launch bootcamps.
+          <p className="text-[13.5px] text-muted-foreground leading-relaxed mb-7">
+            You need an active <span className="font-semibold text-foreground">Premium+ plan</span> to access the Tutor Studio.
           </p>
 
           <Link
             to="/app/premium"
-            className="w-full rounded-full bg-foreground px-8 py-4 font-bold text-background shadow-xl transition hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 text-sm"
+            className="w-full rounded-full bg-foreground px-8 py-3.5 font-semibold tracking-tight text-background tap shadow-lift flex items-center justify-center gap-2 text-[14px] hover:opacity-90"
           >
-            <Zap className="h-4 w-4" /> Upgrade to Premium+ Plan
+            <Zap className="h-4 w-4" /> Upgrade to Premium+
           </Link>
 
           <button
             onClick={() => setHasAccess(true)}
-            className="mt-6 text-xs text-muted-foreground/30 hover:text-muted-foreground transition-colors underline underline-offset-4"
+            className="mt-6 text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors underline underline-offset-4"
           >
-            Bypass for Demo
+            Bypass for demo
           </button>
         </div>
       </div>
@@ -404,13 +390,13 @@ function TutorStudioPage() {
     return (
       <div className="flex flex-col min-h-screen bg-background pb-20">
         {/* ── Editor Header ────────────────────────────── */}
-        <header className="sticky top-0 z-40 bg-background/70 backdrop-blur-2xl border-b border-border/40 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between">
+        <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setView("dashboard")}
-              className="flex items-center justify-center text-foreground transition-all hover:opacity-70 active:scale-95"
+              className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-foreground tap hover:bg-foreground/[0.04]"
             >
-              <ChevronLeft className="h-7 w-7" strokeWidth={3} />
+              <ChevronLeft className="h-5 w-5" strokeWidth={2} />
             </button>
             <div className="h-7 w-px bg-border/40" />
             <div>
@@ -420,7 +406,7 @@ function TutorStudioPage() {
                   {activeBootcamp?.status} · Auto-saved
                 </p>
               </div>
-              <h1 className="text-base font-black text-foreground leading-tight tracking-tight">
+              <h1 className="text-[15px] font-semibold text-foreground leading-tight tracking-tight">
                 {activeBootcamp?.title || "Loading..."}
               </h1>
             </div>
@@ -429,7 +415,7 @@ function TutorStudioPage() {
 
         {/* ── Floating Pill Tabs ────────────────────────── */}
         <div className="px-5 py-4">
-          <div className="inline-flex items-center bg-accent/40 backdrop-blur-md p-1.5 rounded-2xl border border-border/40 overflow-x-auto no-scrollbar max-w-full gap-1">
+          <div className="inline-flex items-center bg-foreground/[0.04] p-1 rounded-full overflow-x-auto no-scrollbar max-w-full gap-0.5">
             {[
               { id: "details", label: "Details", icon: Layout },
               { id: "curriculum", label: "Curriculum", icon: BookOpen },
@@ -441,10 +427,10 @@ function TutorStudioPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`relative flex items-center gap-2 py-2.5 px-5 text-sm font-bold transition-all whitespace-nowrap rounded-xl ${
+                  className={`relative flex items-center gap-2 py-2 px-4 text-[13px] font-semibold tracking-tight transition-all whitespace-nowrap rounded-full ${
                     active
-                      ?"bg-background text-foreground shadow-md border border-border/50"
-                      : "text-muted-foreground hover:text-foreground hover:bg-background/40"
+                      ? "bg-background text-foreground shadow-soft ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <tab.icon className={`h-4 w-4 ${active ?"text-primary" : ""}`} />
@@ -463,10 +449,10 @@ function TutorStudioPage() {
             <div className="space-y-8">
               <div className="flex items-center justify-between pb-5 border-b border-border/40">
                 <div>
-                  <h2 className="text-2xl font-black text-foreground tracking-tight">Syllabus Builder</h2>
+                  <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Syllabus Builder</h2>
                   <p className="text-xs text-muted-foreground mt-1">Drag and drop to reorder modules and lessons.</p>
                 </div>
-                <button onClick={handleAddModule} className="flex items-center gap-2 rounded-full bg-foreground text-background px-5 py-2.5 text-xs font-bold transition hover:scale-105 active:scale-95 shadow-lg">
+                <button onClick={handleAddModule} className="flex items-center gap-2 rounded-full bg-foreground text-background px-5 py-2.5 text-xs font-bold tap hover:opacity-90">
                   Add Module
                 </button>
               </div>
@@ -480,7 +466,7 @@ function TutorStudioPage() {
               {!isLoadingCurriculum && modules.length === 0 && (
                 <div className="rounded-3xl border-2 border-dashed border-border/50 bg-card p-10 text-center">
                   <BookOpen className="mx-auto h-10 w-10 text-primary" />
-                  <h3 className="mt-4 text-base font-black text-foreground">No modules yet</h3>
+                  <h3 className="mt-4 text-[15px] font-semibold tracking-tight text-foreground">No modules yet</h3>
                   <p className="mt-1 text-xs text-muted-foreground">Add your first module to start building the syllabus.</p>
                   <button onClick={handleAddModule} className="mt-5 rounded-full bg-foreground px-6 py-3 text-xs font-bold text-background">
                     Add First Module
@@ -494,7 +480,7 @@ function TutorStudioPage() {
                   <AccordionItem
                     key={m.id}
                     value={m.id}
-                    className="border border-border/50 rounded-3xl bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                    className="ring-1 ring-border rounded-2xl bg-card overflow-hidden shadow-soft"
                   >
                     <div className="flex items-center gap-3 px-5 py-1.5 border-b border-border/30 bg-accent/10">
                       <div className="p-2 cursor-grab active:cursor-grabbing hover:bg-accent rounded-xl transition-colors">
@@ -504,9 +490,9 @@ function TutorStudioPage() {
                         <input
                           defaultValue={m.title}
                           onBlur={(e) => handleUpdateModuleTitle(m.id, e.target.value)}
-                          className="w-full bg-transparent text-base font-black text-foreground tracking-tight outline-none focus:text-primary"
+                          className="w-full bg-transparent text-[15px] font-semibold text-foreground tracking-tight outline-none focus:text-primary"
                         />
-                        <p className="mt-1 text-[10px] font-bold text-muted-foreground">{m.lessons?.length || 0} lessons</p>
+                        <p className="mt-1 text-[11px] font-medium text-muted-foreground">{m.lessons?.length || 0} lessons</p>
                       </div>
                       <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
@@ -542,7 +528,7 @@ function TutorStudioPage() {
                               <input
                                 defaultValue={l.title}
                                 onBlur={(e) => handleUpdateLesson(l.id, { title: e.target.value || "Untitled lesson" })}
-                                className="block w-full bg-transparent text-sm font-bold text-foreground outline-none focus:text-primary"
+                                className="block w-full bg-transparent text-[14px] font-medium tracking-tight text-foreground outline-none focus:text-primary"
                               />
                               <div className="mt-2 grid grid-cols-[92px_1fr] gap-2">
                                 <input
@@ -588,7 +574,7 @@ function TutorStudioPage() {
                 <div className="flex justify-end pt-4 border-t border-border/40 mt-6">
                   <button
                     onClick={handleSaveBootcampSettings}
-                    className="rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-primary-foreground shadow-glow transition hover:scale-105 active:scale-95 flex items-center gap-2"
+                    className="rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-primary-foreground tap hover:opacity-90 flex items-center gap-2"
                   >
                     Save Changes
                   </button>
@@ -602,10 +588,10 @@ function TutorStudioPage() {
             <div className="space-y-6">
               <div className="flex items-center justify-between pb-5 border-b border-border/40">
                 <div>
-                  <h2 className="text-2xl font-black text-foreground tracking-tight">Learner Roster</h2>
+                  <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Learner Roster</h2>
                   <p className="text-xs text-muted-foreground mt-1">Manage and track your enrolled learners.</p>
                 </div>
-                <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-black flex items-center gap-2 border border-primary/20">
+                <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-[13px] font-semibold tracking-tight tabular-nums flex items-center gap-2 ring-1 ring-primary/15">
                   <Users className="h-4 w-4" /> {learners.length}
                 </div>
               </div>
@@ -616,7 +602,7 @@ function TutorStudioPage() {
                   <input
                     type="text"
                     placeholder="Search learners..."
-                    className="w-full bg-accent/30 border border-border/40 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/60"
+                    className="w-full bg-accent/30 border border-border/40 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/60"
                   />
                 </div>
                 <button className="grid h-[50px] w-[50px] place-items-center rounded-2xl bg-accent/30 border border-border/40 text-foreground hover:bg-accent transition shrink-0">
@@ -624,14 +610,14 @@ function TutorStudioPage() {
                 </button>
               </div>
 
-              <div className="rounded-3xl border border-border/40 bg-card overflow-hidden divide-y divide-border/30 shadow-sm">
+              <div className="rounded-2xl ring-1 ring-border bg-card overflow-hidden divide-y divide-hairline shadow-soft">
                 {learners.length > 0 && learners.map((learner: any) => (
                   <div key={learner.profiles?.id} className="flex items-center justify-between p-5 hover:bg-accent/20 transition-colors">
                     <div className="flex items-center gap-4">
                       {learner.profiles?.avatar_url ? (
                         <img src={learner.profiles.avatar_url} alt={learner.profiles.full_name} className="h-12 w-12 rounded-2xl object-cover border border-border/40" />
                       ) : (
-                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/15 to-blue-500/15 border border-border/40 flex items-center justify-center font-black text-sm text-primary">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/15 to-blue-500/15 border border-border/40 flex items-center justify-center font-semibold text-sm text-primary">
                           {(learner.profiles?.full_name || learner.profiles?.username || "?")[0].toUpperCase()}
                         </div>
                       )}
@@ -681,20 +667,20 @@ function TutorStudioPage() {
           {activeTab === "club" && (
             <div className="space-y-8">
               <div className="pb-5 border-b border-border/40">
-                <h2 className="text-2xl font-black text-foreground tracking-tight">Club Management</h2>
+                <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Club Management</h2>
                 <p className="text-xs text-muted-foreground mt-1">Configure community features for your bootcamp.</p>
               </div>
 
               {/* Roles & Permissions */}
-              <section className="rounded-3xl border border-border/40 bg-card p-6 relative overflow-hidden shadow-sm">
-                <div className="absolute -top-6 -right-6 opacity-[0.04">
+              <section className="rounded-2xl ring-1 ring-border bg-card p-6 relative overflow-hidden shadow-soft">
+                <div className="absolute -top-6 -right-6 opacity-[0.04]">
                   <ShieldCheck className="h-40 w-40 text-primary" />
                 </div>
                 <div className="relative z-10 flex items-center gap-3 mb-6">
                   <div className="p-2.5 rounded-2xl bg-primary/10 text-primary">
                     <ShieldCheck className="h-5 w-5" />
                   </div>
-                  <h3 className="text-lg font-black text-foreground tracking-tight">Roles & Permissions</h3>
+                  <h3 className="text-[16px] font-semibold text-foreground tracking-tight">Roles & Permissions</h3>
                 </div>
                 <div className="relative z-10 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background border border-border/30 hover:border-primary/30 transition-all">
@@ -703,7 +689,7 @@ function TutorStudioPage() {
                         <Star className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-foreground">Study Rep</p>
+                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Study Rep</p>
                         <p className="text-xs text-muted-foreground mt-0.5">Oversees daily activities and answers questions</p>
                       </div>
                     </div>
@@ -717,7 +703,7 @@ function TutorStudioPage() {
                         <ShieldCheck className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-foreground">Administrators</p>
+                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Administrators</p>
                         <p className="text-xs text-muted-foreground mt-0.5">Can moderate chat and manage members</p>
                       </div>
                     </div>
@@ -732,13 +718,13 @@ function TutorStudioPage() {
               </section>
 
               {/* Classrooms */}
-              <section className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm">
+              <section className="rounded-2xl ring-1 ring-border bg-card p-6 shadow-soft">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-2xl bg-violet-500/10 text-violet-500">
                       <Megaphone className="h-5 w-5" />
                     </div>
-                    <h3 className="text-lg font-black text-foreground tracking-tight">Classrooms</h3>
+                    <h3 className="text-[16px] font-semibold text-foreground tracking-tight">Classrooms</h3>
                   </div>
                   <button
                     onClick={() => {
@@ -747,7 +733,7 @@ function TutorStudioPage() {
                         setRooms([...rooms, { name: name.toLowerCase().replace(/\s+/g, '-'), desc: "New room", color: "text-blue-500" }]);
                       }
                     }}
-                    className="flex items-center gap-2 text-xs font-bold text-background bg-foreground hover:scale-105 active:scale-95 px-4 py-2.5 rounded-full transition-all shadow-lg"
+                    className="flex items-center gap-2 text-xs font-bold text-background bg-foreground hover:scale-105 active:scale-95 px-4 py-2 rounded-full tap hover:opacity-90"
                   >
                     <Plus className="h-4 w-4" /> New Room
                   </button>
@@ -761,7 +747,7 @@ function TutorStudioPage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2.5">
                           <Hash className={`h-5 w-5 ${room.color} opacity-60`} />
-                          <span className="text-sm font-black text-foreground">#{room.name}</span>
+                          <span className="text-[13.5px] font-semibold tracking-tight text-foreground">#{room.name}</span>
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button className="grid h-8 w-8 place-items-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition">
@@ -784,14 +770,14 @@ function TutorStudioPage() {
           {activeTab === "details" && (
             <div className="space-y-8 max-w-2xl mx-auto pb-10">
               <div className="pb-5 border-b border-border/40">
-                <h2 className="text-2xl font-black text-foreground tracking-tight">Bootcamp Details</h2>
+                <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Bootcamp Details</h2>
                 <p className="text-xs text-muted-foreground mt-1">Edit the page learners see before enrolling.</p>
               </div>
 
-              <div className="space-y-6 bg-card p-6 rounded-3xl border border-border/40 shadow-sm">
+              <div className="space-y-6 bg-card p-6 rounded-2xl ring-1 ring-border shadow-soft">
                 {/* Cover */}
                 <div className="space-y-3">
-                  <label className="text-[11px] text-muted-foreground ml-1">Cover Image</label>
+                  <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Cover Image</label>
                   <label className="group border-2 border-dashed border-border/50 rounded-3xl h-48 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
                     {(bannerUrl || bootcampSettings.banner_url) && (
                       <>
@@ -808,12 +794,12 @@ function TutorStudioPage() {
 
                 {/* Title */}
                 <div className="space-y-3">
-                  <label className="text-[11px] text-muted-foreground ml-1">Title</label>
+                  <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Title</label>
                   <input
                     type="text"
                     value={bootcampSettings.title}
                     onChange={(e) => setBootcampSettings({ ...bootcampSettings, title: e.target.value })}
-                    className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-base font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
+                    className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-base font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground/40"
                     placeholder="e.g. Advanced UI/UX Design"
                   />
                 </div>
@@ -821,12 +807,12 @@ function TutorStudioPage() {
                 {/* Category / Status */}
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-3">
-                    <label className="text-[11px] text-muted-foreground ml-1">Category</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Category</label>
                     <div className="relative">
                       <select
                         value={bootcampSettings.category}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, category: e.target.value })}
-                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       >
                         <option>Design</option>
                         <option>Development</option>
@@ -839,12 +825,12 @@ function TutorStudioPage() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[11px] text-muted-foreground ml-1">Status</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Status</label>
                     <div className="relative">
                       <select
                         value={bootcampSettings.status}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, status: e.target.value })}
-                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       >
                         <option value="draft">Draft</option>
                         <option value="active">Active</option>
@@ -857,10 +843,10 @@ function TutorStudioPage() {
 
                 {/* Description */}
                 <div className="space-y-3">
-                  <label className="text-[11px] text-muted-foreground ml-1">Description</label>
+                  <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Description</label>
                   <textarea
                     rows={5}
-                    className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40 resize-none"
+                    className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground/40 resize-none"
                     value={bootcampSettings.description}
                     onChange={(e) => setBootcampSettings({ ...bootcampSettings, description: e.target.value })}
                     placeholder="Describe what learners will learn..."
@@ -870,7 +856,7 @@ function TutorStudioPage() {
                 {/* Video / Visibility */}
                 <div className="space-y-5 rounded-3xl border border-border/40 bg-background p-5">
                   <div className="space-y-3">
-                    <label className="text-[11px] text-muted-foreground ml-1">Preview Video</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Preview Video</label>
                     <label className="group border-2 border-dashed border-border/50 rounded-3xl h-48 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
                       {(videoPreviewUrl || bootcampSettings.video_url) ? (
                         <>
@@ -906,25 +892,25 @@ function TutorStudioPage() {
                 {/* Price / Capacity */}
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-3">
-                    <label className="text-[11px] text-muted-foreground ml-1">Price (₦)</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Price (₦)</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground/60">₦</span>
                       <input
                         type="number"
                         value={bootcampSettings.price}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, price: e.target.value })}
-                        className="w-full bg-background border border-border/40 rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                        className="w-full bg-background ring-1 ring-border rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[11px] text-muted-foreground ml-1">Capacity</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Capacity</label>
                     <div className="relative">
                       <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
                       <input
                         type="number"
                         defaultValue="50"
-                        className="w-full bg-background border border-border/40 rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                        className="w-full bg-background ring-1 ring-border rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
                   </div>
@@ -933,23 +919,23 @@ function TutorStudioPage() {
                 {/* Coupon */}
                 <div className="space-y-4 rounded-3xl border border-border/40 bg-background p-5">
                   <div>
-                    <h3 className="text-sm font-black text-foreground">Coupon</h3>
+                    <h3 className="text-[13.5px] font-semibold tracking-tight text-foreground">Coupon</h3>
                     <p className="mt-1 text-xs text-muted-foreground">Add a discount code learners can apply on the bootcamp details footer.</p>
                   </div>
 
                   <div className="grid grid-cols-[1fr_96px] gap-3">
                     <div className="space-y-3">
-                      <label className="text-[11px] text-muted-foreground ml-1">Coupon Code</label>
+                      <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Coupon Code</label>
                       <input
                         type="text"
                         value={bootcampSettings.coupon_code}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, coupon_code: e.target.value.toUpperCase() })}
                         placeholder="ZERO20"
-                        className="w-full bg-card border border-border/40 rounded-2xl px-5 py-4 text-sm font-black tracking-wide text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
+                        className="w-full bg-card ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-semibold tracking-tight text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground/40"
                       />
                     </div>
                     <div className="space-y-3">
-                      <label className="text-[11px] text-muted-foreground ml-1">Off</label>
+                      <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Off</label>
                       <div className="relative">
                         <input
                           type="number"
@@ -957,7 +943,7 @@ function TutorStudioPage() {
                           max="100"
                           value={bootcampSettings.coupon_discount_percent}
                           onChange={(e) => setBootcampSettings({ ...bootcampSettings, coupon_discount_percent: e.target.value })}
-                          className="w-full bg-card border border-border/40 rounded-2xl px-5 py-4 pr-9 text-sm font-black text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                          className="w-full bg-card ring-1 ring-border rounded-2xl px-5 py-4 pr-9 text-[13.5px] font-semibold tracking-tight text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">%</span>
                       </div>
@@ -967,7 +953,7 @@ function TutorStudioPage() {
 
                 <button
                   onClick={handleSaveBootcampSettings}
-                  className="w-full rounded-full bg-foreground px-6 py-4 text-sm font-bold text-background shadow-lg transition active:scale-95"
+                  className="w-full rounded-full bg-foreground px-6 py-3.5 text-[14px] font-semibold tracking-tight text-background tap shadow-lift hover:opacity-90"
                 >
                   Save Bootcamp Settings
                 </button>
@@ -977,7 +963,7 @@ function TutorStudioPage() {
                   <button 
                     onClick={handleDeleteBootcamp}
                     disabled={deleteMutation.isPending}
-                    className="w-full bg-destructive/10 text-destructive font-bold py-4 rounded-full border border-destructive/20 hover:bg-destructive hover:text-white transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                    className="w-full bg-destructive/8 text-destructive font-semibold tracking-tight py-3.5 rounded-full hover:bg-destructive/15 tap flex items-center justify-center gap-2 text-[13.5px] disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" /> 
                     {deleteMutation.isPending ? "Deleting..." : "Delete Bootcamp"}
@@ -996,33 +982,26 @@ function TutorStudioPage() {
   // ═══════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* ── Immersive Hero Header ────────────────────────── */}
-      <div className="relative w-full overflow-hidden bg-background pt-[calc(3rem+env(safe-area-inset-top))] pb-6 px-5">
-          <>
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/15 blur-[140px] rounded-full translate-x-1/3 -translate-y-1/3 z-0 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full -translate-x-1/3 translate-y-1/3 z-0 pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-0 pointer-events-none" />
-            {/* Subtle grid pattern */}
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4=')] z-0 opacity-50 pointer-events-none" />
-          </>
-
-        <div className="relative z-10 flex items-center justify-between gap-4">
+      {/* ── Header ────────────────────────── */}
+      <div className="relative w-full bg-background pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2 px-5">
+        <div className="flex items-center justify-between gap-4 max-w-4xl mx-auto">
           <div>
-            <h1 className="font-display text-3xl font-black text-foreground tracking-tight drop-shadow-sm">Tutor Dashboard</h1>
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Tutor Studio</p>
+            <h1 className="mt-1 font-display text-[26px] font-semibold text-foreground tracking-tight">Dashboard</h1>
           </div>
           <Drawer>
             <DrawerTrigger asChild>
               <button
                 aria-label="Global settings"
-                className="grid h-11 w-11 place-items-center rounded-full border border-border/40 bg-card/80 text-foreground shadow-sm backdrop-blur-md transition hover:bg-accent active:scale-95"
+                className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border bg-card text-foreground tap hover:bg-foreground/[0.04]"
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />
               </button>
             </DrawerTrigger>
             <DrawerContent className="h-[90%] border-t border-border/40 bg-card p-0 flex flex-col shadow-[0_-10px_50px_rgba(0,0,0,0.12)] max-w-lg mx-auto">
               <div className="w-12 h-1.5 bg-border/60 rounded-full mx-auto mt-4 mb-2 shrink-0" />
               <DrawerHeader className="px-6 py-4 shrink-0 text-left">
-                <DrawerTitle className="text-xl font-black text-foreground flex items-center gap-3">
+                <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Settings className="h-5 w-5 text-primary" />
                   </div>
@@ -1036,17 +1015,17 @@ function TutorStudioPage() {
                       <Calendar className="h-5 w-5 text-blue-500" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-foreground">Booking Availability</h3>
+                      <h3 className="text-[13.5px] font-semibold tracking-tight text-foreground">Booking Availability</h3>
                       <p className="text-xs text-muted-foreground">Set times for 1-on-1 tutoring</p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Working Days</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Working Days</label>
                     <div className="relative">
                       <select
                         value={bookingForm.availability_days}
                         onChange={(e) => setBookingForm({ ...bookingForm, availability_days: e.target.value })}
-                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground cursor-pointer"
+                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground cursor-pointer"
                       >
                         <option>Weekdays (Mon-Fri)</option>
                         <option>Weekends (Sat-Sun)</option>
@@ -1057,31 +1036,31 @@ function TutorStudioPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[11px] text-muted-foreground ml-1">Start Time</label>
+                      <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Start Time</label>
                       <input
                         type="time"
                         value={bookingForm.availability_start}
                         onChange={(e) => setBookingForm({ ...bookingForm, availability_start: e.target.value })}
-                        className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground"
+                        className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[11px] text-muted-foreground ml-1">End Time</label>
+                      <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">End Time</label>
                       <input
                         type="time"
                         value={bookingForm.availability_end}
                         onChange={(e) => setBookingForm({ ...bookingForm, availability_end: e.target.value })}
-                        className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground"
+                        className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] text-muted-foreground ml-1">Session Duration</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Session Duration</label>
                     <div className="relative">
                       <select
                         value={bookingForm.availability_duration}
                         onChange={(e) => setBookingForm({ ...bookingForm, availability_duration: e.target.value })}
-                        className="w-full appearance-none bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition text-foreground cursor-pointer"
+                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground cursor-pointer"
                       >
                         <option>30 minutes</option>
                         <option>45 minutes</option>
@@ -1090,7 +1069,7 @@ function TutorStudioPage() {
                       <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   </div>
-                  <button onClick={handleSaveSettings} className="w-full bg-blue-500 text-white font-bold py-4 rounded-full shadow-lg shadow-blue-500/20 transition active:scale-95 text-sm">
+                  <button onClick={handleSaveSettings} className="w-full bg-foreground text-background font-semibold tracking-tight py-3.5 rounded-full tap shadow-lift hover:opacity-90 text-[14px]">
                     Save Availability
                   </button>
                 </section>
@@ -1102,72 +1081,59 @@ function TutorStudioPage() {
 
       <div className="px-5 mt-8 space-y-10 max-w-4xl mx-auto">
         {/* ── Quick Stats ────────────────────────── */}
-        <section className="grid grid-cols-2 gap-4">
-          <div className="relative rounded-3xl border border-border/40 bg-card p-6 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
-            <div className="absolute -top-8 -right-8 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
-              <WalletIcon className="h-32 w-32 text-primary" />
+        <section className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+            <div className="flex items-center gap-2.5 text-muted-foreground">
+              <Wallet className="h-4 w-4" strokeWidth={1.75} />
+              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Total earned</span>
             </div>
-            <div className="relative z-10 flex items-center gap-3 text-muted-foreground mb-4">
-              <div className="h-10 w-10 rounded-2xl bg-primary/10 grid place-items-center shrink-0">
-                <WalletIcon className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-[11px] leading-tight">Total Earned</span>
-            </div>
-            <p className="relative z-10 font-display text-3xl font-black text-foreground tracking-tight">₦0</p>
-            <div className="relative z-10 flex items-center gap-1.5 mt-2 text-emerald-500">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-bold">+0% this month</span>
+            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">₦0</p>
+            <div className="flex items-center gap-1.5 mt-2.5 text-success">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-[11px] font-medium">+0% this month</span>
             </div>
           </div>
-          <div className="relative rounded-3xl border border-border/40 bg-card p-6 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
-            <div className="absolute -top-8 -right-8 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
-              <GraduationCap className="h-32 w-32 text-blue-500" />
+          <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+            <div className="flex items-center gap-2.5 text-muted-foreground">
+              <Users className="h-4 w-4" strokeWidth={1.75} />
+              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Learners</span>
             </div>
-            <div className="relative z-10 flex items-center gap-3 text-muted-foreground mb-4">
-              <div className="h-10 w-10 rounded-2xl bg-blue-500/10 grid place-items-center shrink-0">
-                <Users className="h-5 w-5 text-blue-500" />
-              </div>
-              <span className="text-[11px] leading-tight">Learners</span>
-            </div>
-            <p className="relative z-10 font-display text-3xl font-black text-foreground tracking-tight">0</p>
-            <div className="relative z-10 flex items-center gap-1.5 mt-2 text-muted-foreground">
-              <Users className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-bold">Across all bootcamps</span>
+            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">0</p>
+            <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
+              <span className="text-[11px] font-medium">Across all bootcamps</span>
             </div>
           </div>
         </section>
 
         {/* ── Bootcamps Grid ────────────────────────── */}
-        <section className="space-y-5">
+        <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-foreground tracking-tight">Your Bootcamps</h2>
+            <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Your bootcamps</h2>
             <button
               onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
-              className="flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-bold text-background shadow-lg shadow-foreground/10 transition hover:scale-105 active:scale-95"
+              className="flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90"
             >
               <Plus className="h-4 w-4" /> Create
             </button>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {bootcamps.length > 0 ? bootcamps.map((course) => (
               <div
                 key={course.id}
                 onClick={() => { setActiveBootcampId(course.id); setActiveTab("details"); setView("editor"); }}
-                className="group relative flex flex-col rounded-3xl border border-border/40 bg-card transition-all hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 cursor-pointer overflow-hidden"
+                className="group relative flex flex-col rounded-2xl ring-1 ring-border bg-card transition-all hover:ring-foreground/15 shadow-soft cursor-pointer overflow-hidden"
               >
                 {/* Thumbnail */}
-                <div className="h-36 w-full bg-accent/20 relative overflow-hidden">
+                <div className="h-36 w-full bg-muted relative overflow-hidden">
                   {course.banner_url && (
                     <img src={course.banner_url} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-40 group-hover:opacity-80 transition-opacity" />
                   <div className="absolute top-3 right-3">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] backdrop-blur-md shadow-sm ${ course.status ==="Active" ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/25" :
-                      course.status === "Draft" ? "bg-background/80 text-foreground border border-border/50" :
-                      "bg-primary/15 text-primary border border-primary/25"
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium backdrop-blur-md ${course.status === "Active" ? "bg-black/50 text-white ring-1 ring-white/20" :
+                      "bg-black/50 text-white/80 ring-1 ring-white/15"
                     }`}>
-                      {course.status === "Active" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                      {course.status === "Active" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
                       {course.status}
                     </span>
                   </div>
@@ -1175,35 +1141,33 @@ function TutorStudioPage() {
 
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div className="mb-4">
-                    <h3 className="text-base font-black text-foreground leading-tight group-hover:text-primary transition-colors tracking-tight">{course.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
-                      <LayoutGrid className="h-3.5 w-3.5" /> {course.category}
+                    <h3 className="text-[15px] font-semibold text-foreground leading-snug tracking-tight">{course.title}</h3>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground mt-1.5">
+                      {course.category}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-border/30">
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500/10 to-transparent pl-3 pr-4 py-1.5 rounded-full text-xs border border-blue-500/10">
-                      <UsersRound className="h-3.5 w-3.5 text-blue-500" />
-                      <span className="text-blue-600 dark:text-blue-400">{course.enrollments?.[0]?.count || 0}</span>
+                  <div className="flex items-center justify-between pt-3.5 border-t hairline">
+                    <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                      <UsersRound className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      <span className="tabular-nums">{course.enrollments?.[0]?.count || 0} enrolled</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-gradient-to-l from-emerald-500/10 to-transparent pr-3 pl-4 py-1.5 rounded-full text-xs border border-emerald-500/10">
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">₦{course.price || 0}</span>
-                    </div>
+                    <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">₦{Number(course.price || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             )) : (
-              <div className="sm:col-span-2 rounded-3xl border-2 border-dashed border-border/40 bg-accent/5 p-16 flex flex-col items-center justify-center text-center">
-                <div className="h-20 w-20 rounded-[28px] bg-primary/10 flex items-center justify-center mb-5">
-                  <BookOpen className="h-10 w-10 text-primary" />
+              <div className="sm:col-span-2 rounded-2xl ring-1 ring-border bg-card p-14 flex flex-col items-center justify-center text-center">
+                <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
+                  <BookOpen className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
                 </div>
-                <h3 className="text-lg font-black text-foreground mb-2 tracking-tight">No Bootcamps Yet</h3>
-                <p className="text-sm text-muted-foreground max-w-sm mb-8">Create your first bootcamp to start sharing your knowledge and earning.</p>
+                <h3 className="text-[17px] font-semibold text-foreground mb-1.5 tracking-tight">No bootcamps yet</h3>
+                <p className="text-[13.5px] text-muted-foreground max-w-sm mb-7 leading-relaxed">Create your first bootcamp to start sharing your knowledge and earning.</p>
                 <button
                   onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
-                  className="rounded-full bg-foreground px-8 py-3.5 text-sm font-bold text-background shadow-lg transition hover:scale-105 active:scale-95"
+                  className="rounded-full bg-foreground px-6 py-2.5 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90"
                 >
-                  Create Your First Bootcamp
+                  Create your first bootcamp
                 </button>
               </div>
             )}

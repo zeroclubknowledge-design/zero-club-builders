@@ -211,31 +211,31 @@ function CreateBootcamp() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground pb-24">
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/40 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             to="/app/tutor-studio"
-            className="flex items-center justify-center h-9 w-9 rounded-full bg-accent/60 transition hover:bg-accent active:scale-95"
+            className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]"
           >
-            <ChevronLeft className="h-5 w-5 text-foreground" />
+            <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
           </Link>
-          <h1 className="text-lg font-black tracking-tight text-foreground">
+          <h1 className="text-[17px] font-semibold tracking-tight text-foreground">
             Create Bootcamp
           </h1>
         </div>
-        <button className="flex items-center gap-2 rounded-full bg-accent/60 border border-border/40 px-5 py-2 text-xs font-bold transition hover:bg-accent active:scale-95 text-foreground">
+        <button className="flex items-center gap-1.5 rounded-full ring-1 ring-border px-4 py-2 text-[12px] font-semibold tracking-tight tap hover:bg-foreground/[0.04] text-foreground">
           <Save className="h-3.5 w-3.5" /> Save Draft
         </button>
       </header>
 
       {/* ─── Progress Stepper ─── */}
-      <div className="px-6 py-7 border-b border-border/40">
+      <div className="px-6 py-6 border-b hairline">
         <div className="flex items-center justify-between relative">
           {/* Tracks */}
-          <div className="absolute top-5 left-5 right-5 h-1 -translate-y-1/2 z-0">
-            <div className="absolute inset-0 bg-accent rounded-full" />
+          <div className="absolute top-5 left-5 right-5 h-[2px] -translate-y-1/2 z-0">
+            <div className="absolute inset-0 bg-foreground/[0.06] rounded-full" />
             <div
-              className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-500 ease-out"
+              className="absolute top-0 left-0 h-full bg-foreground rounded-full transition-all duration-500 ease-out"
               style={{ width: `${(step - 1) * 50}%` }}
             />
           </div>
@@ -243,18 +243,18 @@ function CreateBootcamp() {
           {[1, 2, 3].map((s) => (
             <div key={s} className="relative z-10 flex flex-col items-center gap-2.5">
               <div
-                className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                className={`h-10 w-10 rounded-full flex items-center justify-center text-[13px] font-semibold tabular-nums transition-all duration-300 ${
                   step > s
-                    ?"bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    ? "bg-foreground text-background"
                     : step === s
-                      ? "bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/30"
-                      : "bg-accent text-muted-foreground"
+                      ? "bg-foreground text-background ring-4 ring-foreground/10"
+                      : "ring-1 ring-border bg-card text-muted-foreground"
                 }`}
               >
                 {step > s ? <CheckCircle2 className="h-5 w-5" /> : s}
               </div>
               <span
-                className={`text-[10px] transition-colors duration-300 ${ step >= s ?"text-primary" : "text-muted-foreground/30"
+                className={`text-[10px] font-medium uppercase tracking-[0.14em] transition-colors duration-300 ${ step >= s ? "text-foreground" : "text-muted-foreground/40"
                 }`}
               >
                 {stepLabels[s - 1]}
@@ -271,7 +271,7 @@ function CreateBootcamp() {
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight">Basic Information</h2>
+              <h2 className="text-[21px] font-semibold tracking-tight">Basic Information</h2>
               <p className="text-sm text-muted-foreground">
                 Give your bootcamp a compelling title and description to attract builders.
               </p>
@@ -280,7 +280,7 @@ function CreateBootcamp() {
             <div className="space-y-6">
               {/* Title */}
               <div className="space-y-2">
-                <label className="text-[11px] text-muted-foreground ml-1">
+                <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                   Title
                 </label>
                 <input
@@ -288,21 +288,21 @@ function CreateBootcamp() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Advanced Web3 Development"
-                  className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40"
+                  className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/40"
                   disabled={loading}
                 />
               </div>
 
               {/* Category */}
               <div className="space-y-2">
-                <label className="text-[11px] text-muted-foreground ml-1">
+                <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                   Category
                 </label>
                 <div className="relative">
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground appearance-none pr-12"
+                    className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground appearance-none pr-12"
                     disabled={loading}
                   >
                     <option>Design</option>
@@ -316,7 +316,7 @@ function CreateBootcamp() {
 
               {/* Description */}
               <div className="space-y-2">
-                <label className="text-[11px] text-muted-foreground ml-1">
+                <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                   Description
                 </label>
                 <textarea
@@ -324,19 +324,19 @@ function CreateBootcamp() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe what builders will learn…"
                   rows={4}
-                  className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition text-foreground placeholder:text-muted-foreground/40 resize-none"
+                  className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/40 resize-none"
                   disabled={loading}
                 />
               </div>
 
               {/* Cover Image Upload */}
               <div className="space-y-2">
-                <label className="text-[11px] text-muted-foreground ml-1">
+                <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                   Cover Image
                 </label>
                 <div
                   onClick={() => !loading && bannerInputRef.current?.click()}
-                  className="relative border-2 border-dashed border-border/50 rounded-3xl min-h-[200px] flex flex-col items-center justify-center gap-4 bg-accent/10 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer overflow-hidden group"
+                  className="relative border border-dashed border-border-strong rounded-2xl min-h-[200px] flex flex-col items-center justify-center gap-4 bg-accent/10 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer overflow-hidden group"
                 >
                   {banner ? (
                     <img
@@ -346,11 +346,11 @@ function CreateBootcamp() {
                     />
                   ) : (
                     <>
-                      <div className="h-14 w-14 rounded-2xl bg-accent/60 flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
+                      <div className="h-12 w-12 rounded-full ring-1 ring-border bg-card flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
                         <UploadCloud className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       </div>
                       <div className="text-center">
-                        <p className="text-sm font-bold text-foreground">Upload a cover image</p>
+                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Upload a cover image</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Recommended size: 1600×900px
                         </p>
@@ -374,7 +374,7 @@ function CreateBootcamp() {
 
               {/* Video Preview Upload */}
               <div className="space-y-2">
-                <label className="text-[11px] text-muted-foreground ml-1">
+                <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                   Video Preview
                   <span className="ml-1.5 text-muted-foreground/40 normal-case tracking-normal font-medium">
                     (Optional)
@@ -382,7 +382,7 @@ function CreateBootcamp() {
                 </label>
                 <div
                   onClick={() => !loading && videoInputRef.current?.click()}
-                  className="relative border-2 border-dashed border-border/50 rounded-3xl min-h-[160px] flex flex-col items-center justify-center gap-4 bg-accent/10 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer overflow-hidden group"
+                  className="relative border border-dashed border-border-strong rounded-2xl min-h-[160px] flex flex-col items-center justify-center gap-4 bg-accent/10 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer overflow-hidden group"
                 >
                   {videoPreview ? (
                     <video
@@ -395,11 +395,11 @@ function CreateBootcamp() {
                     />
                   ) : (
                     <>
-                      <div className="h-14 w-14 rounded-2xl bg-accent/60 flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
+                      <div className="h-12 w-12 rounded-full ring-1 ring-border bg-card flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
                         <Play className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       </div>
                       <div className="text-center">
-                        <p className="text-sm font-bold text-foreground">Upload a preview video</p>
+                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Upload a preview video</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Short intro to pitch your bootcamp
                         </p>
@@ -428,7 +428,7 @@ function CreateBootcamp() {
         {step === 2 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight">Live Syllabus Builder</h2>
+              <h2 className="text-[21px] font-semibold tracking-tight">Live Syllabus Builder</h2>
               <p className="text-sm text-muted-foreground">
                 Outline the modules and topics you'll cover in your live sessions.
               </p>
@@ -438,7 +438,7 @@ function CreateBootcamp() {
               {modules.map((module, i) => (
                 <div
                   key={module.id}
-                  className="rounded-3xl border border-border/40 bg-card p-6 space-y-4 shadow-sm"
+                  className="rounded-2xl ring-1 ring-border bg-card p-5 space-y-4 shadow-soft"
                 >
                   {/* Module header */}
                   <div className="flex items-center justify-between">
@@ -455,7 +455,7 @@ function CreateBootcamp() {
                             )
                           )
                         }
-                        className="bg-transparent border-none text-base font-black text-foreground outline-none focus:text-primary transition"
+                        className="bg-transparent border-none text-[15px] font-semibold tracking-tight text-foreground outline-none focus:text-primary transition"
                       />
                     </div>
                     <button className="p-2 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-xl transition">
@@ -468,7 +468,7 @@ function CreateBootcamp() {
                     {module.lessons.map((lesson) => (
                       <div
                         key={lesson.id}
-                        className="flex items-center justify-between p-4 rounded-2xl bg-background border border-border/30 hover:border-primary/30 transition-all group"
+                        className="flex items-center justify-between p-3.5 rounded-xl bg-background ring-1 ring-border hover:ring-primary/25 transition-all group"
                       >
                         <div className="flex items-center gap-3 flex-1">
                           <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -519,7 +519,7 @@ function CreateBootcamp() {
 
                     <button
                       onClick={() => addLesson(module.id)}
-                      className="flex items-center gap-2 text-sm font-bold text-primary px-4 py-2.5 hover:bg-primary/5 rounded-xl transition mt-1"
+                      className="flex items-center gap-1.5 text-[13px] font-semibold tracking-tight text-foreground px-3.5 py-2 hover:bg-foreground/[0.04] rounded-full ring-1 ring-border tap transition mt-1"
                     >
                       <Plus className="h-4 w-4" /> Add Topic
                     </button>
@@ -530,7 +530,7 @@ function CreateBootcamp() {
               {/* Add Module */}
               <button
                 onClick={addModule}
-                className="w-full py-5 border-2 border-dashed border-border/40 rounded-3xl flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground/40 hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all"
+                className="w-full py-4 border border-dashed border-border-strong rounded-2xl flex items-center justify-center gap-2 text-[13.5px] font-semibold tracking-tight text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/[0.03] transition-all"
               >
                 <Plus className="h-5 w-5" /> Add New Module
               </button>
@@ -543,10 +543,10 @@ function CreateBootcamp() {
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Hero */}
             <div className="space-y-4 text-center">
-              <div className="h-20 w-20 rounded-[28px] bg-primary/15 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-primary/10">
-                <Rocket className="h-9 w-9 text-primary" />
+              <div className="h-14 w-14 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center mx-auto mb-5">
+                <Rocket className="h-6 w-6 text-primary" strokeWidth={1.75} />
               </div>
-              <h2 className="text-2xl font-black tracking-tight">Ready to Launch?</h2>
+              <h2 className="text-[21px] font-semibold tracking-tight">Ready to Launch?</h2>
               <p className="text-sm text-muted-foreground">
                 Set your pricing and accessibility options.
               </p>
@@ -554,31 +554,31 @@ function CreateBootcamp() {
 
             <div className="grid grid-cols-1 gap-5">
               {/* Pricing Card */}
-              <div className="rounded-3xl border border-border/40 bg-card p-6 space-y-6 shadow-sm">
+              <div className="rounded-2xl ring-1 ring-border bg-card p-5 space-y-6 shadow-soft">
                 <div className="space-y-4">
-                  <label className="text-[11px] text-muted-foreground ml-1">
+                  <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                     Pricing Model
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     {/* Paid */}
                     <button
                       onClick={() => setIsFree(false)}
-                      className={`rounded-3xl border-2 p-5 text-left space-y-3 transition-all duration-200 ${
+                      className={`rounded-2xl p-5 text-left space-y-3 transition-all duration-200 ${
                         !isFree
-                          ?"border-primary bg-primary/5 shadow-sm"
-                          : "border-border/40 bg-accent/10 opacity-60 hover:opacity-100"
+                          ? "ring-2 ring-primary/50 bg-primary/[0.04]"
+                          : "ring-1 ring-border opacity-60 hover:opacity-100"
                       }`}
                     >
                       <div
-                        className={`h-5 w-5 rounded-full border-[3px] flex items-center justify-center ${
+                        className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
                           !isFree ?"border-primary" : "border-border"
                         }`}
                       >
                         {!isFree && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                          <div className="h-2 w-2 rounded-full bg-primary" />
                         )}
                       </div>
-                      <p className="font-bold text-foreground">Paid Access</p>
+                      <p className="font-semibold tracking-tight text-foreground">Paid access</p>
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
                         Set a price for your bootcamp.
                       </p>
@@ -590,22 +590,22 @@ function CreateBootcamp() {
                         setIsFree(true);
                         setPrice("0");
                       }}
-                      className={`rounded-3xl border-2 p-5 text-left space-y-3 transition-all duration-200 ${
+                      className={`rounded-2xl p-5 text-left space-y-3 transition-all duration-200 ${
                         isFree
-                          ?"border-primary bg-primary/5 shadow-sm"
-                          : "border-border/40 bg-accent/10 opacity-60 hover:opacity-100"
+                          ? "ring-2 ring-primary/50 bg-primary/[0.04]"
+                          : "ring-1 ring-border opacity-60 hover:opacity-100"
                       }`}
                     >
                       <div
-                        className={`h-5 w-5 rounded-full border-[3px] flex items-center justify-center ${
+                        className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
                           isFree ?"border-primary" : "border-border"
                         }`}
                       >
                         {isFree && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                          <div className="h-2 w-2 rounded-full bg-primary" />
                         )}
                       </div>
-                      <p className="font-bold text-foreground">Free</p>
+                      <p className="font-semibold tracking-tight text-foreground">Free</p>
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
                         Open to all builders.
                       </p>
@@ -615,7 +615,7 @@ function CreateBootcamp() {
 
                 {/* Price Input */}
                 <div className="space-y-2">
-                  <label className="text-[11px] text-muted-foreground ml-1">
+                  <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                     Price
                   </label>
                   <div className="relative">
@@ -627,10 +627,10 @@ function CreateBootcamp() {
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="5,000"
-                      className={`w-full bg-background border border-border/40 rounded-2xl pl-10 pr-5 py-4 text-sm font-medium outline-none transition text-foreground placeholder:text-muted-foreground/40 ${
+                      className={`w-full bg-background ring-1 ring-border rounded-2xl pl-10 pr-5 py-4 text-sm font-medium outline-none transition text-foreground placeholder:text-muted-foreground/40 ${
                         isFree
                           ?"opacity-40 cursor-not-allowed"
-                          : "focus:border-primary focus:ring-4 focus:ring-primary/10"
+                          : "focus:ring-2 focus:ring-primary/40"
                       }`}
                       disabled={loading || isFree}
                     />
@@ -638,10 +638,10 @@ function CreateBootcamp() {
                 </div>
 
                 {/* Coupon Setup */}
-                <div className="space-y-4 rounded-2xl border border-border/40 bg-background p-4">
+                <div className="space-y-4 rounded-2xl ring-1 ring-border bg-background p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-bold text-foreground">Launch Coupon</p>
+                      <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Launch coupon</p>
                       <p className="mt-0.5 text-[11px] text-muted-foreground">
                         Let students apply a discount code at checkout.
                       </p>
@@ -665,18 +665,18 @@ function CreateBootcamp() {
                   {couponEnabled && !isFree && (
                     <div className="grid grid-cols-[1fr_96px] gap-3">
                       <div className="space-y-2">
-                        <label className="text-[11px] text-muted-foreground ml-1">Coupon Code</label>
+                        <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Coupon Code</label>
                         <input
                           type="text"
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                           placeholder="ZERO20"
-                          className="w-full bg-card border border-border/40 rounded-2xl px-4 py-3.5 text-sm font-black tracking-wide text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition placeholder:text-muted-foreground/40"
+                          className="w-full bg-card ring-1 ring-border rounded-2xl px-4 py-3.5 text-sm font-semibold tracking-tight text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground/40"
                           disabled={loading}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] text-muted-foreground ml-1">Off</label>
+                        <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Off</label>
                         <div className="relative">
                           <input
                             type="number"
@@ -684,7 +684,7 @@ function CreateBootcamp() {
                             max="100"
                             value={couponDiscount}
                             onChange={(e) => setCouponDiscount(e.target.value)}
-                            className="w-full bg-card border border-border/40 rounded-2xl px-4 py-3.5 pr-8 text-sm font-black text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                            className="w-full bg-card ring-1 ring-border rounded-2xl px-4 py-3.5 pr-8 text-sm font-semibold tracking-tight text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                             disabled={loading}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">%</span>
@@ -695,7 +695,7 @@ function CreateBootcamp() {
 
                   {couponEnabled && !isFree && normalizedCouponCode && (
                     <div className="flex items-center justify-between rounded-2xl bg-primary/10 px-4 py-3 text-xs">
-                      <span className="font-bold text-primary">{normalizedCouponCode}</span>
+                      <span className="font-semibold text-primary">{normalizedCouponCode}</span>
                       <span className="text-muted-foreground">
                         Students pay NGN {couponPreviewPrice.toLocaleString()}
                       </span>
@@ -705,14 +705,14 @@ function CreateBootcamp() {
               </div>
 
               {/* Visibility Card */}
-              <div className="rounded-3xl border border-border/40 bg-card p-6 space-y-4 shadow-sm">
+              <div className="rounded-2xl ring-1 ring-border bg-card p-5 space-y-4 shadow-soft">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-2xl bg-accent/60 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full ring-1 ring-border bg-card flex items-center justify-center">
                       <Globe className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-foreground">Visibility</p>
+                      <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Visibility</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         Publicly listed
                       </p>
@@ -729,11 +729,11 @@ function CreateBootcamp() {
       </main>
 
       {/* ─── Footer Controls ─── */}
-      <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-t border-border/40 px-6 py-4 flex items-center justify-between">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-t hairline px-6 py-4 flex items-center justify-between">
         <button
           onClick={() => step > 1 && setStep(step - 1)}
           disabled={loading}
-          className={`text-sm font-bold text-muted-foreground hover:text-foreground transition ${
+          className={`text-[13.5px] font-semibold tracking-tight text-muted-foreground hover:text-foreground transition-colors ${
             step === 1 ?"invisible" : ""
           } disabled:opacity-50`}
         >
@@ -742,10 +742,10 @@ function CreateBootcamp() {
         <button
           onClick={nextStep}
           disabled={loading}
-          className="rounded-full bg-foreground text-background px-10 py-3.5 font-bold shadow-lg transition active:scale-95 disabled:opacity-50 flex items-center gap-2"
+          className="rounded-full bg-foreground text-background px-8 py-3.5 text-[14px] font-semibold tracking-tight shadow-lift tap hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {step === 3 ? "Launch Bootcamp" : "Continue"}
+          {step === 3 ? "Launch bootcamp" : "Continue"}
         </button>
       </footer>
     </div>
