@@ -174,8 +174,8 @@ function BootcampDetail() {
   const isTutor = currentUser?.id === bootcamp.creator_id;
 
   return (
-    <div className="min-h-screen bg-background pb-6">
-      <div className="relative h-48 w-full">
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="relative h-48 w-full shrink-0">
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-background to-transparent" />
         <div className="h-full w-full overflow-hidden bg-muted">
           {bootcamp.banner_url ? (
@@ -192,7 +192,7 @@ function BootcampDetail() {
         </Link>
       </div>
 
-      <div className="relative z-20 -mt-12 px-5">
+      <div className="relative z-20 -mt-12 px-5 flex-1 flex flex-col">
         <div className="space-y-3">
           <div className="inline-flex rounded-full border border-primary/20 bg-primary/15 px-2.5 py-1 text-[10px] font-bold uppercase text-primary">
             {bootcamp.category}
@@ -298,7 +298,7 @@ function BootcampDetail() {
           </div>
         </section>
 
-        <footer className="mt-10 -mx-5 border-t border-border bg-card/60 px-5 pb-8 pt-8">
+        <footer className="mt-auto -mx-5 border-t border-border bg-card/60 px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-8">
           <div className="space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
