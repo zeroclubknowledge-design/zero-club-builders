@@ -322,11 +322,11 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
   const DrawerInner = (
     <>
       {inline ? (
-        <div className="py-4 border-b border-white/5 shrink-0 mt-8">
-          <h3 className="text-2xl font-black tracking-tight">Discussion</h3>
+        <div className="py-4 border-b hairline shrink-0 mt-8">
+          <h3 className="text-[20px] font-semibold tracking-tight">Discussion</h3>
         </div>
       ) : (
-        <DrawerHeader className="px-6 py-4 border-b border-white/5 shrink-0">
+        <DrawerHeader className="px-6 py-4 border-b hairline shrink-0">
           <DrawerTitle className="text-lg font-bold">Comments</DrawerTitle>
         </DrawerHeader>
       )}
@@ -446,7 +446,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                           <div className="ml-auto">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="p-1 hover:bg-white/5 rounded-full transition-colors">
+                              <button className="p-1 hover:bg-foreground/[0.06] rounded-full transition-colors">
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                               </button>
                             </DropdownMenuTrigger>
@@ -506,7 +506,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                               key={emoji}
                               onClick={() => handleReactComment(comment.id, emoji)}
                               className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                                data.me ?'bg-primary/20 border-primary/30 text-primary' : 'bg-accent/30 border-white/5 text-muted-foreground hover:bg-accent/50'
+                                data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
                               }`}
                             >
                               <span>{emoji}</span>
@@ -528,7 +528,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
             )}
           </div>
 
-          <div className={`${inline ?'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/95 backdrop-blur-md border-t border-border/50 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] sm:pb-3 z-50' : 'p-4 bg-background border-t border-white/5 safe-bottom'}`}>
+          <div className={`${inline ?'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/95 backdrop-blur-md border-t border-border/50 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] sm:pb-3 z-50' : 'p-4 bg-background border-t hairline safe-bottom'}`}>
             {replyTo && (
               <div className="flex items-center justify-between mb-2 px-2 bg-primary/5 rounded-lg py-1.5 border border-primary/10">
                 <span className="text-xs text-primary font-medium">Replying to {getFirstName(replyTo.profiles)}</span>

@@ -31,7 +31,7 @@ function InstitutionStudioLayout() {
   }, [router]);
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex min-h-screen flex-col items-center justify-center gap-4"><div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]"><div className="h-full w-1/3 rounded-full bg-primary animate-progress" /></div></div>;
   }
 
   return <Outlet />;

@@ -504,7 +504,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-black text-sm tracking-tight leading-tight">Zero Club Live</h1>
-              <ChevronLeft className="w-3 h-3 text-muted-foreground rotate-[270deg" />
+              <ChevronLeft className="w-3 h-3 text-muted-foreground rotate-[270deg]" />
             </div>
             <p className="text-[9px] font-bold flex items-center gap-1.5">
               <span className="flex items-center gap-1 bg-red-500/15 text-red-500 px-1.5 py-0.5 rounded-full">
@@ -578,7 +578,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               <div ref={chatEndRef} />
             </div>
             {/* Input */}
-            <div className="shrink-0 p-3 border-t border-border/50 pb-[max(0.75rem,env(safe-area-inset-bottom))">
+            <div className="shrink-0 p-3 border-t border-border/50 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <div className="flex gap-2 items-center">
                 <div className="flex-1 flex items-center gap-2 bg-accent/60 border border-border/30 rounded-2xl px-4 py-2.5">
                   <input
@@ -711,7 +711,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         <div className="shrink-0 px-2.5 md:px-4 py-2 border-t border-border/10 mt-auto">
           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
             <div className="shrink-0 w-8 h-8 rounded-full bg-accent/50 flex items-center justify-center">
-              <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground rotate-[270deg" />
+              <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground rotate-[270deg]" />
             </div>
             <div className="shrink-0 flex flex-col items-center gap-1">
               <div className="relative">

@@ -70,7 +70,7 @@ function BoostPage() {
           <div className="rounded-[32px] border border-border/50 bg-card p-10 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-amber-500 to-blue-500" />
             
-            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(204,32,143,0.2)">
+            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(204,32,143,0.2)]">
               <Zap className="h-10 w-10 text-primary" />
             </div>
             <h2 className="text-2xl font-black mb-3">Coming Soon!</h2>

@@ -45,7 +45,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect = 1, allo
 
   return (
     <Dialog open={!!image} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[500px] bg-background border-border p-6 rounded-[32px] z-[100">
+      <DialogContent className="sm:max-w-[500px] bg-background border-border p-6 rounded-[32px] z-[100]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Edit Photo</DialogTitle>
         </DialogHeader>

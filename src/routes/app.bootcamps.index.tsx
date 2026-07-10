@@ -34,7 +34,7 @@ function Bootcamps() {
         </Link>
       </div>
       
-      <div className="px-5 pt-[88px">
+      <div className="px-5 pt-[88px]">
         <div className="mt-5 flex items-center gap-2.5 rounded-full bg-foreground/[0.04] ring-1 ring-transparent focus-within:ring-primary/40 focus-within:bg-background px-4 py-3 transition-all">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input 

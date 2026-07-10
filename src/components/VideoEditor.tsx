@@ -301,7 +301,7 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
                 {/* Simulated Filmstrip Background */}
                 <div className="absolute inset-0 flex gap-1 opacity-20 pointer-events-none p-1">
                   {[...Array(15)].map((_, i) => (
-                    <div key={i} className="flex-1 bg-white/20 rounded-[2px" />
+                    <div key={i} className="flex-1 bg-white/20 rounded-[2px]" />
                   ))}
                 </div>
 

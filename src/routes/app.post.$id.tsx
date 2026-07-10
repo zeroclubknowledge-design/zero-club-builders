@@ -576,10 +576,10 @@ function PostDetail() {
         <button onClick={handleBack} className="p-1 transition active:opacity-60">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <h1 className="text-[17px] font-bold">Post</h1>
+        <h1 className="text-[17px] font-semibold tracking-tight">Post</h1>
         <div className="flex items-center gap-2">
           {post?.is_verified_build && (
-            <div className="flex items-center gap-1 rounded-full bg-success/20 px-2 py-1 text-[9px] font-black uppercase text-success border border-success/20">
+            <div className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-success ring-1 ring-success/20">
               <ShieldCheck className="h-2.5 w-2.5" /> Proof
             </div>
           )}
@@ -675,7 +675,7 @@ function PostDetail() {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h2 className="text-base font-bold">{post.profiles?.full_name || post.profiles?.username}</h2>
+                <h2 className="text-[15px] font-semibold tracking-tight">{post.profiles?.full_name || post.profiles?.username}</h2>
                 {post.is_build_post && (
                   <span className="flex items-center gap-0.5 rounded-full bg-primary/20 px-2 py-0.5 text-[9px] text-primary border border-primary/20">
                     <Rocket className="h-2.5 w-2.5 fill-current" /> Ship
@@ -698,8 +698,8 @@ function PostDetail() {
             <button 
               onClick={handleFollow}
               disabled={followLoading}
-              className={`rounded-full px-5 py-2 text-sm font-bold transition active:scale-95 flex items-center gap-2 ${
-                isFollowing ?"bg-card border border-border text-foreground" : "bg-foreground text-background"
+              className={`rounded-full px-5 py-2 text-[13px] font-semibold tracking-tight tap flex items-center gap-2 ${
+                isFollowing ? "bg-card ring-1 ring-border text-foreground" : "bg-foreground text-background"
               }`}
             >
               {followLoading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -720,7 +720,7 @@ function PostDetail() {
           {post.media_urls && post.media_urls.length > 0 && (
             <div className={`mt-3 rounded-2xl overflow-hidden transition-colors ${
               post.media_urls.length === 2 
-                ?"grid grid-cols-2 gap-0.5 max-h-[320px] border border-white/10 bg-white/5" 
+                ? "grid grid-cols-2 gap-0.5 max-h-[320px] ring-1 ring-border bg-muted/40" 
                 : "flex justify-start"
             }`}>
               {post.media_urls.slice(0, 2).map((url: string, i: number) => (
@@ -729,7 +729,7 @@ function PostDetail() {
                   className={`relative overflow-hidden rounded-2xl cursor-zoom-in group ${
                     post.media_urls.length === 2 
                       ?"h-[320px] w-full" 
-                      : "max-w-full border border-white/10 bg-white/5 transition-colors"
+                      : "max-w-full ring-1 ring-border bg-muted/40 transition-colors"
                   }`}
                   onClick={() => setSelectedImageIndex(i)}
                 >
@@ -753,7 +753,7 @@ function PostDetail() {
                           e.stopPropagation();
                           toggleMute(e);
                         }}
-                        className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white transition active:scale-95 hover:bg-black/60 z-10"
+                        className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white tap hover:bg-black/70 z-10"
                       >
                         {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                       </button>
@@ -771,7 +771,7 @@ function PostDetail() {
                   )}
                   {post.media_urls.length > 2 && i === 1 && (
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
-                      <span className="text-white text-3xl font-bold tracking-tight">+{post.media_urls.length - 2}</span>
+                      <span className="text-white text-2xl font-semibold tracking-tight">+{post.media_urls.length - 2}</span>
                     </div>
                   )}
                 </div>
@@ -787,14 +787,14 @@ function PostDetail() {
                   <Award className="h-6 w-6" />
                 </div>
               </div>
-              <h3 className="text-sm font-bold text-foreground mb-2">Verify this Ship</h3>
+              <h3 className="text-[14px] font-semibold tracking-tight text-foreground mb-2">Verify this ship</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-6">
                 As the tutor of <span className="text-primary font-bold">{post.bootcamps?.title}</span>, you can verify this build as proof of learning. This will reward the author with XP.
               </p>
               <button 
                 onClick={handleVerifyBuild}
                 disabled={verifying}
-                className="w-full rounded-2xl bg-primary py-4 text-sm font-black text-primary-foreground shadow-glow transition active:scale-95 flex items-center justify-center gap-2"
+                className="w-full rounded-full bg-foreground py-3.5 text-[14px] font-semibold tracking-tight text-background tap shadow-lift hover:opacity-90 flex items-center justify-center gap-2"
               >
                 {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 Mark as Proof
@@ -846,16 +846,16 @@ function PostDetail() {
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                  className={`flex items-center gap-1.5 transition active:scale-95 ${hasReposted ?'text-success font-bold' : 'hover:text-success'}`}
+                  className={`flex items-center gap-1.5 transition active:scale-95 ${hasReposted ? 'text-success' : 'hover:text-success'}`}
                 >
-                  <Repeat className={`h-4 w-4 ${hasReposted ?'text-success font-bold' : ''}`} />
+                  <Repeat className={`h-4 w-4 ${hasReposted ? 'text-success' : ''}`} />
                   <span className="text-xs">{Math.max(0, (post.computed_reposts_count ?? post.reposts_count ?? 0) + (hasReposted && !data?.hasReposted ? 1 : (!hasReposted && data?.hasReposted ? -1 : 0)))}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48 bg-background/95 backdrop-blur-xl border-border">
                 <DropdownMenuItem className="gap-3 py-3 cursor-pointer" onClick={(e) => handleRepost(e)}>
                   <Repeat className="h-4 w-4" />
-                  <span className="font-bold">{hasReposted ? 'Undo Repost' : 'Repost'}</span>
+                  <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   className="gap-3 py-3 cursor-pointer"
@@ -869,13 +869,13 @@ function PostDetail() {
                   }}
                 >
                   <Mail className="h-4 w-4" />
-                  <span className="font-bold">Quote</span>
+                  <span className="font-medium text-sm">Quote</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <button 
               onClick={handleBookmark}
-              className={`flex items-center gap-1.5 transition active:scale-95 ${isBookmarked ?'text-primary font-bold' : 'hover:text-primary text-muted-foreground'}`}
+              className={`flex items-center gap-1.5 transition active:scale-95 ${isBookmarked ? 'text-primary' : 'hover:text-primary text-muted-foreground'}`}
             >
               <Bookmark className={`h-4 w-4 ${isBookmarked ?'fill-current' : ''}`} />
               <span className="text-xs">{isBookmarked ? 'Saved' : 'Save'}</span>
@@ -929,13 +929,13 @@ function PostDetail() {
 
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <Link to="/app/profile/$id" params={{ id: comment.profile_id }} className="font-bold text-sm text-foreground hover:underline">{comment.profiles?.full_name || comment.profiles?.username}</Link>
+                    <Link to="/app/profile/$id" params={{ id: comment.profile_id }} className="font-semibold tracking-tight text-sm text-foreground hover:underline">{comment.profiles?.full_name || comment.profiles?.username}</Link>
                     <span className="text-xs text-muted-foreground">@{comment.profiles?.username}</span>
                     <span className="text-xs text-muted-foreground">{new Date(comment.created_at).toLocaleDateString()}</span>
                   </div>
                   
                   {isReply && comment.parentUsername && (
-                    <p className="text-[10px] text-[#cc208f] font-bold mb-1">Replying to @{comment.parentUsername}</p>
+                    <p className="text-[10px] text-primary font-medium mb-1">Replying to @{comment.parentUsername}</p>
                   )}
 
                   {editingCommentId === comment.id ? (
@@ -949,13 +949,13 @@ function PostDetail() {
                       <div className="flex justify-end gap-2 mt-2">
                         <button 
                           onClick={() => setEditingCommentId(null)}
-                          className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                          className="px-3 py-1.5 text-xs font-semibold tracking-tight text-muted-foreground hover:text-foreground transition-colors"
                         >
                           Cancel
                         </button>
                         <button 
                           onClick={handleSaveCommentEdit}
-                          className="px-4 py-1.5 text-xs font-bold bg-primary text-primary-foreground rounded-full hover:brightness-110 transition-all"
+                          className="px-4 py-1.5 text-xs font-semibold tracking-tight bg-foreground text-background rounded-full tap hover:opacity-90"
                         >
                           Save
                         </button>
@@ -1065,7 +1065,7 @@ function PostDetail() {
                 (currentUser?.full_name || currentUser?.username || 'U').substring(0, 1).toUpperCase()
               )}
             </div>
-            <div className="flex-1 bg-card rounded-2xl border border-border flex items-end pr-1 pb-1 min-h-[44px] focus-within:border-primary/50 transition-colors">
+            <div className="flex-1 bg-card rounded-2xl ring-1 ring-border flex items-end pr-1 pb-1 min-h-[44px] focus-within:ring-primary/40 transition-all">
               <textarea 
                 value={commentText}
                 onChange={(e) => {

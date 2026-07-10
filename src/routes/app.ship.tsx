@@ -301,26 +301,26 @@ function ShipPage() {
   return (
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/40 h-[calc(72px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline h-[calc(72px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between px-4 h-[72px]">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => navigate({ to: "/app" })}
-              className="h-10 w-10 rounded-full bg-accent/50 grid place-items-center transition active:scale-95 hover:bg-accent"
+              className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]"
             >
-              <ArrowLeft className="h-5 w-5 text-foreground" />
+              <ArrowLeft className="h-[18px] w-[18px] text-foreground" />
             </button>
             <div>
-              <h1 className="text-xl font-black tracking-tight flex items-center gap-2">
+              <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
                 Ship Work
               </h1>
-              <p className="text-[11px] text-muted-foreground font-medium">What did you ship today?</p>
+              <p className="text-[11px] text-muted-foreground">What did you ship today?</p>
             </div>
           </div>
           <button 
             onClick={handleShip}
             disabled={!canShip}
-            className="rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-bold shadow-lg transition active:scale-95 disabled:opacity-50 disabled:shadow-none"
+            className="rounded-full bg-foreground text-background px-6 py-2.5 text-[13.5px] font-semibold tracking-tight tap hover:opacity-90 disabled:opacity-40"
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ship"}
           </button>
@@ -330,29 +330,29 @@ function ShipPage() {
       <div className="max-w-2xl mx-auto p-4 space-y-6">
         
         {/* Basic Info */}
-        <section className="space-y-4 bg-card rounded-[32px] p-6 border border-border/40 shadow-sm">
+        <section className="space-y-4 bg-card rounded-2xl p-5 ring-1 ring-border shadow-soft">
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground ml-1">Project Name *</label>
+            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Project Name *</label>
             <input 
               type="text"
               placeholder="E.g., Zero Club Builder App"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="mt-1 w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-[15px] font-bold outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground/40"
+              className="mt-1 w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-[15px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition-all text-foreground placeholder:text-muted-foreground/40"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground ml-1">Category</label>
+            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Category</label>
             <div className="mt-2 flex flex-wrap gap-2">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                  className={`px-4 py-2 rounded-full text-[12px] font-semibold tracking-tight tap transition-all border ${
                     category === cat 
-                      ?"bg-primary text-primary-foreground border-primary shadow-glow" 
-                      : "bg-background border-border/40 text-muted-foreground hover:border-foreground/30"
+                      ? "bg-foreground text-background border-transparent"
+                      : "bg-background border-border text-muted-foreground hover:border-foreground/30"
                   }`}
                 >
                   {cat}
@@ -362,21 +362,21 @@ function ShipPage() {
           </div>
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground ml-1">Description</label>
+            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Description</label>
             <textarea 
               placeholder="What did you build? How does it work?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="mt-1 w-full bg-background border border-border/40 rounded-2xl px-5 py-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground/40 resize-none"
+              className="mt-1 w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all text-foreground placeholder:text-muted-foreground/40 resize-none"
             />
           </div>
         </section>
 
         {/* Proof of Work */}
-        <section className="space-y-4 bg-card rounded-[32px] p-6 border border-border/40 shadow-sm">
+        <section className="space-y-4 bg-card rounded-2xl p-5 ring-1 ring-border shadow-soft">
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-lg font-bold">Proof of Work</h2>
+            <h2 className="text-[16px] font-semibold tracking-tight">Proof of work</h2>
           </div>
           <p className="text-xs text-muted-foreground -mt-3">Upload screenshots, videos, or demos of what you shipped.</p>
           
@@ -422,10 +422,10 @@ function ShipPage() {
         </section>
 
         {/* Project Details */}
-        <section className="space-y-6 bg-card rounded-[32px] p-6 border border-border/40 shadow-sm">
+        <section className="space-y-6 bg-card rounded-2xl p-5 ring-1 ring-border shadow-soft">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground ml-1">Project Links</label>
+              <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Project Links</label>
             </div>
             <div className="space-y-3">
               {links.map((link, i) => (
@@ -475,7 +475,7 @@ function ShipPage() {
           </div>
 
           <div className="pt-2 border-t border-border/40">
-            <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground ml-1">Skills Used</label>
+            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Skills Used</label>
             <div className="relative mt-2">
               <Code className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input 
@@ -483,7 +483,7 @@ function ShipPage() {
                 placeholder="React, Next.js, Figma, Tailwind (comma separated)"
                 value={skills}
                 onChange={(e) => setSkills(e.target.value)}
-                className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 pl-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 pl-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
           </div>
@@ -506,7 +506,7 @@ function ShipPage() {
                     value={prompts}
                     onChange={(e) => setPrompts(e.target.value)}
                     rows={3}
-                    className="w-full bg-background border border-border/40 rounded-2xl px-5 py-4 pl-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                    className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 pl-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -571,10 +571,10 @@ function ShipPage() {
 
         {/* XP Preview */}
         <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl p-6 border border-primary/20 text-center">
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/20 text-primary mb-3 shadow-glow">
+          <div className="inline-flex items-center justify-center h-11 w-11 rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary mb-3">
             <Coins className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-black text-foreground mb-1">Earn +50 XP</h3>
+          <h3 className="text-[16px] font-semibold tracking-tight text-foreground mb-1">Earn +50 XP</h3>
           <p className="text-sm text-muted-foreground max-w-[250px] mx-auto">
             Shipping real work builds your portfolio and increases your reputation.
           </p>

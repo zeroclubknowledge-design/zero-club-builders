@@ -172,7 +172,7 @@ function NotificationsPage() {
   const unreadCount = filteredNotifs.filter(n => !n.is_read && n.actor_id !== currentUser?.id).length;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-140px)">
+    <div className="flex flex-col min-h-[calc(100vh-140px)]">
       <div className="flex border-b hairline sticky top-0 pt-[calc(0.5rem+env(safe-area-inset-top))] bg-background/85 backdrop-blur-xl backdrop-saturate-150 z-20">
         {["all", "verified", "mentions"].map((tab) => (
           <button

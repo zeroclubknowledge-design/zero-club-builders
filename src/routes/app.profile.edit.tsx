@@ -281,7 +281,7 @@ function EditProfile() {
           </div>
 
           <div className="pt-4">
-            <button className="w-full rounded-full border border-border py-3 text-sm font-bold transition hover:bg-accent/10 active:scale-[0.98">
+            <button className="w-full rounded-full border border-border py-3 text-sm font-bold transition hover:bg-accent/10 active:scale-[0.98]">
               Switch to Professional
             </button>
           </div>

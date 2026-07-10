@@ -574,14 +574,14 @@ function ClubChat() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'Administrator': return 'text-primary bg-primary/10 border border-primary/30 shadow-[0_0_10px_rgba(204,32,143,0.15)]';
-      case 'Investor': return 'text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 shadow-[0_0_10px_rgba(52,211,153,0.15)]';
-      case 'Product Lead': return 'text-blue-400 bg-blue-400/10 border border-blue-400/30 shadow-[0_0_10px_rgba(96,165,250,0.15)]';
-      case 'Tech Lead': return 'text-purple-400 bg-purple-400/10 border border-purple-400/30 shadow-[0_0_10px_rgba(192,132,252,0.15)]';
-      case 'Design Lead': return 'text-pink-400 bg-pink-400/10 border border-pink-400/30 shadow-[0_0_10px_rgba(244,114,182,0.15)]';
-      case 'Business Developer': return 'text-orange-400 bg-orange-400/10 border border-orange-400/30 shadow-[0_0_10px_rgba(251,146,60,0.15)]';
-      case 'Growth Hacker': return 'text-cyan-400 bg-cyan-400/10 border border-cyan-400/30 shadow-[0_0_10px_rgba(34,211,238,0.15)]';
-      default: return 'text-muted-foreground bg-white/5 border border-white/10';
+      case 'Administrator': return 'text-primary bg-primary/8 ring-1 ring-primary/20';
+      case 'Investor': return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/8 ring-1 ring-emerald-500/20';
+      case 'Product Lead': return 'text-blue-600 dark:text-blue-400 bg-blue-500/8 ring-1 ring-blue-500/20';
+      case 'Tech Lead': return 'text-violet-600 dark:text-violet-400 bg-violet-500/8 ring-1 ring-violet-500/20';
+      case 'Design Lead': return 'text-pink-600 dark:text-pink-400 bg-pink-500/8 ring-1 ring-pink-500/20';
+      case 'Business Developer': return 'text-orange-600 dark:text-orange-400 bg-orange-500/8 ring-1 ring-orange-500/20';
+      case 'Growth Hacker': return 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/8 ring-1 ring-cyan-500/20';
+      default: return 'text-muted-foreground bg-foreground/[0.04] ring-1 ring-border';
     }
   };
 
@@ -610,7 +610,7 @@ function ClubChat() {
         <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-6">
           <ShieldAlert className="w-10 h-10 text-primary" />
         </div>
-        <h1 className="text-2xl font-black tracking-tight mb-2">
+        <h1 className="text-[21px] font-semibold tracking-tight mb-2">
           {isCreator ? "Subscription Required" : "Club Paused"}
         </h1>
         <p className="text-muted-foreground text-sm mb-8 leading-relaxed">
@@ -743,7 +743,7 @@ function ClubChat() {
                             <Zap className="w-4 h-4 text-primary-foreground fill-current" />
                           </div>
                           <div>
-                            <h2 className="text-xl font-black tracking-tight text-foreground">Interactive Spaces</h2>
+                            <h2 className="text-[19px] font-semibold tracking-tight text-foreground">Interactive Spaces</h2>
                             <p className="text-[10px] text-primary/70">Connect live with your community</p>
                           </div>
                         </div>
@@ -760,7 +760,7 @@ function ClubChat() {
                                   setShowLiveMenu(false);
                                   navigate({ to: "/app/live/$classId", params: { classId: club?.id || "unknown" } });
                                 }}
-                                className="w-full text-left group flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/15 hover:from-red-500/20 hover:to-red-500/10 transition-all active:scale-[0.98"
+                                className="w-full text-left group flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/15 hover:from-red-500/20 hover:to-red-500/10 transition-all active:scale-[0.98]"
                               >
                                 <div className="relative">
                                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white shadow-lg shadow-red-500/25">
@@ -769,7 +769,7 @@ function ClubChat() {
                                   <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-card animate-pulse" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="font-black text-foreground text-[15px] tracking-tight group-hover:text-red-400 transition-colors">Go Live Now</h3>
+                                  <h3 className="font-semibold text-foreground text-[15px] tracking-tight group-hover:text-red-400 transition-colors">Go Live Now</h3>
                                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Start an instant video session with your community</p>
                                 </div>
                                 <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-red-400 group-hover:translate-x-1 transition-all shrink-0" />
@@ -778,13 +778,13 @@ function ClubChat() {
                               {/* ── Schedule Space Card (Admin) ── */}
                               <button
                                 onClick={() => setShowScheduleForm(true)}
-                                className="group w-full flex items-center gap-4 p-4 rounded-2xl bg-accent/50 border border-border/25 hover:bg-accent transition-all active:scale-[0.98"
+                                className="group w-full flex items-center gap-4 p-4 rounded-2xl bg-accent/50 border border-border/25 hover:bg-accent transition-all active:scale-[0.98]"
                               >
                                 <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/15 flex items-center justify-center">
                                   <CalendarDays className="w-6 h-6 text-primary" />
                                 </div>
                                 <div className="flex-1 min-w-0 text-left">
-                                  <h3 className="font-black text-foreground text-[15px] tracking-tight group-hover:text-primary transition-colors">Schedule Space</h3>
+                                  <h3 className="font-semibold text-foreground text-[15px] tracking-tight group-hover:text-primary transition-colors">Schedule Space</h3>
                                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Plan a future live class, event, or discussion</p>
                                 </div>
                                 <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
@@ -815,7 +815,7 @@ function ClubChat() {
                                 {liveAdminsCount > 0 && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-card animate-pulse" />}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className={`font-black text-[15px] tracking-tight transition-colors ${liveAdminsCount > 0 ?"text-foreground group-hover:text-red-400" : "text-muted-foreground"}`}>
+                                <h3 className={`font-semibold text-[15px] tracking-tight transition-colors ${liveAdminsCount > 0 ?"text-foreground group-hover:text-red-400" : "text-muted-foreground"}`}>
                                   {liveAdminsCount > 0 ? "Join Live Space" : "Space is Offline"}
                                 </h3>
                                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -893,7 +893,7 @@ function ClubChat() {
                             {/* Submit button */}
                             <button
                               onClick={handleScheduleSpaceSubmit}
-                              className="w-full flex items-center justify-center gap-2.5 py-4 bg-primary text-primary-foreground font-black rounded-2xl hover:brightness-110 transition active:scale-[0.98] shadow-lg shadow-primary/15 mt-2"
+                              className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-foreground text-background font-semibold tracking-tight rounded-full tap hover:opacity-90 shadow-lift mt-2"
                             >
                               <CalendarDays className="w-4.5 h-4.5" />
                               Schedule Space
@@ -1187,7 +1187,7 @@ function ClubChat() {
                                         </div>
                                       )}
                                       {isUserOnline(m.profiles) && (
-                                        <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-[#0A0A0E" />
+                                        <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-[#0A0A0E]" />
                                       )}
                                     </div>
                                     <div className="text-left">
@@ -1206,7 +1206,7 @@ function ClubChat() {
                                     </span>
                                   ) : (
                                     canEditMember && (
-                                      <span className="text-xs font-black text-primary hover:underline transition px-2.5 py-1">
+                                      <span className="text-xs font-semibold text-primary hover:underline transition px-2.5 py-1">
                                         Edit
                                       </span>
                                     )
@@ -1228,7 +1228,7 @@ function ClubChat() {
                             </button>
                             
                             <div className="text-left">
-                              <h3 className="text-xl font-black tracking-tight text-foreground">Member Settings</h3>
+                              <h3 className="text-[19px] font-semibold tracking-tight text-foreground">Member Settings</h3>
                               <p className="text-xs text-muted-foreground">Modify squad privileges and roles</p>
                             </div>
                           </div>
@@ -1317,7 +1317,7 @@ function ClubChat() {
               <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
                 <div className="px-5 pt-6 pb-10">
                   <DrawerHeader className="px-0 pt-0 text-left mb-6">
-                    <DrawerTitle className="text-xl font-black text-foreground">Channels</DrawerTitle>
+                    <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">Channels</DrawerTitle>
                     <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
                       Switch to a different section
                     </DrawerDescription>
@@ -1413,7 +1413,7 @@ function ClubChat() {
 
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1 text-success font-bold">
-                <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_6px_rgba(34,197,94,0.8)] animate-pulse" />
+                <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 {onlineMembersCount} online
               </span>
               <span className="flex items-center gap-1">
@@ -1462,8 +1462,8 @@ function ClubChat() {
       {/* Rules Modal */}
       {showRules && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="relative w-full max-w-sm bg-gradient-to-b from-card to-card/90 rounded-[28px] shadow-2xl border border-white/10 overflow-hidden flex flex-col max-h-[70vh">
-            <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+          <div className="relative w-full max-w-sm bg-gradient-to-b from-card to-card/90 rounded-[28px] shadow-lift ring-1 ring-border overflow-hidden flex flex-col max-h-[70vh]">
+            <div className="px-5 py-4 border-b hairline flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-xl bg-primary/20 flex items-center justify-center">
                   <ShieldAlert className="h-4 w-4 text-primary" />
@@ -1475,7 +1475,7 @@ function ClubChat() {
               </div>
               <button 
                 onClick={() => setShowRules(false)}
-                className="h-7 w-7 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
+                className="h-7 w-7 rounded-full bg-foreground/[0.06] flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -1873,7 +1873,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                     </div>
                     <div className="min-w-0">
                       <span className="text-[9px] text-primary">Live Space Event</span>
-                      <h4 className="font-black text-sm text-foreground tracking-tight truncate mt-0.5">{spaceTopic}</h4>
+                      <h4 className="font-semibold text-sm text-foreground tracking-tight truncate mt-0.5">{spaceTopic}</h4>
                     </div>
                   </div>
 
@@ -1910,8 +1910,8 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                 {message.content.includes('$$MEDIA$$') && (
                   <div className={`mt-2 rounded-xl overflow-hidden transition-colors ${
                     message.content.split('$$MEDIA$$')[1].split(',').length >= 2 
-                      ? "grid grid-cols-2 gap-0.5 max-h-[240px] border border-white/10 bg-white/5" 
-                      : "flex justify-start border border-white/10"
+                      ? "grid grid-cols-2 gap-0.5 max-h-[240px] ring-1 ring-border bg-muted/40" 
+                      : "flex justify-start ring-1 ring-border"
                   }`}>
                     {message.content.split('$$MEDIA$$')[1].split(',').map((url: string, i: number) => {
                       const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg)$/);
@@ -1998,7 +1998,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                   key={emoji}
                   onClick={() => onReact(message.id, emoji)}
                   className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                    data.me ?'bg-primary/20 border-primary/30 text-primary' : 'bg-accent/30 border-white/5 text-muted-foreground hover:bg-accent/50'
+                    data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
                   }`}
                 >
                   <span>{emoji}</span>
@@ -2007,7 +2007,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               ))}
               <button 
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="flex items-center justify-center h-[22px] w-[22px] rounded-full bg-accent/30 border border-white/5 text-muted-foreground hover:bg-accent/50 transition-colors"
+                className="flex items-center justify-center h-[22px] w-[22px] rounded-full bg-foreground/[0.04] text-muted-foreground hover:bg-foreground/[0.08] transition-colors"
               >
                 <Plus className="h-3 w-3" />
               </button>

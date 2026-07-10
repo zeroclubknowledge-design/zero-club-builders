@@ -449,7 +449,7 @@ function ComposePage() {
         >
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
-        <span className="font-bold absolute left-1/2 -translate-x-1/2 text-foreground">
+        <span className="font-semibold tracking-tight absolute left-1/2 -translate-x-1/2 text-foreground">
           Create Post
         </span>
         <div className="w-10" /> {/* Spacer */}
@@ -472,7 +472,7 @@ function ComposePage() {
                  return (
                    <div 
                      key={i} 
-                     className="relative overflow-hidden border border-border bg-black/5 rounded-[24px"
+                     className="relative overflow-hidden border border-border bg-black/5 rounded-[24px]"
                    >
                      {isVideo ? (
                        <video src={src} className="w-full h-auto max-h-[600px] object-contain" muted playsInline controls />
@@ -487,14 +487,14 @@ function ComposePage() {
                          setImages(prev => prev.filter((_, idx) => idx !== i));
                          setPreviews(prev => prev.filter((_, idx) => idx !== i));
                        }}
-                       className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition active:scale-90 border border-white/10 shadow-sm z-10 hover:bg-black/70"
+                       className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition active:scale-90 ring-1 ring-white/15 z-10 hover:bg-black/70"
                      >
                        <X className="h-4 w-4" />
                      </button>
                      {!isVideo && (
                        <button 
                          onClick={() => setCroppingInfo(i)}
-                         className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition active:scale-90 border border-white/10 shadow-sm z-10 hover:bg-black/70"
+                         className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition active:scale-90 ring-1 ring-white/15 z-10 hover:bg-black/70"
                        >
                          <Crop className="h-4 w-4" />
                        </button>
@@ -502,7 +502,7 @@ function ComposePage() {
                      {isVideo && (
                        <button 
                          onClick={() => setTrimmingInfo(i)}
-                         className="absolute bottom-3 right-3 flex items-center justify-center gap-1.5 px-3.5 h-8 rounded-full bg-black/60 text-white backdrop-blur-md transition active:scale-90 border border-white/20 shadow-sm z-10 hover:bg-black/80 text-[10px]"
+                         className="absolute bottom-3 right-3 flex items-center justify-center gap-1.5 px-3.5 h-8 rounded-full bg-black/60 text-white backdrop-blur-md transition active:scale-90 ring-1 ring-white/20 z-10 hover:bg-black/80 text-[10px]"
                        >
                          <Wand2 className="h-3.5 w-3.5" /> Edit
                        </button>
@@ -517,7 +517,7 @@ function ComposePage() {
           {/* Floating Formatting Toolbar */}
       {isEditorFocused && (
         <div className="fixed bottom-[110px] left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 fade-in duration-200">
-          <div className="flex items-center gap-1 p-1.5 bg-background/95 backdrop-blur-xl rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.15)] border border-border/50">
+          <div className="flex items-center gap-1 p-1.5 bg-background/95 backdrop-blur-xl rounded-full shadow-lift ring-1 ring-border">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
               className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
@@ -556,7 +556,7 @@ function ComposePage() {
                     {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" /> : prof.username[0].toUpperCase()}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-bold text-foreground">{prof.full_name || prof.username}</p>
+                    <p className="text-sm font-semibold tracking-tight text-foreground">{prof.full_name || prof.username}</p>
                     <p className="text-xs text-muted-foreground">{getFirstName(prof)}</p>
                   </div>
                 </button>
@@ -591,8 +591,8 @@ function ComposePage() {
                   setSelectedBootcampId(null);
                 }
               }}
-              className={`text-xs font-bold px-5 py-1.5 rounded-full border transition active:scale-95 ${
-                isBuild ?"border-primary text-primary bg-primary/10 shadow-[0_0_10px_rgba(204,32,143,0.2)]" : "border-border text-muted-foreground hover:bg-accent"
+              className={`text-[12px] font-semibold tracking-tight px-4 py-1.5 rounded-full border tap ${
+                isBuild ? "border-primary/40 text-primary bg-primary/8" : "border-border text-muted-foreground hover:bg-foreground/[0.03]"
               }`}
             >
               Build
@@ -609,7 +609,7 @@ function ComposePage() {
                 <button 
                   key={bc.id}
                   onClick={() => setSelectedBootcampId(bc.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${selectedBootcampId === bc.id ?"bg-primary text-primary-foreground border-primary shadow-glow" : "bg-card border-border hover:border-foreground/50"}`}
+                  className={`px-4 py-2 rounded-full text-[13px] font-semibold tracking-tight border tap transition ${selectedBootcampId === bc.id ? "bg-foreground text-background border-transparent" : "bg-card border-border hover:border-foreground/30"}`}
                 >
                   {bc.title}
                 </button>
@@ -626,7 +626,7 @@ function ComposePage() {
               <div className="h-6 w-6 rounded-full overflow-hidden bg-muted">
                 {quotedPost.profiles?.avatar_url && <img src={quotedPost.profiles.avatar_url} className="h-full w-full object-cover" />}
               </div>
-              <span className="text-sm font-bold">{quotedPost.profiles?.full_name || quotedPost.profiles?.username}</span>
+              <span className="text-sm font-semibold tracking-tight">{quotedPost.profiles?.full_name || quotedPost.profiles?.username}</span>
               <span className="text-xs text-muted-foreground">{getFirstName(quotedPost.profiles)}</span>
             </div>
             <div className="text-sm line-clamp-3 text-foreground/80">
@@ -639,13 +639,13 @@ function ComposePage() {
         <div className="mt-4 bg-card rounded-[32px] p-2 shadow-sm border border-border/50 flex flex-col divide-y divide-border/50">
           <button 
             onClick={() => setAddLocation(!addLocation)}
-            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 rounded-t-[24px] active:scale-[0.98"
+            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 rounded-t-[24px] active:scale-[0.98]"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div className="flex flex-col text-left">
-                  <span className="font-bold text-sm text-foreground">Add Location</span>
+                  <span className="font-semibold tracking-tight text-sm text-foreground">Add location</span>
                   {locationName && <span className="text-[10px] text-muted-foreground max-w-[120px] truncate">{locationName}</span>}
                 </div>
               </div>
@@ -655,7 +655,7 @@ function ComposePage() {
           
           <button 
             onClick={() => setAudience(audience === "Everyone" ? "Followers Only" : "Everyone")}
-            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 active:scale-[0.98"
+            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 active:scale-[0.98]"
           >
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full border border-border/50 bg-background grid place-items-center">
@@ -670,13 +670,13 @@ function ComposePage() {
           
           <Link 
             to="/app/boost"
-            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 rounded-b-[24px] active:scale-[0.98"
+            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 rounded-b-[24px] active:scale-[0.98]"
           >
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full border border-border/50 bg-background grid place-items-center">
                 <Compass className="h-4 w-4 text-foreground" />
               </div>
-              <span className="font-bold text-sm text-foreground">Boost Post</span>
+              <span className="font-semibold tracking-tight text-sm text-foreground">Boost post</span>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
@@ -688,14 +688,14 @@ function ComposePage() {
       <div className="fixed bottom-0 left-0 right-0 p-6 flex gap-4 bg-background border-t border-border/50 pb-8 z-50">
         <button 
           onClick={saveDraft}
-          className="flex-1 py-4 bg-card border border-border rounded-[20px] font-bold text-foreground shadow-sm transition active:scale-95 hover:bg-accent"
+          className="flex-1 py-3.5 bg-card ring-1 ring-border rounded-full text-[14px] font-semibold tracking-tight text-foreground tap hover:bg-foreground/[0.03]"
         >
           Save as Draft
         </button>
         <button 
           onClick={handlePost}
           disabled={!canPost}
-          className="flex-1 py-4 bg-foreground text-background rounded-[20px] font-bold shadow-xl transition active:scale-95 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none hover:bg-foreground/90"
+          className="flex-1 py-3.5 bg-foreground text-background rounded-full text-[14px] font-semibold tracking-tight shadow-lift tap disabled:opacity-40 hover:opacity-90"
         >
           {uploading ? <Loader2 className="h-5 w-5 animate-spin mx-auto text-background" /> : "Post"}
         </button>

@@ -255,7 +255,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                         }, 1500);
                       }
                     }}
-                    className={`mb-1.5 p-2 rounded-xl text-left border-l-2 cursor-pointer hover:opacity-80 transition-opacity ${isMe ?'bg-black/10 border-white/40' : 'bg-background/50 border-primary/40'}`}
+                    className={`mb-1.5 p-2 rounded-xl text-left border-l-2 cursor-pointer hover:opacity-80 transition-opacity ${isMe ? 'bg-black/10 border-white/40' : 'bg-foreground/[0.04] border-primary/40'}`}
                   >
                     <span className={`block text-[10px] font-bold mb-0.5 ${isMe ?'text-white/80' : 'text-primary'}`}>
                       {repliedMessage.sender_id === (isMe ? m.sender_id : otherUser?.id) ? 'You' : (otherUser?.full_name || otherUser?.username || 'Someone')}
@@ -315,8 +315,8 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 {m.content.includes('$$MEDIA$$') && (
                   <div className={`mt-2 rounded-xl overflow-hidden transition-colors ${
                     m.content.split('$$MEDIA$$')[1].split(',').length >= 2 
-                      ? "grid grid-cols-2 gap-0.5 max-h-[240px] border border-white/10 bg-white/5" 
-                      : "flex justify-start border border-white/10"
+                      ? "grid grid-cols-2 gap-0.5 max-h-[240px] ring-1 ring-border bg-muted/40" 
+                      : "flex justify-start ring-1 ring-border"
                   }`}>
                     {m.content.split('$$MEDIA$$')[1].split(',').map((url: string, i: number) => {
                       const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg)$/);
@@ -403,7 +403,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                       key={emoji}
                       onClick={() => onReact(m.id, emoji)}
                       className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                        data.me ?'bg-primary/20 border-primary/30 text-primary' : 'bg-accent/30 border-white/5 text-muted-foreground hover:bg-accent/50'
+                        data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
                       }`}
                     >
                       <span>{emoji}</span>
@@ -750,7 +750,7 @@ function ChatViewPage() {
                   
                   if (diffMins < 5) return (
                     <>
-                      <div className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-success" />
                       <span className="text-[10px] text-muted-foreground">Active now</span>
                     </>
                   );

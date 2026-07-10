@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Plus, Users, LayoutGrid, GraduationCap, Building2, MoreHorizontal } from "lucide-react";
+import { Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getInstitutionBootcamps } from "@/api";
 import { Link } from "@tanstack/react-router";
@@ -131,26 +131,26 @@ function InstitutionStudioIndex() {
   return (
     <div className="flex h-[calc(100vh-env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-background">
       {/* Sidebar */}
-      <div className="w-64 border-r border-border/40 bg-card/30 p-6 flex flex-col hidden md:flex">
+      <div className="w-64 border-r hairline bg-card/30 p-6 flex-col hidden md:flex">
         <div className="flex items-center gap-3 mb-10">
-          <div className="h-10 w-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
-            <Building2 className="h-5 w-5" />
+          <div className="h-10 w-10 rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary flex items-center justify-center">
+            <Building2 className="h-[18px] w-[18px]" strokeWidth={1.75} />
           </div>
-          <span className="font-display font-black text-xl">Institution Hub</span>
+          <span className="font-display font-semibold tracking-tight text-[17px]">Institution Hub</span>
         </div>
 
-        <nav className="space-y-2 flex-1">
-          <button 
+        <nav className="space-y-1 flex-1">
+          <button
             onClick={() => setActiveTab("tutors")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "tutors" ? "bg-primary text-primary-foreground" : "hover:bg-accent/50 text-muted-foreground"}`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[14px] font-semibold tracking-tight tap transition-colors ${activeTab === "tutors" ? "bg-foreground text-background" : "hover:bg-foreground/[0.04] text-muted-foreground"}`}
           >
-            <Users className="h-5 w-5" /> Tutors
+            <Users className="h-[18px] w-[18px]" strokeWidth={1.75} /> Tutors
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("bootcamps")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === "bootcamps" ? "bg-primary text-primary-foreground" : "hover:bg-accent/50 text-muted-foreground"}`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[14px] font-semibold tracking-tight tap transition-colors ${activeTab === "bootcamps" ? "bg-foreground text-background" : "hover:bg-foreground/[0.04] text-muted-foreground"}`}
           >
-            <LayoutGrid className="h-5 w-5" /> Bootcamps
+            <LayoutGrid className="h-[18px] w-[18px]" strokeWidth={1.75} /> Bootcamps
           </button>
         </nav>
       </div>
@@ -160,38 +160,38 @@ function InstitutionStudioIndex() {
         {activeTab === "tutors" && (
           <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
-              <h1 className="text-3xl md:text-4xl font-black font-display">Manage Tutors</h1>
-              <p className="text-muted-foreground mt-2">Add and manage the instructors who teach under your organization.</p>
+              <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">Manage tutors</h1>
+              <p className="text-[13.5px] text-muted-foreground mt-2 leading-relaxed">Add and manage the instructors who teach under your organization.</p>
             </div>
 
-            <div className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm">
-              <h3 className="font-bold text-lg mb-4">Add a new Tutor</h3>
+            <div className="bg-card ring-1 ring-border rounded-2xl p-6 shadow-soft">
+              <h3 className="font-semibold tracking-tight text-[16px] mb-4">Add a new tutor</h3>
               <form onSubmit={handleAddTutor} className="flex flex-col md:flex-row gap-3">
                 <input 
                   type="text" 
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
                   placeholder="Enter tutor username or name..." 
-                  className="flex-1 h-12 bg-background border border-border/50 rounded-xl px-4 focus:ring-2 ring-primary/20 outline-none"
+                  className="flex-1 h-12 bg-background ring-1 ring-border rounded-full px-5 text-[14px] outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground"
                 />
-                <button type="submit" className="h-12 px-6 bg-foreground text-background font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition">
+                <button type="submit" className="h-12 px-6 bg-foreground text-background text-[14px] font-semibold tracking-tight rounded-full flex items-center justify-center gap-2 tap hover:opacity-90">
                   <Plus className="h-4 w-4" /> Add Tutor
                 </button>
               </form>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-bold text-lg">Your Organization`s Tutors</h3>
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Your tutors</h3>
               {loading ? (
-                <div className="animate-pulse h-20 bg-muted rounded-2xl"></div>
+                <div className="h-20 rounded-2xl bg-foreground/[0.05] shimmer"></div>
               ) : tutors.length === 0 ? (
-                <div className="text-center p-10 border border-dashed rounded-3xl border-border/50 text-muted-foreground">
+                <div className="text-center p-10 border border-dashed border-border-strong rounded-2xl text-[13.5px] text-muted-foreground">
                   No tutors added yet. Add your first tutor above!
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {tutors.map((t: any) => (
-                    <div key={t.id} className="p-5 border border-border/40 bg-card rounded-2xl flex items-center gap-4">
+                    <div key={t.id} className="p-4 ring-1 ring-border bg-card rounded-2xl flex items-center gap-4 shadow-soft">
                       {t.tutor?.avatar_url ? (
                         <img src={t.tutor.avatar_url} className="h-12 w-12 rounded-full object-cover" />
                       ) : (
@@ -200,12 +200,12 @@ function InstitutionStudioIndex() {
                         </div>
                       )}
                       <div className="flex-1">
-                        <h4 className="font-bold">{t.tutor?.full_name || t.tutor?.username || "Unknown"}</h4>
+                        <h4 className="text-[14px] font-semibold tracking-tight">{t.tutor?.full_name || t.tutor?.username || "Unknown"}</h4>
                         <p className="text-xs text-muted-foreground">@{t.tutor?.username || "unknown"}</p>
                       </div>
                       <button 
                         onClick={() => handleRemoveTutor(t.tutor_id)}
-                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="grid h-9 w-9 place-items-center text-muted-foreground hover:text-destructive hover:bg-destructive/8 rounded-full transition-colors"
                         title="Remove tutor"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -221,23 +221,23 @@ function InstitutionStudioIndex() {
         {activeTab === "bootcamps" && (
           <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
-              <h1 className="text-3xl md:text-4xl font-black font-display">Organization Bootcamps</h1>
-              <p className="text-muted-foreground mt-2">View all bootcamps created by your tutors.</p>
+              <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">Organization bootcamps</h1>
+              <p className="text-[13.5px] text-muted-foreground mt-2 leading-relaxed">View all bootcamps created by your tutors.</p>
             </div>
             {isLoadingBootcamps ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-64 bg-card rounded-[24px]"></div>
+                  <div key={i} className="h-64 rounded-2xl bg-foreground/[0.05] shimmer"></div>
                 ))}
               </div>
             ) : bootcamps.length === 0 ? (
-              <div className="text-center p-10 border border-dashed rounded-3xl border-border/50 text-muted-foreground">
+              <div className="text-center p-10 border border-dashed border-border-strong rounded-2xl text-[13.5px] text-muted-foreground">
                 No bootcamps have been created by your tutors yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {bootcamps.map((bootcamp) => (
-                  <div key={bootcamp.id} className="group relative flex flex-col overflow-hidden rounded-[24px] border border-border bg-card transition-all hover:border-border/80 hover:shadow-xl hover:shadow-black/5">
+                  <div key={bootcamp.id} className="group relative flex flex-col overflow-hidden rounded-2xl ring-1 ring-border bg-card transition-all hover:ring-foreground/15 shadow-soft">
                     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                       {bootcamp.cover_image_url ? (
                         <img 
@@ -250,15 +250,15 @@ function InstitutionStudioIndex() {
                           <GraduationCap className="h-12 w-12 text-primary/40" />
                         </div>
                       )}
-                      <div className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs font-bold backdrop-blur-md border border-white/10 shadow-sm">
+                      <div className="absolute left-3 top-3 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md ring-1 ring-white/15">
                         {bootcamp.status === 'published' ? (
-                          <span className="text-green-500">Published</span>
+                          <span className="text-emerald-400">Published</span>
                         ) : (
-                          <span className="text-muted-foreground">Draft</span>
+                          <span className="text-white/70">Draft</span>
                         )}
                       </div>
                       {bootcamp.price > 0 && (
-                        <div className="absolute right-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs font-black text-primary backdrop-blur-md border border-white/10 shadow-sm">
+                        <div className="absolute right-3 top-3 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold text-white tabular-nums backdrop-blur-md ring-1 ring-white/15">
                           ${bootcamp.price}
                         </div>
                       )}
@@ -266,12 +266,12 @@ function InstitutionStudioIndex() {
                     
                     <div className="flex flex-1 flex-col p-5">
                       <div className="mb-4">
-                        <h3 className="line-clamp-2 font-display text-lg font-bold leading-tight group-hover:text-primary transition-colors">
+                        <h3 className="line-clamp-2 font-display text-[16px] font-semibold tracking-tight leading-snug">
                           {bootcamp.title}
                         </h3>
                       </div>
                       
-                      <div className="mt-auto flex items-center justify-between border-t border-border/50 pt-4">
+                      <div className="mt-auto flex items-center justify-between border-t hairline pt-4">
                         <div className="flex items-center gap-2">
                           <img 
                             src={bootcamp.profiles?.avatar_url || "https://github.com/shadcn.png"} 
@@ -282,7 +282,7 @@ function InstitutionStudioIndex() {
                           </span>
                         </div>
                         {bootcamp.club && bootcamp.club.id && (
-                           <Link to={`/app/clubs/${bootcamp.club.id}`} className="text-xs font-bold text-primary hover:underline">
+                           <Link to={`/app/clubs/${bootcamp.club.id}`} className="text-xs font-semibold text-foreground hover:text-primary transition-colors">
                              View Class
                            </Link>
                         )}

@@ -502,7 +502,7 @@ function Clubs() {
       <div className="px-5 pt-24">
         {/* Top Stats */}
         <div className="grid grid-cols-4 gap-2 mb-5">
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)">
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-primary">
               <Users className="h-3.5 w-3.5" />
             </div>
@@ -511,7 +511,7 @@ function Clubs() {
               <span className="block text-[8px] font-medium text-muted-foreground/60">Clubs Active</span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)">
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-success/10 text-success">
               <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
             </div>
@@ -520,7 +520,7 @@ function Clubs() {
               <span className="block text-[8px] font-medium text-muted-foreground/60">Online Now</span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)">
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-orange-500/10 text-orange-500">
               <Radio className="h-3.5 w-3.5" />
             </div>
@@ -529,7 +529,7 @@ function Clubs() {
               <span className="block text-[8px] font-medium text-muted-foreground/60">Live Sessions</span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)">
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-purple-500/10 text-purple-500">
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
@@ -549,7 +549,7 @@ function Clubs() {
               className="w-full rounded-2xl bg-accent/40 border-none px-5 py-3.5 pl-12 text-sm font-medium text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300" 
             />
           </div>
-          <button className="grid h-[50px] w-[50px] place-items-center rounded-2xl border border-border/30 bg-card transition-all duration-300 active:scale-95 text-muted-foreground hover:text-foreground hover:border-border/50 shrink-0 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)">
+          <button className="grid h-[50px] w-[50px] place-items-center rounded-2xl border border-border/30 bg-card transition-all duration-300 active:scale-95 text-muted-foreground hover:text-foreground hover:border-border/50 shrink-0 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)]">
             <SlidersHorizontal className="h-4 w-4" />
           </button>
         </div>
@@ -706,10 +706,10 @@ function Clubs() {
 
           <div className="space-y-3">
             {myClubs.length > 0 ? myClubs.map((c: any) => (
-              <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition-all duration-300 active:scale-[0.98">
-                <article className="flex items-center gap-3.5 p-3.5 rounded-3xl border border-border/30 bg-card overflow-hidden hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.12)">
+              <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition-all duration-300 active:scale-[0.98]">
+                <article className="flex items-center gap-3.5 p-3.5 rounded-3xl border border-border/30 bg-card overflow-hidden hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.12)]">
                   <div className="relative shrink-0">
-                    <div className="h-14 w-14 rounded-2xl bg-accent/20 border border-border/30 flex items-center justify-center overflow-hidden shadow-[0_2px_12px_-2px_rgba(0,0,0,0.1)">
+                    <div className="h-14 w-14 rounded-2xl bg-accent/20 border border-border/30 flex items-center justify-center overflow-hidden shadow-[0_2px_12px_-2px_rgba(0,0,0,0.1)]">
                       {c.logo_url || c.banner_url ? (
                         <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
                       ) : (
@@ -897,7 +897,7 @@ function Clubs() {
 
       {/* Club Notifications Drawer */}
       <Drawer open={showNotifications} onOpenChange={setShowNotifications}>
-        <DrawerContent className="border-t border-border/30 bg-background p-0 max-h-[85vh] flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.1)">
+        <DrawerContent className="border-t border-border/30 bg-background p-0 max-h-[85vh] flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
           <DrawerHeader className="px-6 py-5 border-b border-border/30 shrink-0 mt-2">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 relative">
@@ -1052,7 +1052,7 @@ function Clubs() {
         <DrawerContent className="border-none bg-background p-6">
           {selectedClub && (
             <div className="flex flex-col items-center text-center">
-              <div className="h-16 w-16 rounded-2xl bg-accent/20 border border-border/30 flex items-center justify-center mb-5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)">
+              <div className="h-16 w-16 rounded-2xl bg-accent/20 border border-border/30 flex items-center justify-center mb-5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)]">
                 {selectedClub.banner_url ? (
                   <img src={selectedClub.banner_url} className="h-full w-full object-cover" />
                 ) : (
