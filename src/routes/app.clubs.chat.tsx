@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronDown, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -11,7 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (search: Record<string, unknown>) => ({
@@ -64,6 +64,7 @@ function ClubChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showRoomSwitcher, setShowRoomSwitcher] = useState(false);
+  const [squadSearch, setSquadSearch] = useState("");
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -1144,74 +1145,106 @@ function ClubChat() {
                             );
                           })()}
 
+                          <div className="relative mb-4 shrink-0">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <input 
+                              type="text" 
+                              placeholder="Find a builder..."
+                              value={squadSearch}
+                              onChange={(e) => setSquadSearch(e.target.value)}
+                              className="w-full h-10 pl-9 pr-4 rounded-xl bg-accent/10 border border-border/50 text-sm focus:outline-none focus:border-primary/50 text-foreground placeholder:text-muted-foreground transition"
+                            />
+                          </div>
+
                           <div className="space-y-3 pb-10 flex-1">
-                            {[...members].sort((a, b) => {
-                              // Creator first
-                              if (a.profile_id === club?.creator_id) return -1;
-                              if (b.profile_id === club?.creator_id) return 1;
-                              // Then Administrators
-                              if (a.role === 'Administrator' && b.role !== 'Administrator') return -1;
-                              if (b.role === 'Administrator' && a.role !== 'Administrator') return 1;
-                              // Then any other upgraded roles
-                              const roleA = a.role || 'Member';
-                              const roleB = b.role || 'Member';
-                              if (roleA !== 'Member' && roleB === 'Member') return -1;
-                              if (roleB !== 'Member' && roleA === 'Member') return 1;
-                              return 0;
-                            }).map((m) => {
+                            {[...members]
+                              .filter(m => {
+                                if (!squadSearch) return true;
+                                const searchLower = squadSearch.toLowerCase();
+                                const name = m.profiles?.full_name?.toLowerCase() || m.profiles?.username?.toLowerCase() || "";
+                                return name.includes(searchLower);
+                              })
+                              .sort((a, b) => {
+                                // Creator first
+                                if (a.profile_id === club?.creator_id) return -1;
+                                if (b.profile_id === club?.creator_id) return 1;
+                                // Then Administrators
+                                if (a.role === 'Administrator' && b.role !== 'Administrator') return -1;
+                                if (b.role === 'Administrator' && a.role !== 'Administrator') return 1;
+                                // Then any other upgraded roles
+                                const roleA = a.role || 'Member';
+                                const roleB = b.role || 'Member';
+                                if (roleA !== 'Member' && roleB === 'Member') return -1;
+                                if (roleB !== 'Member' && roleA === 'Member') return 1;
+                                return 0;
+                              }).map((m) => {
                               const currentUserRole = currentUser ? members.find(mem => mem.profile_id === currentUser.id)?.role : undefined;
                               const isAuthorizedEditor = club?.creator_id === currentUser?.id || currentUserRole === 'Administrator';
                               const canEditMember = isAuthorizedEditor && m.profile_id !== currentUser?.id;
 
                               return (
-                                <div 
-                                  key={m.profile_id} 
-                                  onClick={() => {
-                                    if (canEditMember) {
-                                      setSelectedMember(m);
-                                    }
-                                  }}
-                                  className={`flex items-center justify-between p-4 rounded-2xl bg-accent/10 border border-border/80 backdrop-blur-md transition-all duration-300 ${
-                                    canEditMember 
-                                      ?'cursor-pointer hover:border-primary/40 hover:bg-accent/20 active:scale-[0.99]' 
-                                      : ''
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="relative h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0 border border-border/50 shadow-sm">
-                                      {m.profiles?.avatar_url ? (
-                                        <img src={m.profiles.avatar_url} className="h-full w-full object-cover" />
-                                      ) : (
-                                        <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                          {m.profiles?.username?.[0]?.toUpperCase()}
+                                <DropdownMenu key={m.profile_id}>
+                                  <DropdownMenuTrigger asChild>
+                                    <div 
+                                      className="flex items-center justify-between p-4 rounded-2xl bg-accent/10 border border-border/80 backdrop-blur-md transition-all duration-300 cursor-pointer hover:border-primary/40 hover:bg-accent/20 active:scale-[0.99]"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="relative h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0 border border-border/50 shadow-sm">
+                                          {m.profiles?.avatar_url ? (
+                                            <img src={m.profiles.avatar_url} className="h-full w-full object-cover" />
+                                          ) : (
+                                            <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                              {m.profiles?.username?.[0]?.toUpperCase()}
+                                            </div>
+                                          )}
+                                          {isUserOnline(m.profiles) && (
+                                            <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-[#0A0A0E]" />
+                                          )}
                                         </div>
-                                      )}
-                                      {isUserOnline(m.profiles) && (
-                                        <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-[#0A0A0E]" />
-                                      )}
-                                    </div>
-                                    <div className="text-left">
-                                      <div className="text-sm font-bold text-foreground">
-                                        {m.profiles?.full_name || m.profiles?.username}
+                                        <div className="text-left">
+                                          <div className="text-sm font-bold text-foreground">
+                                            {m.profiles?.full_name || m.profiles?.username}
+                                          </div>
+                                          <div className={`mt-1 inline-block px-2 py-0.5 rounded text-[8px] ${getRoleColor(m.role)}`}>
+                                            {m.role}
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div className={`mt-1 inline-block px-2 py-0.5 rounded text-[8px] ${getRoleColor(m.role)}`}>
-                                        {m.role}
-                                      </div>
-                                    </div>
-                                  </div>
 
-                                  {m.profile_id === club?.creator_id ? (
-                                    <span className="text-[8px] text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full bg-amber-500/5">
-                                      Creator
-                                    </span>
-                                  ) : (
-                                    canEditMember && (
-                                      <span className="text-xs font-semibold text-primary hover:underline transition px-2.5 py-1">
-                                        Edit
-                                      </span>
-                                    )
-                                  )}
-                                </div>
+                                      <div className="flex items-center gap-2">
+                                        {m.profile_id === club?.creator_id ? (
+                                          <span className="text-[8px] text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full bg-amber-500/5">
+                                            Creator
+                                          </span>
+                                        ) : (
+                                          canEditMember && (
+                                            <button 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedMember(m);
+                                              }}
+                                              className="text-xs font-semibold text-primary hover:underline transition px-2.5 py-1 relative z-10"
+                                            >
+                                              Edit
+                                            </button>
+                                          )
+                                        )}
+                                      </div>
+                                    </div>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-48 bg-background border-border/50">
+                                    <DropdownMenuItem className="cursor-pointer font-medium" onClick={() => navigate({ to: `/app/profile/${m.profiles?.username}` })}>
+                                      <User className="mr-2 h-4 w-4" />
+                                      View Profile
+                                    </DropdownMenuItem>
+                                    {m.profile_id !== currentUser?.id && (
+                                      <DropdownMenuItem className="cursor-pointer font-medium" onClick={() => navigate({ to: `/app/chat/${m.profile_id}` })}>
+                                        <MessageSquare className="mr-2 h-4 w-4" />
+                                        Message Builder
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               );
                             })}
                           </div>
