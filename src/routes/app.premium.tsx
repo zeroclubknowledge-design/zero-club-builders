@@ -97,7 +97,7 @@ function PremiumPage() {
       } else if (plan && plan.id === "free") {
         toast.success(`Switched to Basic plan.`);
       }
-      setTimeout(() => router.navigate({ to: "/app/profile/" }), 1500);
+      setTimeout(() => router.navigate({ to: "/app/profile" }), 1500);
     },
     onError: (error: any) => {
       toast.error(error.message);

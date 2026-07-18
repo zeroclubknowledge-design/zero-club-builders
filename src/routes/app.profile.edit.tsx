@@ -71,7 +71,7 @@ function EditProfile() {
       await router.invalidate();
 
       toast.success("Profile updated!");
-      navigate({ to: "/app/profile/" });
+      navigate({ to: "/app/profile" });
     } catch (error: any) {
       console.error("Save error:", error);
       toast.error(error.message || "Update failed");
@@ -141,7 +141,7 @@ function EditProfile() {
       <header className="sticky top-0 z-50 flex items-center justify-between bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md border-b border-border/50">
         <div className="flex items-center gap-6">
           <button 
-            onClick={() => navigate({ to: "/app/profile/" })} 
+            onClick={() => navigate({ to: "/app/profile" })} 
             className="grid h-8 w-8 place-items-center rounded-full transition active:bg-accent/50"
             disabled={loading}
           >
@@ -184,7 +184,7 @@ function EditProfile() {
             />
             {banner && (
               <button 
-                onClick={() => setBanner(null)}
+                onClick={() => setBanner("")}
                 className="grid h-12 w-12 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
               >
                 <X className="h-6 w-6" />

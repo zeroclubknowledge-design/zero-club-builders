@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 // Global cache for presence channels so we don't recreate them or add duplicate listeners
-const presenceChannels: Record<string, { channel: any; subscribers: number; state: any }> = {};
+type SharedPresenceState = Record<string, any[]>;
+
+const presenceChannels: Record<string, { channel: any; subscribers: number; state: SharedPresenceState }> = {};
 
 export function useSharedPresence(topic: string, trackPayload?: any) {
-  const [presenceState, setPresenceState] = useState<any>(presenceChannels[topic]?.state || {});
+  const [presenceState, setPresenceState] = useState<SharedPresenceState>(presenceChannels[topic]?.state || {});
   const channelRef = useRef<any>(null);
 
   useEffect(() => {

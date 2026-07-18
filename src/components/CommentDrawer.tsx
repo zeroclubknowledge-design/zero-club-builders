@@ -24,11 +24,16 @@ interface CommentDrawerProps {
   type?: 'post' | 'note';
   isOpen?: boolean;
   inline?: boolean;
+  onClose?: () => void;
   onOpenChange?: (open: boolean) => void;
   onCommentAdded?: () => void;
 }
 
-export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = false, inline = false, onOpenChange, onCommentAdded }: CommentDrawerProps) {
+export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = false, inline = false, onClose, onOpenChange, onCommentAdded }: CommentDrawerProps) {
+  const handleOpenChange = (open: boolean) => {
+    onOpenChange?.(open);
+    if (!open) onClose?.();
+  };
   const [savedPost, setSavedPost] = useState(incomingPost);
 
   useEffect(() => {
@@ -594,7 +599,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={onOpenChange} shouldScaleBackground={false} repositionInputs={false}>
+    <Drawer open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground={false} repositionInputs={false}>
       <DrawerContent className="h-[85dvh] flex flex-col bg-background border-t border-border/30 p-0 sm:max-w-md sm:left-1/2 sm:-translate-x-1/2 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] focus:outline-none">
         {DrawerInner}
       </DrawerContent>

@@ -32,7 +32,10 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  const options: NotificationOptions = {
+  const options: NotificationOptions & {
+    vibrate?: number[];
+    actions?: { action: string; title: string; icon?: string }[];
+  } = {
     body: payload.body,
     icon: '/logo.png', // Uses your app icon
     badge: '/logo.png', // Small monochrome icon for Android status bar

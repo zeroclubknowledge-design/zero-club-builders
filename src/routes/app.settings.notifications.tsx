@@ -1,8 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, Bell, Mail, Smartphone, Settings2, ChevronRight, Check } from "lucide-react";
+import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+
+type NotificationSettingsItem = {
+  icon: typeof Bell;
+  label: string;
+  desc: string;
+  action: (() => void | Promise<void>) | null;
+  rightElement?: ReactNode;
+};
 
 export const Route = createFileRoute("/app/settings/notifications")({
   component: NotificationsSettings,
@@ -96,7 +105,7 @@ function NotificationsSettings() {
     }
   };
 
-  const sections = [
+  const sections: { title: string; items: NotificationSettingsItem[] }[] = [
     {
       title: "Filters",
       items: [

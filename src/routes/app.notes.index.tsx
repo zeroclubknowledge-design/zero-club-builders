@@ -179,7 +179,7 @@ function NotesIndexPage() {
           <>
             {/* Editorial Hero Note */}
             {featuredNote && (
-              <Link to={`/app/notes/${featuredNote.id}`} className="block group">
+              <Link to="/app/notes/$id" params={{ id: featuredNote.id }} className="block group">
                 <article className="relative w-full aspect-square md:aspect-[24/9] rounded-[32px] overflow-hidden bg-black shadow-2xl group-hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] transition-all duration-700 transform group-hover:-translate-y-1">
                   {featuredNote.cover_url ? (
                     <img 
@@ -288,7 +288,7 @@ function NotesIndexPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                   {recentNotes.map((note) => (
-                    <Link key={note.id} to={`/app/notes/${note.id}`} className="group block relative">
+                    <Link key={note.id} to="/app/notes/$id" params={{ id: note.id }} className="group block relative">
                       {/* Mobile: Horizontal, Desktop: Vertical */}
                       <article className="flex flex-row md:flex-col gap-4 md:gap-5 p-2 md:p-0 rounded-2xl md:rounded-none hover:bg-muted/30 md:hover:bg-transparent transition-colors">
                         {/* Cover Image */}

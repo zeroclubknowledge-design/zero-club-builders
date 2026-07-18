@@ -12,10 +12,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/app/ship")({
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      editId: (search.editId as string) || undefined,
-    }
+  validateSearch: (search: Record<string, unknown>): { editId?: string } => {
+    return typeof search.editId === "string" && search.editId ? { editId: search.editId } : {};
   },
   component: ShipPage,
 });

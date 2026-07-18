@@ -28,12 +28,12 @@ const MentionMark = Mark.create({
 });
 
 export const Route = createFileRoute("/app/compose")({
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      quote: (search.quote as string) || undefined,
-      draftId: (search.draftId as string) || undefined,
-      editId: (search.editId as string) || undefined,
-    }
+  validateSearch: (search: Record<string, unknown>): { quote?: string; draftId?: string; editId?: string } => {
+    const next: { quote?: string; draftId?: string; editId?: string } = {};
+    if (typeof search.quote === "string" && search.quote) next.quote = search.quote;
+    if (typeof search.draftId === "string" && search.draftId) next.draftId = search.draftId;
+    if (typeof search.editId === "string" && search.editId) next.editId = search.editId;
+    return next;
   },
   component: ComposePage,
 });

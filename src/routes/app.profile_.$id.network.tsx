@@ -104,6 +104,8 @@ function ProfileNetwork() {
 
   const displayName = profile.full_name || profile.username;
   const isOwnProfile = currentUser?.id === profile.id;
+  const visibleUsers = activeTab === "following" ? (following ?? []) : (followers ?? []);
+  const visibleClubs = clubs ?? [];
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -115,7 +117,7 @@ function ProfileNetwork() {
       }`}>
         <div className="relative z-20 flex items-center px-4 h-full gap-3">
           <button 
-            onClick={() => navigate({ to: `/app/profile/${profile.id}` })}
+            onClick={() => navigate({ to: "/app/profile/$id", params: { id: profile.username || profile.id } })}
             className="grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 bg-accent/50 text-foreground hover:bg-accent"
           >
             <ChevronLeft className="h-[18px] w-[18px]" />
@@ -158,8 +160,8 @@ function ProfileNetwork() {
             // Users List
             (activeTab === "following" ? followingLoading : followersLoading) ? (
               <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-            ) : (activeTab === "following" ? following : followers)?.length > 0 ? (
-              (activeTab === "following" ? following : followers)?.map((user: any) => (
+            ) : visibleUsers.length > 0 ? (
+              visibleUsers.map((user: any) => (
                 <Link key={user.id} to="/app/profile/$id" params={{ id: user.username || user.id }} className="flex items-center gap-3 p-3.5 rounded-2xl bg-accent/10 border border-border/10 hover:bg-accent/20 transition-all active:scale-[0.98]">
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-accent border border-border/20 flex items-center justify-center font-bold text-muted-foreground text-xs">
                     {user.avatar_url ? (
@@ -198,8 +200,8 @@ function ProfileNetwork() {
                   Follow {getFirstName(profile)} to see their clubs
                 </p>
               </div>
-            ) : clubs?.length > 0 ? (
-              clubs.map((c: any) => (
+            ) : visibleClubs.length > 0 ? (
+              visibleClubs.map((c: any) => (
                 <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition active:scale-[0.98]">
                   <article className="flex items-center gap-3.5 p-4 rounded-2xl bg-accent/10 border border-border/10 hover:bg-accent/20 transition-all">
                     <div className="shrink-0">

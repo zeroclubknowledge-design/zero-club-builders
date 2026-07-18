@@ -14,10 +14,12 @@ import { getFirstName } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
-  validateSearch: (search: Record<string, unknown>) => ({
-    showRules: (search.showRules as string) || "false",
-    clubId: (search.clubId as string) || "",
-  }),
+  validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string } => {
+    const next: { showRules?: string; clubId?: string } = {};
+    if (typeof search.showRules === "string" && search.showRules) next.showRules = search.showRules;
+    if (typeof search.clubId === "string" && search.clubId) next.clubId = search.clubId;
+    return next;
+  },
 });
 
 const defaultRooms = [
@@ -137,7 +139,7 @@ function ClubChat() {
 
       const { data: joined } = await query.limit(1).maybeSingle();
 
-      let targetClub = joined?.clubs;
+      let targetClub = joined?.clubs as any;
 
       if (!targetClub && clubId) {
         const { data: fallbackClub } = await supabase.from('clubs').select('*').eq('id', clubId).single();

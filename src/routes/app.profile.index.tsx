@@ -42,8 +42,8 @@ function Profile() {
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
-      const scrollTop = target === document ? window.scrollY : (target.scrollTop || window.scrollY || 0);
+      const target = e.target;
+      const scrollTop = target === document ? window.scrollY : ((target as HTMLElement)?.scrollTop || window.scrollY || 0);
       setScrolled(scrollTop > 40);
     };
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });

@@ -697,19 +697,26 @@ function ChatViewPage() {
         if (m.id !== messageId) return m;
         return { ...m, reactions: m.reactions.filter((r: any) => r.id !== existingReaction.id) };
       }));
-      // Suppress error if table doesn't exist
-      await supabase.from('message_reactions').delete().eq('id', existingReaction.id).catch(() => {});
+      try {
+        await supabase.from('message_reactions').delete().eq('id', existingReaction.id);
+      } catch {
+        // Ignore if the optional reactions table is unavailable.
+      }
     } else {
       const tempId = crypto.randomUUID();
       setMessages(prev => prev.map(m => {
         if (m.id !== messageId) return m;
         return { ...m, reactions: [...(m.reactions || []), { id: tempId, message_id: messageId, profile_id: currentUserId, emoji }] };
       }));
-      await supabase.from('message_reactions').insert([{
-        message_id: messageId,
-        profile_id: currentUserId,
-        emoji
-      }]).catch(() => {});
+      try {
+        await supabase.from('message_reactions').insert([{
+          message_id: messageId,
+          profile_id: currentUserId,
+          emoji
+        }]);
+      } catch {
+        // Ignore if the optional reactions table is unavailable.
+      }
     }
   };
 

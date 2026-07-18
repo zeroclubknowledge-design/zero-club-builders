@@ -22,12 +22,12 @@ export const Route = createFileRoute("/app/profile/$id")({
     // SECURITY/ROUTING FIX: If the ID is 'profile', it means the router mismatched the index route.
     // Redirect back to the correct index route.
     if (id === 'profile') {
-      throw redirect({ to: '/app/profile/' });
+      throw redirect({ to: '/app/profile' });
     }
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session && id === session.user.id) {
-      throw redirect({ to: '/app/profile/' });
+      throw redirect({ to: '/app/profile' });
     }
 
     // Fetch only profile for SEO/Head, leave heavy data for component to load instantly
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/app/profile/$id")({
     if (!profile) throw new Error("Profile not found");
 
     if (session && profile.id === session.user.id) {
-      throw redirect({ to: '/app/profile/' });
+      throw redirect({ to: '/app/profile' });
     }
 
     return { profile };
@@ -220,8 +220,8 @@ function ProfileDetail() {
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
-      const scrollTop = target === document ? window.scrollY : (target.scrollTop || window.scrollY || 0);
+      const target = e.target;
+      const scrollTop = target === document ? window.scrollY : ((target as HTMLElement)?.scrollTop || window.scrollY || 0);
       setScrolled(scrollTop > 40);
     };
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });

@@ -40,8 +40,8 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
   const displayContent = post.is_build_post ? cleanLegacyShipContent(post.content) : post.content;
   const quotedDisplayContent = post.quoted_posts?.is_build_post ? cleanLegacyShipContent(post.quoted_posts.content) : post.quoted_posts?.content;
   const [liked, setLiked] = useState(post?.isLiked || false);
-  const [likesCount, setLikesCount] = useState(post?.likes_count || 0);
-  const [commentsCount, setCommentsCount] = useState(post?.comments_count || 0);
+  const [likesCount, setLikesCount] = useState<number>(Number(post?.likes_count || 0));
+  const [commentsCount, setCommentsCount] = useState<number>(Number(post?.comments_count || 0));
   const [isBookmarked, setIsBookmarked] = useState(post?.isBookmarked || false);
   const [hasReposted, setHasReposted] = useState(post?.hasReposted || false);
   const [hasQuoted, setHasQuoted] = useState(post?.hasQuoted || false);

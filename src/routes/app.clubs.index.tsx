@@ -164,7 +164,7 @@ function Clubs() {
       }));
 
       return { 
-        myClubs: enrich(joinedClubs?.map(jc => jc.clubs).filter(c => c && c.category !== 'Bootcamp') || []), 
+        myClubs: enrich(joinedClubs?.map(jc => jc.clubs as any).filter(c => c && c.category !== 'Bootcamp') || []), 
         discover: enrich(discoverClubsCombined.filter(c => c && c.category !== 'Bootcamp')),
         profile,
         userCreatedClubs: enrich(userCreatedClubs?.filter(c => c && c.category !== 'Bootcamp') || []),
