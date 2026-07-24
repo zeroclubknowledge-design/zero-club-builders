@@ -69,6 +69,39 @@ const activityUpdates = [
   { name: "Tunde", action: "opened a live cohort", signal: "48 seats" },
 ];
 
+const zeroClubFeatures = [
+  {
+    title: "Builder feed",
+    copy: "Share progress, receive feedback, and build a record of work people can trust.",
+    icon: <IconProfile className="h-[22px] w-[22px]" />,
+  },
+  {
+    title: "Live bootcamps",
+    copy: "Learn from working professionals in focused cohorts with curriculum and real momentum.",
+    icon: <IconLearn className="h-[22px] w-[22px]" />,
+  },
+  {
+    title: "Focused clubs",
+    copy: "Keep your people, conversations, projects, and shared goals in one purposeful place.",
+    icon: <IconClubs className="h-[22px] w-[22px]" />,
+  },
+  {
+    title: "Zero AI",
+    copy: "Get help to think through lessons, ideas, projects, and your next practical move.",
+    icon: <img src="/logo.png" alt="" className="h-[22px] w-[22px] object-contain" />,
+  },
+  {
+    title: "Creator wallet",
+    copy: "Earn from bootcamps, products, and private access without leaving your community.",
+    icon: <IconWallet className="h-[22px] w-[22px]" />,
+  },
+  {
+    title: "Opportunities",
+    copy: "Meet builders, tutors, institutions, and teams through proof rather than empty profiles.",
+    icon: <IconPresentation className="h-[22px] w-[22px]" />,
+  },
+];
+
 const platformHighlights = [
   {
     title: "A profile that shows real progress",
@@ -212,7 +245,7 @@ function Header({ referralCode }: ReferralProps) {
 /* ── Code-built product showcase: the real Zero Club, not screenshots ── */
 function ProductShowcase() {
   return (
-    <div className="relative mx-auto w-full max-w-[520px]">
+    <div className="relative mx-auto w-full max-w-[520px] px-1 pb-7 sm:px-0 sm:pb-0">
       {/* Glow */}
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
@@ -264,7 +297,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="zc-showcase-float absolute -top-5 left-2 flex items-center gap-2.5 rounded-2xl bg-white p-3 pr-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-left-6">
+      <div className="zc-showcase-float absolute -top-3 left-3 flex items-center gap-2 rounded-xl bg-white p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:gap-2.5 sm:rounded-2xl sm:p-3 sm:pr-4">
         <span className="relative grid h-9 w-9 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -276,7 +309,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: wallet mini-card */}
-      <div className="zc-showcase-float-delayed absolute -bottom-6 right-2 w-44 overflow-hidden rounded-2xl bg-[#141117] p-4 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-right-6">
+      <div className="zc-showcase-float-delayed absolute bottom-0 right-3 w-[136px] overflow-hidden rounded-xl bg-[#141117] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:rounded-2xl sm:p-4">
         <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
         <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">Creator wallet</p>
         <p className="mt-1.5 text-[20px] font-semibold tracking-tight text-white tabular-nums">₦248,500</p>
@@ -288,17 +321,28 @@ function ProductShowcase() {
 
 function ActivityRail() {
   const updates = [...activityUpdates, ...activityUpdates];
+  const mobileUpdate = activityUpdates[0];
 
   return (
-    <div className="mt-8 max-w-[540px] overflow-hidden rounded-2xl border border-[#171717]/[0.08] bg-white/80 p-2 shadow-[0_12px_32px_-24px_rgba(23,20,23,0.34)]">
-      <div className="flex items-center justify-between px-2 pb-2 text-[10px] font-medium uppercase tracking-[0.13em] text-[#666a70]">
+    <div className="mt-8 w-full max-w-[540px] overflow-hidden rounded-2xl border border-[#171717]/[0.08] bg-white/80 p-2 shadow-[0_12px_32px_-24px_rgba(23,20,23,0.34)]">
+      <div className="flex items-center justify-between px-2 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] sm:text-[10px]">
         <span className="flex items-center gap-2 text-[#9d176d]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
           Live network
         </span>
         <span>Proof in motion</span>
       </div>
-      <div className="overflow-hidden">
+      <article className="flex items-center gap-3 rounded-xl bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:hidden">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
+          {mobileUpdate.name.slice(0, 1)}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[11.5px] font-semibold text-[#242126]">{mobileUpdate.name}</span>
+          <span className="block truncate text-[10.5px] text-[#666a70]">{mobileUpdate.action}</span>
+        </span>
+        <span className="shrink-0 text-[10px] font-semibold text-[#9d176d]">{mobileUpdate.signal}</span>
+      </article>
+      <div className="hidden overflow-hidden sm:block">
         <div className="zc-activity-rail flex w-max gap-2">
           {updates.map((update, index) => (
             <article
@@ -573,6 +617,39 @@ function WalletSection() {
   );
 }
 
+function FeaturesSection() {
+  return (
+    <section className="border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
+      <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
+        <div className="max-w-[650px]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">The Zero Club toolkit</p>
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+            The tools behind a more visible kind of progress.
+          </h2>
+          <p className="mt-4 text-[15px] leading-relaxed text-[#666a70]">
+            Learn, build, find your people, and turn momentum into the next opportunity without spreading your work across separate apps.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {zeroClubFeatures.map((feature) => (
+            <article
+              key={feature.title}
+              className="group rounded-2xl bg-white p-5 ring-1 ring-[#171717]/[0.06] shadow-[0_8px_24px_-18px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:ring-[#cc208f]/25"
+            >
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
+                {feature.icon}
+              </div>
+              <h3 className="mt-5 text-[16px] font-semibold tracking-tight text-[#171717]">{feature.title}</h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-[#666a70]">{feature.copy}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const faqs = [
   { q: "What is Zero Club?", a: "Zero Club is a professional network designed specifically for the next generation of builders, creators, and institutions to learn, connect, and grow." },
   { q: "Who can join Zero Club?", a: "Whether you're a student learning new skills, a tutor looking to monetize your expertise, or an institution managing bootcamps, Zero Club is built for you." },
@@ -697,6 +774,7 @@ function Landing() {
         <ClubsSection />
         <OpportunitiesSection />
         <WalletSection />
+        <FeaturesSection />
         <FaqSection />
         <FinalCta referralCode={ref} />
       </main>
