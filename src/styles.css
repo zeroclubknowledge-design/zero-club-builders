@@ -271,6 +271,25 @@
     background-size: 200% 100%;
     animation: shimmer 1.8s var(--ease-in-out) infinite;
   }
+
+  @keyframes zc-activity-rail {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-50% - 0.5rem)); }
+  }
+  .zc-activity-rail { animation: zc-activity-rail 22s linear infinite; }
+
+  @keyframes zc-showcase-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+  .zc-showcase-float { animation: zc-showcase-float 5s ease-in-out infinite; }
+  .zc-showcase-float-delayed { animation: zc-showcase-float 5s ease-in-out 1.1s infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zc-activity-rail,
+    .zc-showcase-float,
+    .zc-showcase-float-delayed { animation: none; }
+  }
 }
 
 /* Hide global scrollbar — mobile-app feel */

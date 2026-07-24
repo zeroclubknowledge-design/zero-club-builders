@@ -63,6 +63,12 @@ const searchTopics = [
   "Freelancing",
 ];
 
+const activityUpdates = [
+  { name: "Amara", action: "shipped a UI case study", signal: "+50 XP" },
+  { name: "Mide", action: "joined Product Club", signal: "New member" },
+  { name: "Tunde", action: "opened a live cohort", signal: "48 seats" },
+];
+
 const platformHighlights = [
   {
     title: "A profile that shows real progress",
@@ -258,7 +264,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="absolute -top-5 left-2 sm:-left-6 flex items-center gap-2.5 rounded-2xl bg-white p-3 pr-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06]">
+      <div className="zc-showcase-float absolute -top-5 left-2 flex items-center gap-2.5 rounded-2xl bg-white p-3 pr-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-left-6">
         <span className="relative grid h-9 w-9 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -270,11 +276,47 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: wallet mini-card */}
-      <div className="absolute -bottom-6 right-2 sm:-right-6 w-44 overflow-hidden rounded-2xl bg-[#141117] p-4 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08]">
+      <div className="zc-showcase-float-delayed absolute -bottom-6 right-2 w-44 overflow-hidden rounded-2xl bg-[#141117] p-4 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-right-6">
         <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
         <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">Creator wallet</p>
         <p className="mt-1.5 text-[20px] font-semibold tracking-tight text-white tabular-nums">₦248,500</p>
         <p className="mt-0.5 text-[10px] text-emerald-400">+ ₦45,000 this week</p>
+      </div>
+    </div>
+  );
+}
+
+function ActivityRail() {
+  const updates = [...activityUpdates, ...activityUpdates];
+
+  return (
+    <div className="mt-8 max-w-[540px] overflow-hidden rounded-2xl border border-[#171717]/[0.08] bg-white/80 p-2 shadow-[0_12px_32px_-24px_rgba(23,20,23,0.34)]">
+      <div className="flex items-center justify-between px-2 pb-2 text-[10px] font-medium uppercase tracking-[0.13em] text-[#666a70]">
+        <span className="flex items-center gap-2 text-[#9d176d]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
+          Live network
+        </span>
+        <span>Proof in motion</span>
+      </div>
+      <div className="overflow-hidden">
+        <div className="zc-activity-rail flex w-max gap-2">
+          {updates.map((update, index) => (
+            <article
+              key={`${update.name}-${index}`}
+              aria-hidden={index >= activityUpdates.length || undefined}
+              className="flex w-[218px] shrink-0 items-center gap-3 rounded-xl bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05]"
+            >
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
+                {update.name.slice(0, 1)}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[11.5px] font-semibold text-[#242126]">{update.name}</span>
+                <span className="block truncate text-[10.5px] text-[#666a70]">{update.action}</span>
+              </span>
+              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">{update.signal}</span>
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -315,6 +357,8 @@ function Hero({ referralCode }: ReferralProps) {
               Sign in
             </Link>
           </div>
+
+          <ActivityRail />
 
           <p className="mt-6 text-[12.5px] leading-relaxed text-[#666a70]">
             Free to join · Profiles, clubs, bootcamps, wallet, and XP built in

@@ -137,19 +137,19 @@ function SignInPage() {
 
       <main className="relative z-10 mx-auto grid min-h-[calc(100vh-68px)] w-full max-w-6xl grid-cols-1 gap-8 px-5 pb-10 pt-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-8 lg:pb-14">
         <section className="mx-auto w-full max-w-[460px]">
-          <div className="mb-8">
-            <Link to="/" className="mb-8 inline-flex items-center gap-3">
+          <div className="mb-8 text-center lg:text-left">
+            <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0">
               <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
               <span className="font-display text-xl font-medium">Zero Club</span>
             </Link>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#cc208f]/18 bg-[#cc208f]/8 px-3 py-1 text-[12px] font-medium text-[#9d176d]">
-              <ShieldCheck className="h-4 w-4" strokeWidth={1.8} />
+            <p className="mx-auto mb-4 flex w-fit max-w-full items-center justify-center gap-2 rounded-full border border-[#cc208f]/18 bg-[#cc208f]/8 px-3 py-1.5 text-center text-[12px] font-medium leading-5 text-[#9d176d] lg:mx-0">
+              <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={1.8} />
               Passwordless secure access
             </p>
             <h1 className="font-display text-[42px] font-normal leading-[1.08] text-[#241f23] sm:text-[52px]">
               Return to your proof of work.
             </h1>
-            <p className="mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269]">
+            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] lg:mx-0">
               Sign in with a one-time email code and continue from your feed, clubs, bootcamps, wallet, and profile.
             </p>
           </div>
