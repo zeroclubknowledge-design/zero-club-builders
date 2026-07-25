@@ -9,6 +9,7 @@ const presenceChannels: Record<string, { channel: any; subscribers: number; stat
 export function useSharedPresence(topic: string, trackPayload?: any) {
   const [presenceState, setPresenceState] = useState<SharedPresenceState>(presenceChannels[topic]?.state || {});
   const channelRef = useRef<any>(null);
+  const hasTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!topic) return;
@@ -29,6 +30,7 @@ export function useSharedPresence(topic: string, trackPayload?: any) {
       }).subscribe(async (status) => {
         if (status === 'SUBSCRIBED' && trackPayload) {
           await ch.track(trackPayload);
+          hasTrackedRef.current = true;
         }
       });
     } else {
@@ -37,12 +39,16 @@ export function useSharedPresence(topic: string, trackPayload?: any) {
       // If we are joining an already subscribed channel, track our payload
       if (trackPayload) {
         if (chObj.channel.state === 'joined') {
-          chObj.channel.track(trackPayload).catch(() => {});
+          chObj.channel.track(trackPayload).then(() => {
+            hasTrackedRef.current = true;
+          }).catch(() => {});
         } else {
           // If it's still joining, we wait until it's joined
           const interval = setInterval(() => {
             if (chObj.channel.state === 'joined') {
-              chObj.channel.track(trackPayload).catch(() => {});
+              chObj.channel.track(trackPayload).then(() => {
+                hasTrackedRef.current = true;
+              }).catch(() => {});
               clearInterval(interval);
             }
           }, 500);
@@ -64,6 +70,10 @@ export function useSharedPresence(topic: string, trackPayload?: any) {
       window.removeEventListener(`presence-sync-${topic}`, handleSync);
       const obj = presenceChannels[topic];
       if (obj) {
+        if (hasTrackedRef.current && obj.channel.state === 'joined') {
+          obj.channel.untrack().catch(() => {});
+          hasTrackedRef.current = false;
+        }
         obj.subscribers--;
         if (obj.subscribers <= 0) {
           supabase.removeChannel(obj.channel);
@@ -76,7 +86,9 @@ export function useSharedPresence(topic: string, trackPayload?: any) {
   // When trackPayload changes dynamically (like isAdmin), we should re-track
   useEffect(() => {
     if (channelRef.current?.state === 'joined' && trackPayload) {
-      channelRef.current.track(trackPayload).catch(() => {});
+      channelRef.current.track(trackPayload).then(() => {
+        hasTrackedRef.current = true;
+      }).catch(() => {});
     }
   }, [JSON.stringify(trackPayload)]);
 

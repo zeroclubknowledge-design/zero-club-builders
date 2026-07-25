@@ -205,6 +205,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenTrack, setScreenTrack] = useState<any>(null);
   const [theater, setTheater] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const leaveStartedRef = useRef(false);
 
   /* ── Session timer ── */
   const [elapsed, setElapsed] = useState(0);
@@ -398,13 +400,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         if (hasSeenAdmin.current) {
           toast.info("The tutor has ended the live session.");
           liveSession.endSession();
-          if (window.location.pathname.includes(`/app/live/`)) {
-            if (window.history.length > 2) {
-              window.history.back();
-            } else {
-              navigate({ to: "/app" });
-            }
-          }
+          navigate({ to: "/app/clubs/chat", search: { clubId: channel }, replace: true });
         }
       }
     }
@@ -433,16 +429,33 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   };
 
-  const handleLeave = (e?: React.MouseEvent) => {
+  const handleLeave = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
-    liveSession.endSession();
-    if (window.location.pathname.includes(`/app/live/`)) {
-      if (window.history.length > 2) {
-        window.history.back();
-      } else {
-        navigate({ to: "/app" });
+
+    if (leaveStartedRef.current) return;
+    leaveStartedRef.current = true;
+    setIsLeaving(true);
+
+    try {
+      await Promise.allSettled([
+        localMicrophoneTrack?.setEnabled(false),
+        localCameraTrack?.setEnabled(false),
+      ].filter(Boolean) as Promise<unknown>[]);
+
+      if (screenTrack) {
+        screenTrack.stop?.();
+        screenTrack.close?.();
       }
+
+      await client.leave();
+    } catch (error) {
+      console.error("Failed to fully disconnect from live session", error);
+    } finally {
+      localMicrophoneTrack?.close();
+      localCameraTrack?.close();
+      liveSession.endSession();
+      navigate({ to: "/app/clubs/chat", search: { clubId: channel }, replace: true });
     }
   };
 
@@ -747,10 +760,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             </button>
             <button
               onClick={handleLeave}
-              className="h-7 px-2.5 rounded-full bg-red-500 text-white flex items-center justify-center gap-1 hover:bg-red-600 transition tap"
+              disabled={isLeaving}
+              className="flex h-7 items-center justify-center gap-1 rounded-full bg-red-500 px-2.5 text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-70 tap"
             >
               <PhoneOff className="w-3 h-3" />
-              <span className="text-[9px] font-semibold">Leave</span>
+              <span className="text-[9px] font-semibold">{isLeaving ? "Leaving" : "Leave"}</span>
             </button>
           </div>
         </div>
@@ -1045,51 +1059,57 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       </div>
 
       {/* ═══ CONTROL BAR ═══ */}
-      <div className="shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 z-20">
-        <div className="mx-auto flex w-fit max-w-full items-center gap-1.5 rounded-full bg-white/[0.06] ring-1 ring-white/10 backdrop-blur-xl p-1.5 shadow-lift overflow-x-auto no-scrollbar">
+      <div className="z-20 shrink-0 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1">
+        <div className="mx-auto flex w-full max-w-[430px] items-center gap-1 rounded-full bg-white/[0.06] p-1 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
           <button
             onClick={() => setMicOn((p) => !p)}
-            className={`h-11 shrink-0 rounded-full px-4 flex items-center gap-2 transition-all tap ${micOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
+            disabled={isLeaving}
+            className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 transition-all tap disabled:opacity-50 ${micOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
           >
-            {micOn ? <Mic className="w-[17px] h-[17px]" /> : <MicOff className="w-[17px] h-[17px]" />}
-            <span className="text-[12px] font-semibold tracking-tight">{micOn ? "Mic on" : "Mic off"}</span>
+            {micOn ? <Mic className="h-[15px] w-[15px] shrink-0" /> : <MicOff className="h-[15px] w-[15px] shrink-0" />}
+            <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{micOn ? "Mic on" : "Mic off"}</span>
           </button>
           <button
             onClick={() => setCameraOn((p) => !p)}
-            className={`h-11 shrink-0 rounded-full px-4 flex items-center gap-2 transition-all tap ${cameraOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
+            disabled={isLeaving}
+            className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 transition-all tap disabled:opacity-50 ${cameraOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
           >
-            {cameraOn ? <Video className="w-[17px] h-[17px]" /> : <VideoOff className="w-[17px] h-[17px]" />}
-            <span className="text-[12px] font-semibold tracking-tight">{cameraOn ? "Cam on" : "Cam off"}</span>
+            {cameraOn ? <Video className="h-[15px] w-[15px] shrink-0" /> : <VideoOff className="h-[15px] w-[15px] shrink-0" />}
+            <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{cameraOn ? "Cam on" : "Cam off"}</span>
           </button>
           {isAdmin ? (
             <button
               onClick={toggleScreenShare}
-              className={`h-11 shrink-0 rounded-full px-4 flex items-center gap-2 transition-all tap ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.08] text-white hover:bg-white/[0.14]"}`}
+              disabled={isLeaving}
+              className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 transition-all tap disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.08] text-white hover:bg-white/[0.14]"}`}
             >
-              {isScreenSharing ? <MonitorOff className="w-[17px] h-[17px]" /> : <MonitorUp className="w-[17px] h-[17px]" />}
-              <span className="text-[12px] font-semibold tracking-tight">{isScreenSharing ? "Stop" : "Present"}</span>
+              {isScreenSharing ? <MonitorOff className="h-[15px] w-[15px] shrink-0" /> : <MonitorUp className="h-[15px] w-[15px] shrink-0" />}
+              <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{isScreenSharing ? "Stop" : "Present"}</span>
             </button>
           ) : (
             <button
               onClick={toggleScreenShare}
+              disabled={isLeaving}
               title="Only the tutor can present"
-              className="h-11 w-11 shrink-0 rounded-full bg-white/[0.05] text-white/40 flex items-center justify-center relative tap"
+              className="relative flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full bg-white/[0.05] px-2 text-white/40 tap disabled:opacity-50"
             >
-              <MonitorUp className="w-[17px] h-[17px]" />
+              <MonitorUp className="h-[15px] w-[15px] shrink-0" />
+              <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">Present</span>
               <span className="absolute -top-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
                 <Lock className="w-2 h-2 text-white/60" />
               </span>
             </button>
           )}
 
-          <div className="mx-0.5 h-6 w-px bg-white/10 shrink-0" />
+          <div className="h-5 w-px shrink-0 bg-white/10" />
 
           <button
             onClick={handleLeave}
-            className="h-11 shrink-0 rounded-full bg-red-500 px-5 text-white flex items-center gap-1.5 justify-center transition-all tap hover:bg-red-600"
+            disabled={isLeaving}
+            className="flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full bg-red-500 px-2 text-white transition-all tap hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
           >
-            <PhoneOff className="w-[17px] h-[17px]" />
-            <span className="text-[12px] font-semibold tracking-tight">Leave</span>
+            <PhoneOff className="h-[15px] w-[15px] shrink-0" />
+            <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{isLeaving ? "Leaving" : "Leave"}</span>
           </button>
         </div>
       </div>
