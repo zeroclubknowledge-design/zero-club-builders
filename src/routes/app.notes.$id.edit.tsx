@@ -480,50 +480,55 @@ function NotesEditPage() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col bg-background overflow-hidden relative selection:bg-foreground selection:text-background">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
       
       {/* Minimal Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] bg-background/60 backdrop-blur-3xl transition-all border-b border-white/5">
-        <a href={`/app/notes/${noteId}`} className="grid h-10 w-10 place-items-center rounded-full bg-foreground/5 hover:bg-foreground/10 transition active:scale-95 text-foreground/80 pointer-events-auto">
+      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center gap-3 px-4 sm:px-6">
+        <a href={`/app/notes/${noteId}`} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95">
           <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
         </a>
-        
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] text-muted-foreground">ZeroNotes</p>
+          <p className="truncate text-sm font-semibold">Edit note</p>
+        </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setShowPublishModal(true)}
             disabled={isPublishing}
-            className="px-6 py-2.5 rounded-full bg-foreground text-background text-sm font-bold shadow-xl shadow-foreground/10 transition active:scale-95 hover:opacity-90 disabled:opacity-50 flex items-center gap-2 tracking-wide"
+            className="flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-95 disabled:opacity-50"
           >
             {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
             Save Changes
           </button>
+        </div>
         </div>
       </header>
 
       <div className="flex-1 overflow-y-auto no-scrollbar pb-56">
         
         {/* Cover Image Area */}
-        <div className="px-6 md:px-12 lg:px-24 max-w-5xl mx-auto pt-8">
-          <div className="relative w-full aspect-[16/9] md:aspect-[21/9] bg-muted/30 group overflow-hidden rounded-3xl border-2 border-dashed border-border/50 hover:border-border/80 hover:bg-muted/50 transition-all shadow-sm">
+        <div className="mx-auto max-w-[920px] px-4 pt-5 sm:px-6 sm:pt-7">
+          <div className="group relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-dashed border-border bg-card transition-colors hover:border-primary/50 hover:bg-muted/30 md:aspect-[21/9]">
             {coverPreview ? (
               <>
                 <img src={coverPreview} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                  <label className="relative bg-white/20 backdrop-blur-xl text-white px-8 py-3.5 rounded-full font-bold text-sm cursor-pointer border border-white/30 shadow-2xl hover:bg-white/30 hover:scale-105 transition-all overflow-hidden">
+                  <label className="relative cursor-pointer overflow-hidden rounded-lg border border-white/30 bg-black/60 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-black/75">
                     <span className="pointer-events-none drop-shadow-md">Change Cover</span>
                     <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleCoverUpload} />
                   </label>
                 </div>
                 <button 
                   onClick={() => { setCoverFile(null); setCoverPreview(null); }}
-                  className="absolute top-6 right-6 h-12 w-12 rounded-full bg-black/40 backdrop-blur-xl text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/60 hover:scale-110 border border-white/20 shadow-xl"
+                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-black/60 text-white opacity-0 transition-all duration-300 hover:bg-black/75 group-hover:opacity-100"
                 >
                   <X className="h-5 w-5" strokeWidth={2} />
                 </button>
               </>
             ) : (
               <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
-                <div className="h-16 w-16 rounded-2xl bg-background border border-border shadow-sm flex items-center justify-center mb-5 pointer-events-none group-hover:shadow-md transition-all">
+                <div className="pointer-events-none mb-4 flex h-14 w-14 items-center justify-center rounded-lg border border-border bg-background transition-colors group-hover:border-primary/40">
                   <ImageIcon className="h-7 w-7 text-muted-foreground/60 pointer-events-none group-hover:text-foreground/80 transition-colors" strokeWidth={1.5} />
                 </div>
                 <span className="text-base font-medium text-muted-foreground/80 pointer-events-none group-hover:text-foreground/90 transition-colors">Add Cover Image</span>
@@ -535,7 +540,7 @@ function NotesEditPage() {
         </div>
 
         {/* Editor Area */}
-        <div className="px-6 md:px-12 lg:px-24 max-w-4xl mx-auto pt-16">
+        <div className="mx-auto max-w-[760px] px-4 pt-10 sm:px-6 sm:pt-12">
           <textarea
             value={title}
             onChange={e => {
@@ -544,7 +549,7 @@ function NotesEditPage() {
               e.target.style.height = e.target.scrollHeight + 'px';
             }}
             placeholder="Tell your story..."
-            className="w-full bg-transparent text-4xl md:text-5xl font-black tracking-tighter outline-none placeholder:text-muted-foreground/30 resize-none overflow-hidden leading-[1.1] mb-12 font-serif"
+            className="mb-10 w-full resize-none overflow-hidden bg-transparent text-3xl font-semibold leading-tight outline-none placeholder:text-muted-foreground/40 sm:text-4xl md:text-[44px]"
             rows={1}
           />
 
@@ -566,7 +571,7 @@ function NotesEditPage() {
                       />
                       
                       {showMentions && activeMentionBlockId === block.id && mentionSuggestions.length > 0 && (
-                        <div className="absolute z-50 left-0 right-0 top-full mt-2 rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[250px] overflow-y-auto">
+                        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[250px] overflow-y-auto rounded-lg border border-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-200">
                           {mentionSuggestions.map((prof) => (
                             <button
                               key={prof.id}
@@ -598,11 +603,11 @@ function NotesEditPage() {
                   )}
 
                   {block.type === 'image' && (
-                    <div className="relative w-full rounded-3xl overflow-hidden bg-muted/20 border border-border/30 my-6 group">
+                    <div className="group relative my-6 w-full overflow-hidden rounded-lg border border-border bg-muted/20">
                       {block.preview ? (
                         <div className="relative">
                           <img src={block.preview} className="w-full h-auto object-cover" />
-                          <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-3xl pointer-events-none" />
+                          <div className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-inset ring-black/10" />
                         </div>
                       ) : (
                         <label className="relative flex flex-col items-center justify-center py-24 cursor-pointer hover:bg-muted/40 transition overflow-hidden">
@@ -617,7 +622,7 @@ function NotesEditPage() {
                   )}
 
                   {block.type === 'video' && (
-                    <div className="relative w-full rounded-3xl overflow-hidden bg-black border border-border/20 my-6 group">
+                    <div className="group relative my-6 w-full overflow-hidden rounded-lg border border-border bg-black">
                       {block.preview ? (
                         <>
                           <video src={block.preview} controls className="w-full h-auto max-h-[70vh] object-contain" />
@@ -641,8 +646,7 @@ function NotesEditPage() {
                   )}
 
                   {block.type === 'audio' && (
-                    <div className="w-full rounded-[24px] bg-gradient-to-br from-card to-card/50 border border-border/60 p-6 shadow-sm my-6 relative overflow-hidden group">
-                      <div className="absolute -right-12 -top-12 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                    <div className="group relative my-6 w-full overflow-hidden rounded-lg border border-border bg-card p-5">
                       {block.preview ? (
                         <div className="relative z-10 flex flex-col gap-4">
                           <div className="flex items-center gap-3">
@@ -722,8 +726,8 @@ function NotesEditPage() {
 
       {/* Floating Formatting Toolbar (Appears when typing) */}
       {activeMentionBlockId && (
-        <div className="formatting-toolbar fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200">
-          <div className="flex items-center gap-1.5 p-2 bg-background/80 backdrop-blur-2xl rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-border/40">
+        <div className="formatting-toolbar fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 sm:bottom-6">
+          <div className="flex items-center gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 shadow-xl">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
               className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
@@ -765,7 +769,7 @@ function NotesEditPage() {
                   <Palette className="h-4 w-4" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 p-3 bg-background/95 backdrop-blur-xl border-border/50 rounded-2xl shadow-xl" align="center" side="top" sideOffset={10} onOpenAutoFocus={(e) => e.preventDefault()}>
+              <PopoverContent className="w-64 rounded-lg border-border bg-background p-3 shadow-xl" align="center" side="top" sideOffset={10} onOpenAutoFocus={(e) => e.preventDefault()}>
                 <div className="space-y-3">
                   <div className="grid grid-cols-5 gap-2">
                     {['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#ffffff', '#000000'].map(color => (
@@ -829,7 +833,7 @@ function NotesEditPage() {
                   <Plus className="h-5 w-5" strokeWidth={2.5} />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-48 p-2 bg-background/95 backdrop-blur-xl border-border/50 rounded-2xl shadow-2xl flex flex-col gap-1" align="center" side="top" sideOffset={15} onOpenAutoFocus={(e) => e.preventDefault()}>
+              <PopoverContent className="flex w-48 flex-col gap-1 rounded-lg border-border bg-background p-2 shadow-xl" align="center" side="top" sideOffset={15} onOpenAutoFocus={(e) => e.preventDefault()}>
                 <button 
                   onClick={() => addBlock('image')}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors text-sm font-bold text-foreground"
@@ -882,13 +886,13 @@ function NotesEditPage() {
 
       {/* Publish Modal */}
       <Drawer open={showPublishModal} onOpenChange={setShowPublishModal}>
-        <DrawerContent className="border-none bg-background/95 backdrop-blur-3xl p-0">
-          <div className="max-w-md w-full mx-auto p-6 pt-8">
+        <DrawerContent className="mx-auto max-w-[620px] border border-border bg-background p-0 shadow-xl">
+          <div className="mx-auto w-full max-w-md p-6 pt-8">
             <DrawerHeader className="px-0 pt-0 text-center mb-4">
               <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Wand2 className="h-6 w-6 text-primary" />
               </div>
-              <DrawerTitle className="text-3xl font-black tracking-tight">Ready to publish?</DrawerTitle>
+              <DrawerTitle className="text-2xl font-semibold">Ready to publish?</DrawerTitle>
               <DrawerDescription className="text-base text-muted-foreground mt-2">
                 Choose how you want to share your story.
               </DrawerDescription>
@@ -897,7 +901,7 @@ function NotesEditPage() {
             <div className="grid grid-cols-2 gap-4 py-4">
               <button
                 onClick={() => setIsPaid(false)}
-                className={`group flex flex-col items-center justify-center gap-4 py-8 px-4 rounded-3xl border-2 transition-all duration-300 ${!isPaid ?'border-primary bg-primary/5 shadow-lg shadow-primary/5 scale-[1.02]' : 'border-border/40 hover:border-border/80 bg-card hover:bg-accent/30'}`}
+                className={`group flex flex-col items-center justify-center gap-4 rounded-lg border px-4 py-7 transition-colors ${!isPaid ?'border-primary bg-primary/5' : 'border-border bg-card hover:bg-accent/30'}`}
               >
                 <div className={`p-3 rounded-2xl transition-colors ${!isPaid ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground group-hover:text-foreground'}`}>
                   <Globe className="h-7 w-7" strokeWidth={2} />
@@ -910,7 +914,7 @@ function NotesEditPage() {
 
               <button
                 onClick={() => setIsPaid(true)}
-                className={`group flex flex-col items-center justify-center gap-4 py-8 px-4 rounded-3xl border-2 transition-all duration-300 ${isPaid ?'border-[#ffcf00] bg-[#ffcf00]/10 shadow-lg shadow-[#ffcf00]/10 scale-[1.02]' : 'border-border/40 hover:border-border/80 bg-card hover:bg-accent/30'}`}
+                className={`group flex flex-col items-center justify-center gap-4 rounded-lg border px-4 py-7 transition-colors ${isPaid ?'border-[#ffcf00] bg-[#ffcf00]/10' : 'border-border bg-card hover:bg-accent/30'}`}
               >
                 <div className={`p-3 rounded-2xl transition-colors ${isPaid ? 'bg-[#ffcf00] text-black' : 'bg-muted text-muted-foreground group-hover:text-foreground'}`}>
                   <Crown className="h-7 w-7" strokeWidth={2} />
@@ -924,7 +928,7 @@ function NotesEditPage() {
 
             <DrawerFooter className="px-0 pb-8 pt-4">
               {isPaid ? (
-                <div className="bg-[#ffcf00]/10 border border-[#ffcf00]/20 p-5 rounded-3xl flex flex-col gap-2 mb-6 animate-in fade-in slide-in-from-bottom-2">
+                <div className="mb-6 flex flex-col gap-2 rounded-lg border border-[#ffcf00]/20 bg-[#ffcf00]/10 p-5 animate-in fade-in slide-in-from-bottom-2">
                   <span className="font-black flex items-center gap-2 text-[#ffcf00] text-lg">
                     <Crown className="h-5 w-5" /> Coming soon!
                   </span>
@@ -937,7 +941,7 @@ function NotesEditPage() {
                   executePublish();
                 }}
                 disabled={isPaid || isPublishing}
-                className="w-full h-14 rounded-full bg-foreground text-background font-black text-lg shadow-xl shadow-foreground/10 transition-all active:scale-95 disabled:opacity-50 hover:bg-foreground/90 flex items-center justify-center gap-2"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-lg bg-foreground text-base font-semibold text-background transition hover:bg-foreground/90 active:scale-95 disabled:opacity-50"
               >
                 {isPublishing ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Publish Note'}
               </button>

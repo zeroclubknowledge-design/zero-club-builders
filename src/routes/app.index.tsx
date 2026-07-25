@@ -39,21 +39,6 @@ function Feed() {
   const [searchResults, setSearchResults] = useState<{ posts: any[], bootcamps: any[], profiles: any[] }>({ posts: [], bootcamps: [], profiles: [] });
   const [isSearching, setIsSearching] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [headerVisible, setHeaderVisible] = useState(true);
-
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-    const handleScroll = () => {
-      const y = window.scrollY;
-      const diff = y - lastScrollY;
-      if (Math.abs(diff) > 10) {
-        setHeaderVisible(!(y > 80 && diff > 0));
-        lastScrollY = y;
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     fetchFollowing();
@@ -131,11 +116,11 @@ function Feed() {
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background md:pb-12">
       {/* Top Header Tabs */}
-      <header className={`sticky ${headerVisible ? "top-[calc(72px+env(safe-area-inset-top))]" : "top-0"} md:!top-[66px] z-40 border-b border-border/60 bg-background transition-[top] duration-300 md:mx-auto md:w-full md:max-w-[760px] md:border-x`}>
-        <div className="flex items-center px-4 py-1 justify-between min-h-[48px]">
+      <header className="sticky top-[calc(72px+env(safe-area-inset-top))] z-40 border-b border-border bg-background md:top-[66px] md:mx-auto md:w-full md:max-w-[780px] md:border-x">
+        <div className="flex min-h-[52px] items-center justify-between px-4 py-1">
           {!showSearch ? (
             <>
-              <div className="flex gap-5 overflow-x-auto no-scrollbar">
+              <div className="no-scrollbar flex min-w-0 flex-1 gap-5 overflow-x-auto">
                 {["Discover", "Following", "Live", "News", "Academy"].map((tab) => (
                   <button
                     key={tab}
@@ -152,13 +137,13 @@ function Feed() {
               <div className="flex items-center gap-2 pl-4">
                 <button
                   onClick={() => setShowSearch(true)}
-                  className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/5 tap"
+                  className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground tap hover:bg-accent hover:text-foreground"
                 >
                   <Search className="h-[18px] w-[18px]" />
                 </button>
                 <button
                   onClick={() => setCreateOpen(true)}
-                  className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[12.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
+                  className="hidden items-center gap-1.5 rounded-lg bg-foreground px-4 py-2 text-[12.5px] font-semibold text-background tap hover:opacity-90 md:inline-flex"
                 >
                   <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
                   Create
@@ -173,7 +158,7 @@ function Feed() {
                   autoFocus
                   type="text"
                   placeholder="Search builders, bootcamps, topics"
-                  className="w-full rounded-full bg-foreground/[0.04] ring-1 ring-transparent py-2.5 pl-10 pr-4 text-[14px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-primary/40 focus:bg-background transition-all"
+                  className="w-full rounded-lg border border-border bg-card py-2.5 pl-10 pr-4 text-[14px] text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -190,7 +175,7 @@ function Feed() {
 
       </header>
 
-      <main className="flex-1 bg-background md:mx-auto md:mb-12 md:w-full md:max-w-[760px] md:overflow-hidden md:rounded-b-lg md:border-x md:border-b md:border-border/60">
+      <main className="flex-1 bg-background md:mx-auto md:mb-12 md:w-full md:max-w-[780px] md:border-x md:border-b md:border-border/60">
         {isSearching ? (
           <div className="flex flex-col items-center justify-center pt-20">
             <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
@@ -314,7 +299,7 @@ function Feed() {
         ) : (
           <>
             {/* Desktop inline composer */}
-            <div className="m-4 hidden items-center gap-3.5 rounded-lg border border-border/60 bg-card px-4 py-3 md:flex">
+            <div className="m-3 hidden items-center gap-3.5 rounded-lg border border-border bg-card px-4 py-3 md:flex">
               <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-border shrink-0">
                 {currentUser?.avatar_url ? (
                   <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -326,13 +311,13 @@ function Feed() {
               </div>
               <button
                 onClick={() => setCreateOpen(true)}
-                className="flex-1 text-left rounded-full bg-foreground/[0.04] ring-1 ring-transparent hover:ring-border hover:bg-foreground/[0.06] px-5 py-3 text-[14px] text-muted-foreground transition-all tap"
+                className="flex-1 rounded-lg border border-border bg-background px-4 py-3 text-left text-[14px] text-muted-foreground transition-colors tap hover:bg-accent"
               >
                 Share what you're building…
               </button>
               <Link
                 to="/app/ship"
-                className="inline-flex items-center gap-1.5 rounded-full ring-1 ring-border px-4 py-2.5 text-[12.5px] font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-[12.5px] font-semibold text-foreground tap hover:bg-accent"
               >
                 <Rocket className="h-3.5 w-3.5 text-[#cc208f]" strokeWidth={1.75} />
                 Ship

@@ -1094,9 +1094,7 @@ function AppLayout() {
       <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isInstitutionStudio ? "" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
         {!hideHeader && (
           <header
-            className={`fixed top-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 md:sticky md:left-0 md:translate-x-0 md:max-w-full flex items-center justify-between bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] transition-transform duration-300 ease-out-expo ${
-              visible ? "translate-y-0" : "-translate-y-full"
-            } md:translate-y-0`}
+            className="fixed left-1/2 top-0 z-50 flex w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between border-b border-border bg-background px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-full md:translate-x-0"
           >
             <div className="flex w-10 items-center md:hidden">
               <button

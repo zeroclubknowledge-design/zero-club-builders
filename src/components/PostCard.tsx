@@ -284,8 +284,8 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
   };
 
   return (
-    <article className="border-b hairline transition-colors duration-200 hover:bg-foreground/[0.015]">
-      <div className="px-5 py-5">
+    <article className="border-b border-border bg-background transition-colors duration-200 hover:bg-foreground/[0.015] md:mx-3 md:my-3 md:rounded-lg md:border">
+      <div className="px-4 py-4 sm:px-5 sm:py-5">
         {post.type === 'repost' && (
           <div className="flex items-center gap-2 mb-2.5 pl-[52px] text-muted-foreground">
             <Repeat className="h-3 w-3 opacity-60" />
@@ -446,10 +446,10 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
             </div>
 
             {post.media_urls && post.media_urls.length > 0 && (
-              <div className={`mt-3 overflow-hidden rounded-2xl ${
+              <div className={`mt-3 overflow-hidden rounded-lg border border-border bg-muted/25 ${
                 post.media_urls.length === 2
-                  ? "grid grid-cols-2 gap-0.5 max-h-[320px] ring-1 ring-border bg-muted/40"
-                  : "flex justify-start"
+                  ? "grid grid-cols-2 gap-px"
+                  : "flex justify-center"
               }`}>
                 {post.media_urls.slice(0, 2).map((url: string, i: number) => (
                   <div
@@ -461,10 +461,10 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                       setLightboxIndex(i);
                       setLightboxOpen(true);
                     }}
-                    className={`relative overflow-hidden rounded-2xl cursor-pointer ${
+                    className={`relative flex cursor-pointer items-center justify-center overflow-hidden bg-muted/20 ${
                       post.media_urls.length === 2
-                        ? "h-[320px] w-full"
-                        : "max-w-full ring-1 ring-border bg-muted/40 transition"
+                        ? "h-[210px] w-full sm:h-[260px]"
+                        : "w-full max-w-full transition"
                     }`}
                   >
                     {isVideoUrl(url) ? (
@@ -472,10 +472,10 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                         <video
                           ref={videoRef}
                           src={url}
-                          className={`rounded-2xl ${
+                          className={`${
                             post.media_urls.length === 2
-                              ? "w-full h-full object-cover"
-                              : "max-w-full max-h-[600px] w-auto h-auto"
+                              ? "h-full w-full object-contain"
+                              : "max-h-[280px] w-full object-contain sm:max-h-[320px]"
                           }`}
                           muted={isMuted}
                           loop
@@ -492,16 +492,16 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                         <img
                           src={url}
                           alt={`Post media ${i + 1}`}
-                          className={`rounded-2xl ${
+                          className={`${
                             post.media_urls.length === 2
-                              ? "w-full h-full object-cover"
-                              : "max-w-full max-h-[600px] w-auto h-auto"
+                              ? "h-full w-full object-contain"
+                              : "max-h-[280px] w-full object-contain sm:max-h-[320px]"
                           }`}
                         />
                       )}
 
                       {post.media_urls.length > 2 && i === 1 && (
-                        <div className="absolute inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/55">
                           <span className="text-white text-2xl font-semibold tracking-tight">+{post.media_urls.length - 2}</span>
                         </div>
                       )}
@@ -513,7 +513,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
             {/* Quoted Post Mini-Card */}
             {post.quoted_posts && (
               <div
-                className="mt-3 rounded-2xl ring-1 ring-border bg-card/50 p-3.5 hover:bg-card transition-colors cursor-pointer"
+                className="mt-3 cursor-pointer rounded-lg border border-border bg-card/50 p-3.5 transition-colors hover:bg-card"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -536,7 +536,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                 </div>
                 {post.quoted_posts.media_urls?.[0] && (
                   <div
-                    className="mt-3 relative h-[200px] w-full rounded-xl overflow-hidden ring-1 ring-border cursor-pointer"
+                    className="relative mt-3 flex h-[160px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/25 sm:h-[190px]"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -546,9 +546,9 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                     }}
                   >
                     {isVideoUrl(post.quoted_posts.media_urls[0]) ? (
-                      <video src={post.quoted_posts.media_urls[0]} className="h-full w-full object-cover" muted playsInline />
+                      <video src={post.quoted_posts.media_urls[0]} className="h-full w-full object-contain" muted playsInline />
                     ) : (
-                      <img src={post.quoted_posts.media_urls[0]} className="h-full w-full object-cover" />
+                      <img src={post.quoted_posts.media_urls[0]} className="h-full w-full object-contain" />
                     )}
                   </div>
                 )}

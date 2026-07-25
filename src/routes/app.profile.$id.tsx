@@ -381,25 +381,31 @@ function ProfileDetail() {
   const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f8f7f5] dark:bg-background">
       {/* ═══════════════════════════════════════════
           FROSTED HEADER — Back + @handle + Actions
          ═══════════════════════════════════════════ */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
+      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] overflow-hidden transition-colors duration-300 ${
         scrolled || searchOpen
-          ?"bg-background/80 backdrop-blur-2xl border-b border-border/10 shadow-[0_1px_20px_rgba(0,0,0,0.08)]" 
-          : "bg-transparent border-b border-transparent"
+          ? profile?.banner_url ? "border-b border-white/20 bg-black/45" : "border-b border-border bg-background"
+          : "border-b border-transparent bg-transparent"
       }`}>
+        {profile?.banner_url && (
+          <div className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${scrolled || searchOpen ? 'opacity-100' : 'opacity-0'}`} aria-hidden="true">
+            <img src={profile.banner_url} alt="" className="h-full w-full scale-110 object-cover blur-md" />
+            <div className="absolute inset-0 bg-black/45" />
+          </div>
+        )}
         <div className="relative z-20 flex items-center justify-between px-4 h-full">
           {!searchOpen ? (
             <>
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => navigate({ to: '/app' })}
-                  className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
-                    scrolled 
-                      ?"bg-accent/50 text-foreground hover:bg-accent" 
-                      : "bg-black/30 text-white backdrop-blur-md border border-white/10"
+                  className={`grid h-9 w-9 place-items-center rounded-lg border transition-colors active:scale-95 ${
+                    profile?.banner_url
+                      ? "border-white/20 bg-black/35 text-white hover:bg-black/50"
+                      : scrolled ? "border-border bg-card text-foreground hover:bg-accent" : "border-white/10 bg-black/30 text-white"
                   }`}
                 >
                   <ChevronLeft className="h-[18px] w-[18px]" />
@@ -409,10 +415,10 @@ function ProfileDetail() {
                 <div className={`transition-all duration-300 transform ${
                   scrolled ?"opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}>
-                  <h1 className="font-display max-w-[12rem] truncate text-sm font-bold leading-tight text-foreground">
+                  <h1 className={`font-display max-w-[12rem] truncate text-sm font-semibold leading-tight ${profile?.banner_url ? 'text-white' : 'text-foreground'}`}>
                     {displayName}
                   </h1>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className={`text-[10px] ${profile?.banner_url ? 'text-white/70' : 'text-muted-foreground'}`}>
                     {posts.length} {posts.length === 1 ? "Post" : "Posts"}
                   </p>
                 </div>
@@ -422,22 +428,22 @@ function ProfileDetail() {
                 {/* More Options Drawer */}
                 <Drawer>
                   <DrawerTrigger asChild>
-                    <button className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
-                      scrolled 
-                        ?"bg-accent/50 text-foreground hover:bg-accent" 
-                        : "bg-black/30 text-white backdrop-blur-md border border-white/10"
+                    <button className={`grid h-9 w-9 place-items-center rounded-lg border transition-colors active:scale-95 ${
+                      profile?.banner_url
+                        ? "border-white/20 bg-black/35 text-white hover:bg-black/50"
+                        : scrolled ? "border-border bg-card text-foreground hover:bg-accent" : "border-white/10 bg-black/30 text-white"
                     }`}>
                       <MoreHorizontal className="h-[18px] w-[18px]" />
                     </button>
                   </DrawerTrigger>
                   <DrawerContent className="border-none bg-background p-6">
-                    <DrawerHeader className="text-left mb-6">
-                      <DrawerTitle className="text-xl font-bold">Profile Actions</DrawerTitle>
+                    <DrawerHeader className="mb-6 text-left">
+                      <DrawerTitle className="text-xl font-semibold">Profile actions</DrawerTitle>
                     </DrawerHeader>
                     <div className="space-y-2">
                       <button 
                         onClick={handleShare}
-                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
+                        className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
                       >
                         <Share2 className="h-5 w-5 text-primary" /> Share Profile Link
                       </button>
@@ -446,14 +452,14 @@ function ProfileDetail() {
                           navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
                           toast.success("Profile link copied!");
                         }}
-                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
+                        className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
                       >
                         <Copy className="h-5 w-5 text-primary" /> Copy URL
                       </button>
                       {!isOwnProfile && (
                         <button 
                           onClick={() => toast.success("Report submitted. Thank you!")}
-                          className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-destructive/5 text-destructive"
+                          className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold text-destructive tap hover:bg-destructive/5"
                         >
                           <Flag className="h-5 w-5" /> Report Profile
                         </button>
@@ -470,10 +476,10 @@ function ProfileDetail() {
       {/* ═══════════════════════════════════════════════
           HENSOR STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4" style={{ marginTop: 'calc(-1 * env(safe-area-inset-top))' }}>
-        <div className="relative overflow-hidden sm:rounded-[32px] bg-background">
+      <div className="mx-auto max-w-[900px] px-0 md:!-mt-14 md:px-6" style={{ marginTop: 'calc(-1 * env(safe-area-inset-top))' }}>
+        <div className="relative overflow-hidden bg-background md:rounded-lg md:border md:border-border">
           {/* Banner */}
-          <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full overflow-hidden bg-muted flex items-center justify-center">
+          <div className="relative flex h-[calc(220px+env(safe-area-inset-top))] w-full items-center justify-center overflow-hidden bg-muted sm:h-[260px]">
             {profile?.banner_url ? (
               <img 
                 src={profile.banner_url} 
@@ -481,7 +487,9 @@ function ProfileDetail() {
                 className="h-full w-full object-cover object-center"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklab,var(--primary)_28%,transparent),transparent_60%),radial-gradient(circle_at_80%_80%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_55%)] bg-muted" />
+              <div className="flex h-full w-full items-center justify-center bg-[#211d21]">
+                <img src="/logo.png" alt="" className="h-20 w-20 object-contain opacity-35" />
+              </div>
             )}
           </div>
           
@@ -490,7 +498,7 @@ function ProfileDetail() {
             {/* Avatar overlapping banner */}
             <div className="absolute -top-[55px] left-6 z-20">
               <div 
-                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] ring-4 ring-background bg-muted shadow-lift transition-opacity hover:opacity-90 flex items-center justify-center"
+                className="flex h-[110px] w-[110px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
@@ -505,11 +513,15 @@ function ProfileDetail() {
 
             {/* Right side actions */}
             <div className="flex justify-end h-[55px] items-center gap-4">
-               {!isOwnProfile && (
+               {isOwnProfile ? (
+                 <Link to="/app/profile/edit" className="flex h-10 items-center rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition hover:opacity-90">
+                   Edit profile
+                 </Link>
+               ) : (
                  <button 
                    onClick={handleFollow}
                    disabled={followLoading}
-                   className={`rounded-full px-5 py-2 text-[14px] font-bold transition-all flex items-center gap-2 active:scale-95 ${
+                   className={`flex items-center gap-2 rounded-lg px-5 py-2 text-[14px] font-semibold transition-colors active:scale-95 ${
                      isFollowing 
                        ? "border border-border bg-transparent text-foreground hover:bg-accent" 
                        : "bg-foreground text-background hover:opacity-90"
@@ -524,7 +536,7 @@ function ProfileDetail() {
             <div className="mt-4 flex flex-col items-start gap-1">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-[22px] font-bold tracking-tight text-foreground leading-none">
+                  <h2 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
                     {displayName}
                   </h2>
                   {profile?.tier === 'Premium' && <BadgeCheck className="h-[18px] w-[18px] fill-primary text-background shrink-0" />}
@@ -568,24 +580,21 @@ function ProfileDetail() {
       {/* ═══════════════════════════════════════════
           CONTENT TABS
          ═══════════════════════════════════════════ */}
-      <div className="mx-auto max-w-md mt-8 px-4">
-        <div className="flex justify-between overflow-x-auto no-scrollbar border-b border-border/20">
+      <div className="mx-auto mt-5 max-w-[760px] px-4 md:px-0">
+        <div className="grid grid-cols-4 gap-1 overflow-hidden rounded-lg border border-border bg-card p-1">
           {tabs.map((t) => {
             const active = tab === t;
             return (
               <button 
                 key={t} 
                 onClick={() => setTab(t)} 
-                className={`shrink-0 pb-3 text-[14px] font-bold tracking-wide transition-all relative ${
+                className={`relative flex h-10 min-w-0 items-center justify-center rounded-md px-2 text-[12px] font-semibold transition-colors ${
                   active 
-                    ? "text-foreground" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-primary/[0.09] text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
               >
                 {t}
-                {active && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-t-full" />
-                )}
               </button>
             );
           })}
@@ -595,7 +604,7 @@ function ProfileDetail() {
       {/* ═══════════════════════════════════════════
           TAB CONTENT
          ═══════════════════════════════════════════ */}
-      <div className="px-5 pt-2 pb-20">
+      <div className="mx-auto w-full max-w-[760px] pb-20 pt-2">
         {tab === "Posts" && (
           <div className="space-y-4">
             {postsLoading ? (

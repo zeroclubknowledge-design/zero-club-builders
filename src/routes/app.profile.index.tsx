@@ -153,6 +153,15 @@ function Profile() {
   const myClubs = myClubsData || [];
 
   useEffect(() => {
+    if (!profile?.id) return;
+    navigate({
+      to: '/app/profile/$id',
+      params: { id: profile.id },
+      replace: true,
+    });
+  }, [navigate, profile?.id]);
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setCurrentUser(session.user);
     });
@@ -200,6 +209,14 @@ function Profile() {
         <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
           <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
         </div>
+      </div>
+    );
+  }
+
+  if (profile?.id) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f8f7f5] dark:bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }

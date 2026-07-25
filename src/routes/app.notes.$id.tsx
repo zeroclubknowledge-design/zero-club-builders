@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Share2, Bookmark, Heart, MoreHorizontal, Mic, Video, Image as ImageIcon, PlayCircle, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, Share2, Bookmark, Heart, Mic, Edit3, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';
@@ -80,8 +80,6 @@ function NoteReaderPage() {
 
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isFabOpen, setIsFabOpen] = useState(false);
-  const [isNavigatingToEdit, setIsNavigatingToEdit] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { data: followData, refetch: refetchFollow } = useQuery({
     queryKey: ['follows', profile?.id, note?.author_id],
@@ -147,7 +145,6 @@ function NoteReaderPage() {
 
   const confirmDelete = () => {
     setIsDeleteDialogOpen(true);
-    setIsFabOpen(false);
   };
 
   const handleDelete = async () => {
@@ -200,31 +197,31 @@ function NoteReaderPage() {
         const cleanContent = block.content.replace(/<p><\/p>|<p><br><\/p>|<p>&nbsp;<\/p>/g, '').trim();
         if (!cleanContent) return null;
         return (
-          <div className="text-lg md:text-xl leading-[1.8] text-foreground/90 whitespace-pre-wrap font-medium tracking-tight">
+          <div className="whitespace-pre-wrap text-[17px] leading-[1.8] text-foreground/90 md:text-lg">
             <LinkifiedText text={cleanContent} />
           </div>
         );
       case 'heading':
         return (
-          <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-foreground mt-16 mb-6">
+          <h2 className="mb-5 mt-12 text-2xl font-semibold text-foreground md:text-3xl">
             {block.content}
           </h2>
         );
       case 'image':
         return (
-          <div className="my-10 -mx-6 md:mx-0 rounded-none md:rounded-[24px] overflow-hidden bg-muted border-y md:border border-border/20">
+          <div className="my-8 overflow-hidden rounded-lg border border-border bg-muted">
             <img src={block.content} className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-500" />
           </div>
         );
       case 'video':
         return (
-          <div className="my-10 -mx-6 md:mx-0 rounded-none md:rounded-[24px] overflow-hidden bg-black border-y md:border border-border/20 shadow-2xl relative group">
+          <div className="group relative my-8 overflow-hidden rounded-lg border border-border bg-black">
             <video src={block.content} controls className="w-full h-auto max-h-[70vh] object-contain" />
           </div>
         );
       case 'audio':
         return (
-          <div className="my-8 rounded-3xl bg-card border border-border/50 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-5">
+          <div className="my-8 flex flex-col gap-5 rounded-lg border border-border bg-card p-5">
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 <Mic className="h-6 w-6" />
@@ -249,45 +246,49 @@ function NoteReaderPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background overflow-y-auto no-scrollbar relative selection:bg-foreground selection:text-background">
+    <div className="relative flex min-h-screen w-full flex-col overflow-y-auto bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
       
-      {/* Header: Fixed transparent overlay header with glassmorphic buttons. Fades over cover image */}
-      <header className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] bg-gradient-to-b from-black/60 via-black/30 to-transparent pointer-events-none transition-colors duration-300">
+      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-16 w-full max-w-[920px] items-center gap-3 px-4 sm:px-6">
         <button 
           onClick={() => navigate({ to: '/app/notes' })}
-          className="grid h-12 w-12 place-items-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition active:scale-95 pointer-events-auto border border-white/20 shadow-lg"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] text-muted-foreground">ZeroNotes</p>
+          <p className="truncate text-sm font-semibold">{note.title}</p>
+        </div>
+        <button onClick={handleBookmark} className={`grid h-10 w-10 place-items-center rounded-lg border bg-card transition hover:bg-accent ${isBookmarked ? 'border-primary text-primary' : 'border-border text-foreground'}`} aria-label="Save note">
+          <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
+        </button>
+        <button onClick={handleShare} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent" aria-label="Share note">
+          <Share2 className="h-4 w-4" />
+        </button>
+        </div>
       </header>
 
       <div className="w-full flex-1 flex flex-col">
         
-        {/* Cover Image: Full-width immersive hero with edge-to-edge cover. Gradient overlay transitioning into background color. Title overlaid */}
+        {/* Cover Image */}
         {note.cover_url && (
-          <div className="w-full h-[50vh] md:h-[60vh] relative z-0 flex flex-col justify-end">
-            <img src={note.cover_url} className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-            
-            <div className="relative z-10 px-6 md:px-12 pb-8 max-w-4xl w-full mx-auto">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[1.1] text-foreground drop-shadow-xl">
-                {note.title}
-              </h1>
+          <div className="mx-auto w-full max-w-[1100px] px-4 pt-5 sm:px-6 sm:pt-7">
+            <div className="aspect-[16/9] overflow-hidden rounded-lg border border-border bg-muted md:aspect-[21/9]">
+              <img src={note.cover_url} className="h-full w-full object-cover" />
             </div>
           </div>
         )}
 
         {/* Article Content */}
-        <article className={`max-w-2xl w-full mx-auto px-6 md:px-0 flex-1 flex flex-col ${note.cover_url ? 'pt-8' : 'pt-32'} relative z-10`}>
+        <article className="relative z-10 mx-auto flex w-full max-w-[760px] flex-1 flex-col px-4 pb-10 pt-8 sm:px-6 sm:pt-10">
 
-          {!note.cover_url && (
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[1.1] mb-12 text-foreground">
-              {note.title}
-            </h1>
-          )}
+          <h1 className="mb-7 text-3xl font-semibold leading-tight text-foreground sm:text-4xl md:text-[44px]">
+            {note.title}
+          </h1>
 
           {/* Author Section: Larger author avatar with border ring. Name + "Follow" button row. Published date + reading time. Subtle bottom border separator */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-border/50">
+          <div className="mb-10 flex flex-col justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3.5">
               <div className="h-10 w-10 md:h-12 md:w-12 rounded-full overflow-hidden bg-muted border border-primary/20 shadow-sm shrink-0">
                 {note.profiles?.avatar_url ? (
@@ -300,14 +301,14 @@ function NoteReaderPage() {
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2.5">
-                  <span className="font-bold text-foreground text-base tracking-tight">
+                  <span className="text-base font-semibold text-foreground">
                     {note.profiles?.full_name || note.profiles?.username}
                   </span>
                   {profile?.id !== note.author_id && (
                     <button 
                       onClick={handleFollow}
                       disabled={followMutation.isPending}
-                      className={`text-xs font-bold px-3 py-1 rounded-full transition-colors disabled:opacity-50 ${isFollowing ? 'bg-muted text-muted-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
+                      className={`rounded-lg px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${isFollowing ? 'bg-muted text-muted-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                     >
                       {isFollowing ? 'Following' : 'Follow'}
                     </button>
@@ -320,6 +321,16 @@ function NoteReaderPage() {
                 </div>
               </div>
             </div>
+            {profile?.id === note.author_id && (
+              <div className="flex items-center gap-2">
+                <button onClick={() => navigate({ to: `/app/notes/${note.id}/edit` })} className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold hover:bg-accent">
+                  <Edit3 className="h-3.5 w-3.5" /> Edit
+                </button>
+                <button onClick={confirmDelete} className="grid h-9 w-9 place-items-center rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10" aria-label="Delete note">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -330,98 +341,46 @@ function NoteReaderPage() {
             ))}
           </div>
 
-          {/* Engagement Bar: Like + Share buttons in rounded pill style. Clean bottom border */}
-          <div className="mt-16 mb-12 flex items-center gap-4 py-8 border-b border-border/50">
-            <button onClick={handleLike} className={`group flex items-center justify-center h-12 px-6 rounded-full transition-all duration-300 gap-2 border shadow-sm ${isLiked ? 'text-primary border-primary bg-primary/10' : 'text-foreground border-border hover:bg-muted'}`}>
+          <div className="mb-10 mt-14 flex flex-wrap items-center gap-3 border-y border-border py-5">
+            <button onClick={handleLike} className={`group flex h-10 items-center justify-center gap-2 rounded-lg border px-4 transition-colors ${isLiked ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-foreground hover:bg-accent'}`}>
               <Heart className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isLiked ? 'fill-primary' : ''}`} />
-              <span className="text-sm font-bold">{isLiked ? 'Liked' : 'Like'}</span>
+              <span className="text-sm font-semibold">{isLiked ? 'Liked' : 'Like'}</span>
             </button>
-            <button onClick={handleShare} className="group flex items-center justify-center h-12 px-6 rounded-full hover:bg-muted transition-all duration-300 text-foreground gap-2 border border-border shadow-sm">
+            <button onClick={handleBookmark} className={`group flex h-10 items-center justify-center gap-2 rounded-lg border px-4 transition-colors ${isBookmarked ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-foreground hover:bg-accent'}`}>
+              <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
+              <span className="text-sm font-semibold">{isBookmarked ? 'Saved' : 'Save'}</span>
+            </button>
+            <button onClick={handleShare} className="group flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-foreground transition-colors hover:bg-accent">
               <Share2 className="h-5 w-5 transition-transform duration-300 group-hover:-rotate-12" />
-              <span className="text-sm font-bold">Share</span>
+              <span className="text-sm font-semibold">Share</span>
             </button>
           </div>
 
           {/* Comments: Inline CommentDrawer at the bottom */}
-          {!isNavigatingToEdit && (
-            <div className="mt-auto pb-32">
-              <CommentDrawer 
-                post={note} 
-                type="note"
-                inline={true}
-              />
-            </div>
-          )}
+          <div className="mt-auto pb-24">
+            <CommentDrawer post={note} type="note" inline={true} />
+          </div>
         </article>
-      </div>
-      
-      {/* Floating Action Button (FAB) Twitter Style */}
-      <div className="fixed bottom-24 right-6 md:bottom-28 md:right-10 z-[100] flex flex-col items-center gap-3">
-        {/* Expanded Actions */}
-        <div className={`flex flex-col gap-3 transition-all duration-300 ease-in-out origin-bottom ${isFabOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-75 opacity-0 translate-y-8 pointer-events-none'}`}>
-          {profile?.id === note.author_id && (
-            <>
-              <button 
-                onClick={() => { setIsFabOpen(false); navigate({ to: `/app/notes/${note.id}/edit` }); }}
-                className="grid h-10 w-10 md:h-12 md:w-12 place-items-center rounded-full bg-blue-500/90 backdrop-blur-md text-white shadow-lg hover:bg-blue-600 transition-all hover:scale-105 active:scale-95 pointer-events-auto"
-                title="Edit Note"
-              >
-                <Edit3 className="h-4 w-4 md:h-5 md:w-5" />
-              </button>
-              <button 
-                onClick={confirmDelete}
-                className="grid h-10 w-10 md:h-12 md:w-12 place-items-center rounded-full bg-red-500/90 backdrop-blur-md text-white shadow-lg hover:bg-red-600 transition-all hover:scale-105 active:scale-95 pointer-events-auto"
-                title="Delete Note"
-              >
-                <Trash2 className="h-4 w-4 md:h-5 md:w-5" />
-              </button>
-            </>
-          )}
-
-          <button 
-            onClick={() => { setIsFabOpen(false); handleBookmark(); }} 
-            className="grid h-10 w-10 md:h-12 md:w-12 place-items-center rounded-full bg-black/80 backdrop-blur-md text-white dark:bg-white/80 dark:text-black shadow-lg hover:bg-black dark:hover:bg-white transition-all hover:scale-105 active:scale-95"
-            title="Save Note"
-          >
-            <Bookmark className={`h-4 w-4 md:h-5 md:w-5 ${isBookmarked ? 'fill-current text-primary' : ''}`} />
-          </button>
-
-          <button 
-            onClick={() => { setIsFabOpen(false); handleShare(); }} 
-            className="grid h-10 w-10 md:h-12 md:w-12 place-items-center rounded-full bg-black/80 backdrop-blur-md text-white dark:bg-white/80 dark:text-black shadow-lg hover:bg-black dark:hover:bg-white transition-all hover:scale-105 active:scale-95"
-            title="Share Note"
-          >
-            <Share2 className="h-4 w-4 md:h-5 md:w-5" />
-          </button>
-        </div>
-
-        {/* Main FAB Toggle */}
-        <button 
-          onClick={() => setIsFabOpen(!isFabOpen)}
-          className="grid h-14 w-14 md:h-16 md:w-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 z-10"
-        >
-          <MoreHorizontal className={`h-6 w-6 md:h-7 md:w-7 transition-transform duration-300 ${isFabOpen ? 'rotate-90' : 'rotate-0'}`} />
-        </button>
       </div>
 
       {/* Delete Confirmation Modal */}
       {isDeleteDialogOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-background border border-border/50 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-bold mb-3 tracking-tight">Delete this note?</h3>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-lg border border-border bg-background p-6 shadow-xl animate-in zoom-in-95 duration-200 md:p-8">
+            <h3 className="mb-3 text-xl font-semibold">Delete this note?</h3>
             <p className="text-muted-foreground mb-8 leading-relaxed">
               Are you sure you want to delete this note? This action cannot be undone and it will be permanently removed.
             </p>
             <div className="flex flex-col gap-3">
               <button 
                 onClick={handleDelete}
-                className="w-full py-3.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 active:scale-[0.98] transition-all"
+                className="w-full rounded-lg bg-red-500 py-3.5 font-semibold text-white transition-colors hover:bg-red-600 active:scale-[0.98]"
               >
                 Yes, delete note
               </button>
               <button 
                 onClick={() => setIsDeleteDialogOpen(false)}
-                className="w-full py-3.5 bg-muted text-foreground font-bold rounded-xl hover:bg-muted/80 active:scale-[0.98] transition-all"
+                className="w-full rounded-lg bg-muted py-3.5 font-semibold text-foreground transition-colors hover:bg-muted/80 active:scale-[0.98]"
               >
                 No, cancel
               </button>
