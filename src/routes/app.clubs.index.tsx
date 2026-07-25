@@ -37,19 +37,19 @@ function SwipeableNotification({ children, onDismiss }: { children: React.ReactN
 
   return (
     <div 
-      className="relative w-full overflow-hidden rounded-2xl"
+      className="relative w-full overflow-hidden rounded-lg"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <div 
-        className="absolute inset-y-0 left-0 bg-destructive/10 text-destructive flex items-center justify-start px-4 rounded-2xl w-full transition-opacity"
+        className="absolute inset-y-0 left-0 flex w-full items-center justify-start rounded-lg bg-destructive/10 px-4 text-destructive transition-opacity"
         style={{ opacity: swipeOffset > 20 ? 1 : 0 }}
       >
         <Trash2 className="h-5 w-5" />
       </div>
       <div 
-        className="relative z-10 transition-transform bg-card rounded-2xl"
+        className="relative z-10 rounded-lg bg-card transition-transform"
         style={{ 
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping.current ? 'none' : 'transform 0.2s ease-out'
@@ -463,10 +463,10 @@ function Clubs() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-20">
+    <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background">
       {/* Frosted Glass Header */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-5 pb-3 px-5 md:px-8 lg:px-10 z-40 bg-background/80 backdrop-blur-md border-b border-border/40">
-        <div className="w-full">
+      <div className="fixed left-1/2 top-0 z-40 w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background px-5 pb-3 pt-[calc(1.5rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-none md:translate-x-0 md:px-8 md:pt-5 lg:px-10">
+        <div className="mx-auto w-full max-w-[1200px]">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -478,7 +478,7 @@ function Clubs() {
             <div className="flex items-center gap-2.5 shrink-0">
               <button 
                 onClick={() => setShowNotifications(true)}
-                className="relative grid h-10 w-10 place-items-center rounded-full border border-border/40 bg-card text-muted-foreground hover:text-foreground hover:border-border/60 transition-all duration-300 active:scale-95 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] shrink-0"
+                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border/60 bg-card text-muted-foreground transition hover:border-border hover:bg-accent/50 hover:text-foreground active:scale-95"
               >
                 <Bell className="h-4 w-4" />
                 {((incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length) + unreadClubMessages.length) > 0 && (
@@ -489,7 +489,7 @@ function Clubs() {
               </button>
               <button 
                 onClick={handleCreateClick}
-                className="flex items-center gap-1.5 h-10 px-5 rounded-full bg-foreground text-background font-bold text-xs shadow-[0_2px_20px_-4px_rgba(0,0,0,0.15)] transition-all duration-300 active:scale-95 hover:opacity-90 shrink-0"
+                className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-foreground px-5 text-xs font-semibold text-background transition active:scale-95 hover:opacity-90"
               >
                 <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
                 Create
@@ -499,10 +499,10 @@ function Clubs() {
         </div>
       </div>
 
-      <div className="px-5 pt-24 md:px-8 lg:px-10 md:pt-6 md:pb-12 w-full max-w-[1200px]">
+      <div className="mx-auto w-full max-w-[1200px] px-5 pt-24 md:px-8 md:pb-12 md:pt-6 lg:px-10">
         {/* Top Stats */}
         <div className="grid grid-cols-4 gap-2 md:gap-4 mb-5 md:mb-8">
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
+          <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border/60 bg-card py-3.5 transition hover:border-primary/20">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-primary">
               <Users className="h-3.5 w-3.5" />
             </div>
@@ -511,7 +511,7 @@ function Clubs() {
               <span className="block text-[8px] font-medium text-muted-foreground/60">Clubs Active</span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
+          <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border/60 bg-card py-3.5 transition hover:border-primary/20">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-success/10 text-success">
               <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
             </div>
@@ -520,7 +520,7 @@ function Clubs() {
               <span className="block text-[8px] font-medium text-muted-foreground/60">Online Now</span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
+          <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border/60 bg-card py-3.5 transition hover:border-primary/20">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-orange-500/10 text-orange-500">
               <Radio className="h-3.5 w-3.5" />
             </div>
@@ -529,7 +529,7 @@ function Clubs() {
               <span className="block text-[8px] font-medium text-muted-foreground/60">Live Sessions</span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border/30 bg-card py-3.5 gap-1.5 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)]">
+          <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border/60 bg-card py-3.5 transition hover:border-primary/20">
             <div className="grid h-7 w-7 place-items-center rounded-full bg-purple-500/10 text-purple-500">
               <Zap className="h-3.5 w-3.5 fill-current" />
             </div>
@@ -546,10 +546,10 @@ function Clubs() {
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 group-focus-within:text-foreground transition-colors duration-300" />
             <input 
               placeholder="Search clubs, builders, bootcamps..." 
-              className="w-full rounded-2xl bg-accent/40 border-none px-5 py-3.5 pl-12 text-sm font-medium text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300" 
+              className="w-full rounded-lg border border-border/60 bg-card px-5 py-3.5 pl-12 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/50 focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
             />
           </div>
-          <button className="grid h-[50px] w-[50px] place-items-center rounded-2xl border border-border/30 bg-card transition-all duration-300 active:scale-95 text-muted-foreground hover:text-foreground hover:border-border/50 shrink-0 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)]">
+          <button className="grid h-[50px] w-[50px] shrink-0 place-items-center rounded-lg border border-border/60 bg-card text-muted-foreground transition hover:border-border hover:bg-accent/50 hover:text-foreground active:scale-95">
             <SlidersHorizontal className="h-4 w-4" />
           </button>
         </div>
@@ -599,27 +599,23 @@ function Clubs() {
               .sort((a: any, b: any) => a.name === "Zero K Bootcamp" ? -1 : b.name === "Zero K Bootcamp" ? 1 : 0)
               .slice(0, showAllDiscover ? 50 : 6)
               .map((d: any, i: number) => {
-              const bgColors = [
-                "from-primary/30", "from-blue-500/30", "from-emerald-500/30", "from-orange-500/30"
-              ];
               const tagColors = [
                 "bg-primary", "bg-blue-500", "bg-emerald-500", "bg-orange-500"
               ];
               const isFeatured = d.name === "Zero K Bootcamp";
-              const bgClass = isFeatured ? "from-amber-500/40" : bgColors[i % bgColors.length];
               const tagClass = isFeatured ? "bg-amber-500 text-black" : tagColors[i % tagColors.length];
               const isAlreadyJoined = myClubs.some((mc: any) => mc?.id === d.id);
 
               return (
                 <article 
                   key={d.id} 
-                  className={`relative ${showAllDiscover ?'w-full' : 'w-[165px] md:w-full'} h-[220px] md:h-[240px] shrink-0 snap-center overflow-hidden rounded-3xl border ${
+                  className={`relative ${showAllDiscover ?'w-full' : 'w-[165px] md:w-full'} h-[220px] md:h-[240px] shrink-0 snap-center overflow-hidden rounded-lg border ${
                     isFeatured 
-                      ? 'border-amber-500/40 shadow-[0_4px_30px_-4px_rgba(245,158,11,0.25)] bg-gradient-to-br from-amber-950/40 via-card to-card' 
-                      : 'border-border/30 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.1)]'
-                  } p-4 flex flex-col items-center text-center transition-all duration-300 hover:border-primary/30 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)] active:scale-[0.97]`}
+                      ? 'border-amber-500/40 bg-card'
+                      : 'border-border/60 bg-card'
+                  } p-4 flex flex-col items-center text-center transition hover:border-primary/30 active:scale-[0.97]`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-b ${bgClass} via-transparent to-transparent opacity-40 pointer-events-none`} />
+                  <div className="pointer-events-none absolute inset-0 bg-primary/[0.025]" />
                   
                   <div className="w-full flex items-start justify-between z-10 mb-3">
                     <span className={`rounded-full ${tagClass} px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.1em]`}>
@@ -632,7 +628,7 @@ function Clubs() {
                     )}
                   </div>
                   
-                  <div className="relative mb-2 h-14 w-14 rounded-2xl bg-accent/30 border border-border/30 flex items-center justify-center overflow-hidden shadow-[0_4px_16px_-4px_rgba(0,0,0,0.15)] z-10">
+                  <div className="relative z-10 mb-2 flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/30">
                     {d.logo_url || d.banner_url ? (
                       <img src={d.logo_url || d.banner_url} alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -688,7 +684,7 @@ function Clubs() {
                 </article>
               );
             }) : (
-              <div className="w-full text-center py-8 text-xs text-muted-foreground/60 font-medium border border-dashed border-border/30 rounded-3xl bg-card/50">
+              <div className="w-full rounded-lg border border-dashed border-border/50 bg-card/50 py-8 text-center text-xs font-medium text-muted-foreground/60">
                 No clubs to discover right now.
               </div>
             )}
@@ -707,9 +703,9 @@ function Clubs() {
           <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
             {myClubs.length > 0 ? myClubs.map((c: any) => (
               <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition-all duration-300 active:scale-[0.98]">
-                <article className="flex items-center gap-3.5 p-3.5 rounded-3xl border border-border/30 bg-card overflow-hidden hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.12)]">
+                <article className="flex items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/30">
                   <div className="relative shrink-0">
-                    <div className="h-14 w-14 rounded-2xl bg-accent/20 border border-border/30 flex items-center justify-center overflow-hidden shadow-[0_2px_12px_-2px_rgba(0,0,0,0.1)]">
+                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20">
                       {c.logo_url || c.banner_url ? (
                         <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
                       ) : (
@@ -742,7 +738,7 @@ function Clubs() {
                 </article>
               </Link>
             )) : (
-              <div className="py-10 text-center px-4 border border-dashed border-border/30 rounded-3xl bg-card/50 md:col-span-2">
+              <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center md:col-span-2">
                 <p className="text-xs text-muted-foreground/60 font-medium mb-4">You haven't joined any clubs yet.</p>
                 <button onClick={handleCreateClick} className="text-xs font-bold text-background bg-foreground px-5 py-2.5 rounded-full transition-all duration-300 active:scale-95 hover:opacity-90 shadow-sm">
                   Create a Club
@@ -751,7 +747,7 @@ function Clubs() {
             )}
             
             {myClubs.length > 0 && (
-              <button className="w-full md:col-span-2 flex items-center justify-between p-4 rounded-3xl border border-border/20 bg-card/50 hover:bg-card hover:border-border/40 transition-all duration-300 group">
+              <button className="group flex w-full items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card md:col-span-2">
                 <div className="flex items-center gap-2.5 text-xs font-bold text-foreground">
                   <div className="grid h-7 w-7 place-items-center rounded-xl bg-accent/30">
                     <LayoutGrid className="h-3.5 w-3.5 text-primary" />
@@ -787,7 +783,7 @@ function Clubs() {
                   value={newClub.name}
                   onChange={e => setNewClub({...newClub, name: e.target.value})}
                   placeholder="e.g. Lagos Design Squad" 
-                  className="w-full rounded-2xl bg-background border border-border/40 px-5 py-4 text-sm font-medium outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-foreground placeholder:text-muted-foreground/40" 
+                  className="w-full rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                 />
               </div>
               <div className="space-y-2">
@@ -797,7 +793,7 @@ function Clubs() {
                   onChange={e => setNewClub({...newClub, description: e.target.value})}
                   placeholder="What's this club about?" 
                   rows={3}
-                  className="w-full rounded-2xl bg-background border border-border/40 px-5 py-4 text-sm font-medium outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-foreground placeholder:text-muted-foreground/40 resize-none" 
+                  className="w-full resize-none rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                 />
               </div>
               {!isBasic ? (
@@ -808,7 +804,7 @@ function Clubs() {
                       <button
                         key={type}
                         onClick={() => setIsPaid(type === "Paid")}
-                        className={`flex-1 py-3.5 rounded-2xl text-xs font-bold border transition-all duration-300 ${
+                        className={`flex-1 rounded-lg border py-3.5 text-xs font-semibold transition ${
                           (type ==="Paid" && isPaid) || (type === "Free" && !isPaid)
                             ? "bg-foreground border-foreground text-background shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)]"
                             : "bg-card border-border/40 text-muted-foreground hover:border-border/60"
@@ -820,7 +816,7 @@ function Clubs() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl bg-card p-4 flex items-center justify-between border border-border/30">
+                <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-4">
                   <div className="flex items-center gap-3">
                     <Sparkles className="h-4 w-4 text-primary" />
                     <span className="text-[11px] text-foreground">Free Access</span>
@@ -837,7 +833,7 @@ function Clubs() {
                     value={newClub.price}
                     onChange={e => setNewClub({...newClub, price: Number(e.target.value)})}
                     placeholder="e.g. 5000" 
-                    className="w-full rounded-2xl bg-background border border-border/40 px-5 py-4 text-sm font-medium outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-foreground placeholder:text-muted-foreground/40" 
+                    className="w-full rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
                 </div>
               )}
@@ -900,7 +896,7 @@ function Clubs() {
         <DrawerContent className="border-t border-border/30 bg-background p-0 max-h-[85vh] flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
           <DrawerHeader className="px-6 py-5 border-b border-border/30 shrink-0 mt-2">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 relative">
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
                 <Bell className="h-5 w-5 text-primary" />
               {(incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length + unreadClubMessages.length) > 0 && (
                   <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-background" />
@@ -922,7 +918,7 @@ function Clubs() {
 
               if (!hasNotifications) {
                 return (
-                  <div className="py-4 px-5 flex items-center gap-4 rounded-2xl border border-border/20 bg-card/50">
+                  <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card/50 px-5 py-4">
                     <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center">
                       <Bell className="h-4 w-4 text-muted-foreground/40" />
                     </div>
@@ -947,7 +943,7 @@ function Clubs() {
                     return (
                       <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming')}>
                         <article 
-                          className="flex flex-col gap-3 p-4 rounded-2xl border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] cursor-pointer"
+                          className="flex cursor-pointer flex-col gap-3 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/20"
                           onClick={() => setExpandedRequestId(isExpanded ? null : r.id)}
                         >
                           <div className="flex items-center gap-3 w-full">
@@ -1018,7 +1014,7 @@ function Clubs() {
                         setShowNotifications(false);
                         navigate({ to: "/app/clubs/chat", search: { clubId: msgGroup.club_id } });
                       }}
-                      className="flex items-center gap-3 p-4 rounded-2xl border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] cursor-pointer active:scale-95"
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/20 active:scale-95"
                     >
                       <div className="h-10 w-10 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20 text-primary">
                         <MessageCircle className="h-4 w-4" />
@@ -1052,7 +1048,7 @@ function Clubs() {
         <DrawerContent className="border-none bg-background p-6">
           {selectedClub && (
             <div className="flex flex-col items-center text-center">
-              <div className="h-16 w-16 rounded-2xl bg-accent/20 border border-border/30 flex items-center justify-center mb-5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15)]">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20">
                 {selectedClub.banner_url ? (
                   <img src={selectedClub.banner_url} className="h-full w-full object-cover" />
                 ) : (

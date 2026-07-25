@@ -77,13 +77,13 @@ function ZeroHubPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-[#f8f7f5] pb-20 dark:bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center px-4 py-3.5 gap-3">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3.5 md:px-6">
           <button
             onClick={() => navigate({ to: "/app" })}
-            className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card tap hover:bg-foreground/[0.04]"
           >
             <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
           </button>
@@ -94,12 +94,11 @@ function ZeroHubPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto p-4 space-y-5 mt-2 md:max-w-[1200px] md:mx-0 md:px-8 lg:px-10 md:py-8 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:gap-10 lg:space-y-0 lg:items-start">
+      <main className="mx-auto mt-2 max-w-3xl space-y-5 p-4 md:max-w-[1180px] md:px-6 md:py-8 lg:grid lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-8 lg:space-y-0">
 
         <div className="space-y-5 lg:sticky lg:top-24">
         {/* Hero summary — premium dark card */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#141117] p-6 text-white shadow-lift ring-1 ring-white/[0.06]">
-          <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
+        <section className="relative overflow-hidden rounded-lg border-t-2 border-primary bg-[#141117] p-6 text-white ring-1 ring-white/[0.06]">
           <div className="relative z-10">
             <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Your proof of work</p>
             <div className="mt-4 grid grid-cols-3 divide-x divide-white/[0.08]">
@@ -129,7 +128,7 @@ function ZeroHubPage() {
         </section>
 
         {/* Contribution Graph */}
-        <section className="bg-card rounded-2xl p-5 ring-1 ring-border shadow-soft">
+        <section className="rounded-lg bg-card p-5 ring-1 ring-border">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -183,13 +182,13 @@ function ZeroHubPage() {
           ) : ships && ships.length > 0 ? (
             <div className="flex flex-col gap-3">
               {ships.map((post: any) => (
-                <div key={post.id} className="bg-card rounded-2xl overflow-hidden ring-1 ring-border shadow-soft">
+                <div key={post.id} className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
                   <PostCard post={post} currentUser={currentUser} />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="bg-card rounded-2xl p-12 ring-1 ring-border text-center flex flex-col items-center">
+            <div className="flex flex-col items-center rounded-lg bg-card p-12 text-center ring-1 ring-border">
               <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
                 <Rocket className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
               </div>

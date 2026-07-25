@@ -82,14 +82,14 @@ function NotesIndexPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background relative selection:bg-foreground selection:text-background">
+    <div className="relative flex min-h-screen w-full flex-col bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
       {/* Sticky Header and Tabs */}
-      <div className="sticky top-0 z-50 flex flex-col bg-background/80 backdrop-blur-xl border-b border-border/20 transition-all">
+      <div className="sticky top-0 z-50 flex flex-col border-b border-border/60 bg-background">
         {/* Editorial Header */}
-        <header className="flex items-center justify-between px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+        <header className="mx-auto flex w-full max-w-[1100px] items-center justify-between px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6">
           <button 
             onClick={() => navigate({ to: '/app' })}
-            className="flex h-10 w-10 md:w-auto md:px-4 items-center justify-center gap-2 rounded-full border border-border/50 bg-background/50 text-foreground hover:bg-accent transition active:scale-95"
+            className="flex h-10 w-10 items-center justify-center gap-2 rounded-lg border border-border/60 bg-card text-foreground transition hover:bg-accent active:scale-95 md:w-auto md:px-4"
           >
             <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
             <span className="text-sm font-bold hidden md:block">Back</span>
@@ -102,7 +102,7 @@ function NotesIndexPage() {
           )}
 
           <div className={`flex items-center gap-2 transition-all duration-500 ease-out ${isSearchExpanded ? 'w-full ml-4' : ''}`}>
-            <div className={`flex items-center overflow-hidden transition-all duration-500 ease-out ${isSearchExpanded ? 'w-full bg-muted/50 rounded-full px-4' : 'w-10 h-10 rounded-full border border-border/50 bg-background/50 text-foreground justify-center'}`}>
+            <div className={`flex items-center overflow-hidden rounded-lg border border-border/60 bg-card transition-all duration-300 ${isSearchExpanded ? 'w-full px-4' : 'w-10 h-10 text-foreground justify-center'}`}>
               <button 
                 onClick={() => setIsSearchExpanded(!isSearchExpanded)}
                 className="shrink-0 outline-none flex items-center justify-center w-full h-full md:w-auto md:h-auto"
@@ -124,32 +124,34 @@ function NotesIndexPage() {
         </header>
 
         {/* Filter Tabs */}
-        <div className="px-6 pb-4 flex gap-2 overflow-x-auto no-scrollbar shrink-0">
+        <div className="mx-auto grid w-full max-w-[1100px] shrink-0 grid-cols-3 gap-1 px-4 pb-3 md:px-6">
+          <div className="col-span-3 grid grid-cols-3 gap-1 rounded-lg border border-border/60 bg-card p-1">
           {['Overview', 'My Notes', 'Saved'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-[12.5px] font-semibold rounded-full tap transition-colors whitespace-nowrap tracking-tight ${
+              className={`flex h-10 min-w-0 items-center justify-center rounded-md px-3 text-[12px] font-semibold tracking-tight transition-colors tap ${
                 activeTab === tab
-                  ? 'bg-foreground text-background'
-                  : 'ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]'
+                  ? 'bg-primary/[0.09] text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]'
               }`}
             >
               {tab}
             </button>
           ))}
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 md:px-6 py-6 md:py-8 pb-24 space-y-10 md:space-y-16 max-w-5xl mx-auto w-full">
+      <div className="mx-auto w-full max-w-[1100px] flex-1 space-y-10 px-4 py-6 pb-24 md:px-6 md:py-8 md:space-y-12">
         
         {loading ? (
           <div className="flex flex-col gap-8 animate-pulse">
-            <div className="w-full aspect-[4/5] md:aspect-video bg-muted/50 rounded-[32px]" />
+            <div className="aspect-[4/5] w-full rounded-lg bg-muted/50 md:aspect-video" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="w-full h-32 bg-muted/50 rounded-[24px]" />
-              <div className="w-full h-32 bg-muted/50 rounded-[24px]" />
+              <div className="h-32 w-full rounded-lg bg-muted/50" />
+              <div className="h-32 w-full rounded-lg bg-muted/50" />
             </div>
           </div>
         ) : filteredNotes.length === 0 ? (
@@ -180,7 +182,7 @@ function NotesIndexPage() {
             {/* Editorial Hero Note */}
             {featuredNote && (
               <Link to="/app/notes/$id" params={{ id: featuredNote.id }} className="block group">
-                <article className="relative w-full aspect-square md:aspect-[24/9] rounded-[32px] overflow-hidden bg-black shadow-2xl group-hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] transition-all duration-700 transform group-hover:-translate-y-1">
+                <article className="relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-black shadow-[0_24px_60px_-32px_rgba(0,0,0,0.65)] transition duration-500 group-hover:-translate-y-0.5 md:aspect-[24/9]">
                   {featuredNote.cover_url ? (
                     <img 
                       src={featuredNote.cover_url} 
@@ -290,9 +292,9 @@ function NotesIndexPage() {
                   {recentNotes.map((note) => (
                     <Link key={note.id} to="/app/notes/$id" params={{ id: note.id }} className="group block relative">
                       {/* Mobile: Horizontal, Desktop: Vertical */}
-                      <article className="flex flex-row md:flex-col gap-4 md:gap-5 p-2 md:p-0 rounded-2xl md:rounded-none hover:bg-muted/30 md:hover:bg-transparent transition-colors">
+                      <article className="flex flex-row gap-4 rounded-lg border border-transparent p-2 transition-colors hover:border-border/50 hover:bg-card md:flex-col md:gap-5 md:p-3">
                         {/* Cover Image */}
-                        <div className="w-28 h-28 md:w-full md:aspect-[4/3] shrink-0 rounded-[16px] md:rounded-[24px] overflow-hidden bg-accent/30 relative border border-border/10 shadow-sm transition-transform duration-500 md:group-hover:-translate-y-2 md:group-hover:shadow-xl">
+                        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg border border-border/30 bg-accent/30 transition-transform duration-500 md:aspect-[4/3] md:h-auto md:w-full md:group-hover:-translate-y-1">
                           {note.cover_url ? (
                             <img 
                               src={note.cover_url} 
@@ -402,7 +404,7 @@ function NotesIndexPage() {
       {/* Delete Confirmation Modal */}
       {noteToDelete && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-background ring-1 ring-border rounded-3xl p-6 md:p-7 max-w-sm w-full shadow-lift animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm animate-in rounded-lg bg-background p-6 shadow-lift ring-1 ring-border duration-200 zoom-in-95 md:p-7">
             <h3 className="text-[19px] font-semibold mb-2 tracking-tight">Delete this note?</h3>
             <p className="text-[13.5px] text-muted-foreground mb-7 leading-relaxed">
               Are you sure you want to delete this note? This action cannot be undone and it will be permanently removed.

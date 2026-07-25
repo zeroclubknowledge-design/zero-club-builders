@@ -172,25 +172,30 @@ function NotificationsPage() {
   const unreadCount = filteredNotifs.filter(n => !n.is_read && n.actor_id !== currentUser?.id).length;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-140px)] pb-20">
-      <div className="flex border-b hairline sticky top-0 pt-[calc(0.5rem+env(safe-area-inset-top))] bg-background/85 backdrop-blur-xl backdrop-saturate-150 z-20">
-        {["all", "verified", "mentions"].map((tab) => (
+    <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background">
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background">
+        <div className="mx-auto w-full max-w-[820px] px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6 md:pt-5">
+          <div className="mb-4">
+            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Notifications</h1>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Updates from your work, network and communities</p>
+          </div>
+          <div className="grid grid-cols-3 gap-1 rounded-lg border border-border/60 bg-card p-1">
+          {["all", "verified", "mentions"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-3.5 text-[13.5px] font-semibold tracking-tight transition-colors relative ${
-              activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
+            className={`relative flex h-10 min-w-0 items-center justify-center rounded-md px-2 text-[12px] font-semibold tracking-tight transition-colors ${
+              activeTab === tab ? "bg-primary/[0.09] text-primary" : "text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            {activeTab === tab && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-10 bg-foreground rounded-t-full" />
-            )}
           </button>
         ))}
-      </div>
+          </div>
+        </div>
+      </header>
 
-      <div className="flex items-center justify-between px-6 py-3 border-b hairline">
+      <div className="mx-auto flex w-full max-w-[820px] items-center justify-between border-b border-border/50 px-5 py-3 md:px-6">
         <span className="text-[11px] font-medium text-muted-foreground">
           {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
         </span>
@@ -204,7 +209,7 @@ function NotificationsPage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-2 p-3">
+      <div className="mx-auto flex w-full max-w-[820px] flex-col gap-2 p-4 md:px-6">
         {activeTab === 'mentions' ? (
           mentionsLoading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
@@ -212,7 +217,7 @@ function NotificationsPage() {
             mentionsFeed.map((post: any) => (
               <div 
                 key={post.id} 
-                className="relative rounded-3xl overflow-hidden border border-border/40 hover:border-border transition-all duration-300 bg-background"
+                className="relative overflow-hidden rounded-lg border border-border/60 bg-background transition hover:border-border"
               >
                 <PostCard post={post} currentUser={currentUser} onCommentClick={setCommentPost} />
               </div>
@@ -251,7 +256,7 @@ function NotificationsPage() {
             <div 
               key={n.id} 
               onClick={handleNotificationClick}
-              className={`flex flex-col gap-3 p-5 rounded-2xl transition-all duration-200 tap cursor-pointer relative overflow-hidden group ${(!n.is_read && !isActorMe) ? "bg-card ring-1 ring-primary/15 shadow-soft" : "bg-transparent hover:bg-foreground/[0.02]"}`}
+              className={`group relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] gap-4 overflow-hidden rounded-lg p-4 transition tap ${(!n.is_read && !isActorMe) ? "bg-card ring-1 ring-primary/15" : "bg-transparent hover:bg-foreground/[0.03]"}`}
             >
               {(!n.is_read && !isActorMe) && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-[3px] bg-primary rounded-r-full" />

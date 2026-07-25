@@ -35,16 +35,6 @@ function ProfileNetwork() {
   const { profile, currentUser } = useLoaderData({ from: "/app/profile_/$id/network" });
   const [activeTab, setActiveTab] = useState<"following" | "followers" | "clubs">("following");
   const [isFollowing, setIsFollowing] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   useEffect(() => {
     async function checkFollow() {
       if (!currentUser || currentUser.id === profile.id) return;
@@ -108,23 +98,19 @@ function ProfileNetwork() {
   const visibleClubs = clubs ?? [];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-[#f8f7f5] pb-20 dark:bg-background">
       {/* Header */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
-        scrolled 
-          ? "bg-background/80 backdrop-blur-2xl border-b border-border/10 shadow-[0_1px_20px_rgba(0,0,0,0.08)]" 
-          : "bg-background border-b border-border/20"
-      }`}>
-        <div className="relative z-20 flex items-center px-4 h-full gap-3">
+      <header className="fixed left-1/2 top-0 z-50 h-[calc(4rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
+        <div className="relative z-20 mx-auto flex h-full max-w-[820px] items-center gap-3 px-4 md:px-6">
           <button 
             onClick={() => navigate({ to: "/app/profile/$id", params: { id: profile.username || profile.id } })}
-            className="grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 bg-accent/50 text-foreground hover:bg-accent"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card text-foreground transition hover:bg-accent active:scale-95"
           >
             <ChevronLeft className="h-[18px] w-[18px]" />
           </button>
           
           <div>
-            <h1 className="font-display max-w-[12rem] truncate text-sm font-bold leading-tight text-foreground">
+            <h1 className="font-display max-w-[16rem] truncate text-[15px] font-semibold leading-tight text-foreground">
               {displayName}
             </h1>
             <p className="text-[10px] text-muted-foreground">
@@ -134,35 +120,32 @@ function ProfileNetwork() {
         </div>
       </header>
 
-      <main className="pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-6 max-w-md mx-auto md:max-w-[720px] md:mx-8 lg:mx-10">
+      <main className="mx-auto max-w-md pt-[calc(4rem+env(safe-area-inset-top))] md:max-w-[820px] md:px-6 md:pt-6">
         {/* Tabs */}
-        <div className="flex px-4 border-b border-border/20 mt-2">
+        <div className="mx-4 mt-4 grid grid-cols-3 gap-1 rounded-lg border border-border/60 bg-card p-1 md:mx-0 md:mt-0">
           {["following", "followers", "clubs"].map((t) => (
             <button 
               key={t}
               onClick={() => setActiveTab(t as any)}
-              className={`flex-1 pb-3 pt-2 text-[13px] font-bold tracking-wide transition-all relative capitalize ${
+              className={`relative flex h-10 min-w-0 items-center justify-center rounded-md px-2 text-[12px] font-semibold tracking-tight transition capitalize ${
                 activeTab === t 
-                  ? "text-foreground" 
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-primary/[0.09] text-primary"
+                  : "text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
               }`}
             >
               {t}
-              {activeTab === t && (
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-foreground rounded-t-full" />
-              )}
             </button>
           ))}
         </div>
 
-        <div className="p-4 space-y-2.5 pb-20">
+        <div className="space-y-2.5 p-4 pb-20 md:px-0">
           {activeTab === "following" || activeTab === "followers" ? (
             // Users List
             (activeTab === "following" ? followingLoading : followersLoading) ? (
               <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
             ) : visibleUsers.length > 0 ? (
               visibleUsers.map((user: any) => (
-                <Link key={user.id} to="/app/profile/$id" params={{ id: user.username || user.id }} className="flex items-center gap-3 p-3.5 rounded-2xl bg-accent/10 border border-border/10 hover:bg-accent/20 transition-all active:scale-[0.98]">
+                <Link key={user.id} to="/app/profile/$id" params={{ id: user.username || user.id }} className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/20 hover:bg-accent/20 active:scale-[0.98]">
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-accent border border-border/20 flex items-center justify-center font-bold text-muted-foreground text-xs">
                     {user.avatar_url ? (
                       <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -203,9 +186,9 @@ function ProfileNetwork() {
             ) : visibleClubs.length > 0 ? (
               visibleClubs.map((c: any) => (
                 <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition active:scale-[0.98]">
-                  <article className="flex items-center gap-3.5 p-4 rounded-2xl bg-accent/10 border border-border/10 hover:bg-accent/20 transition-all">
+                  <article className="flex items-center gap-3.5 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/20 hover:bg-accent/20">
                     <div className="shrink-0">
-                      <div className="h-12 w-12 rounded-xl bg-accent/30 border border-border/30 flex items-center justify-center overflow-hidden">
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/30">
                         {c.logo_url || c.banner_url ? (
                           <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
                         ) : (

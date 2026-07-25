@@ -204,18 +204,18 @@ function MyStorePage() {
   const activeCoupons = products.filter((p: any) => p.coupon_code).length;
 
   const inputClass =
-    "w-full bg-background ring-1 ring-border rounded-2xl px-4 py-3 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/50";
+    "w-full bg-background ring-1 ring-border rounded-lg px-4 py-3 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/50";
   const labelClass = "text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1";
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-[#f8f7f5] pb-20 dark:bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center justify-between px-4 py-3.5 max-w-2xl mx-auto">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-3.5 md:px-6">
           <div className="flex items-center gap-3">
             <Link
               to="/app"
-              className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card tap hover:bg-foreground/[0.04]"
             >
               <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
             </Link>
@@ -226,17 +226,16 @@ function MyStorePage() {
           </div>
           <button
             onClick={openCreate}
-            className="flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[12.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
+            className="flex h-10 items-center gap-1.5 rounded-lg bg-foreground px-4 text-[12.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
           >
             <Plus className="h-4 w-4" /> New product
           </button>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 pt-5 space-y-5">
+      <main className="mx-auto w-full max-w-[1180px] space-y-5 px-5 pt-5 md:px-6 md:pt-8 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-8 lg:space-y-0">
         {/* Seller summary — premium dark card */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#141117] p-6 text-white shadow-lift ring-1 ring-white/[0.06]">
-          <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
+        <section className="relative overflow-hidden rounded-lg border-t-2 border-primary bg-[#141117] p-6 text-white ring-1 ring-white/[0.06] lg:sticky lg:top-24">
           <div className="relative z-10">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Seller dashboard</p>
@@ -274,11 +273,11 @@ function MyStorePage() {
           {isLoading ? (
             <div className="space-y-3">
               {[0, 1].map((i) => (
-                <div key={i} className="h-24 rounded-2xl bg-foreground/[0.05] shimmer" />
+                <div key={i} className="h-24 rounded-lg bg-foreground/[0.05] shimmer" />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="rounded-2xl ring-1 ring-border bg-card p-12 text-center flex flex-col items-center">
+            <div className="flex flex-col items-center rounded-lg bg-card p-12 text-center ring-1 ring-border">
               <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
                 <Gift className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
               </div>
@@ -298,9 +297,9 @@ function MyStorePage() {
               {products.map((item: any) => {
                 const sale = effectivePrice(item.price, item.discount_percent || 0);
                 return (
-                  <div key={item.id} className="rounded-2xl ring-1 ring-border bg-card shadow-soft overflow-hidden">
+                  <div key={item.id} className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
                     <div className="flex gap-4 p-4">
-                      <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-primary/8 ring-1 ring-primary/15 grid place-items-center text-primary relative">
+                      <div className="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
                         {item.cover_url ? (
                           <img src={item.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
                         ) : (
@@ -380,7 +379,7 @@ function MyStorePage() {
               <label className={labelClass}>Cover image</label>
               <button
                 onClick={() => coverInputRef.current?.click()}
-                className="relative w-full h-36 rounded-2xl border border-dashed border-border-strong overflow-hidden grid place-items-center text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors group"
+                className="group relative grid h-36 w-full place-items-center overflow-hidden rounded-lg border border-dashed border-border-strong text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
               >
                 {coverPreview ? (
                   <>
@@ -404,7 +403,7 @@ function MyStorePage() {
               <label className={labelClass}>Product file</label>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full flex items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-left hover:ring-primary/30 transition-all tap"
+                className="flex w-full items-center gap-3 rounded-lg bg-card p-4 text-left ring-1 ring-border transition-all tap hover:ring-primary/30"
               >
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary">
                   <FileArchive className="h-[18px] w-[18px]" strokeWidth={1.75} />
@@ -469,7 +468,7 @@ function MyStorePage() {
               </div>
               <div className="space-y-2">
                 <label className={labelClass}>Charge in</label>
-                <div className="flex rounded-2xl ring-1 ring-border p-1 bg-background">
+                <div className="flex rounded-lg bg-background p-1 ring-1 ring-border">
                   {(["Coins", "XP"] as const).map((t) => (
                     <button
                       key={t}
@@ -513,7 +512,7 @@ function MyStorePage() {
             </div>
 
             {/* Coupon */}
-            <div className="rounded-2xl ring-1 ring-border bg-card p-4 space-y-4">
+            <div className="space-y-4 rounded-lg bg-card p-4 ring-1 ring-border">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Coupon code</p>
@@ -551,7 +550,7 @@ function MyStorePage() {
 
             {/* Buyer-pays preview */}
             {numericPrice > 0 && (
-              <div className="rounded-2xl bg-primary/[0.04] ring-1 ring-primary/15 px-4 py-3.5 space-y-1.5">
+              <div className="space-y-1.5 rounded-lg bg-primary/[0.04] px-4 py-3.5 ring-1 ring-primary/15">
                 <div className="flex items-center justify-between text-[12.5px]">
                   <span className="text-muted-foreground">Buyers pay</span>
                   <span className="font-semibold tracking-tight text-foreground tabular-nums">
@@ -594,7 +593,7 @@ function MyStorePage() {
       {/* ── Delete confirmation ── */}
       {deleting && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-background ring-1 ring-border rounded-3xl p-6 max-w-sm w-full shadow-lift animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm animate-in rounded-lg bg-background p-6 shadow-lift ring-1 ring-border duration-200 zoom-in-95">
             <h3 className="text-[19px] font-semibold mb-2 tracking-tight">Remove this product?</h3>
             <p className="text-[13.5px] text-muted-foreground mb-7 leading-relaxed">
               "{deleting.name}" will be taken off Zero Store. Buyers who already purchased keep their download.
