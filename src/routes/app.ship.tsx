@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { 
   ArrowLeft, UploadCloud, X, Plus, Rocket, Link as LinkIcon, 
-  Code, Loader2, Sparkles, Wand2, Globe, Lock, Coins, CheckCircle2 
+  Code, Loader2, Wand2, Globe, Lock, Coins, CheckCircle2, GitBranch, ShieldCheck
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -12,8 +12,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/app/ship")({
-  validateSearch: (search: Record<string, unknown>): { editId?: string } => {
-    return typeof search.editId === "string" && search.editId ? { editId: search.editId } : {};
+  validateSearch: (search: Record<string, unknown>): { editId?: string; versionOf?: string } => {
+    const next: { editId?: string; versionOf?: string } = {};
+    if (typeof search.editId === "string" && search.editId) next.editId = search.editId;
+    if (typeof search.versionOf === "string" && search.versionOf) next.versionOf = search.versionOf;
+    return next;
   },
   component: ShipPage,
 });
@@ -22,6 +25,11 @@ const CATEGORIES = [
   "Web App", "Mobile App", "Website", "AI Agent", "Prompt System", 
   "Design", "Video", "Audio", "Writing", "Marketing", "Research", "Other"
 ];
+
+const nextVersion = (version?: string | null) => {
+  const [major = 1, minor = 0] = (version || '1.0.0').split('.').map(Number);
+  return `${Number.isFinite(major) ? major : 1}.${(Number.isFinite(minor) ? minor : 0) + 1}.0`;
+};
 
 function ShipPage() {
   const navigate = useNavigate();
@@ -45,6 +53,12 @@ function ShipPage() {
   const [selectedBootcampId, setSelectedBootcampId] = useState<string | null>(null);
   
   const [visibility, setVisibility] = useState<"Public" | "Club Only">("Public");
+  const [projectRootId, setProjectRootId] = useState<string | null>(null);
+  const [versionLabel, setVersionLabel] = useState("1.0.0");
+  const [releaseNotes, setReleaseNotes] = useState("");
+  const [availableForUse, setAvailableForUse] = useState(false);
+  const [licenseType, setLicenseType] = useState<"standard" | "commercial" | "full_ownership">("standard");
+  const [licensePrice, setLicensePrice] = useState("");
   
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,15 +81,17 @@ function ShipPage() {
     fetchEnrolledBootcamps();
   }, []);
 
-  const { editId } = Route.useSearch();
+  const { editId, versionOf } = Route.useSearch();
+  const isNewVersion = Boolean(versionOf);
 
   useEffect(() => {
     async function fetchEditPost() {
-      if (!editId) return;
+      const sourceId = editId || versionOf;
+      if (!sourceId) return;
       const { data } = await supabase
         .from('posts')
         .select('*')
-        .eq('id', editId)
+        .eq('id', sourceId)
         .single();
       
       if (data) {
@@ -150,10 +166,17 @@ function ShipPage() {
         if (data.bootcamp_id) {
           setSelectedBootcampId(data.bootcamp_id);
         }
+
+        setProjectRootId(data.project_root_id || data.id);
+        setVersionLabel(isNewVersion ? nextVersion(data.version_label) : (data.version_label || '1.0.0'));
+        setReleaseNotes(isNewVersion ? '' : (data.release_notes || ''));
+        setAvailableForUse(Boolean(data.available_for_use));
+        setLicenseType(data.license_type || 'standard');
+        setLicensePrice(data.license_price ? String(data.license_price) : '');
       }
     }
     fetchEditPost();
-  }, [editId]);
+  }, [editId, versionOf, isNewVersion]);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -236,6 +259,12 @@ function ShipPage() {
         content: constructMarkdownBody(),
         media_urls,
         is_build_post: true, // It's a Ship post
+        project_root_id: isNewVersion ? projectRootId : (editId ? projectRootId : null),
+        version_label: versionLabel.trim() || '1.0.0',
+        release_notes: releaseNotes.trim() || null,
+        available_for_use: availableForUse,
+        license_type: licenseType,
+        license_price: availableForUse ? Math.max(0, Number(licensePrice) || 0) : 0,
       };
 
       if (selectedBootcampId) {
@@ -243,7 +272,7 @@ function ShipPage() {
       }
 
       let newPost;
-      if (editId) {
+      if (editId && !isNewVersion) {
         const { data, error: postError } = await supabase
           .from('posts')
           .update(postData)
@@ -284,9 +313,10 @@ function ShipPage() {
 
       queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
       queryClient.invalidateQueries({ queryKey: ['my_profile'] });
+      queryClient.invalidateQueries({ queryKey: ['zerohub_projects'] });
       
       toast.success("🚀 Project shipped successfully! +50 XP");
-      navigate({ to: "/app" });
+      navigate({ to: "/app/zerohub" });
     } catch (error: any) {
       toast.error(error.message || "Failed to ship project");
     } finally {
@@ -310,9 +340,11 @@ function ShipPage() {
             </button>
             <div>
               <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
-                Ship Work
+                {isNewVersion ? "Release a new version" : editId ? "Edit shipped project" : "Ship Work"}
               </h1>
-              <p className="text-[11px] text-muted-foreground">What did you ship today?</p>
+              <p className="text-[11px] text-muted-foreground">
+                {isNewVersion ? "Publish the latest work above the previous release." : "What did you ship today?"}
+              </p>
             </div>
           </div>
         </div>
@@ -361,6 +393,38 @@ function ShipPage() {
               rows={4}
               className="mt-1 w-full resize-none rounded-lg border border-border bg-background px-4 py-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary"
             />
+          </div>
+        </section>
+
+        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
+              <GitBranch className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-[15px] font-semibold tracking-tight">Release details</h2>
+              <p className="text-[11.5px] text-muted-foreground">Keep every update attached to the same shipped project.</p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-[160px_minmax(0,1fr)]">
+            <div>
+              <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Version</label>
+              <input
+                value={versionLabel}
+                onChange={(event) => setVersionLabel(event.target.value)}
+                placeholder="1.0.0"
+                className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">What changed</label>
+              <input
+                value={releaseNotes}
+                onChange={(event) => setReleaseNotes(event.target.value)}
+                placeholder="New features, fixes, or improvements"
+                className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+              />
+            </div>
           </div>
         </section>
 
@@ -505,6 +569,59 @@ function ShipPage() {
           </div>
         </section>
 
+        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold tracking-tight">Allow others to use this work</h2>
+                <p className="text-[11.5px] leading-relaxed text-muted-foreground">Offer clear usage rights for free or for Zero Club Coins.</p>
+              </div>
+            </div>
+            <Switch checked={availableForUse} onCheckedChange={setAvailableForUse} />
+          </div>
+
+          {availableForUse && (
+            <div className="grid gap-3 border-t border-border/60 pt-4 sm:grid-cols-[minmax(0,1fr)_180px]">
+              <div>
+                <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Rights offered</label>
+                <select
+                  value={licenseType}
+                  onChange={(event) => setLicenseType(event.target.value as typeof licenseType)}
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                >
+                  <option value="standard">Standard use</option>
+                  <option value="commercial">Commercial use</option>
+                  <option value="full_ownership">Full ownership transfer</option>
+                </select>
+              </div>
+              <div>
+                <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Price</label>
+                <div className="relative mt-1">
+                  <Coins className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="number"
+                    min="0"
+                    value={licensePrice}
+                    onChange={(event) => setLicensePrice(event.target.value)}
+                    placeholder="Free"
+                    className="w-full rounded-lg border border-border bg-background py-3 pl-10 pr-4 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted-foreground sm:col-span-2">
+                {licenseType === 'full_ownership'
+                  ? 'The buyer receives ownership rights to use and adapt this release as they choose.'
+                  : licenseType === 'commercial'
+                    ? 'The buyer may use and adapt this release in commercial work while you keep ownership.'
+                    : 'The buyer may use and adapt this release in their own work while you keep ownership.'}
+              </p>
+            </div>
+          )}
+        </section>
+
         {/* Club Selection & Visibility */}
         <section className="space-y-2">
           {enrolledBootcamps.length > 0 && (
@@ -572,7 +689,7 @@ function ShipPage() {
                 <Loader2 className="h-5 w-5 animate-spin" /> Shipping...
               </>
             ) : (
-              "Ship Project"
+              isNewVersion ? `Release ${versionLabel || 'new version'}` : editId ? "Save changes" : "Ship Project"
             )}
           </button>
         </div>

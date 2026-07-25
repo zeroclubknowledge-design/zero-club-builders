@@ -11,7 +11,6 @@ import { formatDistanceToNow } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string } => {
@@ -50,6 +49,7 @@ function ClubChat() {
   const { data: currentUserProfile } = useUser();
   const [showMembers, setShowMembers] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [squadActionMember, setSquadActionMember] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
@@ -1102,16 +1102,19 @@ function ClubChat() {
 
                 <Drawer open={showMembers} onOpenChange={(open) => {
                   setShowMembers(open);
-                  if (!open) setSelectedMember(null);
+                  if (!open) {
+                    setSelectedMember(null);
+                    setSquadActionMember(null);
+                  }
                 }}>
-                  <DrawerContent className="mx-auto flex h-[85%] max-w-[760px] flex-col overflow-hidden border-none bg-background p-6">
+                  <DrawerContent className="mx-auto flex h-[88dvh] max-w-[760px] flex-col overflow-hidden border-none bg-background p-4 sm:h-[85%] sm:p-6">
                     <div className="relative w-full h-full overflow-hidden">
                       <div 
                         className="flex w-[200%] h-full transition-transform duration-300 ease-in-out"
                         style={{ transform: selectedMember ? 'translateX(-50%)' : 'translateX(0%)' }}
                       >
                         {/* PANEL 1: CLUB SQUAD MEMBER LIST */}
-                        <div className="w-1/2 h-full flex flex-col shrink-0 px-1 overflow-y-auto no-scrollbar">
+                        <div data-vaul-no-drag className="h-full w-1/2 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-1 no-scrollbar">
                           <DrawerHeader className="text-left mb-6 shrink-0 pr-10">
                             <DrawerTitle className="text-2xl font-bold tracking-tight">Club Squad</DrawerTitle>
                             <p className="text-xs text-muted-foreground">The team building {club?.name}</p>
@@ -1189,12 +1192,15 @@ function ClubChat() {
                               const canEditMember = isAuthorizedEditor && m.profile_id !== currentUser?.id;
 
                               return (
-                                <DropdownMenu key={m.profile_id}>
-                                  <DropdownMenuTrigger asChild>
-                                    <div 
-                                      className="flex cursor-pointer items-center justify-between rounded-lg border border-border/70 bg-card p-4 transition hover:border-primary/40 hover:bg-accent/20 active:scale-[0.99]"
-                                    >
-                                      <div className="flex items-center gap-3">
+                                <div
+                                  key={m.profile_id}
+                                  className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-card p-3 transition hover:border-primary/40 hover:bg-accent/20 sm:p-4"
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => setSquadActionMember(m)}
+                                    className="flex min-w-0 flex-1 items-center gap-3 text-left active:opacity-70"
+                                  >
                                         <div className="relative h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0 border border-border/50 shadow-sm">
                                           {m.profiles?.avatar_url ? (
                                             <img src={m.profiles.avatar_url} className="h-full w-full object-cover" />
@@ -1207,17 +1213,17 @@ function ClubChat() {
                                             <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-[#0A0A0E]" />
                                           )}
                                         </div>
-                                        <div className="text-left">
-                                          <div className="text-sm font-bold text-foreground">
+                                        <div className="min-w-0 text-left">
+                                          <div className="truncate text-sm font-bold text-foreground">
                                             {m.profiles?.full_name || m.profiles?.username}
                                           </div>
                                           <div className={`mt-1 inline-block px-2 py-0.5 rounded text-[8px] ${getRoleColor(m.role)}`}>
                                             {m.role}
                                           </div>
                                         </div>
-                                      </div>
+                                  </button>
 
-                                      <div className="flex items-center gap-2">
+                                  <div className="flex shrink-0 items-center gap-2">
                                         {m.profile_id === club?.creator_id ? (
                                           <span className="text-[8px] text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full bg-amber-500/5">
                                             Creator
@@ -1235,29 +1241,15 @@ function ClubChat() {
                                             </button>
                                           )
                                         )}
-                                      </div>
-                                    </div>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-48 bg-background border-border/50">
-                                    <DropdownMenuItem className="cursor-pointer font-medium" onClick={() => navigate({ to: `/app/profile/${m.profiles?.username}` })}>
-                                      <User className="mr-2 h-4 w-4" />
-                                      View Profile
-                                    </DropdownMenuItem>
-                                    {m.profile_id !== currentUser?.id && (
-                                      <DropdownMenuItem className="cursor-pointer font-medium" onClick={() => navigate({ to: `/app/chat/${m.profile_id}` })}>
-                                        <MessageSquare className="mr-2 h-4 w-4" />
-                                        Message Builder
-                                      </DropdownMenuItem>
-                                    )}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                  </div>
+                                </div>
                               );
                             })}
                           </div>
                         </div>
 
                         {/* PANEL 2: MEMBER SETTINGS VIEW */}
-                        <div className="w-1/2 h-full flex flex-col shrink-0 px-2 overflow-y-auto no-scrollbar">
+                        <div data-vaul-no-drag className="h-full w-1/2 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-2 no-scrollbar">
                           <div className="shrink-0 flex flex-col gap-4 mb-6 pr-10">
                             <button 
                               onClick={() => setSelectedMember(null)}
@@ -1348,6 +1340,59 @@ function ClubChat() {
                           )}
                         </div>
                       </div>
+
+                      {squadActionMember && (
+                        <div
+                          className="absolute inset-0 z-50 flex items-end bg-background/55 backdrop-blur-sm"
+                          onClick={() => setSquadActionMember(null)}
+                        >
+                          <div
+                            className="w-full border-t border-border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <div className="mb-4 flex items-center gap-3 border-b border-border pb-4">
+                              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-muted">
+                                {squadActionMember.profiles?.avatar_url ? (
+                                  <img src={squadActionMember.profiles.avatar_url} className="h-full w-full object-cover" />
+                                ) : (
+                                  <div className="grid h-full w-full place-items-center bg-primary/10 text-sm font-bold text-primary">
+                                    {squadActionMember.profiles?.username?.[0]?.toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-semibold text-foreground">{squadActionMember.profiles?.full_name || squadActionMember.profiles?.username}</p>
+                                <p className="truncate text-xs text-muted-foreground">{getFirstName(squadActionMember.profiles)}</p>
+                              </div>
+                              <button
+                                onClick={() => setSquadActionMember(null)}
+                                className="grid h-9 w-9 place-items-center rounded-md bg-accent text-muted-foreground"
+                                aria-label="Close member actions"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <div className="space-y-2">
+                              <button
+                                onClick={() => navigate({ to: `/app/profile/${squadActionMember.profiles?.username}` })}
+                                className="flex h-12 w-full items-center gap-3 rounded-md bg-card px-4 text-sm font-semibold text-foreground transition active:bg-accent"
+                              >
+                                <User className="h-4 w-4 fill-current text-primary" />
+                                View Profile
+                              </button>
+                              {squadActionMember.profile_id !== currentUser?.id && (
+                                <button
+                                  onClick={() => navigate({ to: `/app/chat/${squadActionMember.profile_id}` })}
+                                  className="flex h-12 w-full items-center gap-3 rounded-md bg-card px-4 text-sm font-semibold text-foreground transition active:bg-accent"
+                                >
+                                  <MessageSquare className="h-4 w-4 fill-current text-primary" />
+                                  Message Builder
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </DrawerContent>
                 </Drawer>
@@ -1862,8 +1907,8 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
   };
 
   return (
-    <section className="mx-auto w-full max-w-[760px]">
-      <div className="mb-6 flex items-start justify-between gap-4 border-b border-border pb-5">
+    <section className="mx-auto w-full min-w-0 max-w-[760px] overflow-hidden">
+      <div className="mb-5 flex flex-col gap-4 border-b border-border pb-5 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
             <RoomIcon className="h-5 w-5 fill-current" />
@@ -1876,10 +1921,10 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
         {canCreate && (
           <button
             onClick={() => setShowComposer((open) => !open)}
-            className="flex h-10 shrink-0 items-center gap-2 rounded-md bg-foreground px-3.5 text-xs font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
+            className="flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-foreground px-3.5 text-xs font-semibold text-background transition hover:opacity-90 active:scale-[0.98] sm:w-auto"
           >
             {showComposer ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            <span className="hidden sm:inline">{showComposer ? 'Close' : roomMeta.action}</span>
+            <span>{showComposer ? 'Close' : roomMeta.action}</span>
           </button>
         )}
       </div>
@@ -1892,7 +1937,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
       )}
 
       {showComposer && canCreate && (
-        <div className="mb-6 border border-border bg-card p-4 sm:p-5">
+        <div className="mb-6 max-w-full overflow-hidden border border-border bg-card p-3 sm:p-5">
           <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
             <RoomIcon className="h-4 w-4 text-primary" />
             {roomMeta.action}
@@ -1902,13 +1947,13 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder={room === 'q-and-a' ? 'What do you need help with?' : room === 'assignments' ? 'Assignment title' : 'Announcement title'}
-              className="h-11 w-full rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary"
+              className="h-11 w-full min-w-0 rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary"
             />
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value)}
               placeholder={room === 'q-and-a' ? 'Add enough context for the club to give a useful answer...' : room === 'assignments' ? 'Add the brief, instructions, and expected outcome...' : 'Write the update for club members...'}
-              className="min-h-28 w-full resize-y rounded-md border border-border bg-background px-3.5 py-3 text-sm leading-6 outline-none transition focus:border-primary"
+              className="min-h-28 w-full min-w-0 resize-y rounded-md border border-border bg-background px-3.5 py-3 text-sm leading-6 outline-none transition focus:border-primary"
             />
             {room === 'assignments' && (
               <div>
@@ -1925,7 +1970,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
               <button
                 onClick={submitCard}
                 disabled={isSubmitting || !title.trim() || !body.trim()}
-                className="h-10 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition active:scale-[0.98] disabled:opacity-40"
+                className="h-10 w-full rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition active:scale-[0.98] disabled:opacity-40 sm:w-auto"
               >
                 {isSubmitting ? 'Posting...' : room === 'q-and-a' ? 'Post question' : room === 'assignments' ? 'Create assignment' : 'Publish announcement'}
               </button>
@@ -1953,18 +1998,18 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                 key={message.id}
                 type="button"
                 onClick={() => interactive && setSelectedCard(message)}
-                className={`w-full border border-border bg-card p-4 text-left transition sm:p-5 ${interactive ? 'hover:border-primary/40 hover:bg-accent/20 active:scale-[0.995]' : 'cursor-default'}`}
+                className={`w-full max-w-full overflow-hidden border border-border bg-card p-3 text-left transition sm:p-5 ${interactive ? 'hover:border-primary/40 hover:bg-accent/20 active:scale-[0.995]' : 'cursor-default'}`}
               >
-                <div className="flex items-start gap-3.5">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <div className="flex min-w-0 items-start gap-2.5 sm:gap-3.5">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary sm:h-10 sm:w-10">
                     {room === 'assignments' ? <FileText className="h-5 w-5 fill-current" /> : room === 'q-and-a' ? <HelpCircle className="h-5 w-5 fill-current" /> : <Megaphone className="h-5 w-5 fill-current" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
-                      <h4 className="text-[15px] font-semibold leading-5 text-foreground">{card.title}</h4>
+                      <h4 className="break-words text-[15px] font-semibold leading-5 text-foreground [overflow-wrap:anywhere]">{card.title}</h4>
                       {interactive && <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />}
                     </div>
-                    <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{card.body}</p>
+                    <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{card.body}</p>
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <span>{author}</span>
                       <span>{formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}</span>
@@ -1980,23 +2025,24 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
       )}
 
       <Drawer open={Boolean(selectedCard)} onOpenChange={(open) => !open && setSelectedCard(null)}>
-        <DrawerContent className="mx-auto h-[90dvh] max-w-[760px] border border-border bg-background p-0 shadow-2xl">
+        <DrawerContent className="mx-auto h-[94dvh] max-w-[760px] overflow-hidden border border-border bg-background p-0 shadow-2xl sm:h-[90dvh]">
           {selectedCard && (() => {
             const card = parseClubCard(selectedCard, room);
             const replies = messages.filter((message: any) => message.reply_to_id === selectedCard.id);
             return (
               <div className="flex h-full min-h-0 flex-col">
-                <DrawerHeader className="border-b border-border px-5 pb-5 pt-7 text-left sm:px-6">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                <DrawerHeader className="border-b border-border px-4 pb-5 pt-7 text-left sm:px-6">
                   <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-primary">
                     {room === 'assignments' ? <BookOpenCheck className="h-4 w-4" /> : <HelpCircle className="h-4 w-4" />}
                     {room === 'assignments' ? 'Assignment details' : 'Question thread'}
                   </div>
-                  <DrawerTitle className="pr-8 text-xl font-semibold leading-7">{card.title}</DrawerTitle>
+                  <DrawerTitle className="break-words pr-8 text-xl font-semibold leading-7 [overflow-wrap:anywhere]">{card.title}</DrawerTitle>
                   {card.dueDate && <p className="mt-1 text-xs font-medium text-muted-foreground">Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}</p>}
-                  <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{card.body}</p>
+                  <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{card.body}</p>
                 </DrawerHeader>
 
-                <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                <div className="px-4 py-5 sm:px-6">
                   <h5 className="mb-4 text-sm font-semibold text-foreground">{room === 'assignments' ? `Submissions (${replies.length})` : `Answers (${replies.length})`}</h5>
                   {replies.length === 0 ? (
                     <div className="border border-dashed border-border px-5 py-10 text-center text-sm text-muted-foreground">
@@ -2013,12 +2059,13 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                               <span className="text-xs font-semibold text-foreground">{author}</span>
                               <span className="text-[11px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
                             </div>
-                            <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{parsedReply.body}</p>
+                            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{parsedReply.body}</p>
                           </article>
                         );
                       })}
                     </div>
                   )}
+                </div>
                 </div>
 
                 <div className="border-t border-border bg-background p-4 sm:p-5">

@@ -42,6 +42,10 @@ interface NoteBlock {
   preview?: string; 
 }
 
+const sanitizeEditableNoteHtml = (content = '') => content
+  .replace(/&lt;\s*\/?\s*p\s*&gt;/gi, '')
+  .replace(/&#0*60;\s*\/?\s*p\s*&#0*62;/gi, '');
+
 const TipTapBlock = ({ 
   block, 
   updateBlockText, 
@@ -52,7 +56,7 @@ const TipTapBlock = ({
   block: NoteBlock, 
   updateBlockText: (id: string, text: string, textBeforeCursor?: string) => void, 
   setActiveMentionBlockId: React.Dispatch<React.SetStateAction<string | null>>, 
-  handleKeyDown: (e: any, blockId: string) => void,
+  handleKeyDown: (e: KeyboardEvent, blockId: string, isEmpty: boolean) => boolean,
   activeMentionBlockId: string | null
 }) => {
   const editor = useEditor({
@@ -65,7 +69,7 @@ const TipTapBlock = ({
       TextStyle,
       Color,
     ],
-    content: block.content,
+    content: sanitizeEditableNoteHtml(block.content),
     editorProps: {
       attributes: {
         class: `w-full bg-transparent outline-none resize-none overflow-hidden block ${block.type === 'heading' ? 'text-3xl font-black tracking-tighter pt-6 pb-2 placeholder:text-muted-foreground/30 font-serif' : 'text-lg md:text-xl min-h-[60px] leading-relaxed font-normal text-foreground/90 font-serif'} prose dark:prose-invert max-w-none`,
@@ -73,8 +77,8 @@ const TipTapBlock = ({
       },
       handleKeyDown: (view, event) => {
         if (event.key === 'Backspace' && view.state.selection.empty && view.state.selection.from === 1) {
-          handleKeyDown(event, block.id);
-          return true;
+          const isEmpty = view.state.doc.textContent.trim().length === 0;
+          return handleKeyDown(event, block.id, isEmpty);
         }
         return false;
       }
@@ -216,14 +220,17 @@ function NotesCreatePage() {
     }
   };
 
-  const handleKeyDown = (e: any, blockId: string) => {
+  const handleKeyDown = (e: KeyboardEvent, blockId: string, isEmpty: boolean) => {
+    if (!isEmpty) return false;
+
     const blockIndex = blocks.findIndex(b => b.id === blockId);
     if (blockIndex > 0) {
       const prevBlock = blocks[blockIndex - 1];
       if (prevBlock.type !== 'text' && prevBlock.type !== 'heading') {
         e.preventDefault();
         removeBlock(prevBlock.id);
-      } else if (!blocks[blockIndex].content || blocks[blockIndex].content === '<p></p>') {
+        return true;
+      } else {
         e.preventDefault();
         removeBlock(blockId);
         setTimeout(() => {
@@ -243,8 +250,11 @@ function NotesCreatePage() {
             }
           }
         }, 50);
+        return true;
       }
     }
+
+    return false;
   };
 
   const updateBlockText = (id: string, text: string, textBeforeCursor?: string) => {
@@ -415,7 +425,9 @@ function NotesCreatePage() {
       // Apply fast ref content updates to the final blocks array before publishing
       const finalBlocks = blocks.map(b => ({
         ...b,
-        content: blockContentsRef.current[b.id] ?? b.content
+        content: b.type === 'text' || b.type === 'heading'
+          ? sanitizeEditableNoteHtml(blockContentsRef.current[b.id] ?? b.content)
+          : (blockContentsRef.current[b.id] ?? b.content)
       }));
       
       for (let i = 0; i < finalBlocks.length; i++) {
@@ -529,10 +541,16 @@ function NotesCreatePage() {
               e.target.style.height = 'auto';
               e.target.style.height = e.target.scrollHeight + 'px';
             }}
-            placeholder="Tell your story..."
-            className="mb-10 w-full resize-none overflow-hidden bg-transparent text-3xl font-semibold leading-tight outline-none placeholder:text-muted-foreground/40 sm:text-4xl md:text-[44px]"
+            maxLength={120}
+            aria-label="Note title"
+            placeholder="Title"
+            className="mb-2 w-full resize-none overflow-hidden bg-transparent text-3xl font-semibold leading-tight outline-none placeholder:text-muted-foreground/40 sm:text-4xl md:text-[44px]"
             rows={1}
           />
+          <div className="mb-8 flex items-center justify-between border-b border-border/60 pb-4 text-xs text-muted-foreground sm:mb-10">
+            <span>Title</span>
+            <span className="ml-4 shrink-0 tabular-nums">{title.length}/120</span>
+          </div>
 
           {/* Blocks */}
           <div className="space-y-4">

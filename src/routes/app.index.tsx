@@ -1,7 +1,8 @@
 import { useLoaderData, createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { 
   Heart, MessageCircle, Share2, Plus, Bell, Repeat, 
-  Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2
+  Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2,
+  Radio, Video, ArrowRight
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ import { CommentDrawer } from "@/components/CommentDrawer";
 import { Star, Users, Rocket, UserPlus, FileText, Pencil, Sparkles } from "lucide-react";
 import { getCachedSession } from "@/lib/auth";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
+import { useSharedPresence } from "@/hooks/useSharedPresence";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFirstName } from "@/lib/utils";
@@ -22,7 +24,42 @@ export const Route = createFileRoute("/app/")({
   component: Feed,
 });
 
+function LiveClubCard({ club, currentUserId, onOpen }: { club: any; currentUserId?: string; onOpen: (clubId: string) => void }) {
+  const { presenceState } = useSharedPresence(club?.id ? `live-presence-${club.id}` : '');
+  const liveHosts = Object.values(presenceState).flat().filter((person: any) => person?.isAdmin).length;
+  const isHost = club.creator_id === currentUserId || ['administrator', 'admin', 'moderator'].includes((club.member_role || '').toLowerCase());
+  const canEnter = isHost || liveHosts > 0;
+
+  return (
+    <article className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="relative h-24 bg-[#171318]">
+        {club.banner_url && <img src={club.banner_url} alt="" className="h-full w-full object-cover opacity-65" />}
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+          <span className={`h-1.5 w-1.5 rounded-full ${liveHosts > 0 ? 'bg-red-500 animate-pulse' : 'bg-white/40'}`} />
+          {liveHosts > 0 ? 'LIVE NOW' : isHost ? 'READY TO HOST' : 'OFFLINE'}
+        </div>
+      </div>
+      <div className="flex items-center gap-3 p-3.5">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-[14px] font-semibold tracking-tight">{club.name}</h3>
+          <p className="mt-0.5 text-[11.5px] text-muted-foreground">{liveHosts > 0 ? `${liveHosts} host${liveHosts === 1 ? '' : 's'} on stage` : isHost ? 'Your community is ready' : 'The host has not started yet'}</p>
+        </div>
+        <button
+          onClick={() => canEnter && onOpen(club.id)}
+          disabled={!canEnter}
+          className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[12px] font-semibold ${canEnter ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+        >
+          {isHost ? <Radio className="h-4 w-4" /> : <Video className="h-4 w-4" />}
+          {isHost ? 'Go live' : liveHosts > 0 ? 'Join' : 'Offline'}
+        </button>
+      </div>
+    </article>
+  );
+}
+
 function Feed() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { data: postsData, isLoading } = useQuery({ 
     queryKey: ['feed_posts'], 
@@ -39,6 +76,33 @@ function Feed() {
   const [searchResults, setSearchResults] = useState<{ posts: any[], bootcamps: any[], profiles: any[] }>({ posts: [], bootcamps: [], profiles: [] });
   const [isSearching, setIsSearching] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [livePickerOpen, setLivePickerOpen] = useState(false);
+
+  const { data: liveClubs = [], isLoading: liveClubsLoading } = useQuery({
+    queryKey: ['feed_live_clubs', currentUser?.id],
+    enabled: Boolean(currentUser?.id),
+    queryFn: async () => {
+      const [ownedResult, membershipsResult] = await Promise.all([
+        supabase.from('clubs').select('*').eq('creator_id', currentUser!.id),
+        supabase.from('club_members').select('role, clubs(*)').eq('profile_id', currentUser!.id),
+      ]);
+      const clubsById = new Map<string, any>();
+      (ownedResult.data || []).forEach((club: any) => clubsById.set(club.id, { ...club, member_role: 'Administrator' }));
+      (membershipsResult.data || []).forEach((membership: any) => {
+        if (membership.clubs) clubsById.set(membership.clubs.id, { ...membership.clubs, member_role: membership.role });
+      });
+      return Array.from(clubsById.values());
+    },
+  });
+
+  const hostClubs = liveClubs.filter((club: any) => (
+    club.creator_id === currentUser?.id || ['administrator', 'admin', 'moderator'].includes((club.member_role || '').toLowerCase())
+  ));
+
+  const openLiveRoom = (clubId: string) => {
+    setLivePickerOpen(false);
+    router.navigate({ to: '/app/live/$classId', params: { classId: clubId } });
+  };
 
   useEffect(() => {
     fetchFollowing();
@@ -298,6 +362,48 @@ function Feed() {
           </div>
         ) : (
           <>
+            {activeTab === 'Live' ? (
+              <div className="space-y-5 p-3 sm:p-5">
+                <section className="overflow-hidden rounded-lg border border-white/[0.06] bg-[#171318] p-5 text-white sm:p-6">
+                  <div className="flex items-start justify-between gap-5">
+                    <div className="min-w-0">
+                      <div className="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">
+                        <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" /><span className="relative h-2 w-2 rounded-full bg-red-500" /></span>
+                        Live on Zero Club
+                      </div>
+                      <h2 className="max-w-md text-[23px] font-semibold leading-tight tracking-tight sm:text-[27px]">Teach, build and solve problems together in real time.</h2>
+                      <p className="mt-2 max-w-lg text-[12.5px] leading-relaxed text-white/55">Start inside a community you manage, or join a room when its host goes live.</p>
+                    </div>
+                    <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground sm:grid"><Radio className="h-6 w-6" /></div>
+                  </div>
+                  <button onClick={() => setLivePickerOpen(true)} className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg bg-white px-4 text-[12.5px] font-semibold text-black">
+                    <Radio className="h-4 w-4" /> Go live now
+                  </button>
+                </section>
+
+                <section>
+                  <div className="mb-3 flex items-center justify-between px-1">
+                    <div><h3 className="text-[14px] font-semibold tracking-tight">Your live communities</h3><p className="mt-0.5 text-[11.5px] text-muted-foreground">Rooms update automatically when a host takes the stage.</p></div>
+                    <span className="text-[11px] text-muted-foreground">{liveClubs.length}</span>
+                  </div>
+                  {liveClubsLoading ? (
+                    <div className="grid min-h-36 place-items-center rounded-lg border border-border bg-card"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
+                  ) : liveClubs.length > 0 ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {liveClubs.map((club: any) => <LiveClubCard key={club.id} club={club} currentUserId={currentUser?.id} onOpen={openLiveRoom} />)}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-border bg-card p-8 text-center">
+                      <Video className="mx-auto h-6 w-6 text-muted-foreground" />
+                      <h3 className="mt-4 text-[15px] font-semibold">Join a club to enter live rooms</h3>
+                      <p className="mx-auto mt-1 max-w-xs text-[12px] leading-relaxed text-muted-foreground">Live sessions stay attached to communities so people know who is hosting and why they are gathering.</p>
+                      <Link to="/app/clubs" className="mt-5 inline-flex items-center gap-1 text-[12px] font-semibold text-primary">Explore clubs <ArrowRight className="h-4 w-4" /></Link>
+                    </div>
+                  )}
+                </section>
+              </div>
+            ) : (
+              <>
             {/* Desktop inline composer */}
             <div className="m-3 hidden items-center gap-3.5 rounded-lg border border-border bg-card px-4 py-3 md:flex">
               <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-border shrink-0">
@@ -364,6 +470,8 @@ function Feed() {
                 </Link>
               </div>
             )}
+              </>
+            )}
           </>
         )}
       </main>
@@ -384,11 +492,11 @@ function Feed() {
             <Plus className="h-6 w-6" strokeWidth={2} />
           </button>
         </DrawerTrigger>
-        <DrawerContent className="border-t bg-background p-6 focus:ring-0 md:mx-auto md:max-w-lg md:rounded-t-lg">
-          <DrawerTitle className="text-[22px] font-semibold tracking-tight mb-1 text-foreground">Create</DrawerTitle>
-          <p className="text-[13px] text-muted-foreground mb-6">What would you like to make?</p>
-          <div className="flex flex-col gap-2">
-            <Link to="/app/compose" className="group flex items-center gap-4 rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:ring-foreground/15">
+        <DrawerContent className="mx-auto max-h-[72dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] focus:ring-0">
+          <DrawerTitle className="mb-1 text-[18px] font-semibold tracking-tight text-foreground">Create something</DrawerTitle>
+          <p className="mb-4 text-[12px] text-muted-foreground">Choose a format and get straight to work.</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            <Link to="/app/compose" className="group flex min-h-[108px] flex-col items-start rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:bg-accent/40">
               <div className="h-11 w-11 shrink-0 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
                 <Pencil className="h-[18px] w-[18px] text-primary" />
               </div>
@@ -399,7 +507,7 @@ function Feed() {
               <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </Link>
 
-            <Link to="/app/ship" className="group flex items-center gap-4 rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:ring-foreground/15">
+            <Link to="/app/ship" className="group flex min-h-[108px] flex-col items-start rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:bg-accent/40">
               <div className="h-11 w-11 shrink-0 rounded-full bg-[#cc208f]/8 ring-1 ring-[#cc208f]/15 flex items-center justify-center">
                 <Rocket className="h-[18px] w-[18px] text-[#cc208f]" />
               </div>
@@ -410,7 +518,7 @@ function Feed() {
               <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </Link>
 
-            <Link to="/app/notes/create" className="group flex items-center gap-4 rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:ring-foreground/15">
+            <Link to="/app/notes/create" className="group flex min-h-[108px] flex-col items-start rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:bg-accent/40">
               <div className="h-11 w-11 shrink-0 rounded-full bg-emerald-500/8 ring-1 ring-emerald-500/15 flex items-center justify-center">
                 <FileText className="h-[18px] w-[18px] text-emerald-600 dark:text-emerald-400" />
               </div>
@@ -420,6 +528,42 @@ function Feed() {
               </div>
               <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </Link>
+            <button
+              onClick={() => { setCreateOpen(false); window.setTimeout(() => setLivePickerOpen(true), 180); }}
+              className="flex min-h-[108px] flex-col items-start rounded-lg bg-red-500/[0.04] p-3.5 text-left ring-1 ring-red-500/20 transition-colors hover:bg-red-500/[0.08]"
+            >
+              <div className="grid h-11 w-11 place-items-center rounded-full bg-red-500 text-white"><Radio className="h-[18px] w-[18px]" /></div>
+              <div className="mt-3"><h3 className="text-[15px] font-semibold tracking-tight">Go live</h3><p className="mt-0.5 text-[12px] text-muted-foreground">Open a community room.</p></div>
+            </button>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer open={livePickerOpen} onOpenChange={setLivePickerOpen}>
+        <DrawerContent className="mx-auto max-h-[76dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-0 focus:ring-0">
+          <div className="border-b border-border/60 px-5 pb-4 pt-5">
+            <DrawerTitle className="flex items-center gap-2 text-[18px] font-semibold tracking-tight"><Radio className="h-5 w-5 text-red-500" /> Go live</DrawerTitle>
+            <p className="mt-1 text-[12px] text-muted-foreground">Choose the community that will host this session.</p>
+          </div>
+          <div className="max-h-[55dvh] space-y-2 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            {liveClubsLoading ? (
+              <div className="grid min-h-32 place-items-center"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
+            ) : hostClubs.length > 0 ? hostClubs.map((club: any) => (
+              <button key={club.id} onClick={() => openLiveRoom(club.id)} className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left hover:bg-accent/40">
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-[#171318]">
+                  {club.banner_url ? <img src={club.banner_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center"><Radio className="h-5 w-5 text-primary" /></div>}
+                </div>
+                <div className="min-w-0 flex-1"><p className="truncate text-[13.5px] font-semibold">{club.name}</p><p className="mt-0.5 text-[11px] text-muted-foreground">Start an instant session</p></div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )) : (
+              <div className="py-8 text-center">
+                <Radio className="mx-auto h-6 w-6 text-muted-foreground" />
+                <h3 className="mt-3 text-[14px] font-semibold">No community to host yet</h3>
+                <p className="mx-auto mt-1 max-w-xs text-[11.5px] leading-relaxed text-muted-foreground">Create a club or ask an administrator to make you an admin before starting a live room.</p>
+                <Link to="/app/clubs" className="mt-5 inline-flex text-[12px] font-semibold text-primary">Open Clubs</Link>
+              </div>
+            )}
           </div>
         </DrawerContent>
       </Drawer>
