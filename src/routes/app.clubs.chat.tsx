@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
+import { decodeChatMedia, encodeChatMedia, getChatMediaType, useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from "sonner";
@@ -59,8 +61,14 @@ function ClubChat() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+  const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder((file) => {
+    setMediaFiles((files) => [...files, file]);
+    setMediaPreviews((previews) => [...previews, URL.createObjectURL(file)]);
+  });
   const descRef = useRef<HTMLTextAreaElement>(null);
   const rulesRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -71,6 +79,18 @@ function ClubChat() {
   const handleScroll = () => {
     if (scrollRef.current) {
       setIsScrolled(scrollRef.current.scrollTop > 100);
+    }
+  };
+
+  const toggleVoiceRecording = async () => {
+    if (isRecording) {
+      stopRecording();
+      return;
+    }
+    try {
+      await startRecording();
+    } catch (error: any) {
+      toast.error(error.message || 'Microphone access is required to record a voice note.');
     }
   };
 
@@ -454,7 +474,7 @@ function ClubChat() {
         const { error: uploadError } = await supabase.storage.from('post-media').upload(filePath, file);
         if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(filePath);
-          uploadedUrls.push(publicUrl);
+          uploadedUrls.push(encodeChatMedia(getChatMediaType(file), publicUrl, file.name));
         }
       }
       toast.dismiss("upload");
@@ -1715,11 +1735,15 @@ function ClubChat() {
         {mediaPreviews.length > 0 && (
           <div className="mb-2 flex gap-2 overflow-x-auto no-scrollbar py-2">
             {mediaPreviews.map((preview, idx) => (
-              <div key={idx} className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden border border-border">
-                {preview.startsWith('data:video') ? (
+              <div key={idx} className={`relative shrink-0 overflow-hidden rounded-lg border border-border bg-card ${mediaFiles[idx]?.type.startsWith('audio/') || (!mediaFiles[idx]?.type.startsWith('image/') && !mediaFiles[idx]?.type.startsWith('video/')) ? 'min-w-[190px] p-2 pr-7' : 'h-16 w-16'}`}>
+                {mediaFiles[idx]?.type.startsWith('audio/') ? (
+                  <audio src={preview} controls className="h-10 w-[180px]" />
+                ) : mediaFiles[idx]?.type.startsWith('video/') ? (
                   <video src={preview} className="h-full w-full object-cover" />
-                ) : (
+                ) : mediaFiles[idx]?.type.startsWith('image/') ? (
                   <img src={preview} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-10 items-center gap-2 px-1"><FileText className="h-5 w-5 shrink-0 text-primary" /><span className="max-w-[130px] truncate text-[11px] font-medium">{mediaFiles[idx]?.name}</span></div>
                 )}
                 <button 
                   onClick={() => removeMedia(idx)}
@@ -1769,14 +1793,27 @@ function ClubChat() {
               onChange={handleChatMediaUpload} 
               className="hidden" 
               multiple 
-              accept="image/*,video/*"
+              accept="image/*"
             />
-            <button 
-              onClick={() => mediaInputRef.current?.click()}
-              className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95 hover:text-foreground transition"
+            <input type="file" ref={videoInputRef} onChange={handleChatMediaUpload} className="hidden" multiple accept="video/*" />
+            <input type="file" ref={documentInputRef} onChange={handleChatMediaUpload} className="hidden" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*" />
+            <button
+              onClick={toggleVoiceRecording}
+              title={isRecording ? 'Stop recording' : 'Record voice note'}
+              className={`relative inline-flex h-8 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? 'min-w-12 bg-red-500 px-2 text-white' : 'w-8 text-muted-foreground hover:text-foreground'}`}
             >
-              <Paperclip className="h-4 w-4" />
+              {isRecording ? <><Square className="h-3.5 w-3.5 fill-current" /><span className="ml-1 text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')}</span></> : <Mic className="h-4 w-4" />}
             </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button title="Add attachment" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"><Paperclip className="h-4 w-4" /></button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top" className="w-44">
+                <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => documentInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <button 
               onClick={handleSendMessage}
               disabled={!msg.trim() && mediaFiles.length === 0}
@@ -1824,6 +1861,7 @@ const parseClubCard = (message: any, room: string): ClubCardPayload => {
     title: firstLine || (room === 'assignments' ? 'Assignment' : room === 'q-and-a' ? 'Question' : 'Announcement'),
     body: rest.join('\n') || firstLine || '',
   };
+
 };
 
 const parseClubReply = (message: any) => {
@@ -2360,16 +2398,20 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                       ? "grid grid-cols-2 gap-0.5 max-h-[240px] ring-1 ring-border bg-muted/40" 
                       : "flex justify-start ring-1 ring-border"
                   }`}>
-                    {message.content.split('$$MEDIA$$')[1].split(',').map((url: string, i: number) => {
-                      const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg)$/);
+                    {message.content.split('$$MEDIA$$')[1].split(',').map((token: string, i: number) => {
+                      const media = decodeChatMedia(token);
                       return (
                         <div key={i} className={`relative overflow-hidden w-full ${
-                          message.content.split('$$MEDIA$$')[1].split(',').length === 1 ? "max-h-[300px]" : "aspect-square"
+                          media.type === 'audio' || media.type === 'file' ? 'min-w-[220px] bg-card p-3' : message.content.split('$$MEDIA$$')[1].split(',').length === 1 ? "max-h-[300px]" : "aspect-square"
                         }`}>
-                          {isVideo ? (
-                            <video src={url} controls className="h-full w-full object-cover" />
+                          {media.type === 'video' ? (
+                            <video src={media.url} controls className="h-full w-full object-cover" />
+                          ) : media.type === 'audio' ? (
+                            <div className="flex min-w-0 flex-col gap-2 text-left"><div className="flex items-center gap-2"><Mic className="h-4 w-4 shrink-0" /><span className="truncate text-[11px] font-semibold">Voice message</span></div><audio src={media.url} controls className="h-10 w-full min-w-[190px]" /></div>
+                          ) : media.type === 'file' ? (
+                            <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 text-left"><FileText className="h-6 w-6 shrink-0 text-primary" /><span className="min-w-0 flex-1 truncate text-[11px] font-semibold">{media.name}</span><Download className="h-4 w-4 shrink-0 text-muted-foreground" /></a>
                           ) : (
-                            <img src={url} className="h-full w-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => window.open(url, '_blank')} />
+                            <img src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
                           )}
                         </div>
                       );

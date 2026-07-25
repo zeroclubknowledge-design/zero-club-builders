@@ -1,11 +1,12 @@
 import { getFirstName } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2 } from "lucide-react";
+import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMessages, sendMessageAction, editMessageAction } from "@/api";
 import { useUser } from "@/hooks/useUser";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { supabase } from "@/lib/supabase";
+import { decodeChatMedia, encodeChatMedia, getChatMediaType, useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/app/chat/$id")({
   component: ChatViewPage,
@@ -318,16 +320,20 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                       ? "grid grid-cols-2 gap-0.5 max-h-[240px] ring-1 ring-border bg-muted/40" 
                       : "flex justify-start ring-1 ring-border"
                   }`}>
-                    {m.content.split('$$MEDIA$$')[1].split(',').map((url: string, i: number) => {
-                      const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg)$/);
+                    {m.content.split('$$MEDIA$$')[1].split(',').map((token: string, i: number) => {
+                      const media = decodeChatMedia(token);
                       return (
                         <div key={i} className={`relative overflow-hidden w-full ${
-                          m.content.split('$$MEDIA$$')[1].split(',').length === 1 ? "max-h-[300px]" : "aspect-square"
+                          media.type === 'audio' || media.type === 'file' ? 'min-w-[220px] bg-card/10 p-3' : m.content.split('$$MEDIA$$')[1].split(',').length === 1 ? "max-h-[300px]" : "aspect-square"
                         }`}>
-                          {isVideo ? (
-                            <video src={url} controls className="h-full w-full object-cover" />
+                          {media.type === 'video' ? (
+                            <video src={media.url} controls className="h-full w-full object-cover" />
+                          ) : media.type === 'audio' ? (
+                            <div className="flex min-w-0 flex-col gap-2 text-left"><div className="flex items-center gap-2"><Mic className="h-4 w-4 shrink-0" /><span className="truncate text-[11px] font-semibold">Voice message</span></div><audio src={media.url} controls className="h-10 w-full min-w-[190px]" /></div>
+                          ) : media.type === 'file' ? (
+                            <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 text-left"><FileText className="h-6 w-6 shrink-0" /><span className="min-w-0 flex-1 truncate text-[11px] font-semibold">{media.name}</span><Download className="h-4 w-4 shrink-0" /></a>
                           ) : (
-                            <img src={url} className="h-full w-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => window.open(url, '_blank')} />
+                            <img src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
                           )}
                         </div>
                       );
@@ -447,12 +453,32 @@ function ChatViewPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+  const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder((file) => {
+    setMediaFiles((files) => [...files, file]);
+    setMediaPreviews((previews) => [...previews, URL.createObjectURL(file)]);
+  });
   const [isUploading, setIsUploading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => typeof window !== 'undefined' && localStorage.getItem(`zero-chat-muted:${id}`) === 'true');
+  const [reporting, setReporting] = useState(false);
   const [viewportHeight, setViewportHeight] = useState("100dvh");
   const [viewportTop, setViewportTop] = useState("0px");
+
+  const toggleVoiceRecording = async () => {
+    if (isRecording) {
+      stopRecording();
+      return;
+    }
+    try {
+      await startRecording();
+    } catch (error: any) {
+      toast.error(error.message || 'Microphone access is required to record a voice note.');
+    }
+  };
 
   const EMOJIS = ["🚀", "🔥", "💎", "💯", "👏", "🙌", "✨", "🤝", "💻", "🎨", "📈", "🎯"];
 
@@ -487,10 +513,12 @@ function ChatViewPage() {
   }, []);
 
   useEffect(() => {
-    if (initialMessages.length > 0) {
-      setMessages(initialMessages);
-    }
-  }, [initialMessages]);
+    const clearedAt = typeof window !== 'undefined' ? localStorage.getItem(`zero-chat-cleared:${id}`) : null;
+    const visibleMessages = clearedAt
+      ? initialMessages.filter((message: any) => new Date(message.created_at).getTime() > new Date(clearedAt).getTime())
+      : initialMessages;
+    setMessages(visibleMessages);
+  }, [initialMessages, id]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -573,6 +601,40 @@ function ChatViewPage() {
     setMediaPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleClearChat = () => {
+    if (!window.confirm('Clear this conversation from this device? New messages will still appear.')) return;
+    localStorage.setItem(`zero-chat-cleared:${id}`, new Date().toISOString());
+    setMessages([]);
+    toast.success('Conversation cleared on this device.');
+  };
+
+  const toggleMuteConversation = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    localStorage.setItem(`zero-chat-muted:${id}`, String(nextMuted));
+    toast.success(nextMuted ? 'Conversation muted.' : 'Conversation notifications restored.');
+  };
+
+  const handleReportUser = async () => {
+    if (!currentUserId || reporting) return;
+    if (!window.confirm(`Report ${otherUser?.full_name || otherUser?.username || 'this user'} for inappropriate direct messages?`)) return;
+    setReporting(true);
+    try {
+      const { error } = await supabase.from('user_reports').insert({
+        reporter_id: currentUserId,
+        reported_id: id,
+        context: 'direct_message',
+        reason: 'Inappropriate or unsafe direct messages',
+      });
+      if (error) throw error;
+      toast.success('Report submitted for review.');
+    } catch (error: any) {
+      toast.error(error.message || 'Could not submit this report.');
+    } finally {
+      setReporting(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if ((!input.trim() && mediaFiles.length === 0) || sending) return;
     
@@ -594,7 +656,7 @@ function ChatViewPage() {
             const { error: uploadError } = await supabase.storage.from('post-media').upload(filePath, file);
             if (!uploadError) {
               const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(filePath);
-              uploadedUrls.push(publicUrl);
+              uploadedUrls.push(encodeChatMedia(getChatMediaType(file), publicUrl, file.name));
             }
           }
           toast.dismiss("upload");
@@ -779,9 +841,9 @@ function ChatViewPage() {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Link to="/app/profile/$id" params={{ id: otherUser?.id || '' }} className="grid h-9 w-9 place-items-center rounded-full transition active:bg-accent/50">
+          <button onClick={() => setInfoOpen(true)} aria-label="Conversation information" className="grid h-9 w-9 place-items-center rounded-full transition active:bg-accent/50">
             <Info className="h-5 w-5" />
-          </Link>
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="grid h-9 w-9 place-items-center rounded-full transition active:bg-accent/50">
@@ -789,18 +851,54 @@ function ChatViewPage() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-border">
-              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={() => toast.success("Chat history cleared locally.")}>
+              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={toggleMuteConversation}>
+                {isMuted ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+                <span className="text-sm font-medium">{isMuted ? 'Unmute chat' : 'Mute chat'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={() => navigate({ to: '/app/profile/$id', params: { id } })}>
+                <UserRound className="h-4 w-4" />
+                <span className="text-sm font-medium">View profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={handleClearChat}>
                 <Trash2 className="h-4 w-4" />
                 <span className="text-sm font-medium">Clear Chat</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={() => toast.success("User reported. Thank you.")}>
+              <DropdownMenuItem disabled={reporting} className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={handleReportUser}>
                 <Flag className="h-4 w-4" />
-                <span className="text-sm font-medium">Report User</span>
+                <span className="text-sm font-medium">{reporting ? 'Submitting...' : 'Report User'}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </header>
+
+      <Sheet open={infoOpen} onOpenChange={setInfoOpen}>
+        <SheetContent side="right" className="w-[min(92vw,380px)] border-l border-border bg-background p-0">
+          <SheetHeader className="border-b border-border/60 px-5 py-5 text-left">
+            <SheetTitle>Conversation details</SheetTitle>
+          </SheetHeader>
+          <div className="overflow-y-auto p-5">
+            <div className="flex flex-col items-center text-center">
+              <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground">
+                {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()}
+              </div>
+              <h3 className="mt-3 text-[16px] font-semibold tracking-tight">{otherUser?.full_name || otherUser?.username}</h3>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">@{otherUser?.username}</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-border bg-card p-3 text-center"><p className="text-[18px] font-semibold tabular-nums">{messages.length}</p><p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Messages</p></div>
+              <div className="rounded-lg border border-border bg-card p-3 text-center"><p className="text-[18px] font-semibold tabular-nums">{messages.filter((message) => message.content?.includes('$$MEDIA$$')).length}</p><p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Attachments</p></div>
+            </div>
+
+            <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
+              <Link to="/app/profile/$id" params={{ id }} onClick={() => setInfoOpen(false)} className="flex items-center gap-3 border-b border-border/60 px-4 py-3.5 text-[13px] font-medium hover:bg-accent/40"><UserRound className="h-4 w-4 text-muted-foreground" /> View profile <ChevronLeft className="ml-auto h-4 w-4 rotate-180 text-muted-foreground" /></Link>
+              <button onClick={toggleMuteConversation} className="flex w-full items-center gap-3 border-b border-border/60 px-4 py-3.5 text-left text-[13px] font-medium hover:bg-accent/40">{isMuted ? <Bell className="h-4 w-4 text-muted-foreground" /> : <BellOff className="h-4 w-4 text-muted-foreground" />} {isMuted ? 'Unmute conversation' : 'Mute conversation'}</button>
+              <button onClick={handleClearChat} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[13px] font-medium text-destructive hover:bg-destructive/5"><Trash2 className="h-4 w-4" /> Clear conversation</button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <div 
         ref={scrollRef}
@@ -859,11 +957,15 @@ function ChatViewPage() {
         {mediaPreviews.length > 0 && (
           <div className="mb-2 flex gap-2 overflow-x-auto no-scrollbar py-2">
             {mediaPreviews.map((preview, idx) => (
-              <div key={idx} className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden border border-border">
-                {preview.startsWith('data:video') ? (
+              <div key={idx} className={`relative shrink-0 overflow-hidden rounded-lg border border-border bg-card ${mediaFiles[idx]?.type.startsWith('audio/') || (!mediaFiles[idx]?.type.startsWith('image/') && !mediaFiles[idx]?.type.startsWith('video/')) ? 'min-w-[190px] p-2 pr-7' : 'h-16 w-16'}`}>
+                {mediaFiles[idx]?.type.startsWith('audio/') ? (
+                  <audio src={preview} controls className="h-10 w-[180px]" />
+                ) : mediaFiles[idx]?.type.startsWith('video/') ? (
                   <video src={preview} className="h-full w-full object-cover" />
-                ) : (
+                ) : mediaFiles[idx]?.type.startsWith('image/') ? (
                   <img src={preview} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-10 items-center gap-2 px-1"><FileText className="h-5 w-5 shrink-0 text-primary" /><span className="max-w-[130px] truncate text-[11px] font-medium">{mediaFiles[idx]?.name}</span></div>
                 )}
                 <button 
                   onClick={() => removeMedia(idx)}
@@ -912,14 +1014,27 @@ function ChatViewPage() {
                 className="hidden" 
                 onChange={handleChatMediaUpload}
                 multiple
-                accept="image/*,video/*"
+                accept="image/*"
               />
-              <button 
-                onClick={() => mediaInputRef.current?.click()}
-                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95 hover:text-foreground transition"
+              <input type="file" ref={videoInputRef} className="hidden" onChange={handleChatMediaUpload} multiple accept="video/*" />
+              <input type="file" ref={fileInputRef} className="hidden" onChange={handleChatMediaUpload} multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*" />
+              <button
+                onClick={toggleVoiceRecording}
+                title={isRecording ? 'Stop recording' : 'Record voice note'}
+                className={`inline-flex h-8 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? 'min-w-12 bg-red-500 px-2 text-white' : 'w-8 text-muted-foreground hover:text-foreground'}`}
               >
-                <Paperclip className="h-4 w-4" />
+                {isRecording ? <><Square className="h-3.5 w-3.5 fill-current" /><span className="ml-1 text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')}</span></> : <Mic className="h-4 w-4" />}
               </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button title="Add attachment" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"><Paperclip className="h-4 w-4" /></button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="top" className="w-44">
+                  <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => fileInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <button 
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && mediaFiles.length === 0) || sending}

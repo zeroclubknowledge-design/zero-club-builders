@@ -581,8 +581,8 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
                 }}
                 className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 ${hasReposted || hasQuoted ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
