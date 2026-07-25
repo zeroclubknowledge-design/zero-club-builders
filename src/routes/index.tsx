@@ -10,7 +10,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IconClubs,
   IconInstitution,
@@ -48,6 +48,33 @@ const navItems = [
   { label: "Clubs", href: "#clubs" },
   { label: "Opportunities", href: "#opportunities" },
   { label: "Wallet", href: "#wallet" },
+];
+
+const mobileNavGroups = [
+  {
+    label: "Explore",
+    items: [
+      { label: "People", detail: "Find builders and collaborators", href: "#people" },
+      { label: "Bootcamps", detail: "Learn with working professionals", href: "#learning" },
+      { label: "Clubs", detail: "Focused communities around work", href: "#clubs" },
+      { label: "Opportunities", detail: "Open doors through proof", href: "#opportunities" },
+    ],
+  },
+  {
+    label: "Build",
+    items: [
+      { label: "Docs", detail: "Notes, ideas, and work in progress", href: "#features" },
+      { label: "Metrics", detail: "Your proof, progress, and momentum", href: "#features" },
+      { label: "Zero AI", detail: "A practical thinking partner", href: "#features" },
+    ],
+  },
+  {
+    label: "Earn",
+    items: [
+      { label: "Wallet", detail: "Manage what your work earns", href: "#wallet" },
+      { label: "Store", detail: "Sell products and private access", href: "#wallet" },
+    ],
+  },
 ];
 
 const searchTopics = [
@@ -175,10 +202,22 @@ function BrandMark({ light = false }: { light?: boolean }) {
 
 function Header({ referralCode }: ReferralProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateHeader = () => setIsScrolled(window.scrollY > 8);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeader);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#171717]/[0.06] bg-white/85 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between px-4 md:px-6">
+    <header className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-300 ${
+      isScrolled || isOpen
+        ? "border-[#171717]/[0.08] bg-[#f4f2ef]/92 shadow-[0_10px_30px_-26px_rgba(23,20,23,0.45)] backdrop-blur-xl"
+        : "border-transparent bg-[#f4f2ef]"
+    }`}>
+      <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-[1180px] items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6">
         <BrandMark />
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
@@ -205,10 +244,11 @@ function Header({ referralCode }: ReferralProps) {
           <Link
             to="/signup"
             search={{ ref: referralCode, club: undefined }}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#171717] px-5 py-2.5 text-[13.5px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97]"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#171717] px-4 text-[13px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:px-5 sm:text-[13.5px]"
             preload={false}
           >
-            Join Zero Club
+            <span className="sm:hidden">Join</span>
+            <span className="hidden sm:inline">Join Zero Club</span>
           </Link>
           <button
             type="button"
@@ -223,18 +263,40 @@ function Header({ referralCode }: ReferralProps) {
       </div>
 
       {isOpen && (
-        <div className="border-t border-[#171717]/[0.06] bg-white px-4 py-4 lg:hidden">
-          <div className="mx-auto grid max-w-[1180px] gap-1">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className="rounded-xl px-4 py-3 text-[15px] font-semibold tracking-tight text-[#303236] hover:bg-[#171717]/[0.04]"
-              >
-                {item.label}
-              </a>
-            ))}
+        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 overflow-y-auto border-t border-[#171717]/[0.08] bg-[#f4f2ef] px-5 py-7 lg:hidden">
+          <div className="mx-auto max-w-xl pb-10">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">Explore Zero Club</p>
+            <div className="mt-6 space-y-8">
+              {mobileNavGroups.map((group) => (
+                <section key={group.label}>
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73]">{group.label}</p>
+                  <div className="divide-y divide-[#171717]/[0.08] border-y border-[#171717]/[0.08]">
+                    {group.items.map((item) => (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        className="group flex items-center justify-between gap-4 py-4 transition-colors active:opacity-70"
+                      >
+                        <span>
+                          <span className="block font-display text-[27px] font-medium leading-none tracking-tight text-[#171417]">{item.label}</span>
+                          <span className="mt-1.5 block text-[12px] leading-5 text-[#6d6269]">{item.detail}</span>
+                        </span>
+                        <ArrowUpRight className="h-5 w-5 shrink-0 text-[#cc208f] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-xl border border-[#171717]/12 text-[13px] font-semibold text-[#242126]">
+                Sign in
+              </Link>
+              <Link to="/signup" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-xl bg-[#171417] px-4 text-[13px] font-semibold text-white">
+                Join Zero Club
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -370,7 +432,7 @@ function Hero({ referralCode }: ReferralProps) {
   return (
     <section className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
-      <div className="mx-auto grid max-w-[1180px] items-center gap-14 px-4 pb-20 pt-14 md:px-6 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-20">
+      <div className="mx-auto grid max-w-[1180px] items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full bg-[#cc208f]/[0.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f] ring-1 ring-[#cc208f]/15">
             The builder network
@@ -619,7 +681,7 @@ function WalletSection() {
 
 function FeaturesSection() {
   return (
-    <section className="border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
+    <section id="features" className="border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
       <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
         <div className="max-w-[650px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">The Zero Club toolkit</p>

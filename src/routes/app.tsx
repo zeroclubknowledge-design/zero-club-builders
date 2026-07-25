@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   IconHome, IconLearn, IconClubs, IconWallet, IconMessages,
-  IconProfile, IconGem, IconBookmark, IconNotes, IconCompass,
+  IconProfile, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics,
   IconPresentation, IconInstitution, IconStore,
 } from "@/components/icons";
 import { supabase } from "@/lib/supabase";
@@ -79,6 +79,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/tutor-studio": "Tutor Studio",
   "/app/notifications": "Notifications",
   "/app/quests": "Quests",
+  "/app/metrics": "Metrics",
   "/app/notes": "ZeroNotes",
 };
 
@@ -347,6 +348,7 @@ function SidebarContent({
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
               { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
               { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
+              { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
               { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
               { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
               { Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" },

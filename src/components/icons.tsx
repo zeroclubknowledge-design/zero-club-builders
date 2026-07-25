@@ -147,6 +147,18 @@ export const IconCompass = ({ className, active }: ZeroIconProps) => {
   );
 };
 
+export const IconMetrics = ({ className, active }: ZeroIconProps) => {
+  const { fo, sw } = useIconStyle(active);
+  return (
+    <Svg className={className}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3.2" fill="currentColor" fillOpacity={fo} />
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3.2" stroke="currentColor" strokeWidth={sw} />
+      <path d="M7.4 16.8v-3.5M11.9 16.8V9.4M16.5 16.8v-5.6" stroke="currentColor" strokeWidth={sw + 0.15} strokeLinecap="round" />
+      <path d="m7.4 11.3 4.5-3 4.6 1.7" stroke="currentColor" strokeWidth={Math.max(1, sw - 0.25)} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+};
+
 export const IconPresentation = ({ className, active }: ZeroIconProps) => {
   const { fo, sw } = useIconStyle(active);
   return (

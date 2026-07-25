@@ -25,6 +25,7 @@ import { Route as AppPremiumRouteImport } from './routes/app.premium'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppMyStoreRouteImport } from './routes/app.my-store'
+import { Route as AppMetricsRouteImport } from './routes/app.metrics'
 import { Route as AppInstitutionStudioRouteImport } from './routes/app.institution-studio'
 import { Route as AppDraftsRouteImport } from './routes/app.drafts'
 import { Route as AppComposeRouteImport } from './routes/app.compose'
@@ -145,6 +146,11 @@ const AppNotesRoute = AppNotesRouteImport.update({
 const AppMyStoreRoute = AppMyStoreRouteImport.update({
   id: '/my-store',
   path: '/my-store',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMetricsRoute = AppMetricsRouteImport.update({
+  id: '/metrics',
+  path: '/metrics',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInstitutionStudioRoute = AppInstitutionStudioRouteImport.update({
@@ -367,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
   '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
+  '/app/metrics': typeof AppMetricsRoute
   '/app/my-store': typeof AppMyStoreRoute
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
@@ -424,6 +431,7 @@ export interface FileRoutesByTo {
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
+  '/app/metrics': typeof AppMetricsRoute
   '/app/my-store': typeof AppMyStoreRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
@@ -481,6 +489,7 @@ export interface FileRoutesById {
   '/app/compose': typeof AppComposeRoute
   '/app/drafts': typeof AppDraftsRoute
   '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
+  '/app/metrics': typeof AppMetricsRoute
   '/app/my-store': typeof AppMyStoreRoute
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
@@ -542,6 +551,7 @@ export interface FileRouteTypes {
     | '/app/compose'
     | '/app/drafts'
     | '/app/institution-studio'
+    | '/app/metrics'
     | '/app/my-store'
     | '/app/notes'
     | '/app/notifications'
@@ -599,6 +609,7 @@ export interface FileRouteTypes {
     | '/app/boost'
     | '/app/compose'
     | '/app/drafts'
+    | '/app/metrics'
     | '/app/my-store'
     | '/app/notifications'
     | '/app/premium'
@@ -655,6 +666,7 @@ export interface FileRouteTypes {
     | '/app/compose'
     | '/app/drafts'
     | '/app/institution-studio'
+    | '/app/metrics'
     | '/app/my-store'
     | '/app/notes'
     | '/app/notifications'
@@ -824,6 +836,13 @@ declare module '@tanstack/react-router' {
       path: '/my-store'
       fullPath: '/app/my-store'
       preLoaderRoute: typeof AppMyStoreRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/metrics': {
+      id: '/app/metrics'
+      path: '/metrics'
+      fullPath: '/app/metrics'
+      preLoaderRoute: typeof AppMetricsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/institution-studio': {
@@ -1214,6 +1233,7 @@ interface AppRouteChildren {
   AppComposeRoute: typeof AppComposeRoute
   AppDraftsRoute: typeof AppDraftsRoute
   AppInstitutionStudioRoute: typeof AppInstitutionStudioRouteWithChildren
+  AppMetricsRoute: typeof AppMetricsRoute
   AppMyStoreRoute: typeof AppMyStoreRoute
   AppNotesRoute: typeof AppNotesRouteWithChildren
   AppNotificationsRoute: typeof AppNotificationsRoute
@@ -1253,6 +1273,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppComposeRoute: AppComposeRoute,
   AppDraftsRoute: AppDraftsRoute,
   AppInstitutionStudioRoute: AppInstitutionStudioRouteWithChildren,
+  AppMetricsRoute: AppMetricsRoute,
   AppMyStoreRoute: AppMyStoreRoute,
   AppNotesRoute: AppNotesRouteWithChildren,
   AppNotificationsRoute: AppNotificationsRoute,
