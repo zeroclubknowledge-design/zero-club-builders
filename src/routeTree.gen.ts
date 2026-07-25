@@ -66,7 +66,7 @@ import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
-import { Route as AppNotesIdEditRouteImport } from './routes/app.notes.$id.edit'
+import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -358,9 +358,9 @@ const AppProfileIdNetworkRoute = AppProfileIdNetworkRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AppNotesIdRoute,
+  id: '/notes_/$id/edit',
+  path: '/notes/$id/edit',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -392,7 +392,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
-  '/app/notes/$id': typeof AppNotesIdRouteWithChildren
+  '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
   '/app/post/$id': typeof AppPostIdRoute
   '/app/profile/$id': typeof AppProfileIdRoute
@@ -447,7 +447,7 @@ export interface FileRoutesByTo {
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
-  '/app/notes/$id': typeof AppNotesIdRouteWithChildren
+  '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
   '/app/post/$id': typeof AppPostIdRoute
   '/app/profile/$id': typeof AppProfileIdRoute
@@ -508,7 +508,7 @@ export interface FileRoutesById {
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
-  '/app/notes/$id': typeof AppNotesIdRouteWithChildren
+  '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
   '/app/post/$id': typeof AppPostIdRoute
   '/app/profile/$id': typeof AppProfileIdRoute
@@ -535,7 +535,7 @@ export interface FileRoutesById {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
-  '/app/notes/$id/edit': typeof AppNotesIdEditRoute
+  '/app/notes_/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
 }
@@ -712,7 +712,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tutor-studio/'
     | '/app/wallet/'
-    | '/app/notes/$id/edit'
+    | '/app/notes_/$id/edit'
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
   fileRoutesById: FileRoutesById
@@ -1125,12 +1125,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileIdNetworkRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/notes/$id/edit': {
-      id: '/app/notes/$id/edit'
-      path: '/edit'
+    '/app/notes_/$id/edit': {
+      id: '/app/notes_/$id/edit'
+      path: '/notes/$id/edit'
       fullPath: '/app/notes/$id/edit'
       preLoaderRoute: typeof AppNotesIdEditRouteImport
-      parentRoute: typeof AppNotesIdRoute
+      parentRoute: typeof AppRoute
     }
   }
 }
@@ -1146,26 +1146,14 @@ const AppInstitutionStudioRouteChildren: AppInstitutionStudioRouteChildren = {
 const AppInstitutionStudioRouteWithChildren =
   AppInstitutionStudioRoute._addFileChildren(AppInstitutionStudioRouteChildren)
 
-interface AppNotesIdRouteChildren {
-  AppNotesIdEditRoute: typeof AppNotesIdEditRoute
-}
-
-const AppNotesIdRouteChildren: AppNotesIdRouteChildren = {
-  AppNotesIdEditRoute: AppNotesIdEditRoute,
-}
-
-const AppNotesIdRouteWithChildren = AppNotesIdRoute._addFileChildren(
-  AppNotesIdRouteChildren,
-)
-
 interface AppNotesRouteChildren {
-  AppNotesIdRoute: typeof AppNotesIdRouteWithChildren
+  AppNotesIdRoute: typeof AppNotesIdRoute
   AppNotesCreateRoute: typeof AppNotesCreateRoute
   AppNotesIndexRoute: typeof AppNotesIndexRoute
 }
 
 const AppNotesRouteChildren: AppNotesRouteChildren = {
-  AppNotesIdRoute: AppNotesIdRouteWithChildren,
+  AppNotesIdRoute: AppNotesIdRoute,
   AppNotesCreateRoute: AppNotesCreateRoute,
   AppNotesIndexRoute: AppNotesIndexRoute,
 }
@@ -1264,6 +1252,7 @@ interface AppRouteChildren {
   AppClubsIndexRoute: typeof AppClubsIndexRoute
   AppProfileIndexRoute: typeof AppProfileIndexRoute
   AppWalletIndexRoute: typeof AppWalletIndexRoute
+  AppNotesIdEditRoute: typeof AppNotesIdEditRoute
   AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
 }
 
@@ -1304,6 +1293,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppClubsIndexRoute: AppClubsIndexRoute,
   AppProfileIndexRoute: AppProfileIndexRoute,
   AppWalletIndexRoute: AppWalletIndexRoute,
+  AppNotesIdEditRoute: AppNotesIdEditRoute,
   AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
 }
 

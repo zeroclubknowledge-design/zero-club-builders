@@ -1,9 +1,8 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, Trash2, Heading1, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette, Check } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { uploadNoteMedia } from '@/lib/storage';
-import { createNoteAction, updateNoteAction } from '@/api';
 import { toast } from 'sonner';
 import { useUser } from '@/hooks/useUser';
 import { VideoEditor } from '@/components/VideoEditor';
@@ -27,7 +26,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export const Route = createFileRoute('/app/notes/$id/edit')({
+export const Route = createFileRoute('/app/notes_/$id/edit')({
   component: NotesEditPage,
 });
 
@@ -108,11 +107,12 @@ const TipTapBlock = ({
   return <EditorContent editor={editor} className="w-full relative z-10" />;
 };
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getFirstName } from "@/lib/utils";
 
 function NotesEditPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { id: noteId } = Route.useParams();
   const { data: profile } = useUser();
   const [title, setTitle] = useState('');
@@ -483,9 +483,24 @@ function NotesEditPage() {
         }
       };
 
-      await updateNoteAction({ data: updateData });
+      const { data: updatedNote, error: updateError } = await supabase
+        .from('notes')
+        .update(updateData.updates)
+        .eq('id', noteId)
+        .eq('author_id', profile.id)
+        .select('*')
+        .single();
 
-      toast.success(isPublishing ? "Note published successfully!" : "Note saved successfully!");
+      if (updateError) throw new Error(updateError.message);
+      if (!updatedNote) throw new Error('The note could not be updated. Please confirm you are the author.');
+
+      queryClient.setQueryData(['note', noteId], (current: any) => ({
+        ...(current || {}),
+        ...updatedNote,
+      }));
+      await queryClient.invalidateQueries({ queryKey: ['notes'] });
+
+      toast.success("Note updated successfully!");
       navigate({ to: '/app/notes/$id', params: { id: noteId } });
     } catch (err: any) {
       console.error(err);
