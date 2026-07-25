@@ -211,7 +211,17 @@ function TutorStudioPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        if (data) setProfile(data);
+        if (data) {
+          setProfile(data);
+          const tier = String(data.tier || "").toLowerCase();
+          const accountType = String(data.account_type || "").toLowerCase();
+          setHasAccess(
+            accountType === "institution" ||
+            tier === "premium+" ||
+            tier === "elite" ||
+            tier === "institution"
+          );
+        }
       }
     }
     loadProfile();
@@ -399,6 +409,20 @@ function TutorStudioPage() {
     toast.success("Lesson deleted");
     queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
   };
+
+  const totalLearners = bootcamps.reduce(
+    (total: number, bootcamp: any) => total + Number(bootcamp.enrollments?.[0]?.count || 0),
+    0
+  );
+  const totalRevenue = bootcamps.reduce(
+    (total: number, bootcamp: any) =>
+      total + Number(bootcamp.price || 0) * Number(bootcamp.enrollments?.[0]?.count || 0),
+    0
+  );
+  const activeBootcamps = bootcamps.filter(
+    (bootcamp: any) => String(bootcamp.status || "").toLowerCase() === "active"
+  ).length;
+  const draftBootcamps = Math.max(bootcamps.length - activeBootcamps, 0);
 
   // ═══════════════════════════════════════════════════════════════
   // ACCESS GATE
@@ -1144,66 +1168,102 @@ function TutorStudioPage() {
   // DASHBOARD VIEW
   // ═══════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       {/* ── Header ────────────────────────── */}
-      <div className="relative w-full bg-background pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2 px-5">
-        <div className="flex items-center justify-between gap-4 max-w-4xl lg:max-w-[1100px] mx-auto">
+      <div className="sticky top-0 z-30 w-full border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
+        <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Tutor Studio</p>
-            <h1 className="mt-1 font-display text-[26px] font-semibold text-foreground tracking-tight">Dashboard</h1>
+            <p className="text-[11px] font-medium uppercase text-muted-foreground">Tutor workspace</p>
+            <h1 className="mt-0.5 font-display text-[23px] font-semibold tracking-tight text-foreground md:text-[26px]">Tutor Studio</h1>
           </div>
-          <Link
-            to="/app/tutor-studio/settings"
-            aria-label="Studio settings"
-            className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border bg-card text-foreground tap hover:bg-foreground/[0.04]"
-          >
-            <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/app/tutor-studio/settings"
+              aria-label="Studio settings"
+              className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground tap hover:bg-muted"
+            >
+              <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
+            </Link>
+            <button
+              onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
+              className="flex h-10 items-center gap-2 rounded-lg bg-primary px-3.5 text-[13px] font-semibold text-primary-foreground tap hover:opacity-90 md:px-4"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              <span className="hidden sm:inline">New bootcamp</span>
+              <span className="sm:hidden">New</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="px-5 mt-8 space-y-10 max-w-4xl lg:max-w-[1100px] mx-auto md:pb-12">
-        {/* ── Quick Stats ────────────────────────── */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
-            <div className="flex items-center gap-2.5 text-muted-foreground">
-              <Wallet className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Total earned</span>
+      <div className="mx-auto mt-5 max-w-[1180px] space-y-6 px-4 md:px-7 md:pb-12">
+        <section className="overflow-hidden rounded-lg bg-[#171218] text-white ring-1 ring-white/[0.06]">
+          <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.4fr_1fr] lg:p-8">
+            <div className="max-w-2xl">
+              <div className="mb-5 grid h-10 w-10 place-items-center rounded-lg bg-[#cc208f] text-white">
+                <GraduationCap className="h-5 w-5" strokeWidth={2.2} />
+              </div>
+              <p className="text-[11px] font-medium uppercase text-white/55">Your teaching business</p>
+              <h2 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[31px]">Build excellent learning experiences.</h2>
+              <p className="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/60">Manage curriculum, learners, pricing, coupons, and the community around every cohort from one studio.</p>
             </div>
-            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">₦0</p>
-            <div className="flex items-center gap-1.5 mt-2.5 text-success">
-              <TrendingUp className="h-3 w-3" />
-              <span className="text-[11px] font-medium">+0% this month</span>
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-white/10 ring-1 ring-white/10">
+              <div className="bg-white/[0.04] p-4 sm:p-5">
+                <p className="text-[10px] font-medium uppercase text-white/45">Learners</p>
+                <p className="mt-2 text-[25px] font-semibold tabular-nums">{totalLearners.toLocaleString()}</p>
+              </div>
+              <div className="bg-white/[0.04] p-4 sm:p-5">
+                <p className="text-[10px] font-medium uppercase text-white/45">Active cohorts</p>
+                <p className="mt-2 text-[25px] font-semibold tabular-nums">{activeBootcamps}</p>
+              </div>
+              <div className="col-span-2 bg-white/[0.04] p-4 sm:p-5">
+                <p className="text-[10px] font-medium uppercase text-white/45">Gross enrollment value</p>
+                <p className="mt-2 text-[25px] font-semibold tabular-nums">{new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(totalRevenue)}</p>
+              </div>
             </div>
           </div>
-          <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+        </section>
+        {/* ── Quick Stats ────────────────────────── */}
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
+            <div className="flex items-center gap-2.5 text-muted-foreground">
+              <Wallet className="h-4 w-4" strokeWidth={1.75} />
+              <span className="text-[11px] font-medium uppercase">Enrollment value</span>
+            </div>
+            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", notation: "compact", maximumFractionDigits: 1 }).format(totalRevenue)}</p>
+            <div className="flex items-center gap-1.5 mt-2.5 text-success">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-[11px] font-medium">From enrollments</span>
+            </div>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
             <div className="flex items-center gap-2.5 text-muted-foreground">
               <Users className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Learners</span>
+              <span className="text-[11px] font-medium uppercase">Learners</span>
             </div>
-            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">0</p>
+            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{totalLearners.toLocaleString()}</p>
             <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
               <span className="text-[11px] font-medium">Across all bootcamps</span>
             </div>
           </div>
-          <div className="hidden lg:block rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
             <div className="flex items-center gap-2.5 text-muted-foreground">
               <BookOpen className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Bootcamps</span>
+              <span className="text-[11px] font-medium uppercase">Bootcamps</span>
             </div>
-            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">{bootcamps.length}</p>
+            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{bootcamps.length}</p>
             <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
               <span className="text-[11px] font-medium">Published & drafts</span>
             </div>
           </div>
-          <div className="hidden lg:block rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
             <div className="flex items-center gap-2.5 text-muted-foreground">
               <Zap className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Active</span>
+              <span className="text-[11px] font-medium uppercase">Active</span>
             </div>
-            <p className="mt-3 font-display text-[28px] font-semibold text-foreground tracking-tight tabular-nums leading-none">{bootcamps.filter((b: any) => (b.status || "").toLowerCase() === "active").length}</p>
+            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{activeBootcamps}</p>
             <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
-              <span className="text-[11px] font-medium">Live cohorts running</span>
+              <span className="text-[11px] font-medium">{draftBootcamps} in draft</span>
             </div>
           </div>
         </section>
@@ -1211,24 +1271,24 @@ function TutorStudioPage() {
         {/* ── Bootcamps Grid ────────────────────────── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Your bootcamps</h2>
-            <button
-              onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
-              className="flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90"
-            >
-              <Plus className="h-4 w-4" /> Create
-            </button>
+            <div>
+              <h2 className="text-[19px] font-semibold tracking-tight text-foreground">Bootcamps</h2>
+              <p className="mt-1 text-[12px] text-muted-foreground">Select a bootcamp to edit every part of it.</p>
+            </div>
+            <span className="text-[12px] tabular-nums text-muted-foreground">{bootcamps.length} total</span>
           </div>
 
-          <div className="grid gap-3 md:gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {bootcamps.length > 0 ? bootcamps.map((course) => (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {bootcampsLoading ? (
+              <div className="sm:col-span-2 xl:col-span-3 rounded-lg border border-border bg-card p-10 text-center text-[13px] text-muted-foreground">Loading your studio...</div>
+            ) : bootcamps.length > 0 ? bootcamps.map((course) => (
               <div
                 key={course.id}
                 onClick={() => { setActiveBootcampId(course.id); setActiveTab("details"); setView("editor"); }}
-                className="group relative flex flex-col rounded-2xl ring-1 ring-border bg-card transition-all hover:ring-foreground/15 shadow-soft cursor-pointer overflow-hidden"
+                className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/35 hover:shadow-soft"
               >
                 {/* Thumbnail */}
-                <div className="h-36 w-full bg-muted relative overflow-hidden">
+                <div className="relative h-36 w-full overflow-hidden bg-muted">
                   {course.banner_url && (
                     <img src={course.banner_url} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
                   )}
@@ -1240,16 +1300,16 @@ function TutorStudioPage() {
                     </div>
                   )}
                   <div className="absolute top-3 right-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium backdrop-blur-md ${course.status === "Active" ? "bg-black/50 text-white ring-1 ring-white/20" :
+                    <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium backdrop-blur-md ${String(course.status || "").toLowerCase() === "active" ? "bg-black/60 text-white ring-1 ring-white/20" :
                       "bg-black/50 text-white/80 ring-1 ring-white/15"
                     }`}>
-                      {course.status === "Active" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
+                      {String(course.status || "").toLowerCase() === "active" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
                       {course.status}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-5 flex-1 flex flex-col justify-between">
+                <div className="flex flex-1 flex-col justify-between p-4">
                   <div className="mb-4">
                     <h3 className="text-[15px] font-semibold text-foreground leading-snug tracking-tight">{course.title}</h3>
                     <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground mt-1.5">
@@ -1267,15 +1327,15 @@ function TutorStudioPage() {
                 </div>
               </div>
             )) : (
-              <div className="sm:col-span-2 xl:col-span-3 rounded-2xl ring-1 ring-border bg-card p-14 flex flex-col items-center justify-center text-center">
-                <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
+              <div className="sm:col-span-2 xl:col-span-3 flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-12 text-center">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <BookOpen className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
                 </div>
                 <h3 className="text-[17px] font-semibold text-foreground mb-1.5 tracking-tight">No bootcamps yet</h3>
                 <p className="text-[13.5px] text-muted-foreground max-w-sm mb-7 leading-relaxed">Create your first bootcamp to start sharing your knowledge and earning.</p>
                 <button
                   onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
-                  className="rounded-full bg-foreground px-6 py-2.5 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90"
+                  className="rounded-lg bg-primary px-5 py-2.5 text-[13px] font-semibold text-primary-foreground tap hover:opacity-90"
                 >
                   Create your first bootcamp
                 </button>

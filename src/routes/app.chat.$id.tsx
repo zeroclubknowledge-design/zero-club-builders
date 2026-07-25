@@ -850,7 +850,7 @@ function ChatViewPage() {
                 <MoreHorizontal className="h-5 w-5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-border">
+            <DropdownMenuContent align="end" className="z-[100] w-52 border-border bg-background/95 shadow-lift backdrop-blur-xl">
               <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={toggleMuteConversation}>
                 {isMuted ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
                 <span className="text-sm font-medium">{isMuted ? 'Unmute chat' : 'Mute chat'}</span>
@@ -873,7 +873,7 @@ function ChatViewPage() {
       </header>
 
       <Sheet open={infoOpen} onOpenChange={setInfoOpen}>
-        <SheetContent side="right" className="w-[min(92vw,380px)] border-l border-border bg-background p-0">
+        <SheetContent side="right" overlayClassName="z-[90]" className="z-[100] w-[min(92vw,380px)] border-l border-border bg-background p-0">
           <SheetHeader className="border-b border-border/60 px-5 py-5 text-left">
             <SheetTitle>Conversation details</SheetTitle>
           </SheetHeader>

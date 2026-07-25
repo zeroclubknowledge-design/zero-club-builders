@@ -215,6 +215,12 @@ function ComposePage() {
     onBlur: () => setTimeout(() => setIsEditorFocused(false), 200),
   });
 
+  useEffect(() => {
+    if (!editor || editor.getHTML() === bodyText) return;
+
+    editor.commands.setContent(bodyText || "", { emitUpdate: false });
+  }, [editor, bodyText]);
+
   const insertFormatting = (format: 'bold' | 'italic' | 'bullet') => {
     if (!editor) return;
     if (format === 'bold') editor.chain().focus().toggleBold().run();

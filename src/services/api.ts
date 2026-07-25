@@ -6,8 +6,9 @@ import { getCachedSession } from './auth';
 export const getBootcamps = async () => {
   const { data, error } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url, account_type)')
-    .ilike('status', 'active');
+    .select('*, profiles(username, full_name, avatar_url, account_type), enrollments(count), modules(count)')
+    .ilike('status', 'active')
+    .order('created_at', { ascending: false });
   if (error) return [];
   return data ?? [];
 };
