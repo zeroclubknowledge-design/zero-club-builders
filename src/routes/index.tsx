@@ -52,20 +52,20 @@ const navItems = [
 
 const mobileNavGroups = [
   {
-    label: "Explore",
-    items: [
-      { label: "People", detail: "Find builders and collaborators", href: "#people" },
-      { label: "Bootcamps", detail: "Learn with working professionals", href: "#learning" },
-      { label: "Clubs", detail: "Focused communities around work", href: "#clubs" },
-      { label: "Opportunities", detail: "Open doors through proof", href: "#opportunities" },
-    ],
-  },
-  {
     label: "Build",
     items: [
       { label: "Docs", detail: "Notes, ideas, and work in progress", href: "#features" },
       { label: "Metrics", detail: "Your proof, progress, and momentum", href: "#features" },
       { label: "Zero AI", detail: "A practical thinking partner", href: "#features" },
+    ],
+  },
+  {
+    label: "Explore",
+    items: [
+      { label: "Feed", detail: "Follow real work and progress", href: "#feed" },
+      { label: "Bootcamps", detail: "Learn with working professionals", href: "#learning" },
+      { label: "Clubs", detail: "Focused communities around work", href: "#clubs" },
+      { label: "Opportunities", detail: "Open doors through proof", href: "#opportunities" },
     ],
   },
   {
@@ -202,21 +202,19 @@ function BrandMark({ light = false }: { light?: boolean }) {
 
 function Header({ referralCode }: ReferralProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const updateHeader = () => setIsScrolled(window.scrollY > 8);
-    updateHeader();
-    window.addEventListener("scroll", updateHeader, { passive: true });
-    return () => window.removeEventListener("scroll", updateHeader);
-  }, []);
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-300 ${
-      isScrolled || isOpen
-        ? "border-[#171717]/[0.08] bg-[#f4f2ef]/92 shadow-[0_10px_30px_-26px_rgba(23,20,23,0.45)] backdrop-blur-xl"
-        : "border-transparent bg-[#f4f2ef]"
-    }`}>
+    <>
+    <header className={`fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-200 ${isOpen ? "bg-[#f4f2ef]" : "bg-transparent"}`}>
       <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-[1180px] items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6">
         <BrandMark />
 
@@ -262,11 +260,12 @@ function Header({ referralCode }: ReferralProps) {
         </div>
       </div>
 
+    </header>
+
       {isOpen && (
-        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 overflow-y-auto border-t border-[#171717]/[0.08] bg-[#f4f2ef] px-5 py-7 lg:hidden">
+        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 z-40 overflow-y-auto border-t border-[#171717]/[0.08] bg-[#f4f2ef] px-5 py-5 lg:hidden">
           <div className="mx-auto max-w-xl pb-10">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">Explore Zero Club</p>
-            <div className="mt-6 space-y-8">
+            <div className="space-y-7">
               {mobileNavGroups.map((group) => (
                 <section key={group.label}>
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73]">{group.label}</p>
@@ -276,11 +275,11 @@ function Header({ referralCode }: ReferralProps) {
                         key={item.label}
                         href={item.href}
                         onClick={() => setIsOpen(false)}
-                        className="group flex items-center justify-between gap-4 py-4 transition-colors active:opacity-70"
+                        className="group flex items-center justify-between gap-4 py-3.5 transition-colors active:opacity-70"
                       >
                         <span>
-                          <span className="block font-display text-[27px] font-medium leading-none tracking-tight text-[#171417]">{item.label}</span>
-                          <span className="mt-1.5 block text-[12px] leading-5 text-[#6d6269]">{item.detail}</span>
+                          <span className="block font-display text-[28px] font-medium leading-none tracking-tight text-[#171417]">{item.label}</span>
+                          <span className="mt-1 block text-[11.5px] leading-5 text-[#6d6269]">{item.detail}</span>
                         </span>
                         <ArrowUpRight className="h-5 w-5 shrink-0 text-[#cc208f] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                       </a>
@@ -300,7 +299,7 @@ function Header({ referralCode }: ReferralProps) {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
 
@@ -430,7 +429,7 @@ function ActivityRail() {
 
 function Hero({ referralCode }: ReferralProps) {
   return (
-    <section className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
+    <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
       <div className="mx-auto grid max-w-[1180px] items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
         <div>
