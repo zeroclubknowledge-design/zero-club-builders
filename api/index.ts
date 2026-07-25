@@ -3,7 +3,7 @@ export default async function handler(req: any, res: any) {
   try {
     // Import from the built output instead of source
     // We use a relative path that Vercel's bundler will follow
-    const { default: serverHandler } = await import("../dist/server/index.js");
+    const { default: serverHandler } = await import("../dist/server/server.js");
     
     // Convert Node.js request to a Web Request that TanStack Start expects
     const protocol = req.headers["x-forwarded-proto"] || "http";

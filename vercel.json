@@ -5,7 +5,8 @@
   "functions": {
     "api/index.ts": {
       "memory": 1024,
-      "maxDuration": 15
+      "maxDuration": 15,
+      "includeFiles": "dist/server/**"
     }
   },
   "rewrites": [
