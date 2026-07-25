@@ -297,14 +297,14 @@ function ShipPage() {
   const canShip = projectName.trim().length > 0 && !uploading;
 
   return (
-    <div className="min-h-screen bg-background pb-6">
+    <div className="min-h-screen bg-[#f8f7f5] pb-10 dark:bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline h-[calc(72px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center justify-between px-4 h-[72px]">
+      <header className="sticky top-0 z-50 h-[calc(72px+env(safe-area-inset-top))] border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-[72px] max-w-[900px] items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => navigate({ to: "/app" })}
-              className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card tap hover:bg-accent"
             >
               <ArrowLeft className="h-[18px] w-[18px] text-foreground" />
             </button>
@@ -318,10 +318,10 @@ function ShipPage() {
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto p-4 space-y-6">
+      <div className="mx-auto max-w-[900px] space-y-4 p-4 sm:space-y-5 sm:p-6">
         
         {/* Basic Info */}
-        <section className="space-y-4 bg-card rounded-2xl p-5 ring-1 ring-border shadow-soft">
+        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
           <div>
             <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Project Name *</label>
             <input 
@@ -329,7 +329,7 @@ function ShipPage() {
               placeholder="E.g., Zero Club Builder App"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="mt-1 w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-[15px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition-all text-foreground placeholder:text-muted-foreground/40"
+              className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3.5 text-[15px] font-medium text-foreground outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary"
             />
           </div>
 
@@ -340,7 +340,7 @@ function ShipPage() {
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-[12px] font-semibold tracking-tight tap transition-all border ${
+                  className={`rounded-lg border px-4 py-2 text-[12px] font-semibold tap transition-all ${
                     category === cat 
                       ? "bg-foreground text-background border-transparent"
                       : "bg-background border-border text-muted-foreground hover:border-foreground/30"
@@ -359,13 +359,13 @@ function ShipPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="mt-1 w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all text-foreground placeholder:text-muted-foreground/40 resize-none"
+              className="mt-1 w-full resize-none rounded-lg border border-border bg-background px-4 py-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary"
             />
           </div>
         </section>
 
         {/* Proof of Work */}
-        <section className="space-y-4 bg-card rounded-2xl p-5 ring-1 ring-border shadow-soft">
+        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-2">
             <h2 className="text-[16px] font-semibold tracking-tight">Proof of work</h2>
           </div>
@@ -375,7 +375,7 @@ function ShipPage() {
             {previews.map((src, i) => {
               const isVideo = images[i] ? images[i]?.type.startsWith('video/') : (src.includes('.mp4') || src.includes('.mov') || src.includes('.webm'));
               return (
-                <div key={i} className="relative aspect-video rounded-2xl overflow-hidden border border-border/40 bg-muted group">
+                <div key={i} className="group relative aspect-video overflow-hidden rounded-lg border border-border bg-muted">
                   {isVideo ? (
                     <video src={src} className="w-full h-full object-cover" />
                   ) : (
@@ -396,7 +396,7 @@ function ShipPage() {
             
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="aspect-video rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/50 hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+              className="flex aspect-video flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
             >
               <UploadCloud className="h-6 w-6" />
               <span className="text-xs font-bold">Upload Media</span>
@@ -413,14 +413,14 @@ function ShipPage() {
         </section>
 
         {/* Project Details */}
-        <section className="space-y-6 bg-card rounded-2xl p-5 ring-1 ring-border shadow-soft">
+        <section className="space-y-6 rounded-lg border border-border bg-card p-4 sm:p-5">
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Project Links</label>
             </div>
             <div className="space-y-3">
               {links.map((link, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input 
                     type="text"
                     placeholder="Link Title (e.g., Live URL, GitHub)"
@@ -430,7 +430,7 @@ function ShipPage() {
                       newLinks[i].title = e.target.value;
                       setLinks(newLinks);
                     }}
-                    className="w-1/3 bg-background border border-border/40 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary sm:w-1/3"
                   />
                   <div className="relative flex-1">
                     <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -443,7 +443,7 @@ function ShipPage() {
                         newLinks[i].url = e.target.value;
                         setLinks(newLinks);
                       }}
-                      className="w-full bg-background border border-border/40 rounded-xl px-4 py-3 pl-9 text-sm outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-border bg-background px-4 py-3 pl-9 text-sm outline-none focus:border-primary"
                     />
                   </div>
                   {links.length > 1 && (
@@ -474,7 +474,7 @@ function ShipPage() {
                 placeholder="React, Next.js, Figma, Tailwind (comma separated)"
                 value={skills}
                 onChange={(e) => setSkills(e.target.value)}
-                className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 pl-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full rounded-lg border border-border bg-background px-4 py-3.5 pl-11 text-sm outline-none transition-colors focus:border-primary"
               />
             </div>
           </div>
@@ -497,7 +497,7 @@ function ShipPage() {
                     value={prompts}
                     onChange={(e) => setPrompts(e.target.value)}
                     rows={3}
-                    className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 pl-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                    className="w-full resize-none rounded-lg border border-border bg-background px-4 py-3.5 pl-11 text-sm outline-none transition-colors focus:border-primary"
                   />
                 </div>
               </div>
@@ -508,7 +508,7 @@ function ShipPage() {
         {/* Club Selection & Visibility */}
         <section className="space-y-2">
           {enrolledBootcamps.length > 0 && (
-            <div className="bg-card rounded-3xl p-4 border border-border/40 shadow-sm flex items-center justify-between">
+            <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col">
                 <span className="text-sm font-bold">Ship into a Club</span>
                 <span className="text-xs text-muted-foreground">Submit this as part of a Bootcamp</span>
@@ -516,7 +516,7 @@ function ShipPage() {
               <select 
                 value={selectedBootcampId || ""}
                 onChange={(e) => setSelectedBootcampId(e.target.value || null)}
-                className="bg-background border border-border/40 rounded-xl px-3 py-2 text-sm outline-none font-medium max-w-[200px]"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium outline-none sm:max-w-[240px]"
               >
                 <option value="">None (Global)</option>
                 {enrolledBootcamps.map(bc => (
@@ -526,10 +526,10 @@ function ShipPage() {
             </div>
           )}
 
-          <div className="bg-card rounded-3xl p-2 border border-border/40 shadow-sm flex flex-col divide-y divide-border/40">
+          <div className="flex flex-col divide-y divide-border rounded-lg border border-border bg-card p-1">
             <button 
               onClick={() => setVisibility("Public")}
-              className={`flex items-center justify-between p-4 rounded-[24px] transition ${visibility === "Public" ?"bg-accent/50" : "hover:bg-accent/30"}`}
+              className={`flex items-center justify-between rounded-lg p-4 transition ${visibility === "Public" ?"bg-accent/60" : "hover:bg-accent/30"}`}
             >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -544,7 +544,7 @@ function ShipPage() {
             </button>
             <button 
               onClick={() => setVisibility("Club Only")}
-              className={`flex items-center justify-between p-4 rounded-[24px] transition ${visibility === "Club Only" ?"bg-accent/50" : "hover:bg-accent/30"}`}
+              className={`flex items-center justify-between rounded-lg p-4 transition ${visibility === "Club Only" ?"bg-accent/60" : "hover:bg-accent/30"}`}
             >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-muted-foreground">
@@ -565,7 +565,7 @@ function ShipPage() {
           <button 
             onClick={handleShip}
             disabled={!canShip}
-            className="w-full rounded-2xl bg-gradient-primary py-4 text-[16px] font-bold tracking-tight text-primary-foreground shadow-glow tap hover:opacity-95 disabled:opacity-40 flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-4 text-[16px] font-semibold text-primary-foreground tap hover:bg-primary/90 disabled:opacity-40"
           >
             {uploading ? (
               <>

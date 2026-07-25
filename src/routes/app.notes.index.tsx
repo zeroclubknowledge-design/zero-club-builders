@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Search, Plus, Edit3, Image as ImageIcon, MoreVertical, Trash2, Share2 } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Edit3, Image as ImageIcon, MoreVertical, Trash2, Share2, X } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';
@@ -16,7 +16,6 @@ export const Route = createFileRoute('/app/notes/')({
 function NotesIndexPage() {
   const navigate = useNavigate();
   const { data: profile } = useUser();
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Overview');
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
@@ -43,7 +42,11 @@ function NotesIndexPage() {
     return true;
   }).filter((n) => {
     if (!searchQuery) return true;
-    return n.title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchable = [n.title, n.content, n.profiles?.full_name, n.profiles?.username]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return searchable.includes(searchQuery.trim().toLowerCase());
   });
 
   const featuredNote = filteredNotes.length > 0 ? filteredNotes[0] : null;
@@ -86,42 +89,40 @@ function NotesIndexPage() {
       {/* Sticky Header and Tabs */}
       <div className="sticky top-0 z-50 flex flex-col border-b border-border/60 bg-background">
         {/* Editorial Header */}
-        <header className="mx-auto flex w-full max-w-[1100px] items-center justify-between px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6">
+        <header className="mx-auto flex w-full max-w-[1100px] items-center gap-3 px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6">
           <button 
             onClick={() => navigate({ to: '/app' })}
             className="flex h-10 w-10 items-center justify-center gap-2 rounded-lg border border-border/60 bg-card text-foreground transition hover:bg-accent active:scale-95 md:w-auto md:px-4"
           >
             <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
-            <span className="text-sm font-bold hidden md:block">Back</span>
+            <span className="hidden text-sm font-semibold md:block">Back</span>
           </button>
-          
-          {!isSearchExpanded && (
-            <span className="font-display font-semibold tracking-tight text-[16px] absolute left-1/2 -translate-x-1/2 text-foreground">
-              ZeroNotes
-            </span>
-          )}
-
-          <div className={`flex items-center gap-2 transition-all duration-500 ease-out ${isSearchExpanded ? 'w-full ml-4' : ''}`}>
-            <div className={`flex items-center overflow-hidden rounded-lg border border-border/60 bg-card transition-all duration-300 ${isSearchExpanded ? 'w-full px-4' : 'w-10 h-10 text-foreground justify-center'}`}>
-              <button 
-                onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-                className="shrink-0 outline-none flex items-center justify-center w-full h-full md:w-auto md:h-auto"
-              >
-                <Search className={`h-[18px] w-[18px] ${isSearchExpanded ? 'text-foreground/70' : 'text-foreground'}`} strokeWidth={1.5} />
-              </button>
-              {isSearchExpanded && (
-                <input
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search notes..."
-                  className="w-full bg-transparent border-none py-2.5 px-3 text-[15px] outline-none font-medium placeholder:text-muted-foreground/50"
-                  onBlur={() => !searchQuery && setIsSearchExpanded(false)}
-                />
-              )}
-            </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-[17px] font-semibold text-foreground">ZeroNotes</h1>
+            <p className="truncate text-[11px] text-muted-foreground">Ideas, lessons, and work worth keeping</p>
           </div>
+          <Link to="/app/notes/create" className="hidden h-10 items-center gap-2 rounded-lg bg-foreground px-4 text-sm font-semibold text-background transition hover:opacity-90 sm:flex">
+            <Plus className="h-4 w-4" />
+            Write
+          </Link>
         </header>
+
+        <div className="mx-auto w-full max-w-[1100px] px-4 pb-3 md:px-6">
+          <label className="flex h-11 w-full items-center gap-3 rounded-lg border border-border bg-card px-3 transition-colors focus-within:border-primary">
+            <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" strokeWidth={1.75} />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search titles, ideas, or writers"
+              className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+            {searchQuery && (
+              <button type="button" onClick={() => setSearchQuery('')} className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Clear search">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </label>
+        </div>
 
         {/* Filter Tabs */}
         <div className="mx-auto grid w-full max-w-[1100px] shrink-0 grid-cols-3 gap-1 px-4 pb-3 md:px-6">

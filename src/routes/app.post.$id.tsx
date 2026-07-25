@@ -570,10 +570,10 @@ function PostDetail() {
   const threadedComments = getThreadedComments(comments);
 
   return (
-    <div className="flex fixed inset-0 z-40 flex-col bg-background overflow-hidden">
-      <header className="shrink-0 sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border h-[calc(72px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
-        <div className="flex h-[72px] items-center justify-between px-4">
-        <button onClick={handleBack} className="p-1 transition active:opacity-60">
+    <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-[#f8f7f5] dark:bg-background">
+      <header className="sticky top-0 z-50 h-[calc(72px+env(safe-area-inset-top))] shrink-0 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-[72px] w-full max-w-[860px] items-center justify-between px-4 sm:px-6">
+        <button onClick={handleBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60">
           <ChevronLeft className="h-6 w-6" />
         </button>
         <h1 className="text-[17px] font-semibold tracking-tight">Post</h1>
@@ -590,7 +590,7 @@ function PostDetail() {
                   <MoreHorizontal className="h-6 w-6" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-xl border-border">
+              <DropdownMenuContent align="end" className="w-56 rounded-lg border-border bg-background shadow-lg">
                 <DropdownMenuItem 
                   className="flex items-center gap-3 py-2.5 cursor-pointer"
                   onClick={() => {
@@ -648,14 +648,14 @@ function PostDetail() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="no-scrollbar flex-1 overflow-y-auto">
         {!post || isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="mt-4 text-sm text-muted-foreground font-medium">Loading build details...</p>
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="mx-auto min-h-full w-full max-w-[860px] border-x border-border bg-background animate-in fade-in slide-in-from-bottom-4 duration-500">
             <section className="px-4 py-4 flex items-center justify-between">
               <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex items-center gap-3">
             <div className="relative">
@@ -698,7 +698,7 @@ function PostDetail() {
             <button 
               onClick={handleFollow}
               disabled={followLoading}
-              className={`rounded-full px-5 py-2 text-[13px] font-semibold tracking-tight tap flex items-center gap-2 ${
+              className={`flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold tap ${
                 isFollowing ? "bg-card ring-1 ring-border text-foreground" : "bg-foreground text-background"
               }`}
             >
@@ -718,7 +718,7 @@ function PostDetail() {
           
           {/* Media Grid */}
           {post.media_urls && post.media_urls.length > 0 && (
-            <div className={`mt-3 rounded-2xl overflow-hidden transition-colors ${
+            <div className={`mt-3 overflow-hidden rounded-lg transition-colors ${
               post.media_urls.length === 2 
                 ? "grid grid-cols-2 gap-0.5 max-h-[320px] ring-1 ring-border bg-muted/40" 
                 : "flex justify-start"
@@ -726,7 +726,7 @@ function PostDetail() {
               {post.media_urls.slice(0, 2).map((url: string, i: number) => (
                 <div 
                   key={i} 
-                  className={`relative overflow-hidden rounded-2xl cursor-zoom-in group ${
+                  className={`group relative cursor-zoom-in overflow-hidden rounded-lg ${
                     post.media_urls.length === 2 
                       ?"h-[320px] w-full" 
                       : "max-w-full ring-1 ring-border bg-muted/40 transition-colors"
@@ -738,7 +738,7 @@ function PostDetail() {
                       <video 
                         ref={videoRef}
                         src={url} 
-                        className={`rounded-2xl transition duration-300 group-hover:scale-105 ${
+                        className={`rounded-lg transition duration-300 group-hover:scale-105 ${
                           post.media_urls.length === 2 
                             ?"w-full h-full object-cover" 
                             : "max-w-full max-h-[600px] w-auto h-auto"
@@ -762,7 +762,7 @@ function PostDetail() {
                     <img 
                       src={url} 
                       alt={`Post media ${i + 1}`} 
-                      className={`rounded-2xl transition duration-300 group-hover:scale-105 ${
+                      className={`rounded-lg transition duration-300 group-hover:scale-105 ${
                         post.media_urls.length === 2 
                           ?"w-full h-full object-cover" 
                           : "max-w-full max-h-[600px] w-auto h-auto"
@@ -770,7 +770,7 @@ function PostDetail() {
                     />
                   )}
                   {post.media_urls.length > 2 && i === 1 && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/60">
                       <span className="text-white text-2xl font-semibold tracking-tight">+{post.media_urls.length - 2}</span>
                     </div>
                   )}
@@ -781,9 +781,9 @@ function PostDetail() {
 
           {/* Tutor Proof Button */}
           {isTutor && !post.is_verified_build && (
-            <div className="mt-8 rounded-3xl bg-primary/5 p-6 border border-dashed border-primary/20 text-center">
+            <div className="mt-8 rounded-lg border border-dashed border-primary/30 bg-primary/5 p-6 text-center">
               <div className="flex justify-center mb-4">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+                <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10 text-primary">
                   <Award className="h-6 w-6" />
                 </div>
               </div>
@@ -794,7 +794,7 @@ function PostDetail() {
               <button 
                 onClick={handleVerifyBuild}
                 disabled={verifying}
-                className="w-full rounded-full bg-foreground py-3.5 text-[14px] font-semibold tracking-tight text-background tap shadow-lift hover:opacity-90 flex items-center justify-center gap-2"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-3.5 text-[14px] font-semibold text-background tap hover:opacity-90"
               >
                 {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 Mark as Proof
@@ -852,7 +852,7 @@ function PostDetail() {
                   <span className="text-xs">{Math.max(0, (post.computed_reposts_count ?? post.reposts_count ?? 0) + (hasReposted && !data?.hasReposted ? 1 : (!hasReposted && data?.hasReposted ? -1 : 0)))}</span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-background/95 backdrop-blur-xl border-border">
+              <DropdownMenuContent align="start" className="w-48 rounded-lg border-border bg-background shadow-lg">
                 <DropdownMenuItem className="gap-3 py-3 cursor-pointer" onClick={(e) => handleRepost(e)}>
                   <Repeat className="h-4 w-4" />
                   <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
@@ -943,7 +943,7 @@ function PostDetail() {
                       <textarea
                         value={editCommentText}
                         onChange={(e) => setEditCommentText(e.target.value)}
-                        className="w-full bg-accent/30 rounded-xl border-border/50 text-sm focus:border-primary p-3 min-h-[80px]"
+                        className="min-h-[80px] w-full rounded-lg border border-border bg-card p-3 text-sm outline-none focus:border-primary"
                         autoFocus
                       />
                       <div className="flex justify-end gap-2 mt-2">
@@ -955,7 +955,7 @@ function PostDetail() {
                         </button>
                         <button 
                           onClick={handleSaveCommentEdit}
-                          className="px-4 py-1.5 text-xs font-semibold tracking-tight bg-foreground text-background rounded-full tap hover:opacity-90"
+                          className="rounded-lg bg-foreground px-4 py-1.5 text-xs font-semibold text-background tap hover:opacity-90"
                         >
                           Save
                         </button>
@@ -992,7 +992,7 @@ function PostDetail() {
                             <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-xl border-border">
+                        <DropdownMenuContent align="end" className="w-56 rounded-lg border-border bg-background shadow-lg">
                           <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={() => {
                             navigator.clipboard.writeText(window.location.href);
                             toast.success("Comment link copied!");
@@ -1047,7 +1047,8 @@ function PostDetail() {
 
       {/* Static Comment Input Area */}
       {post && !isLoading && (
-        <div className="shrink-0 bg-background/95 backdrop-blur-md border-t border-border/50 px-4 pt-3 pb-8 sm:pb-3 z-40">
+        <div className="z-40 shrink-0 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 sm:px-6">
+          <div className="mx-auto w-full max-w-[860px]">
           {replyTo && (
             <div className="flex items-center justify-between mb-2 px-2 bg-primary/5 rounded-lg py-1.5 border border-primary/10">
               <span className="text-xs text-primary font-medium">Replying to {getFirstName(replyTo.profiles)}</span>
@@ -1065,7 +1066,7 @@ function PostDetail() {
                 (currentUser?.full_name || currentUser?.username || 'U').substring(0, 1).toUpperCase()
               )}
             </div>
-            <div className="flex-1 bg-card rounded-2xl ring-1 ring-border flex items-end pr-1 pb-1 min-h-[44px] focus-within:ring-primary/40 transition-all">
+            <div className="flex min-h-[44px] flex-1 items-end rounded-lg border border-border bg-card pb-1 pr-1 transition-colors focus-within:border-primary">
               <textarea 
                 value={commentText}
                 onChange={(e) => {
@@ -1095,6 +1096,7 @@ function PostDetail() {
                 {commentLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}

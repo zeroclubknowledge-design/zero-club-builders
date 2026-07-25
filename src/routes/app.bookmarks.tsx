@@ -1,12 +1,10 @@
-import { createFileRoute, Link, useLoaderData, useRouter } from "@tanstack/react-router";
-import { Bookmark, Search, Heart, MessageCircle, Share2, MoreHorizontal, ChevronLeft, Send, X, Loader2 } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Bookmark, Search, ChevronLeft, X, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { getProfile, enrichPosts } from "@/api";
+import { enrichPosts } from "@/api";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 import { useQuery } from "@tanstack/react-query";
 
@@ -43,9 +41,25 @@ function BookmarksPage() {
     queryFn: getBookmarks
   });
   const bookmarks = bookmarksData || [];
-  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [commentPost, setCommentPost] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredBookmarks = normalizedQuery
+    ? bookmarks.filter((post: any) => {
+        const searchable = [
+          post?.content,
+          post?.profiles?.full_name,
+          post?.profiles?.username,
+          post?.bootcamps?.title,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return searchable.includes(normalizedQuery);
+      })
+    : bookmarks;
 
   useEffect(() => {
     async function initUser() {
@@ -63,28 +77,41 @@ function BookmarksPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to="/app" className="p-1 transition active:opacity-60 lg:hidden">
+    <div className="min-h-screen bg-[#f8f7f5] pb-20 dark:bg-background">
+      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex w-full max-w-[860px] items-center gap-3 px-4 py-4 sm:px-6">
+          <Link to="/app" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60 lg:hidden">
             <ChevronLeft className="h-6 w-6" />
           </Link>
-          <div>
-            <h1 className="text-xl font-bold">Bookmarks</h1>
-            <p className="text-[10px] text-muted-foreground">Your Saved Builds</p>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-semibold">Bookmarks</h1>
+            <p className="text-xs text-muted-foreground">Posts and builds saved for later</p>
           </div>
         </div>
-        <button className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card/60 transition active:scale-95">
-          <Search className="h-4 w-4" />
-        </button>
+        <div className="mx-auto w-full max-w-[860px] px-4 pb-4 sm:px-6">
+          <label className="flex h-11 w-full items-center gap-3 rounded-lg border border-border bg-card px-3 focus-within:border-primary">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search saved posts, people, or bootcamps"
+              className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+            {searchQuery && (
+              <button type="button" onClick={() => setSearchQuery("")} className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Clear search">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </label>
+        </div>
       </header>
 
-      <div className="px-5 py-6">
+      <main className="mx-auto w-full max-w-[860px] px-4 py-6 sm:px-6">
         {isLoading ? (
           <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : bookmarks.length > 0 ? (
+        ) : filteredBookmarks.length > 0 ? (
           <div className="space-y-4">
-            {bookmarks.map((post: any) => {
+            {filteredBookmarks.map((post: any) => {
               if (!post) return null;
               
               return (
@@ -98,23 +125,24 @@ function BookmarksPage() {
             })}
           </div>
         ) : (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center text-center px-10">
-            <div className="grid h-24 w-24 place-items-center rounded-full bg-muted/10 text-muted-foreground mb-6">
-              <Bookmark className="h-12 w-12 opacity-20" />
+          <div className="flex min-h-[52vh] flex-col items-center justify-center px-6 text-center">
+            <div className="mb-5 grid h-16 w-16 place-items-center rounded-lg border border-border bg-card text-muted-foreground">
+              {searchQuery ? <Search className="h-7 w-7" /> : <Bookmark className="h-7 w-7" />}
             </div>
-            <h2 className="text-2xl font-bold">No bookmarks yet</h2>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-              When you find a build that inspires you, tap the bookmark icon to save it here for later reference.
+            <h2 className="text-xl font-semibold">{searchQuery ? "No matching bookmarks" : "No bookmarks yet"}</h2>
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+              {searchQuery
+                ? "Try another name, phrase, or bootcamp title."
+                : "When you find a build that inspires you, save it here for later reference."}
             </p>
-            <Link 
-              to="/app" 
-              className="mt-8 rounded-2xl bg-primary px-10 py-4 text-sm font-bold text-primary-foreground shadow-glow shadow-primary/20 transition active:scale-95"
-            >
-              Discover Builds
-            </Link>
+            {!searchQuery && (
+              <Link to="/app" className="mt-7 rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-95">
+                Discover builds
+              </Link>
+            )}
           </div>
         )}
-      </div>
+      </main>
 
       <CommentDrawer 
         post={commentPost} 

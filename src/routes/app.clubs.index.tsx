@@ -763,7 +763,7 @@ function Clubs() {
 
       {/* Create Club Drawer */}
       <Drawer open={showCreate} onOpenChange={setShowCreate}>
-        <DrawerContent className="border-none bg-background p-0">
+        <DrawerContent className="mx-auto max-h-[90dvh] max-w-lg border-none bg-background p-0">
           <div className="px-6 pt-6 pb-8">
             <DrawerHeader className="text-left mb-6 p-0">
               <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">
@@ -852,7 +852,7 @@ function Clubs() {
 
       {/* Upgrade Prompt Sheet */}
       <Drawer open={showUpgrade} onOpenChange={setShowUpgrade}>
-        <DrawerContent className="border-none bg-background p-0 overflow-hidden">
+        <DrawerContent className="mx-auto max-w-lg overflow-hidden border-none bg-background p-0">
           <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-primary via-purple-600 to-blue-500">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")` }} />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -893,7 +893,7 @@ function Clubs() {
 
       {/* Club Notifications Drawer */}
       <Drawer open={showNotifications} onOpenChange={setShowNotifications}>
-        <DrawerContent className="border-t border-border/30 bg-background p-0 max-h-[85vh] flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+        <DrawerContent className="mx-auto flex max-h-[85vh] max-w-[620px] flex-col border-t border-border/60 bg-background p-0 shadow-[0_-16px_40px_-24px_rgba(0,0,0,0.45)]">
           <DrawerHeader className="px-6 py-5 border-b border-border/30 shrink-0 mt-2">
             <div className="flex items-center gap-4">
               <div className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
@@ -1045,7 +1045,7 @@ function Clubs() {
       
       {/* Join Club Modal */}
       <Drawer open={showJoinModal} onOpenChange={setShowJoinModal}>
-        <DrawerContent className="border-none bg-background p-6">
+        <DrawerContent className="mx-auto max-w-lg border-none bg-background p-6">
           {selectedClub && (
             <div className="flex flex-col items-center text-center">
               <div className="mb-5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20">

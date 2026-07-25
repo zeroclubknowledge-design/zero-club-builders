@@ -161,11 +161,12 @@ function QuestsPage() {
   const level = getLevelFromXp(profileXp);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-background pb-20 text-foreground overflow-x-hidden">
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#f8f7f5] pb-20 text-foreground dark:bg-background">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between gap-4">
+      <div className="fixed left-0 right-0 top-0 z-40 border-b border-border bg-background px-4 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-6">
+        <div className="mx-auto flex w-full max-w-[900px] items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link to="/app/wallet" className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]">
+          <Link to="/app/wallet" className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card tap hover:bg-accent">
             <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
           </Link>
           <h1 className="font-display text-[17px] font-semibold tracking-tight text-foreground">
@@ -175,14 +176,15 @@ function QuestsPage() {
 
         {/* Real Profile XP badge */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 bg-card ring-1 ring-border px-3 py-1.5 rounded-full text-[12px] font-semibold tracking-tight text-foreground tabular-nums">
+          <div className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground tabular-nums">
             <Zap className="h-3.5 w-3.5 text-amber-500" />
             <span>{isMounted ? `${profileXp.toLocaleString()} XP` : "0 XP"}</span>
           </div>
         </div>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-5 p-5 pt-24">
+      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-5 p-4 pt-24 sm:p-6 sm:pt-24">
         {isLoading ? (
           <div className="py-24 flex flex-col items-center gap-4">
             <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
@@ -192,9 +194,7 @@ function QuestsPage() {
         ) : (
           <>
             {/* Rank & Progress Card */}
-            <section className="relative overflow-hidden rounded-[28px] bg-[#141117] p-6 text-white shadow-lift ring-1 ring-white/[0.06]">
-              <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
-
+            <section className="relative overflow-hidden rounded-lg border border-white/10 bg-[#141117] p-6 text-white">
               <div className="relative z-10 flex items-center gap-4">
                 <div className="grid h-11 w-11 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10">
                   <Trophy className="h-5 w-5 text-white/90" strokeWidth={1.75} />
@@ -219,7 +219,7 @@ function QuestsPage() {
             </section>
 
             {/* Redesigned Daily Streaks Section */}
-            <section className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft relative overflow-hidden">
+            <section className="relative overflow-hidden rounded-lg border border-border bg-card p-4 sm:p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Daily streaks</h3>
                 <span className="text-[10px] font-semibold text-primary bg-primary/8 px-2.5 py-0.5 rounded-full ring-1 ring-primary/15">
@@ -227,7 +227,7 @@ function QuestsPage() {
                 </span>
               </div>
 
-              <div className="flex justify-between items-center px-2 py-4 bg-foreground/[0.03] rounded-2xl mb-4 overflow-visible">
+              <div className="mb-4 flex items-center justify-between overflow-visible rounded-lg border border-border/70 bg-foreground/[0.025] px-2 py-4">
                 {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
                   const now = new Date();
                   const currentDayIndex = (now.getDay() + 6) % 7; // Convert to Monday=0 start
@@ -258,7 +258,7 @@ function QuestsPage() {
 
               {/* Day Streak Claim Banner */}
               {isMounted && (localClaimedIds['streak_reward'] || (typeof window !== 'undefined' && localStorage.getItem('streak_claimed') === getLocalDateString())) ? (
-                <div className="flex items-center justify-between bg-success/5 ring-1 ring-success/15 p-3.5 rounded-2xl">
+                <div className="flex items-center justify-between rounded-lg border border-success/20 bg-success/5 p-3.5">
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-full bg-success/10 ring-1 ring-success/20 flex items-center justify-center text-success">
                       <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
@@ -270,7 +270,7 @@ function QuestsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-between bg-primary/[0.04] ring-1 ring-primary/15 p-3.5 rounded-2xl">
+                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/[0.04] p-3.5">
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-full shrink-0 bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center text-primary">
                       <Trophy className="h-4 w-4" strokeWidth={1.75} />
@@ -306,7 +306,7 @@ function QuestsPage() {
                         return next;
                       });
                     }}
-                    className="rounded-full bg-foreground px-3.5 py-1.5 text-[11px] font-semibold tracking-tight text-background tap hover:opacity-90"
+                    className="rounded-lg bg-foreground px-3.5 py-1.5 text-[11px] font-semibold text-background tap hover:opacity-90"
                   >
                     Claim
                   </button>
@@ -333,10 +333,10 @@ function QuestsPage() {
                     return (
                       <div
                         key={q.id}
-                        className={`group relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                        className={`group relative overflow-hidden rounded-lg border transition-all duration-300 ${
                           isReady
-                            ? "ring-1 ring-primary/30 bg-primary/[0.03] shadow-soft"
-                            : "ring-1 ring-border bg-card shadow-soft"
+                            ? "border-primary/30 bg-primary/[0.03]"
+                            : "border-border bg-card"
                         }`}
                       >
                         <div className="p-5">
@@ -384,7 +384,7 @@ function QuestsPage() {
                                 claimMutation.mutate(q.id);
                               }}
                               disabled={claimingId === q.id}
-                              className="mt-4 w-full rounded-full bg-foreground py-3 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                              className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg bg-foreground py-3 text-[13px] font-semibold text-background tap hover:opacity-90 disabled:opacity-50"
                             >
                               {claimingId === q.id ? (
                                 <>
@@ -404,7 +404,7 @@ function QuestsPage() {
                     );
                   })
                 ) : (
-                  <div className="py-14 text-center rounded-2xl ring-1 ring-border bg-card">
+                  <div className="rounded-lg border border-border bg-card py-14 text-center">
                     <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full ring-1 ring-border">
                       <CheckCircle2 className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
                     </div>
@@ -419,7 +419,7 @@ function QuestsPage() {
             {completedQuests.length > 0 && (
               <section className="mt-2">
                 <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recently completed</h3>
-                <div className="flex flex-col divide-y divide-hairline rounded-2xl ring-1 ring-border bg-card overflow-hidden">
+                <div className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
                   {completedQuests.map((q: any) => (
                     <div key={q.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">

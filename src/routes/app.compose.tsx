@@ -440,44 +440,46 @@ function ComposePage() {
   const canPost = (hasBodyText || images.length > 0) && !uploading;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-muted/20">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#f8f7f5] dark:bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 relative z-50 w-full md:max-w-[760px] md:mx-auto">
+      <header className="relative z-50 flex w-full items-center justify-between border-b border-border bg-background px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-[860px] items-center justify-between">
         <button 
           onClick={() => navigate({ to: "/app" })}
-          className="h-10 w-10 bg-card rounded-full grid place-items-center shadow-sm border border-border/50 transition hover:bg-accent active:scale-95"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:scale-95"
         >
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
-        <span className="font-semibold tracking-tight absolute left-1/2 -translate-x-1/2 text-foreground">
+        <span className="absolute left-1/2 -translate-x-1/2 font-semibold text-foreground">
           Create Post
         </span>
         <div className="w-10" /> {/* Spacer */}
+        </div>
       </header>
 
       {/* Main Form Area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-6 no-scrollbar w-full md:max-w-[760px] md:mx-auto">
+      <div className="no-scrollbar mx-auto w-full max-w-[860px] flex-1 overflow-y-auto px-4 pb-32 pt-4 sm:px-6 sm:pt-6">
         {/* Post Card */}
-        <div className="bg-card rounded-[32px] p-6 shadow-sm border border-border/50 flex flex-col relative">
+        <div className="relative flex flex-col rounded-lg border border-border bg-card p-4 sm:p-6">
           {/* Static Formatting Toolbar */}
           <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/40">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-xl text-foreground/80 bg-accent/50 hover:bg-accent hover:text-foreground transition active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/60 text-foreground/80 transition hover:bg-accent hover:text-foreground active:scale-95"
               title="Bold"
             >
               <Bold className="h-4 w-4" strokeWidth={2.5} />
             </button>
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('italic'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-xl text-foreground/80 bg-accent/50 hover:bg-accent hover:text-foreground transition active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/60 text-foreground/80 transition hover:bg-accent hover:text-foreground active:scale-95"
               title="Italic"
             >
               <Italic className="h-4 w-4" strokeWidth={2.5} />
             </button>
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bullet'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-xl text-foreground/80 bg-accent/50 hover:bg-accent hover:text-foreground transition active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/60 text-foreground/80 transition hover:bg-accent hover:text-foreground active:scale-95"
               title="Bullet List"
             >
               <List className="h-4 w-4" strokeWidth={2.5} />
@@ -497,7 +499,7 @@ function ComposePage() {
                  return (
                    <div 
                      key={i} 
-                     className="relative overflow-hidden border border-border bg-black/5 rounded-[24px]"
+                     className="relative overflow-hidden rounded-lg border border-border bg-black/5"
                    >
                      {isVideo ? (
                        <video src={src} className="w-full h-auto max-h-[600px] object-contain" muted playsInline controls />
@@ -540,7 +542,7 @@ function ComposePage() {
 
           {/* Mention Suggestions */}
       {showMentions && mentionSuggestions.length > 0 && (
-            <div className="absolute z-50 left-6 right-6 top-16 rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[250px] overflow-y-auto">
+            <div className="absolute left-4 right-4 top-16 z-50 max-h-[250px] overflow-y-auto rounded-lg border border-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-200 sm:left-6 sm:right-6">
               {mentionSuggestions.map((prof) => (
                 <button
                   key={prof.id}
@@ -597,14 +599,14 @@ function ComposePage() {
 
         {/* Bootcamps Modal/Dropdown equivalent */}
         {isBuild && enrolledBootcamps.length > 0 && (
-          <div className="mt-4 bg-card rounded-[24px] p-4 shadow-sm border border-border/50 animate-in fade-in slide-in-from-top-2">
+          <div className="mt-4 rounded-lg border border-border bg-card p-4 animate-in fade-in slide-in-from-top-2">
             <h4 className="text-xs text-muted-foreground mb-3 px-2">Select a Bootcamp to tag</h4>
             <div className="flex flex-wrap gap-2">
               {enrolledBootcamps.map(bc => (
                 <button 
                   key={bc.id}
                   onClick={() => setSelectedBootcampId(bc.id)}
-                  className={`px-4 py-2 rounded-full text-[13px] font-semibold tracking-tight border tap transition ${selectedBootcampId === bc.id ? "bg-foreground text-background border-transparent" : "bg-card border-border hover:border-foreground/30"}`}
+                  className={`rounded-lg border px-4 py-2 text-[13px] font-semibold tap transition ${selectedBootcampId === bc.id ? "border-transparent bg-foreground text-background" : "border-border bg-card hover:border-foreground/30"}`}
                 >
                   {bc.title}
                 </button>
@@ -615,7 +617,7 @@ function ComposePage() {
 
         {/* Quoted Post */}
         {quotedPost && (
-          <div className="mt-4 bg-card rounded-[24px] p-4 shadow-sm border border-border/50 relative">
+          <div className="relative mt-4 rounded-lg border border-border bg-card p-4">
             <button onClick={() => setQuotedPost(null)} className="absolute top-3 right-3 p-1 rounded-full bg-accent text-foreground transition hover:bg-muted"><X className="h-4 w-4" /></button>
             <div className="flex items-center gap-2 mb-2">
               <div className="h-6 w-6 rounded-full overflow-hidden bg-muted">
@@ -631,10 +633,10 @@ function ComposePage() {
         )}
 
         {/* Settings List */}
-        <div className="mt-4 bg-card rounded-[32px] p-2 shadow-sm border border-border/50 flex flex-col divide-y divide-border/50">
+        <div className="mt-4 flex flex-col divide-y divide-border rounded-lg border border-border bg-card p-1">
           <button 
             onClick={() => setAddLocation(!addLocation)}
-            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 rounded-t-[24px] active:scale-[0.98]"
+            className="flex items-center justify-between rounded-lg px-4 py-4 transition hover:bg-accent/50 active:scale-[0.98]"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
@@ -665,7 +667,7 @@ function ComposePage() {
           
           <Link 
             to="/app/boost"
-            className="flex items-center justify-between px-4 py-4 transition hover:bg-accent/50 rounded-b-[24px] active:scale-[0.98]"
+            className="flex items-center justify-between rounded-lg px-4 py-4 transition hover:bg-accent/50 active:scale-[0.98]"
           >
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-full border border-border/50 bg-background grid place-items-center">
@@ -680,20 +682,22 @@ function ComposePage() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 flex gap-4 bg-background border-t border-border/50 pb-8 z-50 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-full md:max-w-[760px] md:border-x md:rounded-t-3xl md:pb-6">
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 sm:px-6">
+        <div className="mx-auto flex w-full max-w-[860px] gap-3">
         <button 
           onClick={saveDraft}
-          className="flex-1 py-3.5 bg-card ring-1 ring-border rounded-full text-[14px] font-semibold tracking-tight text-foreground tap hover:bg-foreground/[0.03]"
+          className="flex-1 rounded-lg border border-border bg-card py-3 text-[14px] font-semibold text-foreground tap hover:bg-accent"
         >
           Save as Draft
         </button>
         <button 
           onClick={handlePost}
           disabled={!canPost}
-          className="flex-1 py-3.5 bg-foreground text-background rounded-full text-[14px] font-semibold tracking-tight shadow-lift tap disabled:opacity-40 hover:opacity-90"
+          className="flex-1 rounded-lg bg-foreground py-3 text-[14px] font-semibold text-background tap disabled:opacity-40 hover:opacity-90"
         >
           {uploading ? <Loader2 className="h-5 w-5 animate-spin mx-auto text-background" /> : "Post"}
         </button>
+        </div>
       </div>
 
       {croppingInfo !== null && (

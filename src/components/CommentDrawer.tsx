@@ -327,17 +327,17 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
   const DrawerInner = (
     <>
       {inline ? (
-        <div className="py-4 border-b hairline shrink-0 mt-8">
-          <h3 className="text-[20px] font-semibold tracking-tight">Discussion</h3>
+        <div className="mt-8 shrink-0 border-b border-border py-4">
+          <h3 className="text-[20px] font-semibold">Discussion</h3>
         </div>
       ) : (
-        <DrawerHeader className="px-6 py-4 border-b hairline shrink-0">
-          <DrawerTitle className="text-lg font-bold">Comments</DrawerTitle>
+        <DrawerHeader className="shrink-0 border-b border-border px-5 py-4 sm:px-6">
+          <DrawerTitle className="text-lg font-semibold">Comments</DrawerTitle>
         </DrawerHeader>
       )}
 
       <div className={`flex flex-col flex-1 ${inline ?'w-full' : 'min-h-0'}`}>
-          <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'py-6 space-y-6' : 'flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar'}`}>
+          <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'space-y-5 py-6' : 'no-scrollbar flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-6'}`}>
             {threadedComments.length > 0 ? (
               threadedComments.map((comment) => {
                 const isReply = comment.isReply;
@@ -352,7 +352,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                 return (
                   <div 
                     key={comment.id} 
-                    className={`flex gap-3 relative transition-all duration-300 ${isReply ?"ml-9" : ""}`}
+                    className={`relative flex gap-3 border-b border-border/70 pb-5 transition-all duration-300 last:border-b-0 ${isReply ?"ml-9" : ""}`}
                   >
                     {/* Curved Connection Line for Replies */}
                     {isReply && (
@@ -404,7 +404,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                           <textarea
                             value={editCommentText}
                             onChange={(e) => setEditCommentText(e.target.value)}
-                            className="w-full bg-accent/30 rounded-xl border-border/50 text-sm focus:border-primary p-3 min-h-[80px]"
+                            className="min-h-[80px] w-full rounded-lg border border-border bg-card p-3 text-sm outline-none focus:border-primary"
                             autoFocus
                           />
                           <div className="flex justify-end gap-2 mt-2">
@@ -416,7 +416,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                             </button>
                             <button 
                               onClick={handleSaveCommentEdit}
-                              className="px-4 py-1.5 text-[11px] font-bold bg-primary text-primary-foreground rounded-full hover:brightness-110 transition-all"
+                              className="rounded-lg bg-primary px-4 py-1.5 text-[11px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                             >
                               Save
                             </button>
@@ -455,7 +455,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-xl border-border">
+                            <DropdownMenuContent align="end" className="w-56 rounded-lg border-border bg-background shadow-lg">
                               <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={() => {
                                 navigator.clipboard.writeText(window.location.href);
                                 toast.success("Comment link copied!");
@@ -533,7 +533,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
             )}
           </div>
 
-          <div className={`${inline ?'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/95 backdrop-blur-md border-t border-border/50 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),1rem)] sm:pb-3 z-50' : 'p-4 bg-background border-t hairline safe-bottom'}`}>
+          <div className={`${inline ?'fixed bottom-0 left-1/2 z-50 w-full max-w-[760px] -translate-x-1/2 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3 sm:pb-3' : 'safe-bottom border-t border-border bg-background p-4 sm:px-6'}`}>
             {replyTo && (
               <div className="flex items-center justify-between mb-2 px-2 bg-primary/5 rounded-lg py-1.5 border border-primary/10">
                 <span className="text-xs text-primary font-medium">Replying to {getFirstName(replyTo.profiles)}</span>
@@ -550,7 +550,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                   currentUser?.username?.charAt(0).toUpperCase() || "U"
                 )}
               </div>
-              <form onSubmit={handleSubmit} className="flex-1 bg-card rounded-2xl border border-border flex items-end pr-1 pb-1 min-h-[44px] focus-within:border-primary/50 transition-colors">
+              <form onSubmit={handleSubmit} className="flex min-h-[44px] flex-1 items-end rounded-lg border border-border bg-card pb-1 pr-1 transition-colors focus-within:border-primary">
                 <textarea 
                   placeholder={replyTo ? "Post your reply" : "Post your thoughts"}
                   className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground resize-none max-h-32 min-h-[38px] leading-relaxed no-scrollbar"
@@ -600,7 +600,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground={false} repositionInputs={false}>
-      <DrawerContent className="h-[85dvh] flex flex-col bg-background border-t border-border/30 p-0 sm:max-w-md sm:left-1/2 sm:-translate-x-1/2 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] focus:outline-none">
+      <DrawerContent className="mx-auto flex h-[85dvh] max-w-[760px] flex-col border border-border bg-background p-0 shadow-xl focus:outline-none">
         {DrawerInner}
       </DrawerContent>
     </Drawer>

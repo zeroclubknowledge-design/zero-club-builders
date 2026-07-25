@@ -909,7 +909,7 @@ function ClubChat() {
                 </Drawer>
                 {club?.creator_id === currentUser?.id && (
                   <Drawer open={showSettings} onOpenChange={setShowSettings}>
-                    <DrawerContent className="h-[92%] border-none bg-background p-6 pt-10">
+                  <DrawerContent className="mx-auto h-[92%] max-w-[760px] border-none bg-background p-6 pt-8">
                       <DrawerHeader className="text-left mb-6">
                         <DrawerTitle className="text-xl font-bold">Club Settings</DrawerTitle>
                         <p className="text-[11px] text-muted-foreground">Manage your community workspace</p>
@@ -917,7 +917,7 @@ function ClubChat() {
 
                       <div className="space-y-6 overflow-y-auto h-full pb-20 no-scrollbar">
                         <div className="flex flex-col mb-2">
-                          <div className="relative w-full h-32 rounded-2xl bg-accent/20 border-2 border-dashed border-border overflow-visible group">
+                          <div className="group relative h-32 w-full overflow-visible rounded-lg border-2 border-dashed border-border bg-accent/20">
                             <div className="absolute inset-0 overflow-hidden rounded-xl">
                               {editClub.banner_url ? (
                                 <img src={editClub.banner_url} className="h-full w-full object-cover" />
@@ -987,7 +987,7 @@ function ClubChat() {
                             <input 
                               value={editClub.name}
                               onChange={e => setEditClub({...editClub, name: e.target.value})}
-                              className="w-full bg-accent/10 border-b-2 border-transparent border-b-border rounded-t-xl px-4 py-3.5 text-sm font-semibold outline-none focus:bg-accent/20 focus:border-b-primary transition-all text-foreground" 
+                              className="w-full rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                             />
                           </div>
                           <div className="space-y-2">
@@ -997,7 +997,7 @@ function ClubChat() {
                               value={editClub.description}
                               onChange={e => setEditClub({...editClub, description: e.target.value})}
                               placeholder="What is this club about?"
-                              className="w-full bg-accent/10 border-b-2 border-transparent border-b-border rounded-t-xl px-4 py-3.5 text-sm font-semibold outline-none focus:bg-accent/20 focus:border-b-primary transition-all text-foreground resize-none no-scrollbar min-h-[80px]" 
+                              className="min-h-[80px] w-full resize-none rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition no-scrollbar focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1035,7 +1035,7 @@ function ClubChat() {
                               value={editClub.rules}
                               onChange={e => setEditClub({...editClub, rules: e.target.value})}
                               placeholder="Set the standards for your squad..."
-                              className="w-full bg-accent/10 border-b-2 border-transparent border-b-border rounded-t-xl px-4 py-3.5 text-sm font-semibold outline-none focus:bg-accent/20 focus:border-b-primary transition-all text-foreground resize-none no-scrollbar min-h-[120px]" 
+                              className="min-h-[120px] w-full resize-none rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition no-scrollbar focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                             />
                           </div>
                         </div>
@@ -1054,11 +1054,11 @@ function ClubChat() {
                                     newRooms[i].name = e.target.value;
                                     setEditRooms(newRooms);
                                   }}
-                                  className="flex-1 rounded-xl bg-accent/10 border border-border/50 px-4 py-2.5 text-sm outline-none focus:border-primary/50 transition-colors text-foreground"
+                                  className="flex-1 rounded-lg border border-border/60 bg-card px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/50"
                                 />
                                 <button 
                                   onClick={() => setEditRooms(editRooms.filter((_, idx) => idx !== i))}
-                                  className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition"
+                                  className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-lg bg-destructive/10 text-destructive transition hover:bg-destructive/20"
                                 >
                                   <X className="h-4 w-4" />
                                 </button>
@@ -1069,7 +1069,7 @@ function ClubChat() {
                                 const newId = `room-${Math.random().toString(36).substr(2, 9)}`;
                                 setEditRooms([...editRooms, { id: newId, name: "New Section" }]);
                               }}
-                              className="w-full py-2.5 rounded-xl border border-dashed border-primary/40 text-primary text-xs font-bold hover:bg-primary/5 transition flex items-center justify-center gap-1.5"
+                              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-primary/40 py-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
                             >
                               <Plus className="h-3.5 w-3.5" /> Add Section
                             </button>
@@ -1080,13 +1080,13 @@ function ClubChat() {
                           <button 
                             onClick={handleUpdateClub}
                             disabled={isUpdating}
-                            className="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-glow flex items-center justify-center gap-2 transition active:scale-95"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-4 font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
                           >
                             <Save className="h-4 w-4" /> {isUpdating ? "Saving..." : "Save Changes"}
                           </button>
                           <button 
                             onClick={handleDeleteClub}
-                            className="w-full bg-destructive/10 text-destructive font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition active:bg-destructive/20"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 py-4 font-semibold text-destructive transition active:bg-destructive/20"
                           >
                             <Trash2 className="h-4 w-4" /> Delete Club
                           </button>
@@ -1100,7 +1100,7 @@ function ClubChat() {
                   setShowMembers(open);
                   if (!open) setSelectedMember(null);
                 }}>
-                  <DrawerContent className="h-[85%] border-none bg-background p-6 overflow-hidden flex flex-col">
+                  <DrawerContent className="mx-auto flex h-[85%] max-w-[760px] flex-col overflow-hidden border-none bg-background p-6">
                     <div className="relative w-full h-full overflow-hidden">
                       <div 
                         className="flex w-[200%] h-full transition-transform duration-300 ease-in-out"
@@ -1117,7 +1117,7 @@ function ClubChat() {
                             const currentUserRole = currentUser ? members.find(mem => mem.profile_id === currentUser.id)?.role : undefined;
                             const isAdmin = club.creator_id === currentUser?.id || currentUserRole === 'Administrator';
                             return (
-                              <div className="mb-6 p-4 rounded-2xl bg-accent/20 border border-border/80 backdrop-blur-md flex items-center justify-between shrink-0">
+                              <div className="mb-6 flex shrink-0 items-center justify-between rounded-lg border border-border/70 bg-card p-4">
                                 <div className="text-left flex flex-col">
                                   <button
                                     onClick={handleCopyInvite}
@@ -1137,7 +1137,7 @@ function ClubChat() {
                                 {isAdmin && (
                                   <button 
                                     onClick={handleCopyInvite}
-                                    className="flex items-center justify-center h-8 w-8 rounded-xl bg-accent/30 hover:bg-accent/50 text-foreground transition active:scale-95"
+                                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/30 text-foreground transition hover:bg-accent/50 active:scale-95"
                                     title="Copy Invite Link"
                                   >
                                     <Copy className="h-3.5 w-3.5" />
@@ -1154,7 +1154,7 @@ function ClubChat() {
                               placeholder="Find a builder..."
                               value={squadSearch}
                               onChange={(e) => setSquadSearch(e.target.value)}
-                              className="w-full h-10 pl-9 pr-4 rounded-xl bg-accent/10 border border-border/50 text-sm focus:outline-none focus:border-primary/50 text-foreground placeholder:text-muted-foreground transition"
+                              className="h-10 w-full rounded-lg border border-border/60 bg-card pl-9 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
                             />
                           </div>
 
@@ -1188,7 +1188,7 @@ function ClubChat() {
                                 <DropdownMenu key={m.profile_id}>
                                   <DropdownMenuTrigger asChild>
                                     <div 
-                                      className="flex items-center justify-between p-4 rounded-2xl bg-accent/10 border border-border/80 backdrop-blur-md transition-all duration-300 cursor-pointer hover:border-primary/40 hover:bg-accent/20 active:scale-[0.99]"
+                                      className="flex cursor-pointer items-center justify-between rounded-lg border border-border/70 bg-card p-4 transition hover:border-primary/40 hover:bg-accent/20 active:scale-[0.99]"
                                     >
                                       <div className="flex items-center gap-3">
                                         <div className="relative h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0 border border-border/50 shadow-sm">
@@ -1269,7 +1269,7 @@ function ClubChat() {
                           </div>
 
                           {selectedMember && (
-                            <div className="shrink-0 flex items-center gap-4 p-4 rounded-3xl bg-accent/15 border border-border/80 backdrop-blur-md mb-6">
+                            <div className="mb-6 flex shrink-0 items-center gap-4 rounded-lg border border-border/70 bg-card p-4">
                               <div className="h-14 w-14 rounded-full bg-muted overflow-hidden shrink-0">
                                 {selectedMember.profiles?.avatar_url ? (
                                   <img src={selectedMember.profiles.avatar_url} className="h-full w-full object-cover" />
@@ -1312,7 +1312,7 @@ function ClubChat() {
                                       handleRoleChange(selectedMember.profile_id, roleOption.name);
                                     }
                                   }}
-                                  className={`w-full text-left p-3.5 rounded-2xl border transition duration-300 flex items-center justify-between gap-3 ${
+                                  className={`flex w-full items-center justify-between gap-3 rounded-lg border p-3.5 text-left transition ${
                                     isActive 
                                       ?'bg-primary/10 border-primary text-foreground'
                                       : 'bg-card border-border hover:bg-accent/20 text-foreground'
@@ -1336,7 +1336,7 @@ function ClubChat() {
                             <div className="pt-6 border-t border-border/50 mt-6 pb-10 shrink-0">
                               <button
                                 onClick={() => handleRemoveMember(selectedMember.profile_id)}
-                                className="w-full bg-destructive/10 hover:bg-destructive/20 text-destructive font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition active:scale-95 text-xs"
+                                className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 py-3.5 text-xs font-semibold text-destructive transition hover:bg-destructive/20 active:scale-95"
                               >
                                 <UserX className="h-4 w-4" /> Remove From Squad
                               </button>
@@ -1367,7 +1367,7 @@ function ClubChat() {
                           setShowRoomSwitcher(false);
                           scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
                         }}
-                        className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 active:scale-[0.98] border ${
+                        className={`flex w-full items-center justify-between rounded-lg border p-4 transition active:scale-[0.98] ${
                           activeRoom === r.id
                             ? "bg-primary/10 border-primary/20 shadow-sm"
                             : "bg-card border-border/40 hover:bg-accent/40"
