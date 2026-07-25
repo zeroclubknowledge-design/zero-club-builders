@@ -33,7 +33,7 @@ function BootcampCover({ bootcamp, className = '' }: { bootcamp: any; className?
 }
 
 function Bootcamps() {
-  const { data: bootcamps = [], isLoading } = useQuery({
+  const { data: bootcamps = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['bootcamps'],
     queryFn: () => getBootcamps(),
   });
@@ -117,6 +117,8 @@ function Bootcamps() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2, 3, 4, 5].map((item) => <div key={item} className="overflow-hidden rounded-lg border border-border bg-card"><div className="aspect-[16/9] shimmer bg-foreground/[0.05]" /><div className="space-y-3 p-4"><div className="h-3 w-20 rounded shimmer bg-foreground/[0.05]" /><div className="h-5 w-4/5 rounded shimmer bg-foreground/[0.05]" /><div className="h-3 w-full rounded shimmer bg-foreground/[0.05]" /></div></div>)}
           </div>
+        ) : isError ? (
+          <div className="rounded-lg border border-border bg-card px-6 py-12 text-center"><BookOpen className="mx-auto h-7 w-7 text-primary" /><h3 className="mt-4 text-[16px] font-semibold">We could not load the catalogue</h3><p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">The Bootcamp service did not respond correctly. Your programs are safe; try loading them again.</p><button onClick={() => refetch()} className="mt-5 rounded-lg bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground">Try again</button></div>
         ) : (
           <>
             {featured && (

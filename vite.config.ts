@@ -11,6 +11,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ command }) => {
+  const isVercelBuild = process.env.VERCEL === "1" || process.env.NITRO_PRESET === "vercel";
   const plugins = [
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
@@ -48,7 +49,7 @@ export default defineConfig(({ command }) => {
     })
   ];
 
-  if (command === 'build') {
+  if (command === "build" && !isVercelBuild) {
     plugins.push(cloudflare({ viteEnvironment: { name: "ssr" } }));
   }
 

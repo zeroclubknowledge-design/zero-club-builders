@@ -28,12 +28,12 @@ export const Route = createFileRoute("/app/institution-studio/")({
    ═══════════════════════════════════════════════════════════════════════ */
 const fmt = (n?: number | null) => (n ?? 0).toLocaleString();
 const StatCard = ({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string | number; accent?: string }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-card ring-1 ring-border p-5 shadow-soft group hover:ring-foreground/15 transition-all">
-    <div className={`grid h-10 w-10 place-items-center rounded-xl ${accent || "bg-primary/8 text-primary"} ring-1 ring-black/[0.04] mb-3`}>
+  <div className="group relative overflow-hidden rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/25 sm:p-5">
+    <div className={`mb-3 grid h-9 w-9 place-items-center rounded-lg ${accent || "bg-primary/8 text-primary"}`}>
       <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
     </div>
-    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
-    <p className="text-[22px] font-semibold tracking-tight font-display mt-1 tabular-nums">{value}</p>
+    <p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p>
+    <p className="mt-1 font-display text-[22px] font-semibold tracking-tight tabular-nums">{value}</p>
   </div>
 );
 
@@ -108,11 +108,17 @@ function InstitutionHub() {
   const { data: tutors = [], isLoading: tutorsLoading, refetch: refetchTutors } = useQuery({
     queryKey: ["institution-tutors", profile?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: links, error } = await supabase
         .from("institution_tutors")
-        .select("*, tutor:profiles!institution_tutors_tutor_id_fkey(*)")
+        .select("*")
         .eq("institution_id", profile.id);
-      return data || [];
+      if (error) throw error;
+      const tutorIds = (links || []).map((link: any) => link.tutor_id);
+      const { data: tutorProfiles } = tutorIds.length
+        ? await supabase.from("profiles").select("id, username, full_name, avatar_url, bio, location").in("id", tutorIds)
+        : { data: [] as any[] };
+      const tutorMap = new Map((tutorProfiles || []).map((tutor: any) => [tutor.id, tutor]));
+      return (links || []).map((link: any) => ({ ...link, tutor: tutorMap.get(link.tutor_id) || null }));
     },
     enabled: !!profile?.id,
   });
@@ -124,14 +130,24 @@ function InstitutionHub() {
       const tutorIds = tutors.map((t: any) => t.tutor_id);
       const allCreatorIds = [profile.id, ...tutorIds];
 
-      const { data, error } = await supabase
+      const { data: bootcamps, error } = await supabase
         .from("bootcamps")
-        .select("*, profiles:creator_id(id, username, full_name, avatar_url), enrollments(count)")
+        .select("*")
         .in("creator_id", allCreatorIds)
         .order("created_at", { ascending: false });
 
-      if (error) { console.error(error); return []; }
-      return data || [];
+      if (error) throw error;
+      if (!bootcamps?.length) return [];
+
+      const bootcampIds = bootcamps.map((bootcamp: any) => bootcamp.id);
+      const [{ data: creators }, { data: enrollmentRows }] = await Promise.all([
+        supabase.from("profiles").select("id, username, full_name, avatar_url").in("id", allCreatorIds),
+        supabase.from("enrollments").select("bootcamp_id").in("bootcamp_id", bootcampIds),
+      ]);
+      const creatorMap = new Map((creators || []).map((creator: any) => [creator.id, creator]));
+      const counts = new Map<string, number>();
+      (enrollmentRows || []).forEach((row: any) => counts.set(row.bootcamp_id, (counts.get(row.bootcamp_id) || 0) + 1));
+      return bootcamps.map((bootcamp: any) => ({ ...bootcamp, profiles: creatorMap.get(bootcamp.creator_id) || null, enrollments: [{ count: counts.get(bootcamp.id) || 0 }] }));
     },
     enabled: !!profile?.id && !tutorsLoading,
   });
@@ -384,7 +400,7 @@ function InstitutionHub() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-background">
+    <div className="flex min-h-screen bg-background pt-[env(safe-area-inset-top)]">
       {/* ═══ DESKTOP SIDEBAR — hidden; tabs are in main app sidebar ═══ */}
       {/* The main sidebar in app.tsx now renders institution hub tabs on desktop.
           We keep the mobile bottom tab bar below for small screens. */}
@@ -408,28 +424,26 @@ function InstitutionHub() {
       </div>
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <div className="flex-1 overflow-auto pb-20 lg:pb-6 min-w-0">
-        <div className="w-full p-5 md:p-8 lg:px-10 lg:py-8">
+      <div className="min-w-0 flex-1 overflow-auto pb-20 lg:pb-6">
+        <div className="mx-auto w-full max-w-[1240px] p-4 md:p-7 lg:px-8 lg:py-8">
 
           {/* ────────────────── OVERVIEW TAB ────────────────── */}
           {activeTab === "overview" && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="animate-in space-y-6 fade-in slide-in-from-bottom-4 duration-500">
               {/* Welcome */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">
-                    Welcome back, {(profile?.full_name || "Admin").split(" ")[0]}
-                  </h1>
-                  <p className="text-[13.5px] text-muted-foreground mt-1 leading-relaxed">
-                    Here's an overview of your tech hub's performance.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
+              <div className="overflow-hidden rounded-lg bg-[#171218] text-white ring-1 ring-white/[0.06]">
+                <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                  <div className="max-w-2xl">
+                    <div className="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-[#cc208f]"><Building2 className="h-5 w-5" /></div>
+                    <p className="text-[10px] font-semibold uppercase text-white/45">Institution command center</p>
+                    <h1 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[32px]">{profile?.full_name || "Institution Hub"}</h1>
+                    <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-white/60">Coordinate tutors, programs, learner participation, and teaching outcomes from one accountable workspace.</p>
+                  </div>
                   <button
                     onClick={() => { setActiveTab("bootcamps"); setShowCreateBootcamp(true); }}
-                    className="flex items-center gap-1.5 h-10 px-5 bg-foreground text-background text-[13px] font-semibold tracking-tight rounded-full tap hover:opacity-90 transition shadow-sm"
+                    className="flex h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-[13px] font-semibold text-black hover:bg-white/90"
                   >
-                    <Plus className="h-4 w-4" /> Create Bootcamp
+                    <Plus className="h-4 w-4" /> New bootcamp
                   </button>
                 </div>
               </div>
@@ -443,12 +457,12 @@ function InstitutionHub() {
               </div>
 
               {/* Quick Actions */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <button
                   onClick={() => setActiveTab("tutors")}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 shadow-soft transition-all group tap"
+                  className="group flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/25 tap"
                 >
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-blue-500/10 text-blue-500 ring-1 ring-blue-500/15">
+                  <div className="grid h-10 w-10 place-items-center rounded-lg bg-blue-500/10 text-blue-500">
                     <UserPlus className="h-5 w-5" />
                   </div>
                   <div className="text-left">
@@ -460,9 +474,9 @@ function InstitutionHub() {
 
                 <button
                   onClick={() => setActiveTab("bootcamps")}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 shadow-soft transition-all group tap"
+                  className="group flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/25 tap"
                 >
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-violet-500/10 text-violet-500 ring-1 ring-violet-500/15">
+                  <div className="grid h-10 w-10 place-items-center rounded-lg bg-violet-500/10 text-violet-500">
                     <BookOpen className="h-5 w-5" />
                   </div>
                   <div className="text-left">
@@ -474,9 +488,9 @@ function InstitutionHub() {
 
                 <button
                   onClick={() => setActiveTab("analytics")}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 shadow-soft transition-all group tap"
+                  className="group flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/25 tap"
                 >
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-500/10 text-emerald-500 ring-1 ring-emerald-500/15">
+                  <div className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-500/10 text-emerald-500">
                     <TrendingUp className="h-5 w-5" />
                   </div>
                   <div className="text-left">
@@ -494,7 +508,7 @@ function InstitutionHub() {
                   <button onClick={() => setActiveTab("bootcamps")} className="text-[11px] font-semibold text-primary tap">View all</button>
                 </div>
                 {allBootcamps.length === 0 ? (
-                  <div className="text-center p-8 border border-dashed border-border rounded-2xl text-[13px] text-muted-foreground">
+                  <div className="rounded-lg border border-dashed border-border p-8 text-center text-[13px] text-muted-foreground">
                     No bootcamps yet. Create your first one!
                   </div>
                 ) : (
@@ -503,9 +517,9 @@ function InstitutionHub() {
                       <div 
                         key={b.id} 
                         onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })}
-                        className="flex items-center gap-4 p-4 rounded-2xl bg-card ring-1 ring-border shadow-soft cursor-pointer hover:ring-foreground/15 transition-all tap"
+                        className="flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/25 tap"
                       >
-                        <div className="h-12 w-12 rounded-xl overflow-hidden bg-muted shrink-0">
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                           {b.banner_url ? (
                             <img src={b.banner_url} className="h-full w-full object-cover" />
                           ) : (
@@ -555,7 +569,7 @@ function InstitutionHub() {
               </div>
 
               {/* Add Tutor Card */}
-              <div className="bg-card ring-1 ring-border rounded-2xl p-6 shadow-soft">
+              <div className="rounded-lg border border-border bg-card p-5 sm:p-6">
                 <h3 className="font-semibold tracking-tight text-[16px] mb-1">Invite a tutor</h3>
                 <p className="text-[12px] text-muted-foreground mb-4">Search by their Zero Club username to send an invitation.</p>
                 <form onSubmit={handleAddTutor} className="flex flex-col sm:flex-row gap-3">
@@ -589,17 +603,17 @@ function InstitutionHub() {
                 </div>
                 {tutorsLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[1, 2].map(i => <div key={i} className="h-24 rounded-2xl bg-foreground/[0.04] shimmer" />)}
+                    {[1, 2].map(i => <div key={i} className="h-24 rounded-lg bg-foreground/[0.04] shimmer" />)}
                   </div>
                 ) : tutors.length === 0 ? (
-                  <div className="text-center p-10 border border-dashed border-border rounded-2xl text-[13.5px] text-muted-foreground">
+                  <div className="rounded-lg border border-dashed border-border p-10 text-center text-[13.5px] text-muted-foreground">
                     <Users className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
                     No tutors added yet. Invite your first tutor above!
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {tutorBootcampCounts.map((t: any) => (
-                      <div key={t.id} className="p-5 ring-1 ring-border bg-card rounded-2xl shadow-soft hover:ring-foreground/15 transition-all">
+                      <div key={t.id} className="rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/25">
                         <div className="flex items-center gap-4">
                           {t.tutor?.avatar_url ? (
                             <img src={t.tutor.avatar_url} className="h-12 w-12 rounded-xl object-cover ring-1 ring-border" />
@@ -673,7 +687,7 @@ function InstitutionHub() {
 
               {/* Create Bootcamp Form */}
               {showCreateBootcamp && (
-                <form onSubmit={handleCreateBootcamp} className="bg-card ring-1 ring-border rounded-2xl p-6 shadow-soft space-y-5 animate-in fade-in slide-in-from-top-4 duration-300">
+                <form onSubmit={handleCreateBootcamp} className="animate-in space-y-5 rounded-lg border border-border bg-card p-5 fade-in slide-in-from-top-4 duration-300 sm:p-6">
                   <h3 className="text-[16px] font-semibold tracking-tight">New bootcamp</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -764,10 +778,10 @@ function InstitutionHub() {
               {/* Bootcamp Cards */}
               {bootcampsLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[1, 2, 3].map(i => <div key={i} className="h-72 rounded-2xl bg-foreground/[0.04] shimmer" />)}
+                  {[1, 2, 3].map(i => <div key={i} className="h-72 rounded-lg bg-foreground/[0.04] shimmer" />)}
                 </div>
               ) : filteredBootcamps.length === 0 ? (
-                <div className="text-center p-12 border border-dashed border-border rounded-2xl text-[13.5px] text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border p-12 text-center text-[13.5px] text-muted-foreground">
                   <LayoutGrid className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
                   <p className="font-medium text-foreground">No bootcamps found</p>
                   <p className="text-[12px] mt-1">Create your first bootcamp to get started.</p>
@@ -782,7 +796,7 @@ function InstitutionHub() {
                       <div 
                         key={b.id} 
                         onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })}
-                        className="group relative flex flex-col overflow-hidden rounded-2xl ring-1 ring-border bg-card hover:ring-foreground/15 shadow-soft transition-all cursor-pointer"
+                        className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/25"
                       >
                         {/* Banner */}
                         <div className="relative aspect-[16/9] overflow-hidden bg-muted">
@@ -925,7 +939,7 @@ function InstitutionHub() {
               </div>
 
               {/* Top Bootcamps */}
-              <div className="bg-card ring-1 ring-border rounded-2xl shadow-soft overflow-hidden">
+              <div className="overflow-hidden rounded-lg border border-border bg-card">
                 <div className="p-5 border-b hairline">
                   <h3 className="text-[15px] font-semibold tracking-tight">Top bootcamps by enrollment</h3>
                 </div>
@@ -960,7 +974,7 @@ function InstitutionHub() {
               </div>
 
               {/* Tutor Performance */}
-              <div className="bg-card ring-1 ring-border rounded-2xl shadow-soft overflow-hidden">
+              <div className="overflow-hidden rounded-lg border border-border bg-card">
                 <div className="p-5 border-b hairline">
                   <h3 className="text-[15px] font-semibold tracking-tight">Tutor performance</h3>
                 </div>
@@ -1007,7 +1021,7 @@ function InstitutionHub() {
               </div>
 
               {/* Organization Profile */}
-              <div className="bg-card ring-1 ring-border rounded-2xl shadow-soft overflow-hidden">
+              <div className="overflow-hidden rounded-lg border border-border bg-card">
                 <div className="p-5 border-b hairline flex items-center justify-between">
                   <h3 className="text-[15px] font-semibold tracking-tight">Organization profile</h3>
                   <button
@@ -1067,7 +1081,7 @@ function InstitutionHub() {
                   ) : (
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-2xl overflow-hidden bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
+                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-primary/10">
                           {profile?.avatar_url ? (
                             <img src={profile.avatar_url} className="h-full w-full object-cover" />
                           ) : (
@@ -1091,7 +1105,7 @@ function InstitutionHub() {
               </div>
 
               {/* Quick Links */}
-              <div className="bg-card ring-1 ring-border rounded-2xl shadow-soft overflow-hidden">
+              <div className="overflow-hidden rounded-lg border border-border bg-card">
                 <div className="p-5 border-b hairline">
                   <h3 className="text-[15px] font-semibold tracking-tight">Quick links</h3>
                 </div>
@@ -1118,7 +1132,7 @@ function InstitutionHub() {
               </div>
 
               {/* Account Info */}
-              <div className="bg-card ring-1 ring-border rounded-2xl shadow-soft p-5">
+              <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">Account details</h3>
                 <div className="grid grid-cols-2 gap-4 text-[13px]">
                   <div>
@@ -1159,7 +1173,7 @@ function InstitutionHub() {
             </DrawerHeader>
 
             {tutors.length === 0 ? (
-              <div className="text-center p-8 border border-dashed border-border rounded-2xl text-[13px] text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border p-8 text-center text-[13px] text-muted-foreground">
                 No tutors in your organization. Add tutors first.
               </div>
             ) : (
@@ -1177,7 +1191,7 @@ function InstitutionHub() {
                         }
                       }}
                       disabled={assigning || isCurrentlyAssigned}
-                      className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all tap border ${
+                      className={`flex w-full items-center gap-4 rounded-lg border p-4 transition-all tap ${
                         isCurrentlyAssigned
                           ? "bg-primary/10 border-primary/20"
                           : "bg-card border-border hover:border-foreground/15"

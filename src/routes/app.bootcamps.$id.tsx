@@ -28,24 +28,39 @@ export const Route = createFileRoute("/app/bootcamps/$id")({
 function BootcampDetail() {
   const { id } = Route.useParams();
 
-  const { data: bootcampData, isLoading: isBootcampLoading } = useQuery({
+  const { data: bootcampData, isLoading: isBootcampLoading, isError: bootcampFailed, refetch } = useQuery({
     queryKey: ["bootcamp", id],
     queryFn: async () => {
       const { data: bootcamp, error } = await supabase
         .from("bootcamps")
-        .select("*, profiles(*)")
+        .select("*")
         .eq("id", id)
         .single();
 
       if (error) throw error;
 
-      const { data: modules, error: modulesError } = await supabase
+      const { data: creator } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url, account_type")
+        .eq("id", bootcamp.creator_id)
+        .maybeSingle();
+
+      const { data: fetchedModules, error: modulesError } = await supabase
         .from("modules")
-        .select("*, lessons(*)")
+        .select("*")
         .eq("bootcamp_id", id)
         .order("order_index", { ascending: true });
 
       if (modulesError) throw modulesError;
+
+      const moduleIds = (fetchedModules || []).map((module: any) => module.id);
+      const { data: lessons } = moduleIds.length
+        ? await supabase.from("lessons").select("*").in("module_id", moduleIds).order("order_index", { ascending: true })
+        : { data: [] as any[] };
+      const modules = (fetchedModules || []).map((module: any) => ({
+        ...module,
+        lessons: (lessons || []).filter((lesson: any) => lesson.module_id === module.id),
+      }));
 
       const { data: club } = await supabase
         .from("clubs")
@@ -53,9 +68,9 @@ function BootcampDetail() {
         .eq("name", bootcamp.title)
         .eq("creator_id", bootcamp.creator_id)
         .eq("category", "Bootcamp")
-        .single();
+        .maybeSingle();
 
-      return { bootcamp, modules, club };
+      return { bootcamp: { ...bootcamp, profiles: creator }, modules, club };
     },
   });
 
@@ -151,11 +166,22 @@ function BootcampDetail() {
     setCouponMessage("Coupon applied");
   }
 
-  if (isBootcampLoading || !bootcamp) {
+  if (isBootcampLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="mt-4 text-sm font-medium text-muted-foreground">Loading bootcamp details...</p>
+      </div>
+    );
+  }
+
+  if (bootcampFailed || !bootcamp) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
+        <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10"><BookOpen className="h-5 w-5 text-primary" /></div>
+        <h1 className="mt-4 text-[18px] font-semibold">Bootcamp unavailable</h1>
+        <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted-foreground">We could not load this bootcamp. It may still be publishing, or your connection may have been interrupted.</p>
+        <div className="mt-5 flex gap-2"><Link to="/app/bootcamps" className="rounded-lg border border-border px-4 py-2.5 text-[13px] font-semibold">Back to bootcamps</Link><button onClick={() => refetch()} className="rounded-lg bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground">Try again</button></div>
       </div>
     );
   }

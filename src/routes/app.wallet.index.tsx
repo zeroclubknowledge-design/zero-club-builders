@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { 
   ArrowUpRight, Store, Send, QrCode, TrendingUp, 
-  History, Star, Users, PenLine, Box, Plus, 
+  History, Star, Users, PenLine, Plus,
   Wallet as WalletIcon, Search, HelpCircle, BarChart3, Gift,
   ChevronLeft, Loader2, ArrowRight, ArrowDownLeft, Copy,
   Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings
@@ -465,12 +465,12 @@ function WalletPage() {
             <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Withdraw</span>
           </Link>
 
-          <button className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
+          <Link to="/app/gifts" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
             <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
-              <Box className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
+              <Gift className="h-5 w-5 fill-current text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">More</span>
-          </button>
+            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Gifts</span>
+          </Link>
         </div>
       </section>
 

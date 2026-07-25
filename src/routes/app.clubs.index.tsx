@@ -1045,29 +1045,34 @@ function Clubs() {
       
       {/* Join Club Modal */}
       <Drawer open={showJoinModal} onOpenChange={setShowJoinModal}>
-        <DrawerContent className="mx-auto max-w-lg border-none bg-background p-6">
+        <DrawerContent className="mx-auto max-w-lg overflow-hidden border-border bg-background p-0">
           {selectedClub && (
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20">
+            <div>
+              <div className="relative h-28 overflow-hidden bg-[#171218]">
+                {selectedClub.banner_url && <img src={selectedClub.banner_url} alt="" className="h-full w-full object-cover opacity-55" />}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#171218] to-transparent" />
+                <div className="absolute bottom-4 left-5 flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-black/30 backdrop-blur-md">
                 {selectedClub.banner_url ? (
                   <img src={selectedClub.banner_url} className="h-full w-full object-cover" />
                 ) : (
-                  <Hash className="h-8 w-8 text-primary/70" />
+                    <Hash className="h-6 w-6 text-white" />
                 )}
+                </div>
               </div>
-              <h2 className="text-[19px] font-semibold text-foreground mb-1 tracking-tight">Join {selectedClub.name}?</h2>
-              <p className="text-sm text-muted-foreground/60 mb-8 font-medium leading-relaxed">
-                {selectedClub.is_private 
-                  ? "This is a private club. An admin will need to approve your request before you can enter."
-                  : "You're about to instantly join this squad."}
-              </p>
+              <div className="p-5 sm:p-6">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase text-primary">{selectedClub.is_private ? <Lock className="h-3.5 w-3.5 fill-current" /> : <Users className="h-3.5 w-3.5 fill-current" />}{selectedClub.is_private ? "Private community" : "Open community"}</div>
+                <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-foreground">{selectedClub.is_private ? "Request to join" : "Join club"}</h2>
+                <p className="mt-1 text-[14px] font-medium text-foreground">{selectedClub.name}</p>
+                <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{selectedClub.is_private ? "Your profile and public proof will be shared with the club administrators. You will be notified as soon as they decide." : "Join the conversation, participate in club work, and connect with members immediately."}</p>
 
-              <div className="flex gap-3 w-full">
+                {selectedClub.is_private && <div className="mt-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-3.5"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-[12px] font-semibold text-foreground">Admin approval required</p><p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">Sending a request does not grant access until an administrator approves it.</p></div></div>}
+
+              <div className="mt-6 grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => setShowJoinModal(false)}
-                  className="flex-1 bg-card border border-border/30 text-foreground font-bold py-3.5 rounded-full transition-all duration-300 active:scale-[0.98] hover:border-border/50 text-sm"
+                  className="h-11 rounded-lg border border-border bg-card text-[13px] font-semibold text-foreground hover:bg-muted"
                 >
-                  Cancel
+                  Not now
                 </button>
                 <button 
                   onClick={() => {
@@ -1075,10 +1080,11 @@ function Clubs() {
                     setShowJoinModal(false);
                   }}
                   disabled={joiningClubId === selectedClub.id}
-                  className="flex-1 bg-foreground text-background font-bold py-3.5 rounded-full shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] hover:opacity-90 text-sm"
+                  className="h-11 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
                 >
-                  {selectedClub.is_private ? "Request to Join" : "Join Now"}
+                  {joiningClubId === selectedClub.id ? "Sending..." : selectedClub.is_private ? "Send request" : "Join now"}
                 </button>
+              </div>
               </div>
             </div>
           )}

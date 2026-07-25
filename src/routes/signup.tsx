@@ -46,7 +46,8 @@ function SignUpPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      const isAddingAccount = new URLSearchParams(window.location.search).get("add_account") === "true";
+      if (session && !isAddingAccount) {
         router.navigate({
           to: "/app",
           search: {

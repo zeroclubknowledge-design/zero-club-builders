@@ -98,7 +98,7 @@ export async function switchAccount(account: SavedAccount) {
   window.location.href = "/app";
 }
 
-export async function prepareAddAccount() {
+export async function prepareAddAccount(destination = "/signin?add_account=true") {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     try {
@@ -132,19 +132,16 @@ export async function prepareAddAccount() {
   }
 
   // Do NOT sign out. Just redirect to signin with a special flag.
-  window.location.href = "/signin?add_account=true";
+  window.location.href = destination;
 }
 
 export async function logoutCurrentAccount(userId: string) {
   removeSavedAccount(userId);
-  const accounts = getSavedAccounts();
-  
-  if (accounts.length > 0) {
-    await switchAccount(accounts[0]);
-  } else {
-    await supabase.auth.signOut();
-    window.location.href = "/signin";
-  }
+  saveAccounts([]);
+  await supabase.auth.signOut({ scope: "local" });
+  localStorage.removeItem("signin_email");
+  localStorage.removeItem("signin_step");
+  window.location.replace("/");
 }
 
 export function setupMultiAccountSync() {

@@ -4,13 +4,37 @@ import { getCachedSession } from './auth';
 
 // Fetch all active bootcamps
 export const getBootcamps = async () => {
-  const { data, error } = await supabase
+  const { data: bootcamps, error } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url, account_type), enrollments(count), modules(count)')
+    .select('*')
     .ilike('status', 'active')
     .order('created_at', { ascending: false });
-  if (error) return [];
-  return data ?? [];
+  if (error) {
+    console.error('Failed to fetch bootcamps:', error);
+    throw error;
+  }
+  if (!bootcamps?.length) return [];
+
+  const creatorIds = [...new Set(bootcamps.map((bootcamp: any) => bootcamp.creator_id).filter(Boolean))];
+  const bootcampIds = bootcamps.map((bootcamp: any) => bootcamp.id);
+  const [{ data: creators }, { data: enrollments }, { data: modules }] = await Promise.all([
+    supabase.from('profiles').select('id, username, full_name, avatar_url, account_type').in('id', creatorIds),
+    supabase.from('enrollments').select('bootcamp_id').in('bootcamp_id', bootcampIds),
+    supabase.from('modules').select('id, bootcamp_id').in('bootcamp_id', bootcampIds),
+  ]);
+
+  const creatorMap = new Map((creators || []).map((creator: any) => [creator.id, creator]));
+  const enrollmentCounts = new Map<string, number>();
+  const moduleCounts = new Map<string, number>();
+  (enrollments || []).forEach((item: any) => enrollmentCounts.set(item.bootcamp_id, (enrollmentCounts.get(item.bootcamp_id) || 0) + 1));
+  (modules || []).forEach((item: any) => moduleCounts.set(item.bootcamp_id, (moduleCounts.get(item.bootcamp_id) || 0) + 1));
+
+  return bootcamps.map((bootcamp: any) => ({
+    ...bootcamp,
+    profiles: creatorMap.get(bootcamp.creator_id) || null,
+    enrollments: [{ count: enrollmentCounts.get(bootcamp.id) || 0 }],
+    modules: [{ count: moduleCounts.get(bootcamp.id) || 0 }],
+  }));
 };
 
 // Fetch bootcamps created by current user

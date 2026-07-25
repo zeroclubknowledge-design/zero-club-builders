@@ -24,6 +24,9 @@ import {
   Settings,
   ChevronLeft,
   Building2,
+  UserPlus,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -202,13 +205,15 @@ function SidebarContent({
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </DrawerTrigger>
-          <DrawerContent className="z-[100] border-t-border bg-background/95 backdrop-blur-xl p-6 border-none focus:ring-0">
-            <div className="text-left mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Accounts</h2>
+          <DrawerContent className="z-[100] mx-auto max-w-lg border-border bg-background p-0 focus:ring-0">
+            <div className="border-b border-border px-5 pb-4 pt-5 text-left">
+              <p className="text-[10px] font-semibold uppercase text-primary">Zero Club identity</p>
+              <h2 className="mt-1 text-[21px] font-semibold tracking-tight text-foreground">Accounts</h2>
+              <p className="mt-1 text-[12px] text-muted-foreground">Switch profiles or start another Zero Club identity.</p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex max-h-[72vh] flex-col gap-3 overflow-y-auto p-5">
               {accounts.length === 0 && profile && (
-                <div className="flex items-center justify-between p-2 rounded-xl bg-accent/10">
+                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/[0.045] p-3">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
                       {profile?.avatar_url ? (
@@ -236,7 +241,7 @@ function SidebarContent({
                 return (
                   <div
                     key={acc.id}
-                    className={`flex items-center justify-between p-2 rounded-xl transition cursor-pointer ${isActive ? "bg-accent/10" : "hover:bg-accent/20"}`}
+                    className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition ${isActive ? "border-primary/20 bg-primary/[0.045]" : "border-border hover:bg-muted"}`}
                     onClick={async () => {
                       if (!isActive) {
                         await switchAccount(acc);
@@ -269,21 +274,16 @@ function SidebarContent({
                 );
               })}
               <button
-                onClick={() => {
-                  prepareAddAccount();
-                  window.location.href = "/signup";
-                }}
-                className="w-full py-3.5 rounded-full ring-1 ring-border bg-transparent text-sm font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap mt-2"
+                onClick={() => prepareAddAccount("/signup?add_account=true")}
+                className="mt-2 flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3.5 text-left hover:bg-muted"
               >
-                Create a new account
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><UserPlus className="h-4 w-4" /></span><span><span className="block text-[13px] font-semibold">Create a new account</span><span className="mt-0.5 block text-[10.5px] text-muted-foreground">Keep this account saved and make another profile</span></span>
               </button>
               <button
-                onClick={() => {
-                  prepareAddAccount();
-                }}
-                className="w-full py-3.5 rounded-full ring-1 ring-border bg-transparent text-sm font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
+                onClick={() => prepareAddAccount()}
+                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3.5 text-left hover:bg-muted"
               >
-                Add an existing account
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-muted text-foreground"><LogIn className="h-4 w-4" /></span><span><span className="block text-[13px] font-semibold">Add an existing account</span><span className="mt-0.5 block text-[10.5px] text-muted-foreground">Sign in and add it to the account switcher</span></span>
               </button>
 
               <button
@@ -295,9 +295,9 @@ function SidebarContent({
                     window.location.href = "/signin";
                   }
                 }}
-                className="w-full py-3.5 rounded-full bg-destructive/8 text-destructive text-sm font-semibold tracking-tight hover:bg-destructive/15 tap mt-2"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 py-3.5 text-[13px] font-semibold text-destructive hover:bg-destructive/15 tap"
               >
-                Log out
+                <LogOut className="h-4 w-4" /> Log out of Zero Club
               </button>
             </div>
           </DrawerContent>
