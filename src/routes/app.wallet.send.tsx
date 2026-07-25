@@ -149,7 +149,7 @@ function SendMoneyPage() {
   const RecipientRow = ({ user }: { user: any }) => (
     <button
       onClick={() => setSelectedRecipient(user)}
-      className="group flex w-full items-center justify-between px-1 py-3 tap hover:bg-foreground/[0.02] rounded-xl text-left"
+      className="group flex w-full items-center justify-between border-b border-border px-4 py-3 text-left last:border-b-0 hover:bg-muted/50"
     >
       <div className="flex items-center gap-3.5 min-w-0">
         <div className="h-11 w-11 rounded-full bg-muted overflow-hidden shrink-0 ring-1 ring-border">
@@ -173,8 +173,9 @@ function SendMoneyPage() {
   const numericAmount = parseInt(transferAmount) || 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
-      <header className="flex items-center gap-3 px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-4">
+    <div className="min-h-screen bg-background pb-20 text-foreground">
+      <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
+        <div className="mx-auto flex max-w-[760px] items-center gap-3">
         <button
           onClick={() => {
             if (selectedRecipient) {
@@ -184,21 +185,20 @@ function SendMoneyPage() {
               navigate({ to: "/app/wallet" });
             }
           }}
-          className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04] shrink-0"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card tap hover:bg-muted"
         >
           <ArrowLeft className="h-[18px] w-[18px] text-foreground" />
         </button>
-        <h1 className="text-[17px] font-semibold tracking-tight text-foreground truncate">
-          {selectedRecipient ? "Send XP" : "Send funds"}
-        </h1>
+        <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold tracking-tight text-foreground">{selectedRecipient ? "Confirm XP transfer" : "Send XP"}</h1></div>
+        </div>
       </header>
 
-      <div className="flex flex-col px-6 pt-2 text-foreground max-w-md mx-auto">
+      <div className="mx-auto flex max-w-[760px] flex-col px-4 py-6 text-foreground md:px-7 md:py-8">
         {selectedRecipient ? (
           <>
             {/* Recipient — centered, calm */}
-            <div className="mt-6 flex flex-col items-center text-center">
-              <div className="h-16 w-16 rounded-full bg-muted overflow-hidden ring-1 ring-border shadow-soft">
+            <div className="mx-auto w-full max-w-md rounded-lg border border-border bg-card p-5 text-center sm:p-7">
+              <div className="mx-auto h-16 w-16 overflow-hidden rounded-full bg-muted ring-1 ring-border shadow-soft">
                 {selectedRecipient.avatar_url ? (
                   <img src={selectedRecipient.avatar_url} className="h-full w-full object-cover" />
                 ) : (
@@ -209,10 +209,9 @@ function SendMoneyPage() {
               </div>
               <h4 className="mt-3 text-[16px] font-semibold tracking-tight text-foreground">{selectedRecipient.full_name || selectedRecipient.username}</h4>
               <p className="text-[12.5px] text-muted-foreground mt-0.5">@{selectedRecipient.username}</p>
-            </div>
 
             {/* Amount — editorial display type */}
-            <div className="mt-10 text-center">
+              <div className="mt-8 text-center">
               <div className="flex items-center justify-between px-1">
                 <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Amount</label>
                 <span className="text-[11px] text-muted-foreground tabular-nums">
@@ -248,14 +247,14 @@ function SendMoneyPage() {
             <button
               onClick={handleSendFunds}
               disabled={sendingFunds || numericAmount <= 0 || numericAmount > (profile?.xp || 0)}
-              className="mt-10 flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-[15px] font-semibold tracking-tight text-background tap shadow-lift disabled:opacity-40"
+              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground tap disabled:opacity-40"
             >
               {sendingFunds ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Processing</>
               ) : (
                 <><Send className="h-4 w-4" /> {numericAmount > 0 ? `Send ${numericAmount.toLocaleString()} XP` : "Send XP"}</>
               )}
-            </button>
+            </button></div>
           </>
         ) : (
           <>
@@ -267,7 +266,7 @@ function SendMoneyPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name or username"
-                className="w-full rounded-full bg-foreground/[0.04] ring-1 ring-transparent py-3 pl-11 pr-11 text-[14px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-primary/40 focus:bg-background transition-all"
+                className="h-12 w-full rounded-lg border border-border bg-card pl-11 pr-11 text-[14px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10"
                 autoFocus
               />
               {searching && (
@@ -275,7 +274,7 @@ function SendMoneyPage() {
               )}
             </div>
 
-            <div className="mt-6 max-h-[62vh] overflow-y-auto no-scrollbar pb-10">
+            <div className="no-scrollbar mt-5 max-h-[62vh] overflow-y-auto rounded-lg border border-border bg-card pb-0">
               {searchQuery.trim().length > 1 ? (
                 <div>
                   <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-2 px-1">Results</h4>

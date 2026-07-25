@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Gift, ArrowUpRight, Search, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowLeft, Gift, ArrowUpRight, Search, Loader2, ShoppingBag, PackagePlus } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
@@ -13,6 +13,7 @@ function StorePage() {
   const navigate = useNavigate();
   const { data: profile } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [storeItems, setStoreItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
@@ -50,11 +51,15 @@ function StorePage() {
     fetchItems();
   }, []);
 
+  const categories = useMemo(() => ["All", ...Array.from(new Set(storeItems.map((item) => item.category).filter(Boolean)))], [storeItems]);
+
   const filteredItems = storeItems.filter(
     item => 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()))
+      (activeCategory === "All" || item.category === activeCategory) && (
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
   );
 
   const handlePurchase = async (item: any) => {
@@ -81,23 +86,23 @@ function StorePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-6">
+    <div className="min-h-screen bg-background pb-16 text-foreground">
       {/* Sticky Header Section */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-4">
-        <div className="max-w-2xl mx-auto w-full">
+      <div className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
+        <div className="mx-auto w-full max-w-[1180px]">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3">
               <Link
                 to="/app/wallet"
-                className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04] text-foreground shrink-0"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card text-foreground tap hover:bg-muted"
               >
                 <ArrowLeft className="h-[18px] w-[18px]" />
               </Link>
-              <h1 className="text-[17px] font-display font-semibold tracking-tight text-foreground">Zero Store</h1>
+              <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Marketplace</p><h1 className="text-[19px] font-semibold tracking-tight text-foreground">Zero Store</h1></div>
             </div>
 
             {/* Balances capsule */}
-            <div className="flex items-center bg-card ring-1 ring-border rounded-full p-0.5">
+            <div className="flex items-center rounded-lg border border-border bg-card p-0.5">
               <div className="flex items-center gap-1.5 px-3 py-1.5">
                 <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">XP</span>
                 <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">{(profile?.xp || 0).toLocaleString()}</span>
@@ -111,35 +116,37 @@ function StorePage() {
             </div>
           </div>
 
-          <p className="mt-6 text-[13.5px] leading-relaxed text-muted-foreground max-w-sm">
-            Redeem your builder rewards for subscriptions, gear, and exclusive perks.
-          </p>
-
-          {/* Search Box */}
-          <div className="mt-5 relative pb-1">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none pb-1">
-              <Search className="h-[18px] w-[18px] text-muted-foreground" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search for tools, digital products, perks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-card ring-1 ring-border rounded-full pl-11 pr-4 py-3 text-[13.5px] font-medium outline-none focus:ring-primary/50 transition-all placeholder:text-muted-foreground/70"
-            />
-          </div>
         </div>
       </div>
 
-      <div className="w-full max-w-2xl mx-auto px-5">
+      <div className="mx-auto w-full max-w-[1180px] px-4 py-6 md:px-7 md:py-8">
+        <section className="grid overflow-hidden rounded-lg bg-[#171218] text-white md:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="p-5 sm:p-7">
+            <ShoppingBag className="h-6 w-6 text-[#f06ac3]" />
+            <p className="mt-5 text-[10px] font-semibold uppercase text-white/45">Built by the Zero Club network</p>
+            <h2 className="mt-2 max-w-xl text-[25px] font-semibold tracking-tight sm:text-[31px]">Tools, assets, and perks for people building real work.</h2>
+            <p className="mt-3 max-w-lg text-[13px] leading-relaxed text-white/60">Use your wallet or XP to access useful products from builders across the Club.</p>
+          </div>
+          <div className="border-t border-white/10 p-5 md:border-l md:border-t-0">
+            <p className="text-[10px] font-medium uppercase text-white/45">Sell on Zero Store</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-white/65">List templates, digital products, resources, and builder services.</p>
+            <Link to="/app/my-store" className="mt-5 flex h-10 items-center justify-center gap-2 rounded-lg bg-white text-[12px] font-semibold text-black"><PackagePlus className="h-4 w-4" />Manage my store</Link>
+          </div>
+        </section>
+
+        <section className="mt-5 space-y-3">
+          <div className="relative"><Search className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" /><input type="text" placeholder="Search tools, digital products, and perks" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-12 w-full rounded-lg border border-border bg-card pl-11 pr-4 text-[14px] outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10" /></div>
+          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">{categories.map((category) => <button key={String(category)} onClick={() => setActiveCategory(String(category))} className={`h-9 shrink-0 rounded-lg border px-3.5 text-[11.5px] font-semibold ${activeCategory === category ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>{String(category)}</button>)}</div>
+        </section>
+
         {/* Catalog */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {loading ? (
-            <div className="col-span-1 md:col-span-2 py-10 flex justify-center">
+            <div className="col-span-full flex justify-center py-14">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="col-span-1 md:col-span-2 py-12 text-center">
+            <div className="col-span-full py-16 text-center">
               <Gift className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
               <p className="text-sm font-medium text-foreground">No items found</p>
               <p className="text-xs text-muted-foreground mt-1">Try a different search term or list a new product.</p>
@@ -149,7 +156,7 @@ function StorePage() {
               return (
                 <div
                   key={item.id}
-                  className="group relative overflow-hidden rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 shadow-soft transition-all flex flex-col justify-between"
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/30 hover:shadow-soft"
                 >
                   <div className="p-5">
                     <div className="flex items-center justify-between">
@@ -157,14 +164,14 @@ function StorePage() {
                         {item.category || "Product"}
                       </span>
                       {item.badge && (
-                        <span className="text-[9.5px] font-medium text-primary ring-1 ring-primary/15 px-2 py-0.5 rounded-full bg-primary/5">
+                        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[9.5px] font-medium text-primary">
                           {item.badge}
                         </span>
                       )}
                     </div>
 
                     <div className="mt-4 flex gap-3.5">
-                      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl overflow-hidden bg-primary/8 ring-1 ring-primary/15 text-primary relative">
+                      <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/10 text-primary">
                         {item.cover_url ? (
                           <img src={item.cover_url} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
@@ -214,7 +221,7 @@ function StorePage() {
                     <button
                       onClick={() => handlePurchase(item)}
                       disabled={purchasingId === item.id || item.seller_id === profile?.id}
-                      className="flex items-center justify-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[12px] font-semibold tracking-tight text-background tap hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-[12px] font-semibold text-primary-foreground tap hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {purchasingId === item.id ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />

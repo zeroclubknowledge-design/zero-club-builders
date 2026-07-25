@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app/premium")({
 type Audience = "Learner" | "Tutor" | "Institution";
 
 type Plan = {
-  id: "basic" | "premium" | "premium-plus" | "institution";
+  id: string;
   name: string;
   eyebrow: string;
   price: string;
@@ -40,41 +40,78 @@ type Plan = {
 
 const plans: Plan[] = [
   {
-    id: "basic",
+    id: "learner-basic",
     name: "Basic",
-    eyebrow: "Start building",
+    eyebrow: "Learner essentials",
     price: "₦0",
     priceValue: 0,
     description: "A complete starting point for learning in public and building a proof-backed profile.",
     audiences: ["Learner"],
     recommendedFor: "Learner",
     storedTier: "Basic",
-    features: ["Builder profile and feed", "Public clubs and communities", "ZeroNotes publishing", "Standard XP earning"],
+    features: ["Builder profile and feed", "Public clubs and communities", "ZeroNotes publishing", "Zero AI starter access", "Standard XP earning"],
   },
   {
-    id: "premium",
+    id: "learner-premium",
     name: "Premium",
-    eyebrow: "Grow your proof",
-    price: "₦5,000",
-    priceValue: 5000,
+    eyebrow: "Learner growth",
+    price: "₦3,000",
+    priceValue: 3000,
     description: "More visibility, flexibility, and learning value for builders moving with intent.",
-    audiences: ["Learner", "Tutor"],
+    audiences: ["Learner"],
     recommendedFor: "Learner",
     storedTier: "Premium",
     featured: true,
-    features: ["2x daily XP multiplier", "30% bootcamp discount", "Post editing and longer posts", "Private club access", "Premium profile badge"],
+    features: ["Zero AI learning assistant", "2x daily XP multiplier", "30% bootcamp discount", "Post editing and longer posts", "Private club access", "Premium profile badge"],
   },
   {
-    id: "premium-plus",
+    id: "learner-premium-plus",
     name: "Premium+",
-    eyebrow: "Run your studio",
+    eyebrow: "Learner advantage",
+    price: "₦7,000",
+    priceValue: 7000,
+    description: "Advanced support for learners building ambitious projects and stronger professional proof.",
+    audiences: ["Learner"],
+    recommendedFor: "Learner",
+    storedTier: "Premium+",
+    features: ["Everything in Learner Premium", "Advanced Zero AI project guidance", "50% bootcamp discount", "Priority mentor access", "Enhanced proof visibility", "Premium+ profile badge"],
+  },
+  {
+    id: "tutor-basic",
+    name: "Basic",
+    eyebrow: "Start teaching",
+    price: "₦0",
+    priceValue: 0,
+    description: "Establish your tutor profile, share expertise, and validate demand before launching paid programs.",
+    audiences: ["Tutor"],
+    recommendedFor: "Tutor",
+    storedTier: "Basic",
+    features: ["Public tutor profile", "Feed and community access", "One private club", "Zero AI starter access", "Standard XP earning"],
+  },
+  {
+    id: "tutor-premium",
+    name: "Premium",
+    eyebrow: "Build your audience",
+    price: "₦5,000",
+    priceValue: 5000,
+    description: "Professional tools for tutors growing authority, communities, and demand for their expertise.",
+    audiences: ["Tutor"],
+    recommendedFor: "Tutor",
+    storedTier: "Premium",
+    featured: true,
+    features: ["Zero AI curriculum assistant", "Unlimited public and private clubs", "Advanced posts and profile badge", "Tutor booking availability", "Audience growth insights"],
+  },
+  {
+    id: "tutor-premium-plus",
+    name: "Premium+",
+    eyebrow: "Run your teaching business",
     price: "₦12,000",
     priceValue: 12000,
-    description: "The creator workspace for tutors who teach, manage cohorts, and earn on Zero Club.",
-    audiences: ["Tutor", "Learner"],
+    description: "The complete studio for tutors launching bootcamps, managing cohorts, and earning on Zero Club.",
+    audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Premium+",
-    features: ["Everything in Premium", "Tutor Studio access", "Bootcamp creation and sales", "Learner and cohort analytics", "50% bootcamp discount"],
+    features: ["Everything in Tutor Premium", "Tutor Studio and bootcamp sales", "Zero AI cohort and feedback tools", "Learner and revenue analytics", "Coupons and cohort communities", "Priority tutor support"],
   },
   {
     id: "institution",
@@ -139,7 +176,7 @@ function MembershipPage() {
       if (!profile) throw new Error("Please sign in to manage your membership.");
       if (plan.id === "institution") return plan;
 
-      if (plan.id === "basic") {
+      if (plan.storedTier === "Basic") {
         if (profile.tier !== "Basic") {
           const { error } = await supabase.from("profiles").update({ tier: "Basic" }).eq("id", profile.id);
           if (error) throw error;
@@ -167,7 +204,7 @@ function MembershipPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["my_profile"] });
-      toast.success(plan.id === "basic" ? "Switched to Basic." : `${plan.name} is now active.`);
+      toast.success(plan.storedTier === "Basic" ? "Switched to Basic." : `${plan.name} is now active.`);
     },
     onError: (error: Error) => toast.error(error.message),
   });

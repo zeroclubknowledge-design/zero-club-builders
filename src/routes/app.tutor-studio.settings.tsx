@@ -102,146 +102,114 @@ function TutorSettingsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center px-4 py-3.5 gap-3 max-w-2xl mx-auto">
+      <header className="sticky top-0 z-40 border-b hairline bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3.5 md:px-7">
           <Link
             to="/app/tutor-studio"
-            className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card tap hover:bg-muted"
           >
             <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
           </Link>
           <div>
-            <h1 className="text-[17px] font-semibold tracking-tight text-foreground">Studio settings</h1>
-            <p className="text-[11px] text-muted-foreground">{profile?.full_name || profile?.username}</p>
+            <p className="text-[10px] font-medium uppercase text-muted-foreground">Tutor Studio</p>
+            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Studio settings</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 pt-6 space-y-6">
-        {/* Booking availability */}
-        <section className="rounded-2xl ring-1 ring-border bg-card shadow-soft overflow-hidden">
-          <div className="flex items-center gap-3 px-5 py-4 border-b hairline">
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15">
-              <Calendar className="h-4 w-4 text-primary" strokeWidth={1.75} />
-            </div>
-            <div>
-              <h2 className="text-[14.5px] font-semibold tracking-tight text-foreground">Booking availability</h2>
-              <p className="text-[12px] text-muted-foreground">When learners can book 1-on-1 sessions with you.</p>
-            </div>
-          </div>
+      <main className="mx-auto max-w-[1180px] px-4 py-6 md:px-7 md:py-8">
+        <div className="mb-6 max-w-2xl">
+          <h2 className="font-display text-[25px] font-semibold tracking-tight md:text-[30px]">Set up how learners work with you.</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">Manage booking availability, your teaching identity, payouts, notifications, and account protection.</p>
+        </div>
 
-          <div className="p-5 space-y-5">
-            <div className="space-y-2">
-              <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Working days</label>
-              <div className="relative">
-                <select
-                  value={bookingForm.availability_days}
-                  onChange={(e) => setBookingForm({ ...bookingForm, availability_days: e.target.value })}
-                  className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground cursor-pointer"
-                >
-                  <option>Weekdays (Mon-Fri)</option>
-                  <option>Weekends (Sat-Sun)</option>
-                  <option>Everyday</option>
-                </select>
-                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <section className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-center gap-3 border-b hairline px-5 py-4">
+              <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10">
+                <Calendar className="h-[18px] w-[18px] text-primary" strokeWidth={2} />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold tracking-tight text-foreground">Booking availability</h2>
+                <p className="text-[12px] text-muted-foreground">Choose when learners can schedule one-to-one sessions.</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-5 p-5 md:p-6">
               <div className="space-y-2">
-                <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Start time</label>
-                <input
-                  type="time"
-                  value={bookingForm.availability_start}
-                  onChange={(e) => setBookingForm({ ...bookingForm, availability_start: e.target.value })}
-                  className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground"
-                />
+                <label className="text-[11px] font-medium uppercase text-muted-foreground">Working days</label>
+                <div className="relative">
+                  <select
+                    value={bookingForm.availability_days}
+                    onChange={(e) => setBookingForm({ ...bookingForm, availability_days: e.target.value })}
+                    className="h-12 w-full appearance-none rounded-lg border border-border bg-background px-4 pr-11 text-[13px] font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  >
+                    <option>Weekdays (Mon-Fri)</option>
+                    <option>Weekends (Sat-Sun)</option>
+                    <option>Everyday</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium uppercase text-muted-foreground">Start time</label>
+                  <input type="time" value={bookingForm.availability_start} onChange={(e) => setBookingForm({ ...bookingForm, availability_start: e.target.value })} className="h-12 w-full rounded-lg border border-border bg-background px-3 text-[13px] font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 sm:px-4" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-medium uppercase text-muted-foreground">End time</label>
+                  <input type="time" value={bookingForm.availability_end} onChange={(e) => setBookingForm({ ...bookingForm, availability_end: e.target.value })} className="h-12 w-full rounded-lg border border-border bg-background px-3 text-[13px] font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 sm:px-4" />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">End time</label>
-                <input
-                  type="time"
-                  value={bookingForm.availability_end}
-                  onChange={(e) => setBookingForm({ ...bookingForm, availability_end: e.target.value })}
-                  className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground"
-                />
+                <label className="text-[11px] font-medium uppercase text-muted-foreground">Session duration</label>
+                <div className="relative">
+                  <select value={bookingForm.availability_duration} onChange={(e) => setBookingForm({ ...bookingForm, availability_duration: e.target.value })} className="h-12 w-full appearance-none rounded-lg border border-border bg-background px-4 pr-11 text-[13px] font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
+                    <option>30 minutes</option><option>45 minutes</option><option>60 minutes</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Session duration</label>
-              <div className="relative">
-                <select
-                  value={bookingForm.availability_duration}
-                  onChange={(e) => setBookingForm({ ...bookingForm, availability_duration: e.target.value })}
-                  className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground cursor-pointer"
-                >
-                  <option>30 minutes</option>
-                  <option>45 minutes</option>
-                  <option>60 minutes</option>
-                </select>
-                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <div className="rounded-lg border border-primary/20 bg-primary/[0.045] p-4 text-[12px] leading-relaxed text-muted-foreground">
+                These hours appear on your public tutor profile and are used when learners request a session.
               </div>
-            </div>
 
-            <button
-              onClick={handleSaveAvailability}
-              disabled={saving}
-              className="w-full bg-foreground text-background font-semibold tracking-tight py-3.5 rounded-full tap shadow-lift hover:opacity-90 text-[14px] disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              Save availability
-            </button>
-          </div>
-        </section>
+              <button onClick={handleSaveAvailability} disabled={saving} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 text-[13px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 sm:w-auto">
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                Save availability
+              </button>
+            </div>
+          </section>
 
-        {/* Teaching summary */}
-        <section className="rounded-2xl ring-1 ring-border bg-card shadow-soft overflow-hidden">
-          <div className="flex items-center gap-3 px-5 py-4 border-b hairline">
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15">
-              <GraduationCap className="h-4 w-4 text-primary" strokeWidth={1.75} />
-            </div>
-            <div>
-              <h2 className="text-[14.5px] font-semibold tracking-tight text-foreground">Teaching account</h2>
-              <p className="text-[12px] text-muted-foreground">How you appear across Zero Club.</p>
-            </div>
-          </div>
-          <div className="divide-y divide-hairline">
-            <div className="flex items-center justify-between px-5 py-3.5">
-              <span className="text-[13px] text-muted-foreground">Account type</span>
-              <span className="text-[13px] font-semibold tracking-tight text-foreground">{profile?.account_type || "Tutor"}</span>
-            </div>
-            <div className="flex items-center justify-between px-5 py-3.5">
-              <span className="text-[13px] text-muted-foreground">Username</span>
-              <span className="text-[13px] font-semibold tracking-tight text-foreground">@{profile?.username}</span>
-            </div>
-            <div className="flex items-center justify-between px-5 py-3.5">
-              <span className="text-[13px] text-muted-foreground">Membership</span>
-              <span className="text-[13px] font-semibold tracking-tight text-foreground">{profile?.tier || "Basic"}</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Quick links */}
-        <section className="rounded-2xl ring-1 ring-border bg-card shadow-soft overflow-hidden divide-y divide-hairline">
-          {quickLinks.map((item) => (
-            <Link
-              key={item.title}
-              to={item.to}
-              className="group flex items-center gap-4 px-5 py-4 tap hover:bg-foreground/[0.02]"
-            >
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full ring-1 ring-border bg-background/60">
-                <item.Icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.75} />
+          <aside className="space-y-4">
+            <section className="overflow-hidden rounded-lg border border-border bg-card">
+              <div className="flex items-center gap-3 border-b hairline px-5 py-4">
+                <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10"><GraduationCap className="h-4 w-4 text-primary" /></div>
+                <div><h2 className="text-[14px] font-semibold">Teaching account</h2><p className="text-[11.5px] text-muted-foreground">Your studio identity</p></div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[14px] font-semibold tracking-tight text-foreground">{item.title}</h3>
-                <p className="text-[12px] text-muted-foreground mt-0.5 line-clamp-1">{item.desc}</p>
+              <div className="divide-y divide-border">
+                {[
+                  ["Account type", profile?.account_type || "Tutor"],
+                  ["Username", `@${profile?.username}`],
+                  ["Membership", profile?.tier || "Basic"],
+                ].map(([label, value]) => <div key={label} className="flex items-center justify-between gap-4 px-5 py-3.5"><span className="text-[12px] text-muted-foreground">{label}</span><span className="truncate text-[12px] font-semibold text-foreground">{value}</span></div>)}
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
-            </Link>
-          ))}
-        </section>
+            </section>
+
+            <section className="overflow-hidden rounded-lg border border-border bg-card divide-y divide-border">
+              {quickLinks.map((item) => (
+                <Link key={item.title} to={item.to} className="group flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground"><item.Icon className="h-4 w-4" strokeWidth={2} /></div>
+                  <div className="min-w-0 flex-1"><h3 className="text-[13px] font-semibold text-foreground">{item.title}</h3><p className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.desc}</p></div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
+              ))}
+            </section>
+          </aside>
+        </div>
       </main>
     </div>
   );

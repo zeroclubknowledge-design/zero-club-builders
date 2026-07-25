@@ -93,13 +93,13 @@ function Bootcamps() {
         </section>
 
         <section className="py-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <label className="flex h-11 min-w-0 flex-1 items-center gap-3 rounded-lg border border-border bg-card px-3.5 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10">
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search skills, bootcamps, tutors or institutions" className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground" />
+          <div className="space-y-3">
+            <label className="flex h-12 w-full items-center gap-3 rounded-lg border border-border bg-card px-4 shadow-sm focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10 md:h-[52px]">
+              <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+              <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search skills, bootcamps, tutors or institutions" className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground" />
               {searchQuery && <button onClick={() => setSearchQuery('')} aria-label="Clear search" className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-accent"><X className="h-3.5 w-3.5" /></button>}
             </label>
-            <div className="no-scrollbar flex gap-1.5 overflow-x-auto md:max-w-[52%]">
+            <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-0.5">
               {categories.map((category) => (
                 <button key={category} onClick={() => setActiveCategory(category)} className={`h-9 shrink-0 rounded-lg border px-3.5 text-[11.5px] font-semibold transition-colors ${activeCategory === category ? 'border-foreground bg-foreground text-background' : 'border-border bg-card text-muted-foreground hover:text-foreground'}`}>
                   {category}

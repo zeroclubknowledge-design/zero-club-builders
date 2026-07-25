@@ -28,79 +28,62 @@ function NewMessagePage() {
   }, [followers, searchQuery]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] space-y-4">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background pb-20">
+      <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
+        <div className="mx-auto flex max-w-[980px] items-center gap-3">
           <button 
             onClick={() => navigate({ to: '/app/chat' })} 
-            className="grid h-10 w-10 place-items-center rounded-full bg-accent/20 border border-border transition active:scale-95"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card transition hover:bg-muted active:scale-95"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <div className="flex-1">
-            <h1 className="font-display text-xl font-bold tracking-tight text-foreground">New Message</h1>
-            <p className="text-[11px] text-muted-foreground">Select a builder</p>
+            <p className="text-[10px] font-medium uppercase text-muted-foreground">Messages</p>
+            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">New message</h1>
           </div>
-        </div>
-
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input 
-            type="text"
-            placeholder="Search followers..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl bg-accent/20 border border-border p-3.5 pl-12 text-sm text-foreground outline-none transition focus:border-primary/50 focus:bg-accent/30 placeholder:text-muted-foreground/60"
-          />
         </div>
       </header>
 
-      <div className="flex flex-col flex-1 divide-y divide-border/20">
-        {isLoading ? (
-          <div className="flex flex-1 items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <main className="mx-auto grid max-w-[980px] gap-6 px-4 py-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-7 md:py-8">
+        <aside className="hidden md:block">
+          <div className="sticky top-28 rounded-lg bg-[#171218] p-6 text-white">
+            <div className="grid h-11 w-11 place-items-center rounded-lg bg-[#cc208f]"><MessageCircle className="h-5 w-5 fill-current" /></div>
+            <h2 className="mt-5 text-[21px] font-semibold tracking-tight">Start a useful conversation.</h2>
+            <p className="mt-2 text-[12.5px] leading-relaxed text-white/60">Choose someone in your network and continue the work privately.</p>
           </div>
-        ) : (
-          filteredFollowers.map((follower: any) => (
-            <button 
-              key={follower.id} 
-              onClick={() => navigate({ to: "/app/chat/$id", params: { id: follower.id } })}
-              className="flex items-center gap-4 p-4 transition active:bg-accent/10 text-left group"
-            >
-              <div className="h-12 w-12 rounded-2xl bg-muted overflow-hidden border border-border/50 group-active:scale-95 transition-transform shadow-sm">
-                {follower.avatar_url ? (
-                  <img src={follower.avatar_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-muted to-accent flex items-center justify-center font-bold text-muted-foreground text-lg">
-                    {(follower.full_name || follower.username || 'U').substring(0, 1).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-1 flex-col min-w-0">
-                <div className="flex items-center gap-1">
-                  <span className="font-bold text-foreground truncate">{follower.full_name || follower.username}</span>
-                  {follower.verified && <Check className="h-3 w-3 text-primary fill-primary" />}
-                </div>
-                <span className="text-xs text-muted-foreground">{getFirstName(follower)}</span>
-              </div>
-              <MessageCircle className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
-          ))
-        )}
+        </aside>
 
-        {!isLoading && filteredFollowers.length === 0 && (
-          <div className="flex flex-1 flex-col items-center justify-center py-32 text-center px-10">
-            <div className="h-20 w-20 rounded-3xl bg-primary/5 border border-primary/10 flex items-center justify-center mb-6">
-              <UserPlus className="h-10 w-10 text-primary opacity-40" />
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-foreground">No followers found</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-[240px]">
-              {searchQuery ? "No builders match your search." : "Followers who you follow back will appear here to start a chat."}
-            </p>
+        <section>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" />
+            <input type="text" placeholder="Search your network" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} autoFocus className="h-12 w-full rounded-lg border border-border bg-card pl-11 pr-4 text-[14px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10" />
           </div>
-        )}
-      </div>
+          <div className="mt-4 flex items-center justify-between"><h2 className="text-[12px] font-semibold uppercase text-muted-foreground">{searchQuery ? "Search results" : "Your network"}</h2><span className="text-[11px] text-muted-foreground">{filteredFollowers.length} people</span></div>
+
+          <div className="mt-2 overflow-hidden rounded-lg border border-border bg-card">
+            {isLoading ? (
+              <div className="grid min-h-52 place-items-center"><div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+            ) : filteredFollowers.length > 0 ? filteredFollowers.map((follower: any) => (
+              <button key={follower.id} onClick={() => navigate({ to: "/app/chat/$id", params: { id: follower.id } })} className="group flex w-full items-center gap-3 border-b border-border p-3.5 text-left last:border-b-0 hover:bg-muted/50">
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
+                  {follower.avatar_url ? <img src={follower.avatar_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center bg-primary/10 text-sm font-semibold text-primary">{(follower.full_name || follower.username || 'U').substring(0, 1).toUpperCase()}</div>}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5"><span className="truncate text-[14px] font-semibold text-foreground">{follower.full_name || follower.username}</span>{follower.verified && <Check className="h-3.5 w-3.5 fill-primary text-primary" />}</div>
+                  <span className="text-[11.5px] text-muted-foreground">@{follower.username || getFirstName(follower)}</span>
+                </div>
+                <div className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground"><MessageCircle className="h-4 w-4" /></div>
+              </button>
+            )) : (
+              <div className="flex min-h-64 flex-col items-center justify-center px-8 text-center">
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-lg bg-primary/10"><UserPlus className="h-5 w-5 text-primary" /></div>
+                <h3 className="text-[15px] font-semibold text-foreground">No people found</h3>
+                <p className="mt-1.5 max-w-xs text-[12px] leading-relaxed text-muted-foreground">{searchQuery ? "Try another name or username." : "People in your network will appear here when you are ready to message them."}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
