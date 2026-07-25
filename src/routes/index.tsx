@@ -202,6 +202,14 @@ function BrandMark({ light = false }: { light?: boolean }) {
 
 function Header({ referralCode }: ReferralProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateHeader = () => setIsScrolled(window.scrollY > 12);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeader);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -214,7 +222,13 @@ function Header({ referralCode }: ReferralProps) {
 
   return (
     <>
-    <header className={`fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-200 ${isOpen ? "bg-[#f4f2ef]" : "bg-transparent"}`}>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-200 ${
+        isOpen || isScrolled
+          ? "border-[#171717]/[0.08] bg-[#f4f2ef] shadow-[0_1px_0_rgba(23,23,23,0.02)]"
+          : "border-transparent bg-transparent shadow-none"
+      }`}
+    >
       <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-[1180px] items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6">
         <BrandMark />
 
@@ -242,7 +256,7 @@ function Header({ referralCode }: ReferralProps) {
           <Link
             to="/signup"
             search={{ ref: referralCode, club: undefined }}
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#171717] px-4 text-[13px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:px-5 sm:text-[13.5px]"
+            className="inline-flex h-10 w-[72px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#171717] px-0 text-[13px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:w-auto sm:px-5 sm:text-[13.5px]"
             preload={false}
           >
             <span className="sm:hidden">Join</span>
@@ -255,7 +269,7 @@ function Header({ referralCode }: ReferralProps) {
             aria-expanded={isOpen}
             onClick={() => setIsOpen((value) => !value)}
           >
-            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" strokeWidth={2.25} />}
           </button>
         </div>
       </div>
@@ -289,10 +303,10 @@ function Header({ referralCode }: ReferralProps) {
               ))}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-3">
-              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-xl border border-[#171717]/12 text-[13px] font-semibold text-[#242126]">
+              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-[#171717]/12 text-[13px] font-semibold text-[#242126]">
                 Sign in
               </Link>
-              <Link to="/signup" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-xl bg-[#171417] px-4 text-[13px] font-semibold text-white">
+              <Link to="/signup" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg bg-[#171417] px-4 text-[13px] font-semibold text-white">
                 Join Zero Club
               </Link>
             </div>
@@ -311,7 +325,7 @@ function ProductShowcase() {
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
       {/* Main: a shipped-work post inside the dark app frame */}
-      <div className="relative overflow-hidden rounded-[28px] bg-[#141117] p-6 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06]">
+      <div className="relative overflow-hidden rounded-lg bg-[#141117] p-6 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06]">
         <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[#cc208f]/15 blur-[80px]" />
 
         {/* Post header */}
@@ -340,7 +354,7 @@ function ProductShowcase() {
         </p>
 
         {/* Mock media */}
-        <div className="relative mt-4 h-36 overflow-hidden rounded-2xl bg-gradient-to-br from-[#cc208f]/25 via-[#1d1a20] to-[#141117] ring-1 ring-white/[0.08]">
+        <div className="relative mt-4 h-36 overflow-hidden rounded-lg bg-gradient-to-br from-[#cc208f]/25 via-[#1d1a20] to-[#141117] ring-1 ring-white/[0.08]">
           <div className="absolute inset-x-5 top-5 h-2.5 w-24 rounded-full bg-white/15" />
           <div className="absolute inset-x-5 top-11 h-2 w-40 rounded-full bg-white/[0.08]" />
           <div className="absolute inset-x-5 top-16 h-2 w-32 rounded-full bg-white/[0.08]" />
@@ -358,7 +372,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="zc-showcase-float absolute -top-3 left-3 flex items-center gap-2 rounded-xl bg-white p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:gap-2.5 sm:rounded-2xl sm:p-3 sm:pr-4">
+      <div className="zc-showcase-float absolute -top-3 left-3 flex items-center gap-2 rounded-lg bg-white p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:gap-2.5 sm:p-3 sm:pr-4">
         <span className="relative grid h-9 w-9 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -370,7 +384,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: wallet mini-card */}
-      <div className="zc-showcase-float-delayed absolute bottom-0 right-3 w-[136px] overflow-hidden rounded-xl bg-[#141117] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:rounded-2xl sm:p-4">
+      <div className="zc-showcase-float-delayed absolute bottom-0 right-3 w-[136px] overflow-hidden rounded-lg bg-[#141117] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:p-4">
         <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
         <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">Creator wallet</p>
         <p className="mt-1.5 text-[20px] font-semibold tracking-tight text-white tabular-nums">₦248,500</p>
@@ -385,7 +399,7 @@ function ActivityRail() {
   const mobileUpdate = activityUpdates[0];
 
   return (
-    <div className="mt-8 w-full max-w-[540px] overflow-hidden rounded-2xl border border-[#171717]/[0.08] bg-white/80 p-2 shadow-[0_12px_32px_-24px_rgba(23,20,23,0.34)]">
+    <div className="mt-8 w-full max-w-[540px] overflow-hidden rounded-lg border border-[#171717]/[0.08] bg-white/80 p-2 shadow-[0_12px_32px_-24px_rgba(23,20,23,0.34)]">
       <div className="flex items-center justify-between px-2 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] sm:text-[10px]">
         <span className="flex items-center gap-2 text-[#9d176d]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
@@ -393,7 +407,7 @@ function ActivityRail() {
         </span>
         <span>Proof in motion</span>
       </div>
-      <article className="flex items-center gap-3 rounded-xl bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:hidden">
+      <article className="flex items-center gap-3 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:hidden">
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
           {mobileUpdate.name.slice(0, 1)}
         </span>
@@ -409,7 +423,7 @@ function ActivityRail() {
             <article
               key={`${update.name}-${index}`}
               aria-hidden={index >= activityUpdates.length || undefined}
-              className="flex w-[218px] shrink-0 items-center gap-3 rounded-xl bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05]"
+              className="flex w-[218px] shrink-0 items-center gap-3 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05]"
             >
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
                 {update.name.slice(0, 1)}
@@ -544,7 +558,7 @@ function LearningSection() {
           {platformHighlights.map((item) => (
             <article
               key={item.title}
-              className="group rounded-3xl bg-white p-6 ring-1 ring-[#171717]/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_-14px_rgba(0,0,0,0.12)] transition-all hover:ring-[#cc208f]/25 hover:-translate-y-0.5"
+              className="group rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_-14px_rgba(0,0,0,0.12)] transition-all hover:ring-[#cc208f]/25 hover:-translate-y-0.5"
             >
               <div className="mb-5 grid h-11 w-11 place-items-center rounded-full bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
                 <item.Icon className="h-[22px] w-[22px]" />
@@ -567,7 +581,7 @@ function ClubsSection() {
           <img
             src="/landing-communities-purpose.png"
             alt="Zero Club private clubs"
-            className="h-[360px] w-full rounded-3xl bg-[#f7f5f2] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
+            className="h-[360px] w-full rounded-lg bg-[#f7f5f2] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
           />
         </div>
         <div className="order-1 lg:order-2">
@@ -609,7 +623,7 @@ function OpportunitiesSection() {
           {audienceCards.map((card) => (
             <article
               key={card.title}
-              className="rounded-3xl bg-white p-6 ring-1 ring-[#171717]/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_-14px_rgba(0,0,0,0.12)] transition-all hover:ring-[#cc208f]/25 hover:-translate-y-0.5"
+              className="rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_-14px_rgba(0,0,0,0.12)] transition-all hover:ring-[#cc208f]/25 hover:-translate-y-0.5"
             >
               <div className="grid h-11 w-11 place-items-center rounded-full bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
                 <card.Icon className="h-[22px] w-[22px]" />
@@ -645,7 +659,7 @@ function WalletSection() {
         {/* The actual wallet card from the product, built in code */}
         <div className="relative mx-auto w-full max-w-[440px]">
           <div className="pointer-events-none absolute -top-10 -right-8 h-52 w-52 rounded-full bg-[#cc208f]/15 blur-[70px]" />
-          <div className="relative overflow-hidden rounded-[28px] bg-[#141117] p-8 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06]">
+          <div className="relative overflow-hidden rounded-lg bg-[#141117] p-8 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06]">
             <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
             <div className="relative z-10">
               <div className="flex items-center justify-between">
@@ -663,7 +677,7 @@ function WalletSection() {
               </div>
             </div>
           </div>
-          <div className="relative -mt-4 mx-6 rounded-2xl bg-white p-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.25)] ring-1 ring-[#171717]/[0.06]">
+          <div className="relative -mt-4 mx-6 rounded-lg bg-white p-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.25)] ring-1 ring-[#171717]/[0.06]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[12px] font-semibold tracking-tight text-[#171717]">Bootcamp enrollment</p>
@@ -696,7 +710,7 @@ function FeaturesSection() {
           {zeroClubFeatures.map((feature) => (
             <article
               key={feature.title}
-              className="group rounded-2xl bg-white p-5 ring-1 ring-[#171717]/[0.06] shadow-[0_8px_24px_-18px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:ring-[#cc208f]/25"
+              className="group rounded-lg bg-white p-5 ring-1 ring-[#171717]/[0.06] shadow-[0_8px_24px_-18px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:ring-[#cc208f]/25"
             >
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
                 {feature.icon}
@@ -720,7 +734,7 @@ const faqs = [
 ];
 
 function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section className="border-b border-[#171717]/[0.06] bg-[#fbfaf8]">
@@ -735,7 +749,7 @@ function FaqSection() {
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <div key={i} className={`overflow-hidden rounded-2xl bg-white ring-1 transition-all ${isOpen ? "ring-[#cc208f]/25" : "ring-[#171717]/[0.06]"}`}>
+              <div key={i} className={`overflow-hidden rounded-lg bg-white ring-1 transition-all ${isOpen ? "ring-[#cc208f]/25" : "ring-[#171717]/[0.06]"}`}>
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                   className="flex w-full items-center justify-between px-6 py-4 text-left"
@@ -763,7 +777,7 @@ function FinalCta({ referralCode }: ReferralProps) {
   return (
     <section className="bg-white px-4 py-16 md:px-6 md:py-20">
       <div className="mx-auto max-w-[1180px]">
-        <div className="relative overflow-hidden rounded-[32px] bg-[#141117] px-6 py-16 text-center md:px-16 md:py-20">
+        <div className="relative overflow-hidden rounded-lg bg-[#141117] px-6 py-16 text-center md:px-16 md:py-20">
           <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
           <div className="relative">
