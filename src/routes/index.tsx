@@ -269,7 +269,7 @@ function Header({ referralCode }: ReferralProps) {
             aria-expanded={isOpen}
             onClick={() => setIsOpen((value) => !value)}
           >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" strokeWidth={2.25} />}
+            {isOpen ? <X className="h-6 w-7" /> : <Menu className="h-6 w-7" strokeWidth={2.25} />}
           </button>
         </div>
       </div>
