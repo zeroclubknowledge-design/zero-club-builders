@@ -212,7 +212,11 @@ function NotesIndexPage() {
                             <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-border z-[200]">
                               <DropdownMenuItem
                                 className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
-                                onClick={(e) => { e.preventDefault(); navigate({ to: `/app/notes/${featuredNote.id}/edit` }); }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigate({ to: '/app/notes/$id/edit', params: { id: featuredNote.id } });
+                                }}
                               >
                                 <Edit3 className="h-4 w-4" />
                                 <span className="font-medium">Edit Note</span>
@@ -323,7 +327,11 @@ function NotesIndexPage() {
                                 <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-xl border-border z-[200]">
                                   <DropdownMenuItem
                                     className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
-                                    onClick={(e) => { e.preventDefault(); navigate({ to: `/app/notes/${note.id}/edit` }); }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      navigate({ to: '/app/notes/$id/edit', params: { id: note.id } });
+                                    }}
                                   >
                                     <Edit3 className="h-4 w-4" />
                                     <span className="font-medium">Edit Note</span>

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -437,7 +437,7 @@ function ClubChat() {
     setMediaPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSendMessage = async (overrideText?: string | any) => {
+  const handleSendMessage = async (overrideText?: string | any, overrideReplyToId?: string | null) => {
     const actualOverride = typeof overrideText === 'string' ? overrideText : undefined;
     const textToSend = actualOverride || msg;
     if ((!textToSend.trim() && mediaFiles.length === 0) || !club || !currentUser) return;
@@ -463,7 +463,16 @@ function ClubChat() {
       }
     }
 
-    const parentId = replyingTo?.id;
+    const parentId = overrideReplyToId !== undefined ? overrideReplyToId : replyingTo?.id;
+
+    if (activeRoom === 'announcements' && !isAdmin) {
+      toast.error("Only club admins can publish announcements.");
+      return;
+    }
+    if (activeRoom === 'assignments' && !isAdmin && !parentId) {
+      toast.error("Only club admins can create assignments.");
+      return;
+    }
     setMsg("");
     setMediaFiles([]);
     setMediaPreviews([]);
@@ -731,23 +740,23 @@ function ClubChat() {
         </div>
 
             <Drawer open={showLiveMenu} onOpenChange={setShowLiveMenu}>
-                  <DrawerContent className="h-auto max-h-[85vh] border-0 bg-transparent p-0 pb-0 shadow-none z-[90] [&>div:first-child]:hidden outline-none">
-                    <div className="bg-card rounded-t-[32px] shadow-2xl overflow-hidden outline-none border-t border-border/10">
+                  <DrawerContent className="mx-auto h-auto max-h-[88dvh] max-w-[680px] overflow-hidden rounded-t-lg border border-border bg-background p-0 shadow-2xl z-[90] [&>div:first-child]:hidden outline-none">
+                    <div className="overflow-y-auto bg-background outline-none">
 
                       {/* Drag Handle */}
                       <div className="flex justify-center pt-4 pb-2">
-                        <div className="w-10 h-1 rounded-full bg-border" />
+                        <div className="h-1 w-10 rounded-full bg-border" />
                       </div>
 
                       {/* Header */}
                       <div className="px-6 pt-2 pb-5">
-                        <div className="flex items-center gap-3 mb-1.5">
-                          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/10">
+                        <div className="mb-1.5 flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                             <Zap className="w-4 h-4 text-primary-foreground fill-current" />
                           </div>
                           <div>
+                            <p className="text-[10px] font-semibold uppercase text-primary">Live club tools</p>
                             <h2 className="text-[19px] font-semibold tracking-tight text-foreground">Interactive Spaces</h2>
-                            <p className="text-[10px] text-primary/70">Connect live with your community</p>
                           </div>
                         </div>
                       </div>
@@ -763,10 +772,10 @@ function ClubChat() {
                                   setShowLiveMenu(false);
                                   navigate({ to: "/app/live/$classId", params: { classId: club?.id || "unknown" } });
                                 }}
-                                className="w-full text-left group flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/15 hover:from-red-500/20 hover:to-red-500/10 transition-all active:scale-[0.98]"
+                                className="group flex w-full items-center gap-4 rounded-lg border border-red-500/20 bg-red-500/[0.06] p-4 text-left transition-all hover:bg-red-500/10 active:scale-[0.99]"
                               >
                                 <div className="relative">
-                                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white shadow-lg shadow-red-500/25">
+                                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-red-500 text-white">
                                     <Radio className="w-6 h-6" />
                                   </div>
                                   <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-card animate-pulse" />
@@ -781,9 +790,9 @@ function ClubChat() {
                               {/* ── Schedule Space Card (Admin) ── */}
                               <button
                                 onClick={() => setShowScheduleForm(true)}
-                                className="group w-full flex items-center gap-4 p-4 rounded-2xl bg-accent/50 border border-border/25 hover:bg-accent transition-all active:scale-[0.98]"
+                                className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/40 hover:bg-accent/30 active:scale-[0.99]"
                               >
-                                <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/15 flex items-center justify-center">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-md border border-primary/15 bg-primary/10">
                                   <CalendarDays className="w-6 h-6 text-primary" />
                                 </div>
                                 <div className="flex-1 min-w-0 text-left">
@@ -803,15 +812,15 @@ function ClubChat() {
                                 }
                               }}
                               disabled={liveAdminsCount === 0}
-                              className={`w-full text-left group flex items-center gap-4 p-4 rounded-2xl transition-all outline-none ${
+                              className={`group flex w-full items-center gap-4 p-4 text-left outline-none transition-all ${
                                 liveAdminsCount > 0
-                                  ?"bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/15 hover:from-red-500/20 hover:to-red-500/10 active:scale-[0.98]"
-                                  : "bg-muted/30 border border-border/20 opacity-60 cursor-not-allowed"
+                                  ?"rounded-lg bg-red-500/[0.06] border border-red-500/20 hover:bg-red-500/10 active:scale-[0.99]"
+                                  : "rounded-lg bg-muted/30 border border-border opacity-60 cursor-not-allowed"
                               }`}
                             >
                               <div className="relative">
-                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${
-                                  liveAdminsCount > 0 ?"bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/25" : "bg-muted-foreground/30"
+                                <div className={`flex h-12 w-12 items-center justify-center rounded-md text-white ${
+                                  liveAdminsCount > 0 ?"bg-red-500" : "bg-muted-foreground/30"
                                 }`}>
                                   <Video className="w-6 h-6" />
                                 </div>
@@ -829,12 +838,7 @@ function ClubChat() {
                             </button>
                           )}
 
-                          {/* Decorative footer hint */}
-                          <div className="flex items-center justify-center gap-2 pt-3">
-                            <Sparkles className="w-3 h-3 text-primary/20" />
-                            <span className="text-[10px] text-muted-foreground/30">Powered by Zero Club</span>
-                            <Sparkles className="w-3 h-3 text-primary/20" />
-                          </div>
+                          <p className="px-1 pt-2 text-center text-[11px] text-muted-foreground">Live sessions open inside the club and keep members in context.</p>
                         </div>
                       ) : (
                         /* ── Schedule Space Form ── */
@@ -861,7 +865,7 @@ function ClubChat() {
                                 placeholder="e.g. Mastering React State Management"
                                 value={spaceTitle}
                                 onChange={(e) => setSpaceTitle(e.target.value)}
-                                className="w-full bg-accent/40 border border-border/30 rounded-2xl px-5 py-4 text-sm font-medium outline-none text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition"
+                                className="w-full rounded-md border border-border bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary"
                               />
                             </div>
 
@@ -876,7 +880,7 @@ function ClubChat() {
                                   type="date"
                                   value={spaceDate}
                                   onChange={(e) => setSpaceDate(e.target.value)}
-                                  className="w-full bg-accent/40 border border-border/30 rounded-2xl px-4 py-4 text-sm font-medium outline-none text-foreground focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition"
+                                  className="w-full rounded-md border border-border bg-card px-3 py-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary"
                                 />
                               </div>
                               <div className="space-y-2">
@@ -888,7 +892,7 @@ function ClubChat() {
                                   type="time"
                                   value={spaceTime}
                                   onChange={(e) => setSpaceTime(e.target.value)}
-                                  className="w-full bg-accent/40 border border-border/30 rounded-2xl px-4 py-4 text-sm font-medium outline-none text-foreground focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition"
+                                  className="w-full rounded-md border border-border bg-card px-3 py-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary"
                                 />
                               </div>
                             </div>
@@ -896,7 +900,7 @@ function ClubChat() {
                             {/* Submit button */}
                             <button
                               onClick={handleScheduleSpaceSubmit}
-                              className="w-full flex items-center justify-center gap-2.5 py-3.5 bg-foreground text-background font-semibold tracking-tight rounded-full tap hover:opacity-90 shadow-lift mt-2"
+                              className="mt-2 flex w-full items-center justify-center gap-2.5 rounded-md bg-foreground py-3.5 font-semibold tracking-tight text-background transition hover:opacity-90 active:scale-[0.99]"
                             >
                               <CalendarDays className="w-4.5 h-4.5" />
                               Schedule Space
@@ -1605,34 +1609,47 @@ function ClubChat() {
         </div>
       )}
 
-      {/* Messages */}
-      <main className="w-full px-4 py-3 flex flex-col shrink-0 mt-auto">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6 opacity-60">
-            <Hash className="h-10 w-10 text-muted-foreground mb-3" />
-            <p className="text-sm font-bold text-muted-foreground">No messages yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Be the first to post in #{activeRoom}</p>
-          </div>
-        )}
-        {messages.map((m) => (
-          <MessageBubble 
-            key={m.id} 
-            message={m} 
-            isMe={m.profile_id === currentUser?.id}
-            currentUser={currentUser}
-            members={members}
-            repliedMessage={m.reply_to_id ? messages.find(prev => prev.id === m.reply_to_id) : null}
-            onReply={setReplyingTo}
-            onReact={handleReact}
-            getRoleColor={getRoleColor}
+      {['assignments', 'announcements', 'q-and-a'].includes(activeRoom) ? (
+        <main className="w-full shrink-0 px-4 py-5 md:px-6 md:py-7">
+          <StructuredClubRoom
+            key={activeRoom}
             room={activeRoom}
+            messages={messages}
+            isAdmin={isAdmin}
+            currentUser={currentUser}
+            onPost={handleSendMessage}
           />
-        ))}
-      </main>
+        </main>
+      ) : (
+        <main className="mt-auto flex w-full shrink-0 flex-col px-4 py-3">
+          {messages.length === 0 && (
+            <div className="flex h-full flex-col items-center justify-center px-6 text-center opacity-60">
+              <Hash className="mb-3 h-10 w-10 text-muted-foreground" />
+              <p className="text-sm font-bold text-muted-foreground">No messages yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">Be the first to post in #{activeRoom}</p>
+            </div>
+          )}
+          {messages.map((m) => (
+            <MessageBubble
+              key={m.id}
+              message={m}
+              isMe={m.profile_id === currentUser?.id}
+              currentUser={currentUser}
+              members={members}
+              repliedMessage={m.reply_to_id ? messages.find(prev => prev.id === m.reply_to_id) : null}
+              onReply={setReplyingTo}
+              onReact={handleReact}
+              getRoleColor={getRoleColor}
+              room={activeRoom}
+            />
+          ))}
+        </main>
+      )}
       </div>
 
       {/* Input */}
-      <div className="w-full shrink-0 bg-background border-t border-border px-3 py-2.5 z-10">
+      {!['assignments', 'announcements', 'q-and-a'].includes(activeRoom) && (
+      <div className="z-10 w-full shrink-0 border-t border-border bg-background px-3 py-2.5">
         {replyingTo && (
           <div className="mb-2 flex items-center justify-between rounded-lg bg-accent/10 p-2 border-l-3 border-primary">
             <div className="min-w-0 flex-1">
@@ -1728,7 +1745,308 @@ function ClubChat() {
         </div>
         </div>
       </div>
+      )}
     </div>
+  );
+}
+
+const CLUB_CARD_PREFIX = '::ZEROCLUB_CARD::';
+const CLUB_REPLY_PREFIX = '::ZEROCLUB_REPLY::';
+
+type ClubCardPayload = {
+  type: 'announcement' | 'assignment' | 'question';
+  title: string;
+  body: string;
+  dueDate?: string;
+};
+
+const encodeClubCard = (payload: ClubCardPayload) => `${CLUB_CARD_PREFIX}${JSON.stringify(payload)}`;
+const encodeClubReply = (type: 'submission' | 'answer', body: string) => `${CLUB_REPLY_PREFIX}${JSON.stringify({ type, body })}`;
+
+const parseClubCard = (message: any, room: string): ClubCardPayload => {
+  const raw = String(message?.content || '');
+  if (raw.startsWith(CLUB_CARD_PREFIX)) {
+    try {
+      return JSON.parse(raw.slice(CLUB_CARD_PREFIX.length));
+    } catch {
+      // Older malformed room posts still remain readable below.
+    }
+  }
+
+  const [firstLine, ...rest] = raw.split('\n').filter(Boolean);
+  return {
+    type: room === 'assignments' ? 'assignment' : room === 'q-and-a' ? 'question' : 'announcement',
+    title: firstLine || (room === 'assignments' ? 'Assignment' : room === 'q-and-a' ? 'Question' : 'Announcement'),
+    body: rest.join('\n') || firstLine || '',
+  };
+};
+
+const parseClubReply = (message: any) => {
+  const raw = String(message?.content || '');
+  if (raw.startsWith(CLUB_REPLY_PREFIX)) {
+    try {
+      return JSON.parse(raw.slice(CLUB_REPLY_PREFIX.length)) as { type: 'submission' | 'answer'; body: string };
+    } catch {
+      // Fall through to legacy plain-text replies.
+    }
+  }
+  return { type: 'answer' as const, body: raw };
+};
+
+function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: any) {
+  const [showComposer, setShowComposer] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<any>(null);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [threadReply, setThreadReply] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const cards = messages.filter((message: any) => !message.reply_to_id);
+  const roomMeta = room === 'assignments'
+    ? {
+        label: 'Classwork',
+        description: 'Assignments, briefs, and student submissions stay organised here.',
+        emptyTitle: 'No classwork yet',
+        emptyCopy: isAdmin ? 'Create the first assignment for this club.' : 'Assignments from your tutor will appear here.',
+        action: 'New assignment',
+        icon: ClipboardCheck,
+      }
+    : room === 'q-and-a'
+      ? {
+          label: 'Questions & answers',
+          description: 'Each question has one focused thread, so useful answers are easy to find.',
+          emptyTitle: 'No questions yet',
+          emptyCopy: 'Start the first focused question for this club.',
+          action: 'Ask a question',
+          icon: HelpCircle,
+        }
+      : {
+          label: 'Announcements',
+          description: 'Official updates from club admins, kept clear of everyday conversation.',
+          emptyTitle: 'No announcements yet',
+          emptyCopy: isAdmin ? 'Publish the first update for your members.' : 'Official club updates will appear here.',
+          action: 'New announcement',
+          icon: Megaphone,
+        };
+
+  const RoomIcon = roomMeta.icon;
+  const canCreate = room === 'q-and-a' || isAdmin;
+
+  const resetComposer = () => {
+    setTitle('');
+    setBody('');
+    setDueDate('');
+    setShowComposer(false);
+  };
+
+  const submitCard = async () => {
+    if (!title.trim() || !body.trim()) {
+      toast.error(room === 'q-and-a' ? 'Add a clear question and some context.' : 'Add a title and details first.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const type = room === 'assignments' ? 'assignment' : room === 'q-and-a' ? 'question' : 'announcement';
+    await onPost(encodeClubCard({ type, title: title.trim(), body: body.trim(), dueDate: dueDate || undefined }), null);
+    resetComposer();
+    setIsSubmitting(false);
+  };
+
+  const submitThreadReply = async () => {
+    if (!threadReply.trim() || !selectedCard) return;
+    setIsSubmitting(true);
+    await onPost(encodeClubReply(room === 'assignments' ? 'submission' : 'answer', threadReply.trim()), selectedCard.id);
+    setThreadReply('');
+    setIsSubmitting(false);
+  };
+
+  return (
+    <section className="mx-auto w-full max-w-[760px]">
+      <div className="mb-6 flex items-start justify-between gap-4 border-b border-border pb-5">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+            <RoomIcon className="h-5 w-5 fill-current" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">{roomMeta.label}</h3>
+            <p className="mt-1 max-w-xl text-sm leading-5 text-muted-foreground">{roomMeta.description}</p>
+          </div>
+        </div>
+        {canCreate && (
+          <button
+            onClick={() => setShowComposer((open) => !open)}
+            className="flex h-10 shrink-0 items-center gap-2 rounded-md bg-foreground px-3.5 text-xs font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
+          >
+            {showComposer ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            <span className="hidden sm:inline">{showComposer ? 'Close' : roomMeta.action}</span>
+          </button>
+        )}
+      </div>
+
+      {!canCreate && room === 'announcements' && (
+        <div className="mb-5 flex items-center gap-2 border-l-2 border-primary bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+          <LockKeyhole className="h-4 w-4 shrink-0 text-primary" />
+          Only club admins can publish here. Members can read every update.
+        </div>
+      )}
+
+      {showComposer && canCreate && (
+        <div className="mb-6 border border-border bg-card p-4 sm:p-5">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
+            <RoomIcon className="h-4 w-4 text-primary" />
+            {roomMeta.action}
+          </div>
+          <div className="space-y-3">
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder={room === 'q-and-a' ? 'What do you need help with?' : room === 'assignments' ? 'Assignment title' : 'Announcement title'}
+              className="h-11 w-full rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary"
+            />
+            <textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder={room === 'q-and-a' ? 'Add enough context for the club to give a useful answer...' : room === 'assignments' ? 'Add the brief, instructions, and expected outcome...' : 'Write the update for club members...'}
+              className="min-h-28 w-full resize-y rounded-md border border-border bg-background px-3.5 py-3 text-sm leading-6 outline-none transition focus:border-primary"
+            />
+            {room === 'assignments' && (
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Due date</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(event) => setDueDate(event.target.value)}
+                  className="h-11 w-full rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary sm:max-w-[240px]"
+                />
+              </div>
+            )}
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={submitCard}
+                disabled={isSubmitting || !title.trim() || !body.trim()}
+                className="h-10 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition active:scale-[0.98] disabled:opacity-40"
+              >
+                {isSubmitting ? 'Posting...' : room === 'q-and-a' ? 'Post question' : room === 'assignments' ? 'Create assignment' : 'Publish announcement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {cards.length === 0 ? (
+        <div className="flex min-h-64 flex-col items-center justify-center border border-dashed border-border bg-card/40 px-6 text-center">
+          <RoomIcon className="mb-4 h-9 w-9 text-muted-foreground/45" />
+          <p className="text-sm font-semibold text-foreground">{roomMeta.emptyTitle}</p>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">{roomMeta.emptyCopy}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {cards.map((message: any) => {
+            const card = parseClubCard(message, room);
+            const replyCount = messages.filter((candidate: any) => candidate.reply_to_id === message.id).length;
+            const author = message.profiles?.full_name || message.profiles?.username || 'Club admin';
+            const interactive = room !== 'announcements';
+
+            return (
+              <button
+                key={message.id}
+                type="button"
+                onClick={() => interactive && setSelectedCard(message)}
+                className={`w-full border border-border bg-card p-4 text-left transition sm:p-5 ${interactive ? 'hover:border-primary/40 hover:bg-accent/20 active:scale-[0.995]' : 'cursor-default'}`}
+              >
+                <div className="flex items-start gap-3.5">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    {room === 'assignments' ? <FileText className="h-5 w-5 fill-current" /> : room === 'q-and-a' ? <HelpCircle className="h-5 w-5 fill-current" /> : <Megaphone className="h-5 w-5 fill-current" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <h4 className="text-[15px] font-semibold leading-5 text-foreground">{card.title}</h4>
+                      {interactive && <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />}
+                    </div>
+                    <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{card.body}</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span>{author}</span>
+                      <span>{formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}</span>
+                      {card.dueDate && <span className="font-medium text-foreground">Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}</span>}
+                      {interactive && <span className="font-medium text-primary">{replyCount} {room === 'assignments' ? 'submissions' : 'answers'}</span>}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <Drawer open={Boolean(selectedCard)} onOpenChange={(open) => !open && setSelectedCard(null)}>
+        <DrawerContent className="mx-auto h-[90dvh] max-w-[760px] border border-border bg-background p-0 shadow-2xl">
+          {selectedCard && (() => {
+            const card = parseClubCard(selectedCard, room);
+            const replies = messages.filter((message: any) => message.reply_to_id === selectedCard.id);
+            return (
+              <div className="flex h-full min-h-0 flex-col">
+                <DrawerHeader className="border-b border-border px-5 pb-5 pt-7 text-left sm:px-6">
+                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-primary">
+                    {room === 'assignments' ? <BookOpenCheck className="h-4 w-4" /> : <HelpCircle className="h-4 w-4" />}
+                    {room === 'assignments' ? 'Assignment details' : 'Question thread'}
+                  </div>
+                  <DrawerTitle className="pr-8 text-xl font-semibold leading-7">{card.title}</DrawerTitle>
+                  {card.dueDate && <p className="mt-1 text-xs font-medium text-muted-foreground">Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}</p>}
+                  <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{card.body}</p>
+                </DrawerHeader>
+
+                <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                  <h5 className="mb-4 text-sm font-semibold text-foreground">{room === 'assignments' ? `Submissions (${replies.length})` : `Answers (${replies.length})`}</h5>
+                  {replies.length === 0 ? (
+                    <div className="border border-dashed border-border px-5 py-10 text-center text-sm text-muted-foreground">
+                      {room === 'assignments' ? 'No submissions yet.' : 'No answers yet. Add the first useful response.'}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {replies.map((reply: any) => {
+                        const parsedReply = parseClubReply(reply);
+                        const author = reply.profiles?.full_name || reply.profiles?.username || (reply.profile_id === currentUser?.id ? 'You' : 'Member');
+                        return (
+                          <article key={reply.id} className="border-l-2 border-primary bg-card px-4 py-3">
+                            <div className="mb-2 flex items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-foreground">{author}</span>
+                              <span className="text-[11px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                            </div>
+                            <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{parsedReply.body}</p>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-border bg-background p-4 sm:p-5">
+                  <label className="mb-2 block text-xs font-semibold text-foreground">{room === 'assignments' ? 'Submit your work' : 'Contribute an answer'}</label>
+                  <div className="flex items-end gap-2">
+                    <textarea
+                      value={threadReply}
+                      onChange={(event) => setThreadReply(event.target.value)}
+                      placeholder={room === 'assignments' ? 'Add your submission, work link, or notes...' : 'Write a focused, helpful answer...'}
+                      rows={2}
+                      className="min-h-12 flex-1 resize-none rounded-md border border-border bg-card px-3 py-2.5 text-sm outline-none transition focus:border-primary"
+                    />
+                    <button
+                      onClick={submitThreadReply}
+                      disabled={!threadReply.trim() || isSubmitting}
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground transition active:scale-95 disabled:opacity-40"
+                      aria-label={room === 'assignments' ? 'Submit assignment' : 'Post answer'}
+                    >
+                      <Send className="h-4 w-4 fill-current" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </DrawerContent>
+      </Drawer>
+    </section>
   );
 }
 

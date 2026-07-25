@@ -25,11 +25,6 @@ export const Route = createFileRoute("/app/profile/$id")({
       throw redirect({ to: '/app/profile' });
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session && id === session.user.id) {
-      throw redirect({ to: '/app/profile' });
-    }
-
     // Fetch only profile for SEO/Head, leave heavy data for component to load instantly
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
     const query = supabase
@@ -43,10 +38,6 @@ export const Route = createFileRoute("/app/profile/$id")({
 
     if (error) throw error;
     if (!profile) throw new Error("Profile not found");
-
-    if (session && profile.id === session.user.id) {
-      throw redirect({ to: '/app/profile' });
-    }
 
     return { profile };
   },

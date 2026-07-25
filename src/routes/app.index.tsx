@@ -116,7 +116,7 @@ function Feed() {
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background md:pb-12">
       {/* Top Header Tabs */}
-      <header className="sticky top-[calc(72px+env(safe-area-inset-top))] z-40 border-b border-border bg-background md:top-[66px] md:mx-auto md:w-full md:max-w-[780px] md:border-x">
+      <header className="sticky top-[calc(66px+env(safe-area-inset-top))] z-40 border-b border-border bg-background md:top-[66px] md:mx-auto md:w-full md:max-w-[780px] md:border-x">
         <div className="flex min-h-[52px] items-center justify-between px-4 py-1">
           {!showSearch ? (
             <>

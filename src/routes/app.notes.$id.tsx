@@ -323,7 +323,7 @@ function NoteReaderPage() {
             </div>
             {profile?.id === note.author_id && (
               <div className="flex items-center gap-2">
-                <button onClick={() => navigate({ to: `/app/notes/${note.id}/edit` })} className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold hover:bg-accent">
+                <button onClick={() => navigate({ to: '/app/notes/$id/edit', params: { id: note.id } })} className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold hover:bg-accent">
                   <Edit3 className="h-3.5 w-3.5" /> Edit
                 </button>
                 <button onClick={confirmDelete} className="grid h-9 w-9 place-items-center rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10" aria-label="Delete note">

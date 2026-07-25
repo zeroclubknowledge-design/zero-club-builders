@@ -141,7 +141,7 @@ function NotesEditPage() {
   useEffect(() => {
     if (noteData && profile && noteData.author_id && noteData.author_id !== profile.id) {
       toast.error("You can only edit your own notes.");
-      navigate({ to: `/app/notes/${noteId}` });
+      navigate({ to: '/app/notes/$id', params: { id: noteId } });
     }
   }, [noteData, profile, noteId, navigate]);
 
@@ -167,10 +167,25 @@ function NotesEditPage() {
   const [recordingId, setRecordingId] = useState<string | null>(null);
   const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showIdlePublish, setShowIdlePublish] = useState(false);
+  const [contentRevision, setContentRevision] = useState(0);
   const [customColor, setCustomColor] = useState('#000000');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const blockContentsRef = useRef<Record<string, string>>({});
+
+  const hasDraftContent = title.trim().length > 0 || blocks.some((block) => {
+    const content = blockContentsRef.current[block.id] ?? block.content ?? '';
+    return content.replace(/<[^>]*>/g, '').trim().length > 0 || Boolean(block.preview || block.file);
+  });
+
+  useEffect(() => {
+    setShowIdlePublish(false);
+    if (!hasDraftContent || isPublishing || showPublishModal || !isNoteLoaded) return;
+
+    const idleTimer = window.setTimeout(() => setShowIdlePublish(true), 1200);
+    return () => window.clearTimeout(idleTimer);
+  }, [title, blocks, contentRevision, hasDraftContent, isPublishing, showPublishModal, isNoteLoaded]);
 
   // Automatically scroll to bottom when adding a new block
   const endOfBlocksRef = useRef<HTMLDivElement>(null);
@@ -272,6 +287,7 @@ function NotesEditPage() {
 
   const updateBlockText = (id: string, text: string, textBeforeCursor?: string) => {
     blockContentsRef.current[id] = text; // Fast ref update avoids re-render lag
+    setContentRevision((revision) => revision + 1);
 
     if (textBeforeCursor !== undefined) {
       const match = textBeforeCursor.match(/@(\w*)$/);
@@ -470,7 +486,7 @@ function NotesEditPage() {
       await updateNoteAction({ data: updateData });
 
       toast.success(isPublishing ? "Note published successfully!" : "Note saved successfully!");
-      window.location.href = `/app/notes/${noteId}`;
+      navigate({ to: '/app/notes/$id', params: { id: noteId } });
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Failed to publish note');
@@ -485,9 +501,9 @@ function NotesEditPage() {
       {/* Minimal Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center gap-3 px-4 sm:px-6">
-        <a href={`/app/notes/${noteId}`} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95">
+        <button onClick={() => navigate({ to: '/app/notes/$id', params: { id: noteId } })} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95">
           <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
-        </a>
+        </button>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-muted-foreground">ZeroNotes</p>
           <p className="truncate text-sm font-semibold">Edit note</p>
@@ -726,7 +742,7 @@ function NotesEditPage() {
 
       {/* Floating Formatting Toolbar (Appears when typing) */}
       {activeMentionBlockId && (
-        <div className="formatting-toolbar fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 sm:bottom-6">
+        <div className={`formatting-toolbar fixed left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 ${showIdlePublish ? 'bottom-[84px]' : 'bottom-4 sm:bottom-6'}`}>
           <div className="flex items-center gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 shadow-xl">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
@@ -882,6 +898,22 @@ function NotesEditPage() {
             toast.success("Video edited successfully! ✨");
           }}
         />
+      )}
+
+      {showIdlePublish && !showPublishModal && (
+        <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-[760px] -translate-x-1/2 animate-in slide-in-from-bottom-4 fade-in duration-200 sm:bottom-6">
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-2 shadow-[0_16px_48px_-20px_rgba(0,0,0,0.45)]">
+            <p className="hidden min-w-0 flex-1 px-2 text-sm text-muted-foreground sm:block">Finished making changes?</p>
+            <button
+              onClick={() => setShowPublishModal(true)}
+              disabled={isPublishing}
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50 sm:flex-none"
+            >
+              {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
+              Save changes
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Publish Modal */}

@@ -1094,7 +1094,7 @@ function AppLayout() {
       <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isInstitutionStudio ? "" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
         {!hideHeader && (
           <header
-            className="fixed left-1/2 top-0 z-50 flex w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between border-b border-border bg-background px-5 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-full md:translate-x-0"
+            className="fixed left-1/2 top-0 z-50 flex h-[calc(66px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between border-b border-border bg-background px-5 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[66px] md:max-w-full md:translate-x-0 md:pt-0"
           >
             <div className="flex w-10 items-center md:hidden">
               <button
@@ -1205,7 +1205,7 @@ function AppLayout() {
         </Drawer>
 
         <div
-          className={`zc-desktop-content ${!hideHeader ? "pt-[calc(72px+env(safe-area-inset-top))] md:pt-0" : "pt-[env(safe-area-inset-top)]"} pb-0`}
+          className={`zc-desktop-content ${!hideHeader ? "pt-[calc(66px+env(safe-area-inset-top))] md:pt-0" : "pt-[env(safe-area-inset-top)]"} pb-0`}
         >
           <Outlet />
         </div>
