@@ -33,7 +33,6 @@ function Profile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<typeof tabs[number]>("Posts");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [commentPost, setCommentPost] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -206,25 +205,17 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f8f7f5] dark:bg-background">
 
       {/* ═══════════════════════════════════════════
           FROSTED HEADER — Settings + @handle + Edit
          ═══════════════════════════════════════════ */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] transition-all duration-300 ${
-        scrolled || searchOpen
-          ?"bg-background/80 backdrop-blur-2xl border-b border-border/10 shadow-[0_1px_20px_rgba(0,0,0,0.08)]" 
-          : "bg-transparent border-b border-transparent"
-      }`}>
+      <header className="fixed left-1/2 top-0 z-50 h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
         <div className="relative z-20 flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
             <button 
                   onClick={() => navigate({ to: '/app' })}
-                  className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
-                    scrolled 
-                      ?"bg-accent/50 text-foreground hover:bg-accent" 
-                      : "bg-black/30 text-white backdrop-blur-md border border-white/10"
-                  }`}
+                  className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card text-foreground transition hover:bg-accent/60 active:scale-95"
                 >
                   <ChevronLeft className="h-[18px] w-[18px]" />
                 </button>
@@ -245,11 +236,7 @@ function Profile() {
               <div className="flex items-center gap-2">
                 <Drawer>
                   <DrawerTrigger asChild>
-                    <button className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-95 ${
-                      scrolled 
-                        ?"bg-accent/50 text-foreground hover:bg-accent" 
-                        : "bg-black/30 text-white backdrop-blur-md border border-white/10"
-                    }`}>
+                    <button className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card text-foreground transition hover:bg-accent/60 active:scale-95">
                       <MoreHorizontal className="h-[18px] w-[18px]" />
                     </button>
                   </DrawerTrigger>
@@ -260,7 +247,7 @@ function Profile() {
                     <div className="space-y-2">
                       <button
                         onClick={handleShare}
-                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
+                        className="flex w-full items-center gap-3 rounded-lg bg-card p-4 text-sm font-semibold tracking-tight ring-1 ring-border tap hover:bg-foreground/[0.03]"
                       >
                         <Share2 className="h-[18px] w-[18px] text-primary" /> Share profile link
                       </button>
@@ -269,7 +256,7 @@ function Profile() {
                           navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
                           toast.success("Profile link copied!");
                         }}
-                        className="flex w-full items-center gap-3 rounded-2xl ring-1 ring-border bg-card p-4 text-sm font-semibold tracking-tight tap hover:bg-foreground/[0.03]"
+                        className="flex w-full items-center gap-3 rounded-lg bg-card p-4 text-sm font-semibold tracking-tight ring-1 ring-border tap hover:bg-foreground/[0.03]"
                       >
                         <Copy className="h-[18px] w-[18px] text-primary" /> Copy URL
                       </button>
@@ -283,10 +270,10 @@ function Profile() {
       {/* ═══════════════════════════════════════════════
           HENSOR STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-2xl px-0 sm:px-6 pt-0 sm:pt-4" style={{ marginTop: 'calc(-1 * env(safe-area-inset-top))' }}>
-        <div className="relative overflow-hidden sm:rounded-[32px] bg-background">
+      <div className="mx-auto max-w-[900px] px-0 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-6 md:pt-6">
+        <div className="relative overflow-hidden bg-background sm:rounded-lg sm:border sm:border-border/60">
           {/* Banner */}
-          <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full overflow-hidden bg-muted flex items-center justify-center">
+          <div className="relative flex h-[180px] w-full items-center justify-center overflow-hidden bg-[#211d21] sm:h-[240px]">
             {profile?.banner_url ? (
               <img
                 src={profile.banner_url}
@@ -294,7 +281,7 @@ function Profile() {
                 className="h-full w-full object-cover object-center"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklab,var(--primary)_28%,transparent),transparent_60%),radial-gradient(circle_at_80%_80%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_55%)] bg-muted" />
+              <img src="/logo.png" alt="" className="h-20 w-20 object-contain opacity-35" />
             )}
           </div>
 
@@ -303,7 +290,7 @@ function Profile() {
             {/* Avatar overlapping banner */}
             <div className="absolute -top-[55px] left-6 z-20">
               <div
-                className="h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] ring-4 ring-background bg-muted shadow-lift transition-opacity hover:opacity-90 flex items-center justify-center"
+                className="flex h-[110px] w-[110px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
@@ -320,7 +307,7 @@ function Profile() {
             <div className="flex justify-end h-[55px] items-center gap-4">
                  <Link
                    to="/app/profile/edit"
-                   className="rounded-full px-5 py-2 text-[13.5px] font-semibold tracking-tight flex items-center gap-2 tap bg-foreground text-background hover:opacity-90"
+                   className="flex h-10 items-center gap-2 rounded-lg bg-foreground px-5 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90"
                  >
                    Edit profile
                  </Link>
@@ -350,7 +337,7 @@ function Profile() {
                  {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Dynamic builder and creator on Zero Club, specializing in shipping great products."}
               </div>
 
-              <div className="mt-4 flex items-center gap-5 text-[14px]">
+              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[14px]">
                 <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'me' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity">
                   <span className="font-semibold text-foreground tabular-nums">{profile?.following_count || "0"}</span>
                   <span className="text-muted-foreground">Following</span>
@@ -381,24 +368,21 @@ function Profile() {
       {/* ═══════════════════════════════════════════
           CONTENT TABS
          ═══════════════════════════════════════════ */}
-      <div className="mx-auto max-w-md mt-6 px-4">
-        <div className="flex justify-between overflow-x-auto no-scrollbar border-b border-border/20">
+      <div className="mx-auto mt-5 max-w-[760px] px-4 md:px-0">
+        <div className="grid grid-cols-4 gap-1 overflow-hidden rounded-lg border border-border/60 bg-card p-1">
           {tabs.map((t) => {
             const active = tab === t;
             return (
               <button 
                 key={t} 
                 onClick={() => setTab(t)} 
-                className={`shrink-0 pb-3 text-[14px] font-bold tracking-wide transition-all relative ${
+                className={`relative flex h-10 min-w-0 items-center justify-center rounded-md px-2 text-[12px] font-semibold tracking-tight transition-all ${
                   active 
-                    ? "text-foreground" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-primary/[0.09] text-primary"
+                    : "text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
                 }`}
               >
                 {t}
-                {active && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-t-full" />
-                )}
               </button>
             );
           })}
@@ -408,7 +392,7 @@ function Profile() {
       {/* ═══════════════════════════════════════════
           TAB CONTENT
          ═══════════════════════════════════════════ */}
-      <div className="px-5 pt-2 pb-20">
+      <div className="mx-auto max-w-[760px] px-4 pb-24 pt-4 md:px-0">
         {tab === "Posts" && (
           <div className="space-y-4">
             {filteredPosts.length > 0 ? (
@@ -471,7 +455,7 @@ function Profile() {
                       key={post.id} 
                       to="/app/post/$id" 
                       params={{ id: post.id }}
-                      className="relative aspect-square rounded-2xl overflow-hidden bg-muted hover:opacity-90 transition cursor-pointer group"
+                      className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted transition hover:opacity-90"
                     >
                       {isVideo ? (
                         <>

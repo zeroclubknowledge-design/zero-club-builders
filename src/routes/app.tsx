@@ -129,7 +129,7 @@ function SidebarContent({
 
   return (
     <div
-      className="flex h-full flex-col p-5"
+      className="flex h-full flex-col p-4"
       onClick={(e) => {
         // Close sidebar if user clicked a link (navigation)
         const target = e.target as HTMLElement;
@@ -138,32 +138,44 @@ function SidebarContent({
         }
       }}
     >
-      <div className="flex items-start justify-between shrink-0">
-        <Link to="/app/profile" className="group block transition active:opacity-70">
+      <div className="mb-4 flex h-11 shrink-0 items-center justify-between border-b border-border/60 px-1 pb-3">
+        <Link to="/app" className="flex items-center gap-2.5" aria-label="Zero Club feed">
+          <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+          <span className="font-display text-[17px] font-semibold tracking-tight text-foreground">
+            Zero <span className="text-primary">Club</span>
+          </span>
+        </Link>
+        <span className="rounded-full bg-primary/[0.08] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-primary">
+          Workspace
+        </span>
+      </div>
+
+      <div className="flex shrink-0 items-start justify-between rounded-lg border border-border/60 bg-card p-3.5 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.4)]">
+        <Link to="/app/profile" className="group block min-w-0 flex-1 transition active:opacity-70">
           {profile?.avatar_url ? (
             <img
               src={profile.avatar_url}
               alt={profile.username}
-              className="h-9 w-9 rounded-full object-cover border border-white/10"
+              className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
             />
           ) : (
-            <div className="h-9 w-9 rounded-full bg-gradient-primary flex items-center justify-center font-bold text-white">
+            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-semibold text-primary-foreground">
               {profile?.username?.substring(0, 1).toUpperCase() || "U"}
             </div>
           )}
-          <div className="mt-3">
+          <div className="mt-2.5 min-w-0">
             <div
               className="h-5 w-32 bg-foreground/[0.04] rounded animate-pulse mb-1"
               style={{ display: profile?.username ? "none" : "block" }}
             />
             <h2
-              className="font-display text-[17px] font-semibold tracking-tight group-hover:text-primary transition-colors"
+              className="truncate font-display text-[15px] font-semibold tracking-tight group-hover:text-primary transition-colors"
               style={{ display: profile?.username ? "block" : "none" }}
             >
               {profile?.full_name || profile?.username || "Builder"}
             </h2>
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[13px] text-muted-foreground">
+            <div className="mt-0.5 flex min-w-0 items-center gap-2">
+              <p className="truncate text-[12px] text-muted-foreground">
                 {profile?.username ? `@${profile.username}` : "Fetching identity..."}
               </p>
               {profile?.xp !== undefined && (
@@ -173,7 +185,7 @@ function SidebarContent({
               )}
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13px] min-w-0 w-full">
+          <div className="mt-2.5 flex min-w-0 w-full flex-wrap gap-x-3 gap-y-1 text-[11px]">
             <div className="flex gap-1 items-center shrink-0 min-w-0">
               <span className="font-semibold text-foreground tabular-nums">{profile?.following_count || 0}</span>
               <span className="text-muted-foreground">Following</span>
@@ -186,7 +198,7 @@ function SidebarContent({
         </Link>
         <Drawer>
           <DrawerTrigger asChild>
-            <button className="grid h-8 w-8 place-items-center rounded-full border border-border transition active:scale-95 mt-1">
+            <button className="mt-0.5 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </DrawerTrigger>
@@ -292,7 +304,7 @@ function SidebarContent({
         </Drawer>
       </div>
 
-      <div className="overflow-y-auto pr-2 -mr-2 mt-6 flex-1 no-scrollbar flex flex-col">
+      <div className="-mr-2 mt-4 flex flex-1 flex-col overflow-y-auto pr-2 no-scrollbar">
         {isInstitutionStudio ? (
           /* ── Institution Hub sidebar: replaces regular nav when on institution-studio ── */
           <div className="flex flex-col flex-1">
@@ -337,7 +349,7 @@ function SidebarContent({
           </div>
         ) : (
           /* ── Regular app sidebar nav ── */
-          <nav className="flex flex-col gap-1.5 flex-1">
+          <nav className="flex flex-1 flex-col gap-1">
             {[
               // Desktop-only: mirror the mobile bottom nav (hidden on md+)
               { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
@@ -363,10 +375,10 @@ function SidebarContent({
                 key={item.label}
                 to={item.to}
                 activeOptions={{ exact: !!item.exact }}
-                activeProps={{ className: "bg-foreground/[0.05] !text-foreground [&_svg]:text-foreground" }}
-                className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap hover:bg-foreground/[0.04]`}
+                activeProps={{ className: "bg-primary/[0.08] !text-foreground [&_svg]:text-primary" }}
+                className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium tracking-tight text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground`}
               >
-                <item.Icon className="h-[20px] w-[20px] text-muted-foreground group-hover:text-foreground transition-colors" />
+                <item.Icon className="h-[19px] w-[19px] text-muted-foreground group-hover:text-foreground transition-colors" />
                 <span>{item.label}</span>
               </Link>
             ))}
@@ -419,7 +431,7 @@ type BottomNavProps = {
 function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomNavProps) {
   return (
     <nav
-      className={`fixed bottom-4 left-1/2 z-50 w-[95%] max-w-sm -translate-x-1/2 transition-all duration-300 md:hidden ${
+      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-20px)] max-w-md -translate-x-1/2 transition-all duration-300 md:hidden ${
         visible &&
         !isDetail &&
         !pathname.includes("/app/live") &&
@@ -429,42 +441,29 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
           : "translate-y-[150%] opacity-0 pointer-events-none"
       }`}
     >
-      <div className="flex items-center justify-between gap-1 rounded-full bg-card/95 backdrop-blur-xl ring-1 ring-border p-1.5 shadow-lift">
+      <div className="grid grid-cols-5 gap-1 rounded-xl border border-border/70 bg-background/95 p-1.5 shadow-[0_18px_48px_-20px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         {tabs.map((t) => {
           const normalize = (p: string) => p.replace(/\/$/, "");
           const active = t.exact
             ? normalize(pathname) === normalize(t.to)
             : pathname.startsWith(t.to);
 
-          if (active) {
-            return (
-              <Link
-                key={t.to}
-                to={t.to}
-                className="relative flex h-11 w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-foreground text-background px-4 tap"
-              >
-                <t.Icon className="h-[19px] w-[19px] shrink-0" active />
-                <span className="font-semibold text-[12px] tracking-tight whitespace-nowrap">
-                  {t.label}
-                </span>
-                {t.label === "Messages" && unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-primary-foreground px-1 text-[9px] font-bold ring-2 ring-card">
-                    {unreadCount}
-                  </span>
-                )}
-              </Link>
-            );
-          }
-
           return (
             <Link
               key={t.to}
               to={t.to}
-              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full tap hover:bg-foreground/5 text-muted-foreground"
+              className={`relative flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg tap transition-colors ${
+                active
+                  ? "bg-primary/[0.09] text-primary"
+                  : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
+              }`}
             >
-              <t.Icon className="h-[21px] w-[21px]" />
+              <t.Icon className="h-[20px] w-[20px] shrink-0" active={active} />
+              <span className="max-w-full truncate px-0.5 text-[9px] font-semibold leading-none tracking-tight">
+                {t.label}
+              </span>
               {t.label === "Messages" && unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground ring-2 ring-card">
+                <span className="absolute right-2 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground ring-2 ring-background">
                   {unreadCount}
                 </span>
               )}
@@ -1087,7 +1086,7 @@ function AppLayout() {
   return (
     <div className="zc-app-shell mx-auto min-h-screen w-full bg-background md:flex md:max-w-none md:justify-center">
       {/* Desktop Sidebar (Left Column) */}
-      <div className="hidden md:flex flex-col w-[292px] shrink-0 sticky top-0 h-screen border-r border-border/40 bg-background z-40 overflow-y-auto no-scrollbar">
+      <div className="sticky top-0 z-40 hidden h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-[#f8f7f5] no-scrollbar dark:bg-background md:flex">
         <SidebarContent profile={profile} onOpenTheme={() => setIsThemeOpen(true)} isInstitutionStudio={pathname.startsWith("/app/institution-studio")} />
       </div>
 
@@ -1150,7 +1149,7 @@ function AppLayout() {
             />
             {/* Floating sidebar panel */}
             <div
-              className={`fixed left-3 top-4 z-[80] w-[280px] h-[calc(100dvh-110px)] flex flex-col rounded-[32px] border border-border/40 bg-card/95 backdrop-blur-xl shadow-[0_8px_60px_rgba(0,0,0,0.4)] overflow-hidden ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
+              className={`fixed bottom-3 left-3 top-3 z-[80] flex w-[min(310px,calc(100vw-24px))] flex-col overflow-hidden rounded-xl border border-border/70 bg-background shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
             >
               <SidebarContent
                 profile={profile}

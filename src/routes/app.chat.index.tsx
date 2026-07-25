@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Search, Edit3, Circle, MoreHorizontal, ChevronLeft, MessageSquare, Users as UsersIcon, ChevronDown, Check, Settings, MessageCircle, User, MessageSquarePlus } from "lucide-react";
 import { getConversations } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -23,15 +23,6 @@ function ChatInboxPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<'All' | 'Unread'>('All');
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ["conversations"],
@@ -92,9 +83,9 @@ function ChatInboxPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background relative pb-20">
+    <div className="relative flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background">
       {/* Premium Frosted Glass Header */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-full z-20 bg-background/70 backdrop-blur-2xl px-5 pb-3 pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-[1.5rem] transition-all duration-300 ${isScrolled ? "border-b border-border/40" : ""}`}>
+      <header className={`fixed left-1/2 top-0 z-20 w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background px-5 pb-3 pt-[calc(1.5rem+env(safe-area-inset-top))] transition-all duration-300 md:sticky md:left-0 md:max-w-full md:translate-x-0 md:px-8 md:pt-6`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* User Avatar */}
@@ -121,12 +112,12 @@ function ChatInboxPage() {
             {/* Filter Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent/30 hover:bg-accent/50 transition-all duration-300 active:scale-95 ring-1 ring-border">
+                <button className="flex h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 transition active:scale-95 hover:bg-accent/50">
                   <span className="text-[11px]">{activeTab}</span>
                   <ChevronDown className="h-3 w-3 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52 bg-background/95 backdrop-blur-2xl border-border/40 rounded-2xl shadow-[0_8px_40px_-8px_rgba(0,0,0,0.15)] p-1.5">
+              <DropdownMenuContent align="end" className="w-52 rounded-lg border-border/60 bg-background p-1.5 shadow-[0_16px_40px_-18px_rgba(0,0,0,0.35)]">
                 <DropdownMenuItem onClick={() => setActiveTab('All')} className="gap-3 py-3 rounded-xl transition-all duration-200">
                   <MessageSquare className="h-4 w-4 text-muted-foreground" /> 
                   <span className="text-sm font-semibold">All Messages</span>
@@ -157,7 +148,7 @@ function ChatInboxPage() {
       </header>
 
       {/* Premium Search Bar */}
-      <div className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] pb-2 md:px-8 lg:px-10 md:pt-4 md:max-w-[860px] md:w-full">
+      <div className="w-full px-5 pb-2 pt-[calc(5.5rem+env(safe-area-inset-top))] md:max-w-[880px] md:px-8 md:pt-5 lg:px-10">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <input 
@@ -165,13 +156,13 @@ function ChatInboxPage() {
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl bg-accent/40 border-none px-5 py-3.5 pl-11 text-sm font-medium text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/20 focus:bg-accent/60 transition-all duration-300"
+            className="w-full rounded-lg border border-border/60 bg-card px-5 py-3.5 pl-11 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary/35 focus:ring-2 focus:ring-primary/10"
           />
         </div>
       </div>
 
       {/* Conversation List */}
-      <div className="flex flex-col flex-1 md:flex-none md:mx-8 lg:mx-10 md:mt-3 md:mb-16 md:max-w-[780px] md:rounded-3xl md:ring-1 md:ring-border md:bg-card md:shadow-soft md:overflow-hidden">
+      <div className="flex flex-1 flex-col md:mx-8 md:mb-16 md:mt-3 md:max-w-[820px] md:flex-none md:overflow-hidden md:rounded-lg md:border md:border-border/60 md:bg-card lg:mx-10">
         {filteredConversations.map((chat: any) => (
           <Link 
             key={chat.id} 

@@ -129,9 +129,9 @@ function Feed() {
   }, [filteredPosts, currentUser]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-20 md:pb-12">
+    <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background md:pb-12">
       {/* Top Header Tabs */}
-      <header className={`sticky ${headerVisible ? "top-[calc(72px+env(safe-area-inset-top))]" : "top-0"} md:!top-[66px] z-40 transition-[top] duration-300 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline md:w-full md:max-w-[720px] md:mx-auto md:border-x md:border-border/40`}>
+      <header className={`sticky ${headerVisible ? "top-[calc(72px+env(safe-area-inset-top))]" : "top-0"} md:!top-[66px] z-40 border-b border-border/60 bg-background transition-[top] duration-300 md:mx-auto md:w-full md:max-w-[760px] md:border-x`}>
         <div className="flex items-center px-4 py-1 justify-between min-h-[48px]">
           {!showSearch ? (
             <>
@@ -190,7 +190,7 @@ function Feed() {
 
       </header>
 
-      <main className="flex-1 md:w-full md:max-w-[720px] md:mx-auto md:border-x md:border-border/40 md:bg-background">
+      <main className="flex-1 bg-background md:mx-auto md:mb-12 md:w-full md:max-w-[760px] md:overflow-hidden md:rounded-b-lg md:border-x md:border-b md:border-border/60">
         {isSearching ? (
           <div className="flex flex-col items-center justify-center pt-20">
             <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
@@ -243,8 +243,8 @@ function Feed() {
                 <div className="grid gap-3">
                   {searchResults.bootcamps.map((camp) => (
                     <Link key={camp.id} to="/app/bootcamps/$id" params={{ id: camp.id }} className="block tap">
-                      <article className="overflow-hidden rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 transition-colors flex gap-4 p-3">
-                        <div className="h-20 w-20 rounded-xl overflow-hidden shrink-0 bg-muted ring-1 ring-border">
+                      <article className="flex gap-4 overflow-hidden rounded-lg bg-card p-3 ring-1 ring-border transition-colors hover:ring-foreground/15">
+                        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted ring-1 ring-border">
                           {camp.banner_url ? (
                             <img src={camp.banner_url} alt="" className="h-full w-full object-cover" />
                           ) : (
@@ -314,7 +314,7 @@ function Feed() {
         ) : (
           <>
             {/* Desktop inline composer */}
-            <div className="hidden md:flex items-center gap-3.5 px-5 py-4 border-b hairline">
+            <div className="m-4 hidden items-center gap-3.5 rounded-lg border border-border/60 bg-card px-4 py-3 md:flex">
               <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-border shrink-0">
                 {currentUser?.avatar_url ? (
                   <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -399,11 +399,11 @@ function Feed() {
             <Plus className="h-6 w-6" strokeWidth={2} />
           </button>
         </DrawerTrigger>
-        <DrawerContent className="bg-background/95 backdrop-blur-xl border-t hairline focus:ring-0 p-6 md:max-w-lg md:mx-auto md:rounded-t-3xl">
+        <DrawerContent className="border-t bg-background p-6 focus:ring-0 md:mx-auto md:max-w-lg md:rounded-t-lg">
           <DrawerTitle className="text-[22px] font-semibold tracking-tight mb-1 text-foreground">Create</DrawerTitle>
           <p className="text-[13px] text-muted-foreground mb-6">What would you like to make?</p>
           <div className="flex flex-col gap-2">
-            <Link to="/app/compose" className="group flex items-center gap-4 p-3.5 rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 transition-all tap">
+            <Link to="/app/compose" className="group flex items-center gap-4 rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:ring-foreground/15">
               <div className="h-11 w-11 shrink-0 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
                 <Pencil className="h-[18px] w-[18px] text-primary" />
               </div>
@@ -414,7 +414,7 @@ function Feed() {
               <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </Link>
 
-            <Link to="/app/ship" className="group flex items-center gap-4 p-3.5 rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 transition-all tap">
+            <Link to="/app/ship" className="group flex items-center gap-4 rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:ring-foreground/15">
               <div className="h-11 w-11 shrink-0 rounded-full bg-[#cc208f]/8 ring-1 ring-[#cc208f]/15 flex items-center justify-center">
                 <Rocket className="h-[18px] w-[18px] text-[#cc208f]" />
               </div>
@@ -425,7 +425,7 @@ function Feed() {
               <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </Link>
 
-            <Link to="/app/notes/create" className="group flex items-center gap-4 p-3.5 rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/15 transition-all tap">
+            <Link to="/app/notes/create" className="group flex items-center gap-4 rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:ring-foreground/15">
               <div className="h-11 w-11 shrink-0 rounded-full bg-emerald-500/8 ring-1 ring-emerald-500/15 flex items-center justify-center">
                 <FileText className="h-[18px] w-[18px] text-emerald-600 dark:text-emerald-400" />
               </div>

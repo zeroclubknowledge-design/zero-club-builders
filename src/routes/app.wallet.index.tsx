@@ -61,16 +61,6 @@ function WalletPage() {
     return "NGN";
   });
   const [showBalance, setShowBalance] = useState(true);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   useEffect(() => {
     localStorage.setItem("wallet_currency", currency);
   }, [currency]);
@@ -346,9 +336,9 @@ function WalletPage() {
   // ActionContent has been moved to separate premium pages
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
+    <div className="min-h-screen bg-[#f8f7f5] pb-20 text-foreground dark:bg-background">
       {/* ── Header ── */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-full z-20 bg-background/70 backdrop-blur-2xl px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-[1.5rem] pb-3 transition-all duration-300 flex items-center justify-between ${isScrolled ? "border-b border-border/40" : ""}`}>
+      <header className="fixed left-1/2 top-0 z-20 flex w-full max-w-md -translate-x-1/2 items-center justify-between border-b border-border/60 bg-background px-5 pb-3 pt-[calc(1.25rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-full md:translate-x-0 md:px-8 md:pt-5">
         <div className="flex items-center gap-3">
           <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-border/30 shadow-sm shrink-0 transition-all duration-300 active:scale-95 hover:ring-primary/40 hover:shadow-md cursor-pointer">
             {profile?.avatar_url ? (
@@ -359,19 +349,22 @@ function WalletPage() {
               </div>
             )}
           </button>
-          <div className="flex items-center gap-1.5 bg-card px-3 py-1.5 rounded-full ring-1 ring-border">
-            <Star className="h-3.5 w-3.5 text-[#eab308] fill-[#eab308]" />
-            <span className="text-[12px] font-semibold tracking-tight tabular-nums">{(profile?.xp || 0).toLocaleString()} XP</span>
+          <div className="min-w-0">
+            <h1 className="text-[18px] font-semibold leading-tight tracking-tight">Wallet</h1>
+            <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+              <Star className="h-3 w-3 fill-[#eab308] text-[#eab308]" />
+              <span className="tabular-nums">{(profile?.xp || 0).toLocaleString()} XP earned</span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full bg-accent/50 px-2.5 h-8 text-[11px] font-bold text-foreground transition active:scale-95 outline-none border border-border/40 hover:bg-accent/70">
+            <DropdownMenuTrigger className="flex h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-2.5 text-[11px] font-bold text-foreground outline-none transition active:scale-95 hover:bg-accent/70">
               <img src={currentCurrency.iconUrl} alt={currency} className="w-3.5 h-3.5 rounded-full object-cover shadow-sm ring-1 ring-border/50" />
               <span>{currency}</span>
               <ChevronDown className="h-3 w-3 opacity-50" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-xl border-border/40 bg-background/95 backdrop-blur-xl p-2 shadow-xl">
+            <DropdownMenuContent align="end" className="w-48 rounded-lg border-border/60 bg-background p-2 shadow-xl">
               <DropdownMenuItem onClick={() => setCurrency("NGN")} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold cursor-pointer transition-colors ${currency ==="NGN" ? "bg-primary/10 text-primary" : "hover:bg-accent/60"}`}>
                 <img src="https://flagcdn.com/ng.svg" alt="NGN" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" />
                 <span>Naira (NGN)</span>
@@ -387,23 +380,19 @@ function WalletPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Link to="/app/wallet/settings" className="h-9 w-9 rounded-full bg-card shadow-sm border border-border/40 flex items-center justify-center transition-transform active:scale-95">
+          <Link to="/app/wallet/settings" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card transition active:scale-95 hover:bg-accent/60">
             <Settings className="h-4 w-4 text-foreground" />
           </Link>
         </div>
       </header>
 
       {/* ── Main Content Container ── */}
-      <div className="lg:grid lg:grid-cols-[minmax(300px,340px)_minmax(0,1fr)] lg:items-start lg:gap-10 md:px-8 lg:px-10 md:pt-8 md:pb-16 md:max-w-[1200px]">
+      <div className="mx-auto w-full md:max-w-[1180px] md:px-8 md:pb-16 md:pt-8 lg:grid lg:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] lg:items-start lg:gap-8 lg:px-10">
       <div className="md:min-w-0 md:max-w-[560px] lg:max-w-none">
       <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pt-0 flex flex-col w-full">
 
           {/* Premium Balance Card */}
-          <div className="relative overflow-hidden rounded-[28px] bg-[#141117] p-8 text-white mb-4 shadow-lift ring-1 ring-white/[0.06]">
-            {/* Quiet brand glow */}
-            <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
-            <div className="pointer-events-none absolute -bottom-32 -left-16 h-64 w-64 rounded-full bg-[#cc208f]/10 blur-[90px]" />
-
+          <div className="relative mb-4 overflow-hidden rounded-lg border-t-2 border-[#cc208f] bg-[#141117] p-7 text-white shadow-[0_20px_50px_-28px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.06]">
             <div className="relative z-10">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Balance</p>
@@ -415,7 +404,7 @@ function WalletPage() {
                 </button>
               </div>
 
-              <h2 className="mt-3 text-[42px] font-semibold tracking-tight leading-none tabular-nums">
+              <h2 className="mt-3 text-[36px] font-semibold leading-none tracking-tight tabular-nums sm:text-[42px]">
                 <span className="mr-1 text-[26px] font-normal align-top text-white/70">{currentCurrency.symbol}</span>
                 {showBalance ? displayBalance : "••••"}
               </h2>
@@ -436,14 +425,14 @@ function WalletPage() {
 
           {/* Action Buttons (Add Money & Send) */}
           <div className="flex gap-3 w-full mt-2">
-            <Link to="/app/wallet/add-money" className="flex-1 flex flex-row items-center justify-center gap-2.5 rounded-2xl bg-card py-4 px-2 ring-1 ring-border shadow-soft transition-all hover:ring-foreground/15 tap">
+            <Link to="/app/wallet/add-money" className="flex flex-1 flex-row items-center justify-center gap-2.5 rounded-lg bg-card px-2 py-4 ring-1 ring-border transition-all tap hover:ring-foreground/15">
               <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
                 <Plus className="h-4 w-4 text-primary" strokeWidth={2.25} />
               </div>
               <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Add money</span>
             </Link>
 
-            <Link to="/app/wallet/send" className="flex-1 flex flex-row items-center justify-center gap-2.5 rounded-2xl bg-card py-4 px-2 ring-1 ring-border shadow-soft transition-all hover:ring-foreground/15 tap">
+            <Link to="/app/wallet/send" className="flex flex-1 flex-row items-center justify-center gap-2.5 rounded-lg bg-card px-2 py-4 ring-1 ring-border transition-all tap hover:ring-foreground/15">
               <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
                 <Send className="h-4 w-4 text-primary -ml-0.5" strokeWidth={2} />
               </div>
@@ -455,29 +444,29 @@ function WalletPage() {
       {/* ── Quick Actions Grid (Under Add Money & Send) ── */}
       <section className="px-6 mt-6 md:px-0 md:mt-8">
         <div className="grid grid-cols-4 gap-3 md:grid-cols-2 md:gap-3">
-          <Link to="/app/store" className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+          <Link to="/app/store" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
+            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
               <Store className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
             <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Store</span>
           </Link>
 
-          <Link to="/app/quests" className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+          <Link to="/app/quests" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
+            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
               <TrendingUp className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
             <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Earn</span>
           </Link>
 
-          <Link to="/app/wallet/withdraw" className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+          <Link to="/app/wallet/withdraw" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
+            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
               <CustomWalletIcon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
             <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Withdraw</span>
           </Link>
 
-          <button className="flex flex-col items-center gap-2 group transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-2xl md:bg-card md:ring-1 md:ring-border md:shadow-soft md:px-4 md:py-3.5 md:hover:ring-foreground/15">
-            <div className="h-[52px] w-[52px] rounded-full bg-secondary flex items-center justify-center shadow-sm border border-border/40 md:h-9 md:w-9 md:shadow-none md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15 shrink-0">
+          <button className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
+            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
               <Box className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
             </div>
             <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">More</span>
@@ -488,7 +477,7 @@ function WalletPage() {
       </div>
 
       {/* ── Transaction History ── */}
-      <section id="transactions" className="px-6 mt-12 scroll-mt-24 md:px-7 md:mt-10 lg:mt-0 md:min-w-0 md:max-w-[560px] lg:max-w-none md:rounded-3xl md:ring-1 md:ring-border md:bg-card md:py-7 md:shadow-soft">
+      <section id="transactions" className="mt-12 scroll-mt-24 px-6 md:mt-10 md:min-w-0 md:max-w-[560px] md:rounded-lg md:bg-card md:px-7 md:py-7 md:ring-1 md:ring-border lg:mt-0 lg:max-w-none">
         <div className="flex justify-between items-center mb-8 md:mb-5 md:pb-4 md:border-b md:hairline">
           <h3 className="text-[19px] md:text-[17px] font-semibold text-foreground tracking-tight">History</h3>
           <button className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
@@ -502,7 +491,7 @@ function WalletPage() {
               {/* Skeletons to mimic the uploaded UI */}
               <div className="w-[200px] max-w-[71%] h-12 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-40 shadow-sm" />
               <div className="w-[240px] max-w-[86%] h-14 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-70 shadow-sm" />
-              <div className="w-[280px] max-w-full bg-card border border-border/40 rounded-2xl p-4 shadow-sm flex items-center gap-3 relative z-10">
+              <div className="relative z-10 mx-auto flex w-[280px] max-w-full items-center gap-3 rounded-lg border border-border/40 bg-card p-4 shadow-sm">
                 <div className="h-10 w-10 rounded-full bg-primary/10" />
                 <div className="flex-1 space-y-2">
                   <div className="h-2.5 w-3/4 rounded-full bg-primary/10" />
