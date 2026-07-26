@@ -2313,7 +2313,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
           )}
 
           {/* Bubble */}
-          <div className={`relative group px-3.5 py-2.5 ${isMe ?'bg-primary border border-primary/20 rounded-[22px] rounded-br-sm text-right' : 'bg-muted border border-border/50 rounded-[22px] rounded-bl-sm text-left'}`}>
+          <div className={`relative group px-3.5 py-2.5 ${isMe ?'bg-[#cc208f] border border-[#cc208f]/30 rounded-[22px] rounded-br-sm text-right text-white shadow-sm shadow-[#cc208f]/15' : 'bg-muted border border-border/50 rounded-[22px] rounded-bl-sm text-left'}`}>
             
             {/* Sender Name for Received */}
             {!isMe && (
@@ -2388,7 +2388,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             })() : (
               <>
                 <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-primary-foreground' : 'text-foreground'}`}>
-                  <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-primary-foreground underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
+                  <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-white underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
                   {!message.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
                 </p>
                 
@@ -2423,7 +2423,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             
             {message.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
             
-            <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-primary-foreground/70' : 'text-muted-foreground'}`}>{time}</span>
+            <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-white/75' : 'text-muted-foreground'}`}>{time}</span>
 
             {/* Tap outside overlay */}
             {(showEmojiPicker || showFullPicker) && (

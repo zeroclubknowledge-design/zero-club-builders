@@ -36,20 +36,20 @@ export function GiftCardVisual({
   const serviceLabel = giftServices.find((item) => item.id === service)?.label || service;
 
   return (
-    <div className={`relative aspect-[1.62/1] w-full overflow-hidden rounded-lg p-5 shadow-lift ${template.shell} ${compact ? "max-w-[320px]" : "max-w-[520px] sm:p-7"}`}>
+    <div className={`relative aspect-[1.62/1] w-full min-w-0 overflow-hidden rounded-lg p-4 shadow-lift sm:p-7 ${template.shell} ${compact ? "max-w-[320px]" : "max-w-[520px]"}`}>
       <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full border-[18px] border-current opacity-[0.08]" />
       <div className="absolute -bottom-12 right-16 h-24 w-24 rotate-12 border-[14px] border-current opacity-[0.06]" />
       <div className="relative flex h-full flex-col justify-between">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-2.5"><img src="/logo.png" alt="" className="h-7 w-7 object-contain" /><span className="text-[13px] font-semibold">Zero Club Gift</span></div>
+          <div className="flex min-w-0 items-center gap-2"><img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7" /><span className="truncate text-[11px] font-semibold sm:text-[13px]">Zero Club Gift</span></div>
           <div className={`grid h-8 w-8 place-items-center rounded-lg ${template.accent}`}><Gift className="h-4 w-4 fill-current" /></div>
         </div>
         <div>
-          <p className={`text-[9px] font-semibold uppercase ${template.muted}`}>For {serviceLabel}</p>
-          <p className="mt-1 text-[30px] font-semibold leading-none tracking-tight tabular-nums sm:text-[38px]">₦{Number(amount || 0).toLocaleString()}</p>
+          <p className={`truncate text-[8px] font-semibold uppercase sm:text-[9px] ${template.muted}`}>For {serviceLabel}</p>
+          <p className="mt-1 text-[26px] font-semibold leading-none tracking-tight tabular-nums sm:text-[38px]">₦{Number(amount || 0).toLocaleString()}</p>
           {message && <p className={`mt-2 line-clamp-1 text-[10px] ${template.muted}`}>{message}</p>}
         </div>
-        <div className={`flex items-end justify-between gap-4 text-[9px] font-medium uppercase ${template.muted}`}><span>Restricted gift credit</span><span className="font-mono normal-case">{code || "ZC-GIFT"}</span></div>
+        <div className={`flex min-w-0 items-end justify-between gap-2 text-[7px] font-medium uppercase sm:text-[9px] ${template.muted}`}><span className="truncate">Restricted gift credit</span><span className="max-w-[42%] truncate font-mono normal-case">{code || "ZC-GIFT"}</span></div>
       </div>
     </div>
   );
