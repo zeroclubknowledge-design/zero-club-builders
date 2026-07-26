@@ -1,0 +1,257 @@
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  AtSign,
+  BellRing,
+  Heart,
+  MessageCircle,
+  Repeat2,
+  Trophy,
+  UserPlus,
+  X,
+  Zap,
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+
+type IncomingNotification = {
+  id: string;
+  actor_id?: string | null;
+  type?: string | null;
+  entity_id?: string | null;
+  content?: string | null;
+  created_at?: string | null;
+  is_read?: boolean | null;
+  actor?: {
+    username?: string | null;
+    full_name?: string | null;
+    avatar_url?: string | null;
+  } | null;
+};
+
+type IncomingNotificationCardProps = {
+  recipientId?: string;
+  belowFeedHeader?: boolean;
+  onReceived?: () => void;
+  onRead?: () => void;
+};
+
+const notificationStyles = {
+  like: {
+    Icon: Heart,
+    label: "liked your post",
+    color: "bg-rose-500 text-white",
+  },
+  comment: {
+    Icon: MessageCircle,
+    label: "commented on your post",
+    color: "bg-sky-600 text-white",
+  },
+  follow: {
+    Icon: UserPlus,
+    label: "started following you",
+    color: "bg-emerald-600 text-white",
+  },
+  repost: {
+    Icon: Repeat2,
+    label: "reposted your post",
+    color: "bg-emerald-600 text-white",
+  },
+  mention: {
+    Icon: AtSign,
+    label: "mentioned you",
+    color: "bg-amber-500 text-black",
+  },
+  build_tagged: {
+    Icon: Trophy,
+    label: "tagged your work for verification",
+    color: "bg-violet-600 text-white",
+  },
+  system: {
+    Icon: Zap,
+    label: "sent you an update",
+    color: "bg-primary text-primary-foreground",
+  },
+} as const;
+
+const cleanContent = (content?: string | null) =>
+  (content || "")
+    .replace(/<[^>]*>?/gm, "")
+    .replace(/\*\*/g, "")
+    .replace(/(?<!\*)\*(?!\*)/g, "")
+    .trim();
+
+export function IncomingNotificationCard({
+  recipientId,
+  belowFeedHeader = false,
+  onReceived,
+  onRead,
+}: IncomingNotificationCardProps) {
+  const navigate = useNavigate();
+  const [active, setActive] = useState<IncomingNotification | null>(null);
+  const queueRef = useRef<IncomingNotification[]>([]);
+  const receivedRef = useRef(onReceived);
+  const readRef = useRef(onRead);
+  const actorCacheRef = useRef(new Map<string, IncomingNotification["actor"]>());
+
+  useEffect(() => {
+    receivedRef.current = onReceived;
+    readRef.current = onRead;
+  }, [onRead, onReceived]);
+
+  const dismiss = () => {
+    setActive(queueRef.current.shift() || null);
+  };
+
+  useEffect(() => {
+    if (!active) return;
+    const timeout = window.setTimeout(dismiss, 4800);
+    return () => window.clearTimeout(timeout);
+  }, [active?.id]);
+
+  useEffect(() => {
+    if (!recipientId) return;
+
+    const channel = supabase
+      .channel(`incoming-notifications:${recipientId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `recipient_id=eq.${recipientId}`,
+        },
+        ({ new: record }) => {
+          const notification = record as IncomingNotification;
+          const cachedActor = notification.actor_id
+            ? actorCacheRef.current.get(notification.actor_id)
+            : null;
+          const immediate = { ...notification, actor: cachedActor || null };
+
+          if (!notification.is_read) receivedRef.current?.();
+          setActive((current) => {
+            if (!current) return immediate;
+            queueRef.current = [...queueRef.current, immediate].slice(-3);
+            return current;
+          });
+
+          if (!notification.actor_id || cachedActor) return;
+          void supabase
+            .from("profiles")
+            .select("username, full_name, avatar_url")
+            .eq("id", notification.actor_id)
+            .maybeSingle()
+            .then(({ data: actor }) => {
+              actorCacheRef.current.set(notification.actor_id!, actor);
+              setActive((current) =>
+                current?.id === notification.id ? { ...current, actor } : current,
+              );
+              queueRef.current = queueRef.current.map((item) =>
+                item.id === notification.id ? { ...item, actor } : item,
+              );
+            });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [recipientId]);
+
+  if (!active) return null;
+
+  const type = active.type as keyof typeof notificationStyles;
+  const style = notificationStyles[type] || {
+    Icon: BellRing,
+    label: "interacted with you",
+    color: "bg-foreground text-background",
+  };
+  const actorName = active.actor?.full_name || active.actor?.username || "Someone";
+  const detail = cleanContent(active.content);
+  const initials = actorName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const openNotification = () => {
+    void supabase.from("notifications").update({ is_read: true }).eq("id", active.id);
+    if (!active.is_read) readRef.current?.();
+    if (active.type === "follow" && active.actor_id) {
+      void navigate({ to: "/app/profile/$id", params: { id: active.actor_id } });
+    } else if (active.entity_id && active.type !== "system") {
+      void navigate({ to: "/app/post/$id", params: { id: active.entity_id } });
+    } else {
+      void navigate({ to: "/app/notifications" });
+    }
+    dismiss();
+  };
+
+  return (
+    <aside
+      key={active.id}
+      aria-live="polite"
+      className={`pointer-events-none fixed left-1/2 z-[65] w-[calc(100%-24px)] max-w-[430px] -translate-x-1/2 animate-in fade-in slide-in-from-top-3 duration-200 ${
+        belowFeedHeader
+          ? "top-[calc(74px+env(safe-area-inset-top))] md:top-3"
+          : "top-[calc(12px+env(safe-area-inset-top))]"
+      }`}
+    >
+      <div className="pointer-events-auto overflow-hidden rounded-lg border border-border/80 bg-background/98 shadow-[0_18px_50px_-22px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <div className="h-0.5 w-full bg-primary" />
+        <div className="flex items-center gap-3 p-3">
+          <button
+            type="button"
+            onClick={openNotification}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left tap"
+          >
+            <div className="relative h-11 w-11 shrink-0">
+              {active.actor?.avatar_url ? (
+                <img
+                  src={active.actor.avatar_url}
+                  alt=""
+                  className="h-11 w-11 rounded-full object-cover ring-1 ring-border"
+                />
+              ) : (
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-foreground text-[12px] font-semibold text-background">
+                  {initials || "ZC"}
+                </div>
+              )}
+              <span
+                className={`absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full ring-2 ring-background ${style.color}`}
+              >
+                <style.Icon className="h-3 w-3" strokeWidth={2.6} />
+              </span>
+            </div>
+
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] leading-5 text-foreground">
+                <strong className="font-semibold">{actorName}</strong>{" "}
+                <span className="text-muted-foreground">{style.label}</span>
+              </span>
+              {detail && (
+                <span className="mt-0.5 block truncate text-[12px] leading-4 text-muted-foreground">
+                  {detail}
+                </span>
+              )}
+              <span className="mt-1 block text-[10px] font-semibold uppercase text-primary">
+                Now
+              </span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="Dismiss notification"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground tap hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}

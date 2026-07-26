@@ -1,7 +1,7 @@
 import { useLoaderData, createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { 
   ChevronLeft, MoreHorizontal, MessageCircle, Heart, 
-  Repeat, Share2, Send, CheckCircle2, TrendingUp, UserPlus, UserMinus, Loader2, X, Bookmark,
+  Repeat, Share2, Send, CheckCircle2, TrendingUp, UserPlus, UserMinus, Loader2, Bookmark,
   MessageSquare, Mail, Flag, EyeOff, ShieldCheck, Award, Zap, Trash2, Link as LinkIcon,
   VolumeX, Volume2, Pencil, Edit3, Rocket, MapPin
 } from "lucide-react";
@@ -20,6 +20,7 @@ import {
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { getFirstName } from "@/lib/utils";
+import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
 import {
   Carousel,
   CarouselContent,
@@ -239,6 +240,30 @@ function PostDetail() {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel(`post-comments:${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `post_id=eq.${id}`,
+        },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ['post', id] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [id, queryClient]);
+
   async function handleLikeComment(comment: any) {
     if (!currentUser) {
       toast.error("Sign in to like comments!");
@@ -447,18 +472,19 @@ function PostDetail() {
     }
   }
 
-  async function handleComment() {
+  async function handleComment(mediaFiles: File[] = []) {
     if (!currentUser) {
       toast.error("Sign in to comment!");
-      return;
+      return false;
     }
-    if (!commentText.trim()) return;
+    if (!commentText.trim() && mediaFiles.length === 0) return false;
     setCommentLoading(true);
     try {
+      const content = await buildCommentContent(commentText, mediaFiles, currentUser.id);
       const payload: any = { 
         profile_id: currentUser.id, 
         post_id: post.id, 
-        content: commentText.trim() 
+        content,
       };
       
       if (replyTo) {
@@ -488,9 +514,11 @@ function PostDetail() {
 
       toast.success(replyTo ? "Reply posted! 💬" : "Comment posted! 💬");
       router.invalidate();
+      return true;
     } catch (err: any) {
       console.error("Comment error:", err);
       toast.error(err.message || "Could not post comment.");
+      return false;
     } finally {
       setCommentLoading(false);
     }
@@ -822,7 +850,7 @@ function PostDetail() {
           <div className="flex items-center justify-between w-full text-muted-foreground gap-x-2 flex-wrap pr-1 sm:pr-4 mb-6 border-t border-border pt-4">
             <button 
               onClick={() => {
-                const inputElement = document.querySelector('input');
+                const inputElement = document.querySelector<HTMLTextAreaElement>('[data-comment-composer]');
                 if (inputElement) inputElement.focus();
               }}
               className="flex items-center gap-1.5 transition hover:text-primary active:scale-95 group/btn"
@@ -891,8 +919,18 @@ function PostDetail() {
 
         </section>
 
+        <div className="flex items-center justify-between border-y border-border/60 px-4 py-3">
+          <div>
+            <p className="text-[13px] font-semibold tracking-tight text-foreground">Replies</p>
+            <p className="text-[10px] text-muted-foreground">Newest activity appears automatically</p>
+          </div>
+          <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold tabular-nums text-muted-foreground">
+            {comments.length}
+          </span>
+        </div>
+
         {/* Comments List */}
-        <section className="mt-2 divide-y divide-border/30 px-4 pb-28">
+        <section className="mt-2 divide-y divide-border/30 px-4 pb-40">
           {threadedComments.map((comment: any) => {
             const isReply = comment.isReply;
             
@@ -962,7 +1000,9 @@ function PostDetail() {
                       </div>
                     </div>
                   ) : (
-                    <p className="mt-1 text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
+                    <div className="mt-1 text-sm leading-relaxed text-foreground/90">
+                      <CommentContent content={comment.content} />
+                    </div>
                   )}
                   
                   <div className="mt-2 flex items-center gap-4">
@@ -976,7 +1016,7 @@ function PostDetail() {
                     <button 
                       onClick={() => {
                         setReplyTo(comment);
-                        const inputElement = document.querySelector('input');
+                        const inputElement = document.querySelector<HTMLTextAreaElement>('[data-comment-composer]');
                         if (inputElement) inputElement.focus();
                       }}
                       className="text-xs font-bold text-muted-foreground hover:text-primary transition flex items-center gap-1"
@@ -1045,58 +1085,20 @@ function PostDetail() {
         )}
       </div>
 
-      {/* Static Comment Input Area */}
+      {/* Floating Comment Composer */}
       {post && !isLoading && (
-        <div className="z-40 shrink-0 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 sm:px-6">
-          <div className="mx-auto w-full max-w-[860px]">
-          {replyTo && (
-            <div className="flex items-center justify-between mb-2 px-2 bg-primary/5 rounded-lg py-1.5 border border-primary/10">
-              <span className="text-xs text-primary font-medium">Replying to {getFirstName(replyTo.profiles)}</span>
-              <button onClick={() => setReplyTo(null)} className="p-1 hover:bg-primary/10 rounded-full">
-                <X className="h-3 w-3 text-primary" />
-              </button>
-            </div>
-          )}
-
-          <div className="flex items-end gap-2">
-            <div className="h-9 w-9 shrink-0 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xs mb-0.5">
-              {currentUser?.avatar_url ? (
-                <img src={currentUser.avatar_url} className="h-full w-full object-cover" />
-              ) : (
-                (currentUser?.full_name || currentUser?.username || 'U').substring(0, 1).toUpperCase()
-              )}
-            </div>
-            <div className="flex min-h-[44px] flex-1 items-end rounded-lg border border-border bg-card pb-1 pr-1 transition-colors focus-within:border-primary">
-              <textarea 
-                value={commentText}
-                onChange={(e) => {
-                  setCommentText(e.target.value);
-                  const target = e.target;
-                  target.style.height = 'auto';
-                  target.style.height = `${target.scrollHeight}px`;
-                }}
-                placeholder={replyTo ? "Post your reply" : "Post your thoughts"}
-                rows={1}
-                className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground resize-none max-h-32 min-h-[38px] leading-relaxed no-scrollbar"
-                style={{ height: 'auto' }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    handleComment();
-                  }
-                }}
-              />
-              <button 
-                onClick={handleComment}
-                disabled={commentLoading || !commentText.trim()}
-                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition active:scale-95 mb-0.5 mr-0.5 ${
-                  commentText.trim() ?'bg-primary text-white' : 'text-muted-foreground bg-muted'
-                }`}
-              >
-                {commentLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
+        <div className="pointer-events-none fixed inset-x-2 bottom-3 z-[60] pb-[env(safe-area-inset-bottom)] sm:inset-x-4">
+          <div className="pointer-events-auto mx-auto w-full max-w-[830px]">
+            <CommentComposer
+              value={commentText}
+              onChange={setCommentText}
+              onSubmit={handleComment}
+              loading={commentLoading}
+              currentUser={currentUser}
+              replyLabel={replyTo ? getFirstName(replyTo.profiles) : null}
+              onCancelReply={() => setReplyTo(null)}
+              placeholder="Post your reply"
+            />
           </div>
         </div>
       )}

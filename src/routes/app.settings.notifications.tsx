@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Bell, Mail, Smartphone, Settings2, ChevronRight, Check } from "lucide-react";
+import { ChevronLeft, Bell, Mail, Smartphone, Settings2, ChevronRight, Check, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -33,20 +33,62 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
+function supportsWebPush() {
+  return window.isSecureContext
+    && 'Notification' in window
+    && 'serviceWorker' in navigator
+    && 'PushManager' in window;
+}
+
+async function getPushRegistration() {
+  const existing = await navigator.serviceWorker.getRegistration('/');
+  if (existing?.active) return existing;
+
+  const registration = existing || await navigator.serviceWorker.register('/sw.js', { type: 'module' });
+  if (registration.active) return registration;
+
+  let timeoutId: ReturnType<typeof setTimeout>;
+  try {
+    return await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error("Zero Club is still preparing notifications. Refresh the app and try again.")), 8000);
+      })
+    ]);
+  } finally {
+    clearTimeout(timeoutId!);
+  }
+}
+
 function NotificationsSettings() {
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pushStatus, setPushStatus] = useState("Get instant alerts for messages and activity");
 
   useEffect(() => {
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.ready
+    if (!supportsWebPush()) {
+      setPushStatus(window.isSecureContext ? "Push notifications are not supported on this browser" : "Push notifications require the secure deployed app");
+      return;
+    }
+
+    let cancelled = false;
+    void getPushRegistration()
       .then((registration) => registration.pushManager.getSubscription())
-      .then((subscription) => setIsPushEnabled(Notification.permission === 'granted' && Boolean(subscription)))
-      .catch(() => setIsPushEnabled(false));
+      .then((subscription) => {
+        if (cancelled) return;
+        const enabled = Notification.permission === 'granted' && Boolean(subscription);
+        setIsPushEnabled(enabled);
+        setPushStatus(enabled ? "Enabled on this device. Tap to turn off." : "Get instant alerts for messages and activity");
+      })
+      .catch(() => {
+        if (!cancelled) setPushStatus("Tap to finish setting up notifications");
+      });
+
+    return () => { cancelled = true; };
   }, []);
 
   const handlePushToggle = async () => {
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    if (!supportsWebPush()) {
       toast.error("Push notifications are not supported on this browser.");
       return;
     }
@@ -54,11 +96,18 @@ function NotificationsSettings() {
     try {
       setLoading(true);
 
-      const registration = await navigator.serviceWorker.ready;
-      const existingSubscription = await registration.pushManager.getSubscription();
-      const { data: { session } } = await supabase.auth.getSession();
+      if (isPushEnabled) {
+        setPushStatus("Turning off notifications...");
+        const registration = await getPushRegistration();
+        const existingSubscription = await registration.pushManager.getSubscription();
+        const { data: { session } } = await supabase.auth.getSession();
 
-      if (isPushEnabled && existingSubscription) {
+        if (!existingSubscription) {
+          setIsPushEnabled(false);
+          setPushStatus("Get instant alerts for messages and activity");
+          return;
+        }
+
         if (session) {
           const { error } = await supabase
             .from('push_subscriptions')
@@ -69,31 +118,37 @@ function NotificationsSettings() {
         }
         await existingSubscription.unsubscribe();
         setIsPushEnabled(false);
+        setPushStatus("Get instant alerts for messages and activity");
         toast.success("Push notifications disabled on this device.");
         return;
       }
 
-      const permission = await Notification.requestPermission();
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) {
+        throw new Error("Push setup is incomplete. Add VITE_VAPID_PUBLIC_KEY to the deployed app.");
+      }
+
+      setPushStatus("Waiting for browser permission...");
+      const permission = Notification.permission === 'granted'
+        ? 'granted'
+        : await Notification.requestPermission();
       
       if (permission !== 'granted') {
-        toast.error("Permission denied for push notifications.");
-        setLoading(false);
+        setPushStatus("Permission is blocked in your browser settings");
+        toast.error("Notification permission is blocked. Allow it in your browser settings, then try again.");
         return;
       }
 
-      // If granted, let's subscribe to the PushManager
-      // Get the existing subscription
+      setPushStatus("Connecting this device...");
+      const [registration, sessionResult] = await Promise.all([
+        getPushRegistration(),
+        supabase.auth.getSession()
+      ]);
+      const { data: { session } } = sessionResult;
+      let existingSubscription = await registration.pushManager.getSubscription();
       let subscription = existingSubscription;
 
       if (!subscription) {
-        // We need the VAPID public key. If the user hasn't set it in .env, we show a helpful error.
-        const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-        if (!vapidPublicKey) {
-          toast.error("Push setup incomplete. Missing VITE_VAPID_PUBLIC_KEY in .env");
-          setLoading(false);
-          return;
-        }
-
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
@@ -115,11 +170,13 @@ function NotificationsSettings() {
         if (error) throw error;
         toast.success("Push notifications enabled on this device.");
         setIsPushEnabled(true);
+        setPushStatus("Enabled on this device. Tap to turn off.");
       } else if (!session) {
         throw new Error("Sign in again to finish enabling push notifications.");
       }
     } catch (err: any) {
       console.error(err);
+      setPushStatus(err.message || "Could not enable notifications");
       toast.error(err.message || "Failed to enable push notifications.");
     } finally {
       setLoading(false);
@@ -139,9 +196,13 @@ function NotificationsSettings() {
         { 
           icon: Smartphone, 
           label: "Push notifications", 
-          desc: isPushEnabled ? "Enabled on this device. Tap to turn off." : "Get instant alerts for messages and activity",
+          desc: pushStatus,
           action: handlePushToggle,
-          rightElement: isPushEnabled ? <Check className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-muted-foreground mt-1" />
+          rightElement: loading
+            ? <Loader2 className="mt-1 h-4 w-4 animate-spin text-primary" />
+            : isPushEnabled
+              ? <Check className="h-4 w-4 text-primary" />
+              : <ChevronRight className="h-4 w-4 text-muted-foreground mt-1" />
         },
         { 
           icon: Mail, 
@@ -170,6 +231,7 @@ function NotificationsSettings() {
             <div className="flex flex-col border-b border-border">
               {section.items.map((item) => (
                 <button 
+                  type="button"
                   key={item.label} 
                   onClick={item.action || undefined}
                   disabled={loading && item.label === "Push notifications"}

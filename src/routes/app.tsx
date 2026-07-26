@@ -58,6 +58,7 @@ import { getCachedSession } from "@/lib/auth";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
+import { IncomingNotificationCard } from "@/components/IncomingNotificationCard";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -1092,6 +1093,12 @@ function AppLayout() {
 
       {/* Main Center Column */}
       <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isInstitutionStudio ? "" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
+        <IncomingNotificationCard
+          recipientId={session.user.id}
+          belowFeedHeader={!hideHeader}
+          onReceived={() => setUnreadNotificationsCount((count) => count + 1)}
+          onRead={() => setUnreadNotificationsCount((count) => Math.max(0, count - 1))}
+        />
         {!hideHeader && (
           <header
             className="fixed left-1/2 top-0 z-50 flex h-[calc(66px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between border-b border-border bg-background px-5 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[66px] md:max-w-full md:translate-x-0 md:pt-0"

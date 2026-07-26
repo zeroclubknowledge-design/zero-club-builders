@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Drawer, DrawerContent, DrawerHeader, DrawerTitle 
 } from "@/components/ui/drawer";
-import { MessageCircle, Send, X, MoreHorizontal, Heart, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2 } from "lucide-react";
+import { MessageCircle, Send, MoreHorizontal, Heart, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2 } from "lucide-react";
 import { useRouter, Link } from "@tanstack/react-router";
 
 import {
@@ -14,10 +14,10 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
-import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { UserMinus } from "lucide-react";
+import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
 
 interface CommentDrawerProps {
   post: any;
@@ -30,7 +30,6 @@ interface CommentDrawerProps {
 }
 
 const commentCache = new Map<string, { comments: any[]; cachedAt: number }>();
-const COMMENT_CACHE_TTL = 60_000;
 
 export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = false, inline = false, onClose, onOpenChange, onCommentAdded }: CommentDrawerProps) {
   const handleOpenChange = (open: boolean) => {
@@ -92,15 +91,43 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       if (cached) setComments(cached.comments);
       else setComments([]);
 
-      if (!cached || Date.now() - cached.cachedAt > COMMENT_CACHE_TTL) {
-        void fetchComments(cacheKey, !cached);
-      }
+      // Render cached comments immediately, then always revalidate. A notification
+      // can arrive while an empty cache entry is still considered fresh.
+      void fetchComments(cacheKey, !cached);
     }
     if (!isOpen && !inline) {
       setReplyTo(null);
       setNewComment("");
       setEditingCommentId(null);
     }
+  }, [isOpen, inline, post?.id, post?.original_id, type]);
+
+  useEffect(() => {
+    if ((!isOpen && !inline) || !post) return;
+
+    const postId = post.original_id || post.id;
+    const table = type === 'note' ? 'note_comments' : 'comments';
+    const idColumn = type === 'note' ? 'note_id' : 'post_id';
+    const cacheKey = `${type}:${postId}`;
+    const channel = supabase
+      .channel(`comment-drawer:${type}:${postId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table,
+          filter: `${idColumn}=eq.${postId}`,
+        },
+        () => {
+          void fetchComments(cacheKey, false);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [isOpen, inline, post?.id, post?.original_id, type]);
 
   const fetchComments = async (cacheKey: string, showLoading: boolean) => {
@@ -252,21 +279,28 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim() || loading) return;
+  const handleSubmit = async (mediaFiles: File[] = []) => {
+    if ((!newComment.trim() && mediaFiles.length === 0) || loading) return false;
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       toast.error("Sign in to comment!");
-      return;
+      return false;
     }
 
     setLoading(true);
+    let content: string;
+    try {
+      content = await buildCommentContent(newComment, mediaFiles, session.user.id);
+    } catch (error: any) {
+      setLoading(false);
+      toast.error(error.message || "Could not upload comment media.");
+      return false;
+    }
     const payload: any = {
       [type === 'note' ? 'note_id' : 'post_id']: post.original_id || post.id,
       profile_id: session.user.id,
-      content: newComment.trim()
+      content,
     };
 
     if (replyTo) {
@@ -282,6 +316,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     setLoading(false);
     if (error) {
       toast.error(error.message || "Could not post comment.");
+      return false;
     } else {
       updateComments(current => [...current, { ...data, isLiked: false, likes_count: data.likes_count || 0, reactions: [] }]);
       setNewComment("");
@@ -306,6 +341,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
           scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
         }
       }, 100);
+      return true;
     }
   };
 
@@ -379,7 +415,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       )}
 
       <div className={`flex flex-col flex-1 ${inline ?'w-full' : 'min-h-0'}`}>
-          <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'space-y-5 py-6' : 'no-scrollbar flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-6'}`}>
+          <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'space-y-5 py-6' : 'no-scrollbar flex-1 space-y-5 overflow-y-auto px-4 pb-32 pt-5 sm:px-6'}`}>
             {commentsLoading && threadedComments.length === 0 ? (
               <div className="space-y-5 py-1" aria-label="Loading comments">
                 {[0, 1, 2].map(item => (
@@ -478,9 +514,9 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm text-foreground/80 leading-relaxed mb-2">
-                          <LinkifiedText text={comment.content} />
-                        </p>
+                        <div className="mb-2 text-sm leading-relaxed text-foreground/80">
+                          <CommentContent content={comment.content} />
+                        </div>
                       )}
                       
                       <div className="flex flex-col gap-2 mt-2">
@@ -588,59 +624,21 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
             )}
           </div>
 
-          <div className={`${inline ?'fixed bottom-0 left-1/2 z-50 w-full max-w-[760px] -translate-x-1/2 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3 sm:pb-3' : 'safe-bottom border-t border-border bg-background p-4 sm:px-6'}`}>
-            {replyTo && (
-              <div className="flex items-center justify-between mb-2 px-2 bg-primary/5 rounded-lg py-1.5 border border-primary/10">
-                <span className="text-xs text-primary font-medium">Replying to {getFirstName(replyTo.profiles)}</span>
-                <button onClick={() => setReplyTo(null)} className="p-1 hover:bg-primary/10 rounded-full">
-                  <X className="h-3 w-3 text-primary" />
-                </button>
-              </div>
-            )}
-            <div className="flex items-end gap-2">
-              <div className="h-9 w-9 shrink-0 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xs mb-0.5">
-                {currentUser?.avatar_url ? (
-                  <img src={currentUser.avatar_url} className="h-full w-full object-cover" />
-                ) : (
-                  currentUser?.username?.charAt(0).toUpperCase() || "U"
-                )}
-              </div>
-              <form onSubmit={handleSubmit} className="flex min-h-[44px] flex-1 items-end rounded-lg border border-border bg-card pb-1 pr-1 transition-colors focus-within:border-primary">
-                <textarea 
-                  placeholder={replyTo ? "Post your reply" : "Post your thoughts"}
-                  className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground resize-none max-h-32 min-h-[38px] leading-relaxed no-scrollbar"
-                  value={newComment}
-                  onChange={(e) => {
-                    setNewComment(e.target.value);
-                    const target = e.target;
-                    target.style.height = 'auto';
-                    target.style.height = `${target.scrollHeight}px`;
-                  }}
-                  rows={1}
-                  style={{ height: 'auto' }}
-                  autoFocus={!!replyTo}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                      e.preventDefault();
-                      if (newComment.trim() && !loading) {
-                        handleSubmit(e as any);
-                      }
-                    }
-                  }}
-                />
-                <button 
-                  type="submit" 
-                  disabled={!newComment.trim() || loading}
-                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition active:scale-95 mb-0.5 mr-0.5 ${
-                    newComment.trim() ?'bg-primary text-white' : 'text-muted-foreground bg-muted'
-                  }`}
-                >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </button>
-              </form>
+          <div className={`${inline ?'fixed bottom-3 left-1/2 z-50 w-[calc(100%-20px)] max-w-[740px] -translate-x-1/2 pb-[env(safe-area-inset-bottom)]' : 'pointer-events-none absolute inset-x-2 bottom-2 z-20 pb-[env(safe-area-inset-bottom)] sm:inset-x-4 sm:bottom-4'}`}>
+            <div className="pointer-events-auto">
+              <CommentComposer
+                value={newComment}
+                onChange={setNewComment}
+                onSubmit={handleSubmit}
+                loading={loading}
+                currentUser={currentUser}
+                replyLabel={replyTo ? getFirstName(replyTo.profiles) : null}
+                onCancelReply={() => setReplyTo(null)}
+                placeholder={replyTo ? "Post your reply" : "Post your thoughts"}
+              />
             </div>
           </div>
-        {inline && <div className="h-24 shrink-0" /> /* Padding for the fixed footer */}
+        {inline && <div className="h-28 shrink-0" /> /* Padding for the floating composer */}
       </div>
     </>
   );
@@ -655,7 +653,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground={false} repositionInputs={false}>
-      <DrawerContent className="mx-auto flex h-[85dvh] max-w-[760px] flex-col border border-border bg-background p-0 shadow-xl focus:outline-none">
+      <DrawerContent className="relative mx-auto flex h-[85dvh] max-w-[760px] flex-col overflow-hidden border border-border bg-background p-0 shadow-xl focus:outline-none">
         {DrawerInner}
       </DrawerContent>
     </Drawer>
