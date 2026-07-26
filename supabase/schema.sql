@@ -313,6 +313,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   actor_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('like', 'comment', 'follow', 'repost', 'mention', 'system', 'build_tagged')),
   entity_id UUID NOT NULL,
+  comment_id UUID REFERENCES comments(id) ON DELETE CASCADE,
   content TEXT,
   is_read BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
@@ -596,8 +597,8 @@ BEGIN
   SELECT author_id INTO post_author_id FROM posts WHERE id = NEW.post_id;
   
   IF post_author_id != NEW.profile_id THEN
-    INSERT INTO notifications (recipient_id, actor_id, type, entity_id)
-    VALUES (post_author_id, NEW.profile_id, 'comment', NEW.post_id);
+    INSERT INTO notifications (recipient_id, actor_id, type, entity_id, comment_id, content)
+    VALUES (post_author_id, NEW.profile_id, 'comment', NEW.post_id, NEW.id, NEW.content);
   END IF;
   RETURN NEW;
 END;
