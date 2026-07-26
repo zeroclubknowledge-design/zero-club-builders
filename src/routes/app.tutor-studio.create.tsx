@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { createBootcampAction } from "@/api";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/tutor-studio/create")({
   component: CreateBootcamp,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/app/tutor-studio/create")({
 
 function CreateBootcamp() {
   const navigate = useNavigate();
+  const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
@@ -40,7 +42,7 @@ function CreateBootcamp() {
     { id: "m1", title: "Introduction", lessons: [{ id: "l1", title: "Welcome and Orientation", type: "text" }] }
   ]);
 
-  const numericPrice = isFree ? 0 : parseFloat(price || "0");
+  const numericPrice = isFree ? 0 : toBaseAmount(parseFloat(price || "0"));
   const numericCouponDiscount = Math.min(100, Math.max(0, Number(couponDiscount) || 0));
   const couponPreviewPrice = Math.max(0, Math.round(numericPrice * (1 - numericCouponDiscount / 100)));
   const normalizedCouponCode = couponCode.trim().toUpperCase();
@@ -638,7 +640,7 @@ function CreateBootcamp() {
                   </label>
                   <div className="relative">
                     <span className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground/40 font-bold text-sm">
-                      ₦
+                      {currencyDetails.symbol}
                     </span>
                     <input
                       type="number"
@@ -715,7 +717,7 @@ function CreateBootcamp() {
                     <div className="flex items-center justify-between rounded-lg bg-primary/10 px-4 py-3 text-xs">
                       <span className="font-semibold text-primary">{normalizedCouponCode}</span>
                       <span className="text-muted-foreground">
-                        Students pay NGN {couponPreviewPrice.toLocaleString()}
+                        Students pay {format(couponPreviewPrice)}
                       </span>
                     </div>
                   )}

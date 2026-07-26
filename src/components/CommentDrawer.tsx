@@ -29,6 +29,9 @@ interface CommentDrawerProps {
   onCommentAdded?: () => void;
 }
 
+const commentCache = new Map<string, { comments: any[]; cachedAt: number }>();
+const COMMENT_CACHE_TTL = 60_000;
+
 export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = false, inline = false, onClose, onOpenChange, onCommentAdded }: CommentDrawerProps) {
   const handleOpenChange = (open: boolean) => {
     onOpenChange?.(open);
@@ -47,12 +50,25 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [commentsLoading, setCommentsLoading] = useState(false);
   const [replyTo, setReplyTo] = useState<any>(null);
   const [activePickerId, setActivePickerId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
   const { data: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fetchRequestRef = useRef(0);
+
+  const updateComments = (updater: (current: any[]) => any[]) => {
+    setComments(current => {
+      const next = updater(current);
+      if (post) {
+        const cacheKey = `${type}:${post.original_id || post.id}`;
+        commentCache.set(cacheKey, { comments: next, cachedAt: Date.now() });
+      }
+      return next;
+    });
+  };
 
   const { data: followedUserIds } = useQuery({
     queryKey: ['followed_users', currentUser?.id],
@@ -69,51 +85,77 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   useEffect(() => {
     if ((isOpen || inline) && post) {
-      setComments([]); // clear instantly to avoid ghosting previous chat
-      fetchComments();
+      const postId = post.original_id || post.id;
+      const cacheKey = `${type}:${postId}`;
+      const cached = commentCache.get(cacheKey);
+
+      if (cached) setComments(cached.comments);
+      else setComments([]);
+
+      if (!cached || Date.now() - cached.cachedAt > COMMENT_CACHE_TTL) {
+        void fetchComments(cacheKey, !cached);
+      }
     }
     if (!isOpen && !inline) {
       setReplyTo(null);
       setNewComment("");
       setEditingCommentId(null);
     }
-  }, [isOpen, inline, post?.id]);
+  }, [isOpen, inline, post?.id, post?.original_id, type]);
 
-  const fetchComments = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data, error } = await supabase
+  const fetchComments = async (cacheKey: string, showLoading: boolean) => {
+    const requestId = ++fetchRequestRef.current;
+    if (showLoading) setCommentsLoading(true);
+
+    const postId = post.original_id || post.id;
+    const [sessionResult, commentsResult] = await Promise.all([
+      supabase.auth.getSession(),
+      supabase
       .from(type === 'note' ? 'note_comments' : 'comments')
       .select('*, profiles(username, full_name, avatar_url)')
-      .eq(type === 'note' ? 'note_id' : 'post_id', post.original_id || post.id)
-      .order('created_at', { ascending: true });
-    
+      .eq(type === 'note' ? 'note_id' : 'post_id', postId)
+      .order('created_at', { ascending: true })
+    ]);
+
+    const session = sessionResult.data.session;
+    const { data, error } = commentsResult;
+
     if (!error && data) {
       const commentIds = data.map(c => c.id);
-      const { data: rxns } = commentIds.length > 0 
-        ? await supabase.from(type === 'note' ? 'note_comment_reactions' : 'comment_reactions').select('*').in('comment_id', commentIds) 
-        : { data: [] };
+      const emptyResult = Promise.resolve({ data: [] as any[] });
+      const [reactionResult, likesResult] = await Promise.all([
+        commentIds.length > 0
+          ? supabase.from(type === 'note' ? 'note_comment_reactions' : 'comment_reactions').select('*').in('comment_id', commentIds)
+          : emptyResult,
+        session && commentIds.length > 0
+          ? supabase
+              .from(type === 'note' ? 'note_comment_likes' : 'comment_likes')
+              .select('comment_id')
+              .eq('profile_id', session.user.id)
+              .in('comment_id', commentIds)
+          : emptyResult
+      ]);
 
-      if (session) {
-        const { data: userLikes } = await supabase
-          .from(type === 'note' ? 'note_comment_likes' : 'comment_likes')
-          .select('comment_id')
-          .eq('profile_id', session.user.id);
-        
-        const likedIds = new Set(userLikes?.map(l => l.comment_id) || []);
-        setComments(data.map(c => ({ 
-          ...c, 
-          isLiked: likedIds.has(c.id),
-          likes_count: c.likes_count || 0,
-          reactions: rxns?.filter(r => r.comment_id === c.id) || []
-        })));
-      } else {
-        setComments(data.map(c => ({ 
-          ...c, 
-          likes_count: c.likes_count || 0,
-          reactions: rxns?.filter(r => r.comment_id === c.id) || []
-        })));
+      const reactionsByComment = new Map<string, any[]>();
+      for (const reaction of reactionResult.data || []) {
+        const existing = reactionsByComment.get(reaction.comment_id) || [];
+        existing.push(reaction);
+        reactionsByComment.set(reaction.comment_id, existing);
       }
+
+      const likedIds = new Set((likesResult.data || []).map(like => like.comment_id));
+      const nextComments = data.map(comment => ({
+        ...comment,
+        isLiked: likedIds.has(comment.id),
+        likes_count: comment.likes_count || 0,
+        reactions: reactionsByComment.get(comment.id) || []
+      }));
+
+      commentCache.set(cacheKey, { comments: nextComments, cachedAt: Date.now() });
+      if (requestId === fetchRequestRef.current) setComments(nextComments);
     }
+
+    if (requestId === fetchRequestRef.current) setCommentsLoading(false);
   };
 
   const handleReactComment = async (commentId: string, emoji: string) => {
@@ -129,11 +171,11 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     const existingReaction = comment.reactions?.find((r: any) => r.profile_id === session.user.id && r.emoji === emoji);
 
     if (existingReaction) {
-      setComments(prev => prev.map(c => c.id === commentId ? { ...c, reactions: c.reactions.filter((r: any) => r.id !== existingReaction.id) } : c));
+      updateComments(prev => prev.map(c => c.id === commentId ? { ...c, reactions: c.reactions.filter((r: any) => r.id !== existingReaction.id) } : c));
       await supabase.from(type === 'note' ? 'note_comment_reactions' : 'comment_reactions').delete().eq('id', existingReaction.id);
     } else {
       const tempId = crypto.randomUUID();
-      setComments(prev => prev.map(c => c.id === commentId ? { ...c, reactions: [...(c.reactions || []), { id: tempId, comment_id: commentId, profile_id: session.user.id, emoji }] } : c));
+      updateComments(prev => prev.map(c => c.id === commentId ? { ...c, reactions: [...(c.reactions || []), { id: tempId, comment_id: commentId, profile_id: session.user.id, emoji }] } : c));
       await supabase.from(type === 'note' ? 'note_comment_reactions' : 'comment_reactions').insert([{ comment_id: commentId, profile_id: session.user.id, emoji }]);
     }
   };
@@ -149,7 +191,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     const newLiked = !isLiked;
 
     // Optimistic update
-    setComments(prev => prev.map(c => 
+    updateComments(prev => prev.map(c =>
       c.id === comment.id 
         ? { ...c, isLiked: newLiked, likes_count: (c.likes_count || 0) + (newLiked ? 1 : -1) } 
         : c
@@ -171,7 +213,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       }
     } catch (err: any) {
       // Revert on error
-      setComments(prev => prev.map(c => 
+      updateComments(prev => prev.map(c =>
         c.id === comment.id 
           ? { ...c, isLiked: isLiked, likes_count: comment.likes_count } 
           : c
@@ -199,7 +241,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       
       if (error) throw error;
       
-      setComments(prev => prev.map(c => 
+      updateComments(prev => prev.map(c =>
         c.id === editingCommentId ? { ...c, content: editCommentText.trim() } : c
       ));
       setEditingCommentId(null);
@@ -241,7 +283,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     if (error) {
       toast.error(error.message || "Could not post comment.");
     } else {
-      setComments([...comments, data]);
+      updateComments(current => [...current, { ...data, isLiked: false, likes_count: data.likes_count || 0, reactions: [] }]);
       setNewComment("");
       // Reset auto-growing textarea heights in the DOM
       const textareas = document.querySelectorAll('textarea');
@@ -338,7 +380,20 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
       <div className={`flex flex-col flex-1 ${inline ?'w-full' : 'min-h-0'}`}>
           <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'space-y-5 py-6' : 'no-scrollbar flex-1 space-y-5 overflow-y-auto px-4 py-5 sm:px-6'}`}>
-            {threadedComments.length > 0 ? (
+            {commentsLoading && threadedComments.length === 0 ? (
+              <div className="space-y-5 py-1" aria-label="Loading comments">
+                {[0, 1, 2].map(item => (
+                  <div key={item} className="flex animate-pulse gap-3 border-b border-border/60 pb-5 last:border-0">
+                    <div className="h-8 w-8 shrink-0 rounded-full bg-muted" />
+                    <div className="flex-1 space-y-2.5 pt-0.5">
+                      <div className="h-3 w-28 rounded bg-muted" />
+                      <div className="h-3 w-full rounded bg-muted" />
+                      <div className="h-3 w-3/5 rounded bg-muted" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : threadedComments.length > 0 ? (
               threadedComments.map((comment) => {
                 const isReply = comment.isReply;
                 

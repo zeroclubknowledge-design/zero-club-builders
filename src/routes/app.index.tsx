@@ -19,6 +19,7 @@ import { useSharedPresence } from "@/hooks/useSharedPresence";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFirstName } from "@/lib/utils";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/")({
   component: Feed,
@@ -59,6 +60,7 @@ function LiveClubCard({ club, currentUserId, onOpen }: { club: any; currentUserI
 }
 
 function Feed() {
+  const { format } = useWalletCurrency();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: postsData, isLoading } = useQuery({ 
@@ -308,7 +310,7 @@ function Feed() {
                             <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">by {camp.profiles?.full_name || camp.profiles?.username}</p>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-[13px] font-semibold text-foreground tabular-nums">₦{Number(camp.price).toLocaleString()}</span>
+                            <span className="text-[13px] font-semibold text-foreground tabular-nums">{format(Number(camp.price))}</span>
                             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                               <Users className="h-3 w-3" /> 0 enrolled
                             </div>

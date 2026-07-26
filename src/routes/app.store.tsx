@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/store")({
   component: StorePage,
@@ -18,23 +19,7 @@ function StorePage() {
   const [loading, setLoading] = useState(true);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
 
-  const [currency, setCurrency] = useState<"NGN" | "GHS" | "USD">(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem("wallet_currency") as "NGN" | "GHS" | "USD") || "NGN";
-    }
-    return "NGN";
-  });
-
-  const getCurrencyDetails = () => {
-    switch (currency) {
-      case "USD": return { symbol: "$", rate: 1500 };
-      case "GHS": return { symbol: "GH₵", rate: 100 };
-      case "NGN":
-      default: return { symbol: "₦", rate: 1 };
-    }
-  };
-
-  const currentCurrency = getCurrencyDetails();
+  const { details: currentCurrency } = useWalletCurrency();
 
   useEffect(() => {
     async function fetchItems() {

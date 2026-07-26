@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadFile } from "@/lib/storage";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import {
   Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2,
   BarChart3, Settings, Search, ChevronRight, Loader2,
@@ -43,6 +44,7 @@ const StatCard = ({ icon: Icon, label, value, accent }: { icon: any; label: stri
 function InstitutionHub() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
 
   const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "analytics" | "settings">("overview");
   const [profile, setProfile] = useState<any>(null);
@@ -226,7 +228,7 @@ function InstitutionHub() {
           title: newBootcamp.title,
           description: newBootcamp.description,
           category: newBootcamp.category,
-          price: Number(newBootcamp.price) || 0,
+          price: toBaseAmount(Number(newBootcamp.price) || 0),
           banner_url: bannerUrl,
           status: "active",
         }])
@@ -244,7 +246,7 @@ function InstitutionHub() {
           category: "Bootcamp",
           creator_id: profile.id,
           is_private: true,
-          price: Number(newBootcamp.price) || 0,
+          price: toBaseAmount(Number(newBootcamp.price) || 0),
           banner_url: bannerUrl,
           logo_url: bannerUrl,
         }])
@@ -453,7 +455,7 @@ function InstitutionHub() {
                 <StatCard icon={Users} label="Total tutors" value={fmt(tutors.length)} accent="bg-blue-500/10 text-blue-500" />
                 <StatCard icon={LayoutGrid} label="Bootcamps" value={fmt(allBootcamps.length)} accent="bg-violet-500/10 text-violet-500" />
                 <StatCard icon={GraduationCap} label="Learners" value={fmt(totalLearners)} accent="bg-emerald-500/10 text-emerald-500" />
-                <StatCard icon={DollarSign} label="Revenue" value={`₦${fmt(totalRevenue)}`} accent="bg-amber-500/10 text-amber-500" />
+                <StatCard icon={DollarSign} label="Revenue" value={format(totalRevenue)} accent="bg-amber-500/10 text-amber-500" />
               </div>
 
               {/* Quick Actions */}
@@ -726,7 +728,7 @@ function InstitutionHub() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Price (₦)</label>
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Price ({currencyDetails.symbol})</label>
                       <input
                         type="number"
                         min="0"
@@ -821,7 +823,7 @@ function InstitutionHub() {
                           </div>
                           {b.price > 0 && (
                             <div className="absolute top-2.5 right-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/50 text-white tabular-nums backdrop-blur-md ring-1 ring-white/15">
-                              ₦{b.price.toLocaleString()}
+                              {format(b.price)}
                             </div>
                           )}
                         </div>
@@ -935,7 +937,7 @@ function InstitutionHub() {
                 <StatCard icon={Users} label="Total tutors" value={fmt(tutors.length)} accent="bg-blue-500/10 text-blue-500" />
                 <StatCard icon={LayoutGrid} label="Active bootcamps" value={fmt(allBootcamps.filter((b: any) => b.status === "active").length)} accent="bg-violet-500/10 text-violet-500" />
                 <StatCard icon={GraduationCap} label="Total learners" value={fmt(totalLearners)} accent="bg-emerald-500/10 text-emerald-500" />
-                <StatCard icon={DollarSign} label="Total revenue" value={`₦${fmt(totalRevenue)}`} accent="bg-amber-500/10 text-amber-500" />
+                <StatCard icon={DollarSign} label="Total revenue" value={format(totalRevenue)} accent="bg-amber-500/10 text-amber-500" />
               </div>
 
               {/* Top Bootcamps */}

@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/gifts/")({ component: GiftCardsPage });
 
@@ -14,7 +15,9 @@ function GiftCardsPage() {
   const [service, setService] = useState("bootcamps");
   const [message, setMessage] = useState("");
   const [createdCard, setCreatedCard] = useState<any>(null);
-  const numericAmount = Number(amount) || 0;
+  const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
+  const displayAmount = Number(amount) || 0;
+  const numericAmount = toBaseAmount(displayAmount);
 
   const { data: profile } = useQuery({
     queryKey: ["gift-card-profile"],
@@ -49,7 +52,7 @@ function GiftCardsPage() {
   const shareGift = async () => {
     if (!createdCard) return;
     const url = `${window.location.origin}/app/gifts/${createdCard.code}`;
-    const shareData = { title: "A Zero Club Gift for you", text: `You received a ₦${Number(createdCard.amount).toLocaleString()} Zero Club Gift for ${giftServices.find((item) => item.id === createdCard.service)?.label || createdCard.service}.`, url };
+    const shareData = { title: "A Zero Club Gift for you", text: `You received a ${format(Number(createdCard.amount))} Zero Club Gift for ${giftServices.find((item) => item.id === createdCard.service)?.label || createdCard.service}.`, url };
     try {
       if (navigator.share) await navigator.share(shareData);
       else {
@@ -80,7 +83,7 @@ function GiftCardsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7"><div className="mx-auto flex max-w-[1080px] items-center justify-between"><div className="flex items-center gap-3"><Link to="/app/wallet" className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card"><ArrowLeft className="h-5 w-5" /></Link><div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold">Create a gift</h1></div></div><div className="text-right"><p className="text-[9px] uppercase text-muted-foreground">Balance</p><p className="text-[13px] font-semibold tabular-nums">₦{Number(profile?.coins || 0).toLocaleString()}</p></div></div></header>
+      <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7"><div className="mx-auto flex max-w-[1080px] items-center justify-between"><div className="flex items-center gap-3"><Link to="/app/wallet" className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card"><ArrowLeft className="h-5 w-5" /></Link><div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold">Create a gift</h1></div></div><div className="text-right"><p className="text-[9px] uppercase text-muted-foreground">Balance</p><p className="text-[13px] font-semibold tabular-nums">{format(Number(profile?.coins || 0))}</p></div></div></header>
 
       <main className="mx-auto grid min-w-0 max-w-[1080px] gap-6 px-4 py-6 md:px-7 md:py-8 lg:grid-cols-[minmax(0,1fr)_390px]">
         <section className="min-w-0 space-y-6">
@@ -88,8 +91,8 @@ function GiftCardsPage() {
 
           <div className="rounded-lg border border-border bg-card p-5">
             <label className="text-[10px] font-semibold uppercase text-muted-foreground">Gift amount</label>
-            <div className="mt-3 flex items-baseline gap-2 border-b border-border pb-3"><span className="text-[22px] text-muted-foreground">₦</span><input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="numeric" type="number" placeholder="0" className="min-w-0 flex-1 bg-transparent text-[37px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/25" /></div>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[3000, 5000, 7000, 12000].map((value) => <button key={value} onClick={() => setAmount(String(value))} className={`min-w-0 rounded-lg border px-2 py-2.5 text-[10px] font-semibold tabular-nums ${numericAmount === value ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>₦{value.toLocaleString()}</button>)}</div>
+            <div className="mt-3 flex items-baseline gap-2 border-b border-border pb-3"><span className="text-[22px] text-muted-foreground">{currencyDetails.symbol}</span><input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" type="number" placeholder="0" className="min-w-0 flex-1 bg-transparent text-[37px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/25" /></div>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[3000, 5000, 7000, 12000].map((value) => <button key={value} onClick={() => setAmount(String(fromBaseAmount(value)))} className={`min-w-0 rounded-lg border px-2 py-2.5 text-[10px] font-semibold tabular-nums ${numericAmount === value ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{format(value)}</button>)}</div>
           </div>
 
           <div><label className="text-[10px] font-semibold uppercase text-muted-foreground">Choose a template</label><div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-6">{giftTemplates.map((template) => <button key={template.id} onClick={() => setTemplateId(template.id)} className={`overflow-hidden rounded-lg border p-1.5 ${templateId === template.id ? "border-primary ring-2 ring-primary/10" : "border-border"}`}><div className={`aspect-[1.5/1] rounded-md ${template.shell}`}><div className={`m-2 h-3 w-3 rounded-sm ${template.accent}`} /></div><span className="mt-1.5 block text-[9px] font-medium">{template.name}</span></button>)}</div></div>

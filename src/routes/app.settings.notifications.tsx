@@ -38,9 +38,11 @@ function NotificationsSettings() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if ('Notification' in window && 'serviceWorker' in navigator) {
-      setIsPushEnabled(Notification.permission === 'granted');
-    }
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready
+      .then((registration) => registration.pushManager.getSubscription())
+      .then((subscription) => setIsPushEnabled(Notification.permission === 'granted' && Boolean(subscription)))
+      .catch(() => setIsPushEnabled(false));
   }, []);
 
   const handlePushToggle = async () => {
@@ -51,6 +53,26 @@ function NotificationsSettings() {
 
     try {
       setLoading(true);
+
+      const registration = await navigator.serviceWorker.ready;
+      const existingSubscription = await registration.pushManager.getSubscription();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (isPushEnabled && existingSubscription) {
+        if (session) {
+          const { error } = await supabase
+            .from('push_subscriptions')
+            .delete()
+            .eq('profile_id', session.user.id)
+            .eq('endpoint', existingSubscription.endpoint);
+          if (error) throw error;
+        }
+        await existingSubscription.unsubscribe();
+        setIsPushEnabled(false);
+        toast.success("Push notifications disabled on this device.");
+        return;
+      }
+
       const permission = await Notification.requestPermission();
       
       if (permission !== 'granted') {
@@ -60,10 +82,8 @@ function NotificationsSettings() {
       }
 
       // If granted, let's subscribe to the PushManager
-      const registration = await navigator.serviceWorker.ready;
-      
       // Get the existing subscription
-      let subscription = await registration.pushManager.getSubscription();
+      let subscription = existingSubscription;
 
       if (!subscription) {
         // We need the VAPID public key. If the user hasn't set it in .env, we show a helpful error.
@@ -81,7 +101,6 @@ function NotificationsSettings() {
       }
 
       // Save to Supabase
-      const { data: { session } } = await supabase.auth.getSession();
       if (session && subscription) {
         const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')!) as unknown as number[]));
         const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')!) as unknown as number[]));
@@ -94,8 +113,10 @@ function NotificationsSettings() {
         }, { onConflict: 'profile_id, endpoint' });
 
         if (error) throw error;
-        toast.success("Push notifications enabled!");
+        toast.success("Push notifications enabled on this device.");
         setIsPushEnabled(true);
+      } else if (!session) {
+        throw new Error("Sign in again to finish enabling push notifications.");
       }
     } catch (err: any) {
       console.error(err);
@@ -118,7 +139,7 @@ function NotificationsSettings() {
         { 
           icon: Smartphone, 
           label: "Push notifications", 
-          desc: isPushEnabled ? "Enabled on this device" : "Choose which notifications you want on your device", 
+          desc: isPushEnabled ? "Enabled on this device. Tap to turn off." : "Get instant alerts for messages and activity",
           action: handlePushToggle,
           rightElement: isPushEnabled ? <Check className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-muted-foreground mt-1" />
         },

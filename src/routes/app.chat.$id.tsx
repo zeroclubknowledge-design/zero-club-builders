@@ -802,13 +802,13 @@ function ChatViewPage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground">
+            <Link to="/app/profile/$id" params={{ id }} aria-label={`Open ${otherUser?.full_name || otherUser?.username || 'user'} profile`} className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground transition active:scale-95">
               {otherUser?.avatar_url ? (
                 <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
               ) : (
                 (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()
               )}
-            </div>
+            </Link>
             <div>
               <h2 className="text-sm font-bold leading-tight">{otherUser?.full_name || otherUser?.username}</h2>
               <div className="flex items-center gap-1.5">
@@ -879,9 +879,9 @@ function ChatViewPage() {
           </SheetHeader>
           <div className="overflow-y-auto p-5">
             <div className="flex flex-col items-center text-center">
-              <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground">
+              <Link to="/app/profile/$id" params={{ id }} onClick={() => setInfoOpen(false)} className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground transition active:scale-95">
                 {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()}
-              </div>
+              </Link>
               <h3 className="mt-3 text-[16px] font-semibold tracking-tight">{otherUser?.full_name || otherUser?.username}</h3>
               <p className="mt-0.5 text-[12px] text-muted-foreground">@{otherUser?.username}</p>
             </div>
@@ -905,13 +905,13 @@ function ChatViewPage() {
         className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide"
       >
         <div className="flex flex-col items-center py-6 text-center">
-          <div className="h-20 w-20 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xl mb-3">
+          <Link to="/app/profile/$id" params={{ id }} className="h-20 w-20 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xl mb-3 transition active:scale-95">
             {otherUser?.avatar_url ? (
               <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
             ) : (
               (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()
             )}
-          </div>
+          </Link>
           <h3 className="font-bold">{otherUser?.full_name || otherUser?.username}</h3>
           <p className="text-xs text-muted-foreground">{getFirstName(otherUser)} · Builder</p>
         </div>

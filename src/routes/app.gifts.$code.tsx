@@ -5,11 +5,13 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/gifts/$code")({ component: ClaimGiftPage });
 
 function ClaimGiftPage() {
   const { code } = Route.useParams();
+  const { format } = useWalletCurrency();
   const [claimedCard, setClaimedCard] = useState<any>(null);
 
   const { data, isLoading, isError } = useQuery({
@@ -46,7 +48,7 @@ function ClaimGiftPage() {
   if (claimedCard || alreadyClaimed) {
     return (
       <div className="min-h-screen bg-background px-4 py-[calc(3rem+env(safe-area-inset-top))] text-center md:px-7">
-        <main className="mx-auto flex max-w-[760px] flex-col items-center"><div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600"><Check className="h-6 w-6" /></div><p className="mt-4 text-[10px] font-semibold uppercase text-primary">Gift claimed</p><h1 className="mt-2 font-display text-[28px] font-semibold tracking-tight">You now have access to {service?.label || card.service}.</h1><p className="mt-3 max-w-lg text-[13.5px] leading-relaxed text-muted-foreground">Your ₦{Number(card.amount).toLocaleString()} gift entitlement is locked to {service?.description?.toLowerCase() || card.service}. It cannot be spent elsewhere.</p><div className="mt-7 w-full max-w-[520px]"><GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} /></div><Link to={card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : "/app"} className="mt-7 flex h-12 w-full max-w-[520px] items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground">Use your gift<ArrowRight className="h-4 w-4" /></Link></main>
+        <main className="mx-auto flex max-w-[760px] flex-col items-center"><div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600"><Check className="h-6 w-6" /></div><p className="mt-4 text-[10px] font-semibold uppercase text-primary">Gift claimed</p><h1 className="mt-2 font-display text-[28px] font-semibold tracking-tight">You now have access to {service?.label || card.service}.</h1><p className="mt-3 max-w-lg text-[13.5px] leading-relaxed text-muted-foreground">Your {format(Number(card.amount))} gift entitlement is locked to {service?.description?.toLowerCase() || card.service}. It cannot be spent elsewhere.</p><div className="mt-7 w-full max-w-[520px]"><GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} /></div><Link to={card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : "/app"} className="mt-7 flex h-12 w-full max-w-[520px] items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground">Use your gift<ArrowRight className="h-4 w-4" /></Link></main>
       </div>
     );
   }

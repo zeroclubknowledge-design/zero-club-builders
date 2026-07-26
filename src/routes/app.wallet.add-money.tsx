@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ShieldCheck, ArrowRight, WalletCards } from "lucide-react";
 import { useState } from "react";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/wallet/add-money")({ component: AddMoneyPage });
 
@@ -8,8 +9,9 @@ const QUICK_AMOUNTS = [1000, 2000, 5000, 10000];
 
 function AddMoneyPage() {
   const navigate = useNavigate();
+  const { details, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const [amount, setAmount] = useState("");
-  const numericAmount = parseInt(amount) || 0;
+  const numericAmount = toBaseAmount(Number(amount) || 0);
 
   return (
     <div className="min-h-screen bg-background pb-20 text-foreground">
@@ -25,18 +27,18 @@ function AddMoneyPage() {
           <div className="text-center">
             <label className="text-[11px] font-medium uppercase text-muted-foreground">Amount to add</label>
             <div className="mt-4 flex items-baseline justify-center gap-1">
-              <span className="text-[26px] text-muted-foreground">₦</span>
-              <input type="number" inputMode="numeric" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" autoFocus className="w-auto min-w-[80px] max-w-[240px] bg-transparent text-center text-[48px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:text-[56px]" style={{ width: `${Math.max(1, amount.length)}ch` }} />
+              <span className="text-[26px] text-muted-foreground">{details.symbol}</span>
+              <input type="number" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" autoFocus className="w-auto min-w-[80px] max-w-[240px] bg-transparent text-center text-[48px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:text-[56px]" style={{ width: `${Math.max(1, amount.length)}ch` }} />
             </div>
             <div className="mx-auto mt-2 h-[2px] w-16 rounded-full bg-primary/60" />
           </div>
 
           <div className="mt-9 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {QUICK_AMOUNTS.map((quick) => <button key={quick} onClick={() => setAmount(String(quick))} className={`rounded-lg py-2.5 text-[12px] font-semibold tabular-nums ${numericAmount === quick ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>₦{quick.toLocaleString()}</button>)}
+            {QUICK_AMOUNTS.map((quick) => <button key={quick} onClick={() => setAmount(String(fromBaseAmount(quick)))} className={`rounded-lg py-2.5 text-[12px] font-semibold tabular-nums ${numericAmount === quick ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>{format(quick)}</button>)}
           </div>
 
           <button disabled={numericAmount <= 0} className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground disabled:opacity-40">
-            {numericAmount > 0 ? `Pay ₦${numericAmount.toLocaleString()} with Paystack` : "Pay with Paystack"}<ArrowRight className="h-4 w-4" />
+            {numericAmount > 0 ? `Pay ${format(numericAmount)} with Paystack` : "Pay with Paystack"}<ArrowRight className="h-4 w-4" />
           </button>
         </section>
 

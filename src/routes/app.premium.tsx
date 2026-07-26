@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
@@ -28,11 +29,11 @@ type Plan = {
   id: string;
   name: string;
   eyebrow: string;
-  price: string;
   priceValue: number | null;
   description: string;
   audiences: Audience[];
   features: string[];
+  limitations?: string[];
   recommendedFor: Audience;
   storedTier?: "Basic" | "Premium" | "Premium+";
   featured?: boolean;
@@ -43,7 +44,6 @@ const plans: Plan[] = [
     id: "learner-basic",
     name: "Basic",
     eyebrow: "Learner essentials",
-    price: "₦0",
     priceValue: 0,
     description: "A complete starting point for learning in public and building a proof-backed profile.",
     audiences: ["Learner"],
@@ -55,7 +55,6 @@ const plans: Plan[] = [
     id: "learner-premium",
     name: "Premium",
     eyebrow: "Learner growth",
-    price: "₦3,000",
     priceValue: 3000,
     description: "More visibility, flexibility, and learning value for builders moving with intent.",
     audiences: ["Learner"],
@@ -68,7 +67,6 @@ const plans: Plan[] = [
     id: "learner-premium-plus",
     name: "Premium+",
     eyebrow: "Learner advantage",
-    price: "₦7,000",
     priceValue: 7000,
     description: "Advanced support for learners building ambitious projects and stronger professional proof.",
     audiences: ["Learner"],
@@ -79,45 +77,42 @@ const plans: Plan[] = [
   {
     id: "tutor-basic",
     name: "Basic",
-    eyebrow: "Start teaching",
-    price: "₦0",
+    eyebrow: "Teach for free",
     priceValue: 0,
-    description: "Establish your tutor profile, share expertise, and validate demand before launching paid programs.",
+    description: "Create, launch, and sell bootcamps without paying for a tutor subscription.",
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Basic",
-    features: ["Public tutor profile", "Feed and community access", "One private club", "Zero AI starter access", "Standard XP earning"],
+    features: ["Create and sell bootcamps", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "Tutor profile, feed, and community access"],
+    limitations: ["No Zero AI teaching assistance", "No verified bootcamp badge", "Cannot connect a bootcamp to an existing club"],
   },
   {
     id: "tutor-premium",
     name: "Premium",
-    eyebrow: "Build your audience",
-    price: "₦5,000",
+    eyebrow: "Teach with confidence",
     priceValue: 5000,
-    description: "Professional tools for tutors growing authority, communities, and demand for their expertise.",
+    description: "Add trusted verification and connect each cohort to the community you already lead.",
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Premium",
     featured: true,
-    features: ["Zero AI curriculum assistant", "Unlimited public and private clubs", "Advanced posts and profile badge", "Tutor booking availability", "Audience growth insights"],
+    features: ["Everything in Tutor Basic", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
   },
   {
     id: "tutor-premium-plus",
     name: "Premium+",
-    eyebrow: "Run your teaching business",
-    price: "₦12,000",
+    eyebrow: "Scale your teaching",
     priceValue: 12000,
-    description: "The complete studio for tutors launching bootcamps, managing cohorts, and earning on Zero Club.",
+    description: "Advanced Zero AI and verification support for tutors running multiple programs and communities.",
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Premium+",
-    features: ["Everything in Tutor Premium", "Tutor Studio and bootcamp sales", "Zero AI cohort and feedback tools", "Learner and revenue analytics", "Coupons and cohort communities", "Priority tutor support"],
+    features: ["Everything in Tutor Premium", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
   },
   {
     id: "institution",
     name: "Institution",
     eyebrow: "Operate at scale",
-    price: "Custom",
     priceValue: null,
     description: "A managed workspace for institutions coordinating tutors, programs, and learner outcomes.",
     audiences: ["Institution"],
@@ -145,6 +140,7 @@ const audienceCopy: Record<Audience, { title: string; description: string; icon:
 };
 
 function MembershipPage() {
+  const { format } = useWalletCurrency();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [audience, setAudience] = useState<Audience>("Learner");
@@ -302,7 +298,7 @@ function MembershipPage() {
                 </div>
 
                 <div className="mt-5 flex items-end gap-1.5">
-                  <span className="text-[29px] font-semibold tracking-tight tabular-nums">{plan.price}</span>
+                  <span className="text-[29px] font-semibold tracking-tight tabular-nums">{plan.priceValue === null ? "Custom" : format(plan.priceValue)}</span>
                   {!institutional && <span className={`pb-1 text-[11px] ${plan.featured ? "text-white/50" : "text-muted-foreground"}`}>/ month</span>}
                 </div>
                 <p className={`mt-3 text-[13px] leading-relaxed ${plan.featured || institutional ? "text-white/60" : "text-muted-foreground"}`}>{plan.description}</p>
@@ -318,6 +314,20 @@ function MembershipPage() {
                     </li>
                   ))}
                 </ul>
+
+                {plan.limitations && plan.limitations.length > 0 && (
+                  <div className={`mt-5 border-t pt-4 ${plan.featured || institutional ? "border-white/10" : "border-border"}`}>
+                    <p className={`mb-2.5 text-[10px] font-semibold uppercase ${plan.featured || institutional ? "text-white/45" : "text-muted-foreground"}`}>Not included</p>
+                    <ul className="space-y-2.5">
+                      {plan.limitations.map((limitation) => (
+                        <li key={limitation} className={`flex items-start gap-2.5 text-[12px] ${plan.featured || institutional ? "text-white/50" : "text-muted-foreground"}`}>
+                          <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-current" />
+                          <span>{limitation}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <button
                   type="button"

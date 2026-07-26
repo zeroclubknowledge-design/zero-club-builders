@@ -12,6 +12,7 @@ import { CommentDrawer } from "@/components/CommentDrawer";
 import { enrichPosts } from "@/api";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/app/notifications")({
   component: NotificationsPage,
@@ -57,9 +58,10 @@ function NotificationsPage() {
 
       const { data, error } = await supabase
         .from('notifications')
-        .select('*, actor:profiles!actor_id(*), recipient:profiles!recipient_id(*)')
+        .select('*, actor:profiles!actor_id(id, username, full_name, avatar_url), recipient:profiles!recipient_id(id, username, full_name, avatar_url)')
         .or(`recipient_id.eq.${session.user.id},and(actor_id.eq.${session.user.id},type.eq.mention)`)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (error) throw error;
       setNotifs(data || []);
@@ -70,6 +72,29 @@ function NotificationsPage() {
     }
   }
 
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const channel = supabase
+      .channel(`notifications:${currentUser.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${currentUser.id}` },
+        async ({ new: notification }) => {
+          const [{ data: actor }, { data: recipient }] = await Promise.all([
+            supabase.from('profiles').select('id, username, full_name, avatar_url').eq('id', notification.actor_id).maybeSingle(),
+            supabase.from('profiles').select('id, username, full_name, avatar_url').eq('id', notification.recipient_id).maybeSingle(),
+          ]);
+          setNotifs((current) => current.some((item) => item.id === notification.id)
+            ? current
+            : [{ ...notification, actor, recipient }, ...current].slice(0, 100));
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [currentUser?.id]);
+
   const markAllRead = async () => {
     if (!currentUser) return;
     try {
@@ -79,7 +104,7 @@ function NotificationsPage() {
         .eq('recipient_id', currentUser.id);
       
       if (error) throw error;
-      setNotifs(notifs.map(n => ({ ...n, is_read: true })));
+      setNotifs((current) => current.map(n => ({ ...n, is_read: true })));
       toast.success("All caught up!");
     } catch (err) {
       toast.error("Could not update notifications");
@@ -89,7 +114,7 @@ function NotificationsPage() {
   const markRead = async (id: string) => {
     try {
       await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-      setNotifs(notifs.map(n => n.id === id ? { ...n, is_read: true } : n));
+      setNotifs((current) => current.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (err) {}
   };
 
@@ -119,42 +144,36 @@ function NotificationsPage() {
 
   const displayNotifs = useMemo(() => {
     const groups: any[] = [];
-    const processed = new Set();
+    const grouped = new Map<string, any>();
 
-    filteredNotifs.forEach((n) => {
-      if (processed.has(n.id)) return;
+    filteredNotifs.forEach((notification) => {
+      if (!['like', 'follow', 'repost'].includes(notification.type)) {
+        groups.push(notification);
+        return;
+      }
 
-      if (['like', 'follow', 'repost'].includes(n.type)) {
-        const related = filteredNotifs.filter(other => {
-          if (other.type !== n.type) return false;
-          if (n.type === 'follow') {
-            const dateN = new Date(n.created_at).toDateString();
-            const dateOther = new Date(other.created_at).toDateString();
-            return dateN === dateOther;
-          }
-          return other.entity_id === n.entity_id;
-        });
+      const key = notification.type === 'follow'
+        ? `follow:${new Date(notification.created_at).toDateString()}`
+        : `${notification.type}:${notification.entity_id}`;
+      const existing = grouped.get(key);
 
-        if (related.length > 1) {
-          const actors = related.map(r => r.actor).filter(Boolean);
-          const uniqueActors = Array.from(new Map(actors.map(a => [a.id, a])).values());
-          
-          groups.push({
-            ...n,
-            isGroup: true,
-            groupActors: uniqueActors,
-            groupIds: related.map(r => r.id),
-            is_read: related.every(r => r.is_read)
-          });
+      if (!existing) {
+        const group = {
+          ...notification,
+          isGroup: false,
+          groupActors: notification.actor ? [notification.actor] : [],
+          groupIds: [notification.id],
+        };
+        grouped.set(key, group);
+        groups.push(group);
+        return;
+      }
 
-          related.forEach(r => processed.add(r.id));
-        } else {
-          groups.push(n);
-          processed.add(n.id);
-        }
-      } else {
-        groups.push(n);
-        processed.add(n.id);
+      existing.isGroup = true;
+      existing.groupIds.push(notification.id);
+      existing.is_read = existing.is_read && notification.is_read;
+      if (notification.actor && !existing.groupActors.some((actor: any) => actor.id === notification.actor.id)) {
+        existing.groupActors.push(notification.actor);
       }
     });
 
@@ -172,9 +191,9 @@ function NotificationsPage() {
   const unreadCount = filteredNotifs.filter(n => !n.is_read && n.actor_id !== currentUser?.id).length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background">
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background">
-        <div className="mx-auto w-full max-w-[820px] px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6 md:pt-5">
+    <div className="flex min-h-screen flex-col bg-background pb-24">
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto w-full max-w-[900px] px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6 md:pt-5">
           <div className="mb-4">
             <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Notifications</h1>
             <p className="mt-0.5 text-[11px] text-muted-foreground">Updates from your work, network and communities</p>
@@ -195,7 +214,7 @@ function NotificationsPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[820px] items-center justify-between border-b border-border/50 px-5 py-3 md:px-6">
+      <div className="mx-auto flex w-full max-w-[900px] items-center justify-between border-b border-border/50 px-5 py-3 md:px-6">
         <span className="text-[11px] font-medium text-muted-foreground">
           {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
         </span>
@@ -209,7 +228,7 @@ function NotificationsPage() {
         )}
       </div>
 
-      <div className="mx-auto flex w-full max-w-[820px] flex-col gap-2 p-4 md:px-6">
+      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-2.5 p-4 md:px-6 md:py-5">
         {activeTab === 'mentions' ? (
           mentionsLoading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
@@ -256,14 +275,14 @@ function NotificationsPage() {
             <div 
               key={n.id} 
               onClick={handleNotificationClick}
-              className={`group relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] gap-4 overflow-hidden rounded-lg p-4 transition tap ${(!n.is_read && !isActorMe) ? "bg-card ring-1 ring-primary/15" : "bg-transparent hover:bg-foreground/[0.03]"}`}
+              className={`group relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] gap-3.5 overflow-hidden rounded-lg border p-3.5 transition-[background-color,border-color,transform] duration-150 active:scale-[0.995] sm:p-4 ${(!n.is_read && !isActorMe) ? "border-primary/25 bg-primary/[0.045] shadow-sm" : "border-border/60 bg-card hover:border-border hover:bg-accent/20"}`}
             >
               {(!n.is_read && !isActorMe) && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-[3px] bg-primary rounded-r-full" />
+                <div className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-primary" />
               )}
               
               {/* Avatar Row */}
-              <div className="relative shrink-0 flex items-start pt-1 pl-1 w-fit">
+              <div className="relative flex w-fit shrink-0 items-start pt-0.5">
                 <div className="flex -space-x-3">
                   {n.isGroup ? (
                     n.groupActors.slice(0, 3).map((actor: any, i: number) => (
@@ -273,7 +292,7 @@ function NotificationsPage() {
                         params={{ id: actor.id }}
                         onClick={(e) => e.stopPropagation()}
                         style={{ zIndex: 10 - i }}
-                        className={`h-12 w-12 shrink-0 rounded-full border-[3px] border-background bg-muted overflow-hidden flex items-center justify-center font-bold text-xs text-muted-foreground shadow-sm transition active:opacity-70`}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-card bg-muted text-xs font-bold text-muted-foreground shadow-sm transition active:opacity-70 sm:h-12 sm:w-12"
                       >
                         {actor.avatar_url ? (
                           <img src={actor.avatar_url} className="h-full w-full rounded-full object-cover" />
@@ -287,7 +306,7 @@ function NotificationsPage() {
                       to="/app/profile/$id" 
                       params={{ id: isActorMe && n.type === 'mention' ? n.recipient_id : n.actor_id }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-12 w-12 shrink-0 rounded-full border-[3px] border-background bg-muted overflow-hidden flex items-center justify-center font-bold text-sm text-muted-foreground shadow-sm transition active:opacity-70"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-card bg-muted text-sm font-bold text-muted-foreground shadow-sm transition active:opacity-70 sm:h-12 sm:w-12"
                     >
                       {(isActorMe && n.type === 'mention' ? n.recipient?.avatar_url : n.actor?.avatar_url) ? (
                         <img src={isActorMe && n.type === 'mention' ? n.recipient.avatar_url : n.actor.avatar_url} className="h-full w-full rounded-full object-cover" />
@@ -299,32 +318,31 @@ function NotificationsPage() {
                 </div>
                 
                 {/* Action Badge Overlay */}
-                <div className={`absolute -bottom-1 -right-1 h-[26px] w-[26px] rounded-full border-[3px] border-background flex items-center justify-center ${ui.bg} shadow-sm z-20`}>
+                <div className={`absolute -bottom-1 -right-1 z-20 flex h-6 w-6 items-center justify-center rounded-full border-[2px] border-card ${ui.bg} shadow-sm`}>
                   <Icon className={`h-3.5 w-3.5 ${ui.text}`} />
                 </div>
               </div>
 
               {/* Content Column */}
-              <div className="flex flex-1 flex-col gap-1.5 justify-center mt-0.5">
+              <div className="mt-0.5 flex min-w-0 flex-1 flex-col justify-center gap-1">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <span className="text-[15px] leading-snug tracking-tight">
-                      <span className="font-bold text-foreground mr-1.5">{renderActors()}</span>
-                      <span className="text-muted-foreground font-medium">{ui.action}</span>
+                    <span className="text-[13px] leading-snug tracking-tight sm:text-[14px]">
+                      <span className="mr-1 font-semibold text-foreground">{renderActors()}</span>
+                      <span className="font-normal text-muted-foreground">{ui.action}</span>
                     </span>
                   </div>
                 </div>
                 
                 {n.content && (
-                  <p className={`mt-0.5 text-[14px] leading-relaxed line-clamp-2 transition ${(!n.is_read && !isActorMe) ?"font-semibold text-foreground/90" : "text-muted-foreground"}`}>
+                  <p className={`mt-0.5 line-clamp-2 text-[12px] leading-relaxed transition sm:text-[13px] ${(!n.is_read && !isActorMe) ?"font-medium text-foreground/90" : "text-muted-foreground"}`}>
                     "{renderText(n)}"
                   </p>
                 )}
                 
-                <span className="text-[11px] text-muted-foreground/50 mt-1">
-                  {new Date(n.created_at).toLocaleDateString()}
-                </span>
+                <span className="mt-1 text-[10.5px] text-muted-foreground/65">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</span>
               </div>
+              <div className="flex items-start pt-1">{(!n.is_read && !isActorMe) && <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />}</div>
             </div>
           );
         })

@@ -2,6 +2,7 @@ import { useLoaderData, createFileRoute, Link, useNavigate, redirect } from "@ta
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Users, Hash, Lock, MessageCircle, Plus, Sparkles, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
@@ -66,6 +67,7 @@ export const Route = createFileRoute("/app/clubs/")({
 });
 
 function Clubs() {
+  const { details: currencyDetails } = useWalletCurrency();
   const navigate = useNavigate();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -827,7 +829,7 @@ function Clubs() {
 
               {isPaid && !isBasic && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                  <label className="text-[11px] text-muted-foreground ml-1">Entry Fee (₦)</label>
+                  <label className="text-[11px] text-muted-foreground ml-1">Entry Fee ({currencyDetails.symbol})</label>
                   <input 
                     type="number"
                     value={newClub.price}

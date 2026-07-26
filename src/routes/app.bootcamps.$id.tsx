@@ -18,6 +18,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { enrollUserAction } from "@/api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/app/bootcamps/$id")({
 });
 
 function BootcampDetail() {
+  const { format } = useWalletCurrency();
   const { id } = Route.useParams();
 
   const { data: bootcampData, isLoading: isBootcampLoading, isError: bootcampFailed, refetch } = useQuery({
@@ -196,7 +198,7 @@ function BootcampDetail() {
   const finalPrice = Math.round(basePrice * (1 - discountPct));
   const couponDiscountPct = Math.min(100, Math.max(0, Number(bootcamp.coupon_discount_percent) || 0));
   const couponPrice = appliedCoupon ? Math.round(finalPrice * (1 - couponDiscountPct / 100)) : finalPrice;
-  const formatPrice = (value: number) => `NGN ${value.toLocaleString()}`;
+  const formatPrice = (value: number) => format(value);
   const isTutor = currentUser?.id === bootcamp.creator_id;
 
   return (

@@ -2,14 +2,16 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Clock, ArrowRight, Landmark, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useUser } from "@/hooks/useUser";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/wallet/withdraw")({ component: WithdrawPage });
 
 function WithdrawPage() {
   const navigate = useNavigate();
   const { data: profile } = useUser();
+  const { details, format, toBaseAmount } = useWalletCurrency();
   const [amount, setAmount] = useState("");
-  const numericAmount = parseInt(amount) || 0;
+  const numericAmount = toBaseAmount(Number(amount) || 0);
   const balance = profile?.coins || 0;
   const overBalance = numericAmount > balance;
 
@@ -26,12 +28,12 @@ function WithdrawPage() {
         <section className="rounded-lg border border-border bg-card p-5 sm:p-7">
           <div className="text-center">
             <label className="text-[11px] font-medium uppercase text-muted-foreground">Amount to withdraw</label>
-            <div className="mt-4 flex items-baseline justify-center gap-1"><span className="text-[26px] text-muted-foreground">₦</span><input type="number" inputMode="numeric" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" autoFocus className="w-auto min-w-[80px] max-w-[240px] bg-transparent text-center text-[48px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:text-[56px]" style={{ width: `${Math.max(1, amount.length)}ch` }} /></div>
+            <div className="mt-4 flex items-baseline justify-center gap-1"><span className="text-[26px] text-muted-foreground">{details.symbol}</span><input type="number" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" autoFocus className="w-auto min-w-[80px] max-w-[240px] bg-transparent text-center text-[48px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:text-[56px]" style={{ width: `${Math.max(1, amount.length)}ch` }} /></div>
             <div className={`mx-auto mt-2 h-[2px] w-16 rounded-full ${overBalance ? "bg-destructive" : "bg-primary/60"}`} />
-            <p className={`mt-3 text-[12px] tabular-nums ${overBalance ? "font-medium text-destructive" : "text-muted-foreground"}`}>{overBalance ? "Exceeds available balance" : `Available · ₦${balance.toLocaleString()}`}</p>
+            <p className={`mt-3 text-[12px] tabular-nums ${overBalance ? "font-medium text-destructive" : "text-muted-foreground"}`}>{overBalance ? "Exceeds available balance" : `Available · ${format(balance)}`}</p>
           </div>
 
-          <button disabled={numericAmount <= 0 || overBalance} className="mt-9 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground disabled:opacity-40">{numericAmount > 0 && !overBalance ? `Withdraw ₦${numericAmount.toLocaleString()}` : "Confirm withdrawal"}<ArrowRight className="h-4 w-4" /></button>
+          <button disabled={numericAmount <= 0 || overBalance} className="mt-9 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground disabled:opacity-40">{numericAmount > 0 && !overBalance ? `Withdraw ${format(numericAmount)}` : "Confirm withdrawal"}<ArrowRight className="h-4 w-4" /></button>
         </section>
 
         <aside className="space-y-3">

@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/wallet/")({
   component: WalletPage,
@@ -54,25 +55,8 @@ function WalletPage() {
   const [sendingFunds, setSendingFunds] = useState(false);
   const [suggestedRecipients, setSuggestedRecipients] = useState<any[]>([]);
 
-  const [currency, setCurrency] = useState<"NGN" | "GHS" | "USD">(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem("wallet_currency") as "NGN" | "GHS" | "USD") || "NGN";
-    }
-    return "NGN";
-  });
+  const { currency, setCurrency, details: currentCurrency, fromBaseAmount } = useWalletCurrency();
   const [showBalance, setShowBalance] = useState(true);
-  useEffect(() => {
-    localStorage.setItem("wallet_currency", currency);
-  }, [currency]);
-
-  const getCurrencyDetails = () => {
-    switch (currency) {
-      case "USD": return { flag: "$", symbol: "$", label: "USD Wallet", rate: 1500, iconUrl: "https://flagcdn.com/us.svg" };
-      case "GHS": return { flag: "GH₵", symbol: "GH₵", label: "GHS Wallet", rate: 100, iconUrl: "https://flagcdn.com/gh.svg" };
-      case "NGN":
-      default: return { flag: "₦", symbol: "₦", label: "NGN Wallet", rate: 1, iconUrl: "https://flagcdn.com/ng.svg" };
-    }
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -81,8 +65,7 @@ function WalletPage() {
     return "Good evening,";
   };
 
-  const currentCurrency = getCurrencyDetails();
-  const displayBalance = ((profile?.coins || 0) / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const displayBalance = fromBaseAmount(profile?.coins || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
   const { data: activitiesData, refetch: refetchActivities } = useQuery({
     queryKey: ["wallet-activities", profile?.id],

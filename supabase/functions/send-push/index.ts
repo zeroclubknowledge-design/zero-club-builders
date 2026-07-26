@@ -25,16 +25,23 @@ serve(async (req) => {
       throw new Error("Missing environment variables.");
     }
 
+    if (req.headers.get("Authorization") !== `Bearer ${supabaseKey}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
     webPush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Read payload from the trigger/webhook or client request
     const payload = await req.json();
     
-    let receiverId = payload.record?.receiver_id; // from database webhook (messages table)
+    let receiverId = payload.record?.receiver_id || payload.record?.recipient_id;
     let title = "Zero Club";
-    let body = "You have a new message.";
-    let url = "/app/chat";
+    let body = "You have a new notification.";
+    let url = "/app/notifications";
 
     // If payload is sent from the client directly
     if (payload.profile_id) {
@@ -42,6 +49,37 @@ serve(async (req) => {
       title = payload.title || title;
       body = payload.body || body;
       url = payload.url || url;
+    } else if (payload.table === "notifications" || payload.record?.recipient_id) {
+      const actorId = payload.record?.actor_id;
+      const notificationType = payload.record?.type || "notification";
+      let actorName = "Someone";
+
+      if (actorId) {
+        const { data: actor } = await supabase
+          .from("profiles")
+          .select("full_name, username")
+          .eq("id", actorId)
+          .maybeSingle();
+        actorName = actor?.full_name || actor?.username || actorName;
+      }
+
+      const actions: Record<string, string> = {
+        like: "liked your post",
+        comment: "commented on your post",
+        follow: "started following you",
+        repost: "reposted your post",
+        mention: "mentioned you",
+        build_tagged: "tagged your work for verification",
+        system: "sent you an account update",
+      };
+
+      title = notificationType === "system" ? "Zero Club update" : actorName;
+      body = payload.record?.content || actions[notificationType] || "You have a new notification.";
+      url = notificationType === "follow"
+        ? `/app/profile/${actorId}`
+        : payload.record?.entity_id && ["like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
+          ? `/app/post/${payload.record.entity_id}`
+          : "/app/notifications";
     } else if (payload.record?.content) {
       // Auto-extract content from messages table trigger
       const content = payload.record.content;
@@ -51,9 +89,11 @@ serve(async (req) => {
         body = `Request to join ${parts[2] || "Club"}`;
         url = "/app/notifications";
       } else {
-        title = "New Message";
+        const senderId = payload.record.sender_id;
+        const { data: sender } = senderId ? await supabase.from("profiles").select("full_name, username").eq("id", senderId).maybeSingle() : { data: null };
+        title = sender?.full_name || sender?.username || "New message";
         body = content.length > 50 ? content.substring(0, 50) + "..." : content;
-        url = `/app/chat/${payload.record.sender_id}`;
+        url = `/app/chat/${senderId}`;
       }
     }
 

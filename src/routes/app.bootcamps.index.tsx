@@ -5,14 +5,13 @@ import {
 import { useMemo, useState } from "react";
 import { getBootcamps } from "@/api";
 import { useQuery } from "@tanstack/react-query";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/bootcamps/")({
   component: Bootcamps,
 });
 
 const relationCount = (value: any) => Number(Array.isArray(value) ? value[0]?.count : value?.count) || 0;
-const formatPrice = (price: unknown) => Number(price || 0) > 0 ? `₦${Number(price).toLocaleString()}` : 'Free';
-
 function BootcampCover({ bootcamp, className = '' }: { bootcamp: any; className?: string }) {
   return (
     <div className={`relative overflow-hidden bg-[#171318] ${className}`}>
@@ -33,6 +32,8 @@ function BootcampCover({ bootcamp, className = '' }: { bootcamp: any; className?
 }
 
 function Bootcamps() {
+  const { format } = useWalletCurrency();
+  const formatPrice = (price: unknown) => Number(price || 0) > 0 ? format(Number(price)) : 'Free';
   const { data: bootcamps = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['bootcamps'],
     queryFn: () => getBootcamps(),

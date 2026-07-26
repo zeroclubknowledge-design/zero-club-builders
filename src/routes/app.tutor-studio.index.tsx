@@ -17,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTutorBootcamps, deleteBootcampAction, getBootcampLearners } from "@/api";
 import { useEffect } from "react";
 import { uploadFile } from "@/lib/storage";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
@@ -25,9 +26,9 @@ export const Route = createFileRoute("/app/tutor-studio/")({
 function TutorStudioPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const [view, setView] = useState<"dashboard" | "editor">("dashboard");
   const [activeTab, setActiveTab] = useState<"details" | "curriculum" | "learners" | "club">("details");
-  const [hasAccess, setHasAccess] = useState(false);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
@@ -191,7 +192,7 @@ function TutorStudioPage() {
       title: activeBootcamp.title || "",
       description: activeBootcamp.description || "",
       category: activeBootcamp.category || "Development",
-      price: String(activeBootcamp.price || "0"),
+      price: String(fromBaseAmount(activeBootcamp.price || 0)),
       status: activeBootcamp.status || "active",
       visibility: activeBootcamp.visibility ?? true,
       banner_url: activeBootcamp.banner_url || "",
@@ -213,14 +214,6 @@ function TutorStudioPage() {
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
         if (data) {
           setProfile(data);
-          const tier = String(data.tier || "").toLowerCase();
-          const accountType = String(data.account_type || "").toLowerCase();
-          setHasAccess(
-            accountType === "institution" ||
-            tier === "premium+" ||
-            tier === "elite" ||
-            tier === "institution"
-          );
         }
       }
     }
@@ -265,7 +258,7 @@ function TutorStudioPage() {
         title: bootcampSettings.title,
         description: bootcampSettings.description,
         category: bootcampSettings.category,
-        price: Number(bootcampSettings.price) || 0,
+        price: toBaseAmount(Number(bootcampSettings.price) || 0),
         status: bootcampSettings.status,
         visibility: bootcampSettings.visibility,
         banner_url: savedBannerUrl || null,
@@ -423,49 +416,6 @@ function TutorStudioPage() {
     (bootcamp: any) => String(bootcamp.status || "").toLowerCase() === "active"
   ).length;
   const draftBootcamps = Math.max(bootcamps.length - activeBootcamps, 0);
-
-  // ═══════════════════════════════════════════════════════════════
-  // ACCESS GATE
-  // ═══════════════════════════════════════════════════════════════
-  if (!hasAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center bg-background">
-        <div className="flex flex-col items-center max-w-sm">
-          {/* Premium dark card intro */}
-          <div className="relative w-full overflow-hidden rounded-[28px] bg-[#141117] p-8 ring-1 ring-white/[0.06] shadow-lift mb-8">
-            <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="grid h-14 w-14 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10 mb-5">
-                <GraduationCap className="h-6 w-6 text-white/90" strokeWidth={1.75} />
-              </div>
-              <h1 className="font-display text-[26px] font-semibold text-white tracking-tight">Tutor Studio</h1>
-              <p className="mt-2 text-[13.5px] text-white/60 leading-relaxed">
-                Launch bootcamps, build curricula, and earn from your knowledge.
-              </p>
-            </div>
-          </div>
-
-          <p className="text-[13.5px] text-muted-foreground leading-relaxed mb-7">
-            You need an active <span className="font-semibold text-foreground">Premium+ plan</span> to access the Tutor Studio.
-          </p>
-
-          <Link
-            to="/app/premium"
-            className="w-full rounded-full bg-foreground px-8 py-3.5 font-semibold tracking-tight text-background tap shadow-lift flex items-center justify-center gap-2 text-[14px] hover:opacity-90"
-          >
-            <Zap className="h-4 w-4" /> Upgrade to Premium+
-          </Link>
-
-          <button
-            onClick={() => setHasAccess(true)}
-            className="mt-6 text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors underline underline-offset-4"
-          >
-            Bypass for demo
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // ═══════════════════════════════════════════════════════════════
   // EDITOR VIEW
@@ -1079,9 +1029,9 @@ function TutorStudioPage() {
                 {/* Price / Capacity */}
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-3">
-                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Price (₦)</label>
+                    <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Price ({currencyDetails.symbol})</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground/60">₦</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground/60">{currencyDetails.symbol}</span>
                       <input
                         type="number"
                         value={bootcampSettings.price}
@@ -1218,7 +1168,7 @@ function TutorStudioPage() {
               </div>
               <div className="col-span-2 bg-white/[0.04] p-4 sm:p-5">
                 <p className="text-[10px] font-medium uppercase text-white/45">Gross enrollment value</p>
-                <p className="mt-2 text-[25px] font-semibold tabular-nums">{new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(totalRevenue)}</p>
+                <p className="mt-2 text-[25px] font-semibold tabular-nums">{format(totalRevenue)}</p>
               </div>
             </div>
           </div>
@@ -1230,7 +1180,7 @@ function TutorStudioPage() {
               <Wallet className="h-4 w-4" strokeWidth={1.75} />
               <span className="text-[11px] font-medium uppercase">Enrollment value</span>
             </div>
-            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", notation: "compact", maximumFractionDigits: 1 }).format(totalRevenue)}</p>
+            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{format(totalRevenue, { notation: "compact", maximumFractionDigits: 1 })}</p>
             <div className="flex items-center gap-1.5 mt-2.5 text-success">
               <TrendingUp className="h-3 w-3" />
               <span className="text-[11px] font-medium">From enrollments</span>
@@ -1322,7 +1272,7 @@ function TutorStudioPage() {
                       <UsersRound className="h-3.5 w-3.5" strokeWidth={1.75} />
                       <span className="tabular-nums">{course.enrollments?.[0]?.count || 0} enrolled</span>
                     </div>
-                    <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">₦{Number(course.price || 0).toLocaleString()}</span>
+                    <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">{format(Number(course.price || 0))}</span>
                   </div>
                 </div>
               </div>

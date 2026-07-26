@@ -1,4 +1,5 @@
 import { Gift } from "lucide-react";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const giftTemplates = [
   { id: "signature", name: "Signature", shell: "bg-[#171218] text-white", accent: "bg-[#cc208f]", muted: "text-white/55" },
@@ -34,6 +35,7 @@ export function GiftCardVisual({
 }) {
   const template = giftTemplates.find((item) => item.id === templateId) || giftTemplates[0];
   const serviceLabel = giftServices.find((item) => item.id === service)?.label || service;
+  const { format } = useWalletCurrency();
 
   return (
     <div className={`relative aspect-[1.62/1] w-full min-w-0 overflow-hidden rounded-lg p-4 shadow-lift sm:p-7 ${template.shell} ${compact ? "max-w-[320px]" : "max-w-[520px]"}`}>
@@ -46,7 +48,7 @@ export function GiftCardVisual({
         </div>
         <div>
           <p className={`truncate text-[8px] font-semibold uppercase sm:text-[9px] ${template.muted}`}>For {serviceLabel}</p>
-          <p className="mt-1 text-[26px] font-semibold leading-none tracking-tight tabular-nums sm:text-[38px]">₦{Number(amount || 0).toLocaleString()}</p>
+          <p className="mt-1 text-[26px] font-semibold leading-none tracking-tight tabular-nums sm:text-[38px]">{format(Number(amount || 0))}</p>
           {message && <p className={`mt-2 line-clamp-1 text-[10px] ${template.muted}`}>{message}</p>}
         </div>
         <div className={`flex min-w-0 items-end justify-between gap-2 text-[7px] font-medium uppercase sm:text-[9px] ${template.muted}`}><span className="truncate">Restricted gift credit</span><span className="max-w-[42%] truncate font-mono normal-case">{code || "ZC-GIFT"}</span></div>

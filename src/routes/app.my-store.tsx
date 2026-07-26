@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { useUser } from "@/hooks/useUser";
 import { IconStore } from "@/components/icons";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import {
   Drawer,
   DrawerContent,
@@ -49,11 +50,10 @@ const EMPTY_FORM: ProductForm = {
 const effectivePrice = (price: number, discount: number) =>
   discount > 0 ? Math.round(price * (100 - discount) / 100) : price;
 
-const formatPrice = (n: number, type: string) =>
-  type === "Coins" ? `₦${n.toLocaleString()}` : `${n.toLocaleString()} XP`;
-
 function MyStorePage() {
   const { data: profile } = useUser();
+  const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
+  const formatPrice = (n: number, type: string) => type === "Coins" ? format(n) : `${n.toLocaleString()} XP`;
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useQuery({
@@ -96,7 +96,7 @@ function MyStorePage() {
       name: item.name || "",
       description: item.description || "",
       category: item.category || "Template",
-      price: String(item.price ?? ""),
+      price: String(item.price_type === "Coins" ? fromBaseAmount(item.price ?? 0) : item.price ?? ""),
       priceType: item.price_type === "XP" ? "XP" : "Coins",
       discountPercent: String(item.discount_percent ?? 0),
       couponEnabled: !!item.coupon_code,
@@ -119,7 +119,8 @@ function MyStorePage() {
     reader.readAsDataURL(file);
   };
 
-  const numericPrice = Math.max(0, parseInt(form.price) || 0);
+  const enteredPrice = Math.max(0, Number(form.price) || 0);
+  const numericPrice = form.priceType === "Coins" ? toBaseAmount(enteredPrice) : enteredPrice;
   const numericDiscount = Math.min(90, Math.max(0, parseInt(form.discountPercent) || 0));
   const numericCoupon = Math.min(90, Math.max(0, parseInt(form.couponPercent) || 0));
   const salePrice = effectivePrice(numericPrice, numericDiscount);
@@ -249,7 +250,7 @@ function MyStorePage() {
               <div className="px-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/60">Catalog value</p>
                 <p className="mt-2 text-[26px] font-semibold tracking-tight tabular-nums leading-none">
-                  <span className="text-[15px] font-normal text-white/50 mr-0.5">₦</span>
+                  <span className="text-[15px] font-normal text-white/50 mr-0.5">{currencyDetails.symbol}</span>
                   {coinValue.toLocaleString()}
                 </p>
               </div>
@@ -475,7 +476,7 @@ function MyStorePage() {
                       onClick={() => setForm({ ...form, priceType: t })}
                       className={`flex-1 rounded-xl py-2 text-[12.5px] font-semibold tracking-tight transition-colors ${form.priceType === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
                     >
-                      {t === "Coins" ? "₦ Cash" : "XP"}
+                      {t === "Coins" ? `${currencyDetails.symbol} Cash` : "XP"}
                     </button>
                   ))}
                 </div>
@@ -485,7 +486,7 @@ function MyStorePage() {
             {/* Price + discount */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className={labelClass}>Price {form.priceType === "Coins" ? "(₦)" : "(XP)"}</label>
+                <label className={labelClass}>Price {form.priceType === "Coins" ? `(${currencyDetails.symbol})` : "(XP)"}</label>
                 <input
                   type="number"
                   min="1"

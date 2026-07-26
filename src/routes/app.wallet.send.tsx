@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/wallet/send")({
   component: SendMoneyPage,
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/app/wallet/send")({
 function SendMoneyPage() {
   const navigate = useNavigate();
   const { data: profile, refetch } = useUser();
+  const { format } = useWalletCurrency();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -236,7 +238,7 @@ function SendMoneyPage() {
               <div className={`mx-auto mt-2 h-[2px] w-16 rounded-full ${numericAmount > (profile?.xp || 0) ? "bg-destructive/60" : "bg-primary/60"}`} />
               {numericAmount > 0 && numericAmount <= (profile?.xp || 0) && (
                 <p className="mt-3 text-[12px] text-muted-foreground tabular-nums">
-                  ≈ ₦{numericAmount.toLocaleString()} cash equivalent
+                  ≈ {format(numericAmount)} cash equivalent
                 </p>
               )}
               {numericAmount > (profile?.xp || 0) && (

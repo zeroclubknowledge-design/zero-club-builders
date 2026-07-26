@@ -30,7 +30,7 @@ const categories = [
   {
     title: "Creator Hub",
     features: [
-      { name: "Tutor Studio", desc: "Launch your own bootcamps", locked: ["Basic", "Premium"] },
+      { name: "Tutor Studio", desc: "Tutor accounts can launch bootcamps for free", locked: [] },
       { name: "Revenue Share", desc: "Get paid for your content", locked: ["Basic", "Premium"] },
       { name: "Analytics Pro", desc: "Advanced student insights", locked: ["Basic", "Premium"] },
     ]
