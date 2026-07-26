@@ -653,7 +653,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground={false} repositionInputs={false}>
-      <DrawerContent className="relative mx-auto flex h-[85dvh] max-w-[760px] flex-col overflow-hidden border border-border bg-background p-0 shadow-xl focus:outline-none">
+      <DrawerContent className="mx-auto flex h-[85dvh] max-w-[760px] flex-col overflow-hidden border border-border bg-background p-0 shadow-xl focus:outline-none">
         {DrawerInner}
       </DrawerContent>
     </Drawer>
