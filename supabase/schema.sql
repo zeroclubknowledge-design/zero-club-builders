@@ -379,8 +379,10 @@ CREATE POLICY \likes_insert_own\ ON likes FOR INSERT WITH CHECK (auth.uid() = pr
 CREATE POLICY \likes_delete_own\ ON likes FOR DELETE USING (auth.uid() = profile_id);
 
 -- Comments Policies
-CREATE POLICY \comments_select_public\ ON comments FOR SELECT USING (true);
-CREATE POLICY \comments_insert_own\ ON comments FOR INSERT WITH CHECK (auth.uid() = profile_id);
+CREATE POLICY comments_select_public ON comments FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY comments_insert_own ON comments FOR INSERT TO authenticated WITH CHECK (auth.uid() = profile_id);
+CREATE POLICY comments_update_own ON comments FOR UPDATE TO authenticated USING (auth.uid() = profile_id) WITH CHECK (auth.uid() = profile_id);
+CREATE POLICY comments_delete_own ON comments FOR DELETE TO authenticated USING (auth.uid() = profile_id);
 
 -- Bookmarks Policies
 CREATE POLICY \bookmarks_select_own\ ON bookmarks FOR SELECT USING (auth.uid() = profile_id);
