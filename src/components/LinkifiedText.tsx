@@ -135,9 +135,9 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
           onClick={handleClick}
         />
         <Drawer open={!!selectedUrl} onOpenChange={(open) => !open && setSelectedUrl(null)}>
-          <DrawerContent className="border-none bg-background p-6">
-            <DrawerHeader className="text-left mb-6 p-0">
-              <DrawerTitle className="text-xl font-black tracking-tight">Open Link</DrawerTitle>
+          <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
+            <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
+              <DrawerTitle className="text-[17px] font-semibold tracking-tight sm:text-xl">Open Link</DrawerTitle>
               <DrawerDescription className="text-sm font-medium mt-1">
                 This looks like an internal app link. How would you like to open it?
               </DrawerDescription>
@@ -217,9 +217,9 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
       </span>
 
       <Drawer open={!!selectedUrl} onOpenChange={(open) => !open && setSelectedUrl(null)}>
-        <DrawerContent className="border-none bg-background p-6">
-          <DrawerHeader className="text-left mb-6 p-0">
-            <DrawerTitle className="text-xl font-black tracking-tight">Open Link</DrawerTitle>
+        <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
+          <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
+            <DrawerTitle className="text-[17px] font-semibold tracking-tight sm:text-xl">Open Link</DrawerTitle>
             <DrawerDescription className="text-sm font-medium mt-1">
               This looks like an internal app link. How would you like to open it?
             </DrawerDescription>

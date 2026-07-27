@@ -956,12 +956,12 @@ function NotesEditPage() {
       {/* Publish Modal */}
       <Drawer open={showPublishModal} onOpenChange={setShowPublishModal}>
         <DrawerContent className="mx-auto max-w-[620px] border border-border bg-background p-0 shadow-xl">
-          <div className="mx-auto w-full max-w-md p-6 pt-8">
-            <DrawerHeader className="px-0 pt-0 text-center mb-4">
+          <div className="mx-auto w-full max-w-md px-4 pb-4 pt-1 sm:p-6 sm:pt-8">
+            <DrawerHeader className="mb-3 px-0 pt-0 text-center sm:mb-4">
               <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Wand2 className="h-6 w-6 text-primary" />
               </div>
-              <DrawerTitle className="text-2xl font-semibold">Ready to publish?</DrawerTitle>
+              <DrawerTitle className="text-xl font-semibold sm:text-2xl">Ready to publish?</DrawerTitle>
               <DrawerDescription className="text-base text-muted-foreground mt-2">
                 Choose how you want to share your story.
               </DrawerDescription>

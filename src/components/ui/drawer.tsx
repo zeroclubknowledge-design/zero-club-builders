@@ -45,11 +45,11 @@ const DrawerContent = React.forwardRef<
       {...props}
     >
       {(!hideHandle || !hideClose) && (
-        <div className="w-full flex justify-center pt-3 pb-3 shrink-0 relative">
-          {!hideHandle && <div className="h-1.5 w-12 rounded-full bg-border" />}
+        <div className="relative flex h-7 w-full shrink-0 items-center justify-center sm:h-9">
+          {!hideHandle && <div className="h-1 w-10 rounded-full bg-border sm:w-12" />}
           {!hideClose && (
-            <DrawerPrimitive.Close className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-2 hover:bg-muted transition-colors z-50">
-              <X className="h-5 w-5 text-muted-foreground" />
+            <DrawerPrimitive.Close className="absolute right-3 top-1/2 z-50 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full transition-colors hover:bg-muted sm:right-4">
+              <X className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
               <span className="sr-only">Close</span>
             </DrawerPrimitive.Close>
           )}
@@ -62,7 +62,7 @@ const DrawerContent = React.forwardRef<
 DrawerContent.displayName = "DrawerContent";
 
 const DrawerHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)} {...props} />
+  <div className={cn("grid gap-1 px-4 pb-3 pt-1 text-left sm:gap-1.5 sm:p-4", className)} {...props} />
 );
 DrawerHeader.displayName = "DrawerHeader";
 
@@ -77,7 +77,7 @@ const DrawerTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={cn("text-[17px] font-semibold leading-none tracking-tight sm:text-lg", className)}
     {...props}
   />
 ));

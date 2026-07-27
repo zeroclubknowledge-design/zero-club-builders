@@ -207,7 +207,7 @@ function SidebarContent({
             </button>
           </DrawerTrigger>
           <DrawerContent className="z-[100] mx-auto max-w-lg border-border bg-background p-0 focus:ring-0">
-            <div className="border-b border-border px-5 pb-4 pt-5 text-left">
+            <div className="border-b border-border px-4 pb-3 pt-1 text-left sm:px-5 sm:pb-4 sm:pt-5">
               <p className="text-[10px] font-semibold uppercase text-primary">Zero Club identity</p>
               <h2 className="mt-1 text-[21px] font-semibold tracking-tight text-foreground">Accounts</h2>
               <p className="mt-1 text-[12px] text-muted-foreground">Switch profiles or start another Zero Club identity.</p>
@@ -1172,8 +1172,8 @@ function AppLayout() {
 
         {/* Theme Selection Sheet */}
         <Drawer open={isThemeOpen} onOpenChange={setIsThemeOpen}>
-          <DrawerContent className="border-none bg-background p-6 focus:ring-0">
-            <h2 className="text-[22px] font-semibold tracking-tight mb-1">Display</h2>
+          <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
+            <h2 className="mb-1 text-[17px] font-semibold tracking-tight sm:text-[22px]">Display</h2>
             <p className="text-[13px] text-muted-foreground mb-6">Choose how Zero Club looks to you.</p>
 
             <div className="space-y-1">

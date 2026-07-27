@@ -771,8 +771,8 @@ function TutorStudioPage() {
 
               {/* Role management drawer */}
               <Drawer open={roleDrawer !== null} onOpenChange={(open) => !open && setRoleDrawer(null)}>
-                <DrawerContent className="border-none bg-background p-6 focus:ring-0 max-w-lg mx-auto">
-                  <DrawerTitle className="text-[20px] font-semibold tracking-tight text-foreground">
+                <DrawerContent className="mx-auto max-w-lg border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
+                  <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[20px]">
                     {roleDrawer === "rep" ? "Assign Study Rep" : "Manage administrators"}
                   </DrawerTitle>
                   <p className="mt-1 text-[13px] text-muted-foreground">

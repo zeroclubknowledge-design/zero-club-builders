@@ -123,9 +123,9 @@ function AccountSettings() {
               </button>
             </DrawerTrigger>
             <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
-              <div className="flex h-full flex-col p-6">
-                <DrawerHeader className="mb-8 flex flex-row items-center justify-between space-y-0">
-                  <DrawerTitle className="text-xl font-bold">Change username</DrawerTitle>
+              <div className="flex h-full flex-col p-4 sm:p-6">
+                <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-8 sm:p-4">
+                  <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Change username</DrawerTitle>
                   <button 
                     onClick={handleUpdateUsername}
                     disabled={loading || !newUsername.trim() || newUsername === profile?.username}
@@ -194,9 +194,9 @@ function AccountSettings() {
               </button>
             </DrawerTrigger>
             <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
-              <div className="flex h-full flex-col p-6">
-                <DrawerHeader className="mb-8 flex flex-row items-center justify-between space-y-0">
-                  <DrawerTitle className="text-xl font-bold">Account Type</DrawerTitle>
+              <div className="flex h-full flex-col p-4 sm:p-6">
+                <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-8 sm:p-4">
+                  <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Account Type</DrawerTitle>
                   <button 
                     onClick={handleUpdateAccountType}
                     disabled={loading || newAccountType === profile?.account_type}
@@ -247,9 +247,9 @@ function AccountSettings() {
               </button>
             </DrawerTrigger>
             <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
-              <div className="flex h-full flex-col p-6 overflow-y-auto">
-                <DrawerHeader className="mb-6 flex flex-row items-center justify-between space-y-0 px-0">
-                  <DrawerTitle className="text-xl font-bold">Switch accounts</DrawerTitle>
+              <div className="flex h-full flex-col overflow-y-auto p-4 sm:p-6">
+                <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-6 sm:p-4 sm:px-0">
+                  <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Switch accounts</DrawerTitle>
                 </DrawerHeader>
 
                 <div className="space-y-4">

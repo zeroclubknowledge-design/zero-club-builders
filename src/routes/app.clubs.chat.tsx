@@ -933,9 +933,9 @@ function ClubChat() {
                 </Drawer>
                 {club?.creator_id === currentUser?.id && (
                   <Drawer open={showSettings} onOpenChange={setShowSettings}>
-                  <DrawerContent className="mx-auto h-[92%] max-w-[760px] border-none bg-background p-6 pt-8">
-                      <DrawerHeader className="text-left mb-6">
-                        <DrawerTitle className="text-xl font-bold">Club Settings</DrawerTitle>
+                  <DrawerContent className="mx-auto h-[92%] max-w-[760px] border-none bg-background px-4 pb-4 pt-1 sm:p-6 sm:pt-8">
+                      <DrawerHeader className="mb-3 p-0 text-left sm:mb-6 sm:p-4">
+                        <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Club Settings</DrawerTitle>
                         <p className="text-[11px] text-muted-foreground">Manage your community workspace</p>
                       </DrawerHeader>
 
@@ -1135,8 +1135,8 @@ function ClubChat() {
                       >
                         {/* PANEL 1: CLUB SQUAD MEMBER LIST */}
                         <div data-vaul-no-drag className="h-full w-1/2 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-1 no-scrollbar">
-                          <DrawerHeader className="text-left mb-6 shrink-0 pr-10">
-                            <DrawerTitle className="text-2xl font-bold tracking-tight">Club Squad</DrawerTitle>
+                          <DrawerHeader className="mb-3 shrink-0 p-0 pr-10 text-left sm:mb-6 sm:p-4 sm:pr-10">
+                            <DrawerTitle className="text-[18px] font-semibold tracking-tight sm:text-2xl">Club Squad</DrawerTitle>
                             <p className="text-xs text-muted-foreground">The team building {club?.name}</p>
                           </DrawerHeader>
 
@@ -1419,9 +1419,9 @@ function ClubChat() {
 
             <Drawer open={showRoomSwitcher} onOpenChange={setShowRoomSwitcher}>
               <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
-                <div className="px-5 pt-6 pb-10">
-                  <DrawerHeader className="px-0 pt-0 text-left mb-6">
-                    <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">Channels</DrawerTitle>
+                <div className="px-4 pb-8 pt-1 sm:px-5 sm:pb-10 sm:pt-6">
+                  <DrawerHeader className="mb-3 px-0 pt-0 text-left sm:mb-6">
+                    <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[19px]">Channels</DrawerTitle>
                     <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
                       Switch to a different section
                     </DrawerDescription>
@@ -2070,12 +2070,12 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
             return (
               <div className="flex h-full min-h-0 flex-col">
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                <DrawerHeader className="border-b border-border px-4 pb-5 pt-7 text-left sm:px-6">
+                <DrawerHeader className="border-b border-border px-4 pb-3 pt-1 text-left sm:px-6 sm:pb-5 sm:pt-7">
                   <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-primary">
                     {room === 'assignments' ? <BookOpenCheck className="h-4 w-4" /> : <HelpCircle className="h-4 w-4" />}
                     {room === 'assignments' ? 'Assignment details' : 'Question thread'}
                   </div>
-                  <DrawerTitle className="break-words pr-8 text-xl font-semibold leading-7 [overflow-wrap:anywhere]">{card.title}</DrawerTitle>
+                  <DrawerTitle className="break-words pr-8 text-[17px] font-semibold leading-6 [overflow-wrap:anywhere] sm:text-xl sm:leading-7">{card.title}</DrawerTitle>
                   {card.dueDate && <p className="mt-1 text-xs font-medium text-muted-foreground">Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}</p>}
                   <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{card.body}</p>
                 </DrawerHeader>

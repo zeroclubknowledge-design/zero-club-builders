@@ -766,9 +766,9 @@ function Clubs() {
       {/* Create Club Drawer */}
       <Drawer open={showCreate} onOpenChange={setShowCreate}>
         <DrawerContent className="mx-auto max-h-[90dvh] max-w-lg border-none bg-background p-0">
-          <div className="px-6 pt-6 pb-8">
-            <DrawerHeader className="text-left mb-6 p-0">
-              <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">
+          <div className="px-4 pb-6 pt-1 sm:px-6 sm:pb-8 sm:pt-6">
+            <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
+              <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[19px]">
                 {isBasic ? "Create Your Private Club" : "Create a New Club"}
               </DrawerTitle>
               <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
@@ -896,7 +896,7 @@ function Clubs() {
       {/* Club Notifications Drawer */}
       <Drawer open={showNotifications} onOpenChange={setShowNotifications}>
         <DrawerContent className="mx-auto flex max-h-[85vh] max-w-[620px] flex-col border-t border-border/60 bg-background p-0 shadow-[0_-16px_40px_-24px_rgba(0,0,0,0.45)]">
-          <DrawerHeader className="px-6 py-5 border-b border-border/30 shrink-0 mt-2">
+          <DrawerHeader className="mt-0 shrink-0 border-b border-border/30 px-4 py-3 sm:mt-2 sm:px-6 sm:py-5">
             <div className="flex items-center gap-4">
               <div className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
                 <Bell className="h-5 w-5 text-primary" />

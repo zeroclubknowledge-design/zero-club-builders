@@ -1164,9 +1164,9 @@ function InstitutionHub() {
       {/* ═══ ASSIGN TUTOR DRAWER ═══ */}
       <Drawer open={!!assignDrawer} onOpenChange={(open) => { if (!open) setAssignDrawer(null); }}>
         <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
-          <div className="px-5 pt-6 pb-10">
-            <DrawerHeader className="px-0 pt-0 text-left mb-6">
-              <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">
+          <div className="px-4 pb-8 pt-1 sm:px-5 sm:pb-10 sm:pt-6">
+            <DrawerHeader className="mb-3 px-0 pt-0 text-left sm:mb-6">
+              <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[19px]">
                 Assign a tutor
               </DrawerTitle>
               <p className="text-[12px] text-muted-foreground mt-1">

@@ -543,7 +543,7 @@ function Feed() {
 
       <Drawer open={livePickerOpen} onOpenChange={setLivePickerOpen}>
         <DrawerContent className="mx-auto max-h-[76dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-0 focus:ring-0">
-          <div className="border-b border-border/60 px-5 pb-4 pt-5">
+          <div className="border-b border-border/60 px-4 pb-3 pt-1 sm:px-5 sm:pb-4 sm:pt-5">
             <DrawerTitle className="flex items-center gap-2 text-[18px] font-semibold tracking-tight"><Radio className="h-5 w-5 text-red-500" /> Go live</DrawerTitle>
             <p className="mt-1 text-[12px] text-muted-foreground">Choose the community that will host this session.</p>
           </div>

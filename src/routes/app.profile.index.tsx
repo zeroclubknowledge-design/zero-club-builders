@@ -257,9 +257,9 @@ function Profile() {
                       <MoreHorizontal className="h-[18px] w-[18px]" />
                     </button>
                   </DrawerTrigger>
-                  <DrawerContent className="border-none bg-background p-6">
-                    <DrawerHeader className="text-left mb-4">
-                      <DrawerTitle className="text-[20px] font-semibold tracking-tight">Profile actions</DrawerTitle>
+                  <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
+                    <DrawerHeader className="mb-3 p-0 text-left sm:mb-4 sm:p-4">
+                      <DrawerTitle className="text-[17px] font-semibold tracking-tight sm:text-[20px]">Profile actions</DrawerTitle>
                     </DrawerHeader>
                     <div className="space-y-2">
                       <button
