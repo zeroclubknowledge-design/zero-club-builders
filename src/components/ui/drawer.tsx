@@ -32,8 +32,8 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & { hideClose?: boolean }
->(({ className, children, hideClose, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & { hideClose?: boolean; hideHandle?: boolean }
+>(({ className, children, hideClose, hideHandle, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
@@ -44,15 +44,17 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <div className="w-full flex justify-center pt-3 pb-3 shrink-0 relative">
-        <div className="h-1.5 w-12 rounded-full bg-border" />
-        {!hideClose && (
-          <DrawerPrimitive.Close className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-2 hover:bg-muted transition-colors z-50">
-            <X className="h-5 w-5 text-muted-foreground" />
-            <span className="sr-only">Close</span>
-          </DrawerPrimitive.Close>
-        )}
-      </div>
+      {(!hideHandle || !hideClose) && (
+        <div className="w-full flex justify-center pt-3 pb-3 shrink-0 relative">
+          {!hideHandle && <div className="h-1.5 w-12 rounded-full bg-border" />}
+          {!hideClose && (
+            <DrawerPrimitive.Close className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-2 hover:bg-muted transition-colors z-50">
+              <X className="h-5 w-5 text-muted-foreground" />
+              <span className="sr-only">Close</span>
+            </DrawerPrimitive.Close>
+          )}
+        </div>
+      )}
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>

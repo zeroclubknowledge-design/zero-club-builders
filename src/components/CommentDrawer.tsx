@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { 
-  Drawer, DrawerContent, DrawerHeader, DrawerTitle 
+import {
+  Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle
 } from "@/components/ui/drawer";
-import { MessageCircle, Send, MoreHorizontal, Heart, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2 } from "lucide-react";
+import { MessageCircle, Send, MoreHorizontal, Heart, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2, X } from "lucide-react";
 import { useRouter, Link } from "@tanstack/react-router";
 
 import {
@@ -409,8 +409,12 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
           <h3 className="text-[20px] font-semibold">Discussion</h3>
         </div>
       ) : (
-        <DrawerHeader className="shrink-0 border-b border-border px-5 py-4 sm:px-6">
-          <DrawerTitle className="text-lg font-semibold">Comments</DrawerTitle>
+        <DrawerHeader className="flex h-14 shrink-0 flex-row items-center justify-between border-b border-border px-4 py-0 text-left sm:px-5">
+          <DrawerTitle className="text-[17px] font-semibold">Comments</DrawerTitle>
+          <DrawerClose className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-muted active:opacity-60">
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close comments</span>
+          </DrawerClose>
         </DrawerHeader>
       )}
 
@@ -653,7 +657,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground={false} repositionInputs={false}>
-      <DrawerContent className="mx-auto flex h-[85dvh] max-w-[760px] flex-col overflow-hidden border border-border bg-background p-0 shadow-xl focus:outline-none">
+      <DrawerContent hideClose hideHandle className="mx-auto flex h-[85dvh] max-w-[760px] flex-col overflow-hidden border border-border bg-background p-0 shadow-xl focus:outline-none">
         {DrawerInner}
       </DrawerContent>
     </Drawer>

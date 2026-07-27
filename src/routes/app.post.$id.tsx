@@ -601,11 +601,13 @@ function PostDetail() {
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-[#f8f7f5] dark:bg-background">
       <header className="sticky top-0 z-50 h-[calc(72px+env(safe-area-inset-top))] shrink-0 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-[72px] w-full max-w-[860px] items-center justify-between px-4 sm:px-6">
-        <button onClick={handleBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60">
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <h1 className="text-[17px] font-semibold tracking-tight">Post</h1>
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <button onClick={handleBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60">
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <h1 className="text-[17px] font-semibold tracking-tight">Post</h1>
+          </div>
+          <div className="flex items-center gap-2">
           {post?.is_verified_build && (
             <div className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-success ring-1 ring-success/20">
               <ShieldCheck className="h-2.5 w-2.5" /> Proof
@@ -672,7 +674,7 @@ function PostDetail() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-        </div>
+          </div>
         </div>
       </header>
 
