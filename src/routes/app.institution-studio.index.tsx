@@ -408,7 +408,7 @@ function InstitutionHub() {
           We keep the mobile bottom tab bar below for small screens. */}
 
       {/* ═══ MOBILE TAB BAR ═══ */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 md:left-[292px] z-50 bg-background/95 backdrop-blur-xl border-t hairline px-2 pb-[env(safe-area-inset-bottom)]">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden hairline">
         <div className="flex items-center justify-around">
           {sidebarItems.map(({ key, label, Icon }) => (
             <button
@@ -427,7 +427,7 @@ function InstitutionHub() {
 
       {/* ═══ MAIN CONTENT ═══ */}
       <div className="min-w-0 flex-1 overflow-auto pb-20 lg:pb-6">
-        <div className="mx-auto w-full max-w-[1240px] p-4 md:p-7 lg:px-8 lg:py-8">
+        <div className="w-full p-4 md:p-7 lg:px-8 lg:py-8">
 
           {/* ────────────────── OVERVIEW TAB ────────────────── */}
           {activeTab === "overview" && (

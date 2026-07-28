@@ -1101,7 +1101,7 @@ function AppLayout() {
       </div>
 
       {/* Main Center Column */}
-      <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isInstitutionStudio ? "" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
+      <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isInstitutionStudio ? "zc-institution-main md:max-w-none" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
         <IncomingNotificationCard
           recipientId={session.user.id}
           belowFeedHeader={!hideHeader}

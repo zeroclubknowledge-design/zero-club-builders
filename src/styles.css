@@ -358,13 +358,17 @@ body::-webkit-scrollbar { display: none; }
 }
 
 @media (min-width: 1280px) {
-  .zc-app-main {
+  .zc-app-main:not(.zc-institution-main) {
     max-width: calc(100vw - 628px) !important;
+  }
+
+  .zc-institution-main {
+    max-width: none !important;
   }
 }
 
 @media (min-width: 1536px) {
-  .zc-app-main {
+  .zc-app-main:not(.zc-institution-main) {
     max-width: 920px !important;
   }
 }
