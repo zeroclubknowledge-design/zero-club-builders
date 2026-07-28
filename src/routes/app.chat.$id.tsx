@@ -792,7 +792,7 @@ function ChatViewPage() {
 
   return (
     <div 
-      className="flex fixed inset-x-0 z-[60] flex-col bg-background max-w-md mx-auto overflow-hidden border-x border-border"
+      className="fixed inset-x-0 z-[60] mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-background md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
       <header className="flex items-center justify-between border-b border-border bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md">

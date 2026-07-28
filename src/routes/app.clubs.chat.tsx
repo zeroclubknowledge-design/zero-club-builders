@@ -638,7 +638,7 @@ function ClubChat() {
 
   if (club && isBasic && isExpired) {
     return (
-      <div className="zc-keep-width flex fixed inset-x-0 md:left-[292px] xl:right-[336px] z-[100] flex-col items-center justify-center bg-background max-w-md mx-auto h-dvh px-6 text-center">
+      <div className="zc-keep-width fixed inset-x-0 z-[100] mx-auto flex h-dvh max-w-md flex-col items-center justify-center bg-background px-6 text-center md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]">
         <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-6">
           <ShieldAlert className="w-10 h-10 text-primary" />
         </div>
@@ -672,7 +672,7 @@ function ClubChat() {
 
   return (
     <div 
-      className="zc-keep-width flex fixed inset-x-0 md:left-[292px] xl:right-[336px] z-40 flex-col bg-gradient-to-b from-accent/5 via-background to-background dark:bg-background max-w-md mx-auto overflow-hidden border-x border-border"
+      className="zc-keep-width fixed inset-x-0 z-40 mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-gradient-to-b from-accent/5 via-background to-background dark:bg-background md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
 
@@ -933,7 +933,7 @@ function ClubChat() {
                 </Drawer>
                 {club?.creator_id === currentUser?.id && (
                   <Drawer open={showSettings} onOpenChange={setShowSettings}>
-                  <DrawerContent className="mx-auto h-[92%] max-w-[760px] border-none bg-background px-4 pb-4 pt-1 sm:p-6 sm:pt-8">
+                  <DrawerContent desktopVariant="panel" className="mx-auto h-[92%] max-w-[760px] border-none bg-background px-4 pb-4 pt-1 sm:p-6 sm:pt-8">
                       <DrawerHeader className="mb-3 p-0 text-left sm:mb-6 sm:p-4">
                         <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Club Settings</DrawerTitle>
                         <p className="text-[11px] text-muted-foreground">Manage your community workspace</p>
@@ -1127,7 +1127,7 @@ function ClubChat() {
                     setSquadActionMember(null);
                   }
                 }}>
-                  <DrawerContent className="mx-auto flex h-[88dvh] max-w-[760px] flex-col overflow-hidden border-none bg-background p-4 sm:h-[85%] sm:p-6">
+                  <DrawerContent desktopVariant="panel" className="mx-auto flex h-[88dvh] max-w-[760px] flex-col overflow-hidden border-none bg-background p-4 sm:h-[85%] sm:p-6">
                     <div className="relative w-full h-full overflow-hidden">
                       <div 
                         className="flex w-[200%] h-full transition-transform duration-300 ease-in-out"
@@ -2063,7 +2063,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
       )}
 
       <Drawer open={Boolean(selectedCard)} onOpenChange={(open) => !open && setSelectedCard(null)}>
-        <DrawerContent className="mx-auto h-[94dvh] max-w-[760px] overflow-hidden border border-border bg-background p-0 shadow-2xl sm:h-[90dvh]">
+        <DrawerContent desktopVariant="panel" className="mx-auto h-[94dvh] max-w-[760px] overflow-hidden border border-border bg-background p-0 shadow-2xl sm:h-[90dvh]">
           {selectedCard && (() => {
             const card = parseClubCard(selectedCard, room);
             const replies = messages.filter((message: any) => message.reply_to_id === selectedCard.id);

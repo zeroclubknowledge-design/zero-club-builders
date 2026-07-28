@@ -32,12 +32,17 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & { hideClose?: boolean; hideHandle?: boolean }
->(({ className, children, hideClose, hideHandle, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
+    hideClose?: boolean;
+    hideHandle?: boolean;
+    desktopVariant?: "dialog" | "panel";
+  }
+>(({ className, children, hideClose, hideHandle, desktopVariant = "dialog", ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
       ref={ref}
+      data-zc-drawer-variant={desktopVariant}
       className={cn(
         "fixed inset-x-0 bottom-0 z-50 flex h-auto flex-col rounded-t-[16px] border-t border-border/50 bg-background outline-none",
         className,
@@ -46,7 +51,7 @@ const DrawerContent = React.forwardRef<
     >
       {(!hideHandle || !hideClose) && (
         <div className="relative flex h-7 w-full shrink-0 items-center justify-center sm:h-9">
-          {!hideHandle && <div className="h-1 w-10 rounded-full bg-border sm:w-12" />}
+          {!hideHandle && <div className="h-1 w-10 rounded-full bg-border sm:w-12 md:hidden" />}
           {!hideClose && (
             <DrawerPrimitive.Close className="absolute right-3 top-1/2 z-50 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full transition-colors hover:bg-muted sm:right-4">
               <X className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />

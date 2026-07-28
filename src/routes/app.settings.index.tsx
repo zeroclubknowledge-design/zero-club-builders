@@ -82,7 +82,7 @@ function SettingsIndex() {
       </header>
 
       {/* Search */}
-      <div className="px-4 py-4">
+      <div className="mx-auto w-full max-w-[980px] px-4 py-4 md:px-6 md:py-6">
         <div className="relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -94,13 +94,13 @@ function SettingsIndex() {
       </div>
 
       {/* Settings List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
-        <div className="flex flex-col divide-y divide-hairline">
+      <div className="mx-auto w-full max-w-[980px] flex-1 overflow-y-auto px-0 pb-20 md:px-6 no-scrollbar">
+        <div className="flex flex-col divide-y divide-hairline md:grid md:grid-cols-2 md:gap-3 md:divide-y-0">
           {settingsItems.map((item) => (
             <Link
               key={item.id}
               to={item.to}
-              className="group flex items-start gap-4 px-5 py-4 tap hover:bg-foreground/[0.02] text-left"
+              className="group flex items-start gap-4 px-5 py-4 text-left tap hover:bg-foreground/[0.02] md:min-h-[132px] md:rounded-lg md:border md:border-border md:bg-card"
             >
               <div className="mt-0.5 shrink-0 grid h-9 w-9 place-items-center rounded-full ring-1 ring-border bg-card">
                 <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.75} />

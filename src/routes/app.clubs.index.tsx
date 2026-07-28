@@ -895,7 +895,7 @@ function Clubs() {
 
       {/* Club Notifications Drawer */}
       <Drawer open={showNotifications} onOpenChange={setShowNotifications}>
-        <DrawerContent className="mx-auto flex max-h-[85vh] max-w-[620px] flex-col border-t border-border/60 bg-background p-0 shadow-[0_-16px_40px_-24px_rgba(0,0,0,0.45)]">
+        <DrawerContent desktopVariant="panel" className="mx-auto flex max-h-[85vh] max-w-[620px] flex-col border-t border-border/60 bg-background p-0 shadow-[0_-16px_40px_-24px_rgba(0,0,0,0.45)]">
           <DrawerHeader className="mt-0 shrink-0 border-b border-border/30 px-4 py-3 sm:mt-2 sm:px-6 sm:py-5">
             <div className="flex items-center gap-4">
               <div className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">

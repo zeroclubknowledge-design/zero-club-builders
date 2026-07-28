@@ -122,7 +122,7 @@ function AccountSettings() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             </DrawerTrigger>
-            <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
+            <DrawerContent desktopVariant="panel" hideClose className="h-[90vh] border-none bg-background p-0">
               <div className="flex h-full flex-col p-4 sm:p-6">
                 <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-8 sm:p-4">
                   <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Change username</DrawerTitle>
@@ -193,7 +193,7 @@ function AccountSettings() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             </DrawerTrigger>
-            <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
+            <DrawerContent desktopVariant="panel" hideClose className="h-[90vh] border-none bg-background p-0">
               <div className="flex h-full flex-col p-4 sm:p-6">
                 <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-8 sm:p-4">
                   <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Account Type</DrawerTitle>
@@ -246,7 +246,7 @@ function AccountSettings() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             </DrawerTrigger>
-            <DrawerContent hideClose className="h-[90vh] border-none bg-background p-0">
+            <DrawerContent desktopVariant="panel" hideClose className="h-[90vh] border-none bg-background p-0">
               <div className="flex h-full flex-col overflow-y-auto p-4 sm:p-6">
                 <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-6 sm:p-4 sm:px-0">
                   <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Switch accounts</DrawerTitle>

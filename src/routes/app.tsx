@@ -82,9 +82,13 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/bookmarks": "Bookmarks",
   "/app/tutor-studio": "Tutor Studio",
   "/app/notifications": "Notifications",
-  "/app/quests": "Quests",
+  "/app/quests": "Opportunities",
   "/app/metrics": "Metrics",
   "/app/notes": "ZeroNotes",
+  "/app/drafts": "Drafts",
+  "/app/store": "Zero Store",
+  "/app/zero-ai": "Zero AI",
+  "/app/zerohub": "ZeroHub",
 };
 
 const formatCompactNumber = (value?: number | null) => {
@@ -354,16 +358,21 @@ function SidebarContent({
             {[
               // Desktop-only: mirror the mobile bottom nav (hidden on md+)
               { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
+              { Icon: BellRing, label: "Notifications", to: "/app/notifications", desktopOnly: true },
               { Icon: IconWallet, label: "Wallet", to: "/app/wallet", desktopOnly: true },
               { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
               { Icon: IconGem, label: "Membership", to: "/app/premium" },
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
+              { Icon: IconStore, label: "Zero Store", to: "/app/store" },
               { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
+              { Icon: Rocket, label: "Opportunities", to: "/app/quests" },
               { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
               { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
               { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
+              { Icon: IconNotes, label: "Drafts", to: "/app/drafts" },
               { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
+              { Icon: Zap, label: "Zero AI", to: "/app/zero-ai" },
               { Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" },
               ...(profile?.account_type === "Tutor"
                 ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
@@ -524,8 +533,8 @@ function DesktopWorkspaceRail({
       : ["Proof of work", "Learning progress", "Reputation signals"];
 
   return (
-    <aside className="hidden xl:flex sticky top-0 h-screen w-[336px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 no-scrollbar">
-      <div className="rounded-2xl ring-1 ring-border bg-card p-5 shadow-soft">
+    <aside className="sticky top-0 hidden h-screen w-[336px] shrink-0 flex-col gap-0 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 xl:flex no-scrollbar">
+      <div className="border-b border-border/60 px-1 pb-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -540,12 +549,12 @@ function DesktopWorkspaceRail({
         </p>
       </div>
 
-      <div className="rounded-2xl ring-1 ring-border bg-card p-4 shadow-soft">
+      <div className="border-b border-border/60 py-5">
         <div className="grid grid-cols-3 gap-2">
           {proofItems.map((item) => (
             <div
               key={item.label}
-              className="rounded-xl ring-1 ring-border bg-background/60 px-3 py-3.5 text-center"
+              className="rounded-lg border border-border bg-background/60 px-3 py-3.5 text-center"
             >
               <item.Icon className="mx-auto h-[18px] w-[18px] text-muted-foreground" />
               <div className="mt-2.5 text-lg font-semibold tracking-tight leading-none text-foreground tabular-nums">
@@ -559,7 +568,7 @@ function DesktopWorkspaceRail({
         </div>
       </div>
 
-      <div className="rounded-2xl ring-1 ring-border bg-card p-4 shadow-soft">
+      <div className="border-b border-border/60 py-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">Primary actions</h3>
           {unreadNotificationsCount > 0 && (
@@ -576,7 +585,7 @@ function DesktopWorkspaceRail({
             <Link
               key={action.label}
               to={action.to}
-              className="group flex items-center gap-3 rounded-xl ring-1 ring-border bg-background/60 px-3.5 py-3 text-sm font-semibold tracking-tight transition-colors hover:ring-primary/30 hover:bg-primary/5"
+              className="group flex items-center gap-3 rounded-lg border border-border bg-background/60 px-3.5 py-3 text-sm font-semibold tracking-tight transition-colors hover:border-primary/30 hover:bg-primary/5"
             >
               <action.Icon className="h-[18px] w-[18px] text-muted-foreground group-hover:text-primary transition-colors" />
               <span>{action.label}</span>
@@ -585,7 +594,7 @@ function DesktopWorkspaceRail({
         </div>
       </div>
 
-      <div className="rounded-2xl ring-1 ring-border bg-card p-4 shadow-soft">
+      <div className="border-b border-border/60 py-5">
         <h3 className="text-sm font-bold text-foreground">What this workspace tracks</h3>
         <div className="mt-3 grid gap-2">
           {workspaceNotes.map((note) => (
@@ -597,7 +606,7 @@ function DesktopWorkspaceRail({
         </div>
       </div>
 
-      <div className="rounded-2xl ring-1 ring-primary/20 bg-primary/[0.04] p-4">
+      <div className="mt-5 rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
           Current section
         </p>
@@ -1122,9 +1131,12 @@ function AppLayout() {
               </button>
             </div>
 
-            <div className="flex-1 flex justify-center">
+            <div className="flex flex-1 items-center justify-center gap-2.5 md:justify-start">
               {isFeed ? (
-                <img src="/logo.png" alt="Zero Club" className="h-8 w-auto object-contain" />
+                <>
+                  <img src="/logo.png" alt="Zero Club" className="h-8 w-auto object-contain" />
+                  <span className="hidden font-display text-[17px] font-semibold tracking-tight md:inline">Feed</span>
+                </>
               ) : (
                 <h1 className="font-display text-[17px] font-semibold tracking-tight">{getPageTitle}</h1>
               )}

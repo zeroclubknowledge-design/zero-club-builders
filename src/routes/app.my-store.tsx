@@ -364,7 +364,7 @@ function MyStorePage() {
 
       {/* ── Create / Edit drawer ── */}
       <Drawer open={editing !== null} onOpenChange={(open) => !open && !saving && setEditing(null)}>
-        <DrawerContent className="border-none bg-background p-0 focus:ring-0 max-w-lg mx-auto max-h-[92dvh] flex flex-col">
+        <DrawerContent desktopVariant="panel" className="border-none bg-background p-0 focus:ring-0 max-w-lg mx-auto max-h-[92dvh] flex flex-col">
           <div className="shrink-0 border-b px-4 pb-3 pt-1 hairline sm:px-6 sm:pb-4 sm:pt-5">
             <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[20px]">
               {editing === "new" ? "New product" : "Edit product"}

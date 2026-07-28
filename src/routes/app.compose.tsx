@@ -446,9 +446,9 @@ function ComposePage() {
   const canPost = (hasBodyText || images.length > 0) && !uploading;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#f8f7f5] dark:bg-background">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#f8f7f5] dark:bg-background md:relative md:inset-auto md:z-0 md:min-h-screen">
       {/* Header */}
-      <header className="relative z-50 flex w-full items-center justify-between border-b border-border bg-background px-4 py-3 sm:px-6">
+      <header className="relative z-50 flex w-full items-center justify-between border-b border-border bg-background px-4 py-3 sm:px-6 md:sticky md:top-0">
         <div className="mx-auto flex w-full max-w-[860px] items-center justify-between">
         <button 
           onClick={() => navigate({ to: "/app" })}

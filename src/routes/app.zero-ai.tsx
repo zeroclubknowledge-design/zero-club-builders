@@ -1,107 +1,106 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Sparkles, Brain, Rocket, Zap, MessageSquare, Cpu, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, Brain, ChevronLeft, Code2, MessageSquare, ShieldCheck, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/app/zero-ai")({
   component: ZeroAIPage,
 });
 
+const capabilities = [
+  {
+    Icon: Brain,
+    title: "Learning support",
+    description: "Explain lessons using the learner's bootcamp, curriculum, and current progress as context.",
+  },
+  {
+    Icon: Code2,
+    title: "Project guidance",
+    description: "Help builders reason through projects while preserving ownership of the work they ship.",
+  },
+  {
+    Icon: MessageSquare,
+    title: "Tutor assistance",
+    description: "Support curriculum planning, learner feedback, and structured knowledge interviews for tutors.",
+  },
+];
+
 function ZeroAIPage() {
-  const navigate = useNavigate();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground selection:bg-primary/30">
-      {/* Background Glows */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full animate-pulse" />
-      </div>
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center gap-4 bg-background/50 backdrop-blur-xl border-b border-border/50">
-        <button 
-          onClick={() => navigate({ to: '/app' })}
-          className="grid h-10 w-10 place-items-center rounded-full bg-card border border-border transition active:scale-90"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <div>
-          <h1 className="text-lg font-display font-bold tracking-tight">Zero AI</h1>
-          <div className="flex items-center gap-1.5">
-            <p className="text-[10px] text-muted-foreground">Your Private Study Buddy</p>
+    <div className="min-h-screen bg-[#f8f7f5] text-foreground dark:bg-background">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto flex min-h-[68px] w-full max-w-[1180px] items-center justify-between gap-4 px-4 md:px-7">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              to="/app"
+              aria-label="Back to feed"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent"
+            >
+              <ChevronLeft className="h-[18px] w-[18px]" />
+            </Link>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Zero Club intelligence</p>
+              <h1 className="truncate font-display text-[18px] font-semibold tracking-tight">Zero AI</h1>
+            </div>
           </div>
+          <span className="rounded-full border border-primary/20 bg-primary/[0.06] px-3 py-1.5 text-[10px] font-semibold text-primary">
+            In development
+          </span>
         </div>
       </header>
 
-      <main className="flex-1 px-6 pt-10 pb-20 relative">
-        {/* Animated Hero Icon */}
-        <div className="flex justify-center mb-10">
-          <div className="relative">
-            <div className={`h-24 w-24 rounded-[32px] bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-glow transition-all duration-1000 ${mounted ?"scale-100 opacity-100" : "scale-50 opacity-0"}`}>
-              <Sparkles className="h-12 w-12 text-white animate-pulse" />
+      <main className="mx-auto w-full max-w-[1180px] px-4 py-7 md:px-7 md:py-10">
+        <section className="grid overflow-hidden rounded-lg border border-border bg-card lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)]">
+          <div className="flex flex-col justify-center px-6 py-10 sm:px-9 md:py-14 lg:px-12">
+            <div className="grid h-12 w-12 place-items-center rounded-lg border border-primary/20 bg-primary/[0.07] text-primary">
+              <Sparkles className="h-6 w-6" />
             </div>
-            <div className="absolute -inset-4 bg-primary/10 blur-2xl rounded-full -z-10 animate-pulse" />
-          </div>
-        </div>
-
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-4xl font-display font-black tracking-tighter leading-none">
-            Your New <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Personal Study Buddy.</span>
-          </h2>
-          <p className="text-muted-foreground text-sm leading-relaxed max-w-[280px] mx-auto">
-            Zero AI is like having your smartest friend from class right in your pocket. It's fun, friendly, and always ready to help you crush your bootcamp goals!
-          </p>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid gap-4 mb-12">
-          {[
-            { icon: Brain, title: "Smart Help, Zero Stress", desc: "Stuck on a lesson? Zero AI explains things simply, just like a good friend would." },
-            { icon: Cpu, title: "Your Coding Partner", desc: "Need a hand with your project? Let's build it together, step-by-step." },
-            { icon: MessageSquare, title: "Always Here for You", desc: "Got a question at 3 AM? Your study buddy is always awake and ready to chat." }
-          ].map((feat, i) => (
-            <div 
-              key={i}
-              className={`p-5 rounded-3xl bg-card border border-border flex gap-4 transition-all duration-700 ${mounted ?"translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
-              style={{ transitionDelay: `${i * 150}ms` }}
-            >
-              <div className="h-12 w-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center shrink-0">
-                <feat.icon className="h-6 w-6 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-bold text-sm">{feat.title}</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">{feat.desc}</p>
-              </div>
+            <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Context-aware support</p>
+            <h2 className="mt-3 max-w-[650px] font-display text-[36px] font-semibold leading-[1.08] tracking-tight sm:text-[42px]">
+              Assistance grounded in the work happening on Zero Club.
+            </h2>
+            <p className="mt-5 max-w-[620px] text-[15px] leading-7 text-muted-foreground">
+              Zero AI is being designed to understand bootcamps, projects, learning progress, and tutor workflows. It will help people move forward without replacing the proof, judgment, or human guidance that makes the platform valuable.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/app/bootcamps" className="inline-flex h-11 items-center gap-2 rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition hover:opacity-90">
+                Explore bootcamps <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link to="/app" className="inline-flex h-11 items-center rounded-lg border border-border bg-background px-5 text-[13px] font-semibold transition hover:bg-accent">
+                Return to feed
+              </Link>
             </div>
-          ))}
-        </div>
-
-        {/* Coming Soon Section */}
-        <div className={`mt-10 p-8 rounded-[40px] bg-gradient-to-b from-primary/5 to-transparent border border-primary/10 text-center relative overflow-hidden transition-all duration-1000 ${mounted ?"scale-100 opacity-100" : "scale-95 opacity-0"}`}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-black text-[10px] rounded-b-xl shadow-glow">
-            Status: Getting Ready
           </div>
-          
-          <h3 className="text-2xl font-display font-black mb-2 mt-4 italic">COMING SOON</h3>
-          <p className="text-sm text-primary/80 font-bold mb-6">Your buddy is almost ready to join the class!</p>
-        </div>
+
+          <div className="border-t border-border bg-background/55 p-5 sm:p-7 lg:border-l lg:border-t-0 lg:p-8">
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-5">
+              <div>
+                <h3 className="text-[16px] font-semibold tracking-tight">Capabilities in development</h3>
+                <p className="mt-1 text-[12px] text-muted-foreground">Built around each role's real workflow.</p>
+              </div>
+              <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
+            </div>
+
+            <div className="divide-y divide-border">
+              {capabilities.map(({ Icon, title, description }) => (
+                <article key={title} className="flex gap-4 py-5">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card text-primary">
+                    <Icon className="h-[18px] w-[18px]" />
+                  </div>
+                  <div>
+                    <h4 className="text-[13.5px] font-semibold">{title}</h4>
+                    <p className="mt-1.5 text-[12px] leading-5 text-muted-foreground">{description}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-4">
+              <p className="text-[11.5px] leading-5 text-muted-foreground">
+                Access will be introduced gradually. Tutor verification interviews and AI assistance remain unavailable until the underlying service is ready.
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
-
-      {/* Bottom Footer */}
-      <footer className="px-6 pb-10 text-center">
-        <button 
-          onClick={() => navigate({ to: '/app' })}
-          className="w-full py-4 rounded-2xl bg-card border border-border text-sm font-bold transition active:scale-95 hover:bg-accent"
-        >
-          Back to Club
-        </button>
-      </footer>
     </div>
   );
 }

@@ -163,14 +163,14 @@ function QuestsPage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#f8f7f5] pb-20 text-foreground dark:bg-background">
       {/* Header */}
-      <div className="fixed left-0 right-0 top-0 z-40 border-b border-border bg-background px-4 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-6">
+      <div className="fixed left-0 right-0 top-0 z-40 border-b border-border bg-background px-4 pb-3.5 pt-[calc(1rem+env(safe-area-inset-top))] sm:px-6 md:sticky md:pt-3.5">
         <div className="mx-auto flex w-full max-w-[900px] items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link to="/app/wallet" className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card tap hover:bg-accent">
             <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
           </Link>
           <h1 className="font-display text-[17px] font-semibold tracking-tight text-foreground">
-            Quests
+            Opportunities
           </h1>
         </div>
 
@@ -184,7 +184,7 @@ function QuestsPage() {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-5 p-4 pt-24 sm:p-6 sm:pt-24">
+      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-5 p-4 pt-24 sm:p-6 sm:pt-24 md:pt-6">
         {isLoading ? (
           <div className="py-24 flex flex-col items-center gap-4">
             <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
