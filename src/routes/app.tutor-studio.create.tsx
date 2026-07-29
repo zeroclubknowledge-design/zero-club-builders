@@ -1,10 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft, ChevronDown, UploadCloud, Play,
   Plus, Trash2, GripVertical, CheckCircle2,
   DollarSign, Globe, Lock, Rocket, Save, Loader2, X
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
@@ -16,10 +16,23 @@ export const Route = createFileRoute("/app/tutor-studio/create")({
 });
 
 function CreateBootcamp() {
+  return <BootcampForm />;
+}
+
+export function BootcampForm({
+  bootcampId,
+  returnTo = "/app/tutor-studio",
+  workspaceLabel = "Tutor Studio",
+}: {
+  bootcampId?: string;
+  returnTo?: string;
+  workspaceLabel?: string;
+}) {
   const navigate = useNavigate();
   const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(Boolean(bootcampId));
   
   // Form State
   const [title, setTitle] = useState("");
@@ -41,6 +54,67 @@ function CreateBootcamp() {
   const [modules, setModules] = useState([
     { id: "m1", title: "Introduction", lessons: [{ id: "l1", title: "Welcome and Orientation", type: "text" }] }
   ]);
+
+  useEffect(() => {
+    if (!bootcampId) return;
+
+    let cancelled = false;
+    const loadBootcamp = async () => {
+      setInitialLoading(true);
+      const { data: bootcamp, error } = await supabase
+        .from("bootcamps")
+        .select("*")
+        .eq("id", bootcampId)
+        .single();
+
+      if (error || !bootcamp) {
+        toast.error(error?.message || "Bootcamp could not be loaded");
+        navigate({ to: returnTo as any });
+        return;
+      }
+
+      const { data: fetchedModules, error: moduleError } = await supabase
+        .from("modules")
+        .select("*, lessons(*)")
+        .eq("bootcamp_id", bootcampId)
+        .order("order_index", { ascending: true });
+
+      if (moduleError) {
+        toast.error(moduleError.message || "Curriculum could not be loaded");
+      }
+
+      if (cancelled) return;
+      setTitle(bootcamp.title || "");
+      setCategory(bootcamp.category || "Development");
+      setDescription(bootcamp.description || "");
+      setPrice(String((Number(bootcamp.price) || 0) / currencyDetails.rate));
+      setIsFree(Number(bootcamp.price) === 0);
+      setBanner(bootcamp.banner_url || null);
+      setVideoPreview(bootcamp.video_url || null);
+      setCouponEnabled(Boolean(bootcamp.coupon_code));
+      setCouponCode(bootcamp.coupon_code || "");
+      setCouponDiscount(String(bootcamp.coupon_discount_percent || 10));
+      setModules(
+        (fetchedModules || []).map((module: any) => ({
+          id: module.id,
+          title: module.title,
+          lessons: [...(module.lessons || [])]
+            .sort((a: any, b: any) => a.order_index - b.order_index)
+            .map((lesson: any) => ({
+              id: lesson.id,
+              title: lesson.title,
+              type: lesson.content_type || "text",
+            })),
+        }))
+      );
+      setInitialLoading(false);
+    };
+
+    loadBootcamp();
+    return () => {
+      cancelled = true;
+    };
+  }, [bootcampId, currencyDetails.rate, navigate, returnTo]);
 
   const numericPrice = isFree ? 0 : toBaseAmount(parseFloat(price || "0"));
   const numericCouponDiscount = Math.min(100, Math.max(0, Number(couponDiscount) || 0));
@@ -73,14 +147,14 @@ function CreateBootcamp() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      let bannerUrl = "";
+      let bannerUrl = banner?.startsWith("http") ? banner : "";
       if (bannerFile) {
         const fileExt = bannerFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
         bannerUrl = await uploadFile('bootcamp-banners', bannerFile, `${user.id}/${fileName}`);
       }
 
-      let videoUrl = "";
+      let videoUrl = videoPreview?.startsWith("http") ? videoPreview : "";
       if (videoPreviewFile) {
         const fileExt = videoPreviewFile.name.split('.').pop();
         const fileName = `video_${Date.now()}.${fileExt}`;
@@ -88,25 +162,40 @@ function CreateBootcamp() {
         videoUrl = await uploadFile('bootcamp-banners', videoPreviewFile, `${user.id}/${fileName}`);
       }
 
-      // Update directly via Supabase client to bypass Vercel Server Function duplex error
-      const { data: newBootcamp, error: dbError } = await supabase
-        .from('bootcamps')
-        .insert([{
-          creator_id: user.id,
-          title,
-          category,
-          description,
-          price: numericPrice,
-          coupon_code: couponEnabled && !isFree && normalizedCouponCode ? normalizedCouponCode : null,
-          coupon_discount_percent: couponEnabled && !isFree && normalizedCouponCode ? numericCouponDiscount : 0,
-          banner_url: bannerUrl,
-          video_url: videoUrl,
-          status: 'active'
-        }])
-        .select()
-        .single();
+      const bootcampPayload = {
+        title,
+        category,
+        description,
+        price: numericPrice,
+        coupon_code: couponEnabled && !isFree && normalizedCouponCode ? normalizedCouponCode : null,
+        coupon_discount_percent: couponEnabled && !isFree && normalizedCouponCode ? numericCouponDiscount : 0,
+        banner_url: bannerUrl || null,
+        video_url: videoUrl || null,
+        status: 'active'
+      };
+
+      const saveQuery = bootcampId
+        ? supabase.from('bootcamps').update(bootcampPayload).eq('id', bootcampId)
+        : supabase.from('bootcamps').insert([{ ...bootcampPayload, creator_id: user.id }]);
+      const { data: newBootcamp, error: dbError } = await saveQuery.select().single();
 
       if (dbError) throw dbError;
+
+      if (bootcampId) {
+        const { error: clubUpdateError } = await supabase
+          .from('clubs')
+          .update({
+            name: title,
+            description,
+            price: numericPrice,
+            banner_url: bannerUrl || null,
+          })
+          .eq('bootcamp_id', bootcampId);
+        if (clubUpdateError) throw clubUpdateError;
+
+        const { error: clearError } = await supabase.from('modules').delete().eq('bootcamp_id', bootcampId);
+        if (clearError) throw clearError;
+      }
 
       // Insert Modules
       for (let i = 0; i < modules.length; i++) {
@@ -121,10 +210,7 @@ function CreateBootcamp() {
           .select()
           .single();
 
-        if (modError) {
-          console.error("Module insert error:", modError);
-          continue; // best effort
-        }
+        if (modError) throw modError;
 
         // Insert Lessons (Topics)
         const lessonsToInsert = mod.lessons.map((lesson, j) => ({
@@ -135,18 +221,21 @@ function CreateBootcamp() {
         }));
 
         if (lessonsToInsert.length > 0) {
-          await supabase.from('lessons').insert(lessonsToInsert);
+          const { error: lessonError } = await supabase.from('lessons').insert(lessonsToInsert);
+          if (lessonError) throw lessonError;
         }
       }
 
-      // Create Bootcamp Club
-      const { data: newClub, error: clubError } = await supabase
+      // Create the temporary bootcamp club only for a new bootcamp.
+      if (!bootcampId) {
+        const { data: newClub, error: clubError } = await supabase
         .from('clubs')
         .insert([{
           name: title,
           description: description,
           category: 'Bootcamp',
           creator_id: user.id,
+          bootcamp_id: newBootcamp.id,
           is_private: true,
           price: numericPrice,
           banner_url: bannerUrl,
@@ -155,7 +244,7 @@ function CreateBootcamp() {
         .select()
         .single();
         
-      if (!clubError && newClub) {
+        if (!clubError && newClub) {
         const membersToInsert = [{
           club_id: newClub.id,
           profile_id: user.id,
@@ -178,11 +267,12 @@ function CreateBootcamp() {
           });
         }
 
-        await supabase.from('club_members').insert(membersToInsert);
+          await supabase.from('club_members').insert(membersToInsert);
+        }
       }
 
-      toast.success("Bootcamp launched successfully!");
-      navigate({ to: "/app/tutor-studio" });
+      toast.success(bootcampId ? "Bootcamp updated successfully" : "Bootcamp launched successfully!");
+      navigate({ to: returnTo as any });
     } catch (error: any) {
       toast.error(error.message || "Failed to launch bootcamp");
     } finally {
@@ -226,19 +316,27 @@ function CreateBootcamp() {
 
   const stepLabels = ["BASICS", "CURRICULUM", "LAUNCH"];
 
+  if (initialLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24 text-foreground">
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-50 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[1040px] items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link
-            to="/app/tutor-studio"
+          <button
+            onClick={() => navigate({ to: returnTo as any })}
             className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card tap hover:bg-muted"
           >
             <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
-          </Link>
-          <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Tutor Studio</p><h1 className="text-[18px] font-semibold tracking-tight text-foreground">Create bootcamp</h1></div>
+          </button>
+          <div><p className="text-[10px] font-medium uppercase text-muted-foreground">{workspaceLabel}</p><h1 className="text-[18px] font-semibold tracking-tight text-foreground">{bootcampId ? "Edit bootcamp" : "Create bootcamp"}</h1></div>
         </div>
         <button onClick={saveDraft} className="flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[12px] font-semibold text-foreground tap hover:bg-muted sm:px-4">
           <Save className="h-3.5 w-3.5" /> Save Draft
@@ -766,7 +864,7 @@ function CreateBootcamp() {
           className="flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-[14px] font-semibold text-primary-foreground tap hover:opacity-90 disabled:opacity-50"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {step === 3 ? "Launch bootcamp" : "Continue"}
+          {step === 3 ? (bootcampId ? "Save bootcamp" : "Launch bootcamp") : "Continue"}
         </button>
         </div>
       </footer>

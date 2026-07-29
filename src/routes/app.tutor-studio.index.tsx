@@ -60,7 +60,7 @@ function TutorStudioPage() {
     enabled: !!activeBootcampId
   });
 
-  // Club linked to the active bootcamp (created alongside it with the same name)
+  // Club linked to the active bootcamp.
   const [roleDrawer, setRoleDrawer] = useState<null | "rep" | "admins">(null);
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
 
@@ -110,8 +110,7 @@ function TutorStudioPage() {
       const { data } = await supabase
         .from('clubs')
         .select('*')
-        .eq('creator_id', activeBootcamp!.creator_id)
-        .eq('name', activeBootcamp!.title)
+        .eq('bootcamp_id', activeBootcampId!)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -276,6 +275,21 @@ function TutorStudioPage() {
 
     if (!data || data.length === 0) {
       toast.error(`Changes were not saved. You may not have permission to update this bootcamp or it doesn't exist.`);
+      return;
+    }
+
+    const { error: clubError } = await supabase
+      .from('clubs')
+      .update({
+        name: bootcampSettings.title,
+        description: bootcampSettings.description,
+        price: toBaseAmount(Number(bootcampSettings.price) || 0),
+        banner_url: savedBannerUrl || null,
+      })
+      .eq('bootcamp_id', activeBootcampId);
+
+    if (clubError) {
+      toast.error(`Bootcamp saved, but its club could not be updated: ${clubError.message}`);
       return;
     }
 

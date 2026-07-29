@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS bootcamps (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   creator_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  assigned_tutor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   description TEXT,
   category TEXT NOT NULL,
@@ -111,13 +112,15 @@ CREATE POLICY "profiles_update_own"
 -- POLICIES: bootcamps
 -- =========================================
 CREATE POLICY "bootcamps_select_public"
-  ON bootcamps FOR SELECT USING (status = 'active' OR auth.uid() = creator_id);
+  ON bootcamps FOR SELECT USING (status = 'active' OR auth.uid() = creator_id OR auth.uid() = assigned_tutor_id);
 
 CREATE POLICY "bootcamps_insert_tutor"
   ON bootcamps FOR INSERT WITH CHECK (auth.uid() = creator_id);
 
 CREATE POLICY "bootcamps_update_tutor"
-  ON bootcamps FOR UPDATE USING (auth.uid() = creator_id);
+  ON bootcamps FOR UPDATE
+  USING (auth.uid() = creator_id OR auth.uid() = assigned_tutor_id)
+  WITH CHECK (auth.uid() = creator_id OR auth.uid() = assigned_tutor_id);
 
 CREATE POLICY "bootcamps_delete_tutor"
   ON bootcamps FOR DELETE USING (auth.uid() = creator_id);
@@ -322,6 +325,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- Clubs table
 CREATE TABLE IF NOT EXISTS clubs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  bootcamp_id UUID REFERENCES bootcamps(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
   category TEXT NOT NULL,

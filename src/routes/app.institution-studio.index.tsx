@@ -245,6 +245,7 @@ function InstitutionHub() {
           description: newBootcamp.description,
           category: "Bootcamp",
           creator_id: profile.id,
+          bootcamp_id: created.id,
           is_private: true,
           price: toBaseAmount(Number(newBootcamp.price) || 0),
           banner_url: bannerUrl,
@@ -895,6 +896,19 @@ function InstitutionHub() {
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="min-w-[160px]">
+                              <DropdownMenuItem
+                                className="text-[13px]"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  navigate({
+                                    to: "/app/bootcamps/$id/edit",
+                                    params: { id: b.id },
+                                    search: { source: "institution" },
+                                  });
+                                }}
+                              >
+                                <Edit3 className="h-3.5 w-3.5 mr-2" /> Edit bootcamp
+                              </DropdownMenuItem>
                               <DropdownMenuItem asChild className="text-[13px]">
                                 <Link to="/app/bootcamps/$id" params={{ id: b.id }}>
                                   <Eye className="h-3.5 w-3.5 mr-2" /> View details

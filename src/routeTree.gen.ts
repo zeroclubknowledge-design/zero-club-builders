@@ -69,6 +69,7 @@ import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
 import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
+import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -374,6 +375,11 @@ const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
   path: '/notes/$id/edit',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
+  id: '/bootcamps_/$id/edit',
+  path: '/bootcamps/$id/edit',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
+  '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -490,6 +497,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/tutor-studio': typeof AppTutorStudioIndexRoute
   '/app/wallet': typeof AppWalletIndexRoute
+  '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -553,6 +561,7 @@ export interface FileRoutesById {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
+  '/app/bootcamps_/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/notes_/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -617,6 +626,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tutor-studio/'
     | '/app/wallet/'
+    | '/app/bootcamps/$id/edit'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
@@ -674,6 +684,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tutor-studio'
     | '/app/wallet'
+    | '/app/bootcamps/$id/edit'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
@@ -736,6 +747,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tutor-studio/'
     | '/app/wallet/'
+    | '/app/bootcamps_/$id/edit'
     | '/app/notes_/$id/edit'
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
@@ -1170,6 +1182,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNotesIdEditRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/bootcamps_/$id/edit': {
+      id: '/app/bootcamps_/$id/edit'
+      path: '/bootcamps/$id/edit'
+      fullPath: '/app/bootcamps/$id/edit'
+      preLoaderRoute: typeof AppBootcampsIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -1292,6 +1311,7 @@ interface AppRouteChildren {
   AppGiftsIndexRoute: typeof AppGiftsIndexRoute
   AppProfileIndexRoute: typeof AppProfileIndexRoute
   AppWalletIndexRoute: typeof AppWalletIndexRoute
+  AppBootcampsIdEditRoute: typeof AppBootcampsIdEditRoute
   AppNotesIdEditRoute: typeof AppNotesIdEditRoute
   AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
 }
@@ -1335,6 +1355,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGiftsIndexRoute: AppGiftsIndexRoute,
   AppProfileIndexRoute: AppProfileIndexRoute,
   AppWalletIndexRoute: AppWalletIndexRoute,
+  AppBootcampsIdEditRoute: AppBootcampsIdEditRoute,
   AppNotesIdEditRoute: AppNotesIdEditRoute,
   AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
 }

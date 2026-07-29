@@ -119,6 +119,7 @@ function SidebarContent({
 }) {
   const [accounts, setAccounts] = React.useState<any[]>([]);
   const [institutionActiveTab, setInstitutionActiveTab] = React.useState("overview");
+  const isLearner = !profile?.account_type || profile.account_type === "Learner";
 
   React.useEffect(() => {
     setAccounts(getSavedAccounts());
@@ -364,16 +365,16 @@ function SidebarContent({
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
               { Icon: IconGem, label: "Membership", to: "/app/premium" },
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
-              { Icon: IconStore, label: "Zero Store", to: "/app/store" },
-              { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
+              ...(!isLearner ? [{ Icon: IconStore, label: "Zero Store", to: "/app/store" }] : []),
+              ...(!isLearner ? [{ Icon: IconClubs, label: "Clubs", to: "/app/clubs" }] : []),
               { Icon: Rocket, label: "Opportunities", to: "/app/quests" },
               { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
               { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
               { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
-              { Icon: IconNotes, label: "Drafts", to: "/app/drafts" },
+              ...(!isLearner ? [{ Icon: IconNotes, label: "Drafts", to: "/app/drafts" }] : []),
               { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
               { Icon: Zap, label: "Zero AI", to: "/app/zero-ai" },
-              { Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" },
+              ...(!isLearner ? [{ Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" }] : []),
               ...(profile?.account_type === "Tutor"
                 ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
                 : []),
@@ -505,7 +506,6 @@ function DesktopWorkspaceRail({
   const primaryActions = isInstitution
     ? [
         { label: "Institution Hub", to: "/app/institution-studio", Icon: IconInstitution },
-        { label: "Tutor Studio", to: "/app/tutor-studio", Icon: IconPresentation },
         { label: "Organization bootcamps", to: "/app/institution-studio", Icon: IconLearn },
       ]
     : isTutor

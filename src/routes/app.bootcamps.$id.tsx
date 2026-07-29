@@ -8,6 +8,7 @@ import {
   Layers3,
   Loader2,
   PlayCircle,
+  Pencil,
   ShieldCheck,
   Sparkles,
   Star,
@@ -67,9 +68,7 @@ function BootcampDetail() {
       const { data: club } = await supabase
         .from("clubs")
         .select("*")
-        .eq("name", bootcamp.title)
-        .eq("creator_id", bootcamp.creator_id)
-        .eq("category", "Bootcamp")
+        .eq("bootcamp_id", bootcamp.id)
         .maybeSingle();
 
       return { bootcamp: { ...bootcamp, profiles: creator }, modules, club };
@@ -85,10 +84,11 @@ function BootcampDetail() {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
+  const [isClubAdmin, setIsClubAdmin] = useState(false);
 
   useEffect(() => {
     if (bootcamp?.id) checkEnrollment();
-  }, [bootcamp?.id]);
+  }, [bootcamp?.id, club?.id]);
 
   async function checkEnrollment() {
     const {
@@ -110,6 +110,17 @@ function BootcampDetail() {
         .eq("bootcamp_id", bootcamp.id)
         .single();
       setIsEnrolled(!!data);
+
+      if (club?.id) {
+        const { data: membership } = await supabase
+          .from("club_members")
+          .select("role")
+          .eq("club_id", club.id)
+          .eq("profile_id", session.user.id)
+          .eq("role", "Administrator")
+          .maybeSingle();
+        setIsClubAdmin(Boolean(membership));
+      }
     }
   }
 
@@ -199,7 +210,7 @@ function BootcampDetail() {
   const couponDiscountPct = Math.min(100, Math.max(0, Number(bootcamp.coupon_discount_percent) || 0));
   const couponPrice = appliedCoupon ? Math.round(finalPrice * (1 - couponDiscountPct / 100)) : finalPrice;
   const formatPrice = (value: number) => format(value);
-  const isTutor = currentUser?.id === bootcamp.creator_id;
+  const canManageBootcamp = currentUser?.id === bootcamp.creator_id || currentUser?.id === bootcamp.assigned_tutor_id || isClubAdmin;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -333,6 +344,16 @@ function BootcampDetail() {
 
         <footer className="mt-auto -mx-5 border-t border-border bg-card/60 px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-8">
           <div className="space-y-5">
+            {canManageBootcamp && (
+              <Link
+                to="/app/bootcamps/$id/edit"
+                params={{ id: bootcamp.id }}
+                search={{ source: currentUser?.account_type === "Institution" ? "institution" : "tutor" }}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/[0.06] text-[13px] font-semibold text-primary transition hover:bg-primary/[0.1]"
+              >
+                <Pencil className="h-4 w-4" /> Edit bootcamp
+              </Link>
+            )}
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Ready to join?</p>
@@ -438,7 +459,7 @@ function BootcampDetail() {
               </button>
             )}
 
-            {(!isEnrolled && isTutor) && (
+            {(!isEnrolled && canManageBootcamp) && (
               <div className="mt-3 space-y-3">
                 <Link
                   to="/app/live/$classId"
