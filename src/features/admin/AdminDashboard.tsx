@@ -227,10 +227,10 @@ export function AdminDashboard() {
       </header>
 
       <div className="mx-auto grid w-full max-w-[1500px] lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="no-scrollbar hidden border-r border-border/70 px-3 py-5 lg:sticky lg:top-[61px] lg:block lg:h-[calc(100vh-61px)] lg:self-start lg:overflow-y-auto">
+        <aside className="no-scrollbar hidden border-r border-border/70 px-3 py-5 lg:sticky lg:top-[61px] lg:flex lg:h-[calc(100vh-61px)] lg:flex-col lg:self-start lg:overflow-y-auto">
           <p className="px-3 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operations</p>
           <nav className="mt-3 space-y-1">{NAV_ITEMS.map(({ id, label, Icon }) => <AdminNavButton key={id} active={activeTab === id} label={label} Icon={Icon} onClick={() => setActiveTab(id)} badge={id === "moderation" ? data.metrics.open_reports : undefined} />)}</nav>
-          <div className="mt-8 border-t border-border pt-5"><div className="rounded-lg bg-[#171218] p-4 text-white"><HeartPulse className="h-4 w-4 text-[#f06ac3]" /><p className="mt-3 text-[12px] font-semibold">Platform pulse</p><p className="mt-1 text-[10.5px] leading-relaxed text-white/55">{compact(data.metrics.notifications_24h)} notifications delivered in the last 24 hours.</p></div></div>
+          <div className="mt-8 border-t border-border pt-5 lg:mt-auto"><div className="rounded-lg bg-[#171218] p-4 text-white"><HeartPulse className="h-4 w-4 text-[#f06ac3]" /><p className="mt-3 text-[12px] font-semibold">Platform pulse</p><p className="mt-1 text-[10.5px] leading-relaxed text-white/55">{compact(data.metrics.notifications_24h)} notifications delivered in the last 24 hours.</p></div></div>
         </aside>
 
         <main className="min-w-0 px-4 pb-12 pt-4 md:px-6 md:pt-6 xl:px-8">
