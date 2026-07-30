@@ -5,6 +5,7 @@ import {
   Activity,
   BadgeCheck,
   Ban,
+  BarChart3,
   BellRing,
   BookOpen,
   BriefcaseBusiness,
@@ -19,24 +20,38 @@ import {
   KeyRound,
   LayoutDashboard,
   Loader2,
+  Megaphone,
   MessageSquareText,
   PackageOpen,
+  Pencil,
   RefreshCw,
   Search,
   Settings2,
   ShieldCheck,
   ShieldOff,
   Store,
+  Trash2,
   Users,
   UsersRound,
   WalletCards,
   X,
 } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as ChartTooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
-type AdminTab = "overview" | "people" | "moderation" | "learning" | "community" | "marketplace" | "commerce" | "system";
+type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "community" | "marketplace" | "commerce" | "ads" | "system";
 
 type Snapshot = {
   metrics: Record<string, number>;
@@ -57,14 +72,19 @@ const EMPTY_SNAPSHOT: Snapshot = {
 
 const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "overview", label: "Overview", Icon: LayoutDashboard },
+  { id: "analytics", label: "Analytics", Icon: BarChart3 },
   { id: "people", label: "People", Icon: Users },
   { id: "moderation", label: "Moderation", Icon: FileWarning },
   { id: "learning", label: "Learning", Icon: GraduationCap },
   { id: "community", label: "Community", Icon: UsersRound },
   { id: "marketplace", label: "Marketplace", Icon: BriefcaseBusiness },
   { id: "commerce", label: "Commerce", Icon: CircleDollarSign },
+  { id: "ads", label: "Ads Manager", Icon: Megaphone },
   { id: "system", label: "System", Icon: Settings2 },
 ];
+
+const ADS_MIGRATION_FILE = "20260730150000_create_zero_club_ads_and_analytics.sql";
+const isMissingRpc = (error: any) => error?.code === "PGRST202" || /function .* does not exist|Could not find the function/i.test(error?.message || "");
 
 const compact = (value?: number) => new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(Number(value || 0));
 const formatDate = (value?: string) => value ? new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "-";
@@ -105,12 +125,43 @@ export function AdminDashboard() {
         admin_update_gig_status: "Gig status updated",
         admin_update_bootcamp_status: "Bootcamp status updated",
         admin_update_platform_setting: "Platform setting updated",
+        admin_save_promotion: "Campaign saved",
+        admin_set_promotion_status: "Campaign status updated",
+        admin_delete_promotion: "Campaign deleted",
       };
       toast.success(messages[variables.fn] || "Change saved");
       queryClient.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
       queryClient.invalidateQueries({ queryKey: ["gig-marketplace"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-promotions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
     },
     onError: (error: any) => toast.error(error.message || "The admin action could not be completed"),
+  });
+
+  const analyticsQuery = useQuery({
+    queryKey: ["admin-analytics"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_admin_analytics");
+      if (error) throw error;
+      return data || {};
+    },
+    enabled: activeTab === "analytics",
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  const promotionsQuery = useQuery({
+    queryKey: ["admin-promotions"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_admin_promotions");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: activeTab === "ads",
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const filteredUsers = useMemo(() => {
@@ -176,7 +227,7 @@ export function AdminDashboard() {
       </header>
 
       <div className="mx-auto grid w-full max-w-[1500px] lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="hidden min-h-[calc(100vh-64px)] border-r border-border/70 px-3 py-5 lg:block">
+        <aside className="no-scrollbar hidden border-r border-border/70 px-3 py-5 lg:sticky lg:top-[61px] lg:block lg:h-[calc(100vh-61px)] lg:self-start lg:overflow-y-auto">
           <p className="px-3 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operations</p>
           <nav className="mt-3 space-y-1">{NAV_ITEMS.map(({ id, label, Icon }) => <AdminNavButton key={id} active={activeTab === id} label={label} Icon={Icon} onClick={() => setActiveTab(id)} badge={id === "moderation" ? data.metrics.open_reports : undefined} />)}</nav>
           <div className="mt-8 border-t border-border pt-5"><div className="rounded-lg bg-[#171218] p-4 text-white"><HeartPulse className="h-4 w-4 text-[#f06ac3]" /><p className="mt-3 text-[12px] font-semibold">Platform pulse</p><p className="mt-1 text-[10.5px] leading-relaxed text-white/55">{compact(data.metrics.notifications_24h)} notifications delivered in the last 24 hours.</p></div></div>
@@ -186,6 +237,8 @@ export function AdminDashboard() {
           <div className="mb-5 flex gap-1 overflow-x-auto border-b border-border lg:hidden no-scrollbar">{NAV_ITEMS.map(({ id, label, Icon }) => <button key={id} onClick={() => setActiveTab(id)} className={`relative flex h-11 shrink-0 items-center gap-1.5 px-3 text-[11px] font-semibold ${activeTab === id ? "text-foreground" : "text-muted-foreground"}`}><Icon className="h-3.5 w-3.5" />{label}{activeTab === id && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-primary" />}</button>)}</div>
 
           {activeTab === "overview" && <Overview snapshot={data} format={format} onNavigate={setActiveTab} />}
+          {activeTab === "analytics" && <Analytics query={analyticsQuery} format={format} />}
+          {activeTab === "ads" && <AdsManager query={promotionsQuery} busy={action.isPending} runAction={runAction} />}
           {activeTab === "people" && <People users={filteredUsers} search={userSearch} setSearch={setUserSearch} type={userType} setType={setUserType} busy={action.isPending} runAction={runAction} />}
           {activeTab === "moderation" && <Moderation reports={data.reports} busy={action.isPending} runAction={runAction} />}
           {activeTab === "learning" && <Learning bootcamps={data.bootcamps} format={format} busy={action.isPending} runAction={runAction} />}
@@ -246,9 +299,231 @@ function Commerce({ snapshot, format }: { snapshot: Snapshot; format: (value: nu
 
 function System({ snapshot, busy, runAction }: any) { const m = snapshot.metrics; return <div><SectionHeading eyebrow="Platform operations" title="System controls" detail="Manage availability, review rules, delivery health, and admin accountability." /><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"><section><h2 className="text-[14px] font-semibold">Platform settings</h2><div className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{snapshot.settings.map((setting: any) => { const enabled = setting.value === true || setting.value === "true"; return <div key={setting.key} className="flex items-center gap-4 p-4"><div className="min-w-0 flex-1"><p className="text-[12px] font-semibold">{String(setting.key).replaceAll("_", " ")}</p><p className="mt-1 text-[9.5px] leading-relaxed text-muted-foreground">{setting.description}</p></div><button disabled={busy} onClick={() => runAction("admin_update_platform_setting", { setting_key: setting.key, setting_value: !enabled })} className={`relative h-6 w-11 shrink-0 rounded-full transition ${enabled ? "bg-primary" : "bg-muted"}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${enabled ? "left-6" : "left-1"}`} /></button></div>; })}</div></section><section><h2 className="text-[14px] font-semibold">Delivery health</h2><div className="mt-3 space-y-3"><HealthRow Icon={BellRing} label="Push devices" value={compact(m.push_devices)} status="Connected" /><HealthRow Icon={MessageSquareText} label="Notifications, 24h" value={compact(m.notifications_24h)} status="Delivering" /><HealthRow Icon={Activity} label="Weekly posts" value={compact(m.posts_7d)} status="Active" /></div></section></div><div className="mt-7"><AuditList logs={snapshot.audit_logs} /></div></div>; }
 
+function MigrationNote({ file, title }: { file: string; title: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card px-5 py-12 text-center">
+      <ShieldOff className="mx-auto h-6 w-6 text-muted-foreground" />
+      <h3 className="mt-3 text-[14px] font-semibold">{title}</h3>
+      <p className="mx-auto mt-1 max-w-sm text-[10.5px] leading-relaxed text-muted-foreground">This section needs a one-time database setup. Run the file below in the Supabase SQL Editor, then refresh.</p>
+      <div className="mx-auto mt-4 max-w-md rounded-lg bg-muted/70 px-4 py-3 ring-1 ring-border"><code className="block break-all text-[11px] font-semibold">{file}</code></div>
+    </div>
+  );
+}
+
+function TabLoading() { return <div className="flex min-h-[300px] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>; }
+
+function TrendChart({ title, data, color, kind }: { title: string; data: any[]; color: string; kind: "area" | "bar" }) {
+  const gid = `grad-${title.replaceAll(" ", "-").toLowerCase()}`;
+  return (
+    <section className="rounded-lg border border-border bg-card p-4">
+      <h2 className="text-[13px] font-semibold">{title}</h2>
+      <p className="text-[9.5px] text-muted-foreground">Last 30 days</p>
+      <div className="mt-3 h-[200px]">
+        <ResponsiveContainer width="100%" height="100%">
+          {kind === "area" ? (
+            <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -14 }}>
+              <defs><linearGradient id={gid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity={0.28} /><stop offset="100%" stopColor={color} stopOpacity={0} /></linearGradient></defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.15} />
+              <XAxis dataKey="day" tick={{ fontSize: 9 }} interval={6} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 9 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <ChartTooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+              <Area type="monotone" dataKey="value" name={title} stroke={color} strokeWidth={2} fill={`url(#${gid})`} />
+            </AreaChart>
+          ) : (
+            <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -14 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.15} />
+              <XAxis dataKey="day" tick={{ fontSize: 9 }} interval={6} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 9 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <ChartTooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+              <Bar dataKey="value" name={title} fill={color} radius={[3, 3, 0, 0]} />
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </section>
+  );
+}
+
+function Analytics({ query, format }: { query: any; format: (value: number) => string }) {
+  const { data, isLoading, error, refetch } = query;
+  if (isLoading) return <TabLoading />;
+  if (error) {
+    if (isMissingRpc(error)) return <MigrationNote file={ADS_MIGRATION_FILE} title="Analytics setup required" />;
+    return <EmptyState Icon={ShieldOff} title="Analytics could not load" detail={error.message || "Try refreshing."} />;
+  }
+  const a = data || {};
+  const m = a.membership || {};
+  const e = a.engagement || {};
+  const ctr = Number(e.promo_impressions) > 0 ? ((Number(e.promo_clicks) / Number(e.promo_impressions)) * 100).toFixed(1) : "0.0";
+  return (
+    <div>
+      <SectionHeading eyebrow="Platform intelligence" title="Analytics" detail="Growth, engagement, membership mix, and campaign performance." action={<button onClick={() => refetch()} className="rounded-lg border border-border px-3 py-2 text-[10.5px] font-semibold hover:bg-muted">Refresh</button>} />
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <MetricCard Icon={Users} label="Premium members" value={compact(Number(m.premium || 0) + Number(m.premium_plus || 0))} detail={`${compact(m.premium)} Premium · ${compact(m.premium_plus)} Premium+`} tone="bg-amber-500/10 text-amber-600" />
+        <MetricCard Icon={Activity} label="Total likes" value={compact(e.total_likes)} detail={`${compact(e.total_comments)} comments · ${compact(e.total_reposts)} reposts`} tone="bg-violet-500/10 text-violet-600" />
+        <MetricCard Icon={Megaphone} label="Ad impressions" value={compact(e.promo_impressions)} detail={`${compact(e.promo_clicks)} clicks · ${ctr}% CTR`} tone="bg-sky-500/10 text-sky-600" />
+        <MetricCard Icon={BarChart3} label="Posts, 30 days" value={compact(e.posts_30d)} detail={`${compact(e.active_promotions)} active campaigns`} tone="bg-emerald-500/10 text-emerald-600" />
+      </div>
+      <div className="mt-5 grid gap-4 xl:grid-cols-2">
+        <TrendChart title="New signups" data={a.signups_daily || []} color="#cc208f" kind="area" />
+        <TrendChart title="Posts published" data={a.posts_daily || []} color="#7c3aed" kind="bar" />
+      </div>
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <TrendChart title="Bootcamp enrollments" data={a.enrollments_daily || []} color="#059669" kind="area" />
+        <section className="rounded-lg border border-border bg-card p-4">
+          <h2 className="text-[13px] font-semibold">Membership mix</h2>
+          <p className="text-[9.5px] text-muted-foreground">Accounts by role and plan</p>
+          <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+            <Pulse label="Learners" value={m.learners} /><Pulse label="Tutors" value={m.tutors} /><Pulse label="Institutions" value={m.institutions} />
+            <Pulse label="Free plan" value={m.free} /><Pulse label="Premium" value={m.premium} /><Pulse label="Premium+" value={m.premium_plus} />
+          </div>
+        </section>
+      </div>
+      <div className="mt-5 grid gap-6 xl:grid-cols-2">
+        <section className="border-t border-border pt-5">
+          <h2 className="text-[14px] font-semibold">Top bootcamps</h2>
+          <div className="mt-3 divide-y divide-border">
+            {(a.top_bootcamps || []).map((b: any) => (
+              <div key={b.id} className="flex items-center gap-3 py-3">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600"><GraduationCap className="h-4 w-4" /></div>
+                <div className="min-w-0 flex-1"><p className="truncate text-[12px] font-semibold">{b.title}</p><p className="text-[9.5px] text-muted-foreground">@{b.creator_username || "provider"} · {format(b.price)}</p></div>
+                <div className="text-right"><p className="text-[12px] font-semibold tabular-nums">{compact(b.learners)}</p><p className="text-[8.5px] text-muted-foreground">learners</p></div>
+              </div>
+            ))}
+            {!(a.top_bootcamps || []).length && <EmptyLine text="No bootcamps yet." />}
+          </div>
+        </section>
+        <section className="border-t border-border pt-5">
+          <h2 className="text-[14px] font-semibold">Top posts</h2>
+          <div className="mt-3 divide-y divide-border">
+            {(a.top_posts || []).map((p: any) => (
+              <div key={p.id} className="py-3">
+                <div className="flex items-center justify-between"><p className="text-[10px] font-semibold">@{p.author_username || "builder"}</p><span className="text-[9px] text-muted-foreground">{formatDate(p.created_at)}</span></div>
+                <p className="mt-1.5 line-clamp-2 text-[11.5px] leading-relaxed text-foreground/80">{p.content}</p>
+                <p className="mt-1.5 text-[9px] text-muted-foreground">{compact(p.likes_count)} likes · {compact(p.comments_count)} comments</p>
+              </div>
+            ))}
+            {!(a.top_posts || []).length && <EmptyLine text="No posts yet." />}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+const EMPTY_CAMPAIGN = { id: null as string | null, title: "", body: "", mediaUrl: "", targetUrl: "", cta: "Learn more", audience: "free_members", sponsor: "", startsAt: "", endsAt: "" };
+
+function AdsManager({ query, busy, runAction }: { query: any; busy: boolean; runAction: (fn: string, args: Record<string, any>) => void }) {
+  const { data, isLoading, error } = query;
+  const [form, setForm] = useState({ ...EMPTY_CAMPAIGN });
+  const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
+
+  if (isLoading) return <TabLoading />;
+  if (error) {
+    if (isMissingRpc(error)) return <MigrationNote file={ADS_MIGRATION_FILE} title="Ads Manager setup required" />;
+    return <EmptyState Icon={ShieldOff} title="Campaigns could not load" detail={error.message || "Try refreshing."} />;
+  }
+  const promotions = (data || []) as any[];
+
+  const submit = () => {
+    if (!form.title.trim()) { toast.error("Give the campaign a title"); return; }
+    runAction("admin_save_promotion", {
+      promotion_id: form.id,
+      new_title: form.title,
+      new_body: form.body || null,
+      new_media_url: form.mediaUrl || null,
+      new_target_url: form.targetUrl || null,
+      new_cta_label: form.cta || "Learn more",
+      new_audience: form.audience,
+      sponsor_username: form.sponsor || null,
+      new_starts_at: form.startsAt ? new Date(form.startsAt).toISOString() : null,
+      new_ends_at: form.endsAt ? new Date(`${form.endsAt}T23:59:59`).toISOString() : null,
+    });
+    setForm({ ...EMPTY_CAMPAIGN });
+  };
+
+  const edit = (promo: any) => setForm({
+    id: promo.id, title: promo.title || "", body: promo.body || "", mediaUrl: promo.media_url || "",
+    targetUrl: promo.target_url || "", cta: promo.cta_label || "Learn more", audience: promo.audience || "free_members",
+    sponsor: promo.sponsor_username || "", startsAt: promo.starts_at ? promo.starts_at.slice(0, 10) : "", endsAt: promo.ends_at ? promo.ends_at.slice(0, 10) : "",
+  });
+
+  const field = "h-10 w-full rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary/50";
+  const label = "text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground";
+
+  return (
+    <div>
+      <SectionHeading eyebrow="Sponsored placements" title="Ads Manager" detail="Run campaigns for premium members and partners. New campaigns start as drafts — activate them when ready." />
+      <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
+        <section className="h-fit rounded-lg border border-border bg-card p-5 xl:sticky xl:top-[77px]">
+          <h2 className="text-[13px] font-semibold">{form.id ? "Edit campaign" : "New campaign"}</h2>
+          <div className="mt-4 space-y-3">
+            <div><p className={label}>Title</p><input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Spotlight: Design Systems Bootcamp" className={`${field} mt-1.5`} /></div>
+            <div><p className={label}>Message</p><textarea value={form.body} onChange={(e) => set("body", e.target.value)} rows={3} placeholder="Short pitch shown to members" className={`${field} h-auto resize-none py-2.5 mt-1.5`} /></div>
+            <div><p className={label}>Sponsor username</p><input value={form.sponsor} onChange={(e) => set("sponsor", e.target.value)} placeholder="premium member being promoted" className={`${field} mt-1.5`} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><p className={label}>Image URL</p><input value={form.mediaUrl} onChange={(e) => set("mediaUrl", e.target.value)} placeholder="https://…" className={`${field} mt-1.5`} /></div>
+              <div><p className={label}>Destination URL</p><input value={form.targetUrl} onChange={(e) => set("targetUrl", e.target.value)} placeholder="https://…" className={`${field} mt-1.5`} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><p className={label}>Button label</p><input value={form.cta} onChange={(e) => set("cta", e.target.value)} className={`${field} mt-1.5`} /></div>
+              <div><p className={label}>Audience</p><select value={form.audience} onChange={(e) => set("audience", e.target.value)} className={`${field} mt-1.5`}><option value="free_members">Free members only</option><option value="everyone">Everyone</option></select></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><p className={label}>Starts</p><input type="date" value={form.startsAt} onChange={(e) => set("startsAt", e.target.value)} className={`${field} mt-1.5`} /></div>
+              <div><p className={label}>Ends</p><input type="date" value={form.endsAt} onChange={(e) => set("endsAt", e.target.value)} className={`${field} mt-1.5`} /></div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button disabled={busy} onClick={submit} className="flex-1 rounded-lg bg-primary py-2.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50">{form.id ? "Save changes" : "Create campaign"}</button>
+              {form.id && <button onClick={() => setForm({ ...EMPTY_CAMPAIGN })} className="rounded-lg border border-border px-4 text-[11px] font-semibold hover:bg-muted">Cancel</button>}
+            </div>
+          </div>
+        </section>
+        <section className="min-w-0">
+          <div className="grid grid-cols-3 gap-3">
+            <SmallMetric label="Active" value={promotions.filter((p) => p.status === "active").length} />
+            <SmallMetric label="Impressions" value={compact(promotions.reduce((sum, p) => sum + Number(p.impressions || 0), 0))} />
+            <SmallMetric label="Clicks" value={compact(promotions.reduce((sum, p) => sum + Number(p.clicks || 0), 0))} />
+          </div>
+          <div className="mt-4 space-y-3">
+            {promotions.length ? promotions.map((promo) => {
+              const promoCtr = Number(promo.impressions) > 0 ? ((Number(promo.clicks) / Number(promo.impressions)) * 100).toFixed(1) : "0.0";
+              return (
+                <div key={promo.id} className="rounded-lg border border-border bg-card p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-semibold">{promo.title}</p>
+                      <p className="mt-0.5 text-[9.5px] text-muted-foreground">
+                        {promo.sponsor_username ? `Sponsored for @${promo.sponsor_username}` : "House campaign"} · {promo.audience === "free_members" ? "Free members" : "Everyone"}
+                        {promo.starts_at ? ` · ${formatDate(promo.starts_at)} → ${promo.ends_at ? formatDate(promo.ends_at) : "no end"}` : ""}
+                      </p>
+                    </div>
+                    <StatusBadge status={promo.status} />
+                  </div>
+                  {promo.body && <p className="mt-3 line-clamp-2 rounded-lg bg-muted/60 p-3 text-[11px] leading-relaxed">{promo.body}</p>}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-[10px] text-muted-foreground"><span className="font-semibold text-foreground">{compact(promo.impressions)}</span> impressions · <span className="font-semibold text-foreground">{compact(promo.clicks)}</span> clicks · <span className="font-semibold text-foreground">{promoCtr}%</span> CTR</p>
+                    <div className="flex items-center gap-1.5">
+                      <select disabled={busy} value={promo.status} onChange={(e) => runAction("admin_set_promotion_status", { target_promotion_id: promo.id, new_status: e.target.value })} className="h-8 rounded-lg border border-border bg-background px-2 text-[10.5px] font-semibold outline-none">
+                        <option value="draft">Draft</option><option value="active">Active</option><option value="paused">Paused</option><option value="ended">Ended</option>
+                      </select>
+                      <button title="Edit campaign" onClick={() => edit(promo)} className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-muted"><Pencil className="h-3.5 w-3.5" /></button>
+                      <button title="Delete campaign" disabled={busy} onClick={() => { if (confirm(`Delete campaign "${promo.title}"?`)) runAction("admin_delete_promotion", { target_promotion_id: promo.id }); }} className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }) : <EmptyState Icon={Megaphone} title="No campaigns yet" detail="Create your first sponsored placement with the form." />}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 function HealthRow({ Icon, label, value, status }: any) { return <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4"><div className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600"><Icon className="h-4 w-4" /></div><div className="flex-1"><p className="text-[11px] font-semibold">{label}</p><p className="mt-0.5 text-[9px] text-emerald-600">{status}</p></div><span className="text-[14px] font-semibold tabular-nums">{value}</span></div>; }
 function SmallMetric({ label, value }: any) { return <div className="rounded-lg border border-border bg-card p-3"><p className="text-[18px] font-semibold tabular-nums">{value}</p><p className="mt-1 text-[9.5px] text-muted-foreground">{label}</p></div>; }
-function StatusBadge({ status }: { status?: string }) { const positive = ["active", "resolved", "open"].includes(status || ""); const warning = ["reviewing", "paused"].includes(status || ""); return <span className={`rounded-full px-2 py-1 text-[9px] font-semibold capitalize ${positive ? "bg-emerald-500/10 text-emerald-600" : warning ? "bg-amber-500/10 text-amber-600" : "bg-rose-500/10 text-rose-600"}`}>{status || "unknown"}</span>; }
+function StatusBadge({ status }: { status?: string }) { const positive = ["active", "resolved", "open"].includes(status || ""); const warning = ["reviewing", "paused", "draft"].includes(status || ""); return <span className={`rounded-full px-2 py-1 text-[9px] font-semibold capitalize ${positive ? "bg-emerald-500/10 text-emerald-600" : warning ? "bg-amber-500/10 text-amber-600" : "bg-rose-500/10 text-rose-600"}`}>{status || "unknown"}</span>; }
 function ActionButton({ label, onClick, disabled, primary }: any) { return <button disabled={disabled} onClick={onClick} className={`rounded-lg px-3 py-2 text-[10.5px] font-semibold disabled:opacity-50 ${primary ? "bg-primary text-primary-foreground" : "border border-border bg-background hover:bg-muted"}`}>{label}</button>; }
 function Avatar({ user }: { user: any }) { const name = user.full_name || user.username || "Z"; return <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">{user.avatar_url ? <img src={user.avatar_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center bg-primary/10 text-[11px] font-semibold text-primary">{name.charAt(0).toUpperCase()}</div>}</div>; }
 function EmptyLine({ text }: { text: string }) { return <p className="py-6 text-center text-[10.5px] text-muted-foreground">{text}</p>; }
