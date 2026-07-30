@@ -330,6 +330,10 @@ body::-webkit-scrollbar { display: none; }
 }
 
 @media (min-width: 768px) {
+  [data-zc-bottom-nav] {
+    display: none !important;
+  }
+
   [data-zc-drawer-variant="dialog"] {
     inset: auto !important;
     left: 50% !important;

@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  BellRing,
   MoreHorizontal,
   SlidersHorizontal,
   LifeBuoy,
@@ -47,6 +46,7 @@ import {
   IconHome, IconLearn, IconClubs, IconWallet, IconMessages,
   IconProfile, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics,
   IconPresentation, IconInstitution, IconStore,
+  IconBell, IconRocket, IconSpark, IconShield,
 } from "@/components/icons";
 import { supabase } from "@/lib/supabase";
 import {
@@ -360,18 +360,19 @@ function SidebarContent({
             {[
               // Desktop-only: mirror the mobile bottom nav (hidden on md+)
               { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
-              { Icon: BellRing, label: "Notifications", to: "/app/notifications", desktopOnly: true },
+              { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true },
               { Icon: IconWallet, label: "Wallet", to: "/app/wallet", desktopOnly: true },
               { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
+              { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
               { Icon: IconGem, label: "Membership", to: "/app/premium" },
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
-              { Icon: Rocket, label: "Opportunities", to: "/app/quests" },
+              { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
               { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
               { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
               { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
               { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
-              { Icon: Zap, label: "Zero AI", to: "/app/zero-ai" },
+              { Icon: IconSpark, label: "Zero AI", to: "/app/zero-ai" },
               ...(profile?.account_type === "Tutor"
                 ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
                 : []),
@@ -379,18 +380,25 @@ function SidebarContent({
                 ? [{ Icon: IconInstitution, label: "Institution Hub", to: "/app/institution-studio" }]
                 : []),
               ...(profile?.is_admin
-                ? [{ Icon: ShieldCheck, label: "Admin Control Center", to: "/app/admin" }]
+                ? [{ Icon: IconShield, label: "Admin Control Center", to: "/app/admin" }]
                 : []),
             ].map((item: any) => (
               <Link
                 key={item.label}
                 to={item.to}
                 activeOptions={{ exact: !!item.exact }}
-                activeProps={{ className: "bg-primary/[0.08] !text-foreground [&_svg]:text-primary" }}
-                className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium tracking-tight text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground`}
+                activeProps={{ className: "bg-primary/[0.08] !font-semibold !text-foreground" }}
+                className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98]`}
               >
-                <item.Icon className="h-[19px] w-[19px] text-muted-foreground group-hover:text-foreground transition-colors" />
-                <span>{item.label}</span>
+                {({ isActive }: { isActive: boolean }) => (
+                  <>
+                    <item.Icon
+                      active={isActive}
+                      className={`h-[19px] w-[19px] transition-all duration-200 ${isActive ? "scale-110 text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                    />
+                    <span>{item.label}</span>
+                  </>
+                )}
               </Link>
             ))}
           </nav>
@@ -442,6 +450,7 @@ type BottomNavProps = {
 function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomNavProps) {
   return (
     <nav
+      data-zc-bottom-nav
       className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-20px)] max-w-md -translate-x-1/2 transition-all duration-300 md:hidden ${
         visible &&
         !isDetail &&
@@ -463,13 +472,16 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
             <Link
               key={t.to}
               to={t.to}
-              className={`relative flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg tap transition-colors ${
+              className={`relative flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg tap transition-all duration-200 active:scale-95 ${
                 active
-                  ? "bg-primary/[0.09] text-primary"
+                  ? "bg-primary/[0.12] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                   : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
               }`}
             >
-              <t.Icon className="h-[20px] w-[20px] shrink-0" active={active} />
+              <t.Icon
+                className={`h-[20px] w-[20px] shrink-0 transition-transform duration-300 ease-out ${active ? "-translate-y-px scale-110" : ""}`}
+                active={active}
+              />
               <span className="max-w-full truncate px-0.5 text-[9px] font-semibold leading-none tracking-tight">
                 {t.label}
               </span>
@@ -1162,9 +1174,9 @@ function AppLayout() {
             <div className="flex w-10 items-center justify-end">
               <Link
                 to="/app/notifications"
-                className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04] text-foreground relative"
+                className={`grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap transition-colors hover:bg-foreground/[0.04] relative ${pathname.startsWith("/app/notifications") ? "bg-primary/[0.1] text-primary ring-primary/30" : "text-foreground"}`}
               >
-                <BellRing className="h-[18px] w-[18px]" />
+                <IconBell className="h-[18px] w-[18px]" active={pathname.startsWith("/app/notifications")} />
                 {unreadNotificationsCount > 0 && (
                   <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
                 )}
