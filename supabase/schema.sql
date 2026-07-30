@@ -466,7 +466,7 @@ BEGIN
   IF (TG_OP = 'INSERT') THEN
     UPDATE posts SET reposts_count = reposts_count + 1 WHERE id = NEW.post_id;
   ELSIF (TG_OP = 'DELETE') THEN
-    UPDATE posts SET reposts_count = reposts_count - 1 WHERE id = OLD.post_id;
+    UPDATE posts SET reposts_count = GREATEST(COALESCE(reposts_count, 0) - 1, 0) WHERE id = OLD.post_id;
   END IF;
   RETURN NULL;
 END;
