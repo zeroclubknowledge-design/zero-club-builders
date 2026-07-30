@@ -62,6 +62,13 @@ function SwipeableNotification({ children, onDismiss }: { children: React.ReactN
   );
 }
 
+/**
+ * Free-tier club allowance. Originally 20 platform-wide slots; raised by 30.
+ * A free account may create one club, and only while slots remain.
+ * Accounts that already created a club must upgrade to create another.
+ */
+const FREE_CLUB_LIMIT = 50;
+
 export const Route = createFileRoute("/app/clubs/")({
   component: Clubs,
 });
@@ -407,10 +414,11 @@ function Clubs() {
 
   const isBasic = !profile?.tier || profile.tier.toLowerCase() === 'basic';
   const hasCreatedClub = userCreatedClubs.length > 0;
+  const freeClubsRemaining = Math.max(0, FREE_CLUB_LIMIT - totalClubsCount);
 
   const handleCreateClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (isBasic && (hasCreatedClub || totalClubsCount >= 20)) {
+    if (isBasic && (hasCreatedClub || totalClubsCount >= FREE_CLUB_LIMIT)) {
       setShowUpgrade(true);
     } else {
       setShowCreate(true);
@@ -425,8 +433,12 @@ function Clubs() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      if (isBasic && totalClubsCount >= 20) {
-        throw new Error("Platform limit reached. Upgrade to Premium to create a club.");
+      if (isBasic && hasCreatedClub) {
+        throw new Error("Free accounts can create one club. Upgrade to create more.");
+      }
+
+      if (isBasic && totalClubsCount >= FREE_CLUB_LIMIT) {
+        throw new Error("All free club slots have been claimed. Upgrade to Premium to create a club.");
       }
 
       // Basic users can ONLY create private FREE clubs
@@ -772,8 +784,8 @@ function Clubs() {
                 {isBasic ? "Create Your Private Club" : "Create a New Club"}
               </DrawerTitle>
               <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
-                {isBasic 
-                  ? "Basic accounts can create 1 private club to invite friends and classmates." 
+                {isBasic
+                  ? `Free accounts can create 1 private club to invite friends and classmates. ${freeClubsRemaining} of ${FREE_CLUB_LIMIT} free slots left.`
                   : "Build your community and lead your own cohort."}
               </DrawerDescription>
             </DrawerHeader>
@@ -867,10 +879,10 @@ function Clubs() {
           <div className="px-6 py-8 text-center">
             <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Limit Reached</h2>
             <p className="mt-3 text-sm text-muted-foreground/70 leading-relaxed font-medium">
-              {totalClubsCount >= 20 && isBasic && !hasCreatedClub ? (
-                <>The platform has reached its 20-club limit for basic users. Upgrade your plan to create unlimited communities.</>
+              {totalClubsCount >= FREE_CLUB_LIMIT && isBasic && !hasCreatedClub ? (
+                <>All {FREE_CLUB_LIMIT} free club slots have now been claimed. Upgrade your plan to create unlimited communities.</>
               ) : (
-                <>Basic accounts are limited to <span className="text-primary font-bold">1 Private Club</span>. Upgrade your plan to create unlimited public and private communities.</>
+                <>Free accounts can create <span className="text-primary font-bold">1 club</span>, and you have already used yours. Upgrade your plan to create unlimited public and private communities.</>
               )}
             </p>
             

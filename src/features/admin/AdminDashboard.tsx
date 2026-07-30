@@ -125,6 +125,8 @@ export function AdminDashboard() {
         admin_update_gig_status: "Gig status updated",
         admin_update_bootcamp_status: "Bootcamp status updated",
         admin_update_platform_setting: "Platform setting updated",
+        admin_create_gig: "Gig published",
+        admin_delete_gig: "Gig deleted",
         admin_save_promotion: "Campaign saved",
         admin_set_promotion_status: "Campaign status updated",
         admin_delete_promotion: "Campaign deleted",
@@ -293,7 +295,118 @@ function Learning({ bootcamps, format, busy, runAction }: any) { return <div><Se
 
 function Community({ clubs, posts }: any) { return <div><SectionHeading eyebrow="Community operations" title="Clubs and publishing" detail="Visibility into the spaces and conversations shaping the network." /><div className="grid gap-6 xl:grid-cols-2"><section><h2 className="mb-3 text-[13px] font-semibold">Newest clubs</h2><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{clubs.slice(0, 15).map((club: any) => <div key={club.id} className="flex items-center gap-3 p-4"><div className="grid h-9 w-9 place-items-center rounded-lg bg-violet-500/10 text-violet-600"><UsersRound className="h-4 w-4" /></div><div className="min-w-0 flex-1"><p className="truncate text-[12px] font-semibold">{club.name}</p><p className="mt-0.5 text-[9.5px] text-muted-foreground">{club.category} · @{club.creator_username || "builder"}</p></div><div className="text-right"><p className="text-[11px] font-semibold">{compact(club.members)}</p><p className="text-[8.5px] text-muted-foreground">members</p></div></div>)}</div></section><section><h2 className="mb-3 text-[13px] font-semibold">Latest posts</h2><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{posts.slice(0, 15).map((post: any) => <div key={post.id} className="p-4"><div className="flex items-center justify-between"><p className="text-[10px] font-semibold">@{post.author_username || "builder"}</p><span className="text-[9px] text-muted-foreground">{formatTime(post.created_at)}</span></div><p className="mt-2 line-clamp-2 text-[11.5px] leading-relaxed text-foreground/80">{post.content}</p><p className="mt-2 text-[9px] text-muted-foreground">{compact(post.likes_count)} likes · {compact(post.comments_count)} comments · {compact(post.reposts_count)} reposts</p></div>)}</div></section></div></div>; }
 
-function Marketplace({ gigs, format, busy, runAction }: any) { return <div><SectionHeading eyebrow="Marketplace operations" title="Gigs and proposals" detail="Review institutional listings, budgets, demand, and marketplace status." /><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{gigs.map((gig: any) => <div key={gig.id} className="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_140px_100px_120px] md:items-center"><div className="min-w-0"><p className="truncate text-[12.5px] font-semibold">{gig.title}</p><p className="mt-1 text-[9.5px] text-muted-foreground">{gig.client_name || `@${gig.client_username || "institution"}`} · {gig.category} · {gig.location_type}</p></div><div><p className="text-[10.5px] font-semibold">{format(gig.budget_min)} - {format(gig.budget_max)}</p><p className="text-[8.5px] text-muted-foreground">Budget</p></div><div><p className="text-[11px] font-semibold">{compact(gig.applications_count)}</p><p className="text-[8.5px] text-muted-foreground">Proposals</p></div><select disabled={busy} value={gig.status} onChange={(e) => runAction("admin_update_gig_status", { target_gig_id: gig.id, new_status: e.target.value })} className="h-9 rounded-lg border border-border bg-background px-2 text-[10.5px] font-semibold outline-none"><option value="open">Open</option><option value="paused">Paused</option><option value="closed">Closed</option></select></div>)}</div></div>; }
+const EMPTY_GIG = { title: "", description: "", category: "Design", skills: "", budgetType: "fixed", budgetMin: "", budgetMax: "", experience: "Intermediate", location: "Remote", deadline: "", client: "" };
+
+function Marketplace({ gigs, format, busy, runAction }: any) {
+  const [reviewId, setReviewId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ ...EMPTY_GIG });
+  const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
+
+  const detail = useQuery({
+    queryKey: ["admin-gig-detail", reviewId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_admin_gig_detail", { target_gig_id: reviewId });
+      if (error) throw error;
+      return data || {};
+    },
+    enabled: !!reviewId,
+    retry: false,
+  });
+
+  const submitGig = () => {
+    if (form.title.trim().length < 5) { toast.error("Title needs at least 5 characters"); return; }
+    if (form.description.trim().length < 20) { toast.error("Description needs at least 20 characters"); return; }
+    const min = Number(form.budgetMin), max = Number(form.budgetMax);
+    if (!(min > 0) || !(max >= min)) { toast.error("Enter a valid budget range"); return; }
+    runAction("admin_create_gig", {
+      new_title: form.title, new_description: form.description, new_category: form.category,
+      new_skills: form.skills.split(",").map((s) => s.trim()).filter(Boolean),
+      new_budget_type: form.budgetType, new_budget_min: min, new_budget_max: max,
+      new_experience_level: form.experience, new_location_type: form.location,
+      new_deadline: form.deadline || null, client_username: form.client || null,
+    });
+    setForm({ ...EMPTY_GIG });
+    setCreating(false);
+  };
+
+  const field = "h-10 w-full rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary/50";
+  const label = "text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground";
+
+  return (
+    <div>
+      <SectionHeading eyebrow="Marketplace operations" title="Gigs and proposals" detail="Review listings and proposals, publish new gigs, and manage marketplace status."
+        action={<button onClick={() => setCreating((v) => !v)} className="rounded-lg bg-primary px-4 py-2.5 text-[11.5px] font-semibold text-primary-foreground">{creating ? "Close form" : "Post a gig"}</button>} />
+
+      {creating && (
+        <section className="mb-5 rounded-lg border border-border bg-card p-5">
+          <h2 className="text-[13px] font-semibold">New gig</h2>
+          <p className="mt-0.5 text-[9.5px] text-muted-foreground">Leave the client blank to post as your own admin account.</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="md:col-span-2"><p className={label}>Title</p><input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Brand designer for a fintech launch" className={`${field} mt-1.5`} /></div>
+            <div className="md:col-span-2"><p className={label}>Description</p><textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={4} placeholder="Scope, deliverables, and what success looks like" className={`${field} h-auto resize-none py-2.5 mt-1.5`} /></div>
+            <div><p className={label}>Post on behalf of (username)</p><input value={form.client} onChange={(e) => set("client", e.target.value)} placeholder="institution username" className={`${field} mt-1.5`} /></div>
+            <div><p className={label}>Category</p><input value={form.category} onChange={(e) => set("category", e.target.value)} className={`${field} mt-1.5`} /></div>
+            <div className="md:col-span-2"><p className={label}>Skills (comma separated)</p><input value={form.skills} onChange={(e) => set("skills", e.target.value)} placeholder="Figma, Branding, Web design" className={`${field} mt-1.5`} /></div>
+            <div><p className={label}>Budget type</p><select value={form.budgetType} onChange={(e) => set("budgetType", e.target.value)} className={`${field} mt-1.5`}><option value="fixed">Fixed</option><option value="hourly">Hourly</option></select></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><p className={label}>Min</p><input type="number" value={form.budgetMin} onChange={(e) => set("budgetMin", e.target.value)} className={`${field} mt-1.5`} /></div>
+              <div><p className={label}>Max</p><input type="number" value={form.budgetMax} onChange={(e) => set("budgetMax", e.target.value)} className={`${field} mt-1.5`} /></div>
+            </div>
+            <div><p className={label}>Experience</p><select value={form.experience} onChange={(e) => set("experience", e.target.value)} className={`${field} mt-1.5`}><option>Entry</option><option>Intermediate</option><option>Expert</option></select></div>
+            <div><p className={label}>Location</p><select value={form.location} onChange={(e) => set("location", e.target.value)} className={`${field} mt-1.5`}><option>Remote</option><option>Hybrid</option><option>On-site</option></select></div>
+            <div><p className={label}>Deadline</p><input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} className={`${field} mt-1.5`} /></div>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <button disabled={busy} onClick={submitGig} className="rounded-lg bg-primary px-5 py-2.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50">Publish gig</button>
+            <button onClick={() => { setForm({ ...EMPTY_GIG }); setCreating(false); }} className="rounded-lg border border-border px-4 py-2.5 text-[11.5px] font-semibold hover:bg-muted">Cancel</button>
+          </div>
+        </section>
+      )}
+
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+        {gigs.map((gig: any) => (
+          <div key={gig.id} className="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_140px_90px_190px] md:items-center">
+            <div className="min-w-0"><p className="truncate text-[12.5px] font-semibold">{gig.title}</p><p className="mt-1 text-[9.5px] text-muted-foreground">{gig.client_name || `@${gig.client_username || "institution"}`} · {gig.category} · {gig.location_type}</p></div>
+            <div><p className="text-[10.5px] font-semibold">{format(gig.budget_min)} - {format(gig.budget_max)}</p><p className="text-[8.5px] text-muted-foreground">Budget</p></div>
+            <div><p className="text-[11px] font-semibold">{compact(gig.applications_count)}</p><p className="text-[8.5px] text-muted-foreground">Proposals</p></div>
+            <div className="flex items-center gap-1.5">
+              <select disabled={busy} value={gig.status} onChange={(e) => runAction("admin_update_gig_status", { target_gig_id: gig.id, new_status: e.target.value })} className="h-9 flex-1 rounded-lg border border-border bg-background px-2 text-[10.5px] font-semibold outline-none"><option value="open">Open</option><option value="paused">Paused</option><option value="closed">Closed</option></select>
+              <button onClick={() => setReviewId(reviewId === gig.id ? null : gig.id)} className="rounded-lg border border-border px-3 py-2 text-[10.5px] font-semibold hover:bg-muted">{reviewId === gig.id ? "Close" : "Review"}</button>
+              <button title="Delete gig" disabled={busy} onClick={() => { if (confirm(`Delete gig "${gig.title}"? This also removes its proposals.`)) runAction("admin_delete_gig", { target_gig_id: gig.id }); }} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+            </div>
+            {reviewId === gig.id && (
+              <div className="md:col-span-4">
+                {detail.isLoading ? <TabLoading /> : detail.error ? (
+                  isMissingRpc(detail.error) ? <MigrationNote file="20260730180000_admin_gig_management.sql" title="Gig review setup required" /> : <EmptyLine text={(detail.error as any).message} />
+                ) : (
+                  <div className="mt-2 rounded-lg bg-muted/50 p-4 ring-1 ring-border">
+                    <p className="whitespace-pre-wrap text-[11.5px] leading-relaxed">{detail.data?.gig?.description}</p>
+                    <p className="mt-3 text-[9.5px] text-muted-foreground">{(detail.data?.gig?.skills || []).join(" · ") || "No skills listed"}{detail.data?.gig?.deadline ? ` · Deadline ${formatDate(detail.data.gig.deadline)}` : ""} · {detail.data?.gig?.experience_level} · {detail.data?.gig?.budget_type}</p>
+                    <h3 className="mt-4 text-[11.5px] font-semibold">Proposals ({(detail.data?.applications || []).length})</h3>
+                    <div className="mt-2 divide-y divide-border">
+                      {(detail.data?.applications || []).length ? (detail.data.applications).map((app: any) => (
+                        <div key={app.id} className="py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-[11px] font-semibold">@{app.applicant_username || "member"} <span className="font-normal text-muted-foreground">· {compact(app.applicant_xp)} XP</span></p>
+                            <div className="flex items-center gap-2"><span className="text-[10.5px] font-semibold">{format(app.proposed_amount)}</span><StatusBadge status={app.status} /></div>
+                          </div>
+                          <p className="mt-1.5 line-clamp-3 text-[11px] leading-relaxed text-foreground/80">{app.cover_note}</p>
+                          <p className="mt-1.5 text-[9px] text-muted-foreground">{app.delivery_days} day delivery · {formatTime(app.created_at)}{app.portfolio_url ? " · portfolio attached" : ""}</p>
+                        </div>
+                      )) : <EmptyLine text="No proposals submitted yet." />}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+        {!gigs.length && <EmptyState Icon={BriefcaseBusiness} title="No gigs posted yet" detail="Publish the first listing with the Post a gig button." />}
+      </div>
+    </div>
+  );
+}
 
 function Commerce({ snapshot, format }: { snapshot: Snapshot; format: (value: number) => string }) { const m = snapshot.metrics; return <div><SectionHeading eyebrow="Commerce operations" title="Creator economy" detail="Monitor value moving through wallets, gifts, licences, and the Zero Store." /><div className="grid grid-cols-2 gap-3 xl:grid-cols-4"><MetricCard Icon={WalletCards} label="Wallet balances" value={format(m.wallet_balance)} detail="Member balances" tone="bg-sky-500/10 text-sky-600" /><MetricCard Icon={Store} label="Store listings" value={compact(m.store_items)} detail="Digital products" tone="bg-violet-500/10 text-violet-600" /><MetricCard Icon={CircleDollarSign} label="Gift value" value={format(m.gift_value)} detail={`${compact(m.gift_cards)} gift cards`} tone="bg-emerald-500/10 text-emerald-600" /><MetricCard Icon={PackageOpen} label="Licences" value={compact(m.licences)} detail="ZeroHub ownership rights" tone="bg-amber-500/10 text-amber-600" /></div><section className="mt-7 border-t border-border pt-5"><h2 className="text-[14px] font-semibold">Recent store inventory</h2><div className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{snapshot.store_items.map((item) => <div key={item.id} className="flex items-center gap-3 p-4"><div className="grid h-9 w-9 place-items-center rounded-lg bg-muted"><Store className="h-4 w-4" /></div><div className="min-w-0 flex-1"><p className="truncate text-[12px] font-semibold">{item.name}</p><p className="mt-0.5 text-[9px] text-muted-foreground">{item.category || "Digital product"} · @{item.seller_username || "creator"}</p></div><div className="text-right"><p className="text-[11px] font-semibold">{item.price_type === "Coins" ? format(item.price) : `${compact(item.price)} XP`}</p><p className="text-[8.5px] text-muted-foreground">{formatDate(item.created_at)}</p></div></div>)}</div></section></div>; }
 

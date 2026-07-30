@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { bookmarkPostAction, unbookmarkPostAction, likePostAction, unlikePostAction } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";
+import { useFollow } from "@/hooks/useFollow";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -155,10 +156,10 @@ function PostDetail() {
   const [initialLiked, setInitialLiked] = useState(post?.isLiked || false);
   const [isBookmarked, setIsBookmarked] = useState(post?.isBookmarked || false);
   const [hasReposted, setHasReposted] = useState(data?.hasReposted || false);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
   const { data: currentUser } = useUser();
+  // Shared follow state — stays in sync with the feed, profiles, and every other screen.
+  const { isFollowing, loading: followLoading, toggleFollow } = useFollow(post?.author_id);
   const [isTutor, setIsTutor] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
@@ -228,8 +229,7 @@ function PostDetail() {
       setInitialLiked(data.isLiked);
       setIsBookmarked(data.isBookmarked);
       setHasReposted(data.hasReposted);
-      setIsFollowing(data.isFollowing);
-      
+
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           if (data.post?.is_build_post && data.post.bootcamps) {
@@ -386,21 +386,11 @@ function PostDetail() {
       toast.error("Please sign in to follow");
       return;
     }
-    setFollowLoading(true);
     try {
-      if (isFollowing) {
-        await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', post.author_id);
-        setIsFollowing(false);
-        toast.success("Unfollowed builder");
-      } else {
-        await supabase.from('follows').insert([{ follower_id: currentUser.id, following_id: post.author_id }]);
-        setIsFollowing(true);
-        toast.success("Now following builder!");
-      }
+      const next = await toggleFollow();
+      if (next !== null) toast.success(next ? "Now following builder!" : "Unfollowed builder");
     } catch (error: any) {
       toast.error(error.message);
-    } finally {
-      setFollowLoading(false);
     }
   }
 

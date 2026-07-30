@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { likePostAction, unlikePostAction } from "@/api";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
+import { useFollow } from "@/hooks/useFollow";
 
 interface PostCardProps {
   post: any;
@@ -54,7 +55,8 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
   const isOwnPost = currentUser?.id === post.author_id;
   const isEditable = isOwnPost; // No time limit
 
-  const isFollowingAuthor = !!(currentUser?.following_ids?.includes(post.author_id));
+  // Shared follow state, kept in sync with profiles and post detail pages.
+  const { isFollowing: isFollowingAuthor, toggleFollow: toggleFollowAuthor } = useFollow(post.author_id);
 
   // Sync state with props
   useEffect(() => {
@@ -380,14 +382,14 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                   onClick={async (e) => {
                     e.stopPropagation();
                     if (!currentUser) return;
-                    if (isFollowingAuthor) {
-                      await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', post.author_id);
-                      toast.success(`Unfollowed ${getFirstName(post.profiles)}`);
-                    } else {
-                      await supabase.from('follows').insert({ follower_id: currentUser.id, following_id: post.author_id });
-                      toast.success(`Now following ${getFirstName(post.profiles)}!`);
+                    try {
+                      const next = await toggleFollowAuthor();
+                      if (next !== null) {
+                        toast.success(next ? `Now following ${getFirstName(post.profiles)}!` : `Unfollowed ${getFirstName(post.profiles)}`);
+                      }
+                    } catch (error: any) {
+                      toast.error(error.message || "Could not update follow");
                     }
-                    queryClient.invalidateQueries({ queryKey: ['followStatus', currentUser?.id, post.author_id] });
                   }}
                 >
                   {isFollowingAuthor ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}

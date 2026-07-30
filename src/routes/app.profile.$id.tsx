@@ -17,6 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
 import { IconMessages } from "@/components/icons";
+import { useFollow } from "@/hooks/useFollow";
 
 export const Route = createFileRoute("/app/profile/$id")({
   loader: async ({ params: { id } }) => {
@@ -220,21 +221,9 @@ function ProfileDetail() {
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, []);
 
-  const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
-    queryKey: ['followStatus', profile.id],
-    enabled: !!currentUser,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('follows')
-        .select('*')
-        .eq('follower_id', currentUser.id)
-        .eq('following_id', profile.id)
-        .maybeSingle();
-      return !!data;
-    }
-  });
-
-  const isFollowing = !!followStatus;
+  // Shared follow state — the same source the feed and post pages read from,
+  // so following here updates the button everywhere in the app.
+  const { isFollowing, toggleFollow } = useFollow(profile?.id);
 
   useEffect(() => {
     // Check local storage for notification preference
@@ -273,22 +262,12 @@ function ProfileDetail() {
     }
     setFollowLoading(true);
     try {
-      if (isFollowing) {
-        const { error } = await supabase
-          .from('follows')
-          .delete()
-          .eq('follower_id', currentUser.id)
-          .eq('following_id', profile.id);
-        
-        if (error) throw error;
+      const nowFollowing = await toggleFollow();
+      if (nowFollowing === null) return;
+
+      if (!nowFollowing) {
         toast.success(`Unfollowed ${getFirstName(profile)}`);
       } else {
-        const { error } = await supabase
-          .from('follows')
-          .insert([{ follower_id: currentUser.id, following_id: profile.id }]);
-        
-        if (error) throw error;
-        
         // Handle referral XP reward (validated + applied server-side)
         if (currentUser.referral_code_used && currentUser.referral_code_used === profile.referral_code) {
           const { error: referralErr } = await supabase.rpc('claim_referral_reward', {
