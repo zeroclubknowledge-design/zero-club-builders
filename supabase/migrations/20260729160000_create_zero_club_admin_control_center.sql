@@ -371,3 +371,6 @@ grant execute on function public.admin_update_report(uuid, text) to authenticate
 grant execute on function public.admin_update_gig_status(uuid, text) to authenticated;
 grant execute on function public.admin_update_bootcamp_status(uuid, text) to authenticated;
 grant execute on function public.admin_update_platform_setting(text, jsonb) to authenticated;
+
+-- Make newly created RPC endpoints available to PostgREST immediately.
+notify pgrst, 'reload schema';

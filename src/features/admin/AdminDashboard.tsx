@@ -77,7 +77,7 @@ export function AdminDashboard() {
   const [userSearch, setUserSearch] = useState("");
   const [userType, setUserType] = useState("All");
 
-  const { data = EMPTY_SNAPSHOT, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data = EMPTY_SNAPSHOT, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["admin-dashboard-snapshot"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_admin_dashboard_snapshot");
@@ -85,6 +85,11 @@ export function AdminDashboard() {
       return { ...EMPTY_SNAPSHOT, ...(data || {}) } as Snapshot;
     },
     staleTime: 15_000,
+    refetchOnWindowFocus: false,
+    retry: (failureCount, queryError: any) => {
+      const missingRpc = queryError?.code === "PGRST202" || queryError?.message?.includes("get_admin_dashboard_snapshot");
+      return !missingRpc && failureCount < 2;
+    },
   });
 
   const action = useMutation({
@@ -118,13 +123,33 @@ export function AdminDashboard() {
   }, [data.users, userSearch, userType]);
 
   const runAction = (fn: string, args: Record<string, any>) => action.mutate({ fn, args });
+  const adminSetupMissing = (error as any)?.code === "PGRST202"
+    || (error as any)?.message?.includes("get_admin_dashboard_snapshot");
 
   if (isLoading) return <AdminLoading />;
 
   if (isError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-5">
-        <div className="max-w-sm text-center"><ShieldOff className="mx-auto h-8 w-8 text-muted-foreground" /><h1 className="mt-4 text-[18px] font-semibold">Admin data could not load</h1><p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">Confirm the admin migration is applied and this profile has Zero Club admin access.</p><button onClick={() => refetch()} className="mt-5 rounded-lg bg-primary px-4 py-2.5 text-[12px] font-semibold text-primary-foreground">Try again</button></div>
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-center shadow-soft">
+          <ShieldOff className="mx-auto h-8 w-8 text-muted-foreground" />
+          <h1 className="mt-4 text-[18px] font-semibold">{adminSetupMissing ? "Admin database setup required" : "Admin data could not load"}</h1>
+          <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+            {adminSetupMissing
+              ? "The dashboard is installed, but its secure Supabase functions have not been added to this project yet."
+              : "The dashboard could not reach Zero Club's admin services. Check your connection and admin access."}
+          </p>
+          {adminSetupMissing && (
+            <div className="mt-5 rounded-lg bg-muted/70 px-4 py-3 text-left ring-1 ring-border">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Run in Supabase SQL Editor</p>
+              <code className="mt-1.5 block break-all text-[11px] font-semibold text-foreground">20260729160000_create_zero_club_admin_control_center.sql</code>
+            </div>
+          )}
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <Link to="/app" className="rounded-lg border border-border px-4 py-2.5 text-[12px] font-semibold hover:bg-muted">Back to app</Link>
+            <button onClick={() => refetch()} className="rounded-lg bg-primary px-4 py-2.5 text-[12px] font-semibold text-primary-foreground">Try again</button>
+          </div>
+        </div>
       </div>
     );
   }

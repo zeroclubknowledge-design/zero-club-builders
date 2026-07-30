@@ -111,17 +111,11 @@ function SendMoneyPage() {
 
     setSendingFunds(true);
     try {
-      const { error: senderErr } = await supabase
-        .from("profiles")
-        .update({ xp: profile.xp - amountVal })
-        .eq("id", profile.id);
-      if (senderErr) throw senderErr;
-
-      const { error: recipientErr } = await supabase
-        .from("profiles")
-        .update({ xp: (selectedRecipient.xp || 0) + amountVal })
-        .eq("id", selectedRecipient.id);
-      if (recipientErr) throw recipientErr;
+      const { error: transferErr } = await supabase.rpc("transfer_xp", {
+        recipient: selectedRecipient.id,
+        amount: amountVal,
+      });
+      if (transferErr) throw transferErr;
 
       await supabase.from("notifications").insert({
         profile_id: profile.id,

@@ -364,27 +364,13 @@ function PostDetail() {
     if (!currentUser || !isTutor) return;
     setVerifying(true);
     try {
-      // 1. Mark post as verified
-      const { error: postError } = await supabase
-        .from('posts')
-        .update({ is_verified_build: true })
-        .eq('id', post.id);
-      
-      if (postError) throw postError;
+      // Server-side: marks post verified + rewards author 50 XP,
+      // with tutor authorization enforced in the database.
+      const { error: verifyError } = await supabase.rpc('verify_build_post', {
+        post_id: post.id,
+      });
 
-      // 2. Reward author with 50 XP (High level reward)
-      const { data: authorProfile } = await supabase
-        .from('profiles')
-        .select('xp')
-        .eq('id', post.author_id)
-        .single();
-      
-      if (authorProfile) {
-        await supabase
-          .from('profiles')
-          .update({ xp: (authorProfile.xp || 0) + 50 })
-          .eq('id', post.author_id);
-      }
+      if (verifyError) throw verifyError;
 
       toast.success("Ship verified! Author rewarded with 50 XP");
       router.invalidate();

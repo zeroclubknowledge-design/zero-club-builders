@@ -238,21 +238,13 @@ function WalletPage() {
 
     setSendingFunds(true);
     try {
-      // 1. Deduct XP from sender
-      const { error: senderErr } = await supabase
-        .from("profiles")
-        .update({ xp: profile.xp - amountVal })
-        .eq("id", profile.id);
+      // Atomic server-side transfer (balance check + both updates in one transaction)
+      const { error: transferErr } = await supabase.rpc("transfer_xp", {
+        recipient: selectedRecipient.id,
+        amount: amountVal,
+      });
 
-      if (senderErr) throw senderErr;
-
-      // 2. Add XP to recipient
-      const { error: recipientErr } = await supabase
-        .from("profiles")
-        .update({ xp: (selectedRecipient.xp || 0) + amountVal })
-        .eq("id", selectedRecipient.id);
-
-      if (recipientErr) throw recipientErr;
+      if (transferErr) throw transferErr;
 
       // 3. Log sender system notification/activity
       await supabase.from("notifications").insert({
@@ -370,12 +362,12 @@ function WalletPage() {
       </header>
 
       {/* ── Main Content Container ── */}
-      <div className="mx-auto w-full md:max-w-[1180px] md:px-8 md:pb-16 md:pt-8 lg:grid lg:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] lg:items-start lg:gap-8 lg:px-10">
-      <div className="md:min-w-0 md:max-w-[560px] lg:max-w-none">
+      <div className="mx-auto w-full md:max-w-[1080px] md:px-8 md:pb-16 md:pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] lg:items-start lg:gap-10">
+      <div className="md:mx-auto md:w-full md:min-w-0 md:max-w-[640px] lg:mx-0 lg:max-w-none">
       <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pt-0 flex flex-col w-full">
 
           {/* Premium Balance Card */}
-          <div className="relative mb-4 overflow-hidden rounded-lg border-t-2 border-[#cc208f] bg-[#141117] p-7 text-white shadow-[0_20px_50px_-28px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.06]">
+          <div className="relative mb-4 overflow-hidden rounded-lg border-t-2 border-[#cc208f] bg-[#141117] p-7 text-white shadow-[0_20px_50px_-28px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.06] md:p-9">
             <div className="relative z-10">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Balance</p>
@@ -387,7 +379,7 @@ function WalletPage() {
                 </button>
               </div>
 
-              <h2 className="mt-3 text-[36px] font-semibold leading-none tracking-tight tabular-nums sm:text-[42px]">
+              <h2 className="mt-3 text-[36px] font-semibold leading-none tracking-tight tabular-nums sm:text-[42px] md:text-[48px]">
                 <span className="mr-1 text-[26px] font-normal align-top text-white/70">{currentCurrency.symbol}</span>
                 {showBalance ? displayBalance : "••••"}
               </h2>
@@ -460,7 +452,7 @@ function WalletPage() {
       </div>
 
       {/* ── Transaction History ── */}
-      <section id="transactions" className="mt-12 scroll-mt-24 px-6 md:mt-10 md:min-w-0 md:max-w-[560px] md:rounded-lg md:bg-card md:px-7 md:py-7 md:ring-1 md:ring-border lg:mt-0 lg:max-w-none">
+      <section id="transactions" className="mt-12 scroll-mt-24 px-6 md:mx-auto md:mt-10 md:w-full md:min-w-0 md:max-w-[640px] md:rounded-lg md:bg-card md:px-7 md:py-7 md:ring-1 md:ring-border lg:sticky lg:top-24 lg:mx-0 lg:mt-0 lg:max-w-none">
         <div className="flex justify-between items-center mb-8 md:mb-5 md:pb-4 md:border-b md:hairline">
           <h3 className="text-[19px] md:text-[17px] font-semibold text-foreground tracking-tight">History</h3>
           <button className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors">

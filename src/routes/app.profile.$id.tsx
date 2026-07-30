@@ -16,6 +16,7 @@ import { CommentDrawer } from "@/components/CommentDrawer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
+import { IconMessages } from "@/components/icons";
 
 export const Route = createFileRoute("/app/profile/$id")({
   loader: async ({ params: { id } }) => {
@@ -288,12 +289,12 @@ function ProfileDetail() {
         
         if (error) throw error;
         
-        // Handle referral XP reward
+        // Handle referral XP reward (validated + applied server-side)
         if (currentUser.referral_code_used && currentUser.referral_code_used === profile.referral_code) {
-          await Promise.all([
-            supabase.from('profiles').update({ xp: (currentUser.xp || 0) + 200, referral_code_used: null }).eq('id', currentUser.id),
-            supabase.from('profiles').update({ xp: (profile.xp || 0) + 200 }).eq('id', profile.id)
-          ]);
+          const { error: referralErr } = await supabase.rpc('claim_referral_reward', {
+            referrer: profile.id,
+          });
+          if (referralErr) throw referralErr;
           toast.success("Referral complete! Both earned 200 XP");
           
           // Add a notification for the referrer
@@ -509,7 +510,16 @@ function ProfileDetail() {
                    Edit profile
                  </Link>
                ) : (
-                 <button 
+                 <>
+                 <Link
+                   to="/app/chat/$id"
+                   params={{ id: profile?.id }}
+                   aria-label={`Message ${getFirstName(profile)}`}
+                   className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-transparent text-foreground transition-colors hover:bg-accent active:scale-95"
+                 >
+                   <IconMessages className="h-[19px] w-[19px]" />
+                 </Link>
+                 <button
                    onClick={handleFollow}
                    disabled={followLoading}
                    className={`flex items-center gap-2 rounded-lg px-5 py-2 text-[14px] font-semibold transition-colors active:scale-95 ${
@@ -521,6 +531,7 @@ function ProfileDetail() {
                    {followLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                    {isFollowing ? "Following" : (isFollowingMe ? "Follow back" : "Follow")}
                  </button>
+                 </>
                )}
             </div>
 
