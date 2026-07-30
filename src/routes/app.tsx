@@ -1124,8 +1124,8 @@ function AppLayout() {
 
   return (
     <div className="zc-app-shell mx-auto min-h-screen w-full bg-background md:flex md:max-w-none md:justify-center">
-      {/* Desktop Sidebar (Left Column) */}
-      <div className="sticky top-0 z-40 hidden h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-[#f8f7f5] no-scrollbar dark:bg-background md:flex">
+      {/* Desktop Sidebar (Left Column) — hidden on admin routes, which have their own sidebar */}
+      <div className={`sticky top-0 z-40 h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-[#f8f7f5] no-scrollbar dark:bg-background ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
         <SidebarContent profile={profile} onOpenTheme={() => setIsThemeOpen(true)} isInstitutionStudio={pathname.startsWith("/app/institution-studio")} />
       </div>
 
