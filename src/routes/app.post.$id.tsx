@@ -1089,7 +1089,7 @@ function PostDetail() {
 
       {/* Floating Comment Composer */}
       {post && !isLoading && (
-        <div className="pointer-events-none fixed inset-x-2 bottom-3 z-[60] pb-[env(safe-area-inset-bottom)] sm:inset-x-4">
+        <div className="pointer-events-none fixed inset-x-2 bottom-3 z-[60] pb-[env(safe-area-inset-bottom)] sm:inset-x-4 md:absolute md:inset-x-6">
           <div className="pointer-events-auto mx-auto w-full max-w-[830px]">
             <CommentComposer
               value={commentText}
