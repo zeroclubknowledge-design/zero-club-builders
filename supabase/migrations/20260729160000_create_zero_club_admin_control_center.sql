@@ -9,6 +9,12 @@ alter table public.profiles
 alter table public.profiles
   add column if not exists account_status text not null default 'active';
 
+-- The wallet, gifts, store, membership, and admin commerce views all use this
+-- shared balance. Some early production databases were created before it was
+-- added to the consolidated schema.
+alter table public.profiles
+  add column if not exists coins integer not null default 0;
+
 alter table public.profiles drop constraint if exists profiles_account_status_check;
 alter table public.profiles
   add constraint profiles_account_status_check check (account_status in ('active', 'suspended'));
@@ -131,9 +137,25 @@ set search_path = public
 as $$
 declare
   result jsonb;
+  gift_cards_count bigint := 0;
+  gift_value_total numeric := 0;
+  licence_count bigint := 0;
 begin
   if not public.is_zero_club_admin() then
     raise exception 'Admin access required';
+  end if;
+
+  -- Gifts and ZeroHub licensing are optional modules. Keep the control center
+  -- operational before those tables are installed, and include them automatically
+  -- as soon as they become available.
+  if to_regclass('public.gift_cards') is not null then
+    execute 'select count(*), coalesce(sum(amount), 0) from public.gift_cards'
+      into gift_cards_count, gift_value_total;
+  end if;
+
+  if to_regclass('public.project_licenses') is not null then
+    execute 'select count(*) from public.project_licenses'
+      into licence_count;
   end if;
 
   select jsonb_build_object(
@@ -152,9 +174,9 @@ begin
       'gig_applications', (select count(*) from public.gig_applications),
       'open_reports', (select count(*) from public.user_reports where status in ('open', 'reviewing')),
       'store_items', (select count(*) from public.store_items),
-      'gift_cards', (select count(*) from public.gift_cards),
-      'gift_value', (select coalesce(sum(amount), 0) from public.gift_cards),
-      'licences', (select count(*) from public.project_licenses),
+      'gift_cards', gift_cards_count,
+      'gift_value', gift_value_total,
+      'licences', licence_count,
       'push_devices', (select count(*) from public.push_subscriptions),
       'notifications_24h', (select count(*) from public.notifications where created_at >= now() - interval '24 hours'),
       'wallet_balance', (select coalesce(sum(coins), 0) from public.profiles)

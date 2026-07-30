@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   account_status TEXT NOT NULL DEFAULT 'active' CHECK (account_status IN ('active', 'suspended')),
   tier TEXT DEFAULT 'basic' CHECK (tier IN ('basic', 'elite', 'grow')),
   xp INTEGER DEFAULT 0,
+  coins INTEGER NOT NULL DEFAULT 0,
   referral_code TEXT UNIQUE,
   bio TEXT,
   location TEXT,

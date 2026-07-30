@@ -145,6 +145,11 @@ export function AdminDashboard() {
               <code className="mt-1.5 block break-all text-[11px] font-semibold text-foreground">20260729160000_create_zero_club_admin_control_center.sql</code>
             </div>
           )}
+          {!adminSetupMissing && (error as any)?.message && (
+            <p className="mt-4 rounded-lg bg-destructive/[0.06] px-3 py-2 text-[10px] leading-relaxed text-destructive ring-1 ring-destructive/15">
+              {(error as any).message}
+            </p>
+          )}
           <div className="mt-5 flex items-center justify-center gap-2">
             <Link to="/app" className="rounded-lg border border-border px-4 py-2.5 text-[12px] font-semibold hover:bg-muted">Back to app</Link>
             <button onClick={() => refetch()} className="rounded-lg bg-primary px-4 py-2.5 text-[12px] font-semibold text-primary-foreground">Try again</button>
