@@ -126,13 +126,16 @@ function GigMarketplace() {
 
       const clientIds = [...new Set((gigs || []).map((gig: any) => gig.client_id).filter(Boolean))];
       const gigIds = (gigs || []).map((gig: any) => gig.id);
-      const [{ data: clients }, { data: applications }] = await Promise.all([
+      const [{ data: clients }, { data: applications }, { data: viewerProfile }] = await Promise.all([
         clientIds.length
           ? supabase.from("profiles").select("id, username, full_name, avatar_url, account_type").in("id", clientIds)
           : Promise.resolve({ data: [] as any[] }),
         viewerId && gigIds.length
           ? supabase.from("gig_applications").select("*").eq("applicant_id", viewerId).in("gig_id", gigIds)
           : Promise.resolve({ data: [] as any[] }),
+        viewerId
+          ? supabase.from("profiles").select("account_type, is_admin").eq("id", viewerId).maybeSingle()
+          : Promise.resolve({ data: null as any }),
       ]);
 
       const clientMap = new Map((clients || []).map((client: any) => [client.id, client]));
@@ -144,13 +147,18 @@ function GigMarketplace() {
         viewer_application: applicationMap.get(gig.id) || null,
       })) as Gig[];
 
-      return { viewerId, gigs: enriched };
+      return {
+        viewerId,
+        gigs: enriched,
+        canPostGig: viewerProfile?.account_type === "Institution" || Boolean(viewerProfile?.is_admin),
+      };
     },
     staleTime: 20_000,
   });
 
   const viewerId = data?.viewerId || null;
   const gigs = data?.gigs || [];
+  const canPostGig = Boolean(data?.canPostGig);
 
   const filteredGigs = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -176,6 +184,10 @@ function GigMarketplace() {
     mutationFn: async () => {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) throw new Error("Sign in to post a gig");
+      const { data: postingProfile } = await supabase.from("profiles").select("account_type, is_admin").eq("id", authData.user.id).single();
+      if (postingProfile?.account_type !== "Institution" && !postingProfile?.is_admin) {
+        throw new Error("Only institutions and Zero Club admins can post gigs");
+      }
       if (!gigForm.title.trim() || !gigForm.description.trim()) throw new Error("Add a title and description");
 
       const min = toBaseAmount(Number(gigForm.budgetMin) || 0);
@@ -235,11 +247,12 @@ function GigMarketplace() {
     onError: (error: any) => toast.error(error.message || "Could not send your proposal"),
   });
 
-  const tabs: { id: MarketplaceTab; label: string; count?: number }[] = [
+  const allTabs: { id: MarketplaceTab; label: string; count?: number }[] = [
     { id: "browse", label: "Browse gigs", count: gigs.filter((gig) => gig.status === "open").length },
     { id: "applications", label: "My applications", count: gigs.filter((gig) => gig.viewer_application).length },
     { id: "posted", label: "Posted by me", count: gigs.filter((gig) => gig.client_id === viewerId).length },
   ];
+  const tabs = allTabs.filter((tab) => tab.id !== "posted" || canPostGig || Number(tab.count) > 0);
 
   const openGig = (gig: Gig) => {
     setSelectedGig(gig);
@@ -260,12 +273,14 @@ function GigMarketplace() {
               <h1 className="truncate font-display text-[18px] font-semibold tracking-tight md:text-[20px]">Gig marketplace</h1>
             </div>
           </div>
-          <button
-            onClick={() => setPostOpen(true)}
-            className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-[12px] font-semibold text-primary-foreground hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Post a gig</span><span className="sm:hidden">Post</span>
-          </button>
+          {canPostGig && (
+            <button
+              onClick={() => setPostOpen(true)}
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-[12px] font-semibold text-primary-foreground hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Post a gig</span><span className="sm:hidden">Post</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -345,7 +360,7 @@ function GigMarketplace() {
                 {filteredGigs.map((gig) => <GigRow key={gig.id} gig={gig} format={format} viewerId={viewerId} onOpen={() => openGig(gig)} />)}
               </div>
             ) : (
-              <MarketplaceEmptyState tab={activeTab} onPost={() => setPostOpen(true)} />
+              <MarketplaceEmptyState tab={activeTab} canPost={canPostGig} onPost={() => setPostOpen(true)} />
             )}
           </div>
         </section>
@@ -545,9 +560,9 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
   return <label className="block min-w-0"><span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</span>{children}</label>;
 }
 
-function MarketplaceEmptyState({ tab, onPost }: { tab: MarketplaceTab; onPost: () => void }) {
+function MarketplaceEmptyState({ tab, canPost, onPost }: { tab: MarketplaceTab; canPost: boolean; onPost: () => void }) {
   const content = tab === "applications" ? { title: "No proposals sent", detail: "Your applications will appear here." } : tab === "posted" ? { title: "No gigs posted", detail: "Post a gig when you are ready to hire." } : { title: "No matching gigs", detail: "Try another search or adjust the filters." };
-  return <div className="rounded-lg border border-border bg-card px-5 py-16 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary"><BriefcaseBusiness className="h-5 w-5" /></div><h3 className="mt-4 text-[15px] font-semibold">{content.title}</h3><p className="mt-1 text-[12px] text-muted-foreground">{content.detail}</p>{tab === "posted" && <button onClick={onPost} className="mt-5 rounded-lg bg-primary px-4 py-2.5 text-[12px] font-semibold text-primary-foreground">Post a gig</button>}</div>;
+  return <div className="rounded-lg border border-border bg-card px-5 py-16 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary"><BriefcaseBusiness className="h-5 w-5" /></div><h3 className="mt-4 text-[15px] font-semibold">{content.title}</h3><p className="mt-1 text-[12px] text-muted-foreground">{content.detail}</p>{tab === "posted" && canPost && <button onClick={onPost} className="mt-5 rounded-lg bg-primary px-4 py-2.5 text-[12px] font-semibold text-primary-foreground">Post a gig</button>}</div>;
 }
 
 function GigListSkeleton() {

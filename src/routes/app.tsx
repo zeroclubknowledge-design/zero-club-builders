@@ -27,6 +27,7 @@ import {
   UserPlus,
   LogIn,
   LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -89,6 +90,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/store": "Zero Store",
   "/app/zero-ai": "Zero AI",
   "/app/zerohub": "ZeroHub",
+  "/app/admin": "Admin Control Center",
 };
 
 const formatCompactNumber = (value?: number | null) => {
@@ -119,7 +121,6 @@ function SidebarContent({
 }) {
   const [accounts, setAccounts] = React.useState<any[]>([]);
   const [institutionActiveTab, setInstitutionActiveTab] = React.useState("overview");
-  const isLearner = !profile?.account_type || profile.account_type === "Learner";
 
   React.useEffect(() => {
     setAccounts(getSavedAccounts());
@@ -365,21 +366,20 @@ function SidebarContent({
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
               { Icon: IconGem, label: "Membership", to: "/app/premium" },
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
-              ...(!isLearner ? [{ Icon: IconStore, label: "Zero Store", to: "/app/store" }] : []),
-              ...(!isLearner ? [{ Icon: IconClubs, label: "Clubs", to: "/app/clubs" }] : []),
               { Icon: Rocket, label: "Opportunities", to: "/app/quests" },
               { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
               { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
               { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
-              ...(!isLearner ? [{ Icon: IconNotes, label: "Drafts", to: "/app/drafts" }] : []),
               { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
               { Icon: Zap, label: "Zero AI", to: "/app/zero-ai" },
-              ...(!isLearner ? [{ Icon: IconLearn, label: "Bootcamps", to: "/app/bootcamps" }] : []),
               ...(profile?.account_type === "Tutor"
                 ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
                 : []),
               ...(profile?.account_type === "Institution"
                 ? [{ Icon: IconInstitution, label: "Institution Hub", to: "/app/institution-studio" }]
+                : []),
+              ...(profile?.is_admin
+                ? [{ Icon: ShieldCheck, label: "Admin Control Center", to: "/app/admin" }]
                 : []),
             ].map((item: any) => (
               <Link
@@ -500,10 +500,17 @@ function DesktopWorkspaceRail({
   unreadNotificationsCount,
 }: DesktopWorkspaceRailProps) {
   const role = profile?.account_type || "Learner";
+  const isAdmin = Boolean(profile?.is_admin);
   const isTutor = role === "Tutor" || role === "Institution";
   const isInstitution = role === "Institution";
 
-  const primaryActions = isInstitution
+  const primaryActions = isAdmin
+    ? [
+        { label: "Admin Control Center", to: "/app/admin", Icon: ShieldCheck },
+        { label: "Moderation queue", to: "/app/admin", Icon: Activity },
+        { label: "Platform operations", to: "/app/admin", Icon: Settings },
+      ]
+    : isInstitution
     ? [
         { label: "Institution Hub", to: "/app/institution-studio", Icon: IconInstitution },
         { label: "Organization bootcamps", to: "/app/institution-studio", Icon: IconLearn },
@@ -526,7 +533,9 @@ function DesktopWorkspaceRail({
     { label: "Messages", value: formatCompactNumber(unreadMessagesCount), Icon: IconMessages },
   ];
 
-  const workspaceNotes = isInstitution
+  const workspaceNotes = isAdmin
+    ? ["Trust and safety", "Platform operations", "Revenue and growth"]
+    : isInstitution
     ? ["Tutor visibility", "Cohort outcomes", "Credentials and reporting"]
     : isTutor
       ? ["Bootcamp curriculum", "Learner progress", "Creator earnings"]
@@ -540,7 +549,7 @@ function DesktopWorkspaceRail({
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
               Desktop workspace
             </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-foreground">{role}</h2>
+            <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-foreground">{isAdmin ? "Zero Club Admin" : role}</h2>
           </div>
           <img src="/logo.png" alt="" className="h-10 w-10 object-contain" />
         </div>
@@ -658,6 +667,12 @@ function AppLayout() {
   }, []);
 
   const { data: profile, isLoading: profileLoading } = useUser();
+
+  useEffect(() => {
+    if (!profile || profile.is_admin || profile.account_status !== "suspended") return;
+    toast.error("This account has been suspended. Contact Zero Club support for help.");
+    supabase.auth.signOut();
+  }, [profile]);
 
   useEffect(() => {
     // Basic presence update - redirected from here to chat if club param exists
@@ -1055,6 +1070,8 @@ function AppLayout() {
   const isPostDetail = pathname.startsWith("/app/post/");
   const isDetail = pathname.includes("/detail") || isPostDetail;
   const isInstitutionStudio = pathname.startsWith("/app/institution-studio");
+  const isAdminStudio = pathname.startsWith("/app/admin");
+  const isWideWorkspace = isInstitutionStudio || isAdminStudio;
   const hideHeader = !isFeed;
 
   useEffect(() => {
@@ -1101,7 +1118,7 @@ function AppLayout() {
       </div>
 
       {/* Main Center Column */}
-      <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isInstitutionStudio ? "zc-institution-main md:max-w-none" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
+      <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isWideWorkspace ? "zc-institution-main md:max-w-none" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
         <IncomingNotificationCard
           recipientId={session.user.id}
           belowFeedHeader={!hideHeader}
@@ -1229,15 +1246,17 @@ function AppLayout() {
           <Outlet />
         </div>
 
-        <BottomNav
-          pathname={pathname}
-          visible={visible}
-          isChat={isChat}
-          isDetail={isDetail}
-          unreadCount={unreadMessagesCount}
-        />
+        {!isAdminStudio && (
+          <BottomNav
+            pathname={pathname}
+            visible={visible}
+            isChat={isChat}
+            isDetail={isDetail}
+            unreadCount={unreadMessagesCount}
+          />
+        )}
       </div>
-      {!pathname.startsWith("/app/institution-studio") && (
+      {!isWideWorkspace && (
         <DesktopWorkspaceRail
           profile={profile}
           pathname={pathname}

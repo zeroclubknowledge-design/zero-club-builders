@@ -31,6 +31,7 @@ import { Route as AppDraftsRouteImport } from './routes/app.drafts'
 import { Route as AppComposeRouteImport } from './routes/app.compose'
 import { Route as AppBoostRouteImport } from './routes/app.boost'
 import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
+import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppWalletIndexRouteImport } from './routes/app.wallet.index'
 import { Route as AppTutorStudioIndexRouteImport } from './routes/app.tutor-studio.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
@@ -41,6 +42,7 @@ import { Route as AppGiftsIndexRouteImport } from './routes/app.gifts.index'
 import { Route as AppClubsIndexRouteImport } from './routes/app.clubs.index'
 import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
+import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
 import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
 import { Route as AppWalletSendRouteImport } from './routes/app.wallet.send'
@@ -181,6 +183,11 @@ const AppBookmarksRoute = AppBookmarksRouteImport.update({
   path: '/bookmarks',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWalletIndexRoute = AppWalletIndexRouteImport.update({
   id: '/wallet/',
   path: '/wallet/',
@@ -231,6 +238,11 @@ const AppBootcampsIndexRoute = AppBootcampsIndexRouteImport.update({
   id: '/bootcamps/',
   path: '/bootcamps/',
   getParentRoute: () => AppRoute,
+} as any)
+const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminRoute,
 } as any)
 const AppWalletWithdrawRoute = AppWalletWithdrawRouteImport.update({
   id: '/wallet/withdraw',
@@ -386,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
@@ -429,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/app/admin/': typeof AppAdminIndexRoute
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/clubs/': typeof AppClubsIndexRoute
@@ -487,6 +501,7 @@ export interface FileRoutesByTo {
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/app/admin': typeof AppAdminIndexRoute
   '/app/bootcamps': typeof AppBootcampsIndexRoute
   '/app/chat': typeof AppChatIndexRoute
   '/app/clubs': typeof AppClubsIndexRoute
@@ -508,6 +523,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
@@ -551,6 +567,7 @@ export interface FileRoutesById {
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/app/admin/': typeof AppAdminIndexRoute
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/clubs/': typeof AppClubsIndexRoute
@@ -573,6 +590,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/signin'
     | '/signup'
+    | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
@@ -616,6 +634,7 @@ export interface FileRouteTypes {
     | '/app/wallet/send'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/app/admin/'
     | '/app/bootcamps/'
     | '/app/chat/'
     | '/app/clubs/'
@@ -674,6 +693,7 @@ export interface FileRouteTypes {
     | '/app/wallet/send'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/app/admin'
     | '/app/bootcamps'
     | '/app/chat'
     | '/app/clubs'
@@ -694,6 +714,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/signin'
     | '/signup'
+    | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
@@ -737,6 +758,7 @@ export interface FileRouteTypes {
     | '/app/wallet/send'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/app/admin/'
     | '/app/bootcamps/'
     | '/app/chat/'
     | '/app/clubs/'
@@ -916,6 +938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBookmarksRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/admin': {
+      id: '/app/admin'
+      path: '/admin'
+      fullPath: '/app/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/wallet/': {
       id: '/app/wallet/'
       path: '/wallet'
@@ -985,6 +1014,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/bootcamps/'
       preLoaderRoute: typeof AppBootcampsIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/app/admin/': {
+      id: '/app/admin/'
+      path: '/'
+      fullPath: '/app/admin/'
+      preLoaderRoute: typeof AppAdminIndexRouteImport
+      parentRoute: typeof AppAdminRoute
     }
     '/app/wallet/withdraw': {
       id: '/app/wallet/withdraw'
@@ -1192,6 +1228,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppAdminRouteChildren {
+  AppAdminIndexRoute: typeof AppAdminIndexRoute
+}
+
+const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminIndexRoute: AppAdminIndexRoute,
+}
+
+const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
+  AppAdminRouteChildren,
+)
+
 interface AppInstitutionStudioRouteChildren {
   AppInstitutionStudioIndexRoute: typeof AppInstitutionStudioIndexRoute
 }
@@ -1273,6 +1321,7 @@ const AppTutorStudioRouteWithChildren = AppTutorStudioRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRouteWithChildren
   AppBookmarksRoute: typeof AppBookmarksRoute
   AppBoostRoute: typeof AppBoostRoute
   AppComposeRoute: typeof AppComposeRoute
@@ -1317,6 +1366,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRouteWithChildren,
   AppBookmarksRoute: AppBookmarksRoute,
   AppBoostRoute: AppBoostRoute,
   AppComposeRoute: AppComposeRoute,
