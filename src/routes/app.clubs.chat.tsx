@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -31,6 +31,26 @@ const defaultRooms = [
 ];
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
+
+const CLUB_GIVEAWAY_PREFIX = '::ZEROCLUB_GIVEAWAY::';
+const GIVEAWAY_ENTRY_EMOJI = '🎟️';
+
+type ClubGiveaway = {
+  title: string;
+  prize: string;
+  description: string;
+  endsAt: string;
+  winners: number;
+};
+
+const parseClubGiveaway = (content: string): ClubGiveaway | null => {
+  if (!content?.startsWith(CLUB_GIVEAWAY_PREFIX)) return null;
+  try {
+    return JSON.parse(content.slice(CLUB_GIVEAWAY_PREFIX.length));
+  } catch {
+    return null;
+  }
+};
 
 const isUserOnline = (profile: any) => {
   if (!profile || !profile.updated_at) return false;
@@ -75,6 +95,15 @@ function ClubChat() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showRoomSwitcher, setShowRoomSwitcher] = useState(false);
   const [squadSearch, setSquadSearch] = useState("");
+  const [showGiveaway, setShowGiveaway] = useState(false);
+  const [isCreatingGiveaway, setIsCreatingGiveaway] = useState(false);
+  const [giveaway, setGiveaway] = useState<ClubGiveaway>({
+    title: "",
+    prize: "",
+    description: "",
+    endsAt: "",
+    winners: 1,
+  });
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -115,6 +144,11 @@ function ClubChat() {
 
   const currentUserRole = currentUser ? members.find(mem => mem.profile_id === currentUser.id)?.role : undefined;
   const isAdmin = club?.creator_id === currentUser?.id || currentUserRole === 'Administrator';
+  const openMemberProfile = (profile: any, profileId?: string) => {
+    const id = profile?.username || profile?.id || profileId;
+    if (!id) return;
+    navigate({ to: '/app/profile/$id', params: { id } });
+  };
 
   const [viewportHeight, setViewportHeight] = useState("100dvh");
   const [viewportTop, setViewportTop] = useState("0px");
@@ -460,7 +494,7 @@ function ClubChat() {
   const handleSendMessage = async (overrideText?: string | any, overrideReplyToId?: string | null) => {
     const actualOverride = typeof overrideText === 'string' ? overrideText : undefined;
     const textToSend = actualOverride || msg;
-    if ((!textToSend.trim() && mediaFiles.length === 0) || !club || !currentUser) return;
+    if ((!textToSend.trim() && mediaFiles.length === 0) || !club || !currentUser) return false;
     
     let text = textToSend;
 
@@ -487,11 +521,11 @@ function ClubChat() {
 
     if (activeRoom === 'announcements' && !isAdmin) {
       toast.error("Only club admins can publish announcements.");
-      return;
+      return false;
     }
     if (activeRoom === 'assignments' && !isAdmin && !parentId) {
       toast.error("Only club admins can create assignments.");
-      return;
+      return false;
     }
     setMsg("");
     setMediaFiles([]);
@@ -534,6 +568,7 @@ function ClubChat() {
       toast.error("Failed to send message");
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setMsg(text);
+      return false;
     } else {
       // Replace optimistic message with real data from server
       setMessages(prev => prev.map(m => m.id === tempId ? data : m));
@@ -546,6 +581,7 @@ function ClubChat() {
           toast.success("You earned 100 XP for your first message in the featured Zero K Bootcamp!");
         }
       }
+      return true;
     }
   };
 
@@ -574,6 +610,35 @@ function ClubChat() {
     setSpaceTime("");
     setShowScheduleForm(false);
     setShowLiveMenu(false);
+  };
+
+  const handleCreateGiveaway = async () => {
+    if (!isAdmin) {
+      toast.error("Only club admins can create giveaways.");
+      return;
+    }
+    if (!giveaway.title.trim() || !giveaway.prize.trim() || !giveaway.endsAt) {
+      toast.error("Add a title, prize, and closing date.");
+      return;
+    }
+
+    setIsCreatingGiveaway(true);
+    try {
+      const payload: ClubGiveaway = {
+        title: giveaway.title.trim(),
+        prize: giveaway.prize.trim(),
+        description: giveaway.description.trim(),
+        endsAt: giveaway.endsAt,
+        winners: Math.max(1, Math.min(20, Number(giveaway.winners) || 1)),
+      };
+      const published = await handleSendMessage(`${CLUB_GIVEAWAY_PREFIX}${JSON.stringify(payload)}`);
+      if (!published) return;
+      setGiveaway({ title: "", prize: "", description: "", endsAt: "", winners: 1 });
+      setShowGiveaway(false);
+      toast.success("Giveaway published to the club.");
+    } finally {
+      setIsCreatingGiveaway(false);
+    }
   };
 
   const handleReact = async (messageId: string, emoji: string) => {
@@ -733,7 +798,7 @@ function ClubChat() {
       </div>
 
       {/* Main scrolling container */}
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide flex flex-col relative" ref={scrollRef} onScroll={handleScroll}>
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col relative" ref={scrollRef} onScroll={handleScroll}>
         
         {/* Profile-Style Header (Scrolls) */}
         <div className="w-full shrink-0 z-10 bg-background pb-1">
@@ -1210,12 +1275,13 @@ function ClubChat() {
                                   key={m.profile_id}
                                   className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-card p-3 transition hover:border-primary/40 hover:bg-accent/20 sm:p-4"
                                 >
-                                  <button
-                                    type="button"
-                                    onClick={() => setSquadActionMember(m)}
-                                    className="flex min-w-0 flex-1 items-center gap-3 text-left active:opacity-70"
-                                  >
-                                        <div className="relative h-10 w-10 rounded-full bg-muted overflow-hidden shrink-0 border border-border/50 shadow-sm">
+                                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                                      <button
+                                        type="button"
+                                        onClick={() => openMemberProfile(m.profiles, m.profile_id)}
+                                        className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/50 bg-muted shadow-sm transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+                                        aria-label={`View ${m.profiles?.full_name || m.profiles?.username || 'member'} profile`}
+                                      >
                                           {m.profiles?.avatar_url ? (
                                             <img src={m.profiles.avatar_url} className="h-full w-full object-cover" />
                                           ) : (
@@ -1226,7 +1292,12 @@ function ClubChat() {
                                           {isUserOnline(m.profiles) && (
                                             <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-[#0A0A0E]" />
                                           )}
-                                        </div>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setSquadActionMember(m)}
+                                        className="min-w-0 flex-1 text-left active:opacity-70"
+                                      >
                                         <div className="min-w-0 text-left">
                                           <div className="truncate text-sm font-bold text-foreground">
                                             {m.profiles?.full_name || m.profiles?.username}
@@ -1235,7 +1306,8 @@ function ClubChat() {
                                             {m.role}
                                           </div>
                                         </div>
-                                  </button>
+                                      </button>
+                                  </div>
 
                                   <div className="flex shrink-0 items-center gap-2">
                                         {m.profile_id === club?.creator_id ? (
@@ -1280,7 +1352,12 @@ function ClubChat() {
 
                           {selectedMember && (
                             <div className="mb-6 flex shrink-0 items-center gap-4 rounded-lg border border-border/70 bg-card p-4">
-                              <div className="h-14 w-14 rounded-full bg-muted overflow-hidden shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => openMemberProfile(selectedMember.profiles, selectedMember.profile_id)}
+                                className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-muted transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+                                aria-label="View member profile"
+                              >
                                 {selectedMember.profiles?.avatar_url ? (
                                   <img src={selectedMember.profiles.avatar_url} className="h-full w-full object-cover" />
                                 ) : (
@@ -1288,7 +1365,7 @@ function ClubChat() {
                                     {selectedMember.profiles?.username?.[0]?.toUpperCase()}
                                   </div>
                                 )}
-                              </div>
+                              </button>
                               <div className="text-left">
                                 <h4 className="text-sm font-bold text-foreground">{selectedMember.profiles?.full_name || selectedMember.profiles?.username}</h4>
                                 <p className="text-xs text-muted-foreground">{getFirstName(selectedMember.profiles)}</p>
@@ -1365,7 +1442,12 @@ function ClubChat() {
                             onClick={(event) => event.stopPropagation()}
                           >
                             <div className="mb-4 flex items-center gap-3 border-b border-border pb-4">
-                              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-muted">
+                              <button
+                                type="button"
+                                onClick={() => openMemberProfile(squadActionMember.profiles, squadActionMember.profile_id)}
+                                className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-muted transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+                                aria-label="View member profile"
+                              >
                                 {squadActionMember.profiles?.avatar_url ? (
                                   <img src={squadActionMember.profiles.avatar_url} className="h-full w-full object-cover" />
                                 ) : (
@@ -1373,7 +1455,7 @@ function ClubChat() {
                                     {squadActionMember.profiles?.username?.[0]?.toUpperCase()}
                                   </div>
                                 )}
-                              </div>
+                              </button>
                               <div className="min-w-0 flex-1">
                                 <p className="truncate text-sm font-semibold text-foreground">{squadActionMember.profiles?.full_name || squadActionMember.profiles?.username}</p>
                                 <p className="truncate text-xs text-muted-foreground">{getFirstName(squadActionMember.profiles)}</p>
@@ -1410,6 +1492,89 @@ function ClubChat() {
                     </div>
                   </DrawerContent>
                 </Drawer>
+
+            <Drawer open={showGiveaway} onOpenChange={setShowGiveaway}>
+              <DrawerContent desktopVariant="panel" className="mx-auto max-h-[92dvh] max-w-[680px] overflow-y-auto border border-border bg-background p-0 shadow-2xl">
+                <DrawerHeader className="border-b border-border px-5 pb-5 pt-2 text-left sm:px-7 sm:pt-7">
+                  <div className="mb-3 grid h-11 w-11 place-items-center rounded-lg bg-foreground text-background">
+                    <Gift className="h-5 w-5 fill-current" />
+                  </div>
+                  <DrawerTitle className="text-[19px] font-semibold tracking-tight">Create a giveaway</DrawerTitle>
+                  <DrawerDescription className="text-sm leading-6">Reward participation with a clear prize and closing date.</DrawerDescription>
+                </DrawerHeader>
+
+                <div className="space-y-5 px-5 py-6 sm:px-7">
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-semibold text-foreground">Giveaway title</span>
+                    <input
+                      value={giveaway.title}
+                      onChange={(event) => setGiveaway((current) => ({ ...current, title: event.target.value }))}
+                      maxLength={80}
+                      placeholder="Community build challenge"
+                      className="h-11 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-semibold text-foreground">Prize</span>
+                    <input
+                      value={giveaway.prize}
+                      onChange={(event) => setGiveaway((current) => ({ ...current, prize: event.target.value }))}
+                      maxLength={100}
+                      placeholder="₦25,000 learning grant"
+                      className="h-11 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-semibold text-foreground">Details</span>
+                    <textarea
+                      value={giveaway.description}
+                      onChange={(event) => setGiveaway((current) => ({ ...current, description: event.target.value }))}
+                      maxLength={320}
+                      rows={4}
+                      placeholder="Explain how members qualify and what the winner receives."
+                      className="w-full resize-none rounded-md border border-border bg-card px-3.5 py-3 text-sm leading-6 outline-none transition focus:border-foreground"
+                    />
+                    <span className="mt-1 block text-right text-[10px] tabular-nums text-muted-foreground">{giveaway.description.length}/320</span>
+                  </label>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="mb-2 block text-xs font-semibold text-foreground">Closes</span>
+                      <input
+                        type="datetime-local"
+                        value={giveaway.endsAt}
+                        min={new Date().toISOString().slice(0, 16)}
+                        onChange={(event) => setGiveaway((current) => ({ ...current, endsAt: event.target.value }))}
+                        className="h-11 w-full rounded-md border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-2 block text-xs font-semibold text-foreground">Number of winners</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={giveaway.winners}
+                        onChange={(event) => setGiveaway((current) => ({ ...current, winners: Number(event.target.value) }))}
+                        className="h-11 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
+                      />
+                    </label>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCreateGiveaway}
+                    disabled={isCreatingGiveaway || !giveaway.title.trim() || !giveaway.prize.trim() || !giveaway.endsAt}
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
+                  >
+                    <Gift className="h-4 w-4 fill-current" />
+                    {isCreatingGiveaway ? "Publishing..." : "Publish giveaway"}
+                  </button>
+                </div>
+              </DrawerContent>
+            </Drawer>
 
             <Drawer open={showRoomSwitcher} onOpenChange={setShowRoomSwitcher}>
               <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
@@ -1802,10 +1967,11 @@ function ClubChat() {
               <DropdownMenuTrigger asChild>
                 <button title="Add attachment" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"><Paperclip className="h-4 w-4" /></button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="w-44">
+              <DropdownMenuContent align="end" side="top" className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl">
                 <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => documentInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
+                {isAdmin && activeRoom === 'general' && <DropdownMenuItem onSelect={() => setShowGiveaway(true)} className="gap-2.5"><Gift className="h-4 w-4 fill-current" /> Give Away</DropdownMenuItem>}
               </DropdownMenuContent>
             </DropdownMenu>
             <button 
@@ -2026,10 +2192,17 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
             const interactive = room !== 'announcements';
 
             return (
-              <button
+              <article
                 key={message.id}
-                type="button"
                 onClick={() => interactive && setSelectedCard(message)}
+                onKeyDown={(event) => {
+                  if (interactive && (event.key === 'Enter' || event.key === ' ')) {
+                    event.preventDefault();
+                    setSelectedCard(message);
+                  }
+                }}
+                role={interactive ? 'button' : undefined}
+                tabIndex={interactive ? 0 : undefined}
                 className={`w-full max-w-full overflow-hidden border border-border bg-card p-3 text-left transition sm:p-5 ${interactive ? 'hover:border-primary/40 hover:bg-accent/20 active:scale-[0.995]' : 'cursor-default'}`}
               >
                 <div className="flex min-w-0 items-start gap-2.5 sm:gap-3.5">
@@ -2043,14 +2216,25 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                     </div>
                     <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{card.body}</p>
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span>{author}</span>
+                      <Link
+                        to="/app/profile/$id"
+                        params={{ id: message.profiles?.username || message.profile_id }}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                        className="flex items-center gap-1.5 font-medium text-foreground transition hover:opacity-70"
+                      >
+                        <span className="grid h-5 w-5 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[8px]">
+                          {message.profiles?.avatar_url ? <img src={message.profiles.avatar_url} className="h-full w-full object-cover" /> : author.substring(0, 1).toUpperCase()}
+                        </span>
+                        <span>{author}</span>
+                      </Link>
                       <span>{formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}</span>
                       {card.dueDate && <span className="font-medium text-foreground">Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}</span>}
                       {interactive && <span className="font-medium text-primary">{replyCount} {room === 'assignments' ? 'submissions' : 'answers'}</span>}
                     </div>
                   </div>
                 </div>
-              </button>
+              </article>
             );
           })}
         </div>
@@ -2088,7 +2272,16 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                         return (
                           <article key={reply.id} className="border-l-2 border-primary bg-card px-4 py-3">
                             <div className="mb-2 flex items-center justify-between gap-3">
-                              <span className="text-xs font-semibold text-foreground">{author}</span>
+                              <Link
+                                to="/app/profile/$id"
+                                params={{ id: reply.profiles?.username || reply.profile_id }}
+                                className="flex min-w-0 items-center gap-2 text-xs font-semibold text-foreground transition hover:opacity-70"
+                              >
+                                <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[9px]">
+                                  {reply.profiles?.avatar_url ? <img src={reply.profiles.avatar_url} className="h-full w-full object-cover" /> : author.substring(0, 1).toUpperCase()}
+                                </span>
+                                <span className="truncate">{author}</span>
+                              </Link>
                               <span className="text-[11px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
                             </div>
                             <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{parsedReply.body}</p>
@@ -2130,6 +2323,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
 }
 
 function MessageBubble({ message, isMe, currentUser, members, repliedMessage, onReply, onReact, getRoleColor, room }: any) {
+  const navigate = useNavigate();
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
@@ -2149,6 +2343,11 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
     if (r.profile_id === currentUser?.id) acc[r.emoji].me = true;
     return acc;
   }, {}) || {};
+  const giveaway = parseClubGiveaway(message.content);
+  const giveawayEntries = message.reactions?.filter((reaction: any) => reaction.emoji === GIVEAWAY_ENTRY_EMOJI) || [];
+  const hasEnteredGiveaway = giveawayEntries.some((reaction: any) => reaction.profile_id === currentUser?.id);
+  const giveawayClosed = giveaway ? new Date(giveaway.endsAt).getTime() <= Date.now() : false;
+  const visibleReactions = Object.entries(groupedReactions).filter(([emoji]) => emoji !== GIVEAWAY_ENTRY_EMOJI);
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -2273,13 +2472,23 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
       >
         {/* Avatar (only for received messages) */}
         {!isMe && (
-          <div className="h-8 w-8 shrink-0 rounded-full bg-accent/30 border border-border overflow-hidden flex items-center justify-center text-xs font-bold text-muted-foreground self-end mb-1">
+          <button
+            type="button"
+            onMouseDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
+            onClick={() => {
+              const id = message.profiles?.username || message.profile_id;
+              if (id) navigate({ to: '/app/profile/$id', params: { id } });
+            }}
+            className="mb-1 flex h-8 w-8 shrink-0 self-end items-center justify-center overflow-hidden rounded-full border border-border bg-accent/30 text-xs font-bold text-muted-foreground transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+            aria-label={`View ${message.profiles?.full_name || message.profiles?.username || 'member'} profile`}
+          >
             {message.profiles?.avatar_url ? (
               <img src={message.profiles.avatar_url} className="h-full w-full object-cover" />
             ) : (
               message.profiles?.username?.[0]?.toUpperCase()
             )}
-          </div>
+          </button>
         )}
 
         {/* Content Container */}
@@ -2335,7 +2544,43 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               </div>
             )}
 
-            {message.content.startsWith("📅 **[SCHEDULED SPACE]**") ? (() => {
+            {giveaway ? (
+              <div className="w-[min(300px,72vw)] text-left">
+                <div className="flex items-start gap-3">
+                  <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${isMe ? 'bg-background/15 text-background' : 'bg-foreground text-background'}`}>
+                    <Gift className="h-5 w-5 fill-current" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-[9px] font-semibold uppercase ${isMe ? 'text-background/60' : 'text-muted-foreground'}`}>Club giveaway</p>
+                    <h4 className={`mt-1 break-words text-[15px] font-semibold leading-5 ${isMe ? 'text-background' : 'text-foreground'}`}>{giveaway.title}</h4>
+                  </div>
+                </div>
+
+                <div className={`my-3 border-y py-3 ${isMe ? 'border-background/15' : 'border-border'}`}>
+                  <div className="flex items-center gap-2">
+                    <Trophy className={`h-4 w-4 shrink-0 ${isMe ? 'text-background/70' : 'text-primary'}`} />
+                    <p className={`text-sm font-semibold ${isMe ? 'text-background' : 'text-foreground'}`}>{giveaway.prize}</p>
+                  </div>
+                  {giveaway.description && <p className={`mt-2 whitespace-pre-wrap text-xs leading-5 ${isMe ? 'text-background/70' : 'text-muted-foreground'}`}>{giveaway.description}</p>}
+                </div>
+
+                <div className={`mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] ${isMe ? 'text-background/60' : 'text-muted-foreground'}`}>
+                  <span>{giveaway.winners} {giveaway.winners === 1 ? 'winner' : 'winners'}</span>
+                  <span>{giveawayEntries.length} {giveawayEntries.length === 1 ? 'entry' : 'entries'}</span>
+                  <span>{giveawayClosed ? 'Closed' : `Closes ${new Date(giveaway.endsAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => !giveawayClosed && onReact(message.id, GIVEAWAY_ENTRY_EMOJI)}
+                  disabled={giveawayClosed}
+                  className={`flex h-10 w-full items-center justify-center gap-2 rounded-md text-xs font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${hasEnteredGiveaway ? 'border border-primary/25 bg-primary/10 text-primary' : 'bg-primary text-primary-foreground'}`}
+                >
+                  {hasEnteredGiveaway ? <Check className="h-4 w-4" /> : <Gift className="h-4 w-4 fill-current" />}
+                  {giveawayClosed ? 'Giveaway closed' : hasEnteredGiveaway ? 'Entry confirmed' : 'Enter giveaway'}
+                </button>
+              </div>
+            ) : message.content.startsWith("📅 **[SCHEDULED SPACE]**") ? (() => {
               const topicMatch = message.content.match(/Topic:\s*"([^"]+)"/);
               const dateMatch = message.content.match(/Date:\s*([^\s|]+)/);
               const timeMatch = message.content.match(/Time:\s*([^\s|]+)/);
@@ -2416,6 +2661,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             )}
             
             {message.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
+            {giveaway && <div className="h-4" />}
             
             <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-background/70' : 'text-muted-foreground'}`}>{time}</span>
 
@@ -2474,9 +2720,9 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
           </div>
 
           {/* Reactions display */}
-          {Object.keys(groupedReactions).length > 0 && (
+          {visibleReactions.length > 0 && (
             <div className={`flex flex-wrap gap-1 mt-1 ${isMe ?'justify-end' : 'justify-start'}`}>
-              {Object.entries(groupedReactions).map(([emoji, data]: [string, any]) => (
+              {visibleReactions.map(([emoji, data]: [string, any]) => (
                 <button
                   key={emoji}
                   onClick={() => onReact(message.id, emoji)}

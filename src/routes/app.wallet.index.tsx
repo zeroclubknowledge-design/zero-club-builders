@@ -362,8 +362,8 @@ function WalletPage() {
       </header>
 
       {/* ── Main Content Container ── */}
-      <div className="mx-auto w-full md:max-w-[1080px] md:px-8 md:pb-16 md:pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] lg:items-start lg:gap-10">
-      <div className="md:mx-auto md:w-full md:min-w-0 md:max-w-[640px] lg:mx-0 lg:max-w-none">
+      <div className="mx-auto w-full md:max-w-[880px] md:px-8 md:pb-16 md:pt-8">
+      <div className="md:mx-auto md:w-full md:min-w-0">
       <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pt-0 flex flex-col w-full">
 
           {/* Premium Balance Card */}
@@ -418,7 +418,7 @@ function WalletPage() {
 
       {/* ── Quick Actions Grid (Under Add Money & Send) ── */}
       <section className="px-6 mt-6 md:px-0 md:mt-8">
-        <div className="grid grid-cols-4 gap-3 md:grid-cols-2 md:gap-3">
+        <div className="grid grid-cols-4 gap-3 md:gap-3">
           <Link to="/app/store" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
             <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
               <Store className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
@@ -452,7 +452,7 @@ function WalletPage() {
       </div>
 
       {/* ── Transaction History ── */}
-      <section id="transactions" className="mt-12 scroll-mt-24 px-6 md:mx-auto md:mt-10 md:w-full md:min-w-0 md:max-w-[640px] md:rounded-lg md:bg-card md:px-7 md:py-7 md:ring-1 md:ring-border lg:sticky lg:top-24 lg:mx-0 lg:mt-0 lg:max-w-none">
+      <section id="transactions" className="mt-12 scroll-mt-24 px-6 md:mx-auto md:mt-8 md:w-full md:min-w-0 md:rounded-lg md:bg-card md:px-7 md:py-7 md:ring-1 md:ring-border">
         <div className="flex justify-between items-center mb-8 md:mb-5 md:pb-4 md:border-b md:hairline">
           <h3 className="text-[19px] md:text-[17px] font-semibold text-foreground tracking-tight">History</h3>
           <button className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors">

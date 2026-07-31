@@ -877,7 +877,7 @@ function ChatViewPage() {
           <SheetHeader className="border-b border-border/60 px-5 py-5 text-left">
             <SheetTitle>Conversation details</SheetTitle>
           </SheetHeader>
-          <div className="overflow-y-auto p-5">
+          <div className="overflow-y-auto no-scrollbar p-5">
             <div className="flex flex-col items-center text-center">
               <Link to="/app/profile/$id" params={{ id }} onClick={() => setInfoOpen(false)} className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground transition active:scale-95">
                 {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()}
@@ -902,7 +902,7 @@ function ChatViewPage() {
 
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide"
+        className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar"
       >
         <div className="flex flex-col items-center py-6 text-center">
           <Link to="/app/profile/$id" params={{ id }} className="h-20 w-20 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xl mb-3 transition active:scale-95">
@@ -1029,7 +1029,7 @@ function ChatViewPage() {
                 <DropdownMenuTrigger asChild>
                   <button title="Add attachment" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"><Paperclip className="h-4 w-4" /></button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" side="top" className="w-44">
+                <DropdownMenuContent align="end" side="top" className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl">
                   <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => fileInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
