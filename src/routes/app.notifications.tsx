@@ -13,6 +13,7 @@ import { enrichPosts } from "@/api";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { SwipeToDelete } from "@/components/SwipeToDelete";
 
 export const Route = createFileRoute("/app/notifications")({
   component: NotificationsPage,
@@ -116,6 +117,20 @@ function NotificationsPage() {
       await supabase.from('notifications').update({ is_read: true }).eq('id', id);
       setNotifs((current) => current.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (err) {}
+  };
+
+  /** Removes a notification (or a whole grouped set) for this member. */
+  const deleteNotification = async (ids: string[]) => {
+    const previous = notifs;
+    setNotifs((current) => current.filter((n) => !ids.includes(n.id)));
+    try {
+      const { error } = await supabase.from('notifications').delete().in('id', ids);
+      if (error) throw error;
+      toast.success(ids.length > 1 ? "Notifications deleted" : "Notification deleted");
+    } catch (err: any) {
+      setNotifs(previous);
+      toast.error(err.message || "Could not delete notification");
+    }
   };
 
   const getNotifUI = (type: string, actorName?: string, isActorMe?: boolean, recipientName?: string) => {
@@ -272,8 +287,8 @@ function NotificationsPage() {
           };
 
           return (
-            <div 
-              key={n.id} 
+            <SwipeToDelete key={n.id} onDelete={() => deleteNotification(n.isGroup ? n.groupIds : [n.id])}>
+            <div
               onClick={handleNotificationClick}
               className={`group relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] gap-3.5 overflow-hidden rounded-lg border p-3.5 transition-[background-color,border-color,transform] duration-150 active:scale-[0.995] sm:p-4 ${(!n.is_read && !isActorMe) ? "border-primary/25 bg-primary/[0.045] shadow-sm" : "border-border/60 bg-card hover:border-border hover:bg-accent/20"}`}
             >
@@ -344,6 +359,7 @@ function NotificationsPage() {
               </div>
               <div className="flex items-start pt-1">{(!n.is_read && !isActorMe) && <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />}</div>
             </div>
+            </SwipeToDelete>
           );
         })
         )}

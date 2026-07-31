@@ -51,7 +51,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
-type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "community" | "marketplace" | "commerce" | "ads" | "system";
+type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "system";
 
 type Snapshot = {
   metrics: Record<string, number>;
@@ -79,6 +79,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "community", label: "Community", Icon: UsersRound },
   { id: "marketplace", label: "Marketplace", Icon: BriefcaseBusiness },
   { id: "commerce", label: "Commerce", Icon: CircleDollarSign },
+  { id: "institutions", label: "Institutions", Icon: Building2 },
   { id: "ads", label: "Ads Manager", Icon: Megaphone },
   { id: "system", label: "System", Icon: Settings2 },
 ];
@@ -125,6 +126,7 @@ export function AdminDashboard() {
         admin_update_gig_status: "Gig status updated",
         admin_update_bootcamp_status: "Bootcamp status updated",
         admin_update_platform_setting: "Platform setting updated",
+        admin_set_institution_status: "Institution updated",
         admin_create_gig: "Gig published",
         admin_delete_gig: "Gig deleted",
         admin_save_promotion: "Campaign saved",
@@ -136,6 +138,7 @@ export function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["gig-marketplace"] });
       queryClient.invalidateQueries({ queryKey: ["admin-promotions"] });
       queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-institutions"] });
     },
     onError: (error: any) => toast.error(error.message || "The admin action could not be completed"),
   });
@@ -149,6 +152,19 @@ export function AdminDashboard() {
     },
     enabled: activeTab === "analytics",
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  const institutionsQuery = useQuery({
+    queryKey: ["admin-institutions"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_admin_institution_applications");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: activeTab === "institutions",
+    staleTime: 30_000,
     refetchOnWindowFocus: false,
     retry: false,
   });
@@ -240,6 +256,7 @@ export function AdminDashboard() {
 
           {activeTab === "overview" && <Overview snapshot={data} format={format} onNavigate={setActiveTab} />}
           {activeTab === "analytics" && <Analytics query={analyticsQuery} format={format} />}
+          {activeTab === "institutions" && <Institutions query={institutionsQuery} format={format} busy={action.isPending} runAction={runAction} />}
           {activeTab === "ads" && <AdsManager query={promotionsQuery} busy={action.isPending} runAction={runAction} />}
           {activeTab === "people" && <People users={filteredUsers} search={userSearch} setSearch={setUserSearch} type={userType} setType={setUserType} busy={action.isPending} runAction={runAction} />}
           {activeTab === "moderation" && <Moderation reports={data.reports} busy={action.isPending} runAction={runAction} />}
@@ -522,6 +539,83 @@ function Analytics({ query, format }: { query: any; format: (value: number) => s
       </div>
     </div>
   );
+}
+
+function Institutions({ query, format, busy, runAction }: any) {
+  const { data, isLoading, error } = query;
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  if (isLoading) return <TabLoading />;
+  if (error) {
+    if (isMissingRpc(error)) return <MigrationNote file="20260730210000_institution_onboarding.sql" title="Institution onboarding setup required" />;
+    return <EmptyState Icon={ShieldOff} title="Applications could not load" detail={(error as any).message || "Try refreshing."} />;
+  }
+  const apps = (data || []) as any[];
+  const daysLeft = (iso?: string) => iso ? Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)) : 0;
+
+  return (
+    <div>
+      <SectionHeading eyebrow="Institution operations" title="Digital Hub applications" detail="Review onboarding requests, trials, and activations." />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <SmallMetric label="On trial" value={apps.filter((a) => a.status === "trial").length} />
+        <SmallMetric label="Awaiting review" value={apps.filter((a) => a.status === "pending_review").length} />
+        <SmallMetric label="Active" value={apps.filter((a) => a.status === "active").length} />
+        <SmallMetric label="Total" value={apps.length} />
+      </div>
+      <div className="mt-5 space-y-3">
+        {apps.length ? apps.map((app) => (
+          <div key={app.id} className="rounded-lg border border-border bg-card p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-semibold">{app.institution_name}</p>
+                <p className="mt-0.5 text-[9.5px] text-muted-foreground">
+                  {app.institution_type} · {app.city ? `${app.city}, ` : ""}{app.country} · @{app.username || "member"} · {app.organization_size === "large" ? "Large" : "Small"} organisation
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={app.status === "pending_review" ? "reviewing" : app.status} />
+                <button onClick={() => setOpenId(openId === app.id ? null : app.id)} className="rounded-lg border border-border px-3 py-1.5 text-[10.5px] font-semibold hover:bg-muted">{openId === app.id ? "Close" : "Details"}</button>
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[10px] text-muted-foreground">
+              <span>Plan <strong className="text-foreground">{format(app.price)}</strong>/yr</span>
+              <span>Wallet <strong className="text-foreground">{format(app.wallet_balance)}</strong></span>
+              <span>{compact(app.learner_count)} learners · {compact(app.tutor_count)} tutors</span>
+              {app.status === "trial" && <span className="text-amber-600">{daysLeft(app.trial_ends_at)} trial days left</span>}
+              {app.status === "active" && app.active_until && <span className="text-emerald-600">Active until {formatDate(app.active_until)}</span>}
+            </div>
+
+            {openId === app.id && (
+              <div className="mt-3 space-y-3 rounded-lg bg-muted/50 p-4 ring-1 ring-border">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Detail label="Contact" value={`${app.contact_name} · ${app.contact_role}`} />
+                  <Detail label="Email" value={app.contact_email} />
+                  <Detail label="Phone" value={app.contact_phone || "—"} />
+                  <Detail label="Website" value={app.website || "—"} />
+                  <Detail label="Registration" value={app.registration_number || "—"} />
+                  <Detail label="Address" value={app.address || "—"} />
+                </div>
+                {app.programs_planned && <Detail label="Programs planned" value={app.programs_planned} />}
+                {app.goals && <Detail label="Goals" value={app.goals} />}
+                {app.hear_about && <Detail label="Heard about us via" value={app.hear_about} />}
+                <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                  <ActionButton label="Mark reviewing" disabled={busy} onClick={() => runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "pending_review" })} />
+                  <ActionButton label="Activate 12 months" primary disabled={busy} onClick={() => { if (confirm(`Activate the Digital Hub for ${app.institution_name}?`)) runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "active" }); }} />
+                  <ActionButton label="Expire" disabled={busy} onClick={() => runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "expired" })} />
+                  <ActionButton label="Reject" disabled={busy} onClick={() => { if (confirm(`Reject ${app.institution_name}?`)) runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "rejected" }); }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )) : <EmptyState Icon={Building2} title="No applications yet" detail="Institution onboarding requests will appear here." />}
+      </div>
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return <div><p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</p><p className="mt-0.5 text-[11.5px] leading-relaxed">{value}</p></div>;
 }
 
 const EMPTY_CAMPAIGN = { id: null as string | null, title: "", body: "", mediaUrl: "", targetUrl: "", cta: "Learn more", audience: "free_members", sponsor: "", startsAt: "", endsAt: "" };

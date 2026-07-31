@@ -439,7 +439,7 @@ function InstitutionHub() {
                   <div className="max-w-2xl">
                     <div className="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-[#cc208f]"><Building2 className="h-5 w-5" /></div>
                     <p className="text-[10px] font-semibold uppercase text-white/45">Institution command center</p>
-                    <h1 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[32px]">{profile?.full_name || "Institution Hub"}</h1>
+                    <h1 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[32px]">{profile?.full_name || "Digital Hub"}</h1>
                     <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-white/60">Coordinate tutors, programs, learner participation, and teaching outcomes from one accountable workspace.</p>
                   </div>
                   <button

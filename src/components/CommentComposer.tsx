@@ -206,7 +206,7 @@ export function CommentComposer({
                 <DropdownMenuItem onSelect={() => videoRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <button type="button" onClick={() => void submit()} disabled={loading || (!value.trim() && files.length === 0)} aria-label="Post comment" className={`grid h-8 w-8 place-items-center rounded-full transition ${value.trim() || files.length > 0 ? "bg-foreground text-background" : "text-muted-foreground"}`}>
+            <button type="button" onClick={() => void submit()} disabled={loading || (!value.trim() && files.length === 0)} aria-label="Post comment" className={`grid h-8 w-8 place-items-center rounded-full transition ${value.trim() || files.length > 0 ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
           </div>

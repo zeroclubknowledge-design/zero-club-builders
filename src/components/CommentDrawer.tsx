@@ -527,9 +527,9 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                         <div className="flex flex-wrap items-center gap-4 relative">
                           <button 
                             onClick={() => handleLikeComment(comment)}
-                            className={`flex items-center gap-1.5 text-[11px] font-bold transition ${comment.isLiked ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`text-[11px] font-bold transition flex items-center gap-1.5 ${comment.isLiked ?"text-primary" : "text-muted-foreground hover:text-primary"}`}
                           >
-                            <Heart className={`h-3.5 w-3.5 ${comment.isLiked ? "fill-foreground" : ""}`} />
+                            <Heart className={`h-3.5 w-3.5 ${comment.isLiked ?"fill-primary" : ""}`} />
                             {comment.likes_count > 0 ? comment.likes_count : "Like"}
                           </button>
                           
@@ -606,7 +606,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                               key={emoji}
                               onClick={() => handleReactComment(comment.id, emoji)}
                               className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                                data.me ? 'border-foreground bg-foreground text-background' : 'border-transparent bg-foreground/[0.04] text-muted-foreground hover:bg-foreground/[0.08]'
+                                data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
                               }`}
                             >
                               <span>{emoji}</span>

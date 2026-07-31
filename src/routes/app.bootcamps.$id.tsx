@@ -203,8 +203,8 @@ function BootcampDetail() {
   const basePrice = Number(bootcamp.price) || 0;
   const tier = currentUser?.tier || "Basic";
   let discountPct = 0;
-  if (tier === "Premium") discountPct = 0.3;
-  else if (tier === "Premium+") discountPct = 0.5;
+  if (tier === "Premium") discountPct = 0.03;
+  else if (tier === "Premium+") discountPct = 0.05;
 
   const finalPrice = Math.round(basePrice * (1 - discountPct));
   const couponDiscountPct = Math.min(100, Math.max(0, Number(bootcamp.coupon_discount_percent) || 0));

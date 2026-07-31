@@ -13,7 +13,7 @@ const categories = [
     features: [
       { name: "Daily XP Multiplier", desc: "Earn more for every post", values: { Basic: "1x", Premium: "2x", "Premium+": "5x" } },
       { name: "Post Boost", desc: "Get more visibility", values: { Basic: "None", Premium: "Large", "Premium+": "Largest" } },
-      { name: "Bootcamp Discounts", desc: "Every time you pay for a bootcamp", values: { Basic: "0%", Premium: "30%", "Premium+": "50%" } },
+      { name: "Bootcamp Discounts", desc: "Every time you pay for a bootcamp", values: { Basic: "0%", Premium: "3%", "Premium+": "5%" } },
       { name: "Edit Posts", desc: "Up to 1 hour after posting", locked: ["Basic"] },
       { name: "Longer Posts", desc: "Up to 25,000 characters", locked: ["Basic"] },
       { name: "Verified Badge", desc: "Blue checkmark on profile", locked: ["Basic"] },

@@ -682,9 +682,7 @@ function ClubChat() {
         isScrolled ? "bg-background/80 backdrop-blur-md border-b border-border/40 shadow-sm" : "bg-gradient-to-b from-black/60 to-transparent pointer-events-none"
       }`}>
         <div className={`flex items-center gap-3 ${!isScrolled ? "pointer-events-auto" : ""}`}>
-          <Link to="/app/clubs" className={`flex h-9 w-9 items-center justify-center rounded-full transition active:scale-90 shadow-sm border ${
-            isScrolled ? "bg-accent/50 text-foreground hover:bg-accent border-border/50" : "bg-black/40 backdrop-blur-md text-white border-white/10"
-          }`}>
+          <Link to="/app/clubs" className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-90">
             <ChevronLeft className="h-5 w-5" />
           </Link>
           <div className={`flex items-center gap-2 transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0'}`}>
@@ -701,18 +699,14 @@ function ClubChat() {
         <div className={`flex items-center gap-2 ${!isScrolled ? "pointer-events-auto" : ""}`}>
           <button 
             onClick={() => setShowMembers(true)}
-            className={`flex h-9 w-9 items-center justify-center rounded-full transition active:scale-95 shadow-sm border ${
-              isScrolled ? "bg-accent/50 text-foreground hover:bg-accent border-border/50" : "bg-black/40 backdrop-blur-md text-white border-white/10"
-            }`}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95"
           >
             <Users className="h-4 w-4" />
           </button>
           {club?.creator_id === currentUser?.id && (
             <button 
               onClick={() => setShowSettings(true)}
-              className={`flex h-9 w-9 items-center justify-center rounded-full transition active:scale-95 shadow-sm border ${
-                isScrolled ? "bg-accent/50 text-foreground hover:bg-accent border-border/50" : "bg-black/40 backdrop-blur-md text-white border-white/10"
-              }`}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95"
             >
               <Settings className="h-4 w-4" />
             </button>
@@ -1818,7 +1812,7 @@ function ClubChat() {
               onClick={handleSendMessage}
               disabled={!msg.trim() && mediaFiles.length === 0}
               className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
-                msg.trim() || mediaFiles.length > 0 ? 'bg-foreground text-background' : 'text-muted-foreground'
+                msg.trim() || mediaFiles.length > 0 ?'bg-primary text-white' : 'text-muted-foreground'
               }`}
             >
               <Send className="h-4 w-4" />
@@ -2119,7 +2113,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                     <button
                       onClick={submitThreadReply}
                       disabled={!threadReply.trim() || isSubmitting}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-foreground text-background transition active:scale-95 disabled:opacity-40"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground transition active:scale-95 disabled:opacity-40"
                       aria-label={room === 'assignments' ? 'Submit assignment' : 'Post answer'}
                     >
                       <Send className="h-4 w-4 fill-current" />
@@ -2313,7 +2307,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
           )}
 
           {/* Bubble */}
-          <div className={`relative group px-3.5 py-2.5 ${isMe ?'bg-[#cc208f] border border-[#cc208f]/30 rounded-[22px] rounded-br-sm text-right text-white shadow-sm shadow-[#cc208f]/15' : 'bg-muted border border-border/50 rounded-[22px] rounded-bl-sm text-left'}`}>
+          <div className={`relative group px-3.5 py-2.5 ${isMe ?'rounded-[22px] rounded-br-sm border border-foreground/10 bg-foreground text-right text-background shadow-sm shadow-black/10' : 'rounded-[22px] rounded-bl-sm border border-border/50 bg-muted text-left'}`}>
             
             {/* Sender Name for Received */}
             {!isMe && (
@@ -2387,8 +2381,8 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               );
             })() : (
               <>
-                <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-primary-foreground' : 'text-foreground'}`}>
-                  <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-white underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
+                <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
+                  <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
                   {!message.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
                 </p>
                 
@@ -2423,7 +2417,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             
             {message.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
             
-            <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-white/75' : 'text-muted-foreground'}`}>{time}</span>
+            <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-background/70' : 'text-muted-foreground'}`}>{time}</span>
 
             {/* Tap outside overlay */}
             {(showEmojiPicker || showFullPicker) && (
@@ -2487,7 +2481,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                   key={emoji}
                   onClick={() => onReact(message.id, emoji)}
                   className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                    data.me ? 'border-foreground bg-foreground text-background' : 'border-transparent bg-foreground/[0.04] text-muted-foreground hover:bg-foreground/[0.08]'
+                    data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
                   }`}
                 >
                   <span>{emoji}</span>

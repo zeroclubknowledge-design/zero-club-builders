@@ -18,6 +18,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
@@ -61,7 +62,7 @@ const plans: Plan[] = [
     recommendedFor: "Learner",
     storedTier: "Premium",
     featured: true,
-    features: ["Zero AI learning assistant", "2x daily XP multiplier", "30% bootcamp discount", "Post editing and longer posts", "Private club access", "Premium profile badge"],
+    features: ["Zero AI learning assistant", "2x daily XP multiplier", "3% bootcamp discount", "Post editing and longer posts", "Private club access", "Premium profile badge"],
   },
   {
     id: "learner-premium-plus",
@@ -72,7 +73,7 @@ const plans: Plan[] = [
     audiences: ["Learner"],
     recommendedFor: "Learner",
     storedTier: "Premium+",
-    features: ["Everything in Learner Premium", "Advanced Zero AI project guidance", "50% bootcamp discount", "Priority mentor access", "Enhanced proof visibility", "Premium+ profile badge"],
+    features: ["Everything in Learner Premium", "Advanced Zero AI project guidance", "5% bootcamp discount", "Priority mentor access", "Enhanced proof visibility", "Premium+ profile badge"],
   },
   {
     id: "tutor-basic",
@@ -117,7 +118,7 @@ const plans: Plan[] = [
     description: "A managed workspace for institutions coordinating tutors, programs, and learner outcomes.",
     audiences: ["Institution"],
     recommendedFor: "Institution",
-    features: ["Institution Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    features: ["Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
   },
 ];
 
@@ -144,6 +145,7 @@ function MembershipPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [audience, setAudience] = useState<Audience>("Learner");
+  const [showInstitutionForm, setShowInstitutionForm] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["my_profile"],
@@ -214,6 +216,11 @@ function MembershipPage() {
 
   const handlePlanAction = (plan: Plan) => {
     if (isCurrentPlan(plan) && plan.id !== "institution") return;
+    // Institutions go through onboarding rather than a one-click purchase.
+    if (plan.id === "institution") {
+      setShowInstitutionForm(true);
+      return;
+    }
     subscribeMutation.mutate(plan);
   };
 
@@ -340,7 +347,7 @@ function MembershipPage() {
                   ) : current && !institutional ? (
                     "Current membership"
                   ) : institutional ? (
-                    <>{current ? "Open Institution Hub" : "Institution access"}<ArrowRight className="h-4 w-4" /></>
+                    <>{current ? "Manage Digital Hub" : "Institution access"}<ArrowRight className="h-4 w-4" /></>
                   ) : (
                     <>Choose {plan.name}<ArrowRight className="h-4 w-4" /></>
                   )}
@@ -364,6 +371,13 @@ function MembershipPage() {
           ))}
         </section>
       </main>
+
+      <InstitutionOnboardingDrawer
+        open={showInstitutionForm}
+        onOpenChange={setShowInstitutionForm}
+        profile={profile}
+        onActivated={() => queryClient.invalidateQueries({ queryKey: ["my_profile"] })}
+      />
     </div>
   );
 }

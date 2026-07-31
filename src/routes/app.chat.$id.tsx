@@ -240,7 +240,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
           <>
               <div className={`relative group px-3.5 py-2.5 flex flex-col ${
                 isMe 
-                  ?'bg-primary border border-primary/20 rounded-[22px] rounded-br-sm text-right' 
+                  ? 'rounded-[22px] rounded-br-sm border border-foreground/10 bg-foreground text-right text-background shadow-sm shadow-black/10'
                   : 'bg-muted border border-border/50 rounded-[22px] rounded-bl-sm text-left'
               }`}>
                 
@@ -280,7 +280,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                     <div className="font-bold flex items-center gap-2">
                       <Building2 className="h-4 w-4" /> Tutor Invitation
                     </div>
-                    <p className={`text-[14px] ${isMe ?'text-primary-foreground/90' : 'text-foreground/90'}`}>
+                    <p className={`text-[14px] ${isMe ?'text-background/90' : 'text-foreground/90'}`}>
                       You have been invited to join <strong>{m.content.split(':')[2]}</strong> as a Tutor.
                     </p>
                     {!isMe && (
@@ -304,12 +304,12 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                     )}
                   </div>
                 ) : m.content.startsWith('ACCEPTED_TUTOR_INVITE:') ? (
-                   <p className={`text-[14px] font-bold ${isMe ? 'text-primary-foreground' : 'text-green-600 dark:text-green-400'}`}>✅ Accepted invitation to join {m.content.split(':')[1]}</p>
+                   <p className={`text-[14px] font-bold ${isMe ? 'text-background' : 'text-green-600 dark:text-green-400'}`}>✅ Accepted invitation to join {m.content.split(':')[1]}</p>
                 ) : m.content.startsWith('REJECTED_TUTOR_INVITE:') ? (
-                   <p className={`text-[14px] font-bold ${isMe ? 'text-primary-foreground' : 'text-red-600 dark:text-red-400'}`}>❌ Rejected invitation to join {m.content.split(':')[1]}</p>
+                   <p className={`text-[14px] font-bold ${isMe ? 'text-background' : 'text-red-600 dark:text-red-400'}`}>❌ Rejected invitation to join {m.content.split(':')[1]}</p>
                 ) : (
-                  <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-primary-foreground' : 'text-foreground'}`}>
-                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-primary-foreground underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
+                  <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
+                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
                     {!m.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
                   </p>
                 )}
@@ -343,7 +343,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 
                 {m.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
                 
-                <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-background/70' : 'text-muted-foreground'}`}>
                   {time} {m.is_edited && "(edited)"}
                 </span>
 
@@ -409,7 +409,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                       key={emoji}
                       onClick={() => onReact(m.id, emoji)}
                       className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                        data.me ? 'border-foreground bg-foreground text-background' : 'border-transparent bg-foreground/[0.04] text-muted-foreground hover:bg-foreground/[0.08]'
+                        data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
                       }`}
                     >
                       <span>{emoji}</span>
@@ -1039,7 +1039,7 @@ function ChatViewPage() {
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && mediaFiles.length === 0) || sending}
                 className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
-                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ? 'bg-success text-success-foreground' : 'bg-foreground text-background') : 'text-muted-foreground'
+                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ?'bg-success text-success-foreground' : 'bg-primary text-white') : 'text-muted-foreground'
                 }`}
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />)}

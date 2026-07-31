@@ -840,8 +840,8 @@ function PostDetail() {
               onClick={handleLike}
               className="flex items-center gap-1.5 transition active:scale-95 group/btn"
             >
-              <Heart className={`h-4 w-4 ${liked ? "fill-foreground text-foreground" : "group-hover/btn:text-foreground"}`} />
-              <span className={`text-xs ${liked ? "text-foreground" : ""}`}>
+              <Heart className={`h-4 w-4 ${liked ?"fill-primary text-primary" : "group-hover/btn:text-primary"}`} />
+              <span className={`text-xs ${liked ?"text-primary" : ""}`}>
                 {(post.likes_count || 0) + (liked && !initialLiked ? 1 : 0) - (!liked && initialLiked ? 1 : 0)}
               </span>
             </button>
@@ -986,9 +986,9 @@ function PostDetail() {
                   <div className="mt-2 flex items-center gap-4">
                     <button 
                       onClick={() => handleLikeComment(comment)}
-                      className={`flex items-center gap-1 text-xs font-bold transition ${comment.isLiked ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`text-xs font-bold transition flex items-center gap-1 ${comment.isLiked ?"text-primary" : "text-muted-foreground hover:text-primary"}`}
                     >
-                      <Heart className={`h-3 w-3 ${comment.isLiked ? "fill-foreground" : ""}`} />
+                      <Heart className={`h-3 w-3 ${comment.isLiked ?"fill-primary" : ""}`} />
                       {comment.likes_count > 0 ? comment.likes_count : "Like"}
                     </button>
                     <button 

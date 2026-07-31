@@ -21,7 +21,7 @@ function InstitutionStudioLayout() {
       }
       const { data: profile } = await supabase.from("profiles").select("account_type").eq("id", session.user.id).single();
       if (profile?.account_type !== "Institution") {
-        toast.error("You do not have access to the Institution Hub.");
+        toast.error("You do not have access to the Digital Hub.");
         router.navigate({ to: "/app" });
         return;
       }

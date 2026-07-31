@@ -313,13 +313,13 @@ function SidebarContent({
 
       <div className="-mr-2 mt-4 flex flex-1 flex-col overflow-y-auto pr-2 no-scrollbar">
         {isInstitutionStudio ? (
-          /* ── Institution Hub sidebar: replaces regular nav when on institution-studio ── */
+          /* ── Digital Hub sidebar: replaces regular nav when on institution-studio ── */
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2 px-3 mb-4">
               <div className="h-8 w-8 rounded-lg bg-primary/8 ring-1 ring-primary/15 text-primary flex items-center justify-center">
                 <Building2 className="h-4 w-4" strokeWidth={1.75} />
               </div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Institution Hub</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Digital Hub</p>
             </div>
             <nav className="flex flex-col gap-1 flex-1">
               {INSTITUTION_SIDEBAR_TABS.map(({ key, label, Icon }) => {
@@ -377,7 +377,7 @@ function SidebarContent({
                 ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
                 : []),
               ...(profile?.account_type === "Institution"
-                ? [{ Icon: IconInstitution, label: "Institution Hub", to: "/app/institution-studio" }]
+                ? [{ Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" }]
                 : []),
               ...(profile?.is_admin
                 ? [{ Icon: IconShield, label: "Admin Control Center", to: "/app/admin" }]
@@ -524,7 +524,7 @@ function DesktopWorkspaceRail({
       ]
     : isInstitution
     ? [
-        { label: "Institution Hub", to: "/app/institution-studio", Icon: IconInstitution },
+        { label: "Digital Hub", to: "/app/institution-studio", Icon: IconInstitution },
         { label: "Organization bootcamps", to: "/app/institution-studio", Icon: IconLearn },
       ]
     : isTutor

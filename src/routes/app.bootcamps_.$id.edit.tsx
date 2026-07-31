@@ -17,7 +17,7 @@ function EditBootcampPage() {
     <BootcampForm
       bootcampId={id}
       returnTo={isInstitution ? "/app/institution-studio" : "/app/tutor-studio"}
-      workspaceLabel={isInstitution ? "Institution Hub" : "Tutor Studio"}
+      workspaceLabel={isInstitution ? "Digital Hub" : "Tutor Studio"}
     />
   );
 }
