@@ -409,7 +409,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                       key={emoji}
                       onClick={() => onReact(m.id, emoji)}
                       className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                        data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
+                        data.me ? 'border-foreground bg-foreground text-background' : 'border-transparent bg-foreground/[0.04] text-muted-foreground hover:bg-foreground/[0.08]'
                       }`}
                     >
                       <span>{emoji}</span>
@@ -1039,7 +1039,7 @@ function ChatViewPage() {
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && mediaFiles.length === 0) || sending}
                 className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
-                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ?'bg-success text-success-foreground' : 'bg-primary text-white') : 'text-muted-foreground'
+                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ? 'bg-success text-success-foreground' : 'bg-foreground text-background') : 'text-muted-foreground'
                 }`}
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />)}

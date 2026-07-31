@@ -573,10 +573,10 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
           </button>
           <button
             onClick={handleLike}
-            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8"
+            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-foreground/[0.06]"
           >
-            <Heart className={`h-[17px] w-[17px] transition-colors ${liked ? "fill-primary text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`} strokeWidth={liked ? 2 : 1.75} />
-            <span className={`text-[12px] font-medium tabular-nums transition-colors ${liked ? "text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`}>
+            <Heart className={`h-[17px] w-[17px] transition-colors ${liked ? "fill-foreground text-foreground" : "text-muted-foreground group-hover/btn:text-foreground"}`} strokeWidth={liked ? 2 : 1.75} />
+            <span className={`text-[12px] font-medium tabular-nums transition-colors ${liked ? "text-foreground" : "text-muted-foreground group-hover/btn:text-foreground"}`}>
               {likesCount || ''}
             </span>
           </button>

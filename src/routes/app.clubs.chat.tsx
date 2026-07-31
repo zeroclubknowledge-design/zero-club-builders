@@ -1818,7 +1818,7 @@ function ClubChat() {
               onClick={handleSendMessage}
               disabled={!msg.trim() && mediaFiles.length === 0}
               className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
-                msg.trim() || mediaFiles.length > 0 ?'bg-primary text-white' : 'text-muted-foreground'
+                msg.trim() || mediaFiles.length > 0 ? 'bg-foreground text-background' : 'text-muted-foreground'
               }`}
             >
               <Send className="h-4 w-4" />
@@ -2119,7 +2119,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                     <button
                       onClick={submitThreadReply}
                       disabled={!threadReply.trim() || isSubmitting}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground transition active:scale-95 disabled:opacity-40"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-foreground text-background transition active:scale-95 disabled:opacity-40"
                       aria-label={room === 'assignments' ? 'Submit assignment' : 'Post answer'}
                     >
                       <Send className="h-4 w-4 fill-current" />
@@ -2487,7 +2487,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                   key={emoji}
                   onClick={() => onReact(message.id, emoji)}
                   className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                    data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
+                    data.me ? 'border-foreground bg-foreground text-background' : 'border-transparent bg-foreground/[0.04] text-muted-foreground hover:bg-foreground/[0.08]'
                   }`}
                 >
                   <span>{emoji}</span>

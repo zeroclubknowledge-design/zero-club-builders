@@ -352,7 +352,7 @@ function ProfileDetail() {
   const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
 
   return (
-    <div className="min-h-screen bg-[#f8f7f5] dark:bg-background">
+    <div className="min-h-screen bg-background">
       {/* ═══════════════════════════════════════════
           FROSTED HEADER — Back + @handle + Actions
          ═══════════════════════════════════════════ */}
@@ -467,15 +467,15 @@ function ProfileDetail() {
           {/* Profile Info Section */}
           <div className="relative px-6 pb-6">
             {/* Avatar overlapping banner */}
-            <div className="absolute -top-[55px] left-6 z-20">
+            <div className="absolute -top-[44px] left-6 z-20 sm:-top-[48px]">
               <div 
-                className="flex h-[110px] w-[110px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90"
+                className="flex h-[88px] w-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90 sm:h-[96px] sm:w-[96px]"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-primary/10 text-4xl font-semibold text-primary">
+                  <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary sm:text-3xl">
                     {initials}
                   </div>
                 )}
@@ -483,7 +483,7 @@ function ProfileDetail() {
             </div>
 
             {/* Right side actions */}
-            <div className="flex justify-end h-[55px] items-center gap-4">
+            <div className="flex h-[44px] items-center justify-end gap-4 sm:h-[48px]">
                {isOwnProfile ? (
                  <Link to="/app/profile/edit" className="flex h-10 items-center rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition hover:opacity-90">
                    Edit profile
