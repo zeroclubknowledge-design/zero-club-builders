@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string } => {
@@ -36,8 +37,11 @@ const CLUB_GIVEAWAY_PREFIX = '::ZEROCLUB_GIVEAWAY::';
 const GIVEAWAY_ENTRY_EMOJI = '🎟️';
 
 type ClubGiveaway = {
+  giveawayId?: string;
   title: string;
-  prize: string;
+  prize?: string;
+  amountPerWinner?: number;
+  totalAmount?: number;
   description: string;
   endsAt: string;
   winners: number;
@@ -68,7 +72,8 @@ function ClubChat() {
   const [members, setMembers] = useState<any[]>([]);
   const [club, setClub] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const { data: currentUserProfile } = useUser();
+  const { data: currentUserProfile, refetch: refetchCurrentUser } = useUser();
+  const { details: walletCurrency, format: formatWalletAmount, toBaseAmount } = useWalletCurrency();
   const [showMembers, setShowMembers] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [squadActionMember, setSquadActionMember] = useState<any>(null);
@@ -99,7 +104,7 @@ function ClubChat() {
   const [isCreatingGiveaway, setIsCreatingGiveaway] = useState(false);
   const [giveaway, setGiveaway] = useState<ClubGiveaway>({
     title: "",
-    prize: "",
+    amountPerWinner: undefined,
     description: "",
     endsAt: "",
     winners: 1,
@@ -144,6 +149,10 @@ function ClubChat() {
 
   const currentUserRole = currentUser ? members.find(mem => mem.profile_id === currentUser.id)?.role : undefined;
   const isAdmin = club?.creator_id === currentUser?.id || currentUserRole === 'Administrator';
+  const giveawayWinnerCount = Math.max(1, Math.min(20, Number(giveaway.winners) || 1));
+  const giveawayPrizeBase = Math.round(toBaseAmount(Number(giveaway.amountPerWinner || 0)));
+  const giveawayTotalBase = giveawayPrizeBase * giveawayWinnerCount;
+  const canFundGiveaway = giveawayTotalBase > 0 && giveawayTotalBase <= Number(currentUserProfile?.coins || 0);
   const openMemberProfile = (profile: any, profileId?: string) => {
     const id = profile?.username || profile?.id || profileId;
     if (!id) return;
@@ -617,25 +626,56 @@ function ClubChat() {
       toast.error("Only club admins can create giveaways.");
       return;
     }
-    if (!giveaway.title.trim() || !giveaway.prize.trim() || !giveaway.endsAt) {
-      toast.error("Add a title, prize, and closing date.");
+    const winnerCount = Math.max(1, Math.min(20, Number(giveaway.winners) || 1));
+    const displayAmount = Number(giveaway.amountPerWinner || 0);
+    const amountPerWinner = Math.round(toBaseAmount(displayAmount));
+    const totalAmount = amountPerWinner * winnerCount;
+
+    if (!giveaway.title.trim() || amountPerWinner <= 0 || !giveaway.endsAt) {
+      toast.error("Add a title, prize amount, and closing date.");
+      return;
+    }
+    if (new Date(giveaway.endsAt).getTime() <= Date.now()) {
+      toast.error("Choose a future closing date.");
+      return;
+    }
+    if (totalAmount > Number(currentUserProfile?.coins || 0)) {
+      toast.error(`You need ${formatWalletAmount(totalAmount)} in your wallet to fund this giveaway.`);
       return;
     }
 
     setIsCreatingGiveaway(true);
     try {
-      const payload: ClubGiveaway = {
-        title: giveaway.title.trim(),
-        prize: giveaway.prize.trim(),
-        description: giveaway.description.trim(),
-        endsAt: giveaway.endsAt,
-        winners: Math.max(1, Math.min(20, Number(giveaway.winners) || 1)),
-      };
-      const published = await handleSendMessage(`${CLUB_GIVEAWAY_PREFIX}${JSON.stringify(payload)}`);
-      if (!published) return;
-      setGiveaway({ title: "", prize: "", description: "", endsAt: "", winners: 1 });
+      const { data, error } = await supabase.rpc("create_club_giveaway", {
+        p_club_id: club.id,
+        p_title: giveaway.title.trim(),
+        p_description: giveaway.description.trim(),
+        p_amount_per_winner: amountPerWinner,
+        p_winner_count: winnerCount,
+        p_ends_at: new Date(giveaway.endsAt).toISOString(),
+      });
+      if (error) throw error;
+
+      const messageId = data?.message_id;
+      if (messageId) {
+        const { data: publishedMessage } = await supabase
+          .from("club_messages")
+          .select("*, profiles:profile_id(*)")
+          .eq("id", messageId)
+          .single();
+        if (publishedMessage) {
+          setMessages((current) => current.some((message) => message.id === publishedMessage.id)
+            ? current
+            : [...current, { ...publishedMessage, reactions: [] }]);
+        }
+      }
+
+      setGiveaway({ title: "", amountPerWinner: undefined, description: "", endsAt: "", winners: 1 });
       setShowGiveaway(false);
-      toast.success("Giveaway published to the club.");
+      await refetchCurrentUser();
+      toast.success(`${formatWalletAmount(totalAmount)} has been locked for the winners.`);
+    } catch (error: any) {
+      toast.error(error.message || "Could not publish the giveaway.");
     } finally {
       setIsCreatingGiveaway(false);
     }
@@ -646,6 +686,41 @@ function ClubChat() {
     
     const msg = messages.find(m => m.id === messageId);
     if (!msg) return;
+
+    const giveawayMessage = parseClubGiveaway(msg.content);
+    if (emoji === GIVEAWAY_ENTRY_EMOJI && giveawayMessage?.giveawayId) {
+      const alreadyEntered = msg.reactions?.some((reaction: any) =>
+        reaction.profile_id === currentUser.id && reaction.emoji === GIVEAWAY_ENTRY_EMOJI
+      );
+      if (alreadyEntered) return;
+
+      const tempId = crypto.randomUUID();
+      setMessages((current) => current.map((message) => message.id === messageId
+        ? { ...message, reactions: [...(message.reactions || []), { id: tempId, message_id: messageId, profile_id: currentUser.id, emoji }] }
+        : message));
+
+      const { data, error } = await supabase.rpc("enter_club_giveaway", {
+        p_giveaway_id: giveawayMessage.giveawayId,
+      });
+      if (error) {
+        setMessages((current) => current.map((message) => message.id === messageId
+          ? { ...message, reactions: message.reactions?.filter((reaction: any) => reaction.id !== tempId) || [] }
+          : message));
+        toast.error(error.message || "Could not enter the giveaway.");
+        return;
+      }
+
+      setMessages((current) => current.map((message) => message.id === messageId
+        ? {
+            ...message,
+            reactions: message.reactions?.map((reaction: any) => reaction.id === tempId
+              ? { ...reaction, id: data?.id || tempId }
+              : reaction) || [],
+          }
+        : message));
+      toast.success("Your giveaway entry is confirmed.");
+      return;
+    }
     
     const existingReaction = msg.reactions?.find((r: any) => r.profile_id === currentUser.id && r.emoji === emoji);
     
@@ -1494,82 +1569,103 @@ function ClubChat() {
                 </Drawer>
 
             <Drawer open={showGiveaway} onOpenChange={setShowGiveaway}>
-              <DrawerContent desktopVariant="panel" className="mx-auto max-h-[92dvh] max-w-[680px] overflow-y-auto border border-border bg-background p-0 shadow-2xl">
-                <DrawerHeader className="border-b border-border px-5 pb-5 pt-2 text-left sm:px-7 sm:pt-7">
-                  <div className="mb-3 grid h-11 w-11 place-items-center rounded-lg bg-foreground text-background">
-                    <Gift className="h-5 w-5 fill-current" />
+              <DrawerContent desktopVariant="panel" className="mx-auto max-w-[680px] overflow-hidden border border-border bg-background p-0 shadow-2xl">
+                <DrawerHeader className="border-b border-border px-5 pb-3 pt-0 text-left sm:px-7 sm:pb-4 sm:pt-2">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-foreground text-background">
+                      <Gift className="h-5 w-5 fill-current" />
+                    </div>
+                    <div className="min-w-0">
+                      <DrawerTitle className="text-[18px] font-semibold tracking-tight">Create a giveaway</DrawerTitle>
+                      <DrawerDescription className="mt-1 text-xs leading-5">The complete prize pool is reserved when you publish.</DrawerDescription>
+                    </div>
                   </div>
-                  <DrawerTitle className="text-[19px] font-semibold tracking-tight">Create a giveaway</DrawerTitle>
-                  <DrawerDescription className="text-sm leading-6">Reward participation with a clear prize and closing date.</DrawerDescription>
                 </DrawerHeader>
 
-                <div className="space-y-5 px-5 py-6 sm:px-7">
+                <div className="space-y-3 px-5 py-4 sm:px-7 sm:py-5">
                   <label className="block">
-                    <span className="mb-2 block text-xs font-semibold text-foreground">Giveaway title</span>
+                    <span className="mb-1.5 block text-xs font-semibold text-foreground">Giveaway title</span>
                     <input
                       value={giveaway.title}
                       onChange={(event) => setGiveaway((current) => ({ ...current, title: event.target.value }))}
                       maxLength={80}
                       placeholder="Community build challenge"
-                      className="h-11 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
+                      className="h-10 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
                     />
                   </label>
 
-                  <label className="block">
-                    <span className="mb-2 block text-xs font-semibold text-foreground">Prize</span>
-                    <input
-                      value={giveaway.prize}
-                      onChange={(event) => setGiveaway((current) => ({ ...current, prize: event.target.value }))}
-                      maxLength={100}
-                      placeholder="₦25,000 learning grant"
-                      className="h-11 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="mb-2 block text-xs font-semibold text-foreground">Details</span>
-                    <textarea
-                      value={giveaway.description}
-                      onChange={(event) => setGiveaway((current) => ({ ...current, description: event.target.value }))}
-                      maxLength={320}
-                      rows={4}
-                      placeholder="Explain how members qualify and what the winner receives."
-                      className="w-full resize-none rounded-md border border-border bg-card px-3.5 py-3 text-sm leading-6 outline-none transition focus:border-foreground"
-                    />
-                    <span className="mt-1 block text-right text-[10px] tabular-nums text-muted-foreground">{giveaway.description.length}/320</span>
-                  </label>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-semibold text-foreground">Closes</span>
-                      <input
-                        type="datetime-local"
-                        value={giveaway.endsAt}
-                        min={new Date().toISOString().slice(0, 16)}
-                        onChange={(event) => setGiveaway((current) => ({ ...current, endsAt: event.target.value }))}
-                        className="h-11 w-full rounded-md border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground"
-                      />
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block min-w-0">
+                      <span className="mb-1.5 block text-xs font-semibold text-foreground">Prize per winner</span>
+                      <div className="flex h-10 items-center rounded-md border border-border bg-card focus-within:border-foreground">
+                        <span className="border-r border-border px-3 text-xs font-semibold text-muted-foreground">{walletCurrency.symbol}</span>
+                        <input
+                          type="number"
+                          min={walletCurrency.rate === 1 ? 1 : 0.01}
+                          step={walletCurrency.rate === 1 ? 1 : 0.01}
+                          value={giveaway.amountPerWinner ?? ""}
+                          onChange={(event) => setGiveaway((current) => ({ ...current, amountPerWinner: event.target.value === "" ? undefined : Number(event.target.value) }))}
+                          placeholder="25000"
+                          className="min-w-0 flex-1 bg-transparent px-3 text-sm tabular-nums outline-none"
+                        />
+                      </div>
                     </label>
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-semibold text-foreground">Number of winners</span>
+                    <label className="block min-w-0">
+                      <span className="mb-1.5 block text-xs font-semibold text-foreground">Winners</span>
                       <input
                         type="number"
                         min={1}
                         max={20}
                         value={giveaway.winners}
                         onChange={(event) => setGiveaway((current) => ({ ...current, winners: Number(event.target.value) }))}
-                        className="h-11 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
+                        className="h-10 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
                       />
                     </label>
+                  </div>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-xs font-semibold text-foreground">Details</span>
+                    <textarea
+                      value={giveaway.description}
+                      onChange={(event) => setGiveaway((current) => ({ ...current, description: event.target.value }))}
+                      maxLength={320}
+                      rows={2}
+                      placeholder="Explain how members qualify and what the winner receives."
+                      className="w-full resize-none rounded-md border border-border bg-card px-3.5 py-2.5 text-sm leading-5 outline-none transition focus:border-foreground"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-xs font-semibold text-foreground">Closes</span>
+                    <input
+                      type="datetime-local"
+                      value={giveaway.endsAt}
+                      min={new Date().toISOString().slice(0, 16)}
+                      onChange={(event) => setGiveaway((current) => ({ ...current, endsAt: event.target.value }))}
+                      className="h-10 w-full rounded-md border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground"
+                    />
+                  </label>
+
+                  <div className={`flex items-center justify-between gap-4 rounded-md border px-3.5 py-3 ${giveawayTotalBase > 0 && !canFundGiveaway ? "border-destructive/30 bg-destructive/5" : "border-border bg-muted/40"}`}>
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <WalletCards className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium text-muted-foreground">Locked when published</p>
+                        <p className="truncate text-sm font-semibold tabular-nums">{formatWalletAmount(giveawayTotalBase)}</p>
+                      </div>
+                    </div>
+                    <p className={`shrink-0 text-right text-[10px] ${giveawayTotalBase > 0 && !canFundGiveaway ? "text-destructive" : "text-muted-foreground"}`}>
+                      Wallet<br /><strong className="font-semibold text-foreground">{formatWalletAmount(Number(currentUserProfile?.coins || 0))}</strong>
+                    </p>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleCreateGiveaway}
-                    disabled={isCreatingGiveaway || !giveaway.title.trim() || !giveaway.prize.trim() || !giveaway.endsAt}
-                    className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
+                    disabled={isCreatingGiveaway || !giveaway.title.trim() || !giveaway.endsAt || !canFundGiveaway}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
                   >
-                    <Gift className="h-4 w-4 fill-current" />
+                    {isCreatingGiveaway ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gift className="h-4 w-4 fill-current" />}
                     {isCreatingGiveaway ? "Publishing..." : "Publish giveaway"}
                   </button>
                 </div>
@@ -1865,6 +1961,7 @@ function ClubChat() {
               onReact={handleReact}
               getRoleColor={getRoleColor}
               room={activeRoom}
+              isAdmin={isAdmin}
             />
           ))}
         </main>
@@ -2322,12 +2419,15 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
   );
 }
 
-function MessageBubble({ message, isMe, currentUser, members, repliedMessage, onReply, onReact, getRoleColor, room }: any) {
+function MessageBubble({ message, isMe, currentUser, members, repliedMessage, onReply, onReact, getRoleColor, room, isAdmin }: any) {
   const navigate = useNavigate();
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
-  const { data: currentUserProfile } = useUser();
+  const [showAwardGiveaway, setShowAwardGiveaway] = useState(false);
+  const [selectedWinnerIds, setSelectedWinnerIds] = useState<string[]>([]);
+  const [isAwardingGiveaway, setIsAwardingGiveaway] = useState(false);
+  const { format: formatWalletAmount } = useWalletCurrency();
   const startX = useRef(0);
   const startY = useRef(0);
   const isSwiping = useRef(false);
@@ -2348,6 +2448,75 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
   const hasEnteredGiveaway = giveawayEntries.some((reaction: any) => reaction.profile_id === currentUser?.id);
   const giveawayClosed = giveaway ? new Date(giveaway.endsAt).getTime() <= Date.now() : false;
   const visibleReactions = Object.entries(groupedReactions).filter(([emoji]) => emoji !== GIVEAWAY_ENTRY_EMOJI);
+
+  const { data: giveawayRecord, refetch: refetchGiveaway } = useQuery({
+    queryKey: ["club-giveaway", giveaway?.giveawayId],
+    enabled: !!giveaway?.giveawayId,
+    queryFn: async () => {
+      const giveawayId = giveaway!.giveawayId!;
+      const [giveawayResult, entriesResult, awardsResult] = await Promise.all([
+        supabase.from("club_giveaways").select("*").eq("id", giveawayId).single(),
+        supabase.from("club_giveaway_entries").select("profile_id, created_at").eq("giveaway_id", giveawayId).order("created_at"),
+        supabase.from("club_giveaway_awards").select("profile_id, amount").eq("giveaway_id", giveawayId),
+      ]);
+      if (giveawayResult.error) throw giveawayResult.error;
+      if (entriesResult.error) throw entriesResult.error;
+      if (awardsResult.error) throw awardsResult.error;
+
+      const entrantIds = (entriesResult.data || []).map((entry: any) => entry.profile_id);
+      const { data: entrantProfiles, error: profilesError } = entrantIds.length
+        ? await supabase.from("profiles").select("id, username, full_name, avatar_url").in("id", entrantIds)
+        : { data: [], error: null };
+      if (profilesError) throw profilesError;
+
+      return {
+        ...giveawayResult.data,
+        entries: (entriesResult.data || []).map((entry: any) => ({
+          ...entry,
+          profiles: entrantProfiles?.find((profile: any) => profile.id === entry.profile_id),
+        })),
+        awards: awardsResult.data || [],
+      } as any;
+    },
+    staleTime: 15_000,
+  });
+
+  const securedEntries = (giveawayRecord?.entries || []).map((entry: any) => {
+    const joinedProfile = Array.isArray(entry.profiles) ? entry.profiles[0] : entry.profiles;
+    return {
+      ...entry,
+      profiles: joinedProfile || members.find((member: any) => member.profile_id === entry.profile_id)?.profiles,
+    };
+  });
+  const entryCount = giveaway?.giveawayId
+    ? Math.max(securedEntries.length, giveawayEntries.length)
+    : giveawayEntries.length;
+  const giveawayAwarded = giveawayRecord?.status === "awarded";
+  const awardedProfileIds = new Set((giveawayRecord?.awards || []).map((award: any) => award.profile_id));
+
+  const handleAwardGiveaway = async () => {
+    if (!giveaway?.giveawayId) return;
+    if (selectedWinnerIds.length !== giveaway.winners) {
+      toast.error(`Select exactly ${giveaway.winners} winner${giveaway.winners === 1 ? "" : "s"}.`);
+      return;
+    }
+
+    setIsAwardingGiveaway(true);
+    try {
+      const { error } = await supabase.rpc("award_club_giveaway", {
+        p_giveaway_id: giveaway.giveawayId,
+        p_winner_ids: selectedWinnerIds,
+      });
+      if (error) throw error;
+      await refetchGiveaway();
+      setShowAwardGiveaway(false);
+      toast.success("The prize money has been transferred to the winner wallets.");
+    } catch (error: any) {
+      toast.error(error.message || "Could not award the giveaway.");
+    } finally {
+      setIsAwardingGiveaway(false);
+    }
+  };
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -2559,26 +2728,61 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                 <div className={`my-3 border-y py-3 ${isMe ? 'border-background/15' : 'border-border'}`}>
                   <div className="flex items-center gap-2">
                     <Trophy className={`h-4 w-4 shrink-0 ${isMe ? 'text-background/70' : 'text-primary'}`} />
-                    <p className={`text-sm font-semibold ${isMe ? 'text-background' : 'text-foreground'}`}>{giveaway.prize}</p>
+                    <p className={`text-sm font-semibold ${isMe ? 'text-background' : 'text-foreground'}`}>
+                      {giveaway.amountPerWinner
+                        ? `${formatWalletAmount(giveaway.amountPerWinner)} per winner`
+                        : giveaway.prize}
+                    </p>
                   </div>
                   {giveaway.description && <p className={`mt-2 whitespace-pre-wrap text-xs leading-5 ${isMe ? 'text-background/70' : 'text-muted-foreground'}`}>{giveaway.description}</p>}
                 </div>
 
                 <div className={`mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] ${isMe ? 'text-background/60' : 'text-muted-foreground'}`}>
                   <span>{giveaway.winners} {giveaway.winners === 1 ? 'winner' : 'winners'}</span>
-                  <span>{giveawayEntries.length} {giveawayEntries.length === 1 ? 'entry' : 'entries'}</span>
-                  <span>{giveawayClosed ? 'Closed' : `Closes ${new Date(giveaway.endsAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`}</span>
+                  <span>{entryCount} {entryCount === 1 ? 'entry' : 'entries'}</span>
+                  <span>{giveawayAwarded ? 'Paid' : giveawayClosed ? 'Closed' : `Closes ${new Date(giveaway.endsAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`}</span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => !giveawayClosed && onReact(message.id, GIVEAWAY_ENTRY_EMOJI)}
-                  disabled={giveawayClosed}
-                  className={`flex h-10 w-full items-center justify-center gap-2 rounded-md text-xs font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${hasEnteredGiveaway ? 'border border-primary/25 bg-primary/10 text-primary' : 'bg-primary text-primary-foreground'}`}
-                >
-                  {hasEnteredGiveaway ? <Check className="h-4 w-4" /> : <Gift className="h-4 w-4 fill-current" />}
-                  {giveawayClosed ? 'Giveaway closed' : hasEnteredGiveaway ? 'Entry confirmed' : 'Enter giveaway'}
-                </button>
+                {giveawayAwarded ? (
+                  <div className={`flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs font-semibold ${isMe ? 'border-background/20 bg-background/10 text-background' : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600'}`}>
+                    <Check className="h-4 w-4" />
+                    {awardedProfileIds.has(currentUser?.id) ? 'You won · prize paid' : 'Winners paid'}
+                  </div>
+                ) : isAdmin && giveaway.giveawayId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedWinnerIds([]);
+                      setShowAwardGiveaway(true);
+                      void refetchGiveaway();
+                    }}
+                    disabled={!giveawayClosed || entryCount < giveaway.winners}
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary text-xs font-semibold text-primary-foreground transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trophy className="h-4 w-4 fill-current" />
+                    {!giveawayClosed
+                      ? 'Award after closing'
+                      : entryCount < giveaway.winners
+                        ? 'Not enough eligible entries'
+                        : `Award ${giveaway.winners === 1 ? 'winner' : 'winners'}`}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => !giveawayClosed && !hasEnteredGiveaway && onReact(message.id, GIVEAWAY_ENTRY_EMOJI)}
+                    disabled={giveawayClosed || hasEnteredGiveaway}
+                    className={`flex h-10 w-full items-center justify-center gap-2 rounded-md text-xs font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed ${hasEnteredGiveaway ? 'border border-primary/25 bg-primary/10 text-primary' : 'bg-primary text-primary-foreground disabled:opacity-50'}`}
+                  >
+                    {hasEnteredGiveaway ? <Check className="h-4 w-4" /> : <Gift className="h-4 w-4 fill-current" />}
+                    {giveawayClosed ? 'Giveaway closed' : hasEnteredGiveaway ? 'Entry confirmed' : 'Enter giveaway'}
+                  </button>
+                )}
+
+                {giveaway.amountPerWinner && (
+                  <p className={`mt-2 text-center text-[9px] ${isMe ? 'text-background/50' : 'text-muted-foreground'}`}>
+                    {formatWalletAmount(giveaway.totalAmount || giveaway.amountPerWinner * giveaway.winners)} secured by Zero Club
+                  </p>
+                )}
               </div>
             ) : message.content.startsWith("📅 **[SCHEDULED SPACE]**") ? (() => {
               const topicMatch = message.content.match(/Topic:\s*"([^"]+)"/);
@@ -2741,6 +2945,81 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                 <Plus className="h-3 w-3" />
               </button>
             </div>
+          )}
+
+          {giveaway?.giveawayId && (
+            <Drawer open={showAwardGiveaway} onOpenChange={setShowAwardGiveaway}>
+              <DrawerContent desktopVariant="panel" className="mx-auto max-h-[88dvh] max-w-[620px] overflow-hidden border border-border bg-background p-0 shadow-2xl">
+                <DrawerHeader className="border-b border-border px-5 pb-4 pt-0 text-left sm:px-7 sm:pt-2">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-foreground text-background">
+                      <Trophy className="h-5 w-5 fill-current" />
+                    </div>
+                    <div className="min-w-0">
+                      <DrawerTitle>Award giveaway</DrawerTitle>
+                      <DrawerDescription className="mt-1 text-xs">Select exactly {giveaway.winners} eligible {giveaway.winners === 1 ? "winner" : "winners"}.</DrawerDescription>
+                    </div>
+                  </div>
+                </DrawerHeader>
+
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-7">
+                  <div className="mb-4 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3.5 py-3">
+                    <div>
+                      <p className="text-[10px] font-medium text-muted-foreground">Automatic payout</p>
+                      <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatWalletAmount(giveaway.amountPerWinner || 0)} each</p>
+                    </div>
+                    <p className="text-right text-[10px] text-muted-foreground">
+                      Selected<br /><strong className="text-sm font-semibold tabular-nums text-foreground">{selectedWinnerIds.length}/{giveaway.winners}</strong>
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {securedEntries.map((entry: any) => {
+                      const selected = selectedWinnerIds.includes(entry.profile_id);
+                      const profile = entry.profiles;
+                      return (
+                        <button
+                          type="button"
+                          key={entry.profile_id}
+                          onClick={() => setSelectedWinnerIds((current) => selected
+                            ? current.filter((id) => id !== entry.profile_id)
+                            : [...current, entry.profile_id])}
+                          disabled={!selected && selectedWinnerIds.length >= giveaway.winners}
+                          className={`flex w-full items-center gap-3 rounded-md border p-3 text-left transition disabled:opacity-45 ${selected ? "border-primary/30 bg-primary/8" : "border-border bg-card hover:bg-muted/50"}`}
+                        >
+                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
+                            {profile?.avatar_url ? (
+                              <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <span className="grid h-full w-full place-items-center text-sm font-semibold">{(profile?.full_name || profile?.username || "U")[0].toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold">{profile?.full_name || profile?.username || "Club member"}</p>
+                            <p className="truncate text-[11px] text-muted-foreground">@{profile?.username || "member"}</p>
+                          </div>
+                          <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border ${selected ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
+                            {selected && <Check className="h-3.5 w-3.5" />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="shrink-0 border-t border-border bg-background px-5 py-4 sm:px-7">
+                  <button
+                    type="button"
+                    onClick={handleAwardGiveaway}
+                    disabled={isAwardingGiveaway || selectedWinnerIds.length !== giveaway.winners}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground text-sm font-semibold text-background transition active:scale-[0.99] disabled:opacity-40"
+                  >
+                    {isAwardingGiveaway ? <Loader2 className="h-4 w-4 animate-spin" /> : <WalletCards className="h-4 w-4" />}
+                    {isAwardingGiveaway ? "Transferring..." : "Confirm and pay winners"}
+                  </button>
+                </div>
+              </DrawerContent>
+            </Drawer>
           )}
 
         </div>
