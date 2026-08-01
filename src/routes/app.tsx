@@ -121,6 +121,7 @@ function SidebarContent({
 }) {
   const [accounts, setAccounts] = React.useState<any[]>([]);
   const [institutionActiveTab, setInstitutionActiveTab] = React.useState("overview");
+  const isLearnerAccount = String(profile?.account_type || "Learner").toLowerCase() === "learner";
 
   React.useEffect(() => {
     setAccounts(getSavedAccounts());
@@ -363,8 +364,8 @@ function SidebarContent({
               { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true },
               { Icon: IconWallet, label: "Wallet", to: "/app/wallet", desktopOnly: true },
               { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
-              { Icon: IconClubs, label: "Clubs", to: "/app/clubs" },
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
+              { Icon: IconClubs, label: "Clubs", to: "/app/clubs", learnerDesktopOnly: isLearnerAccount },
               { Icon: IconGem, label: "Membership", to: "/app/premium" },
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
               { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
@@ -388,7 +389,7 @@ function SidebarContent({
                 to={item.to}
                 activeOptions={{ exact: !!item.exact }}
                 activeProps={{ className: "bg-primary/[0.08] !font-semibold !text-foreground" }}
-                className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98]`}
+                className={`group ${item.desktopOnly || item.learnerDesktopOnly ? "hidden md:flex" : "flex"} items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98]`}
               >
                 {({ isActive }: { isActive: boolean }) => (
                   <>

@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { LinkifiedText } from "@/components/LinkifiedText";
 import {
   Drawer,
   DrawerContent,
@@ -488,7 +489,9 @@ function GigDetail({ gig, viewerId, format, onApply }: { gig: Gig; viewerId: str
 
         <section className="mt-6">
           <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">About the work</h3>
-          <p className="mt-3 whitespace-pre-wrap text-[13px] leading-6 text-foreground/85">{gig.description}</p>
+          <div className="mt-3 whitespace-pre-wrap text-[13px] leading-6 text-foreground/85">
+            <LinkifiedText text={gig.description} />
+          </div>
         </section>
 
         <section className="mt-6">

@@ -193,29 +193,29 @@ export function IncomingNotificationCard({
     <aside
       key={active.id}
       aria-live="polite"
-      className={`pointer-events-none fixed left-1/2 z-[65] w-[calc(100%-24px)] max-w-[430px] -translate-x-1/2 animate-in fade-in slide-in-from-top-3 duration-200 ${
+      className={`pointer-events-none fixed left-1/2 z-[65] w-[calc(100%-24px)] max-w-[390px] -translate-x-1/2 animate-in fade-in slide-in-from-top-3 duration-200 ${
         belowFeedHeader
           ? "top-[calc(74px+env(safe-area-inset-top))] md:top-3"
           : "top-[calc(12px+env(safe-area-inset-top))]"
       }`}
     >
-      <div className="pointer-events-auto overflow-hidden rounded-lg border border-border/80 bg-background/98 shadow-[0_18px_50px_-22px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+      <div className="pointer-events-auto overflow-hidden rounded-md border border-border/80 bg-background/98 shadow-[0_14px_36px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl">
         <div className="h-0.5 w-full bg-primary" />
-        <div className="flex items-center gap-3 p-3">
+        <div className="flex items-center gap-2.5 p-2.5">
           <button
             type="button"
             onClick={openNotification}
-            className="flex min-w-0 flex-1 items-center gap-3 text-left tap"
+            className="flex min-w-0 flex-1 items-center gap-2.5 text-left tap"
           >
-            <div className="relative h-11 w-11 shrink-0">
+            <div className="relative h-10 w-10 shrink-0">
               {active.actor?.avatar_url ? (
                 <img
                   src={active.actor.avatar_url}
                   alt=""
-                  className="h-11 w-11 rounded-full object-cover ring-1 ring-border"
+                  className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
                 />
               ) : (
-                <div className="grid h-11 w-11 place-items-center rounded-full bg-foreground text-[12px] font-semibold text-background">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background">
                   {initials || "ZC"}
                 </div>
               )}
@@ -246,7 +246,7 @@ export function IncomingNotificationCard({
             type="button"
             onClick={dismiss}
             aria-label="Dismiss notification"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground tap hover:bg-muted hover:text-foreground"
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground tap hover:bg-muted hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>

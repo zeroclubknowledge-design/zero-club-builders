@@ -619,21 +619,21 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
           </div>
         </Link>
 
-        <footer className="mt-4 -ml-2 flex items-center justify-between max-w-md">
+        <footer className="mt-4 -ml-2 flex max-w-md items-center justify-between md:mx-auto md:grid md:w-full md:max-w-[620px] md:grid-cols-5 md:border-t md:border-border/60 md:pt-3">
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               onCommentClick?.(post);
             }}
-            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground"
+            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
           >
             <MessageCircle className="h-[17px] w-[17px]" />
             <span className="text-[12px] font-medium tabular-nums">{commentsCount || ''}</span>
           </button>
           <button
             onClick={handleLike}
-            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8"
+            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
           >
             <Heart className={`h-[17px] w-[17px] transition-colors ${liked ? "fill-primary text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`} strokeWidth={liked ? 2 : 1.75} />
             <span className={`text-[12px] font-medium tabular-nums transition-colors ${liked ? "text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`}>
@@ -647,7 +647,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 ${hasReposted || hasQuoted ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3 ${hasReposted || hasQuoted ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
               >
                 <Repeat className="h-[17px] w-[17px]" />
                 <span className="text-[12px] font-medium tabular-nums">
@@ -684,14 +684,14 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
           </DropdownMenu>
           <button
             onClick={handleBookmark}
-            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 ${isBookmarked ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3 ${isBookmarked ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
           >
             <Bookmark className={`h-[17px] w-[17px] ${isBookmarked ? 'fill-current' : ''}`} strokeWidth={isBookmarked ? 2 : 1.75} />
           </button>
 
           <button
             onClick={handleShare}
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-foreground/[0.04] text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-foreground/[0.04] text-muted-foreground hover:text-foreground md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
           >
             <Share2 className="h-[17px] w-[17px]" />
           </button>

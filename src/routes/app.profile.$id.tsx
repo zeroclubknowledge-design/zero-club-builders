@@ -345,6 +345,7 @@ function ProfileDetail() {
   );
 
   const isOwnProfile = currentUser?.id === profile.id;
+  const canMessageProfile = Boolean(currentUser?.id && profile?.id && !isOwnProfile);
   const initials = (profile?.full_name || profile?.username || 'U').substring(0, 1).toUpperCase();
   const level = getLevelFromXp(profile?.xp || 0);
   const tier = (profile?.tier || "Basic").charAt(0).toUpperCase() + (profile?.tier || "Basic").slice(1);
@@ -488,16 +489,7 @@ function ProfileDetail() {
                  <Link to="/app/profile/edit" className="flex h-10 items-center rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition hover:opacity-90">
                    Edit profile
                  </Link>
-               ) : (
-                 <>
-                 <Link
-                   to="/app/chat/$id"
-                   params={{ id: profile?.id }}
-                   aria-label={`Message ${getFirstName(profile)}`}
-                   className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-transparent text-foreground transition-colors hover:bg-accent active:scale-95"
-                 >
-                   <IconMessages className="h-[19px] w-[19px]" />
-                 </Link>
+               ) : canMessageProfile ? (
                  <button
                    onClick={handleFollow}
                    disabled={followLoading}
@@ -510,8 +502,7 @@ function ProfileDetail() {
                    {followLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                    {isFollowing ? "Following" : (isFollowingMe ? "Follow back" : "Follow")}
                  </button>
-                 </>
-               )}
+               ) : null}
             </div>
 
             <div className="mt-4 flex flex-col items-start gap-1">
@@ -562,6 +553,17 @@ function ProfileDetail() {
           CONTENT TABS
          ═══════════════════════════════════════════ */}
       <div className="mx-auto mt-5 max-w-[760px] px-4 md:px-0">
+        {canMessageProfile && (
+          <Link
+            to="/app/chat/$id"
+            params={{ id: profile.id }}
+            aria-label={`Message ${getFirstName(profile)}`}
+            className="mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 text-[13px] font-semibold text-background transition hover:opacity-90 active:scale-[0.99]"
+          >
+            <IconMessages className="h-[18px] w-[18px]" active />
+            <span>Message {getFirstName(profile)}</span>
+          </Link>
+        )}
         <div className="grid grid-cols-4 gap-1 overflow-hidden rounded-lg border border-border bg-card p-1">
           {tabs.map((t) => {
             const active = tab === t;

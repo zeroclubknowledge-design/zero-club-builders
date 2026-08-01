@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { enrollUserAction } from "@/api";
 import { useQuery } from "@tanstack/react-query";
+import { LinkifiedText } from "@/components/LinkifiedText";
 
 export const Route = createFileRoute("/app/bootcamps/$id")({
   component: BootcampDetail,
@@ -237,7 +238,9 @@ function BootcampDetail() {
             {bootcamp.category}
           </div>
           <h1 className="font-display text-2xl font-bold leading-tight">{bootcamp.title}</h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">{bootcamp.description}</p>
+          <div className="text-sm leading-relaxed text-muted-foreground">
+            <LinkifiedText text={bootcamp.description || ""} />
+          </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
             <div className="flex items-center gap-1">

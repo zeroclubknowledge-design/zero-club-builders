@@ -5,6 +5,38 @@ import { Globe, AppWindow } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
+const EMAIL_SOURCE = String.raw`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}`;
+const URL_SOURCE = String.raw`(?:(?:https?:\/\/|www\.)[^\s<>"']+|(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}(?::\d{2,5})?(?:\/[^\s<>"']*)?)`;
+const LINK_PATTERN = new RegExp(`(?:${EMAIL_SOURCE}|${URL_SOURCE})`, "gi");
+const LINK_ONLY_PATTERN = new RegExp(`^(?:${EMAIL_SOURCE}|${URL_SOURCE})$`, "i");
+
+function splitLinkSuffix(value: string) {
+  let end = value.length;
+  while (end > 0 && /[.,!?;:)\]}]/.test(value[end - 1])) end -= 1;
+  return { link: value.slice(0, end), suffix: value.slice(end) };
+}
+
+function toHref(value: string) {
+  if (new RegExp(`^${EMAIL_SOURCE}$`, "i").test(value)) return `mailto:${value}`;
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+}
+
+function transformHtmlTextNodes(html: string, transform: (value: string) => string) {
+  let anchorDepth = 0;
+  return html.split(/(<[^>]+>)/g).map((segment) => {
+    if (/^<a\b/i.test(segment)) {
+      anchorDepth += 1;
+      return segment;
+    }
+    if (/^<\/a\b/i.test(segment)) {
+      anchorDepth = Math.max(0, anchorDepth - 1);
+      return segment;
+    }
+    if (segment.startsWith("<") || anchorDepth > 0) return segment;
+    return transform(segment);
+  }).join("");
+}
+
 export function LinkifiedText({ text, className, linkColor = "text-primary font-bold hover:opacity-80" }: { text: string; className?: string, linkColor?: string }) {
   const navigate = useNavigate();
   const router = useRouter();
@@ -12,7 +44,7 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
 
   if (!text) return null;
 
-  const mentionsMatch = text.match(/@[a-zA-Z0-9_-]+/g) || [];
+  const mentionsMatch = text.match(/(?<![a-zA-Z0-9._%+-])@[a-zA-Z0-9_-]+/g) || [];
   const uniqueUsernames = Array.from(new Set(mentionsMatch.map((m) => m.substring(1).toLowerCase())));
 
   const { data: mentionedProfiles } = useQuery({
@@ -34,7 +66,7 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
   );
 
   // Match URLs, @mentions, and markdown bold (**text** or *text*), supporting newlines
-  const regex = /(@[a-zA-Z0-9_-]+|https?:\/\/[^\s]+|www\.[^\s]+|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*)/g;
+  const regex = new RegExp(`(${EMAIL_SOURCE}|${URL_SOURCE}|@[a-zA-Z0-9_-]+|\\*\\*[\\s\\S]*?\\*\\*|\\*[\\s\\S]*?\\*)`, "gi");
   const parts = text.split(regex);
 
   const handleLinkClick = (e: React.MouseEvent, href: string) => {
@@ -103,20 +135,26 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
       }
     };
 
-    // Auto-linkify raw URLs outside of tags
-    let htmlContent = text.replace(
-      /(?<!href=["'])(https?:\/\/[^\s<]+|www\.[^\s<]+)/g, 
-      match => `<a href="${match.startsWith('www.') ? 'https://'+match : match}" class="${linkColor} break-all font-semibold cursor-pointer">${match}</a>`
+    // Link only text nodes so existing rich-text anchors are never wrapped twice.
+    let htmlContent = transformHtmlTextNodes(text, (segment) =>
+      segment.replace(LINK_PATTERN, (match) => {
+        const { link, suffix } = splitLinkSuffix(match);
+        if (!link) return match;
+        return `<a href="${toHref(link)}" class="${linkColor} break-all font-semibold cursor-pointer">${link}</a>${suffix}`;
+      }),
     );
 
     // Auto-linkify manually typed @mentions outside of existing styled tags
-    htmlContent = htmlContent.replace(
-      /(?<!["'a-zA-Z0-9_-])(@[a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-])/g,
-      match => {
-        const username = match.substring(1);
-        const displayName = profileMap[username.toLowerCase()] || match;
-        return `<strong class="${linkColor} cursor-pointer" data-username="${username}">${displayName}</strong>`;
-      }
+    htmlContent = transformHtmlTextNodes(
+      htmlContent,
+      (segment) => segment.replace(
+        /(?<!["'a-zA-Z0-9._%+-])(@[a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-])/g,
+        (match) => {
+          const username = match.substring(1);
+          const displayName = profileMap[username.toLowerCase()] || match;
+          return `<strong class="${linkColor} cursor-pointer" data-username="${username}">${displayName}</strong>`;
+        },
+      ),
     );
 
     // Fallback parser to remove asterisks and render bold for text containing literal asterisks
@@ -190,17 +228,20 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
                 {displayName}
               </Link>
             );
-          } else if (part.match(/^https?:\/\//) || part.match(/^www\./)) {
-            const href = part.startsWith("www.") ? `https://${part}` : part;
+          } else if (LINK_ONLY_PATTERN.test(part)) {
+            const { link, suffix } = splitLinkSuffix(part);
+            const href = toHref(link);
             return (
-              <a 
-                key={i} 
-                href={href} 
-                className={`${linkColor} break-all font-semibold cursor-pointer`}
-                onClick={(e) => handleLinkClick(e, href)}
-              >
-                {part}
-              </a>
+              <React.Fragment key={i}>
+                <a
+                  href={href}
+                  className={`${linkColor} break-all font-semibold cursor-pointer`}
+                  onClick={(e) => handleLinkClick(e, href)}
+                >
+                  {link}
+                </a>
+                {suffix}
+              </React.Fragment>
             );
           }
           return (

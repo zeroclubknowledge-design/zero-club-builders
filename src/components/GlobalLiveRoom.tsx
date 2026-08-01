@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
+import { LinkifiedText } from "@/components/LinkifiedText";
 
 import AgoraRTC, {
   AgoraRTCProvider,
@@ -951,7 +952,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                               <span className="text-[10px] text-white/35 shrink-0 tabular-nums">{formatTime(msg.timestamp)}</span>
                             </div>
                             <div className={`mt-1 rounded-xl rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
-                              <p className="text-[13px] text-white/85 leading-relaxed break-words">{msg.content}</p>
+                              <div className="break-words text-[13px] leading-relaxed text-white/85">
+                                <LinkifiedText text={msg.content} linkColor="font-semibold text-[#f28fd0] underline underline-offset-2 hover:text-white" />
+                              </div>
                             </div>
                           </div>
                         </div>

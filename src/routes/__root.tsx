@@ -191,15 +191,15 @@ function RootComponent() {
           toastOptions={{
             unstyled: true,
             classNames: {
-              toast: "w-full flex items-center gap-3 px-5 py-4 rounded-2xl backdrop-blur-2xl bg-card/95 border border-border/30 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.05)_inset] font-sans text-sm font-semibold text-foreground",
-              title: "text-[13px] font-bold tracking-tight text-foreground",
-              description: "text-[12px] font-medium text-muted-foreground mt-0.5",
-              actionButton: "ml-auto shrink-0 rounded-full bg-primary px-3.5 py-1.5 text-[11px] font-bold text-primary-foreground shadow-sm",
-              cancelButton: "ml-auto shrink-0 rounded-full bg-muted px-3.5 py-1.5 text-[11px] font-bold text-muted-foreground",
-              success: "!border-emerald-500/20 !shadow-[0_12px_40px_-8px_rgba(16,185,129,0.15),0_0_0_1px_rgba(16,185,129,0.1)_inset]",
-              error: "!border-red-500/20 !shadow-[0_12px_40px_-8px_rgba(239,68,68,0.15),0_0_0_1px_rgba(239,68,68,0.1)_inset]",
-              info: "!border-blue-500/20 !shadow-[0_12px_40px_-8px_rgba(59,130,246,0.15),0_0_0_1px_rgba(59,130,246,0.1)_inset]",
-              warning: "!border-amber-500/20 !shadow-[0_12px_40px_-8px_rgba(245,158,11,0.15),0_0_0_1px_rgba(245,158,11,0.1)_inset]",
+              toast: "flex w-[calc(100vw-24px)] max-w-[340px] items-center gap-2.5 rounded-md border border-border/50 bg-card/97 px-3 py-2.5 font-sans text-[12px] font-medium text-foreground shadow-[0_12px_32px_-16px_rgba(0,0,0,0.45)] backdrop-blur-xl",
+              title: "text-[12px] font-semibold leading-4 tracking-tight text-foreground",
+              description: "mt-0.5 text-[11px] font-normal leading-4 text-muted-foreground",
+              actionButton: "ml-auto shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-[10px] font-semibold text-primary-foreground",
+              cancelButton: "ml-auto shrink-0 rounded-md bg-muted px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground",
+              success: "!border-emerald-500/25",
+              error: "!border-red-500/25",
+              info: "!border-sky-500/25",
+              warning: "!border-amber-500/25",
             },
           }}
         />
