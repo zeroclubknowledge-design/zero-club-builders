@@ -258,7 +258,7 @@ function Header({ referralCode }: ReferralProps) {
           <Link
             to="/signup"
             search={{ ref: referralCode, club: undefined }}
-            className="inline-flex h-10 w-[72px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#171717] px-0 text-[13px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:w-auto sm:px-5 sm:text-[13.5px]"
+            className="inline-flex h-9 w-[68px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#171717] px-0 text-[12.5px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:h-10 sm:w-auto sm:px-5 sm:text-[13.5px]"
             preload={false}
           >
             <span className="sm:hidden">Join</span>
@@ -322,12 +322,12 @@ function Header({ referralCode }: ReferralProps) {
 /* ── Code-built product showcase: the real Zero Club, not screenshots ── */
 function ProductShowcase() {
   return (
-    <div className="relative mx-auto w-full max-w-[520px] px-1 pb-7 sm:px-0 sm:pb-0">
+    <div className="relative mx-auto w-[calc(100%-24px)] max-w-[360px] pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
       {/* Glow */}
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
       {/* Main: a shipped-work post inside the dark app frame */}
-      <div className="relative overflow-hidden rounded-lg bg-[#141117] p-6 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06]">
+      <div className="relative overflow-hidden rounded-lg bg-[#141117] p-4 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06] sm:p-6">
         <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[#cc208f]/15 blur-[80px]" />
 
         {/* Post header */}
@@ -356,7 +356,7 @@ function ProductShowcase() {
         </p>
 
         {/* Mock media */}
-        <div className="relative mt-4 h-36 overflow-hidden rounded-lg bg-gradient-to-br from-[#cc208f]/25 via-[#1d1a20] to-[#141117] ring-1 ring-white/[0.08]">
+        <div className="relative mt-4 h-28 overflow-hidden rounded-lg bg-gradient-to-br from-[#cc208f]/25 via-[#1d1a20] to-[#141117] ring-1 ring-white/[0.08] sm:h-36">
           <div className="absolute inset-x-5 top-5 h-2.5 w-24 rounded-full bg-white/15" />
           <div className="absolute inset-x-5 top-11 h-2 w-40 rounded-full bg-white/[0.08]" />
           <div className="absolute inset-x-5 top-16 h-2 w-32 rounded-full bg-white/[0.08]" />
@@ -406,15 +406,15 @@ function ActivityRail() {
   const updates = [...activityUpdates, ...activityUpdates];
 
   return (
-    <div className="mt-8 w-full max-w-[540px] overflow-hidden rounded-lg border border-[#171717]/[0.08] bg-white/80 p-2 shadow-[0_12px_32px_-24px_rgba(23,20,23,0.34)]">
-      <div className="flex items-center justify-between px-2 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] sm:text-[10px]">
+    <div className="mt-8 w-full max-w-[540px] overflow-hidden">
+      <div className="flex items-center justify-between px-1 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] sm:text-[10px]">
         <span className="flex items-center gap-2 text-[#9d176d]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
           Live network
         </span>
         <span>Proof in motion</span>
       </div>
-      <div className="overflow-hidden">
+      <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
         <div className="zc-activity-rail flex w-max gap-2">
           {updates.map((update, index) => (
             <article
