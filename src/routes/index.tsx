@@ -322,7 +322,7 @@ function Header({ referralCode }: ReferralProps) {
 /* ── Code-built product showcase: the real Zero Club, not screenshots ── */
 function ProductShowcase() {
   return (
-    <div className="relative mx-auto w-[calc(100%-24px)] max-w-[360px] pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
+    <div className="relative mx-auto w-full max-w-[340px] justify-self-center px-1 pb-7 sm:max-w-[520px] sm:px-0 sm:pb-0">
       {/* Glow */}
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
@@ -406,7 +406,7 @@ function ActivityRail() {
   const updates = [...activityUpdates, ...activityUpdates];
 
   return (
-    <div className="mt-8 w-full max-w-[540px] overflow-hidden">
+    <div className="mt-8 w-full max-w-[540px]">
       <div className="flex items-center justify-between px-1 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] sm:text-[10px]">
         <span className="flex items-center gap-2 text-[#9d176d]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
@@ -414,7 +414,8 @@ function ActivityRail() {
         </span>
         <span>Proof in motion</span>
       </div>
-      <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
+      {/* py/px keep each card's ring from being clipped by the overflow mask */}
+      <div className="overflow-hidden px-1 py-1.5 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
         <div className="zc-activity-rail flex w-max gap-2">
           {updates.map((update, index) => (
             <article
