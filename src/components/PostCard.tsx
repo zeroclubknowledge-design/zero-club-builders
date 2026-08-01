@@ -3,7 +3,7 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { 
   MoreHorizontal, CheckCircle2, Bookmark, Zap,
   UserPlus, UserMinus, VolumeX, Volume2, Ban, Flag, Link as LinkIcon,
-  ExternalLink, X, Heart, MessageCircle, Share2, Repeat, Mail, EyeOff, Send, Trash2, Quote, Clock, Edit3, Rocket, MapPin
+  ExternalLink, X, Heart, MessageCircle, Share2, Repeat, Mail, EyeOff, Send, Trash2, Quote, Clock, Edit3, Rocket, MapPin, Play
 } from "lucide-react";
 import { formatDistanceToNow, format } from 'date-fns';
 import {
@@ -28,6 +28,157 @@ interface PostCardProps {
   onCommentClick?: (post: any) => void;
 }
 
+const isVideoUrl = (url: string) => {
+  const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg', '.m4v'];
+  return videoExtensions.some((extension) => url.toLowerCase().includes(extension)) || url.includes('video');
+};
+
+function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) video.play().catch(() => {});
+      else video.pause();
+    }, { threshold: 0.6 });
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  if (isVideoUrl(url)) {
+    return (
+      <div className="mt-3 flex w-full justify-center">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onOpen();
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            event.stopPropagation();
+            onOpen();
+          }}
+          className="group/media relative inline-flex max-w-full cursor-zoom-in overflow-hidden rounded-[10px] border border-border/70 bg-black shadow-sm"
+        >
+          <video
+            ref={videoRef}
+            src={url}
+            className="block h-auto max-h-[380px] w-auto max-w-full object-contain sm:max-h-[420px] md:max-h-[440px]"
+            muted={isMuted}
+            loop
+            playsInline
+            preload="metadata"
+          />
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const nextMuted = !isMuted;
+              setIsMuted(nextMuted);
+              if (videoRef.current) videoRef.current.muted = nextMuted;
+            }}
+            className="absolute bottom-2.5 right-2.5 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/60 text-white ring-1 ring-white/15 backdrop-blur-md transition hover:bg-black/75"
+            aria-label={isMuted ? "Unmute video" : "Mute video"}
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 flex w-full justify-center">
+      <img
+        src={url}
+        alt="Post media"
+        loading="lazy"
+        decoding="async"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpen();
+        }}
+        className="block h-auto max-h-[380px] w-auto max-w-full cursor-zoom-in rounded-[10px] border border-border/70 object-contain shadow-sm transition-opacity hover:opacity-[0.98] sm:max-h-[420px] md:max-h-[440px]"
+      />
+    </div>
+  );
+}
+
+function FeedMediaGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: number) => void }) {
+  const visibleUrls = urls.slice(0, 4);
+  const count = visibleUrls.length;
+  const gridClass = count === 2
+    ? "grid-cols-2 h-[210px] sm:h-[280px] md:h-[320px]"
+    : count === 3
+      ? "grid-cols-2 grid-rows-2 h-[260px] sm:h-[320px] md:h-[360px]"
+      : "grid-cols-2 grid-rows-2 h-[260px] sm:h-[320px] md:h-[360px]";
+
+  return (
+    <div className={`mt-3 grid w-full gap-0.5 overflow-hidden rounded-[10px] border border-border/70 bg-border/40 ${gridClass}`}>
+      {visibleUrls.map((url, index) => (
+        <div
+          key={`${url}-${index}`}
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onOpen(index);
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            event.stopPropagation();
+            onOpen(index);
+          }}
+          className={`group/media relative min-h-0 min-w-0 cursor-zoom-in overflow-hidden bg-muted ${count === 3 && index === 0 ? "row-span-2" : ""}`}
+        >
+          {isVideoUrl(url) ? (
+            <>
+              <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+              <span className="absolute left-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-full bg-black/55 text-white ring-1 ring-white/15 backdrop-blur-sm">
+                <Play className="h-3.5 w-3.5 fill-current" />
+              </span>
+            </>
+          ) : (
+            <img
+              src={url}
+              alt={`Post media ${index + 1}`}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover/media:scale-[1.015]"
+            />
+          )}
+
+          {urls.length > 4 && index === 3 && (
+            <div className="absolute inset-0 z-10 grid place-items-center bg-black/55">
+              <span className="text-2xl font-semibold tracking-tight text-white">+{urls.length - 4}</span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AdaptiveFeedMedia({ urls, onOpen }: { urls: string[]; onOpen: (index: number) => void }) {
+  if (urls.length === 1) {
+    return <SingleFeedMedia url={urls[0]} onOpen={() => onOpen(0)} />;
+  }
+  return <FeedMediaGrid urls={urls} onOpen={onOpen} />;
+}
+
 export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -46,11 +197,9 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(post?.isBookmarked || false);
   const [hasReposted, setHasReposted] = useState(post?.hasReposted || false);
   const [hasQuoted, setHasQuoted] = useState(post?.hasQuoted || false);
-  const [isMuted, setIsMuted] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxUrls, setLightboxUrls] = useState<string[]>([]);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const postId = post.original_id || post.id;
   const isOwnPost = currentUser?.id === post.author_id;
   const isEditable = isOwnPost; // No time limit
@@ -78,26 +227,6 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
     window.addEventListener('comment-added', handleCommentAdded);
     return () => window.removeEventListener('comment-added', handleCommentAdded);
   }, [postId]);
-
-  useEffect(() => {
-    if (!videoRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            videoRef.current?.play().catch(() => {});
-          } else {
-            videoRef.current?.pause();
-          }
-        });
-      },
-      { threshold: 0.6 }
-    );
-
-    observer.observe(videoRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   const handleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -199,16 +328,6 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
     }
   };
 
-  const toggleMute = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (videoRef.current) {
-      const newMuted = !isMuted;
-      videoRef.current.muted = newMuted;
-      setIsMuted(newMuted);
-    }
-  };
-
   const handleRepost = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -278,11 +397,6 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
       await navigator.clipboard.writeText(url);
       toast.success("Link with your referral code copied!");
     }
-  };
-
-  const isVideoUrl = (url: string) => {
-    const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg', '.m4v'];
-    return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url.includes('video');
   };
 
   return (
@@ -448,68 +562,14 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
             </div>
 
             {post.media_urls && post.media_urls.length > 0 && (
-              <div className={`mt-3 overflow-hidden rounded-lg border border-border bg-muted/25 ${
-                post.media_urls.length === 2
-                  ? "grid grid-cols-2 gap-px"
-                  : "flex justify-center"
-              }`}>
-                {post.media_urls.slice(0, 2).map((url: string, i: number) => (
-                  <div
-                    key={i}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setLightboxUrls(post.media_urls);
-                      setLightboxIndex(i);
-                      setLightboxOpen(true);
-                    }}
-                    className={`relative flex cursor-pointer items-center justify-center overflow-hidden bg-muted/20 ${
-                      post.media_urls.length === 2
-                        ? "h-[210px] w-full sm:h-[260px]"
-                        : "w-full max-w-full transition"
-                    }`}
-                  >
-                    {isVideoUrl(url) ? (
-                      <div className="relative h-full w-full flex items-center justify-center">
-                        <video
-                          ref={videoRef}
-                          src={url}
-                          className={`${
-                            post.media_urls.length === 2
-                              ? "h-full w-full object-contain"
-                              : "max-h-[280px] w-full object-contain sm:max-h-[320px]"
-                          }`}
-                          muted={isMuted}
-                          loop
-                          playsInline
-                        />
-                        <button
-                          onClick={toggleMute}
-                          className="absolute bottom-3 right-3 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white transition tap hover:bg-black/70 z-10"
-                        >
-                          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    ) : (
-                        <img
-                          src={url}
-                          alt={`Post media ${i + 1}`}
-                          className={`${
-                            post.media_urls.length === 2
-                              ? "h-full w-full object-contain"
-                              : "max-h-[280px] w-full object-contain sm:max-h-[320px]"
-                          }`}
-                        />
-                      )}
-
-                      {post.media_urls.length > 2 && i === 1 && (
-                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/55">
-                          <span className="text-white text-2xl font-semibold tracking-tight">+{post.media_urls.length - 2}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <AdaptiveFeedMedia
+                urls={post.media_urls}
+                onOpen={(index) => {
+                  setLightboxUrls(post.media_urls);
+                  setLightboxIndex(index);
+                  setLightboxOpen(true);
+                }}
+              />
               )}
 
             {/* Quoted Post Mini-Card */}
@@ -538,7 +598,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                 </div>
                 {post.quoted_posts.media_urls?.[0] && (
                   <div
-                    className="relative mt-3 flex h-[160px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/25 sm:h-[190px]"
+                    className="relative mt-3 flex w-full cursor-pointer items-center justify-center"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -548,9 +608,9 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                     }}
                   >
                     {isVideoUrl(post.quoted_posts.media_urls[0]) ? (
-                      <video src={post.quoted_posts.media_urls[0]} className="h-full w-full object-contain" muted playsInline />
+                      <video src={post.quoted_posts.media_urls[0]} className="block h-auto max-h-[180px] w-auto max-w-full rounded-[8px] border border-border/70 bg-black object-contain sm:max-h-[200px]" muted playsInline preload="metadata" />
                     ) : (
-                      <img src={post.quoted_posts.media_urls[0]} className="h-full w-full object-contain" />
+                      <img src={post.quoted_posts.media_urls[0]} alt="Quoted post media" loading="lazy" decoding="async" className="block h-auto max-h-[180px] w-auto max-w-full rounded-[8px] border border-border/70 object-contain sm:max-h-[200px]" />
                     )}
                   </div>
                 )}

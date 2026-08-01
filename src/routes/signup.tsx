@@ -194,11 +194,11 @@ function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f8f6f1] text-[#171417]">
+    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] text-[#171417]">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-[42vh] bg-[radial-gradient(circle_at_22%_14%,rgba(204,32,143,0.16),transparent_35%),radial-gradient(circle_at_84%_8%,rgba(143,88,73,0.14),transparent_30%)]" />
 
-      <header className="relative z-20 mx-auto flex h-[calc(68px+env(safe-area-inset-top))] w-full max-w-6xl items-center justify-between px-5 pt-[env(safe-area-inset-top)] lg:px-8">
+      <header className="relative z-20 mx-auto flex h-[calc(68px+env(safe-area-inset-top))] w-full max-w-[1240px] items-center justify-between px-5 pt-[env(safe-area-inset-top)] lg:px-8">
         <Link
           to="/signin"
           className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
@@ -214,12 +214,12 @@ function SignUpPage() {
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto grid min-h-[calc(100vh-68px)] w-full max-w-6xl grid-cols-1 gap-8 px-5 pb-10 pt-5 lg:grid-cols-[1.03fr_0.97fr] lg:items-center lg:px-8 lg:pb-14">
-        <section className="hidden lg:block">
-          <div className="relative overflow-hidden rounded-[28px] bg-[#181217] p-7 text-white shadow-[0_34px_90px_-44px_rgba(24,18,23,0.9)]">
+      <main className="relative z-10 mx-auto grid min-h-[calc(100dvh-68px)] w-full max-w-[1240px] grid-cols-1 gap-8 px-5 pb-10 pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(440px,520px)] lg:items-start lg:gap-12 lg:px-8 lg:pb-14 lg:pt-8 xl:gap-16">
+        <section className="hidden lg:sticky lg:top-8 lg:block lg:self-start">
+          <div className="relative min-h-[720px] overflow-hidden rounded-[24px] bg-[#181217] p-8 text-white shadow-[0_34px_90px_-44px_rgba(24,18,23,0.9)] xl:min-h-[760px] xl:p-10">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(204,32,143,0.34),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.12),transparent_38%)]" />
             <div className="relative">
-              <div className="mb-14 flex items-center justify-between">
+              <div className="mb-12 flex items-center justify-between xl:mb-16">
                 <div className="flex items-center gap-3">
                   <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/12">
                     <img src="/logo.png" alt="" className="h-7 w-auto object-contain" />
@@ -234,7 +234,7 @@ function SignUpPage() {
 
               <div className="max-w-md">
                 <p className="text-sm font-medium text-[#f2a8dc]">Join the network</p>
-                <h1 className="mt-4 font-display text-[48px] font-normal leading-[1.08]">
+                <h1 className="mt-4 font-display text-[44px] font-normal leading-[1.08] xl:text-[48px]">
                   Build a profile people can trust.
                 </h1>
                 <p className="mt-5 text-[15px] leading-7 text-white/64">
@@ -242,7 +242,7 @@ function SignUpPage() {
                 </p>
               </div>
 
-              <div className="mt-12 rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/10 backdrop-blur-xl">
+              <div className="mt-10 rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/10 backdrop-blur-xl xl:mt-12">
                 <div className="mb-4 flex items-center gap-3">
                   <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#cc208f]/18 text-[#f2a8dc] ring-1 ring-[#cc208f]/20">
                     <IconClubs className="h-6 w-6" active />
@@ -264,9 +264,9 @@ function SignUpPage() {
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-[480px]">
-          <div className="mb-8 text-center lg:text-left">
-            <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0">
+        <section className="mx-auto w-full max-w-[480px] lg:mx-0 lg:max-w-[520px] lg:justify-self-end">
+          <div className="mb-8 text-center lg:mb-6 lg:text-left">
+            <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0 lg:mb-5">
               <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
               <span className="font-display text-xl font-medium">Zero Club</span>
             </Link>
@@ -274,15 +274,15 @@ function SignUpPage() {
               <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={1.8} />
               One code, no password
             </p>
-            <h1 className="font-display text-[40px] font-normal leading-[1.08] text-[#241f23] sm:text-[50px]">
+            <h1 className="font-display text-[40px] font-normal leading-[1.08] text-[#241f23] sm:text-[50px] lg:text-[44px] xl:text-[48px]">
               Start your Zero Club profile.
             </h1>
-            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] lg:mx-0">
+            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] lg:mx-0 lg:mt-3">
               Choose your account type, reserve your handle, and enter with a secure email code.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6">
+          <div className="rounded-2xl border border-black/10 bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6 lg:p-6">
             {step === "info" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
@@ -312,33 +312,35 @@ function SignUpPage() {
                   </div>
                 </div>
 
-                <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056]">Username</span>
-                  <span className="relative block">
-                    <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
-                    <input
-                      type="text"
-                      placeholder="adabuilds"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
-                    />
-                  </span>
-                </label>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <label className="block min-w-0 space-y-2">
+                    <span className="text-[12px] font-medium text-[#5a5056]">Username</span>
+                    <span className="relative block">
+                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
+                      <input
+                        type="text"
+                        placeholder="adabuilds"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                      />
+                    </span>
+                  </label>
 
-                <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056]">Email address</span>
-                  <span className="relative block">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
-                    <input
-                      type="email"
-                      placeholder="ada@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
-                    />
-                  </span>
-                </label>
+                  <label className="block min-w-0 space-y-2">
+                    <span className="text-[12px] font-medium text-[#5a5056]">Email address</span>
+                    <span className="relative block">
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
+                      <input
+                        type="email"
+                        placeholder="ada@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                      />
+                    </span>
+                  </label>
+                </div>
 
                 <label className="block space-y-2">
                   <span className="text-[12px] font-medium text-[#5a5056]">Referral code <span className="text-[#9b9297]">optional</span></span>
