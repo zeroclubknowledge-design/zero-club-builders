@@ -224,8 +224,18 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
         setCommentsCount(prev => prev + 1);
       }
     };
+    const handleCommentDeleted = (e: any) => {
+      if (e.detail?.postId === postId) {
+        const deletedCount = Math.max(1, Number(e.detail?.count || 1));
+        setCommentsCount(prev => Math.max(0, prev - deletedCount));
+      }
+    };
     window.addEventListener('comment-added', handleCommentAdded);
-    return () => window.removeEventListener('comment-added', handleCommentAdded);
+    window.addEventListener('comment-deleted', handleCommentDeleted);
+    return () => {
+      window.removeEventListener('comment-added', handleCommentAdded);
+      window.removeEventListener('comment-deleted', handleCommentDeleted);
+    };
   }, [postId]);
 
   const handleBookmark = async (e: React.MouseEvent) => {

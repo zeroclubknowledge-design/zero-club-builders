@@ -4,7 +4,9 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
+  Heart,
   Menu,
+  MessageCircle,
   Radio,
   Search,
   X,
@@ -363,8 +365,14 @@ function ProductShowcase() {
 
         {/* Post actions */}
         <div className="relative mt-4 flex items-center gap-5 text-[11.5px] text-white/45 tabular-nums">
-          <span>128 likes</span>
-          <span>24 replies</span>
+          <span className="flex items-center gap-1.5">
+            <Heart className="h-3.5 w-3.5 fill-current" />
+            128 likes
+          </span>
+          <span className="flex items-center gap-1.5">
+            <MessageCircle className="h-3.5 w-3.5 fill-current" />
+            24 replies
+          </span>
           <span className="ml-auto flex items-center gap-1 text-emerald-400">
             <Check className="h-3 w-3" /> Verified proof
           </span>
@@ -396,7 +404,6 @@ function ProductShowcase() {
 
 function ActivityRail() {
   const updates = [...activityUpdates, ...activityUpdates];
-  const mobileUpdate = activityUpdates[0];
 
   return (
     <div className="mt-8 w-full max-w-[540px] overflow-hidden rounded-lg border border-[#171717]/[0.08] bg-white/80 p-2 shadow-[0_12px_32px_-24px_rgba(23,20,23,0.34)]">
@@ -407,23 +414,13 @@ function ActivityRail() {
         </span>
         <span>Proof in motion</span>
       </div>
-      <article className="flex items-center gap-3 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:hidden">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
-          {mobileUpdate.name.slice(0, 1)}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[11.5px] font-semibold text-[#242126]">{mobileUpdate.name}</span>
-          <span className="block truncate text-[10.5px] text-[#666a70]">{mobileUpdate.action}</span>
-        </span>
-        <span className="shrink-0 text-[10px] font-semibold text-[#9d176d]">{mobileUpdate.signal}</span>
-      </article>
-      <div className="hidden overflow-hidden sm:block">
+      <div className="overflow-hidden">
         <div className="zc-activity-rail flex w-max gap-2">
           {updates.map((update, index) => (
             <article
               key={`${update.name}-${index}`}
               aria-hidden={index >= activityUpdates.length || undefined}
-              className="flex w-[218px] shrink-0 items-center gap-3 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05]"
+              className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:w-[218px] sm:gap-3"
             >
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
                 {update.name.slice(0, 1)}

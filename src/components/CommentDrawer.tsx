@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle
 } from "@/components/ui/drawer";
-import { MessageCircle, Send, MoreHorizontal, Heart, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2, X } from "lucide-react";
+import { MessageCircle, Send, MoreHorizontal, Heart, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2, Trash2, X } from "lucide-react";
 import { useRouter, Link } from "@tanstack/react-router";
 
 import {
@@ -69,7 +69,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     });
   };
 
-  const { data: followedUserIds } = useQuery({
+  const { data: followedUserIds, refetch: refetchFollowedUserIds } = useQuery({
     queryKey: ['followed_users', currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id) return [];
@@ -345,6 +345,49 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     }
   };
 
+  const handleDeleteComment = async (comment: any) => {
+    if (!currentUser || currentUser.id !== comment.profile_id) return;
+    if (!window.confirm("Delete this comment? This cannot be undone.")) return;
+
+    const deletedIds = new Set<string>([String(comment.id)]);
+    let foundChild = true;
+    while (foundChild) {
+      foundChild = false;
+      comments.forEach((item) => {
+        if (item.parent_id && deletedIds.has(String(item.parent_id)) && !deletedIds.has(String(item.id))) {
+          deletedIds.add(String(item.id));
+          foundChild = true;
+        }
+      });
+    }
+
+    try {
+      const { error } = await supabase
+        .from(type === 'note' ? 'note_comments' : 'comments')
+        .delete()
+        .eq('id', comment.id)
+        .eq('profile_id', currentUser.id);
+
+      if (error) throw error;
+
+      updateComments((current) => current.filter((item) => !deletedIds.has(String(item.id))));
+      if (replyTo && deletedIds.has(String(replyTo.id))) setReplyTo(null);
+      if (editingCommentId && deletedIds.has(String(editingCommentId))) {
+        setEditingCommentId(null);
+        setEditCommentText("");
+      }
+
+      if (type === 'post') {
+        window.dispatchEvent(new CustomEvent('comment-deleted', {
+          detail: { postId: post.original_id || post.id, count: deletedIds.size },
+        }));
+      }
+      toast.success("Comment deleted");
+    } catch (error: any) {
+      toast.error(error.message || "Could not delete comment.");
+    }
+  };
+
   // Threading helper to build the X-style nested hierarchy
   const getThreadedComments = (flatComments: any[]) => {
     const map = new Map<string, any>();
@@ -558,41 +601,59 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                                 <Send className="h-4 w-4" />
                                 <span className="font-medium text-sm">Send</span>
                               </DropdownMenuItem>
-                              {currentUser?.id === comment.profile_id && (
-
-                                <DropdownMenuItem 
-                                  className="flex items-center gap-3 py-2.5 cursor-pointer"
-                                  onClick={() => handleStartEditComment(comment)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                  <span className="font-medium text-sm">Edit Comment</span>
-                                </DropdownMenuItem>
+                              {currentUser?.id === comment.profile_id ? (
+                                <>
+                                  <DropdownMenuItem
+                                    className="flex cursor-pointer items-center gap-3 py-2.5"
+                                    onClick={() => handleStartEditComment(comment)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="text-sm font-medium">Edit Comment</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive"
+                                    onClick={() => handleDeleteComment(comment)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="text-sm font-medium">Delete Comment</span>
+                                  </DropdownMenuItem>
+                                </>
+                              ) : (
+                                <>
+                                  <DropdownMenuItem
+                                    className="flex cursor-pointer items-center gap-3 py-2.5"
+                                    onClick={() => router.navigate({ to: `/app/chat/${comment.profile_id}` })}
+                                  >
+                                    <Mail className="h-4 w-4" />
+                                    <span className="text-sm font-medium">Message {getFirstName(comment.profiles)}</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={async () => {
+                                    if (!currentUser) return;
+                                    const isFollowing = followedUserIds?.includes(comment.profile_id);
+                                    try {
+                                      if (isFollowing) {
+                                        const { error } = await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', comment.profile_id);
+                                        if (error) throw error;
+                                        toast.success(`Unfollowed ${getFirstName(comment.profiles)}`);
+                                      } else {
+                                        const { error } = await supabase.from('follows').insert([{ follower_id: currentUser.id, following_id: comment.profile_id }]);
+                                        if (error) throw error;
+                                        toast.success(`Now following ${getFirstName(comment.profiles)}!`);
+                                      }
+                                      await refetchFollowedUserIds();
+                                    } catch (error: any) {
+                                      toast.error(error.message || "Could not update follow.");
+                                    }
+                                  }}>
+                                    {followedUserIds?.includes(comment.profile_id) ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                                    <span className="text-sm font-medium">{followedUserIds?.includes(comment.profile_id) ? "Unfollow" : "Follow"} {getFirstName(comment.profiles)}</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive" onClick={() => toast.success("Comment reported. Thank you.")}>
+                                    <Flag className="h-4 w-4" />
+                                    <span className="text-sm font-medium">Report comment</span>
+                                  </DropdownMenuItem>
+                                </>
                               )}
-                              <DropdownMenuItem 
-                                className="flex items-center gap-3 py-2.5 cursor-pointer"
-                                onClick={() => router.navigate({ to: `/app/chat/${comment.profile_id}` })}
-                              >
-                                <Mail className="h-4 w-4" />
-                                <span className="font-medium text-sm">Message {getFirstName(comment.profiles)}</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={async () => {
-                                if (!currentUser) return;
-                                const isFollowing = followedUserIds?.includes(comment.profile_id);
-                                if (isFollowing) {
-                                  await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', comment.profile_id);
-                                  toast.success(`Unfollowed ${getFirstName(comment.profiles)}`);
-                                } else {
-                                  await supabase.from('follows').insert([{ follower_id: currentUser.id, following_id: comment.profile_id }]);
-                                  toast.success(`Now following ${getFirstName(comment.profiles)}!`);
-                                }
-                              }}>
-                                {followedUserIds?.includes(comment.profile_id) ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                                <span className="font-medium text-sm">{followedUserIds?.includes(comment.profile_id) ? "Unfollow" : "Follow"} {getFirstName(comment.profiles)}</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={() => toast.success("Comment reported. Thank you.")}>
-                                <Flag className="h-4 w-4" />
-                                <span className="font-medium text-sm">Report comment</span>
-                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>

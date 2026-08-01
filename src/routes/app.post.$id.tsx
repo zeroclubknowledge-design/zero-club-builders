@@ -332,6 +332,85 @@ function PostDetail() {
     }
   };
 
+  const handleDeleteComment = async (comment: any) => {
+    if (!currentUser || currentUser.id !== comment.profile_id) return;
+    if (!window.confirm("Delete this comment? This cannot be undone.")) return;
+
+    const deletedIds = new Set<string>([String(comment.id)]);
+    let foundChild = true;
+    while (foundChild) {
+      foundChild = false;
+      comments.forEach((item) => {
+        if (item.parent_id && deletedIds.has(String(item.parent_id)) && !deletedIds.has(String(item.id))) {
+          deletedIds.add(String(item.id));
+          foundChild = true;
+        }
+      });
+    }
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', comment.id)
+        .eq('profile_id', currentUser.id);
+
+      if (error) throw error;
+
+      setComments((current) => current.filter((item) => !deletedIds.has(String(item.id))));
+      if (replyTo && deletedIds.has(String(replyTo.id))) setReplyTo(null);
+      if (editingCommentId && deletedIds.has(String(editingCommentId))) {
+        setEditingCommentId(null);
+        setEditCommentText("");
+      }
+      window.dispatchEvent(new CustomEvent('comment-deleted', {
+        detail: { postId: post.id, count: deletedIds.size },
+      }));
+      queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+      toast.success("Comment deleted");
+    } catch (error: any) {
+      toast.error(error.message || "Could not delete comment.");
+    }
+  };
+
+  const handleToggleCommentFollow = async (comment: any) => {
+    if (!currentUser || currentUser.id === comment.profile_id) return;
+    const isFollowingCommentAuthor = currentUser.following_ids?.includes(comment.profile_id) || false;
+
+    try {
+      if (isFollowingCommentAuthor) {
+        const { error } = await supabase
+          .from('follows')
+          .delete()
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', comment.profile_id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('follows')
+          .insert([{ follower_id: currentUser.id, following_id: comment.profile_id }]);
+        if (error) throw error;
+      }
+
+      queryClient.setQueryData(['profile', 'current'], (old: any) => {
+        if (!old) return old;
+        const followingIds: string[] = old.following_ids || [];
+        return {
+          ...old,
+          following_ids: isFollowingCommentAuthor
+            ? followingIds.filter((userId) => userId !== comment.profile_id)
+            : Array.from(new Set([...followingIds, comment.profile_id])),
+        };
+      });
+      queryClient.invalidateQueries({ queryKey: ['profile', comment.profile_id] });
+      toast.success(isFollowingCommentAuthor
+        ? `Unfollowed ${getFirstName(comment.profiles)}`
+        : `Now following ${getFirstName(comment.profiles)}!`);
+    } catch (error: any) {
+      toast.error(error.message || "Could not update follow.");
+    }
+  };
+
   async function handleDeletePost() {
     if (!currentUser || currentUser.id !== post.author_id) return;
     if (!confirm("Are you sure you want to delete this post?")) return;
@@ -1019,31 +1098,42 @@ function PostDetail() {
                             <span className="font-medium text-sm">Send</span>
                           </DropdownMenuItem>
                           
-                          {currentUser?.id === comment.profile_id && (new Date().getTime() - new Date(comment.created_at).getTime() < 30 * 60 * 1000) && (
-                            <DropdownMenuItem 
-                              className="flex items-center gap-3 py-2.5 cursor-pointer"
-                              onClick={() => handleStartEditComment(comment)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                              <span className="font-medium text-sm">Edit Comment</span>
-                            </DropdownMenuItem>
+                          {currentUser?.id === comment.profile_id ? (
+                            <>
+                              <DropdownMenuItem
+                                className="flex cursor-pointer items-center gap-3 py-2.5"
+                                onClick={() => handleStartEditComment(comment)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                <span className="text-sm font-medium">Edit Comment</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive"
+                                onClick={() => handleDeleteComment(comment)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="text-sm font-medium">Delete Comment</span>
+                              </DropdownMenuItem>
+                            </>
+                          ) : (
+                            <>
+                              <DropdownMenuItem
+                                className="flex cursor-pointer items-center gap-3 py-2.5"
+                                onClick={() => router.navigate({ to: '/app/chat/$id', params: { id: comment.profile_id } })}
+                              >
+                                <Mail className="h-4 w-4" />
+                                <span className="text-sm font-medium">Message {getFirstName(comment.profiles)}</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => handleToggleCommentFollow(comment)}>
+                                {currentUser?.following_ids?.includes(comment.profile_id) ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                                <span className="text-sm font-medium">{currentUser?.following_ids?.includes(comment.profile_id) ? "Unfollow" : "Follow"} {getFirstName(comment.profiles)}</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive" onClick={() => toast.success("Comment reported. Thank you.")}>
+                                <Flag className="h-4 w-4" />
+                                <span className="text-sm font-medium">Report comment</span>
+                              </DropdownMenuItem>
+                            </>
                           )}
-                          
-                          <DropdownMenuItem 
-                            className="flex items-center gap-3 py-2.5 cursor-pointer"
-                            onClick={() => router.navigate({ to: '/app/chat/$id', params: { id: comment.profile_id } })}
-                          >
-                            <Mail className="h-4 w-4" />
-                            <span className="font-medium text-sm">Message {getFirstName(comment.profiles)}</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={() => toast.success(`Now following ${getFirstName(comment.profiles)}!`)}>
-                            <UserPlus className="h-4 w-4" />
-                            <span className="font-medium text-sm">Follow {getFirstName(comment.profiles)}</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={() => toast.success("Comment reported. Thank you.")}>
-                            <Flag className="h-4 w-4" />
-                            <span className="font-medium text-sm">Report comment</span>
-                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
