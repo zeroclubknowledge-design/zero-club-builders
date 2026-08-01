@@ -322,7 +322,7 @@ function Header({ referralCode }: ReferralProps) {
 /* ── Code-built product showcase: the real Zero Club, not screenshots ── */
 function ProductShowcase() {
   return (
-    <div className="relative mx-auto w-full max-w-[340px] justify-self-center px-1 pb-7 sm:max-w-[520px] sm:px-0 sm:pb-0">
+    <div className="relative mx-auto w-[300px] max-w-[calc(100vw-40px)] min-w-0 justify-self-center pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
       {/* Glow */}
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
@@ -364,7 +364,7 @@ function ProductShowcase() {
         </div>
 
         {/* Post actions */}
-        <div className="relative mt-4 flex items-center gap-5 text-[11.5px] text-white/45 tabular-nums">
+        <div className="relative mt-4 flex items-center gap-3 text-[11px] text-white/45 tabular-nums sm:gap-5 sm:text-[11.5px]">
           <span className="flex items-center gap-1.5">
             <Heart className="h-3.5 w-3.5 fill-current" />
             128 likes
@@ -380,7 +380,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="zc-showcase-float absolute -top-3 left-3 flex items-center gap-2 rounded-lg bg-white p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:gap-2.5 sm:p-3 sm:pr-4">
+      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 rounded-lg bg-white p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
         <span className="relative grid h-9 w-9 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -392,10 +392,10 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: wallet mini-card */}
-      <div className="zc-showcase-float-delayed absolute bottom-0 right-3 w-[136px] overflow-hidden rounded-lg bg-[#141117] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:p-4">
+      <div className="zc-showcase-float-delayed absolute bottom-0 right-0 w-[124px] overflow-hidden rounded-lg bg-[#141117] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:p-4">
         <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
         <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">Creator wallet</p>
-        <p className="mt-1.5 text-[20px] font-semibold tracking-tight text-white tabular-nums">₦248,500</p>
+        <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-white tabular-nums sm:text-[20px]">₦248,500</p>
         <p className="mt-0.5 text-[10px] text-emerald-400">+ ₦45,000 this week</p>
       </div>
     </div>
@@ -443,8 +443,8 @@ function Hero({ referralCode }: ReferralProps) {
   return (
     <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
-      <div className="mx-auto grid max-w-[1180px] items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
-        <div>
+      <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
+        <div className="min-w-0">
           <p className="inline-flex items-center gap-2 rounded-full bg-[#cc208f]/[0.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f] ring-1 ring-[#cc208f]/15">
             The builder network
           </p>

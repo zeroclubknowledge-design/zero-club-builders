@@ -79,7 +79,10 @@ export function SudokuRaceBoard({
 
   return (
     <div className="mx-auto w-full max-w-[610px]">
-      <div className="mx-auto grid aspect-square w-full max-w-[560px] grid-cols-9 overflow-hidden border-2 border-foreground bg-foreground">
+      {/* The grid lines come from each cell's own borders below. The board
+          background must stay light — cell highlights are translucent, so a
+          dark board would show through and black out the selected cells. */}
+      <div className="mx-auto grid aspect-square w-full max-w-[560px] grid-cols-9 overflow-hidden border-2 border-foreground bg-background">
         {board.map((value, index) => {
           const row = Math.floor(index / 9);
           const column = index % 9;
@@ -101,8 +104,8 @@ export function SudokuRaceBoard({
               onClick={() => setSelected(index)}
               aria-label={`Row ${row + 1}, column ${column + 1}${value ? `, ${value}` : ""}`}
               className={`relative grid min-h-0 min-w-0 place-items-center bg-background text-[clamp(14px,4.8vw,27px)] font-semibold tabular-nums transition-colors disabled:cursor-default sm:text-[25px] ${
-                isSelected ? "z-10 !bg-primary/[0.12] text-primary ring-2 ring-inset ring-primary" : matching ? "!bg-primary/[0.07] text-primary" : related ? "!bg-muted/45" : ""
-              } ${conflict ? "!bg-destructive/12 !text-destructive" : ""}`}
+                isSelected ? "z-10 !bg-primary/[0.16] text-primary ring-2 ring-inset ring-primary" : matching ? "!bg-primary/[0.09] text-primary" : related ? "!bg-foreground/[0.05]" : ""
+              } ${conflict ? "!bg-destructive/15 !text-destructive" : ""}`}
               style={{
                 borderRight: column === 8 ? 0 : `${column === 2 || column === 5 ? 2 : 1}px solid ${column === 2 || column === 5 ? "var(--foreground)" : "var(--border)"}`,
                 borderBottom: row === 8 ? 0 : `${row === 2 || row === 5 ? 2 : 1}px solid ${row === 2 || row === 5 ? "var(--foreground)" : "var(--border)"}`,
