@@ -425,7 +425,38 @@ function Marketplace({ gigs, format, busy, runAction }: any) {
   );
 }
 
-function Commerce({ snapshot, format }: { snapshot: Snapshot; format: (value: number) => string }) { const m = snapshot.metrics; return <div><SectionHeading eyebrow="Commerce operations" title="Creator economy" detail="Monitor value moving through wallets, gifts, licences, and the Zero Store." /><div className="grid grid-cols-2 gap-3 xl:grid-cols-4"><MetricCard Icon={WalletCards} label="Wallet balances" value={format(m.wallet_balance)} detail="Member balances" tone="bg-sky-500/10 text-sky-600" /><MetricCard Icon={Store} label="Store listings" value={compact(m.store_items)} detail="Digital products" tone="bg-violet-500/10 text-violet-600" /><MetricCard Icon={CircleDollarSign} label="Gift value" value={format(m.gift_value)} detail={`${compact(m.gift_cards)} gift cards`} tone="bg-emerald-500/10 text-emerald-600" /><MetricCard Icon={PackageOpen} label="Licences" value={compact(m.licences)} detail="ZeroHub ownership rights" tone="bg-amber-500/10 text-amber-600" /></div><section className="mt-7 border-t border-border pt-5"><h2 className="text-[14px] font-semibold">Recent store inventory</h2><div className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{snapshot.store_items.map((item) => <div key={item.id} className="flex items-center gap-3 p-4"><div className="grid h-9 w-9 place-items-center rounded-lg bg-muted"><Store className="h-4 w-4" /></div><div className="min-w-0 flex-1"><p className="truncate text-[12px] font-semibold">{item.name}</p><p className="mt-0.5 text-[9px] text-muted-foreground">{item.category || "Digital product"} · @{item.seller_username || "creator"}</p></div><div className="text-right"><p className="text-[11px] font-semibold">{item.price_type === "Coins" ? format(item.price) : `${compact(item.price)} XP`}</p><p className="text-[8.5px] text-muted-foreground">{formatDate(item.created_at)}</p></div></div>)}</div></section></div>; }
+function Commerce({ snapshot, format }: { snapshot: Snapshot; format: (value: number) => string }) {
+  const m = snapshot.metrics;
+  return (
+    <div>
+      <SectionHeading eyebrow="Commerce operations" title="Creator economy" detail="Monitor value moving through wallets, gifts, licences, and the Zero Store." />
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <MetricCard Icon={WalletCards} label="Wallet balances" value={format(m.wallet_balance)} detail="Member balances" tone="bg-sky-500/10 text-sky-600" />
+        <MetricCard Icon={Store} label="Store listings" value={compact(m.store_items)} detail="Digital products" tone="bg-violet-500/10 text-violet-600" />
+        <MetricCard Icon={CircleDollarSign} label="Gift value" value={format(m.gift_value)} detail={`${compact(m.gift_cards)} gift cards`} tone="bg-emerald-500/10 text-emerald-600" />
+        <MetricCard Icon={PackageOpen} label="Licences" value={compact(m.licences)} detail="ZeroHub ownership rights" tone="bg-amber-500/10 text-amber-600" />
+      </div>
+      <section className="mt-7 border-t border-border pt-5">
+        <h2 className="text-[14px] font-semibold">Recent store inventory</h2>
+        <div className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+          {snapshot.store_items.map((item) => (
+            <div key={item.id} className="flex items-center gap-3 p-4">
+              <div className="grid h-9 w-9 place-items-center rounded-lg bg-muted"><Store className="h-4 w-4" /></div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[12px] font-semibold">{item.name}</p>
+                <p className="mt-0.5 text-[9px] text-muted-foreground">{item.category || "Digital product"} · @{item.seller_username || "creator"}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] font-semibold">{item.price_type === "Coins" ? format(item.price) : `${compact(item.price)} ZP`}</p>
+                <p className="text-[8.5px] text-muted-foreground">{formatDate(item.created_at)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function System({ snapshot, busy, runAction }: any) { const m = snapshot.metrics; return <div><SectionHeading eyebrow="Platform operations" title="System controls" detail="Manage availability, review rules, delivery health, and admin accountability." /><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"><section><h2 className="text-[14px] font-semibold">Platform settings</h2><div className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{snapshot.settings.map((setting: any) => { const enabled = setting.value === true || setting.value === "true"; return <div key={setting.key} className="flex items-center gap-4 p-4"><div className="min-w-0 flex-1"><p className="text-[12px] font-semibold">{String(setting.key).replaceAll("_", " ")}</p><p className="mt-1 text-[9.5px] leading-relaxed text-muted-foreground">{setting.description}</p></div><button disabled={busy} onClick={() => runAction("admin_update_platform_setting", { setting_key: setting.key, setting_value: !enabled })} className={`relative h-6 w-11 shrink-0 rounded-full transition ${enabled ? "bg-primary" : "bg-muted"}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${enabled ? "left-6" : "left-1"}`} /></button></div>; })}</div></section><section><h2 className="text-[14px] font-semibold">Delivery health</h2><div className="mt-3 space-y-3"><HealthRow Icon={BellRing} label="Push devices" value={compact(m.push_devices)} status="Connected" /><HealthRow Icon={MessageSquareText} label="Notifications, 24h" value={compact(m.notifications_24h)} status="Delivering" /><HealthRow Icon={Activity} label="Weekly posts" value={compact(m.posts_7d)} status="Active" /></div></section></div><div className="mt-7"><AuditList logs={snapshot.audit_logs} /></div></div>; }
 

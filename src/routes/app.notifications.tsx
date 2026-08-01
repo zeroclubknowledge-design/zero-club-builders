@@ -141,7 +141,7 @@ function NotificationsPage() {
       case 'repost': return { icon: ArrowUpFromLine, bg: 'bg-emerald-600', text: 'text-white', action: 'reposted your post' };
       case 'mention': return { icon: AtSign, bg: 'bg-amber-600', text: 'text-white', action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };
       case 'build_tagged': return { icon: Trophy, bg: 'bg-violet-600', text: 'text-white', action: 'tagged their post for verification' };
-      case 'system': return { icon: Zap, bg: 'bg-amber-500', text: 'text-black', action: `Referral Reward: You and ${actorName} both earned 200XP!` };
+      case 'system': return { icon: Zap, bg: 'bg-amber-500', text: 'text-black', action: `Referral reward: You and ${actorName} both earned 200 ZP.` };
       default: return { icon: BellRing, bg: 'bg-muted-foreground', text: 'text-background', action: 'interacted with you' };
     }
   };

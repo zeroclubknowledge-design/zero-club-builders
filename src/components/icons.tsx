@@ -120,6 +120,24 @@ export const IconMessages = ({ className, active }: ZeroIconProps) => (
   </Svg>
 );
 
+export const IconGames = ({ className, active }: ZeroIconProps) => (
+  <Svg className={className}>
+    {active ? (
+      <path
+        d="M7.2 6.1h9.6a4.3 4.3 0 0 1 4.18 3.28l1.18 4.82c.72 2.94-2.7 5.18-5.13 3.36l-1.25-.94a2.2 2.2 0 0 0-1.32-.44H9.54a2.2 2.2 0 0 0-1.32.44l-1.25.94c-2.43 1.82-5.85-.42-5.13-3.36l1.18-4.82A4.3 4.3 0 0 1 7.2 6.1Zm.05 3.05a1 1 0 0 0-1 1v.95H5.3a1 1 0 0 0 0 2h.95v.95a1 1 0 0 0 2 0v-.95h.95a1 1 0 0 0 0-2h-.95v-.95a1 1 0 0 0-1-1Zm8.75.55a1.18 1.18 0 1 0 0 2.36 1.18 1.18 0 0 0 0-2.36Zm2.45 2.45a1.18 1.18 0 1 0 0 2.36 1.18 1.18 0 0 0 0-2.36Z"
+        fill="currentColor"
+      />
+    ) : (
+      <>
+        <path d="M7.2 6.5h9.6a3.9 3.9 0 0 1 3.8 3l1.15 4.7c.62 2.5-2.3 4.4-4.36 2.86l-1.25-.94a2.8 2.8 0 0 0-1.68-.56H9.54a2.8 2.8 0 0 0-1.68.56l-1.25.94c-2.06 1.54-4.98-.36-4.36-2.86l1.15-4.7a3.9 3.9 0 0 1 3.8-3Z" {...stroke} />
+        <path d="M7.2 9.8v4M5.2 11.8h4" {...stroke} />
+        <circle cx="16" cy="10.7" r="1" fill="currentColor" />
+        <circle cx="18.3" cy="13" r="1" fill="currentColor" />
+      </>
+    )}
+  </Svg>
+);
+
 export const IconProfile = ({ className, active }: ZeroIconProps) => (
   <Svg className={className}>
     {active ? (

@@ -40,6 +40,7 @@ import { Route as AppProfileIndexRouteImport } from './routes/app.profile.index'
 import { Route as AppNotesIndexRouteImport } from './routes/app.notes.index'
 import { Route as AppInstitutionStudioIndexRouteImport } from './routes/app.institution-studio.index'
 import { Route as AppGiftsIndexRouteImport } from './routes/app.gifts.index'
+import { Route as AppGamesIndexRouteImport } from './routes/app.games.index'
 import { Route as AppClubsIndexRouteImport } from './routes/app.clubs.index'
 import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
@@ -64,6 +65,8 @@ import { Route as AppNotesCreateRouteImport } from './routes/app.notes.create'
 import { Route as AppNotesIdRouteImport } from './routes/app.notes.$id'
 import { Route as AppLiveClassIdRouteImport } from './routes/app.live.$classId'
 import { Route as AppGiftsCodeRouteImport } from './routes/app.gifts.$code'
+import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
+import { Route as AppGamesIdRouteImport } from './routes/app.games.$id'
 import { Route as AppClubsChatRouteImport } from './routes/app.clubs.chat'
 import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
 import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
@@ -230,6 +233,11 @@ const AppGiftsIndexRoute = AppGiftsIndexRouteImport.update({
   path: '/gifts/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGamesIndexRoute = AppGamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppClubsIndexRoute = AppClubsIndexRouteImport.update({
   id: '/clubs/',
   path: '/clubs/',
@@ -352,6 +360,16 @@ const AppGiftsCodeRoute = AppGiftsCodeRouteImport.update({
   path: '/gifts/$code',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGamesCreateRoute = AppGamesCreateRouteImport.update({
+  id: '/games/create',
+  path: '/games/create',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesIdRoute = AppGamesIdRouteImport.update({
+  id: '/games/$id',
+  path: '/games/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppClubsChatRoute = AppClubsChatRouteImport.update({
   id: '/clubs/chat',
   path: '/clubs/chat',
@@ -429,6 +447,8 @@ export interface FileRoutesByFullPath {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
+  '/app/games/$id': typeof AppGamesIdRoute
+  '/app/games/create': typeof AppGamesCreateRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
@@ -453,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/clubs/': typeof AppClubsIndexRoute
+  '/app/games/': typeof AppGamesIndexRoute
   '/app/gifts/': typeof AppGiftsIndexRoute
   '/app/institution-studio/': typeof AppInstitutionStudioIndexRoute
   '/app/notes/': typeof AppNotesIndexRoute
@@ -489,6 +510,8 @@ export interface FileRoutesByTo {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
+  '/app/games/$id': typeof AppGamesIdRoute
+  '/app/games/create': typeof AppGamesCreateRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
@@ -513,6 +536,7 @@ export interface FileRoutesByTo {
   '/app/bootcamps': typeof AppBootcampsIndexRoute
   '/app/chat': typeof AppChatIndexRoute
   '/app/clubs': typeof AppClubsIndexRoute
+  '/app/games': typeof AppGamesIndexRoute
   '/app/gifts': typeof AppGiftsIndexRoute
   '/app/institution-studio': typeof AppInstitutionStudioIndexRoute
   '/app/notes': typeof AppNotesIndexRoute
@@ -556,6 +580,8 @@ export interface FileRoutesById {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
+  '/app/games/$id': typeof AppGamesIdRoute
+  '/app/games/create': typeof AppGamesCreateRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
@@ -580,6 +606,7 @@ export interface FileRoutesById {
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
   '/app/clubs/': typeof AppClubsIndexRoute
+  '/app/games/': typeof AppGamesIndexRoute
   '/app/gifts/': typeof AppGiftsIndexRoute
   '/app/institution-studio/': typeof AppInstitutionStudioIndexRoute
   '/app/notes/': typeof AppNotesIndexRoute
@@ -624,6 +651,8 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/settings'
     | '/app/clubs/chat'
+    | '/app/games/$id'
+    | '/app/games/create'
     | '/app/gifts/$code'
     | '/app/live/$classId'
     | '/app/notes/$id'
@@ -648,6 +677,7 @@ export interface FileRouteTypes {
     | '/app/bootcamps/'
     | '/app/chat/'
     | '/app/clubs/'
+    | '/app/games/'
     | '/app/gifts/'
     | '/app/institution-studio/'
     | '/app/notes/'
@@ -684,6 +714,8 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/settings'
     | '/app/clubs/chat'
+    | '/app/games/$id'
+    | '/app/games/create'
     | '/app/gifts/$code'
     | '/app/live/$classId'
     | '/app/notes/$id'
@@ -708,6 +740,7 @@ export interface FileRouteTypes {
     | '/app/bootcamps'
     | '/app/chat'
     | '/app/clubs'
+    | '/app/games'
     | '/app/gifts'
     | '/app/institution-studio'
     | '/app/notes'
@@ -750,6 +783,8 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/settings'
     | '/app/clubs/chat'
+    | '/app/games/$id'
+    | '/app/games/create'
     | '/app/gifts/$code'
     | '/app/live/$classId'
     | '/app/notes/$id'
@@ -774,6 +809,7 @@ export interface FileRouteTypes {
     | '/app/bootcamps/'
     | '/app/chat/'
     | '/app/clubs/'
+    | '/app/games/'
     | '/app/gifts/'
     | '/app/institution-studio/'
     | '/app/notes/'
@@ -1014,6 +1050,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGiftsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/games/': {
+      id: '/app/games/'
+      path: '/games'
+      fullPath: '/app/games/'
+      preLoaderRoute: typeof AppGamesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/clubs/': {
       id: '/app/clubs/'
       path: '/clubs'
@@ -1180,6 +1223,20 @@ declare module '@tanstack/react-router' {
       path: '/gifts/$code'
       fullPath: '/app/gifts/$code'
       preLoaderRoute: typeof AppGiftsCodeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/create': {
+      id: '/app/games/create'
+      path: '/games/create'
+      fullPath: '/app/games/create'
+      preLoaderRoute: typeof AppGamesCreateRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/$id': {
+      id: '/app/games/$id'
+      path: '/games/$id'
+      fullPath: '/app/games/$id'
+      preLoaderRoute: typeof AppGamesIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/clubs/chat': {
@@ -1365,6 +1422,8 @@ interface AppRouteChildren {
   AppChatNewRoute: typeof AppChatNewRoute
   AppChatSettingsRoute: typeof AppChatSettingsRoute
   AppClubsChatRoute: typeof AppClubsChatRoute
+  AppGamesIdRoute: typeof AppGamesIdRoute
+  AppGamesCreateRoute: typeof AppGamesCreateRoute
   AppGiftsCodeRoute: typeof AppGiftsCodeRoute
   AppLiveClassIdRoute: typeof AppLiveClassIdRoute
   AppPostIdRoute: typeof AppPostIdRoute
@@ -1377,6 +1436,7 @@ interface AppRouteChildren {
   AppBootcampsIndexRoute: typeof AppBootcampsIndexRoute
   AppChatIndexRoute: typeof AppChatIndexRoute
   AppClubsIndexRoute: typeof AppClubsIndexRoute
+  AppGamesIndexRoute: typeof AppGamesIndexRoute
   AppGiftsIndexRoute: typeof AppGiftsIndexRoute
   AppProfileIndexRoute: typeof AppProfileIndexRoute
   AppWalletIndexRoute: typeof AppWalletIndexRoute
@@ -1410,6 +1470,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppChatNewRoute: AppChatNewRoute,
   AppChatSettingsRoute: AppChatSettingsRoute,
   AppClubsChatRoute: AppClubsChatRoute,
+  AppGamesIdRoute: AppGamesIdRoute,
+  AppGamesCreateRoute: AppGamesCreateRoute,
   AppGiftsCodeRoute: AppGiftsCodeRoute,
   AppLiveClassIdRoute: AppLiveClassIdRoute,
   AppPostIdRoute: AppPostIdRoute,
@@ -1422,6 +1484,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBootcampsIndexRoute: AppBootcampsIndexRoute,
   AppChatIndexRoute: AppChatIndexRoute,
   AppClubsIndexRoute: AppClubsIndexRoute,
+  AppGamesIndexRoute: AppGamesIndexRoute,
   AppGiftsIndexRoute: AppGiftsIndexRoute,
   AppProfileIndexRoute: AppProfileIndexRoute,
   AppWalletIndexRoute: AppWalletIndexRoute,

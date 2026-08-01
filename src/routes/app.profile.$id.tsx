@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getProfile, enrichPosts } from "@/api";
-import { getLevelFromXp } from "@/lib/utils";
 import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { PostCard } from "@/components/PostCard";
@@ -18,6 +17,7 @@ import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
 import { IconMessages } from "@/components/icons";
 import { useFollow } from "@/hooks/useFollow";
+import { ProfileExperience } from "@/components/ProfileExperience";
 
 export const Route = createFileRoute("/app/profile/$id")({
   loader: async ({ params: { id } }) => {
@@ -268,20 +268,20 @@ function ProfileDetail() {
       if (!nowFollowing) {
         toast.success(`Unfollowed ${getFirstName(profile)}`);
       } else {
-        // Handle referral XP reward (validated + applied server-side)
+        // Referral incentives are spendable ZP, not reputation XP.
         if (currentUser.referral_code_used && currentUser.referral_code_used === profile.referral_code) {
           const { error: referralErr } = await supabase.rpc('claim_referral_reward', {
             referrer: profile.id,
           });
           if (referralErr) throw referralErr;
-          toast.success("Referral complete! Both earned 200 XP");
+          toast.success("Referral complete! Both earned 200 ZP");
           
           // Add a notification for the referrer
           await supabase.from('notifications').insert([{
             profile_id: profile.id,
             actor_id: currentUser.id,
             type: 'referral_reward',
-            content: 'completed your referral link and you both earned 200 XP!'
+            content: 'completed your referral link and you both earned 200 ZP!'
           }]);
         } else {
           toast.success(`Following ${getFirstName(profile)}!`);
@@ -347,7 +347,6 @@ function ProfileDetail() {
   const isOwnProfile = currentUser?.id === profile.id;
   const canMessageProfile = Boolean(currentUser?.id && profile?.id && !isOwnProfile);
   const initials = (profile?.full_name || profile?.username || 'U').substring(0, 1).toUpperCase();
-  const level = getLevelFromXp(profile?.xp || 0);
   const tier = (profile?.tier || "Basic").charAt(0).toUpperCase() + (profile?.tier || "Basic").slice(1);
   const displayName = profile?.full_name || profile?.account_name || profile?.username || "Builder";
   const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
@@ -535,6 +534,8 @@ function ProfileDetail() {
                   <span className="text-muted-foreground">{profileClubs.length === 1 ? 'Club' : 'Clubs'}</span>
                 </Link>
               </div>
+
+              <ProfileExperience xp={profile?.xp} accountType={profile?.account_type} />
               
               {profile?.website && (
                 <div className="mt-3 flex items-center gap-1.5 text-[14px]">

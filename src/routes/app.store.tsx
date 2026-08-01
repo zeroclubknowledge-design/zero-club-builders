@@ -89,8 +89,8 @@ function StorePage() {
             {/* Balances capsule */}
             <div className="flex items-center rounded-lg border border-border bg-card p-0.5">
               <div className="flex items-center gap-1.5 px-3 py-1.5">
-                <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">XP</span>
-                <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">{(profile?.xp || 0).toLocaleString()}</span>
+                <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">ZP</span>
+                <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">{Number(profile?.zp || 0).toLocaleString()}</span>
               </div>
               <div className="w-px h-4 bg-border" />
               <div className="flex items-center gap-1.5 px-3 py-1.5">
@@ -110,7 +110,7 @@ function StorePage() {
             <ShoppingBag className="h-6 w-6 text-[#f06ac3]" />
             <p className="mt-5 text-[10px] font-semibold uppercase text-white/45">Built by the Zero Club network</p>
             <h2 className="mt-2 max-w-xl text-[25px] font-semibold tracking-tight sm:text-[31px]">Tools, assets, and perks for people building real work.</h2>
-            <p className="mt-3 max-w-lg text-[13px] leading-relaxed text-white/60">Use your wallet or XP to access useful products from builders across the Club.</p>
+            <p className="mt-3 max-w-lg text-[13px] leading-relaxed text-white/60">Use your wallet or ZP to access useful products from builders across the Club.</p>
           </div>
           <div className="border-t border-white/10 p-5 md:border-l md:border-t-0">
             <p className="text-[10px] font-medium uppercase text-white/45">Sell on Zero Store</p>

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
-import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/wallet/send")({
   component: SendMoneyPage,
@@ -15,7 +14,6 @@ export const Route = createFileRoute("/app/wallet/send")({
 function SendMoneyPage() {
   const navigate = useNavigate();
   const { data: profile, refetch } = useUser();
-  const { format } = useWalletCurrency();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -29,8 +27,8 @@ function SendMoneyPage() {
     const fetchNetwork = async () => {
       try {
         const [{ data: following }, { data: followers }] = await Promise.all([
-          supabase.from("follows").select("following_id, profiles!follows_following_id_fkey(id, username, full_name, avatar_url, xp, coins)").eq("follower_id", profile?.id),
-          supabase.from("follows").select("follower_id, profiles!follows_follower_id_fkey(id, username, full_name, avatar_url, xp, coins)").eq("following_id", profile?.id)
+          supabase.from("follows").select("following_id, profiles!follows_following_id_fkey(id, username, full_name, avatar_url, xp, zp)").eq("follower_id", profile?.id),
+          supabase.from("follows").select("follower_id, profiles!follows_follower_id_fkey(id, username, full_name, avatar_url, xp, zp)").eq("following_id", profile?.id)
         ]);
 
         const networkMap = new Map();
@@ -45,7 +43,7 @@ function SendMoneyPage() {
         if (recipients.length === 0) {
           const { data: topUsers } = await supabase
             .from("profiles")
-            .select("id, username, full_name, avatar_url, xp, coins")
+            .select("id, username, full_name, avatar_url, xp, zp")
             .neq("id", profile?.id)
             .order('xp', { ascending: false })
             .limit(10);
@@ -76,7 +74,7 @@ function SendMoneyPage() {
 
         let query = supabase
           .from("profiles")
-          .select("id, username, full_name, avatar_url, xp, coins")
+          .select("id, username, full_name, avatar_url, xp, zp")
           .or(`username.ilike."%${cleanSearch}%",full_name.ilike."%${cleanSearch}%"`)
           .limit(5);
 
@@ -104,14 +102,14 @@ function SendMoneyPage() {
       toast.error("Please enter a valid amount");
       return;
     }
-    if (profile.xp < amountVal) {
-      toast.error("Insufficient XP balance");
+    if (Number(profile.zp || 0) < amountVal) {
+      toast.error("Insufficient ZP balance");
       return;
     }
 
     setSendingFunds(true);
     try {
-      const { error: transferErr } = await supabase.rpc("transfer_xp", {
+      const { error: transferErr } = await supabase.rpc("transfer_zp", {
         recipient: selectedRecipient.id,
         amount: amountVal,
       });
@@ -121,17 +119,17 @@ function SendMoneyPage() {
         profile_id: profile.id,
         actor_id: selectedRecipient.id,
         type: "system",
-        content: `Sent ${amountVal} XP to ${getFirstName(selectedRecipient)}`,
+        content: `Sent ${amountVal} ZP to ${getFirstName(selectedRecipient)}`,
       });
 
       await supabase.from("notifications").insert({
         profile_id: selectedRecipient.id,
         actor_id: profile.id,
         type: "system",
-        content: `Received ${amountVal} XP from ${getFirstName(profile)}`,
+        content: `Received ${amountVal} ZP from ${getFirstName(profile)}`,
       });
 
-      toast.success(`Sent ${amountVal} XP to ${getFirstName(selectedRecipient)}!`);
+      toast.success(`Sent ${amountVal} ZP to ${getFirstName(selectedRecipient)}!`);
       await refetch();
       navigate({ to: "/app/wallet" });
     } catch (err: any) {
@@ -185,7 +183,7 @@ function SendMoneyPage() {
         >
           <ArrowLeft className="h-[18px] w-[18px] text-foreground" />
         </button>
-        <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold tracking-tight text-foreground">{selectedRecipient ? "Confirm XP transfer" : "Send XP"}</h1></div>
+        <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Points</p><h1 className="text-[18px] font-semibold tracking-tight text-foreground">{selectedRecipient ? "Confirm ZP transfer" : "Send ZP"}</h1></div>
         </div>
       </header>
 
@@ -211,7 +209,7 @@ function SendMoneyPage() {
               <div className="flex items-center justify-between px-1">
                 <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Amount</label>
                 <span className="text-[11px] text-muted-foreground tabular-nums">
-                  Balance · <span className="font-semibold text-foreground">{(profile?.xp || 0).toLocaleString()} XP</span>
+                  Balance · <span className="font-semibold text-foreground">{Number(profile?.zp || 0).toLocaleString()} ZP</span>
                 </span>
               </div>
               <div className="mt-4 flex items-baseline justify-center gap-2">
@@ -223,32 +221,30 @@ function SendMoneyPage() {
                   placeholder="0"
                   autoFocus
                   min="1"
-                  max={profile?.xp || 0}
+                  max={profile?.zp || 0}
                   className="w-auto min-w-[60px] max-w-[220px] bg-transparent text-center text-[56px] font-semibold tracking-tight tabular-nums text-foreground outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   style={{ width: `${Math.max(1, transferAmount.length)}ch` }}
                 />
-                <span className="text-[20px] font-medium text-muted-foreground">XP</span>
+                <span className="text-[20px] font-medium text-muted-foreground">ZP</span>
               </div>
-              <div className={`mx-auto mt-2 h-[2px] w-16 rounded-full ${numericAmount > (profile?.xp || 0) ? "bg-destructive/60" : "bg-primary/60"}`} />
-              {numericAmount > 0 && numericAmount <= (profile?.xp || 0) && (
-                <p className="mt-3 text-[12px] text-muted-foreground tabular-nums">
-                  ≈ {format(numericAmount)} cash equivalent
-                </p>
+              <div className={`mx-auto mt-2 h-[2px] w-16 rounded-full ${numericAmount > Number(profile?.zp || 0) ? "bg-destructive/60" : "bg-primary/60"}`} />
+              {numericAmount > 0 && numericAmount <= Number(profile?.zp || 0) && (
+                <p className="mt-3 text-[12px] text-muted-foreground">Zero Points are separate from your cash wallet and XP.</p>
               )}
-              {numericAmount > (profile?.xp || 0) && (
+              {numericAmount > Number(profile?.zp || 0) && (
                 <p className="mt-3 text-[12px] font-medium text-destructive">Exceeds available balance</p>
               )}
             </div>
 
             <button
               onClick={handleSendFunds}
-              disabled={sendingFunds || numericAmount <= 0 || numericAmount > (profile?.xp || 0)}
+              disabled={sendingFunds || numericAmount <= 0 || numericAmount > Number(profile?.zp || 0)}
               className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground tap disabled:opacity-40"
             >
               {sendingFunds ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Processing</>
               ) : (
-                <><Send className="h-4 w-4" /> {numericAmount > 0 ? `Send ${numericAmount.toLocaleString()} XP` : "Send XP"}</>
+                <><Send className="h-4 w-4" /> {numericAmount > 0 ? `Send ${numericAmount.toLocaleString()} ZP` : "Send ZP"}</>
               )}
             </button></div>
           </>

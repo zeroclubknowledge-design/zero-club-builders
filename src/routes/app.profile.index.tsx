@@ -9,7 +9,6 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProfile, enrichPosts } from "@/api";
 import { supabase } from "@/lib/supabase";
-import { getLevelFromXp } from "@/lib/utils";
 import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { PostCard } from "@/components/PostCard";
@@ -17,6 +16,7 @@ import { LinkifiedText } from "@/components/LinkifiedText";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
+import { ProfileExperience } from "@/components/ProfileExperience";
 
 export const Route = createFileRoute("/app/profile/")({
   component: Profile,
@@ -169,13 +169,12 @@ function Profile() {
 
   const tier = (profile?.tier || "Basic").charAt(0).toUpperCase() + (profile?.tier || "Basic").slice(1);
   const initials = (profile?.full_name || profile?.username || 'U').substring(0, 1).toUpperCase();
-  const level = getLevelFromXp(profile?.xp || 0);
   const displayName = profile?.full_name || profile?.account_name || profile?.username || "Builder";
   const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
 
   const handleShare = async () => {
     const url = `${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`;
-    const text = `Download the Zero Club App (works on iOS & Android) and sign up when you do, follow me immediately and automatically get rewarded with 200XP! 🚀`;
+    const text = `Join me on Zero Club and get rewarded with 200 ZP when you complete the referral.`;
     
     if (navigator.share) {
       try {
@@ -368,6 +367,8 @@ function Profile() {
                   <span className="text-muted-foreground">{myClubs.length === 1 ? 'Club' : 'Clubs'}</span>
                 </Link>
               </div>
+
+              <ProfileExperience xp={profile?.xp} accountType={profile?.account_type} />
               
               {profile?.website && (
                 <div className="mt-3 flex items-center gap-1.5 text-[14px]">

@@ -180,7 +180,7 @@ function WalletPage() {
               console.error("Error programmatically following referrer:", followError);
             } else {
               console.log("Programmatically followed referrer! Triggering reward trigger...");
-              toast.success("Referral reward of 200 XP claimed!");
+              toast.success("Referral reward of 200 ZP claimed!");
               await refetch();
               refetchActivities?.();
             }
@@ -201,7 +201,7 @@ function WalletPage() {
               
             if (!reFollowError) {
               console.log("Re-triggered follow relation to activate DB trigger!");
-              toast.success("Referral reward of 200 XP claimed!");
+              toast.success("Referral reward of 200 ZP claimed!");
               await refetch();
               refetchActivities?.();
             }
@@ -231,15 +231,15 @@ function WalletPage() {
       toast.error("Please enter a valid amount");
       return;
     }
-    if (profile.xp < amountVal) {
-      toast.error("Insufficient XP balance");
+    if (Number(profile.zp || 0) < amountVal) {
+      toast.error("Insufficient ZP balance");
       return;
     }
 
     setSendingFunds(true);
     try {
       // Atomic server-side transfer (balance check + both updates in one transaction)
-      const { error: transferErr } = await supabase.rpc("transfer_xp", {
+      const { error: transferErr } = await supabase.rpc("transfer_zp", {
         recipient: selectedRecipient.id,
         amount: amountVal,
       });
@@ -251,7 +251,7 @@ function WalletPage() {
         profile_id: profile.id,
         actor_id: selectedRecipient.id,
         type: "system",
-        content: `Sent ${amountVal} XP to ${getFirstName(selectedRecipient)}`,
+        content: `Sent ${amountVal} ZP to ${getFirstName(selectedRecipient)}`,
       });
 
       // 4. Log recipient system notification/activity
@@ -259,10 +259,10 @@ function WalletPage() {
         profile_id: selectedRecipient.id,
         actor_id: profile.id,
         type: "system",
-        content: `Received ${amountVal} XP from ${getFirstName(profile)}`,
+        content: `Received ${amountVal} ZP from ${getFirstName(profile)}`,
       });
 
-      toast.success(`Sent ${amountVal} XP to ${getFirstName(selectedRecipient)}!`);
+      toast.success(`Sent ${amountVal} ZP to ${getFirstName(selectedRecipient)}!`);
       handleActionChange(null);
       await refetch();
       refetchActivities?.();
@@ -289,10 +289,10 @@ function WalletPage() {
         profile_id: selectedRecipient.id,
         actor_id: profile.id,
         type: "system",
-        content: `Requested ${amountVal} XP from you.`,
+        content: `Requested ${amountVal} ZP from you.`,
       });
 
-      toast.success(`Requested ${amountVal} XP from ${getFirstName(selectedRecipient)}!`);
+      toast.success(`Requested ${amountVal} ZP from ${getFirstName(selectedRecipient)}!`);
       handleActionChange(null);
     } catch (err: any) {
       console.error("Request failed:", err);
@@ -328,7 +328,7 @@ function WalletPage() {
             <h1 className="text-[18px] font-semibold leading-tight tracking-tight">Wallet</h1>
             <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
               <Star className="h-3 w-3 fill-[#eab308] text-[#eab308]" />
-              <span className="tabular-nums">{(profile?.xp || 0).toLocaleString()} XP earned</span>
+              <span className="tabular-nums">{Number(profile?.zp || 0).toLocaleString()} ZP available</span>
             </div>
           </div>
         </div>
@@ -483,7 +483,7 @@ function WalletPage() {
           <div className="space-y-5 md:space-y-0 md:divide-y md:divide-border/30">
             {activities.map((activity) => {
               const isIncome = activity.content?.includes("Received") || activity.content?.includes("Earned") || activity.content?.includes("Claimed") || activity.content?.includes("reward");
-              const amountMatch = activity.content?.match(/(\d[\d,]*)\s*XP/i);
+              const amountMatch = activity.content?.match(/(\d[\d,]*)\s*(?:ZP|XP)/i);
               const amount = amountMatch ? amountMatch[1] : null;
               return (
                 <div key={activity.id} className="flex items-center justify-between gap-3 md:py-3.5 md:first:pt-0 md:last:pb-0">
@@ -504,7 +504,7 @@ function WalletPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <p className={`text-sm font-bold tabular-nums whitespace-nowrap ${isIncome ?'text-emerald-500' : 'text-foreground'}`}>
-                      {amount ? `${isIncome ? '+' : '-'}${amount} XP` : '—'}
+                      {amount ? `${isIncome ? '+' : '-'}${amount} ZP` : '—'}
                     </p>
                   </div>
                 </div>

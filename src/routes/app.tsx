@@ -43,7 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  IconHome, IconLearn, IconClubs, IconWallet, IconMessages,
+  IconHome, IconLearn, IconClubs, IconWallet, IconMessages, IconGames,
   IconProfile, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics,
   IconPresentation, IconInstitution, IconStore,
   IconBell, IconRocket, IconSpark, IconShield,
@@ -69,7 +69,7 @@ const tabs = [
   { to: "/app/", label: "Feed", Icon: IconHome, exact: true },
   { to: "/app/bootcamps", label: "Learn", Icon: IconLearn },
   { to: "/app/clubs", label: "Clubs", Icon: IconClubs },
-  { to: "/app/wallet", label: "Wallet", Icon: IconWallet },
+  { to: "/app/games", label: "Games", Icon: IconGames },
   { to: "/app/chat", label: "Messages", Icon: IconMessages },
 ];
 
@@ -79,6 +79,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/clubs": "Clubs",
   "/app/wallet": "Wallet",
   "/app/chat": "Messages",
+  "/app/games": "Zero Games",
   "/app/premium": "Premium",
   "/app/bookmarks": "Bookmarks",
   "/app/tutor-studio": "Tutor Studio",
@@ -362,10 +363,11 @@ function SidebarContent({
               // Desktop-only: mirror the mobile bottom nav (hidden on md+)
               { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
               { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true },
-              { Icon: IconWallet, label: "Wallet", to: "/app/wallet", desktopOnly: true },
+              { Icon: IconWallet, label: "Wallet", to: "/app/wallet" },
               { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
               { Icon: IconClubs, label: "Clubs", to: "/app/clubs", learnerDesktopOnly: isLearnerAccount },
+              { Icon: IconGames, label: "Zero Games", to: "/app/games", desktopOnly: true },
               { Icon: IconGem, label: "Membership", to: "/app/premium" },
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
               { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
@@ -1081,7 +1083,8 @@ function AppLayout() {
   const isChat = pathname.includes("/chat");
   const isChatInbox = pathname === "/app/chat" || pathname === "/app/chat/";
   const isPostDetail = pathname.startsWith("/app/post/");
-  const isDetail = pathname.includes("/detail") || isPostDetail;
+  const isGameDetail = pathname.startsWith("/app/games/");
+  const isDetail = pathname.includes("/detail") || isPostDetail || isGameDetail;
   const isInstitutionStudio = pathname.startsWith("/app/institution-studio");
   const isAdminStudio = pathname.startsWith("/app/admin");
   const isWideWorkspace = isInstitutionStudio || isAdminStudio;

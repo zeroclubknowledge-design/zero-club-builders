@@ -28,7 +28,7 @@ interface ProductForm {
   description: string;
   category: string;
   price: string;
-  priceType: "Coins" | "XP";
+  priceType: "Coins" | "ZP";
   discountPercent: string;
   couponEnabled: boolean;
   couponCode: string;
@@ -53,7 +53,7 @@ const effectivePrice = (price: number, discount: number) =>
 function MyStorePage() {
   const { data: profile } = useUser();
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
-  const formatPrice = (n: number, type: string) => type === "Coins" ? format(n) : `${n.toLocaleString()} XP`;
+  const formatPrice = (n: number, type: string) => type === "Coins" ? format(n) : `${n.toLocaleString()} ZP`;
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useQuery({
@@ -97,7 +97,7 @@ function MyStorePage() {
       description: item.description || "",
       category: item.category || "Template",
       price: String(item.price_type === "Coins" ? fromBaseAmount(item.price ?? 0) : item.price ?? ""),
-      priceType: item.price_type === "XP" ? "XP" : "Coins",
+      priceType: item.price_type === "ZP" ? "ZP" : "Coins",
       discountPercent: String(item.discount_percent ?? 0),
       couponEnabled: !!item.coupon_code,
       couponCode: item.coupon_code || "",
@@ -470,13 +470,13 @@ function MyStorePage() {
               <div className="space-y-2">
                 <label className={labelClass}>Charge in</label>
                 <div className="flex rounded-lg bg-background p-1 ring-1 ring-border">
-                  {(["Coins", "XP"] as const).map((t) => (
+                  {(["Coins", "ZP"] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => setForm({ ...form, priceType: t })}
                       className={`flex-1 rounded-xl py-2 text-[12.5px] font-semibold tracking-tight transition-colors ${form.priceType === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
                     >
-                      {t === "Coins" ? `${currencyDetails.symbol} Cash` : "XP"}
+                      {t === "Coins" ? `${currencyDetails.symbol} Cash` : "ZP"}
                     </button>
                   ))}
                 </div>
@@ -486,7 +486,7 @@ function MyStorePage() {
             {/* Price + discount */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className={labelClass}>Price {form.priceType === "Coins" ? `(${currencyDetails.symbol})` : "(XP)"}</label>
+                <label className={labelClass}>Price {form.priceType === "Coins" ? `(${currencyDetails.symbol})` : "(ZP)"}</label>
                 <input
                   type="number"
                   min="1"
