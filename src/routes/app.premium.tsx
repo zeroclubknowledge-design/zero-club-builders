@@ -84,7 +84,7 @@ const plans: Plan[] = [
     storedTier: undefined,
     featured: true,
     billingLabel: "/ month",
-    features: ["Relevant Learner Premium experience", "5 rewarded Zero Games competitions weekly", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
+    features: ["Relevant Learner Premium experience", "12 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
   },
   {
     id: "tutor-basic",
@@ -112,7 +112,7 @@ const plans: Plan[] = [
     storedTier: "Premium",
     billingLabel: "/ month",
     featured: true,
-    features: ["Everything in Tutor Basic", "5 rewarded Zero Games competitions weekly", "Create up to 5 permanent Clubs", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
+    features: ["Everything in Tutor Basic", "8 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 5 permanent Clubs", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
   },
   {
     id: "tutor-premium-plus",
@@ -125,7 +125,7 @@ const plans: Plan[] = [
     recommendedFor: "Tutor",
     storedTier: "Premium+",
     billingLabel: "/ month",
-    features: ["Everything in Tutor Premium", "14 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
+    features: ["Everything in Tutor Premium", "20 rewarded Zero Games competitions weekly, maximum 3 daily", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
   },
   {
     id: "institution-small",
@@ -137,7 +137,7 @@ const plans: Plan[] = [
     audiences: ["Institution"],
     recommendedFor: "Institution",
     billingLabel: "/ year",
-    features: ["30-day free trial", "5 rewarded Zero Games competitions weekly", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    features: ["30-day free trial", "21 rewarded Zero Games competitions weekly, maximum 3 daily", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
   },
   {
     id: "institution-large",
@@ -150,7 +150,7 @@ const plans: Plan[] = [
     recommendedFor: "Institution",
     featured: true,
     billingLabel: "/ year",
-    features: ["30-day free trial", "14 rewarded Zero Games competitions weekly, maximum 2 daily", "Multiple-campus support", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    features: ["30-day free trial", "56 rewarded Zero Games competitions weekly, maximum 8 daily", "Multiple-campus support", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
   },
   {
     id: "institution-custom",
@@ -162,7 +162,7 @@ const plans: Plan[] = [
     audiences: ["Institution"],
     recommendedFor: "Institution",
     billingLabel: "contact Zero Club",
-    features: ["14 rewarded Zero Games competitions weekly, maximum 2 daily", "Custom Digital Hub scope", "Guided onboarding", "Organisation-specific Club capacity", "Programme and role configuration", "Priority implementation support"],
+    features: ["84 rewarded Zero Games competitions weekly, maximum 12 daily", "Custom Digital Hub scope", "Guided onboarding", "Organisation-specific Club capacity", "Programme and role configuration", "Priority implementation support"],
   },
 ];
 

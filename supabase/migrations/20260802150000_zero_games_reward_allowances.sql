@@ -6,13 +6,13 @@ with reward_features(plan_key, feature) as (
   values
     ('learner_basic', '2 rewarded Zero Games competitions weekly'),
     ('learner_premium', '5 rewarded Zero Games competitions weekly'),
-    ('creator', '5 rewarded Zero Games competitions weekly'),
+    ('creator', '12 rewarded Zero Games competitions weekly, maximum 2 daily'),
     ('tutor_basic', '2 rewarded Zero Games competitions weekly'),
-    ('tutor_premium', '5 rewarded Zero Games competitions weekly'),
-    ('tutor_premium_plus', '14 rewarded Zero Games competitions weekly, maximum 2 daily'),
-    ('institution_small', '5 rewarded Zero Games competitions weekly'),
-    ('institution_large', '14 rewarded Zero Games competitions weekly, maximum 2 daily'),
-    ('institution_custom', '14 rewarded Zero Games competitions weekly, maximum 2 daily')
+    ('tutor_premium', '8 rewarded Zero Games competitions weekly, maximum 2 daily'),
+    ('tutor_premium_plus', '20 rewarded Zero Games competitions weekly, maximum 3 daily'),
+    ('institution_small', '21 rewarded Zero Games competitions weekly, maximum 3 daily'),
+    ('institution_large', '56 rewarded Zero Games competitions weekly, maximum 8 daily'),
+    ('institution_custom', '84 rewarded Zero Games competitions weekly, maximum 12 daily')
 )
 update public.subscription_plans as plan
 set features = case
@@ -102,18 +102,24 @@ declare
 begin
   weekly_limit := case plan_key
     when 'learner_premium' then 5
-    when 'creator' then 5
-    when 'tutor_premium' then 5
-    when 'tutor_premium_plus' then 14
-    when 'institution_small' then 5
-    when 'institution_large' then 14
-    when 'institution_custom' then 14
-    when 'administrator' then 14
+    when 'creator' then 12
+    when 'tutor_premium' then 8
+    when 'tutor_premium_plus' then 20
+    when 'institution_small' then 21
+    when 'institution_large' then 56
+    when 'institution_custom' then 84
+    when 'administrator' then 84
     else 2
   end;
 
-  daily_limit := case
-    when weekly_limit = 14 then 2
+  daily_limit := case plan_key
+    when 'creator' then 2
+    when 'tutor_premium' then 2
+    when 'tutor_premium_plus' then 3
+    when 'institution_small' then 3
+    when 'institution_large' then 8
+    when 'institution_custom' then 12
+    when 'administrator' then 12
     else null
   end;
 

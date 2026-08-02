@@ -15,15 +15,15 @@ export type ZeroGameRewardAllowance = {
 export const ZERO_GAME_REWARD_LIMITS: Record<string, { weekly: number; daily: number | null }> = {
   learner_basic: { weekly: 2, daily: null },
   learner_premium: { weekly: 5, daily: null },
-  creator: { weekly: 5, daily: null },
+  creator: { weekly: 12, daily: 2 },
   tutor_basic: { weekly: 2, daily: null },
-  tutor_premium: { weekly: 5, daily: null },
-  tutor_premium_plus: { weekly: 14, daily: 2 },
-  institution: { weekly: 5, daily: null },
-  institution_small: { weekly: 5, daily: null },
-  institution_large: { weekly: 14, daily: 2 },
-  institution_custom: { weekly: 14, daily: 2 },
-  administrator: { weekly: 14, daily: 2 },
+  tutor_premium: { weekly: 8, daily: 2 },
+  tutor_premium_plus: { weekly: 20, daily: 3 },
+  institution: { weekly: 21, daily: 3 },
+  institution_small: { weekly: 21, daily: 3 },
+  institution_large: { weekly: 56, daily: 8 },
+  institution_custom: { weekly: 84, daily: 12 },
+  administrator: { weekly: 84, daily: 12 },
 };
 
 export function fallbackZeroGameRewardAllowance(profile: any): ZeroGameRewardAllowance {

@@ -1,4 +1,4 @@
-import { useLoaderData, createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { 
   ChevronLeft, MoreHorizontal, MessageCircle, Heart, 
   Repeat, Share2, Send, CheckCircle2, TrendingUp, UserPlus, UserMinus, Loader2, Bookmark,
@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { bookmarkPostAction, unbookmarkPostAction, likePostAction, unlikePostAction } from "@/api";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";
 import { useFollow } from "@/hooks/useFollow";
 import {
@@ -31,11 +31,39 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
+const findCachedPost = (queryClient: QueryClient, id: string) => {
+  const feedPosts = queryClient.getQueryData<any[]>(['feed_posts']) || [];
+  const profilePostQueries = queryClient.getQueriesData<any[]>({ queryKey: ['profilePosts'] });
+  const profilePosts = profilePostQueries.flatMap(([, posts]) => Array.isArray(posts) ? posts : []);
+  const cachedPost = [...feedPosts, ...profilePosts].find((post) => post && (post.id === id || post.original_id === id));
+
+  if (!cachedPost) return null;
+  return {
+    ...cachedPost,
+    // Repost cards have a presentation-only ID. Detail actions must always use
+    // the original post ID represented by the route.
+    id,
+  };
+};
+
+const createPostDetailShell = (post: any) => ({
+  post: { ...post, computed_reposts_count: post.computed_reposts_count || post.reposts_count || 0 },
+  comments: [],
+  isBookmarked: Boolean(post.isBookmarked),
+  isLiked: Boolean(post.isLiked),
+  isFollowing: false,
+  hasReposted: Boolean(post.hasReposted),
+  commentLikes: [] as string[],
+});
+
 export const Route = createFileRoute("/app/post/$id")({
-  loader: async ({ params: { id } }) => {
+  loader: async ({ params: { id }, context: { queryClient } }) => {
+    const cachedPost = findCachedPost(queryClient, id);
+    if (cachedPost) return { post: cachedPost };
+
     const { data: post, error } = await supabase
       .from('posts')
-      .select('*, profiles(username, full_name, avatar_url)')
+      .select('*, profiles(*), bootcamps(*, profiles(*))')
       .eq('id', id)
       .maybeSingle();
 
@@ -85,6 +113,7 @@ export const Route = createFileRoute("/app/post/$id")({
 
 function PostDetail() {
   const { id } = Route.useParams();
+  const { post: loaderPost } = Route.useLoaderData();
   const queryClient = useQueryClient();
 
   const isVideoUrl = (url: string) => {
@@ -92,7 +121,7 @@ function PostDetail() {
     return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url.includes('video');
   };
   
-  const { data, isLoading } = useQuery({
+  const { data, isError } = useQuery({
     queryKey: ['post', id],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -121,26 +150,13 @@ function PostDetail() {
         commentLikes: commentLikesRes?.data ? commentLikesRes.data.map((l: any) => l.comment_id) : []
       };
     },
+    initialData: loaderPost ? () => createPostDetailShell(loaderPost) : undefined,
+    // The route result paints the page immediately. The richer interaction data
+    // is deliberately stale so React Query refreshes it without blanking the UI.
+    initialDataUpdatedAt: 0,
     placeholderData: () => {
-      const feedPosts = queryClient.getQueryData<any[]>(['feed_posts']) || [];
-      const userPostsQueries = queryClient.getQueriesData<any[]>({ queryKey: ['profilePosts'] });
-      const userPosts = userPostsQueries.flatMap(([_, data]) => Array.isArray(data) ? data : []);
-      
-      const allFound = [...feedPosts, ...userPosts];
-      const post = allFound.find(p => p && p.author_id && p.content && (p.id === id || p.original_id === id));
-      
-      if (post) {
-        return {
-          post: { ...post, computed_reposts_count: post.computed_reposts_count || 0 },
-          comments: [],
-          isBookmarked: post.isBookmarked || false,
-          isLiked: post.isLiked || false,
-          isFollowing: false,
-          hasReposted: post.hasReposted || false,
-          commentLikes: []
-        };
-      }
-      return undefined;
+      const post = findCachedPost(queryClient, id);
+      return post ? createPostDetailShell(post) : undefined;
     },
     staleTime: 0
   });
@@ -739,10 +755,19 @@ function PostDetail() {
       </header>
 
       <div className="no-scrollbar flex-1 overflow-y-auto">
-        {!post || isLoading ? (
+        {!post ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="mt-4 text-sm text-muted-foreground font-medium">Loading build details...</p>
+            {isError ? (
+              <>
+                <p className="text-sm font-semibold text-foreground">This build could not be loaded.</p>
+                <button type="button" onClick={() => void queryClient.invalidateQueries({ queryKey: ['post', id] })} className="mt-4 h-9 rounded-md bg-foreground px-4 text-xs font-semibold text-background">Try again</button>
+              </>
+            ) : (
+              <>
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="mt-4 text-sm text-muted-foreground font-medium">Loading build details...</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="mx-auto min-h-full w-full max-w-[860px] border-x border-border bg-background animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1159,7 +1184,7 @@ function PostDetail() {
       </div>
 
       {/* Floating Comment Composer */}
-      {post && !isLoading && (
+      {post && (
         <div className="pointer-events-none fixed inset-x-2 bottom-3 z-[60] pb-[env(safe-area-inset-bottom)] sm:inset-x-4 md:absolute md:inset-x-6">
           <div className="pointer-events-auto mx-auto w-full max-w-[830px]">
             <CommentComposer
