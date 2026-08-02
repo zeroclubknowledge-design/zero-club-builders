@@ -246,6 +246,7 @@ function InstitutionHub() {
           category: "Bootcamp",
           creator_id: profile.id,
           bootcamp_id: created.id,
+          club_type: "bootcamp_cohort",
           is_private: true,
           price: toBaseAmount(Number(newBootcamp.price) || 0),
           banner_url: bannerUrl,

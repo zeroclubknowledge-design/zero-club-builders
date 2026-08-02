@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
+import { fallbackClubCapacity, isBootcampCohortClub, type ClubCapacity } from "@/features/membership/plans";
 
 function SwipeableNotification({ children, onDismiss }: { children: React.ReactNode, onDismiss: () => void }) {
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -62,13 +63,6 @@ function SwipeableNotification({ children, onDismiss }: { children: React.ReactN
   );
 }
 
-/**
- * Free-tier club allowance. Originally 20 platform-wide slots; raised by 30.
- * A free account may create one club, and only while slots remain.
- * Accounts that already created a club must upgrade to create another.
- */
-const FREE_CLUB_LIMIT = 50;
-
 export const Route = createFileRoute("/app/clubs/")({
   component: Clubs,
 });
@@ -109,7 +103,7 @@ function Clubs() {
         { data: sentRequests },
         { data: incomingRequestsData },
         { data: outgoingRequestsData },
-        { count: totalClubsCount }
+        { data: capacityData }
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
         supabase.from('clubs').select('*').eq('creator_id', session.user.id),
@@ -118,7 +112,7 @@ function Clubs() {
         supabase.from('messages').select('content').eq('sender_id', session.user.id).like('content', 'CLUB_REQUEST:%'),
         supabase.from('messages').select('*, sender:sender_id(id, username, full_name, avatar_url)').eq('receiver_id', session.user.id).like('content', 'CLUB_REQUEST:%:pending'),
         supabase.from('messages').select('*, receiver:receiver_id(id, username, full_name, avatar_url)').eq('sender_id', session.user.id).like('content', 'CLUB_REQUEST:%'),
-        supabase.from('clubs').select('*', { count: 'exact', head: true })
+        supabase.rpc('get_my_club_capacity')
       ]);
 
       let joinedIds = joinedClubs?.map(jc => jc.club_id) || [];
@@ -173,15 +167,15 @@ function Clubs() {
       }));
 
       return { 
-        myClubs: enrich(joinedClubs?.map(jc => jc.clubs as any).filter(c => c && c.category !== 'Bootcamp') || []), 
-        discover: enrich(discoverClubsCombined.filter(c => c && c.category !== 'Bootcamp')),
+        myClubs: enrich(joinedClubs?.map(jc => jc.clubs as any).filter(c => c && !isBootcampCohortClub(c)) || []),
+        discover: enrich(discoverClubsCombined.filter(c => c && !isBootcampCohortClub(c))),
         profile,
-        userCreatedClubs: enrich(userCreatedClubs?.filter(c => c && c.category !== 'Bootcamp') || []),
+        userCreatedClubs: enrich(userCreatedClubs?.filter(c => c && !isBootcampCohortClub(c)) || []),
+        capacityData,
         requestedClubIds,
         initialIncomingRequests: incomingRequestsData || [],
         outgoingAccepted: (outgoingRequestsData || []).filter(m => m.content.split(':')[3] === 'accepted'),
         totalOnlineBuilders: uniqueOnlineProfiles.size,
-        totalClubsCount: totalClubsCount || 0
       };
     }
   });
@@ -195,7 +189,7 @@ function Clubs() {
     initialIncomingRequests = [],
     outgoingAccepted = [],
     totalOnlineBuilders = 0,
-    totalClubsCount = 0
+    capacityData = null,
   } = clubData || {};
 
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
@@ -412,13 +406,14 @@ function Clubs() {
     }
   };
 
-  const isBasic = !profile?.tier || profile.tier.toLowerCase() === 'basic';
-  const hasCreatedClub = userCreatedClubs.length > 0;
-  const freeClubsRemaining = Math.max(0, FREE_CLUB_LIMIT - totalClubsCount);
+  const clubCapacity: ClubCapacity = capacityData || fallbackClubCapacity(profile, userCreatedClubs.length);
+  const capacityLabel = clubCapacity.permanent_club_limit === null
+    ? `${clubCapacity.permanent_club_count} Clubs`
+    : `${clubCapacity.permanent_club_count} / ${clubCapacity.permanent_club_limit}`;
 
   const handleCreateClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (isBasic && (hasCreatedClub || totalClubsCount >= FREE_CLUB_LIMIT)) {
+    if (!clubCapacity.can_create) {
       setShowUpgrade(true);
     } else {
       setShowCreate(true);
@@ -433,26 +428,19 @@ function Clubs() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      if (isBasic && hasCreatedClub) {
-        throw new Error("Free accounts can create one club. Upgrade to create more.");
-      }
+      if (!clubCapacity.can_create) throw new Error(clubCapacity.upgrade_message || "Your current plan does not allow another permanent Club.");
 
-      if (isBasic && totalClubsCount >= FREE_CLUB_LIMIT) {
-        throw new Error("All free club slots have been claimed. Upgrade to Premium to create a club.");
-      }
-
-      // Basic users can ONLY create private FREE clubs
-      const isPrivate = isBasic ? true : false;
-      const finalPrice = isBasic ? 0 : (isPaid ? newClub.price : 0);
+      const finalPrice = isPaid ? newClub.price : 0;
 
       const { data: club, error } = await supabase
         .from('clubs')
         .insert([{
           name: newClub.name,
           description: newClub.description,
-          category: newClub.category,
-          creator_id: session.user.id,
-          is_private: isPrivate,
+           category: newClub.category,
+           creator_id: session.user.id,
+           club_type: 'permanent',
+           is_private: false,
           price: finalPrice
         }])
         .select()
@@ -467,7 +455,8 @@ function Clubs() {
         role: 'Administrator'
       }]);
 
-      toast.success(isBasic ? "Private club created! 🚀 Invite your friends now." : "Club created successfully! 🚀");
+      const firstClubPremium = String(clubCapacity.plan_key) === 'creator' && clubCapacity.permanent_club_count === 0 && !profile?.first_club_benefit_redeemed;
+      toast.success(firstClubPremium ? "Club created with 6 months of premium Club experience." : "Club created successfully.");
       window.location.reload(); // Refresh to show new club
     } catch (err: any) {
       toast.error(err.message || "Failed to create club");
@@ -521,8 +510,8 @@ function Clubs() {
               <Users className="h-3.5 w-3.5" />
             </div>
             <div className="text-center">
-              <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">{myClubs.length}</span>
-              <span className="block text-[8px] font-medium text-muted-foreground/60">Clubs Active</span>
+              <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">{capacityLabel}</span>
+              <span className="block text-[8px] font-medium text-muted-foreground/60">Permanent capacity</span>
             </div>
           </div>
           <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border/60 bg-card py-3.5 transition hover:border-primary/20">
@@ -781,12 +770,12 @@ function Clubs() {
           <div className="px-4 pb-6 pt-1 sm:px-6 sm:pb-8 sm:pt-6">
             <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
               <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[19px]">
-                {isBasic ? "Create Your Private Club" : "Create a New Club"}
+                Create a permanent Club
               </DrawerTitle>
               <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
-                {isBasic
-                  ? `Free accounts can create 1 private club to invite friends and classmates. ${freeClubsRemaining} of ${FREE_CLUB_LIMIT} free slots left.`
-                  : "Build your community and lead your own cohort."}
+                {clubCapacity.permanent_club_limit === null
+                  ? `${clubCapacity.plan_name} supports organisation-specific Club capacity.`
+                  : `${capacityLabel} permanent Clubs used on ${clubCapacity.plan_name}. Bootcamp cohort Clubs do not count.`}
               </DrawerDescription>
             </DrawerHeader>
 
@@ -810,7 +799,7 @@ function Clubs() {
                   className="w-full resize-none rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                 />
               </div>
-              {!isBasic ? (
+              {clubCapacity.can_create ? (
                 <div className="space-y-2">
                   <label className="text-[11px] text-muted-foreground ml-1">Access Type</label>
                   <div className="flex gap-2">
@@ -829,17 +818,9 @@ function Clubs() {
                     ))}
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card p-4">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-[11px] text-foreground">Free Access</span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground/60 font-medium">Basic Privilege</span>
-                </div>
-              )}
+              ) : null}
 
-              {isPaid && !isBasic && (
+              {isPaid && clubCapacity.can_create && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                   <label className="text-[11px] text-muted-foreground ml-1">Entry Fee ({currencyDetails.symbol})</label>
                   <input 
@@ -879,11 +860,7 @@ function Clubs() {
           <div className="px-6 py-8 text-center">
             <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Limit Reached</h2>
             <p className="mt-3 text-sm text-muted-foreground/70 leading-relaxed font-medium">
-              {totalClubsCount >= FREE_CLUB_LIMIT && isBasic && !hasCreatedClub ? (
-                <>All {FREE_CLUB_LIMIT} free club slots have now been claimed. Upgrade your plan to create unlimited communities.</>
-              ) : (
-                <>Free accounts can create <span className="text-primary font-bold">1 club</span>, and you have already used yours. Upgrade your plan to create unlimited public and private communities.</>
-              )}
+              {clubCapacity.upgrade_message || "Your current plan does not allow another permanent Club."}
             </p>
             
             <div className="mt-8 space-y-3">

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   account_type TEXT DEFAULT 'Learner',
   is_admin BOOLEAN NOT NULL DEFAULT false,
   account_status TEXT NOT NULL DEFAULT 'active' CHECK (account_status IN ('active', 'suspended')),
-  tier TEXT DEFAULT 'basic' CHECK (tier IN ('basic', 'elite', 'grow')),
+  tier TEXT DEFAULT 'Basic' CHECK (tier IN ('basic', 'Basic', 'premium', 'Premium', 'Premium+', 'Creator')),
   xp INTEGER DEFAULT 0,
   coins INTEGER NOT NULL DEFAULT 0,
   referral_code TEXT UNIQUE,
@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS profiles (
   location TEXT,
   referred_by UUID REFERENCES profiles(id),
   referral_reward_claimed BOOLEAN DEFAULT false,
+  first_club_benefit_redeemed BOOLEAN NOT NULL DEFAULT false,
+  first_club_benefit_started_at TIMESTAMP WITH TIME ZONE,
+  first_club_benefit_expires_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -338,6 +341,12 @@ CREATE TABLE IF NOT EXISTS clubs (
   is_private BOOLEAN DEFAULT false,
   price NUMERIC DEFAULT 0,
   rules TEXT DEFAULT 'Be respectful, help others, and share your work!',
+  club_type TEXT NOT NULL DEFAULT 'permanent' CHECK (club_type IN ('permanent', 'bootcamp_cohort')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'continuity', 'archived', 'ended')),
+  continuity_mode BOOLEAN NOT NULL DEFAULT false,
+  premium_experience_started_at TIMESTAMP WITH TIME ZONE,
+  premium_experience_expires_at TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -345,7 +354,8 @@ CREATE TABLE IF NOT EXISTS clubs (
 CREATE TABLE IF NOT EXISTS club_members (
   club_id UUID REFERENCES clubs(id) ON DELETE CASCADE NOT NULL,
   profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  role TEXT DEFAULT 'Member' CHECK (role IN ('Member', 'Administrator', 'Investor', 'Business Developer', 'Product Lead', 'Design Lead', 'Tech Lead', 'Growth Hacker')),
+  role TEXT DEFAULT 'Member' CHECK (role IN ('Owner', 'Admin', 'Administrator', 'Moderator', 'Member', 'Study Rep', 'Investor', 'Business Developer', 'Product Lead', 'Design Lead', 'Tech Lead', 'Growth Hacker')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'pending', 'removed', 'left')),
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   PRIMARY KEY (club_id, profile_id)
 );

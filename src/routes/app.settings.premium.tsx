@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Zap, Star, Shield, History, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, Zap, Star, Shield, ChevronRight, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { PLAN_NAMES, resolvePlanKey } from "@/features/membership/plans";
 
 export const Route = createFileRoute("/app/settings/premium")({
   component: PremiumSettings,
@@ -34,14 +35,15 @@ function PremiumSettings() {
     },
     onSuccess: (enabled) => {
       queryClient.invalidateQueries({ queryKey: ['my_profile'] });
-      toast.success(enabled ? "Early Access enabled! 🚀" : "Early Access disabled");
+      toast.success(enabled ? "Early Access enabled" : "Early Access disabled");
     },
     onError: () => {
       toast.error("Failed to update Early Access status");
     }
   });
 
-  const tier = profile?.tier || "Basic";
+  const planKey = resolvePlanKey(profile);
+  const tier = planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
@@ -59,18 +61,16 @@ function PremiumSettings() {
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">{tier} Tier</h2>
+              <h2 className="text-lg font-bold text-foreground">{tier}</h2>
               <p className="text-xs text-primary">Current Plan</p>
             </div>
           </div>
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-            You are currently on the {tier} Tier. {tier === 'Basic' ? 'Upgrade to unlock premium builder features and elite perks.' : 'Enjoy your exclusive premium benefits and elite club access.'}
+            Your membership follows the Zero Club pathway for how you learn, build communities, teach, or operate programmes.
           </p>
-          {tier === 'Basic' && (
-            <Link to="/app/premium" className="mt-6 block text-center rounded-2xl bg-foreground py-3 text-sm font-bold text-background transition active:scale-95">
-              Upgrade Plan
-            </Link>
-          )}
+          <Link to="/app/premium" className="mt-6 block rounded-md bg-foreground py-3 text-center text-sm font-bold text-background transition active:scale-95">
+            Manage membership
+          </Link>
         </section>
 
         <div className="mt-8 space-y-1 flex flex-col border-t border-white/5 pt-4">

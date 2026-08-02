@@ -1,41 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Check, Lock, Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, UsersRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
+import { CLUB_LIMITS, PLAN_NAMES, resolvePlanKey } from "@/features/membership/plans";
 
 export const Route = createFileRoute("/app/settings/premium/features")({
   component: PlanFeatures,
 });
 
-const categories = [
-  {
-    title: "Builder Experience",
-    features: [
-      { name: "Daily XP Multiplier", desc: "Earn more for every post", values: { Basic: "1x", Premium: "2x", "Premium+": "5x" } },
-      { name: "Post Boost", desc: "Get more visibility", values: { Basic: "None", Premium: "Large", "Premium+": "Largest" } },
-      { name: "Bootcamp Discounts", desc: "Every time you pay for a bootcamp", values: { Basic: "0%", Premium: "3%", "Premium+": "5%" } },
-      { name: "Edit Posts", desc: "Up to 1 hour after posting", locked: ["Basic"] },
-      { name: "Longer Posts", desc: "Up to 25,000 characters", locked: ["Basic"] },
-      { name: "Verified Badge", desc: "Blue checkmark on profile", locked: ["Basic"] },
-    ]
-  },
-  {
-    title: "Elite Perks",
-    features: [
-      { name: "Private Clubs", desc: "Access high-signal channels", locked: ["Basic"] },
-      { name: "Direct Mentor Access", desc: "Chat with top builders", locked: ["Basic", "Premium"] },
-      { name: "Custom Banners", desc: "Personalize your studio", locked: ["Basic", "Premium"] },
-    ]
-  },
-  {
-    title: "Creator Hub",
-    features: [
-      { name: "Tutor Studio", desc: "Tutor accounts can launch bootcamps for free", locked: [] },
-      { name: "Revenue Share", desc: "Get paid for your content", locked: ["Basic", "Premium"] },
-      { name: "Analytics Pro", desc: "Advanced student insights", locked: ["Basic", "Premium"] },
-    ]
-  }
-];
+const planFeatures: Record<string, string[]> = {
+  learner_basic: ["Builder profile and Feed", "Join and participate in public Clubs", "ZeroNotes publishing", "Zero AI starter access", "Standard XP earning"],
+  learner_premium: ["Everything in Learner Basic", "Zero AI learning assistant", "2x daily XP multiplier", "3% Bootcamp discount", "Post editing and longer posts", "Private Club access", "Premium profile badge"],
+  creator: ["Relevant Learner Premium experience", "Create and manage 3 permanent Clubs", "Club customization and member management", "Moderation and analytics", "Community growth and activity insights", "First Club receives 6 months premium experience", "Creator Rewards eligibility"],
+  tutor_basic: ["Create and sell Bootcamps", "Temporary cohort Club for each Bootcamp", "Curriculum, learner, pricing, and coupon management", "Create 1 permanent Club", "Tutor profile, Feed, and community access"],
+  tutor_premium: ["Everything in Tutor Basic", "Create up to 5 permanent Clubs", "Connect Bootcamps to existing Clubs", "Zero AI knowledge interview", "Approved Bootcamp verification", "Zero AI curriculum and teaching assistance"],
+  tutor_premium_plus: ["Everything in Tutor Premium", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-Bootcamp verification support", "Unlimited existing-Club connections", "Priority interview access and tutor support"],
+  institution: ["30-day Digital Hub trial", "Tutor and role management", "Multi-Bootcamp oversight", "Cohort participation analytics", "Organisation-specific Club capacity", "Priority onboarding and support"],
+};
 
 function PlanFeatures() {
   const { data: profile } = useQuery({
@@ -48,60 +29,40 @@ function PlanFeatures() {
     }
   });
 
-  const tier = profile?.tier || "Basic";
+  const planKey = resolvePlanKey(profile);
+  const planName = planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
+  const clubLimit = planKey === "institution" ? null : CLUB_LIMITS[planKey];
+  const features = planFeatures[planKey] || planFeatures.learner_basic;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground pb-20">
-      <header className="sticky top-0 z-50 flex items-center bg-background/80 px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-md border-b border-border">
-        <Link to="/app/settings/premium" className="mr-4">
-          <ChevronLeft className="h-6 w-6" />
-        </Link>
-        <h1 className="text-xl font-bold">Plan Features</h1>
+    <div className="min-h-screen bg-background pb-20 text-foreground">
+      <header className="sticky top-0 z-40 flex items-center border-b border-border bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
+        <Link to="/app/settings/premium" className="mr-4 grid h-9 w-9 place-items-center rounded-md border border-border" aria-label="Back"><ChevronLeft className="h-4 w-4" /></Link>
+        <div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Membership</p><h1 className="text-[18px] font-semibold">Current plan features</h1></div>
       </header>
 
-      <div className="p-5">
-        <div className="rounded-3xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20 p-6 mb-8 text-center">
-          <div className="mx-auto h-16 w-16 rounded-full bg-primary flex items-center justify-center shadow-glow mb-4">
-            <Zap className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="text-2xl text-foreground">{tier}</h2>
-          <p className="text-sm text-muted-foreground mt-1 font-medium">Everything included in your current plan</p>
-        </div>
+      <main className="mx-auto max-w-[760px] px-4 py-7 sm:px-6">
+        <section className="border-b border-border pb-7">
+          <span className="grid h-11 w-11 place-items-center rounded-md bg-primary/10 text-primary"><UsersRound className="h-5 w-5 fill-current" /></span>
+          <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Current plan</p>
+          <h2 className="mt-1 font-display text-[29px] font-semibold tracking-tight">{planName}</h2>
+          <p className="mt-2 text-[11.5px] text-muted-foreground">Permanent Club capacity: {clubLimit === null ? "organisation-specific" : clubLimit}</p>
+        </section>
 
-        <div className="space-y-8">
-          {categories.map((cat) => (
-            <section key={cat.title} className="rounded-2xl bg-card border border-border overflow-hidden">
-              <div className="px-5 py-4 border-b border-border bg-accent/10">
-                <h3 className="text-muted-foreground text-[11px]">{cat.title}</h3>
-              </div>
-              <div className="divide-y divide-border">
-                {cat.features.map((f) => {
-                  const isLocked = f.locked?.includes(tier);
-                  const value = f.values?.[tier as keyof typeof f.values];
-
-                  return (
-                    <div key={f.name} className="flex flex-col px-5 py-4 gap-1">
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[14px] font-bold ${isLocked ?"text-muted-foreground/50" : "text-foreground"}`}>{f.name}</span>
-                        <div className="flex items-center gap-3">
-                          {value ? (
-                            <span className={`text-[13px] font-bold ${isLocked ?"text-muted-foreground/50" : "text-primary"}`}>{value}</span>
-                          ) : isLocked ? (
-                            <Lock className="h-4 w-4 text-muted-foreground/20" />
-                          ) : (
-                            <Check className="h-4 w-4 text-primary" strokeWidth={3} />
-                          )}
-                        </div>
-                      </div>
-                      <p className={`text-[11px] ${isLocked ?"text-muted-foreground/30" : "text-muted-foreground"}`}>{f.desc}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+        <section className="mt-6 divide-y divide-border border-y border-border">
+          {features.map((feature) => (
+            <div key={feature} className="flex items-start gap-3 py-4">
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"><Check className="h-3 w-3" strokeWidth={3} /></span>
+              <p className="text-[12.5px] leading-5">{feature}</p>
+            </div>
           ))}
-        </div>
-      </div>
+        </section>
+
+        {planKey === "creator" && (
+          <Link to="/app/creator" className="mt-5 flex h-11 items-center justify-center gap-2 rounded-md border border-border text-[11.5px] font-semibold">Open Creator Workspace <ArrowRight className="h-4 w-4" /></Link>
+        )}
+        <Link to="/app/premium" className="mt-3 flex h-11 items-center justify-center gap-2 rounded-md bg-foreground text-[11.5px] font-semibold text-background">Compare all plans <ArrowRight className="h-4 w-4" /></Link>
+      </main>
     </div>
   );
 }

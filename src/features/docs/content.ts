@@ -374,6 +374,39 @@ export const docPages: DocPage[] = [
     ],
   },
   {
+    slug: "creator-plan-and-clubs",
+    group: "Community",
+    title: "Creator plan and Club capacity",
+    summary: "Build permanent communities without confusing community creation with learning or teaching plans.",
+    readTime: "7 min",
+    sections: [
+      {
+        title: "Creator is a dedicated pathway",
+        paragraphs: ["Creator is for learner accounts that want to build, manage, and grow permanent communities. Learner Premium remains a learning plan and does not include permanent Club creation. Tutors do not need Creator because their Tutor plans already include Club capacity."],
+        bullets: ["Learner Basic: 0 permanent Clubs.", "Learner Premium: 0 permanent Clubs.", "Creator: exactly 3 permanent Clubs.", "Tutor Basic: exactly 1 permanent Club.", "Tutor Premium: up to 5 permanent Clubs.", "Tutor Premium+: up to 10 permanent Clubs."],
+      },
+      {
+        title: "The first permanent Club",
+        paragraphs: ["The first permanent Club created under Creator receives six months of premium Club experience. The period starts on the Club creation date rather than the subscription date."],
+        note: "This benefit is redeemed once. Deleting the first Club does not give the account another six-month benefit.",
+      },
+      {
+        title: "Capacity and temporary cohorts",
+        paragraphs: ["Only permanent Clubs count toward plan capacity. A Bootcamp cohort Club is attached to a Bootcamp lifecycle, ends with that cohort, and never consumes a permanent Club slot."],
+        bullets: ["Capacity is always displayed as an exact count such as 2 / 3.", "There are no unlimited or plus-sign Club allowances for individual plans.", "Existing Clubs are not deleted when a member downgrades or exceeds a lower plan limit.", "An owner above the current limit can manage existing communities but cannot create another permanent Club."],
+      },
+      {
+        title: "Community Continuity Mode",
+        paragraphs: ["When a paid Creator or Tutor membership reaches the end of its grace period, Clubs, members, and content remain accessible. Premium-only management features may be restricted until renewal, after which the premium experience can be restored."],
+      },
+      {
+        title: "Creator Rewards",
+        paragraphs: ["Creator Rewards recognise value contributed to Zero Club. Eligibility and scoring may consider active members, retention, engagement, posts, events, learning activity, community quality, and verified contributions."],
+        note: "Rewards are never calculated from Club count alone, and no revenue-pool percentage is fixed until Zero Club approves its business economics.",
+      },
+    ],
+  },
+  {
     slug: "tutors-and-institutions",
     group: "For educators",
     title: "Tutors and institutions",
@@ -391,8 +424,13 @@ export const docPages: DocPage[] = [
       },
       {
         title: "Membership plans",
-        paragraphs: ["Learner and Tutor plans differ because their jobs on Zero Club differ. Both have a free Basic plan. Paid tiers unlock role-relevant capacity and capabilities rather than applying the same feature list to every account."],
-        bullets: ["Learner Premium: NGN 3,000.", "Learner Premium+: NGN 7,000.", "Tutor Premium: NGN 5,000.", "Tutor Premium+: NGN 12,000.", "Institution plans are presented separately according to organisational needs."],
+        paragraphs: ["Learner, Creator, Tutor, and Institution are distinct pathways. Learner Premium improves learning but never unlocks permanent Club creation. Creator is the dedicated community-builder plan, while Tutor plans include their own Club capacity."],
+        bullets: ["Learner Basic: free, 0 permanent Clubs.", "Learner Premium: NGN 3,000/month, 0 permanent Clubs.", "Creator: paid pricing awaiting approval, 3 permanent Clubs maximum.", "Tutor Basic: free, 1 permanent Club.", "Tutor Premium: NGN 5,000/month, 5 permanent Clubs.", "Tutor Premium+: NGN 12,000/month, 10 permanent Clubs.", "Institution Small: NGN 150,000/year for up to 500 learners.", "Institution Large: NGN 400,000/year for more than 500 learners."],
+      },
+      {
+        title: "Continuity and the Creator first-Club benefit",
+        paragraphs: ["Creator's first permanent Club receives six months of premium Club experience beginning on the Club creation date. The benefit is attached to that Club and can be redeemed only once, even if the Club is deleted."],
+        bullets: ["Temporary Bootcamp Clubs never consume permanent capacity.", "Downgrading never deletes Clubs, members, or content.", "Expired paid plans receive a grace period before premium management tools are restricted.", "After grace, communities remain accessible in Community Continuity Mode and restore premium capabilities on renewal."],
       },
     ],
   },

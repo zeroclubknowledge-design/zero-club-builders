@@ -81,6 +81,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/chat": "Messages",
   "/app/games": "Zero Games",
   "/app/premium": "Premium",
+  "/app/creator": "Creator Workspace",
   "/app/bookmarks": "Bookmarks",
   "/app/tutor-studio": "Tutor Studio",
   "/app/notifications": "Notifications",
@@ -368,6 +369,9 @@ function SidebarContent({
               { Icon: IconClubs, label: "Clubs", to: "/app/clubs", learnerDesktopOnly: isLearnerAccount },
               { Icon: IconGames, label: "Zero Games", to: "/app/games", desktopOnly: true },
               { Icon: IconGem, label: "Membership", to: "/app/premium" },
+              ...(String(profile?.tier || "").toLowerCase() === "creator"
+                ? [{ Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" }]
+                : []),
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
               { Icon: IconWallet, label: "Wallet", to: "/app/wallet" },
               { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
@@ -518,6 +522,7 @@ function DesktopWorkspaceRail({
   const isAdmin = Boolean(profile?.is_admin);
   const isTutor = role === "Tutor" || role === "Institution";
   const isInstitution = role === "Institution";
+  const isCreator = String(profile?.tier || "").toLowerCase() === "creator";
 
   const primaryActions = isAdmin
     ? [
@@ -536,7 +541,13 @@ function DesktopWorkspaceRail({
           { label: "Create bootcamp", to: "/app/tutor-studio/create", Icon: IconLearn },
           { label: "Wallet", to: "/app/wallet", Icon: IconWallet },
         ]
-      : [
+      : isCreator
+        ? [
+            { label: "Creator Workspace", to: "/app/creator", Icon: IconClubs },
+            { label: "Manage Clubs", to: "/app/clubs", Icon: Users },
+            { label: "Membership", to: "/app/premium", Icon: IconGem },
+          ]
+        : [
           { label: "Ship work", to: "/app/ship", Icon: Rocket },
           { label: "Find bootcamps", to: "/app/bootcamps", Icon: IconLearn },
           { label: "Create note", to: "/app/notes/create", Icon: IconNotes },

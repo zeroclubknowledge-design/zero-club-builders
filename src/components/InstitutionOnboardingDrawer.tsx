@@ -4,6 +4,7 @@ import { Building2, Loader2, ShieldCheck, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { supabase } from "@/lib/supabase";
+import { formatNaira } from "@/features/membership/plans";
 
 const INSTITUTION_TYPES = [
   "University", "Polytechnic", "College", "Secondary school", "Training provider",
@@ -167,7 +168,7 @@ export function InstitutionOnboardingDrawer({
                       >
                         <p className="text-[13px] font-semibold">{option.title}</p>
                         <p className="mt-0.5 text-[11px] text-muted-foreground">{option.detail}</p>
-                        <p className="mt-2 text-[13px] font-semibold tabular-nums">{option.amount.toLocaleString()} <span className="text-[10px] font-medium text-muted-foreground">coins / year</span></p>
+                         <p className="mt-2 text-[13px] font-semibold tabular-nums">{formatNaira(option.amount)} <span className="text-[10px] font-medium text-muted-foreground">/ year</span></p>
                       </button>
                     ))}
                     <div><p className={label}>Learners</p><input type="number" value={form.learner_count} onChange={(e) => set("learner_count", e.target.value)} placeholder="450" className={`${field} mt-1.5`} /></div>
@@ -194,12 +195,12 @@ export function InstitutionOnboardingDrawer({
                       <p className="text-[12px] font-semibold">{form.organization_size === "large" ? "Large organisation plan" : "Small organisation plan"}</p>
                       <p className="mt-0.5 text-[11px] text-muted-foreground">Paid from your Zero Club wallet · 12 months</p>
                     </div>
-                    <p className="shrink-0 text-[18px] font-semibold tabular-nums">{price.toLocaleString()}</p>
+                     <p className="shrink-0 text-[18px] font-semibold tabular-nums">{formatNaira(price)}</p>
                   </div>
                   <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
                     <Wallet className="h-3.5 w-3.5 text-primary" />
-                    Wallet balance <strong className="font-semibold text-foreground tabular-nums">{balance.toLocaleString()}</strong>
-                    {balance < price && <span className="text-amber-600">· fund {(price - balance).toLocaleString()} more to activate</span>}
+                     Wallet balance <strong className="font-semibold text-foreground tabular-nums">{formatNaira(balance)}</strong>
+                     {balance < price && <span className="text-amber-600">· fund {formatNaira(price - balance)} more to activate</span>}
                   </div>
                 </section>
 

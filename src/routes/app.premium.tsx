@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BarChart3,
   BookOpen,
   Building2,
+  CalendarDays,
   Check,
   ChevronLeft,
   GraduationCap,
@@ -17,17 +18,18 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
+import { formatNaira, resolvePlanKey } from "@/features/membership/plans";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
 });
 
-type Audience = "Learner" | "Tutor" | "Institution";
+type Audience = "Learner" | "Creator" | "Tutor" | "Institution";
 
 type Plan = {
   id: string;
+  planKey?: string;
   name: string;
   eyebrow: string;
   priceValue: number | null;
@@ -38,11 +40,14 @@ type Plan = {
   recommendedFor: Audience;
   storedTier?: "Basic" | "Premium" | "Premium+";
   featured?: boolean;
+  billingLabel: string;
+  pricingNote?: string;
 };
 
 const plans: Plan[] = [
   {
     id: "learner-basic",
+    planKey: "learner_basic",
     name: "Basic",
     eyebrow: "Learner essentials",
     priceValue: 0,
@@ -50,10 +55,12 @@ const plans: Plan[] = [
     audiences: ["Learner"],
     recommendedFor: "Learner",
     storedTier: "Basic",
+    billingLabel: "forever",
     features: ["Builder profile and feed", "Public clubs and communities", "ZeroNotes publishing", "Zero AI starter access", "Standard XP earning"],
   },
   {
     id: "learner-premium",
+    planKey: "learner_premium",
     name: "Premium",
     eyebrow: "Learner growth",
     priceValue: 3000,
@@ -61,22 +68,28 @@ const plans: Plan[] = [
     audiences: ["Learner"],
     recommendedFor: "Learner",
     storedTier: "Premium",
+    billingLabel: "/ month",
     featured: true,
     features: ["Zero AI learning assistant", "2x daily XP multiplier", "3% bootcamp discount", "Post editing and longer posts", "Private club access", "Premium profile badge"],
   },
   {
-    id: "learner-premium-plus",
-    name: "Premium+",
-    eyebrow: "Learner advantage",
-    priceValue: 7000,
-    description: "Advanced support for learners building ambitious projects and stronger professional proof.",
-    audiences: ["Learner"],
-    recommendedFor: "Learner",
-    storedTier: "Premium+",
-    features: ["Everything in Learner Premium", "Advanced Zero AI project guidance", "5% bootcamp discount", "Priority mentor access", "Enhanced proof visibility", "Premium+ profile badge"],
+    id: "creator",
+    planKey: "creator",
+    name: "Creator",
+    eyebrow: "Build communities",
+    priceValue: null,
+    description: "For learners ready to build, manage, and grow permanent communities on Zero Club.",
+    audiences: ["Creator"],
+    recommendedFor: "Creator",
+    storedTier: undefined,
+    featured: true,
+    billingLabel: "paid plan",
+    pricingNote: "Creator pricing is awaiting business approval.",
+    features: ["Relevant Learner Premium experience", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
   },
   {
     id: "tutor-basic",
+    planKey: "tutor_basic",
     name: "Basic",
     eyebrow: "Teach for free",
     priceValue: 0,
@@ -84,11 +97,13 @@ const plans: Plan[] = [
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Basic",
-    features: ["Create and sell bootcamps", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "Tutor profile, feed, and community access"],
+    billingLabel: "forever",
+    features: ["Create and sell bootcamps", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "1 permanent Club", "Tutor profile, feed, and community access"],
     limitations: ["No Zero AI teaching assistance", "No verified bootcamp badge", "Cannot connect a bootcamp to an existing club"],
   },
   {
     id: "tutor-premium",
+    planKey: "tutor_premium",
     name: "Premium",
     eyebrow: "Teach with confidence",
     priceValue: 5000,
@@ -96,11 +111,13 @@ const plans: Plan[] = [
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Premium",
+    billingLabel: "/ month",
     featured: true,
-    features: ["Everything in Tutor Basic", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
+    features: ["Everything in Tutor Basic", "Create up to 5 permanent Clubs", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
   },
   {
     id: "tutor-premium-plus",
+    planKey: "tutor_premium_plus",
     name: "Premium+",
     eyebrow: "Scale your teaching",
     priceValue: 12000,
@@ -108,17 +125,45 @@ const plans: Plan[] = [
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Premium+",
-    features: ["Everything in Tutor Premium", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
+    billingLabel: "/ month",
+    features: ["Everything in Tutor Premium", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
   },
   {
-    id: "institution",
-    name: "Institution",
-    eyebrow: "Operate at scale",
-    priceValue: null,
-    description: "A managed workspace for institutions coordinating tutors, programs, and learner outcomes.",
+    id: "institution-small",
+    planKey: "institution_small",
+    name: "Small Organisation",
+    eyebrow: "Up to 500 learners",
+    priceValue: 150000,
+    description: "A Digital Hub for focused institutions coordinating tutors, programmes, and learner outcomes.",
     audiences: ["Institution"],
     recommendedFor: "Institution",
-    features: ["Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    billingLabel: "/ year",
+    features: ["30-day free trial", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+  },
+  {
+    id: "institution-large",
+    planKey: "institution_large",
+    name: "Large Organisation",
+    eyebrow: "More than 500 learners",
+    priceValue: 400000,
+    description: "Organisation-wide learning operations with support for multiple campuses.",
+    audiences: ["Institution"],
+    recommendedFor: "Institution",
+    featured: true,
+    billingLabel: "/ year",
+    features: ["30-day free trial", "Multiple-campus support", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+  },
+  {
+    id: "institution-custom",
+    planKey: "institution_custom",
+    name: "Custom",
+    eyebrow: "Designed together",
+    priceValue: null,
+    description: "A guided arrangement for institutions with specialised structure, scale, or support needs.",
+    audiences: ["Institution"],
+    recommendedFor: "Institution",
+    billingLabel: "contact Zero Club",
+    features: ["Custom Digital Hub scope", "Guided onboarding", "Organisation-specific Club capacity", "Programme and role configuration", "Priority implementation support"],
   },
 ];
 
@@ -127,6 +172,11 @@ const audienceCopy: Record<Audience, { title: string; description: string; icon:
     title: "Build proof that opens doors",
     description: "Learn, publish progress, join focused communities, and make your work easier to discover.",
     icon: GraduationCap,
+  },
+  Creator: {
+    title: "Build communities that compound",
+    description: "Move beyond participation and operate up to three permanent Clubs with management, insight, and a first-Club premium runway.",
+    icon: Users,
   },
   Tutor: {
     title: "Turn expertise into outcomes",
@@ -141,8 +191,6 @@ const audienceCopy: Record<Audience, { title: string; description: string; icon:
 };
 
 function MembershipPage() {
-  const { format } = useWalletCurrency();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [audience, setAudience] = useState<Audience>("Learner");
   const [showInstitutionForm, setShowInstitutionForm] = useState(false);
@@ -158,11 +206,26 @@ function MembershipPage() {
     },
   });
 
+  const { data: membershipDashboard } = useQuery({
+    queryKey: ["membership-dashboard", profile?.id],
+    enabled: Boolean(profile?.id),
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_my_subscription_dashboard");
+      if (error) {
+        console.warn("Membership lifecycle is not available yet:", error.message);
+        return null;
+      }
+      return data as any;
+    },
+  });
+
   useEffect(() => {
     const accountType = String(profile?.account_type || "").toLowerCase();
     if (accountType === "institution") setAudience("Institution");
     else if (accountType === "tutor") setAudience("Tutor");
-  }, [profile?.account_type]);
+    else if (String(profile?.tier || "").toLowerCase() === "creator") setAudience("Creator");
+  }, [profile?.account_type, profile?.tier]);
 
   const visiblePlans = useMemo(
     () => plans.filter((plan) => plan.audiences.includes(audience)),
@@ -172,52 +235,71 @@ function MembershipPage() {
   const subscribeMutation = useMutation({
     mutationFn: async (plan: Plan) => {
       if (!profile) throw new Error("Please sign in to manage your membership.");
-      if (plan.id === "institution") return plan;
+      if (plan.id.startsWith("institution-")) return plan;
+      if (plan.id === "creator" && plan.priceValue === null) {
+        throw new Error("Creator pricing is awaiting approval. Your place will be ready once pricing is configured.");
+      }
 
       if (plan.storedTier === "Basic") {
-        if (profile.tier !== "Basic") {
-          const { error } = await supabase.from("profiles").update({ tier: "Basic" }).eq("id", profile.id);
-          if (error) throw error;
-        }
+        const { error } = await supabase.rpc("downgrade_to_basic");
+        if (error) throw error;
         return plan;
       }
 
-      if ((profile.coins || 0) < (plan.priceValue || 0)) {
-        throw new Error("Your wallet balance is too low for this membership.");
-      }
-
-      const { error } = await supabase
-        .from("profiles")
-        .update({ tier: plan.storedTier, coins: (profile.coins || 0) - (plan.priceValue || 0) })
-        .eq("id", profile.id);
+      const { error } = await supabase.rpc("activate_membership", {
+        requested_plan: plan.planKey,
+        enable_auto_renew: false,
+      });
       if (error) throw error;
       return plan;
     },
     onSuccess: (plan) => {
-      if (plan.id === "institution") {
-        const isInstitution = String(profile?.account_type || "").toLowerCase() === "institution";
-        if (isInstitution) router.navigate({ to: "/app/institution-studio" });
-        else toast.info("Institution membership is available to verified institution accounts.");
+      if (plan.id.startsWith("institution-")) {
+        setShowInstitutionForm(true);
         return;
       }
 
       queryClient.invalidateQueries({ queryKey: ["my_profile"] });
+      queryClient.invalidateQueries({ queryKey: ["membership-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["clubs_data"] });
       toast.success(plan.storedTier === "Basic" ? "Switched to Basic." : `${plan.name} is now active.`);
     },
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const renewMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc("renew_my_membership");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["membership-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["my_profile"] });
+      toast.success("Membership renewed.");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const autoRenewMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const { error } = await supabase.rpc("set_membership_auto_renew", { enabled });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["membership-dashboard"] }),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const currentPlanKey = membershipDashboard?.plan_key || resolvePlanKey(profile);
+  const activeSubscription = membershipDashboard?.subscription;
+
   const isCurrentPlan = (plan: Plan) => {
-    if (plan.id === "institution") {
-      return String(profile?.account_type || "").toLowerCase() === "institution";
-    }
-    return String(profile?.tier || "").toLowerCase() === String(plan.storedTier || "").toLowerCase();
+    return Boolean(plan.planKey && plan.planKey === currentPlanKey);
   };
 
   const handlePlanAction = (plan: Plan) => {
-    if (isCurrentPlan(plan) && plan.id !== "institution") return;
+    if (isCurrentPlan(plan) && !plan.id.startsWith("institution-")) return;
     // Institutions go through onboarding rather than a one-click purchase.
-    if (plan.id === "institution") {
+    if (plan.id.startsWith("institution-")) {
       setShowInstitutionForm(true);
       return;
     }
@@ -262,8 +344,8 @@ function MembershipPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 rounded-lg border border-border bg-card p-1" aria-label="Choose your account type">
-            {(["Learner", "Tutor", "Institution"] as Audience[]).map((item) => (
+          <div className="grid grid-cols-2 rounded-lg border border-border bg-card p-1 sm:grid-cols-4" aria-label="Choose your plan pathway">
+            {(["Learner", "Creator", "Tutor", "Institution"] as Audience[]).map((item) => (
               <button
                 key={item}
                 onClick={() => setAudience(item)}
@@ -285,16 +367,41 @@ function MembershipPage() {
           </div>
         </section>
 
-        <section className={`mt-6 grid gap-4 ${visiblePlans.length === 1 ? "max-w-xl" : "lg:grid-cols-2"}`}>
+        {activeSubscription && (
+          <section className="mt-6 grid gap-4 border-y border-border bg-card px-4 py-5 sm:grid-cols-[1fr_auto] sm:items-center sm:px-5">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><CalendarDays className="h-4 w-4" /></span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Current membership</p>
+                <p className="mt-1 text-[14px] font-semibold">{membershipDashboard?.plan?.name || currentPlanKey.replaceAll("_", " ")}</p>
+                <p className="mt-1 text-[10.5px] text-muted-foreground">
+                  Status: <span className="capitalize text-foreground">{String(activeSubscription.status).replaceAll("_", " ")}</span>
+                  {activeSubscription.renewal_date && <> · Renewal {new Date(activeSubscription.renewal_date).toLocaleDateString()}</>}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => autoRenewMutation.mutate(!activeSubscription.auto_renew)} disabled={autoRenewMutation.isPending} className={`h-9 rounded-md border px-3 text-[10.5px] font-semibold ${activeSubscription.auto_renew ? "border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-700 dark:text-emerald-400" : "border-border text-muted-foreground"}`}>
+                Auto-renew {activeSubscription.auto_renew ? "On" : "Off"}
+              </button>
+              <button type="button" onClick={() => renewMutation.mutate()} disabled={renewMutation.isPending} className="h-9 rounded-md bg-foreground px-3 text-[10.5px] font-semibold text-background disabled:opacity-50">
+                {renewMutation.isPending ? "Renewing..." : "Renew now"}
+              </button>
+            </div>
+          </section>
+        )}
+
+        <section className={`mt-6 grid gap-4 ${visiblePlans.length === 1 ? "max-w-xl" : visiblePlans.length >= 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
           {visiblePlans.map((plan) => {
             const current = isCurrentPlan(plan);
-            const institutional = plan.id === "institution";
+            const institutional = plan.id.startsWith("institution-");
             const isRecommended = plan.recommendedFor === audience;
+            const darkCard = Boolean(plan.featured);
             return (
-              <article key={plan.id} className={`relative overflow-hidden rounded-lg border p-5 sm:p-6 ${plan.featured || institutional ? "border-primary/35 bg-[#171218] text-white" : "border-border bg-card"}`}>
+              <article key={plan.id} className={`relative overflow-hidden rounded-lg border p-5 sm:p-6 ${darkCard ? "border-primary/35 bg-[#171218] text-white" : "border-border bg-card"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className={`text-[10px] font-semibold uppercase ${plan.featured || institutional ? "text-[#f06ac3]" : "text-primary"}`}>{plan.eyebrow}</p>
+                    <p className={`text-[10px] font-semibold uppercase ${darkCard ? "text-[#f06ac3]" : "text-primary"}`}>{plan.eyebrow}</p>
                     <h3 className="mt-2 text-[22px] font-semibold tracking-tight">{plan.name}</h3>
                   </div>
                   {(current || isRecommended) && (
@@ -305,29 +412,30 @@ function MembershipPage() {
                 </div>
 
                 <div className="mt-5 flex items-end gap-1.5">
-                  <span className="text-[29px] font-semibold tracking-tight tabular-nums">{plan.priceValue === null ? "Custom" : format(plan.priceValue)}</span>
-                  {!institutional && <span className={`pb-1 text-[11px] ${plan.featured ? "text-white/50" : "text-muted-foreground"}`}>/ month</span>}
+                  <span className={`font-semibold tracking-tight tabular-nums ${plan.id === "creator" ? "text-[22px] sm:text-[25px]" : "text-[29px]"}`}>{plan.priceValue === null ? (plan.id === "creator" ? "Pricing pending" : "Custom") : plan.priceValue === 0 ? "Free" : formatNaira(plan.priceValue)}</span>
+                  <span className={`pb-1 text-[11px] ${darkCard ? "text-white/50" : "text-muted-foreground"}`}>{plan.billingLabel}</span>
                 </div>
-                <p className={`mt-3 text-[13px] leading-relaxed ${plan.featured || institutional ? "text-white/60" : "text-muted-foreground"}`}>{plan.description}</p>
+                {plan.pricingNote && <p className={`mt-2 text-[10.5px] ${plan.featured ? "text-[#f28fd0]" : "text-primary"}`}>{plan.pricingNote}</p>}
+                <p className={`mt-3 text-[13px] leading-relaxed ${darkCard ? "text-white/60" : "text-muted-foreground"}`}>{plan.description}</p>
 
-                <div className={`my-5 h-px ${plan.featured || institutional ? "bg-white/10" : "bg-border"}`} />
+                <div className={`my-5 h-px ${darkCard ? "bg-white/10" : "bg-border"}`} />
                 <ul className="space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5 text-[12.5px]">
-                      <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${plan.featured || institutional ? "bg-[#cc208f] text-white" : "bg-primary/10 text-primary"}`}>
+                      <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${darkCard ? "bg-[#cc208f] text-white" : "bg-primary/10 text-primary"}`}>
                         <Check className="h-2.5 w-2.5" strokeWidth={3} />
                       </span>
-                      <span className={plan.featured || institutional ? "text-white/78" : "text-foreground/80"}>{feature}</span>
+                      <span className={darkCard ? "text-white/78" : "text-foreground/80"}>{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 {plan.limitations && plan.limitations.length > 0 && (
-                  <div className={`mt-5 border-t pt-4 ${plan.featured || institutional ? "border-white/10" : "border-border"}`}>
-                    <p className={`mb-2.5 text-[10px] font-semibold uppercase ${plan.featured || institutional ? "text-white/45" : "text-muted-foreground"}`}>Not included</p>
+                  <div className={`mt-5 border-t pt-4 ${darkCard ? "border-white/10" : "border-border"}`}>
+                    <p className={`mb-2.5 text-[10px] font-semibold uppercase ${darkCard ? "text-white/45" : "text-muted-foreground"}`}>Not included</p>
                     <ul className="space-y-2.5">
                       {plan.limitations.map((limitation) => (
-                        <li key={limitation} className={`flex items-start gap-2.5 text-[12px] ${plan.featured || institutional ? "text-white/50" : "text-muted-foreground"}`}>
+                        <li key={limitation} className={`flex items-start gap-2.5 text-[12px] ${darkCard ? "text-white/50" : "text-muted-foreground"}`}>
                           <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-current" />
                           <span>{limitation}</span>
                         </li>
@@ -339,15 +447,17 @@ function MembershipPage() {
                 <button
                   type="button"
                   onClick={() => handlePlanAction(plan)}
-                  disabled={subscribeMutation.isPending || isLoading || (current && !institutional)}
-                  className={`mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition disabled:cursor-default disabled:opacity-60 ${plan.featured || institutional ? "bg-white text-black hover:bg-white/90" : "bg-primary text-primary-foreground hover:opacity-90"}`}
+                  disabled={subscribeMutation.isPending || isLoading || (current && !institutional) || (plan.id === "creator" && plan.priceValue === null)}
+                  className={`mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition disabled:cursor-default disabled:opacity-60 ${darkCard ? "bg-white text-black hover:bg-white/90" : "bg-primary text-primary-foreground hover:opacity-90"}`}
                 >
                   {subscribeMutation.isPending && subscribeMutation.variables?.id === plan.id ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : current && !institutional ? (
                     "Current membership"
+                  ) : plan.id === "creator" && plan.priceValue === null ? (
+                    "Pricing awaiting approval"
                   ) : institutional ? (
-                    <>{current ? "Manage Digital Hub" : "Institution access"}<ArrowRight className="h-4 w-4" /></>
+                    <>Start institution onboarding<ArrowRight className="h-4 w-4" /></>
                   ) : (
                     <>Choose {plan.name}<ArrowRight className="h-4 w-4" /></>
                   )}

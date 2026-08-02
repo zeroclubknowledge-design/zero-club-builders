@@ -31,6 +31,7 @@ import { Route as AppMyStoreRouteImport } from './routes/app.my-store'
 import { Route as AppMetricsRouteImport } from './routes/app.metrics'
 import { Route as AppInstitutionStudioRouteImport } from './routes/app.institution-studio'
 import { Route as AppDraftsRouteImport } from './routes/app.drafts'
+import { Route as AppCreatorRouteImport } from './routes/app.creator'
 import { Route as AppComposeRouteImport } from './routes/app.compose'
 import { Route as AppBoostRouteImport } from './routes/app.boost'
 import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
@@ -187,6 +188,11 @@ const AppInstitutionStudioRoute = AppInstitutionStudioRouteImport.update({
 const AppDraftsRoute = AppDraftsRouteImport.update({
   id: '/drafts',
   path: '/drafts',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCreatorRoute = AppCreatorRouteImport.update({
+  id: '/creator',
+  path: '/creator',
   getParentRoute: () => AppRoute,
 } as any)
 const AppComposeRoute = AppComposeRouteImport.update({
@@ -440,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
+  '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
   '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
   '/app/metrics': typeof AppMetricsRoute
@@ -509,6 +516,7 @@ export interface FileRoutesByTo {
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
+  '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
   '/app/metrics': typeof AppMetricsRoute
   '/app/my-store': typeof AppMyStoreRoute
@@ -577,6 +585,7 @@ export interface FileRoutesById {
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
+  '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
   '/app/institution-studio': typeof AppInstitutionStudioRouteWithChildren
   '/app/metrics': typeof AppMetricsRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
+    | '/app/creator'
     | '/app/drafts'
     | '/app/institution-studio'
     | '/app/metrics'
@@ -719,6 +729,7 @@ export interface FileRouteTypes {
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
+    | '/app/creator'
     | '/app/drafts'
     | '/app/metrics'
     | '/app/my-store'
@@ -786,6 +797,7 @@ export interface FileRouteTypes {
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
+    | '/app/creator'
     | '/app/drafts'
     | '/app/institution-studio'
     | '/app/metrics'
@@ -1011,6 +1023,13 @@ declare module '@tanstack/react-router' {
       path: '/drafts'
       fullPath: '/app/drafts'
       preLoaderRoute: typeof AppDraftsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/creator': {
+      id: '/app/creator'
+      path: '/creator'
+      fullPath: '/app/creator'
+      preLoaderRoute: typeof AppCreatorRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/compose': {
@@ -1442,6 +1461,7 @@ interface AppRouteChildren {
   AppBookmarksRoute: typeof AppBookmarksRoute
   AppBoostRoute: typeof AppBoostRoute
   AppComposeRoute: typeof AppComposeRoute
+  AppCreatorRoute: typeof AppCreatorRoute
   AppDraftsRoute: typeof AppDraftsRoute
   AppInstitutionStudioRoute: typeof AppInstitutionStudioRouteWithChildren
   AppMetricsRoute: typeof AppMetricsRoute
@@ -1490,6 +1510,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBookmarksRoute: AppBookmarksRoute,
   AppBoostRoute: AppBoostRoute,
   AppComposeRoute: AppComposeRoute,
+  AppCreatorRoute: AppCreatorRoute,
   AppDraftsRoute: AppDraftsRoute,
   AppInstitutionStudioRoute: AppInstitutionStudioRouteWithChildren,
   AppMetricsRoute: AppMetricsRoute,

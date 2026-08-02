@@ -229,43 +229,44 @@ export function BootcampForm({
       // Create the temporary bootcamp club only for a new bootcamp.
       if (!bootcampId) {
         const { data: newClub, error: clubError } = await supabase
-        .from('clubs')
-        .insert([{
-          name: title,
-          description: description,
-          category: 'Bootcamp',
-          creator_id: user.id,
-          bootcamp_id: newBootcamp.id,
-          is_private: true,
-          price: numericPrice,
-          banner_url: bannerUrl,
-          logo_url: bannerUrl
-        }])
-        .select()
-        .single();
+          .from('clubs')
+          .insert([{
+            name: title,
+            description: description,
+            category: 'Bootcamp',
+            creator_id: user.id,
+            bootcamp_id: newBootcamp.id,
+            club_type: 'bootcamp_cohort',
+            is_private: true,
+            price: numericPrice,
+            banner_url: bannerUrl,
+            logo_url: bannerUrl
+          }])
+          .select()
+          .single();
         
         if (!clubError && newClub) {
-        const membersToInsert = [{
-          club_id: newClub.id,
-          profile_id: user.id,
-          role: 'Administrator'
-        }];
+          const membersToInsert = [{
+            club_id: newClub.id,
+            profile_id: user.id,
+            role: 'Administrator'
+          }];
 
-        // Check if tutor is linked to any institutions and add them as Administrators
-        const { data: instTutors } = await supabase
-          .from('institution_tutors')
-          .select('institution_id')
-          .eq('tutor_id', user.id);
+          // Check if tutor is linked to any institutions and add them as Administrators
+          const { data: instTutors } = await supabase
+            .from('institution_tutors')
+            .select('institution_id')
+            .eq('tutor_id', user.id);
 
-        if (instTutors && instTutors.length > 0) {
-          instTutors.forEach(inst => {
-            membersToInsert.push({
-              club_id: newClub.id,
-              profile_id: inst.institution_id,
-              role: 'Administrator'
+          if (instTutors && instTutors.length > 0) {
+            instTutors.forEach(inst => {
+              membersToInsert.push({
+                club_id: newClub.id,
+                profile_id: inst.institution_id,
+                role: 'Administrator'
+              });
             });
-          });
-        }
+          }
 
           await supabase.from('club_members').insert(membersToInsert);
         }

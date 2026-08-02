@@ -54,6 +54,16 @@ function TutorStudioPage() {
     queryFn: getTutorBootcamps,
   });
 
+  const { data: clubCapacity } = useQuery({
+    queryKey: ['tutor-club-capacity', profile?.id, profile?.tier],
+    enabled: Boolean(profile?.id),
+    retry: false,
+    queryFn: async () => {
+      const { data } = await supabase.rpc('get_my_club_capacity');
+      return data as any;
+    },
+  });
+
   const { data: learners = [] } = useQuery({
     queryKey: ['bootcamp-learners', activeBootcampId],
     queryFn: () => getBootcampLearners(activeBootcampId!),
@@ -1187,6 +1197,16 @@ function TutorStudioPage() {
             </div>
           </div>
         </section>
+        {clubCapacity && (
+          <section className="flex flex-col gap-3 border-y border-border bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.11em] text-primary">Permanent Club capacity</p>
+              <p className="mt-1 text-[13px] font-semibold">{clubCapacity.permanent_club_count} / {clubCapacity.permanent_club_limit ?? "organisation-specific"} Clubs</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">Temporary Bootcamp cohort Clubs are excluded.</p>
+            </div>
+            <Link to="/app/clubs" className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border px-3 text-[10.5px] font-semibold">Manage Clubs <ArrowRight className="h-3.5 w-3.5" /></Link>
+          </section>
+        )}
         {/* ── Quick Stats ────────────────────────── */}
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
