@@ -407,9 +407,10 @@ function Clubs() {
   };
 
   const clubCapacity: ClubCapacity = capacityData || fallbackClubCapacity(profile, userCreatedClubs.length);
-  const capacityLabel = clubCapacity.permanent_club_limit === null
-    ? `${clubCapacity.permanent_club_count} Clubs`
-    : `${clubCapacity.permanent_club_count} / ${clubCapacity.permanent_club_limit}`;
+  const capacityLabel = `${clubCapacity.permanent_club_count} owned`;
+  const capacityCaption = clubCapacity.permanent_club_limit === null
+    ? "Permanent Clubs"
+    : `${clubCapacity.permanent_club_limit} allowed on plan`;
 
   const handleCreateClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -492,7 +493,7 @@ function Clubs() {
               </button>
               <button 
                 onClick={handleCreateClick}
-                className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-foreground px-5 text-xs font-semibold text-background transition active:scale-95 hover:opacity-90"
+                className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-[#171218] px-5 text-xs font-semibold text-[#f8f1e7] transition active:scale-95 hover:opacity-90"
               >
                 <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
                 Create
@@ -511,7 +512,7 @@ function Clubs() {
             </div>
             <div className="text-center">
               <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">{capacityLabel}</span>
-              <span className="block text-[8px] font-medium text-muted-foreground/60">Permanent capacity</span>
+              <span className="block text-[8px] font-medium leading-tight text-muted-foreground/60">{capacityCaption}</span>
             </div>
           </div>
           <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border/60 bg-card py-3.5 transition hover:border-primary/20">
@@ -594,7 +595,7 @@ function Clubs() {
             </button>
           </div>
           
-          <div className={showAllDiscover ? "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-4" : "flex gap-3 overflow-x-auto snap-x no-scrollbar pb-4 -mx-5 px-5 md:mx-0 md:px-0 md:grid md:grid-cols-3 xl:grid-cols-4 md:gap-4 md:overflow-visible"}>
+          <div className={showAllDiscover ? "grid grid-cols-1 gap-3 pb-4 min-[430px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-4" : "no-scrollbar -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 xl:grid-cols-4"}>
             {discover
               .filter((d: any) => activeCategory === "All" || (d.category && d.category.includes(activeCategory)))
               .length > 0 ? discover
@@ -602,21 +603,20 @@ function Clubs() {
               .sort((a: any, b: any) => a.name === "Zero K Bootcamp" ? -1 : b.name === "Zero K Bootcamp" ? 1 : 0)
               .slice(0, showAllDiscover ? 50 : 6)
               .map((d: any, i: number) => {
-              const tagColors = [
-                "bg-primary", "bg-blue-500", "bg-emerald-500", "bg-orange-500"
-              ];
               const isFeatured = d.name === "Zero K Bootcamp";
-              const tagClass = isFeatured ? "bg-amber-500 text-black" : tagColors[i % tagColors.length];
+              const tagClass = isFeatured
+                ? "bg-amber-400 text-[#171218]"
+                : "bg-[#171218] text-[#f8f1e7]";
               const isAlreadyJoined = myClubs.some((mc: any) => mc?.id === d.id);
 
               return (
                 <article 
                   key={d.id} 
-                  className={`relative ${showAllDiscover ?'w-full' : 'w-[165px] md:w-full'} h-[220px] md:h-[240px] shrink-0 snap-center overflow-hidden rounded-lg border ${
+                  className={`relative ${showAllDiscover ? 'w-full' : 'w-[210px] sm:w-[220px] md:w-full'} flex h-[236px] shrink-0 snap-center flex-col items-center overflow-hidden rounded-lg border p-4 text-center shadow-[0_10px_26px_-22px_rgba(23,18,24,0.45)] transition md:h-[240px] ${
                     isFeatured 
-                      ? 'border-amber-500/40 bg-card'
-                      : 'border-border/60 bg-card'
-                  } p-4 flex flex-col items-center text-center transition hover:border-primary/30 active:scale-[0.97]`}
+                      ? 'border-amber-500/50 bg-card'
+                      : 'border-border bg-card'
+                  } hover:border-primary/40 active:scale-[0.97]`}
                 >
                   <div className="pointer-events-none absolute inset-0 bg-primary/[0.025]" />
                   
@@ -631,16 +631,16 @@ function Clubs() {
                     )}
                   </div>
                   
-                  <div className="relative z-10 mb-2 flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/30">
+                  <div className="relative z-10 mb-2.5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-accent/30 shadow-sm">
                     {d.logo_url || d.banner_url ? (
-                      <img src={d.logo_url || d.banner_url} alt="" className="h-full w-full object-cover" />
+                      <img src={d.logo_url || d.banner_url} alt={`${d.name} logo`} className="h-full w-full object-cover" />
                     ) : (
                       <Hash className="h-6 w-6 text-muted-foreground" />
                     )}
                   </div>
                   
-                  <h3 className="text-[13px] font-bold text-foreground line-clamp-1 mb-0.5 z-10 w-full tracking-tight">{d.name}</h3>
-                  <p className="text-[9px] text-muted-foreground/60 line-clamp-1 mb-auto z-10 w-full font-medium">{d.description || "Level up your skills"}</p>
+                  <h3 className="z-10 mb-0.5 w-full line-clamp-1 text-[14px] font-bold tracking-tight text-foreground">{d.name}</h3>
+                  <p className="z-10 mb-auto w-full line-clamp-2 text-[10px] font-medium leading-4 text-muted-foreground">{d.description || "Level up your skills"}</p>
                   
                   <div className="flex items-center gap-1 mb-3 z-10 mt-2">
                     <div className="flex -space-x-1.5">
@@ -648,7 +648,7 @@ function Clubs() {
                       <div className="h-4 w-4 rounded-full bg-purple-500 border-2 border-card" />
                       <div className="h-4 w-4 rounded-full bg-emerald-500 border-2 border-card" />
                     </div>
-                    <span className="text-[8px] text-muted-foreground/50 ml-1 font-medium">{d.members_count || 0} members</span>
+                    <span className="ml-1 text-[9px] font-medium text-muted-foreground">{d.members_count || 0} members</span>
                   </div>
                   
                   <div className="w-full flex items-center justify-between text-[9px] font-bold z-10 pt-2 border-t border-border/20">
@@ -743,7 +743,7 @@ function Clubs() {
             )) : (
               <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center md:col-span-2">
                 <p className="text-xs text-muted-foreground/60 font-medium mb-4">You haven't joined any clubs yet.</p>
-                <button onClick={handleCreateClick} className="text-xs font-bold text-background bg-foreground px-5 py-2.5 rounded-full transition-all duration-300 active:scale-95 hover:opacity-90 shadow-sm">
+                <button onClick={handleCreateClick} className="rounded-full bg-[#171218] px-5 py-2.5 text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 active:scale-95 hover:opacity-90">
                   Create a Club
                 </button>
               </div>
@@ -809,7 +809,7 @@ function Clubs() {
                         onClick={() => setIsPaid(type === "Paid")}
                         className={`flex-1 rounded-lg border py-3.5 text-xs font-semibold transition ${
                           (type ==="Paid" && isPaid) || (type === "Free" && !isPaid)
-                            ? "bg-foreground border-foreground text-background shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)]"
+                            ? "border-[#171218] bg-[#171218] text-[#f8f1e7] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)]"
                             : "bg-card border-border/40 text-muted-foreground hover:border-border/60"
                         }`}
                       >
@@ -836,7 +836,7 @@ function Clubs() {
               <button 
                 onClick={handleCreateClub}
                 disabled={isSubmitting}
-                className="w-full bg-foreground text-background font-bold py-4 rounded-full shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] mt-2 disabled:opacity-50 hover:opacity-90 text-sm"
+                className="mt-2 w-full rounded-full bg-[#171218] py-4 text-sm font-bold text-[#f8f1e7] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 hover:opacity-90"
               >
                 {isSubmitting ? "Creating..." : "Launch Club"}
               </button>
@@ -867,7 +867,7 @@ function Clubs() {
               <Link 
                 to="/app/premium"
                 onClick={() => setShowUpgrade(false)}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 font-bold text-background shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] hover:opacity-90 text-sm"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#171218] py-4 text-sm font-bold text-[#f8f1e7] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] hover:opacity-90"
               >
                 Upgrade Plan <ArrowRight className="h-4 w-4" />
               </Link>
@@ -985,7 +985,7 @@ function Clubs() {
                                     e.stopPropagation();
                                     handleDecideRequest(r.id, clubId, r.sender_id, 'accept');
                                   }}
-                                  className="flex-1 h-9 rounded-full bg-foreground text-background text-xs font-bold transition-all duration-300 hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-sm"
+                                  className="h-9 flex-1 rounded-full bg-[#171218] text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 hover:opacity-90 active:scale-95 disabled:opacity-50"
                                 >
                                   Accept
                                 </button>

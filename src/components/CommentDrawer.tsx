@@ -15,9 +15,10 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserMinus } from "lucide-react";
 import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
+import { fetchPostComments } from "@/features/comments/api";
 
 interface CommentDrawerProps {
   post: any;
@@ -46,6 +47,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   const post = incomingPost || savedPost;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -137,11 +139,15 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
     const postId = post.original_id || post.id;
     const [sessionResult, commentsResult] = await Promise.all([
       supabase.auth.getSession(),
-      supabase
-      .from(type === 'note' ? 'note_comments' : 'comments')
-      .select('*, profiles(username, full_name, avatar_url)')
-      .eq(type === 'note' ? 'note_id' : 'post_id', postId)
-      .order('created_at', { ascending: true })
+      type === 'note'
+        ? supabase
+            .from('note_comments')
+            .select('*, profiles(username, full_name, avatar_url)')
+            .eq('note_id', postId)
+            .order('created_at', { ascending: true })
+        : fetchPostComments(postId)
+            .then((data) => ({ data, error: null }))
+            .catch((error) => ({ data: null, error })),
     ]);
 
     const session = sessionResult.data.session;
@@ -180,6 +186,11 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
       commentCache.set(cacheKey, { comments: nextComments, cachedAt: Date.now() });
       if (requestId === fetchRequestRef.current) setComments(nextComments);
+    } else if (error) {
+      console.error("Comments could not be loaded:", error);
+      if (requestId === fetchRequestRef.current && comments.length === 0) {
+        toast.error("Comments could not be loaded. Please try again.");
+      }
     }
 
     if (requestId === fetchRequestRef.current) setCommentsLoading(false);
@@ -335,6 +346,14 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       if (onCommentAdded) onCommentAdded();
       toast.success(replyTo ? "Reply posted! 💬" : "Comment posted! 💬");
       
+      if (type === 'post') {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['post', post.original_id || post.id] }),
+          queryClient.invalidateQueries({ queryKey: ['feed_posts'] }),
+        ]);
+        void fetchComments(`${type}:${post.original_id || post.id}`, false);
+      }
+
       // Auto-scroll to bottom to show the new comment
       setTimeout(() => {
         if (scrollRef.current) {
@@ -718,7 +737,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground={false} repositionInputs={false}>
-      <DrawerContent desktopVariant="panel" hideClose hideHandle className="mx-auto flex h-[85dvh] max-w-[760px] flex-col overflow-hidden border border-border bg-background p-0 shadow-xl focus:outline-none">
+      <DrawerContent desktopVariant="panel" hideClose hideHandle className="mx-auto flex h-[72dvh] max-w-[760px] flex-col overflow-hidden border border-border bg-background p-0 shadow-xl focus:outline-none md:h-[85dvh]">
         {DrawerInner}
       </DrawerContent>
     </Drawer>

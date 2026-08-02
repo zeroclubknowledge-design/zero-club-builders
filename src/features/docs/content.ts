@@ -425,7 +425,7 @@ export const docPages: DocPage[] = [
       {
         title: "Membership plans",
         paragraphs: ["Learner, Creator, Tutor, and Institution are distinct pathways. Learner Premium improves learning but never unlocks permanent Club creation. Creator is the dedicated community-builder plan, while Tutor plans include their own Club capacity."],
-        bullets: ["Learner Basic: free, 0 permanent Clubs.", "Learner Premium: NGN 3,000/month, 0 permanent Clubs.", "Creator: paid pricing awaiting approval, 3 permanent Clubs maximum.", "Tutor Basic: free, 1 permanent Club.", "Tutor Premium: NGN 5,000/month, 5 permanent Clubs.", "Tutor Premium+: NGN 12,000/month, 10 permanent Clubs.", "Institution Small: NGN 150,000/year for up to 500 learners.", "Institution Large: NGN 400,000/year for more than 500 learners."],
+        bullets: ["Learner Basic: free, 0 permanent Clubs.", "Learner Premium: NGN 3,000/month, 0 permanent Clubs.", "Creator: NGN 7,000/month, 3 permanent Clubs maximum.", "Tutor Basic: free, 1 permanent Club.", "Tutor Premium: NGN 5,000/month, 5 permanent Clubs.", "Tutor Premium+: NGN 12,000/month, 10 permanent Clubs.", "Institution Small: NGN 150,000/year for up to 500 learners.", "Institution Large: NGN 400,000/year for more than 500 learners."],
       },
       {
         title: "Continuity and the Creator first-Club benefit",

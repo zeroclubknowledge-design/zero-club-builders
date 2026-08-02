@@ -208,7 +208,7 @@ export function InstitutionOnboardingDrawer({
                   <button
                     onClick={() => submit.mutate()}
                     disabled={submit.isPending}
-                    className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-[13.5px] font-semibold text-primary-foreground disabled:opacity-50"
+                    className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-[13.5px] font-semibold text-primary-foreground disabled:opacity-50 sm:h-12"
                   >
                     {submit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                     {hasApplication ? "Save details" : "Start 30-day trial"}

@@ -22,6 +22,7 @@ import { LinkifiedText } from "@/components/LinkifiedText";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { getFirstName } from "@/lib/utils";
 import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
+import { fetchPostComments } from "@/features/comments/api";
 import {
   Carousel,
   CarouselContent,
@@ -99,8 +100,8 @@ function PostDetail() {
       if (postRes.error) throw postRes.error;
       const postData = postRes.data;
 
-      const [commentsRes, bookmarkRes, likeRes, followRes, commentLikesRes, repostRes, totalRepostsRes, totalQuotesRes] = await Promise.all([
-        supabase.from('comments').select('*, profiles(*)').eq('post_id', id).order('created_at', { ascending: true }),
+      const [postComments, bookmarkRes, likeRes, followRes, commentLikesRes, repostRes, totalRepostsRes, totalQuotesRes] = await Promise.all([
+        fetchPostComments(id),
         session ? supabase.from('bookmarks').select('*').eq('profile_id', session.user.id).eq('post_id', id).maybeSingle() : Promise.resolve({ data: null }),
         session ? supabase.from('likes').select('*').eq('profile_id', session.user.id).eq('post_id', id).maybeSingle() : Promise.resolve({ data: null }),
         session ? supabase.from('follows').select('*').eq('follower_id', session.user.id).eq('following_id', postData.author_id).maybeSingle() : Promise.resolve({ data: null }),
@@ -112,7 +113,7 @@ function PostDetail() {
 
       return { 
         post: { ...postData, computed_reposts_count: (totalRepostsRes.count || 0) + (totalQuotesRes.count || 0) },
-        comments: commentsRes.data || [],
+        comments: postComments,
         isBookmarked: !!bookmarkRes.data,
         isLiked: !!likeRes.data,
         isFollowing: !!followRes.data,
@@ -120,7 +121,7 @@ function PostDetail() {
         commentLikes: commentLikesRes?.data ? commentLikesRes.data.map((l: any) => l.comment_id) : []
       };
     },
-    initialData: () => {
+    placeholderData: () => {
       const feedPosts = queryClient.getQueryData<any[]>(['feed_posts']) || [];
       const userPostsQueries = queryClient.getQueriesData<any[]>({ queryKey: ['profilePosts'] });
       const userPosts = userPostsQueries.flatMap(([_, data]) => Array.isArray(data) ? data : []);
@@ -553,7 +554,7 @@ function PostDetail() {
         .single();
       
       if (error) throw error;
-      setComments([...comments, data]);
+      setComments((current) => [...current, data]);
       setCommentText("");
       // Reset auto-growing textarea heights in the DOM
       const textareas = document.querySelectorAll('textarea');
@@ -568,6 +569,10 @@ function PostDetail() {
       }));
 
       toast.success(replyTo ? "Reply posted! 💬" : "Comment posted! 💬");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['post', post.id] }),
+        queryClient.invalidateQueries({ queryKey: ['feed_posts'] }),
+      ]);
       router.invalidate();
       return true;
     } catch (err: any) {

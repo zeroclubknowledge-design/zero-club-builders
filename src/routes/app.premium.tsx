@@ -77,14 +77,13 @@ const plans: Plan[] = [
     planKey: "creator",
     name: "Creator",
     eyebrow: "Build communities",
-    priceValue: null,
+    priceValue: 7000,
     description: "For learners ready to build, manage, and grow permanent communities on Zero Club.",
     audiences: ["Creator"],
     recommendedFor: "Creator",
     storedTier: undefined,
     featured: true,
-    billingLabel: "paid plan",
-    pricingNote: "Creator pricing is awaiting business approval.",
+    billingLabel: "/ month",
     features: ["Relevant Learner Premium experience", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
   },
   {
@@ -236,10 +235,6 @@ function MembershipPage() {
     mutationFn: async (plan: Plan) => {
       if (!profile) throw new Error("Please sign in to manage your membership.");
       if (plan.id.startsWith("institution-")) return plan;
-      if (plan.id === "creator" && plan.priceValue === null) {
-        throw new Error("Creator pricing is awaiting approval. Your place will be ready once pricing is configured.");
-      }
-
       if (plan.storedTier === "Basic") {
         const { error } = await supabase.rpc("downgrade_to_basic");
         if (error) throw error;
@@ -412,7 +407,7 @@ function MembershipPage() {
                 </div>
 
                 <div className="mt-5 flex items-end gap-1.5">
-                  <span className={`font-semibold tracking-tight tabular-nums ${plan.id === "creator" ? "text-[22px] sm:text-[25px]" : "text-[29px]"}`}>{plan.priceValue === null ? (plan.id === "creator" ? "Pricing pending" : "Custom") : plan.priceValue === 0 ? "Free" : formatNaira(plan.priceValue)}</span>
+                  <span className="text-[29px] font-semibold tracking-tight tabular-nums">{plan.priceValue === null ? "Custom" : plan.priceValue === 0 ? "Free" : formatNaira(plan.priceValue)}</span>
                   <span className={`pb-1 text-[11px] ${darkCard ? "text-white/50" : "text-muted-foreground"}`}>{plan.billingLabel}</span>
                 </div>
                 {plan.pricingNote && <p className={`mt-2 text-[10.5px] ${plan.featured ? "text-[#f28fd0]" : "text-primary"}`}>{plan.pricingNote}</p>}
@@ -447,15 +442,13 @@ function MembershipPage() {
                 <button
                   type="button"
                   onClick={() => handlePlanAction(plan)}
-                  disabled={subscribeMutation.isPending || isLoading || (current && !institutional) || (plan.id === "creator" && plan.priceValue === null)}
+                  disabled={subscribeMutation.isPending || isLoading || (current && !institutional)}
                   className={`mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition disabled:cursor-default disabled:opacity-60 ${darkCard ? "bg-white text-black hover:bg-white/90" : "bg-primary text-primary-foreground hover:opacity-90"}`}
                 >
                   {subscribeMutation.isPending && subscribeMutation.variables?.id === plan.id ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : current && !institutional ? (
                     "Current membership"
-                  ) : plan.id === "creator" && plan.priceValue === null ? (
-                    "Pricing awaiting approval"
                   ) : institutional ? (
                     <>Start institution onboarding<ArrowRight className="h-4 w-4" /></>
                   ) : (
