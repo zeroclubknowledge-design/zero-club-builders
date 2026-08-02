@@ -273,39 +273,39 @@ function ClubChat() {
         reactions: rxns?.filter(r => r.message_id === m.id) || []
       })) || [];
       
-      messagesCache.current[activeRoom] = msgsWithReactions;
-      setMessages(msgsWithReactions);
+      setMessages((current) => {
+        const unchanged = current.length === msgsWithReactions.length
+          && current.every((message, index) => {
+            const incoming = msgsWithReactions[index];
+            if (!incoming || message.id !== incoming.id || message.content !== incoming.content) return false;
+            const currentReactions = (message.reactions || []).map((reaction: any) => reaction.id).join(':');
+            const incomingReactions = (incoming.reactions || []).map((reaction: any) => reaction.id).join(':');
+            return currentReactions === incomingReactions;
+          });
+        if (unchanged) return current;
+        messagesCache.current[activeRoom] = msgsWithReactions;
+        return msgsWithReactions;
+      });
     }
 
-    loadMessages();
+    void loadMessages();
 
     // Subscribe to new messages
     const channel = supabase
       .channel(`club:${club.id}:${activeRoom}`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
+      .on('postgres_changes', {
+        event: '*',
         schema: 'public', 
         table: 'club_messages',
         filter: `club_id=eq.${club.id}`
-      }, async (payload) => {
-        if (payload.new.room_id !== activeRoom) return;
-        
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', payload.new.profile_id)
-          .single();
-        
-        const newMsg = { ...payload.new, profiles: prof, reactions: [] };
-        setMessages(prev => {
-          if (prev.some(m => m.id === payload.new.id)) return prev;
-          const next = [...prev, newMsg];
-          messagesCache.current[activeRoom] = next;
-          return next;
-        });
-        setTimeout(() => scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight), 100);
+      }, (payload) => {
+        const changedMessage = payload.eventType === 'DELETE' ? payload.old : payload.new;
+        if (changedMessage.room_id && changedMessage.room_id !== activeRoom) return;
+        void loadMessages();
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') void loadMessages();
+      });
 
     const rxnChannel = supabase
       .channel(`club_reactions:${club.id}:${activeRoom}`)
@@ -331,10 +331,21 @@ function ClubChat() {
       })
       .subscribe();
 
+    // Reconcile occasionally so a brief connection change cannot leave the
+    // conversation stale after Realtime reconnects.
+    const catchUpTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void loadMessages();
+    }, 15_000);
+
+    const catchUpOnFocus = () => { void loadMessages(); };
+    window.addEventListener('focus', catchUpOnFocus);
+
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
-      supabase.removeChannel(rxnChannel);
+      window.clearInterval(catchUpTimer);
+      window.removeEventListener('focus', catchUpOnFocus);
+      void supabase.removeChannel(channel);
+      void supabase.removeChannel(rxnChannel);
     };
   }, [activeRoom, club?.id]);
 
@@ -580,7 +591,13 @@ function ClubChat() {
       return false;
     } else {
       // Replace optimistic message with real data from server
-      setMessages(prev => prev.map(m => m.id === tempId ? data : m));
+      setMessages(prev => {
+        const next = prev
+          .filter(m => m.id !== data.id || m.id === tempId)
+          .map(m => m.id === tempId ? { ...data, reactions: m.reactions || [] } : m);
+        messagesCache.current[activeRoom] = next;
+        return next;
+      });
       
       // Featured club first-message reward
       if (club.name === "Zero K Bootcamp") {

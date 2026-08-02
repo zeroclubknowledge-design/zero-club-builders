@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Award,
+  Bookmark,
   BookOpen,
   CheckCircle2,
   ChevronLeft,
@@ -86,6 +87,8 @@ function BootcampDetail() {
   const [appliedCoupon, setAppliedCoupon] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
   const [isClubAdmin, setIsClubAdmin] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     if (bootcamp?.id) checkEnrollment();
@@ -112,6 +115,14 @@ function BootcampDetail() {
         .single();
       setIsEnrolled(!!data);
 
+      const { data: wishlist } = await supabase
+        .from("bootcamp_wishlists")
+        .select("id")
+        .eq("profile_id", session.user.id)
+        .eq("bootcamp_id", bootcamp.id)
+        .maybeSingle();
+      setIsWishlisted(Boolean(wishlist));
+
       if (club?.id) {
         const { data: membership } = await supabase
           .from("club_members")
@@ -122,6 +133,40 @@ function BootcampDetail() {
           .maybeSingle();
         setIsClubAdmin(Boolean(membership));
       }
+    }
+  }
+
+  async function handleWishlist() {
+    if (!currentUser?.id) {
+      toast.error("Please sign in to save this bootcamp");
+      return;
+    }
+
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        const { error } = await supabase
+          .from("bootcamp_wishlists")
+          .delete()
+          .eq("profile_id", currentUser.id)
+          .eq("bootcamp_id", bootcamp.id);
+        if (error) throw error;
+
+        setIsWishlisted(false);
+        toast.success("Removed from your wishlist");
+      } else {
+        const { error } = await supabase
+          .from("bootcamp_wishlists")
+          .insert({ profile_id: currentUser.id, bootcamp_id: bootcamp.id });
+        if (error && error.code !== "23505") throw error;
+
+        setIsWishlisted(true);
+        toast.success("Bootcamp saved to your wishlist");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Could not update your wishlist");
+    } finally {
+      setWishlistLoading(false);
     }
   }
 
@@ -485,8 +530,23 @@ function BootcampDetail() {
               </div>
             )}
 
-            <button className="mt-3 w-full rounded-xl border border-border py-3.5 text-sm font-bold transition active:bg-accent/30">
-              Add to Wishlist
+            <button
+              type="button"
+              onClick={handleWishlist}
+              disabled={wishlistLoading}
+              aria-pressed={isWishlisted}
+              className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                isWishlisted
+                  ? "border-primary/30 bg-primary/[0.08] text-primary"
+                  : "border-border text-foreground active:bg-accent/30"
+              }`}
+            >
+              {wishlistLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current" : ""}`} />
+              )}
+              {isWishlisted ? "Saved to Wishlist" : "Add to Wishlist"}
             </button>
           </div>
         </footer>

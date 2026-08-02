@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { Check, RotateCcw, Send } from "lucide-react";
 import { getSelectionPath } from "@/features/games/zeroGames";
 
@@ -26,33 +27,31 @@ export function WordsRaceBoard({
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [foundPaths, setFoundPaths] = useState<number[][]>([]);
   const [miss, setMiss] = useState(false);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const startRef = useRef<number | null>(null);
+  const activePointerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setStart(null);
     setPreview([]);
     setFoundWords([]);
     setFoundPaths([]);
+    startRef.current = null;
+    activePointerRef.current = null;
   }, [letters, words]);
 
   const foundCells = useMemo(() => new Set(foundPaths.flat()), [foundPaths]);
   const previewCells = useMemo(() => new Set(preview), [preview]);
 
-  const chooseCell = (index: number) => {
-    if (disabled) return;
-    if (start === null) {
-      setStart(index);
-      setPreview([index]);
-      setMiss(false);
-      return;
-    }
-
-    const path = getSelectionPath(start, index, size);
+  const completeSelection = (path: number[]) => {
+    if (disabled || path.length === 0) return;
     const selection = path.map((cell) => letters[cell]).join("");
     const reversed = selection.split("").reverse().join("");
     const match = words.find((word) => !foundWords.includes(word) && (word === selection || word === reversed));
     if (match) {
+      const matchedPath = match === selection ? path : [...path].reverse();
       const nextFound = [...foundWords, match];
-      const nextPaths = [...foundPaths, path];
+      const nextPaths = [...foundPaths, matchedPath];
       setFoundWords(nextFound);
       setFoundPaths(nextPaths);
       onProgress?.(Math.round((nextFound.length / words.length) * 100));
@@ -63,11 +62,90 @@ export function WordsRaceBoard({
       setMiss(true);
       window.setTimeout(() => setMiss(false), 260);
     }
+    startRef.current = null;
+    activePointerRef.current = null;
     setStart(null);
     setPreview([]);
   };
 
+  const tracedPathAt = (clientX: number, clientY: number) => {
+    const board = boardRef.current;
+    const firstCell = startRef.current;
+    if (!board || firstCell === null) return [];
+
+    const bounds = board.getBoundingClientRect();
+    const column = Math.max(0, Math.min(size - 1, Math.floor(((clientX - bounds.left) / bounds.width) * size)));
+    const row = Math.max(0, Math.min(size - 1, Math.floor(((clientY - bounds.top) / bounds.height) * size)));
+    const startRow = Math.floor(firstCell / size);
+    const startColumn = firstCell % size;
+    const rowDistance = row - startRow;
+    const columnDistance = column - startColumn;
+    const absoluteRow = Math.abs(rowDistance);
+    const absoluteColumn = Math.abs(columnDistance);
+
+    if (absoluteRow === 0 && absoluteColumn === 0) return [firstCell];
+
+    let rowStep = Math.sign(rowDistance);
+    let columnStep = Math.sign(columnDistance);
+    let distance = Math.max(absoluteRow, absoluteColumn);
+
+    if (absoluteRow <= absoluteColumn * 0.42) {
+      rowStep = 0;
+      distance = absoluteColumn;
+    } else if (absoluteColumn <= absoluteRow * 0.42) {
+      columnStep = 0;
+      distance = absoluteRow;
+    }
+
+    const rowCapacity = rowStep > 0 ? size - 1 - startRow : rowStep < 0 ? startRow : size;
+    const columnCapacity = columnStep > 0 ? size - 1 - startColumn : columnStep < 0 ? startColumn : size;
+    const safeDistance = Math.min(distance, rowCapacity, columnCapacity);
+    const endRow = startRow + rowStep * safeDistance;
+    const endColumn = startColumn + columnStep * safeDistance;
+    return getSelectionPath(firstCell, endRow * size + endColumn, size);
+  };
+
+  const beginTrace = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (disabled || activePointerRef.current !== null) return;
+    const cell = (event.target as HTMLElement).closest<HTMLElement>("[data-word-cell]");
+    if (!cell || !event.currentTarget.contains(cell)) return;
+    const index = Number(cell.dataset.wordCell);
+    if (!Number.isInteger(index)) return;
+
+    event.preventDefault();
+    activePointerRef.current = event.pointerId;
+    startRef.current = index;
+    setStart(index);
+    setPreview([index]);
+    setMiss(false);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const continueTrace = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerRef.current !== event.pointerId || startRef.current === null) return;
+    event.preventDefault();
+    const path = tracedPathAt(event.clientX, event.clientY);
+    if (path.length > 0) setPreview(path);
+  };
+
+  const endTrace = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerRef.current !== event.pointerId || startRef.current === null) return;
+    event.preventDefault();
+    const path = tracedPathAt(event.clientX, event.clientY);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    completeSelection(path.length > 0 ? path : preview);
+  };
+
+  const cancelTrace = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerRef.current !== event.pointerId) return;
+    resetSelection();
+  };
+
   const resetSelection = () => {
+    startRef.current = null;
+    activePointerRef.current = null;
     setStart(null);
     setPreview([]);
     setMiss(false);
@@ -77,7 +155,12 @@ export function WordsRaceBoard({
     <div className="mx-auto grid w-full max-w-[980px] gap-5 lg:grid-cols-[minmax(0,620px)_minmax(220px,1fr)] lg:items-start">
       <div>
         <div
-          className={`grid aspect-square w-full max-w-[620px] border border-foreground/80 bg-foreground/10 p-1 transition ${miss ? "translate-x-0.5 ring-2 ring-destructive/30" : ""}`}
+          ref={boardRef}
+          onPointerDown={beginTrace}
+          onPointerMove={continueTrace}
+          onPointerUp={endTrace}
+          onPointerCancel={cancelTrace}
+          className={`grid aspect-square w-full max-w-[620px] touch-none select-none border border-foreground/80 bg-foreground/10 p-1 transition ${miss ? "translate-x-0.5 ring-2 ring-destructive/30" : ""}`}
           style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
         >
           {letters.map((letter, index) => {
@@ -89,10 +172,6 @@ export function WordsRaceBoard({
                 type="button"
                 disabled={disabled}
                 data-word-cell={index}
-                onClick={() => chooseCell(index)}
-                onPointerEnter={(event) => {
-                  if (start !== null && event.pointerType === "mouse") setPreview(getSelectionPath(start, index, size));
-                }}
                 className={`grid min-h-0 min-w-0 place-items-center border border-background/70 text-[clamp(10px,3.3vw,22px)] font-semibold transition-colors sm:text-[18px] ${
                   isFound ? "bg-emerald-500 text-white" : isPreview ? "bg-primary text-primary-foreground" : "bg-card text-foreground hover:bg-primary/10"
                 }`}

@@ -345,7 +345,7 @@ function RaceScreen({ competition, players, currentProfileId, timeRemaining, sub
 }
 
 function CountdownScreen({ competition, countdown, players }: { competition: ZeroGameCompetition; countdown: number; players: ZeroGamePlayer[] }) {
-  const display = countdown <= 5 ? countdown || "GO" : formatGameTime(countdown);
+  const display = countdown <= 10 ? countdown || "GO" : formatGameTime(countdown);
   return <div className="grid min-h-screen place-items-center bg-[#171217] px-5 text-white"><div className="w-full max-w-lg text-center"><div className="mx-auto grid h-14 w-14 place-items-center rounded-md bg-primary text-primary-foreground"><Gamepad2 className="h-7 w-7 fill-current" /></div><p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">{getGameName(competition.game_type)}</p><h1 className="mt-2 text-[24px] font-semibold tracking-tight">{competition.title}</h1><div className="mx-auto mt-10 grid h-32 w-32 place-items-center rounded-full border border-white/15 bg-white/[0.045] font-mono text-[42px] font-semibold tabular-nums text-[#f28fd0] shadow-[0_0_55px_-18px_rgba(204,32,143,0.8)]">{display}</div><div className="mx-auto mt-10 flex max-w-sm justify-center -space-x-2">{players.slice(0, 8).map((player) => <Avatar key={player.id} profile={player.profile} size="sm" ring />)}</div><p className="mt-4 text-[11px] text-white/45">{players.length} players connected</p></div></div>;
 }
 
