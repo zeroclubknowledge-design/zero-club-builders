@@ -56,7 +56,7 @@ const plans: Plan[] = [
     recommendedFor: "Learner",
     storedTier: "Basic",
     billingLabel: "forever",
-    features: ["Builder profile and feed", "Public clubs and communities", "ZeroNotes publishing", "Zero AI starter access", "Standard XP earning"],
+    features: ["Builder profile and feed", "Public clubs and communities", "ZeroNotes publishing", "Zero AI starter access", "2 rewarded Zero Games competitions weekly", "Standard XP earning"],
   },
   {
     id: "learner-premium",
@@ -70,7 +70,7 @@ const plans: Plan[] = [
     storedTier: "Premium",
     billingLabel: "/ month",
     featured: true,
-    features: ["Zero AI learning assistant", "2x daily XP multiplier", "3% bootcamp discount", "Post editing and longer posts", "Private club access", "Premium profile badge"],
+    features: ["Zero AI learning assistant", "5 rewarded Zero Games competitions weekly", "2x daily XP multiplier", "3% bootcamp discount", "Post editing and longer posts", "Private club access", "Premium profile badge"],
   },
   {
     id: "creator",
@@ -84,7 +84,7 @@ const plans: Plan[] = [
     storedTier: undefined,
     featured: true,
     billingLabel: "/ month",
-    features: ["Relevant Learner Premium experience", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
+    features: ["Relevant Learner Premium experience", "5 rewarded Zero Games competitions weekly", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
   },
   {
     id: "tutor-basic",
@@ -97,7 +97,7 @@ const plans: Plan[] = [
     recommendedFor: "Tutor",
     storedTier: "Basic",
     billingLabel: "forever",
-    features: ["Create and sell bootcamps", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "1 permanent Club", "Tutor profile, feed, and community access"],
+    features: ["Create and sell bootcamps", "2 rewarded Zero Games competitions weekly", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "1 permanent Club", "Tutor profile, feed, and community access"],
     limitations: ["No Zero AI teaching assistance", "No verified bootcamp badge", "Cannot connect a bootcamp to an existing club"],
   },
   {
@@ -112,7 +112,7 @@ const plans: Plan[] = [
     storedTier: "Premium",
     billingLabel: "/ month",
     featured: true,
-    features: ["Everything in Tutor Basic", "Create up to 5 permanent Clubs", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
+    features: ["Everything in Tutor Basic", "5 rewarded Zero Games competitions weekly", "Create up to 5 permanent Clubs", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
   },
   {
     id: "tutor-premium-plus",
@@ -125,7 +125,7 @@ const plans: Plan[] = [
     recommendedFor: "Tutor",
     storedTier: "Premium+",
     billingLabel: "/ month",
-    features: ["Everything in Tutor Premium", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
+    features: ["Everything in Tutor Premium", "14 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
   },
   {
     id: "institution-small",
@@ -137,7 +137,7 @@ const plans: Plan[] = [
     audiences: ["Institution"],
     recommendedFor: "Institution",
     billingLabel: "/ year",
-    features: ["30-day free trial", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    features: ["30-day free trial", "5 rewarded Zero Games competitions weekly", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
   },
   {
     id: "institution-large",
@@ -150,7 +150,7 @@ const plans: Plan[] = [
     recommendedFor: "Institution",
     featured: true,
     billingLabel: "/ year",
-    features: ["30-day free trial", "Multiple-campus support", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    features: ["30-day free trial", "14 rewarded Zero Games competitions weekly, maximum 2 daily", "Multiple-campus support", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
   },
   {
     id: "institution-custom",
@@ -162,7 +162,7 @@ const plans: Plan[] = [
     audiences: ["Institution"],
     recommendedFor: "Institution",
     billingLabel: "contact Zero Club",
-    features: ["Custom Digital Hub scope", "Guided onboarding", "Organisation-specific Club capacity", "Programme and role configuration", "Priority implementation support"],
+    features: ["14 rewarded Zero Games competitions weekly, maximum 2 daily", "Custom Digital Hub scope", "Guided onboarding", "Organisation-specific Club capacity", "Programme and role configuration", "Priority implementation support"],
   },
 ];
 

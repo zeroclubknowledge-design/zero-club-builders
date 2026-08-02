@@ -26,24 +26,24 @@ create table if not exists public.subscription_plans (
 insert into public.subscription_plans (key, name, audience, price_amount, currency, billing_interval, permanent_club_limit, features, metadata)
 values
   ('learner_basic', 'Learner Basic', 'learner', 0, 'NGN', 'free', 0,
-   '["Builder profile","Feed","Public Club participation","ZeroNotes","Zero AI starter","Standard XP"]'::jsonb, '{}'::jsonb),
+   '["Builder profile","Feed","Public Club participation","ZeroNotes","Zero AI starter","2 rewarded Zero Games competitions weekly","Standard XP"]'::jsonb, '{}'::jsonb),
   ('learner_premium', 'Learner Premium', 'learner', 3000, 'NGN', 'month', 0,
-   '["Everything in Learner Basic","Zero AI learning assistant","2x daily XP","3% Bootcamp discount","Post editing","Longer posts","Private Club access","Premium badge"]'::jsonb, '{}'::jsonb),
+   '["Everything in Learner Basic","Zero AI learning assistant","5 rewarded Zero Games competitions weekly","2x daily XP","3% Bootcamp discount","Post editing","Longer posts","Private Club access","Premium badge"]'::jsonb, '{}'::jsonb),
   ('creator', 'Creator', 'creator', 7000, 'NGN', 'month', 3,
-   '["Learner Premium experience","Create and manage permanent Clubs","Club customization","Member management","Moderation","Club analytics","Community insights","Creator Rewards eligibility"]'::jsonb,
+   '["Learner Premium experience","5 rewarded Zero Games competitions weekly","Create and manage permanent Clubs","Club customization","Member management","Moderation","Club analytics","Community insights","Creator Rewards eligibility"]'::jsonb,
    '{"first_club_premium_months":6}'::jsonb),
   ('tutor_basic', 'Tutor Basic', 'tutor', 0, 'NGN', 'free', 1,
-   '["Create and sell Bootcamps","Temporary cohort Club per Bootcamp","Curriculum and learner management","Pricing and coupons","One permanent Club"]'::jsonb, '{}'::jsonb),
+   '["Create and sell Bootcamps","2 rewarded Zero Games competitions weekly","Temporary cohort Club per Bootcamp","Curriculum and learner management","Pricing and coupons","One permanent Club"]'::jsonb, '{}'::jsonb),
   ('tutor_premium', 'Tutor Premium', 'tutor', 5000, 'NGN', 'month', 5,
-   '["Everything in Tutor Basic","Five permanent Clubs","Connect Bootcamps to existing Clubs","Zero AI knowledge interview","Approved Bootcamp verification","Tutor AI"]'::jsonb, '{}'::jsonb),
+   '["Everything in Tutor Basic","5 rewarded Zero Games competitions weekly","Five permanent Clubs","Connect Bootcamps to existing Clubs","Zero AI knowledge interview","Approved Bootcamp verification","Tutor AI"]'::jsonb, '{}'::jsonb),
   ('tutor_premium_plus', 'Tutor Premium+', 'tutor', 12000, 'NGN', 'month', 10,
-   '["Everything in Tutor Premium","Ten permanent Clubs","Advanced cohort AI","Multi-Bootcamp verification support","Unlimited existing-Club connections","Priority support"]'::jsonb, '{}'::jsonb),
+   '["Everything in Tutor Premium","14 rewarded Zero Games competitions weekly, maximum 2 daily","Ten permanent Clubs","Advanced cohort AI","Multi-Bootcamp verification support","Unlimited existing-Club connections","Priority support"]'::jsonb, '{}'::jsonb),
   ('institution_small', 'Institution Small', 'institution', 150000, 'NGN', 'year', null,
-   '["Digital Hub","Up to 500 learners","Tutor and role management","Multi-Bootcamp oversight","Cohort analytics","Priority onboarding and support"]'::jsonb, '{}'::jsonb),
+   '["Digital Hub","Up to 500 learners","5 rewarded Zero Games competitions weekly","Tutor and role management","Multi-Bootcamp oversight","Cohort analytics","Priority onboarding and support"]'::jsonb, '{}'::jsonb),
   ('institution_large', 'Institution Large', 'institution', 400000, 'NGN', 'year', null,
-   '["Digital Hub","More than 500 learners","Multiple campuses","Tutor and role management","Multi-Bootcamp oversight","Cohort analytics","Priority onboarding and support"]'::jsonb, '{}'::jsonb),
+   '["Digital Hub","More than 500 learners","14 rewarded Zero Games competitions weekly, maximum 2 daily","Multiple campuses","Tutor and role management","Multi-Bootcamp oversight","Cohort analytics","Priority onboarding and support"]'::jsonb, '{}'::jsonb),
   ('institution_custom', 'Institution Custom', 'institution', null, 'NGN', 'custom', null,
-   '["Custom Digital Hub arrangement"]'::jsonb, '{}'::jsonb)
+   '["Custom Digital Hub arrangement","14 rewarded Zero Games competitions weekly, maximum 2 daily"]'::jsonb, '{}'::jsonb)
 on conflict (key) do update set
   name = excluded.name,
   audience = excluded.audience,

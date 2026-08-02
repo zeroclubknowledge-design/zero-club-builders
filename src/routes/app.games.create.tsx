@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -31,6 +32,11 @@ import {
   type ZeroGameVisibility,
 } from "@/features/games/zeroGames";
 import { toast } from "sonner";
+import {
+  fallbackZeroGameRewardAllowance,
+  zeroGameAllowanceName,
+  type ZeroGameRewardAllowance,
+} from "@/features/games/rewardEntitlements";
 
 export const Route = createFileRoute("/app/games/create")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -46,6 +52,7 @@ const toLocalDateTime = (date: Date) => {
 
 function CreateZeroGame() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const search = Route.useSearch();
   const { data: profile } = useUser();
   const { format, toBaseAmount } = useWalletCurrency();
@@ -63,9 +70,31 @@ function CreateZeroGame() {
   const [hostPlays, setHostPlays] = useState(true);
   const [creating, setCreating] = useState(false);
 
+  const { data: allowanceData, isLoading: allowanceLoading } = useQuery({
+    queryKey: ["zero-game-reward-allowance", profile?.id],
+    enabled: Boolean(profile?.id),
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_my_zero_game_reward_allowance");
+      if (error) {
+        console.warn("Zero Games allowance is not available yet:", error.message);
+        return fallbackZeroGameRewardAllowance(profile);
+      }
+      return data as ZeroGameRewardAllowance;
+    },
+  });
+
+  const rewardAllowance = allowanceData || fallbackZeroGameRewardAllowance(profile);
+  const dailyLimitReached = rewardAllowance.daily_limit !== null
+    && rewardAllowance.daily_remaining === 0
+    && rewardAllowance.weekly_remaining > 0;
+
   const basePrizeAmount = useMemo(() => toBaseAmount(Number(prizeAmount || 0)), [prizeAmount, toBaseAmount]);
   const selectedOffer = ZERO_GAME_OFFERS.find((offer) => offer.id === offerType) || ZERO_GAME_OFFERS[0];
-  const canCreate = title.trim().length >= 3
+  const canCreate = Boolean(profile?.id)
+    && !allowanceLoading
+    && rewardAllowance.can_create
+    && title.trim().length >= 3
     && Boolean(startsAt)
     && maxPlayers >= 2
     && (rewardType === "offer" || basePrizeAmount >= 100);
@@ -93,6 +122,7 @@ function CreateZeroGame() {
       if (error) throw error;
       const competitionId = data?.competition_id;
       if (!competitionId) throw new Error("Competition was created without an ID");
+      await queryClient.invalidateQueries({ queryKey: ["zero-game-reward-allowance", profile?.id] });
       toast.success(rewardType === "cash" ? "Race published and prize secured" : "Race published with a winner offer");
       navigate({ to: "/app/games/$id", params: { id: competitionId } });
     } catch (error: any) {
@@ -145,6 +175,23 @@ function CreateZeroGame() {
           </FormSection>
 
           <FormSection eyebrow="04 · Reward" title="Reward the first finisher">
+            <div className={`mb-4 rounded-md border p-3.5 ${rewardAllowance.can_create ? "border-border bg-card" : "border-destructive/25 bg-destructive/[0.045]"}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{zeroGameAllowanceName(rewardAllowance.plan_key)}</p>
+                  <p className="mt-1 text-[12px] font-semibold">Winner reward allowance</p>
+                </div>
+                <span className="text-[12px] font-semibold tabular-nums">{allowanceLoading ? "..." : `${rewardAllowance.weekly_remaining} / ${rewardAllowance.weekly_limit}`}</span>
+              </div>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-foreground/[0.07]">
+                <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${Math.min(100, (rewardAllowance.weekly_used / Math.max(1, rewardAllowance.weekly_limit)) * 100)}%` }} />
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3 text-[9.5px] text-muted-foreground">
+                <span>{rewardAllowance.can_create ? `${rewardAllowance.weekly_remaining} rewarded competition${rewardAllowance.weekly_remaining === 1 ? "" : "s"} left this week` : dailyLimitReached ? "Daily limit reached; available again tomorrow" : "Weekly reward allowance used"}</span>
+                {rewardAllowance.daily_limit !== null && <span>{rewardAllowance.daily_remaining} / {rewardAllowance.daily_limit} left today</span>}
+              </div>
+              {!rewardAllowance.can_create && !dailyLimitReached && <button type="button" onClick={() => navigate({ to: "/app/premium" })} className="mt-3 text-[10px] font-semibold text-primary">Compare membership plans</button>}
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <RewardChoice selected={rewardType === "offer"} onClick={() => setRewardType("offer")} Icon={Gift} title="Free with an offer" detail="Everyone joins free. The winner unlocks a verified offer." />
               <RewardChoice selected={rewardType === "cash"} onClick={() => setRewardType("cash")} Icon={Banknote} title="Host-funded prize" detail="Reserve a cash prize from your wallet. Players still join free." />

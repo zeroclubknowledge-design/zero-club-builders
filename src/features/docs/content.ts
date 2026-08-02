@@ -349,6 +349,12 @@ export const docPages: DocPage[] = [
         bullets: ["Free with an offer: no funds are staked; the winner unlocks a defined Zero Club offer.", "Host-funded prize: the host sets a cash amount that is locked before the competition becomes available.", "A valid winner receives the offer or wallet transfer through the competition result flow."],
         note: "XP is never staked or transferred. Experience stays attached to the profile.",
       },
+      {
+        title: "Reward allowances",
+        paragraphs: ["Every published competition includes a winner reward and uses one allowance. Cancelled competitions release their usage. The allowance resets each Monday using the Zero Club operating timezone."],
+        bullets: ["Learner Basic and Tutor Basic: 2 rewarded competitions weekly.", "Learner Premium, Creator, Tutor Premium, and Institution Small: 5 rewarded competitions weekly.", "Tutor Premium+, Institution Large, and Institution Custom: 14 rewarded competitions weekly, with a maximum of 2 per day."],
+        note: "Invitation shares include the exact winner offer or secured cash prize so people can understand what they are joining before opening the competition.",
+      },
     ],
   },
   {

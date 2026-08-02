@@ -160,15 +160,27 @@ function ZeroGameCompetitionPage() {
   const join = () => runAction("join", () => supabase.rpc("join_zero_game_competition", { p_competition_id: id }), "You joined the race");
   const toggleReady = () => runAction("ready", () => supabase.rpc("set_zero_game_ready", { p_competition_id: id, p_ready: !isReady }), isReady ? "You are no longer ready" : "You are ready");
   const startRace = () => runAction("start", () => supabase.rpc("start_zero_game_competition", { p_competition_id: id }), "Race countdown started");
-  const cancelRace = () => runAction("cancel", () => supabase.rpc("cancel_zero_game_competition", { p_competition_id: id }), "Competition cancelled and secured funds returned");
+  const cancelRace = async () => {
+    await runAction("cancel", () => supabase.rpc("cancel_zero_game_competition", { p_competition_id: id }), "Competition cancelled and secured funds returned");
+    await queryClient.invalidateQueries({ queryKey: ["zero-game-reward-allowance", profile?.id] });
+  };
+
+  const competitionShareDetails = () => {
+    if (!competition) return { url: "", rewardText: "", text: "" };
+    const url = `${window.location.origin}/app/games/${competition.id}`;
+    const rewardText = competition.reward_type === "cash"
+      ? `${format(competition.prize_amount)} secured cash prize`
+      : competition.offer_label || "a verified Zero Club winner offer";
+    const text = `Join ${competition.title} on Zero Games. Entry is free. Winner reward: ${rewardText}. First correct finish wins.`;
+    return { url, rewardText, text };
+  };
 
   const share = async () => {
     if (!competition) return;
-    const url = `${window.location.origin}/app/games/${competition.id}`;
-    const text = `Join ${competition.title} on Zero Games. Entry is free.`;
+    const { url, text } = competitionShareDetails();
     try {
       if (navigator.share) await navigator.share({ title: competition.title, text, url });
-      else { await navigator.clipboard.writeText(url); toast.success("Competition link copied"); }
+      else { await navigator.clipboard.writeText(`${text}\n\n${url}`); toast.success("Reward invitation copied"); }
     } catch (shareError: any) {
       if (shareError?.name !== "AbortError") toast.error("Could not share this competition");
     }
@@ -178,11 +190,10 @@ function ZeroGameCompetitionPage() {
     if (!competition || !profile) return;
     setWorking("feed");
     try {
-      const url = `${window.location.origin}/app/games/${competition.id}`;
-      const rewardText = competition.reward_type === "cash" ? `${format(competition.prize_amount)} secured prize` : competition.offer_label;
+      const { url, rewardText } = competitionShareDetails();
       const { error: postError } = await supabase.from("posts").insert([{
         author_id: profile.id,
-        content: `🎮 ${competition.title}\n\nJoin my ${getGameName(competition.game_type)} competition. Entry is free and the winner gets ${rewardText}.\n\n${url}`,
+        content: `🎮 ${competition.title}\n\nJoin my ${getGameName(competition.game_type)} competition. Entry is free.\n\n🏆 Winner reward: ${rewardText}\nFirst correct finish wins.\n\n${url}`,
         media_urls: [],
         is_build_post: false,
       }]);
@@ -300,7 +311,7 @@ function ZeroGameCompetitionPage() {
         </aside>
       </main>
 
-      {moreOpen && <ActionOverlay onClose={() => setMoreOpen(false)} isHost={isHost} working={working} onFeed={shareToFeed} onCopy={async () => { await navigator.clipboard.writeText(`${window.location.origin}/app/games/${competition.id}`); toast.success("Link copied"); setMoreOpen(false); }} onCancel={cancelRace} />}
+      {moreOpen && <ActionOverlay onClose={() => setMoreOpen(false)} isHost={isHost} working={working} onFeed={shareToFeed} onCopy={async () => { const { text, url } = competitionShareDetails(); await navigator.clipboard.writeText(`${text}\n\n${url}`); toast.success("Reward invitation copied"); setMoreOpen(false); }} onCancel={cancelRace} />}
     </div>
   );
 }
