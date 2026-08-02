@@ -3,7 +3,7 @@
 update public.subscription_plans
 set features = case
       when (coalesce(features, '[]'::jsonb) - '2 rewarded Zero Games competitions weekly') @> jsonb_build_array('3 rewarded Zero Games competitions weekly')
-        then coalesce(features, '[]'::jsonb) - '2 rewarded Zero Games competitions weekly'
+        then coalesce(features, '[]'::jsonb) - '2 rewarded Zero Games aweekly'
       else (coalesce(features, '[]'::jsonb) - '2 rewarded Zero Games competitions weekly') || jsonb_build_array('3 rewarded Zero Games competitions weekly')
     end,
     updated_at = now()

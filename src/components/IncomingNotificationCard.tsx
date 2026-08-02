@@ -41,6 +41,11 @@ const notificationStyles = {
     label: "liked your post",
     color: "bg-rose-500 text-white",
   },
+  comment_like: {
+    Icon: Heart,
+    label: "liked your comment",
+    color: "bg-rose-500 text-white",
+  },
   comment: {
     Icon: MessageCircle,
     label: "commented on your post",

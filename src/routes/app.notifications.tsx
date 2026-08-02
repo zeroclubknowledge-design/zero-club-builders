@@ -136,6 +136,7 @@ function NotificationsPage() {
   const getNotifUI = (type: string, actorName?: string, isActorMe?: boolean, recipientName?: string) => {
     switch (type) {
       case 'like': return { icon: HeartHandshake, bg: 'bg-primary', text: 'text-primary-foreground', action: 'liked your post' };
+      case 'comment_like': return { icon: HeartHandshake, bg: 'bg-rose-500', text: 'text-white', action: 'liked your comment' };
       case 'comment': return { icon: MessageCircleMore, bg: 'bg-sky-600', text: 'text-white', action: 'commented on your post' };
       case 'follow': return { icon: UserRoundPlus, bg: 'bg-emerald-600', text: 'text-white', action: 'started following you' };
       case 'repost': return { icon: ArrowUpFromLine, bg: 'bg-emerald-600', text: 'text-white', action: 'reposted your post' };
@@ -162,14 +163,14 @@ function NotificationsPage() {
     const grouped = new Map<string, any>();
 
     filteredNotifs.forEach((notification) => {
-      if (!['like', 'follow', 'repost'].includes(notification.type)) {
+      if (!['like', 'comment_like', 'follow', 'repost'].includes(notification.type)) {
         groups.push(notification);
         return;
       }
 
       const key = notification.type === 'follow'
         ? `follow:${new Date(notification.created_at).toDateString()}`
-        : `${notification.type}:${notification.entity_id}`;
+        : `${notification.type}:${notification.type === 'comment_like' ? notification.comment_id : notification.entity_id}`;
       const existing = grouped.get(key);
 
       if (!existing) {
@@ -279,7 +280,7 @@ function NotificationsPage() {
               markRead(n.id);
             }
             
-            if (['like', 'comment', 'repost', 'mention', 'build_tagged'].includes(n.type) && n.entity_id) {
+            if (['like', 'comment_like', 'comment', 'repost', 'mention', 'build_tagged'].includes(n.type) && n.entity_id) {
               navigate({ to: '/app/post/$id', params: { id: n.entity_id } });
             } else if (n.type === 'follow' && n.actor_id) {
               navigate({ to: '/app/profile/$id', params: { id: n.actor_id } });

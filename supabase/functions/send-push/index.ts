@@ -65,6 +65,7 @@ serve(async (req) => {
 
       const actions: Record<string, string> = {
         like: "liked your post",
+        comment_like: "liked your comment",
         comment: "commented on your post",
         follow: "started following you",
         repost: "reposted your post",
@@ -77,7 +78,7 @@ serve(async (req) => {
       body = payload.record?.content || actions[notificationType] || "You have a new notification.";
       url = notificationType === "follow"
         ? `/app/profile/${actorId}`
-        : payload.record?.entity_id && ["like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
+        : payload.record?.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
           ? `/app/post/${payload.record.entity_id}`
           : "/app/notifications";
     } else if (payload.record?.content) {

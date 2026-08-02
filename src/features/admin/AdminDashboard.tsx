@@ -125,6 +125,7 @@ export function AdminDashboard() {
         admin_update_report: "Report updated",
         admin_update_gig_status: "Gig status updated",
         admin_update_bootcamp_status: "Bootcamp status updated",
+        admin_delete_bootcamp: "Bootcamp deleted",
         admin_update_platform_setting: "Platform setting updated",
         admin_set_institution_status: "Institution updated",
         admin_create_gig: "Gig published",
@@ -308,7 +309,78 @@ function People({ users, search, setSearch, type, setType, busy, runAction }: an
 
 function Moderation({ reports, busy, runAction }: any) { const active = reports.filter((r: any) => ["open", "reviewing"].includes(r.status)); return <div><SectionHeading eyebrow="Trust and safety" title="Moderation queue" detail="Review member reports and record clear resolution outcomes." /><div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><SmallMetric label="Open" value={reports.filter((r: any) => r.status === "open").length} /><SmallMetric label="Reviewing" value={reports.filter((r: any) => r.status === "reviewing").length} /><SmallMetric label="Resolved" value={reports.filter((r: any) => r.status === "resolved").length} /><SmallMetric label="Dismissed" value={reports.filter((r: any) => r.status === "dismissed").length} /></div><div className="mt-5 space-y-3">{active.length ? active.map((report: any) => <div key={report.id} className="rounded-lg border border-border bg-card p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-rose-600">{report.context}</p><h3 className="mt-1 text-[13px] font-semibold">Report against @{report.reported_username || "unknown"}</h3><p className="mt-1 text-[9.5px] text-muted-foreground">Submitted by @{report.reporter_username || "member"} · {formatTime(report.created_at)}</p></div><StatusBadge status={report.status} /></div><p className="mt-4 rounded-lg bg-muted/60 p-3 text-[11.5px] leading-relaxed">{report.reason}</p><div className="mt-4 flex flex-wrap gap-2">{report.status === "open" && <ActionButton label="Start review" disabled={busy} onClick={() => runAction("admin_update_report", { target_report_id: report.id, new_status: "reviewing" })} />}<ActionButton label="Resolve" disabled={busy} onClick={() => runAction("admin_update_report", { target_report_id: report.id, new_status: "resolved" })} primary /><ActionButton label="Dismiss" disabled={busy} onClick={() => runAction("admin_update_report", { target_report_id: report.id, new_status: "dismissed" })} /></div></div>) : <EmptyState Icon={ShieldCheck} title="Moderation queue is clear" detail="New member reports will appear here." />}</div></div>; }
 
-function Learning({ bootcamps, format, busy, runAction }: any) { return <div><SectionHeading eyebrow="Learning operations" title="Bootcamps and delivery" detail="Monitor providers, learners, pricing, and publishing status." /><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{bootcamps.map((bootcamp: any) => <div key={bootcamp.id} className="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_100px_120px_130px] md:items-center"><div className="min-w-0"><p className="truncate text-[12.5px] font-semibold">{bootcamp.title}</p><p className="mt-1 text-[9.5px] text-muted-foreground">@{bootcamp.creator_username || "provider"} · {bootcamp.creator_type || "Tutor"} · {bootcamp.category}</p></div><div><p className="text-[11px] font-semibold tabular-nums">{compact(bootcamp.learners)}</p><p className="text-[9px] text-muted-foreground">Learners</p></div><div><p className="text-[11px] font-semibold tabular-nums">{format(bootcamp.price)}</p><p className="text-[9px] text-muted-foreground">Price</p></div><select disabled={busy} value={bootcamp.status} onChange={(e) => runAction("admin_update_bootcamp_status", { target_bootcamp_id: bootcamp.id, new_status: e.target.value })} className="h-9 rounded-lg border border-border bg-background px-2 text-[10.5px] font-semibold outline-none"><option value="draft">Draft</option><option value="active">Active</option><option value="completed">Completed</option></select></div>)}</div></div>; }
+function Learning({ bootcamps, format, busy, runAction }: any) {
+  const deleteBootcamp = (bootcamp: any) => {
+    const provider = bootcamp.creator_username ? `@${bootcamp.creator_username}` : "this provider";
+    const confirmed = window.confirm(
+      `Permanently delete "${bootcamp.title}" by ${provider}? Its curriculum, enrollments, and temporary bootcamp club will also be removed. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    runAction("admin_delete_bootcamp", { target_bootcamp_id: bootcamp.id });
+  };
+
+  return (
+    <div>
+      <SectionHeading
+        eyebrow="Learning operations"
+        title="Bootcamps and delivery"
+        detail="Monitor providers, learners, pricing, publishing status, and remove bootcamps that breach platform standards."
+      />
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+        {bootcamps.map((bootcamp: any) => (
+          <div
+            key={bootcamp.id}
+            className="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_100px_120px_180px] md:items-center"
+          >
+            <div className="min-w-0">
+              <p className="truncate text-[12.5px] font-semibold">{bootcamp.title}</p>
+              <p className="mt-1 text-[9.5px] text-muted-foreground">
+                @{bootcamp.creator_username || "provider"} · {bootcamp.creator_type || "Tutor"} · {bootcamp.category}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold tabular-nums">{compact(bootcamp.learners)}</p>
+              <p className="text-[9px] text-muted-foreground">Learners</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold tabular-nums">{format(bootcamp.price)}</p>
+              <p className="text-[9px] text-muted-foreground">Price</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                disabled={busy}
+                value={bootcamp.status}
+                onChange={(event) => runAction("admin_update_bootcamp_status", {
+                  target_bootcamp_id: bootcamp.id,
+                  new_status: event.target.value,
+                })}
+                className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-background px-2 text-[10.5px] font-semibold outline-none"
+              >
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+              </select>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => deleteBootcamp(bootcamp)}
+                title={`Delete ${bootcamp.title}`}
+                aria-label={`Delete ${bootcamp.title}`}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-destructive/20 text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+        {bootcamps.length === 0 && (
+          <div className="p-8 text-center text-[11px] text-muted-foreground">No bootcamps to manage yet.</div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function Community({ clubs, posts }: any) { return <div><SectionHeading eyebrow="Community operations" title="Clubs and publishing" detail="Visibility into the spaces and conversations shaping the network." /><div className="grid gap-6 xl:grid-cols-2"><section><h2 className="mb-3 text-[13px] font-semibold">Newest clubs</h2><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{clubs.slice(0, 15).map((club: any) => <div key={club.id} className="flex items-center gap-3 p-4"><div className="grid h-9 w-9 place-items-center rounded-lg bg-violet-500/10 text-violet-600"><UsersRound className="h-4 w-4" /></div><div className="min-w-0 flex-1"><p className="truncate text-[12px] font-semibold">{club.name}</p><p className="mt-0.5 text-[9.5px] text-muted-foreground">{club.category} · @{club.creator_username || "builder"}</p></div><div className="text-right"><p className="text-[11px] font-semibold">{compact(club.members)}</p><p className="text-[8.5px] text-muted-foreground">members</p></div></div>)}</div></section><section><h2 className="mb-3 text-[13px] font-semibold">Latest posts</h2><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{posts.slice(0, 15).map((post: any) => <div key={post.id} className="p-4"><div className="flex items-center justify-between"><p className="text-[10px] font-semibold">@{post.author_username || "builder"}</p><span className="text-[9px] text-muted-foreground">{formatTime(post.created_at)}</span></div><p className="mt-2 line-clamp-2 text-[11.5px] leading-relaxed text-foreground/80">{post.content}</p><p className="mt-2 text-[9px] text-muted-foreground">{compact(post.likes_count)} likes · {compact(post.comments_count)} comments · {compact(post.reposts_count)} reposts</p></div>)}</div></section></div></div>; }
 
