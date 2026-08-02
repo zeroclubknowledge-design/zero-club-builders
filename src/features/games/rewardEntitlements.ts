@@ -16,7 +16,7 @@ export const ZERO_GAME_REWARD_LIMITS: Record<string, { weekly: number; daily: nu
   learner_basic: { weekly: 2, daily: null },
   learner_premium: { weekly: 5, daily: null },
   creator: { weekly: 12, daily: 2 },
-  tutor_basic: { weekly: 2, daily: null },
+  tutor_basic: { weekly: 3, daily: null },
   tutor_premium: { weekly: 8, daily: 2 },
   tutor_premium_plus: { weekly: 20, daily: 3 },
   institution: { weekly: 21, daily: 3 },

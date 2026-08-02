@@ -33,7 +33,7 @@ values
    '["Learner Premium experience","12 rewarded Zero Games competitions weekly, maximum 2 daily","Create and manage permanent Clubs","Club customization","Member management","Moderation","Club analytics","Community insights","Creator Rewards eligibility"]'::jsonb,
    '{"first_club_premium_months":6}'::jsonb),
   ('tutor_basic', 'Tutor Basic', 'tutor', 0, 'NGN', 'free', 1,
-   '["Create and sell Bootcamps","2 rewarded Zero Games competitions weekly","Temporary cohort Club per Bootcamp","Curriculum and learner management","Pricing and coupons","One permanent Club"]'::jsonb, '{}'::jsonb),
+   '["Create and sell Bootcamps","3 rewarded Zero Games competitions weekly","Temporary cohort Club per Bootcamp","Curriculum and learner management","Pricing and coupons","One permanent Club"]'::jsonb, '{}'::jsonb),
   ('tutor_premium', 'Tutor Premium', 'tutor', 5000, 'NGN', 'month', 5,
    '["Everything in Tutor Basic","8 rewarded Zero Games competitions weekly, maximum 2 daily","Five permanent Clubs","Connect Bootcamps to existing Clubs","Zero AI knowledge interview","Approved Bootcamp verification","Tutor AI"]'::jsonb, '{}'::jsonb),
   ('tutor_premium_plus', 'Tutor Premium+', 'tutor', 12000, 'NGN', 'month', 10,

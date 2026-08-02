@@ -48,7 +48,6 @@ const findCachedPost = (queryClient: QueryClient, id: string) => {
 
 const createPostDetailShell = (post: any) => ({
   post: { ...post, computed_reposts_count: post.computed_reposts_count || post.reposts_count || 0 },
-  comments: [],
   isBookmarked: Boolean(post.isBookmarked),
   isLiked: Boolean(post.isLiked),
   isFollowing: false,
@@ -56,18 +55,39 @@ const createPostDetailShell = (post: any) => ({
   commentLikes: [] as string[],
 });
 
+const fetchPostDetailRecord = async (id: string) => {
+  const { data: post, error: postError } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (postError) throw postError;
+  if (!post) return null;
+
+  const [profileResult, bootcampResult] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', post.author_id).maybeSingle(),
+    post.bootcamp_id
+      ? supabase.from('bootcamps').select('*').eq('id', post.bootcamp_id).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  if (profileResult.error) console.warn('Post author could not be loaded:', profileResult.error.message);
+  if (bootcampResult.error) console.warn('Tagged bootcamp could not be loaded:', bootcampResult.error.message);
+
+  return {
+    ...post,
+    profiles: profileResult.data || null,
+    bootcamps: bootcampResult.data || null,
+  };
+};
+
 export const Route = createFileRoute("/app/post/$id")({
   loader: async ({ params: { id }, context: { queryClient } }) => {
     const cachedPost = findCachedPost(queryClient, id);
     if (cachedPost) return { post: cachedPost };
 
-    const { data: post, error } = await supabase
-      .from('posts')
-      .select('*, profiles(*), bootcamps(*, profiles(*))')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) console.error("Error loading post:", error);
+    const post = await fetchPostDetailRecord(id);
     return { post };
   },
   head: ({ loaderData }) => {
@@ -125,12 +145,10 @@ function PostDetail() {
     queryKey: ['post', id],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const postRes = await supabase.from('posts').select('*, profiles(*), bootcamps(*, profiles(*))').eq('id', id).single();
-      if (postRes.error) throw postRes.error;
-      const postData = postRes.data;
+      const postData = await fetchPostDetailRecord(id);
+      if (!postData) throw new Error('This post or Ship no longer exists.');
 
-      const [postComments, bookmarkRes, likeRes, followRes, commentLikesRes, repostRes, totalRepostsRes, totalQuotesRes] = await Promise.all([
-        fetchPostComments(id),
+      const [bookmarkRes, likeRes, followRes, commentLikesRes, repostRes, totalRepostsRes, totalQuotesRes] = await Promise.all([
         session ? supabase.from('bookmarks').select('*').eq('profile_id', session.user.id).eq('post_id', id).maybeSingle() : Promise.resolve({ data: null }),
         session ? supabase.from('likes').select('*').eq('profile_id', session.user.id).eq('post_id', id).maybeSingle() : Promise.resolve({ data: null }),
         session ? supabase.from('follows').select('*').eq('follower_id', session.user.id).eq('following_id', postData.author_id).maybeSingle() : Promise.resolve({ data: null }),
@@ -142,7 +160,6 @@ function PostDetail() {
 
       return { 
         post: { ...postData, computed_reposts_count: (totalRepostsRes.count || 0) + (totalQuotesRes.count || 0) },
-        comments: postComments,
         isBookmarked: !!bookmarkRes.data,
         isLiked: !!likeRes.data,
         isFollowing: !!followRes.data,
@@ -161,10 +178,21 @@ function PostDetail() {
     staleTime: 0
   });
 
+  const {
+    data: postComments = [],
+    isLoading: commentsLoading,
+    isError: commentsError,
+    refetch: refetchComments,
+  } = useQuery({
+    queryKey: ['post-comments', id],
+    queryFn: () => fetchPostComments(id),
+    enabled: Boolean(id),
+    staleTime: 10_000,
+    retry: 2,
+  });
+
   const post = data?.post;
-  const initialComments = data?.comments || [];
-  
-  const [comments, setComments] = useState(initialComments);
+  const [comments, setComments] = useState<any[]>([]);
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<any>(null); // Tracks the comment being replied to
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -236,12 +264,6 @@ function PostDetail() {
 
   useEffect(() => {
     if (data) {
-      const likedIds = new Set(data.commentLikes || []);
-      setComments(data.comments.map((c: any) => ({
-        ...c,
-        isLiked: likedIds.has(c.id),
-        likes_count: c.likes_count || 0
-      })));
       setLiked(data.isLiked);
       setInitialLiked(data.isLiked);
       setIsBookmarked(data.isBookmarked);
@@ -258,6 +280,15 @@ function PostDetail() {
   }, [data]);
 
   useEffect(() => {
+    const likedIds = new Set(data?.commentLikes || []);
+    setComments(postComments.map((comment: any) => ({
+      ...comment,
+      isLiked: likedIds.has(comment.id),
+      likes_count: comment.likes_count || 0,
+    })));
+  }, [postComments, data?.commentLikes]);
+
+  useEffect(() => {
     if (!id) return;
 
     const channel = supabase
@@ -271,7 +302,7 @@ function PostDetail() {
           filter: `post_id=eq.${id}`,
         },
         () => {
-          void queryClient.invalidateQueries({ queryKey: ['post', id] });
+          void queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
         },
       )
       .subscribe();
@@ -343,6 +374,7 @@ function PostDetail() {
       ));
       setEditingCommentId(null);
       setEditCommentText("");
+      void queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
       toast.success("Comment updated!");
     } catch (err: any) {
       toast.error(err.message || "Failed to update comment");
@@ -383,6 +415,7 @@ function PostDetail() {
       window.dispatchEvent(new CustomEvent('comment-deleted', {
         detail: { postId: post.id, count: deletedIds.size },
       }));
+      void queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
       queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
       toast.success("Comment deleted");
     } catch (error: any) {
@@ -586,7 +619,7 @@ function PostDetail() {
 
       toast.success(replyTo ? "Reply posted! 💬" : "Comment posted! 💬");
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['post', post.id] }),
+        queryClient.invalidateQueries({ queryKey: ['post-comments', post.id] }),
         queryClient.invalidateQueries({ queryKey: ['feed_posts'] }),
       ]);
       router.invalidate();
@@ -1018,6 +1051,18 @@ function PostDetail() {
 
         {/* Comments List */}
         <section className="mt-2 divide-y divide-border/30 px-4 pb-40">
+          {commentsLoading && comments.length === 0 && (
+            <div className="flex items-center justify-center gap-2 py-10 text-[12px] font-medium text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              Loading replies...
+            </div>
+          )}
+          {commentsError && comments.length === 0 && (
+            <div className="py-10 text-center">
+              <p className="text-[12px] font-medium text-muted-foreground">Replies could not be loaded.</p>
+              <button type="button" onClick={() => void refetchComments()} className="mt-3 h-9 rounded-md border border-border px-4 text-[11px] font-semibold hover:bg-accent">Try again</button>
+            </div>
+          )}
           {threadedComments.map((comment: any) => {
             const isReply = comment.isReply;
             
@@ -1172,7 +1217,7 @@ function PostDetail() {
               </div>
             );
           })}
-          {comments.length === 0 && (
+          {!commentsLoading && !commentsError && comments.length === 0 && (
             <div className="py-12 text-center">
               <p className="text-sm text-muted-foreground italic">Be the first to reply!</p>
             </div>

@@ -97,7 +97,7 @@ const plans: Plan[] = [
     recommendedFor: "Tutor",
     storedTier: "Basic",
     billingLabel: "forever",
-    features: ["Create and sell bootcamps", "2 rewarded Zero Games competitions weekly", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "1 permanent Club", "Tutor profile, feed, and community access"],
+    features: ["Create and sell bootcamps", "3 rewarded Zero Games competitions weekly", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "1 permanent Club", "Tutor profile, feed, and community access"],
     limitations: ["No Zero AI teaching assistance", "No verified bootcamp badge", "Cannot connect a bootcamp to an existing club"],
   },
   {

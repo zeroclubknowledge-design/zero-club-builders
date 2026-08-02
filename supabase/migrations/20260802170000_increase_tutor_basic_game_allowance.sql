@@ -1,25 +1,13 @@
--- Scale rewarded Zero Games competition allowances for paid professional plans.
--- Learner plans remain the product baseline; Creator, Tutor, and Institution
--- plans receive higher capacity based on price and expected cohort usage.
+-- Increase Tutor Basic from two to three rewarded Zero Games competitions weekly.
 
-with allowance_updates(plan_key, previous_feature, next_feature) as (
-  values
-    ('creator', '5 rewarded Zero Games competitions weekly', '12 rewarded Zero Games competitions weekly, maximum 2 daily'),
-    ('tutor_premium', '5 rewarded Zero Games competitions weekly', '8 rewarded Zero Games competitions weekly, maximum 2 daily'),
-    ('tutor_premium_plus', '14 rewarded Zero Games competitions weekly, maximum 2 daily', '20 rewarded Zero Games competitions weekly, maximum 3 daily'),
-    ('institution_small', '5 rewarded Zero Games competitions weekly', '21 rewarded Zero Games competitions weekly, maximum 3 daily'),
-    ('institution_large', '14 rewarded Zero Games competitions weekly, maximum 2 daily', '56 rewarded Zero Games competitions weekly, maximum 8 daily'),
-    ('institution_custom', '14 rewarded Zero Games competitions weekly, maximum 2 daily', '84 rewarded Zero Games competitions weekly, maximum 12 daily')
-)
-update public.subscription_plans as plan
+update public.subscription_plans
 set features = case
-      when (coalesce(plan.features, '[]'::jsonb) - allowance_updates.previous_feature) @> jsonb_build_array(allowance_updates.next_feature)
-        then coalesce(plan.features, '[]'::jsonb) - allowance_updates.previous_feature
-      else (coalesce(plan.features, '[]'::jsonb) - allowance_updates.previous_feature) || jsonb_build_array(allowance_updates.next_feature)
+      when (coalesce(features, '[]'::jsonb) - '2 rewarded Zero Games competitions weekly') @> jsonb_build_array('3 rewarded Zero Games competitions weekly')
+        then coalesce(features, '[]'::jsonb) - '2 rewarded Zero Games competitions weekly'
+      else (coalesce(features, '[]'::jsonb) - '2 rewarded Zero Games competitions weekly') || jsonb_build_array('3 rewarded Zero Games competitions weekly')
     end,
     updated_at = now()
-from allowance_updates
-where plan.key = allowance_updates.plan_key;
+where key = 'tutor_basic';
 
 create or replace function public.get_zero_game_reward_allowance(target_profile uuid)
 returns jsonb

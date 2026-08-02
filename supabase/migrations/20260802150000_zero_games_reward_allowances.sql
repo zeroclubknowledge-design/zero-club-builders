@@ -7,7 +7,7 @@ with reward_features(plan_key, feature) as (
     ('learner_basic', '2 rewarded Zero Games competitions weekly'),
     ('learner_premium', '5 rewarded Zero Games competitions weekly'),
     ('creator', '12 rewarded Zero Games competitions weekly, maximum 2 daily'),
-    ('tutor_basic', '2 rewarded Zero Games competitions weekly'),
+    ('tutor_basic', '3 rewarded Zero Games competitions weekly'),
     ('tutor_premium', '8 rewarded Zero Games competitions weekly, maximum 2 daily'),
     ('tutor_premium_plus', '20 rewarded Zero Games competitions weekly, maximum 3 daily'),
     ('institution_small', '21 rewarded Zero Games competitions weekly, maximum 3 daily'),
@@ -102,6 +102,7 @@ declare
 begin
   weekly_limit := case plan_key
     when 'learner_premium' then 5
+    when 'tutor_basic' then 3
     when 'creator' then 12
     when 'tutor_premium' then 8
     when 'tutor_premium_plus' then 20

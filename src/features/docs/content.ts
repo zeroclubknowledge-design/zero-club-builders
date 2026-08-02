@@ -352,7 +352,7 @@ export const docPages: DocPage[] = [
       {
         title: "Reward allowances",
         paragraphs: ["Every published competition includes a winner reward and uses one allowance. Cancelled competitions release their usage. The allowance resets each Monday using the Zero Club operating timezone."],
-        bullets: ["Learner Basic and Tutor Basic: 2 rewarded competitions weekly; Learner Premium: 5 weekly.", "Creator: 12 weekly, maximum 2 daily; Tutor Premium: 8 weekly, maximum 2 daily; Tutor Premium+: 20 weekly, maximum 3 daily.", "Institution Small: 21 weekly, maximum 3 daily; Institution Large: 56 weekly, maximum 8 daily; Institution Custom: 84 weekly, maximum 12 daily."],
+        bullets: ["Learner Basic: 2 rewarded competitions weekly; Tutor Basic: 3 weekly; Learner Premium: 5 weekly.", "Creator: 12 weekly, maximum 2 daily; Tutor Premium: 8 weekly, maximum 2 daily; Tutor Premium+: 20 weekly, maximum 3 daily.", "Institution Small: 21 weekly, maximum 3 daily; Institution Large: 56 weekly, maximum 8 daily; Institution Custom: 84 weekly, maximum 12 daily."],
         note: "Invitation shares include the exact winner offer or secured cash prize so people can understand what they are joining before opening the competition.",
       },
     ],
