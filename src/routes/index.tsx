@@ -322,7 +322,7 @@ function Header({ referralCode }: ReferralProps) {
 /* ── Code-built product showcase: the real Zero Club, not screenshots ── */
 function ProductShowcase() {
   return (
-    <div className="relative mx-auto w-[328px] max-w-[calc(100vw-32px)] min-w-0 justify-self-center pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
+    <div className="relative mx-auto w-[calc(100vw-20px)] max-w-[380px] min-w-0 justify-self-center pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
       {/* Glow */}
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
