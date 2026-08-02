@@ -322,7 +322,7 @@ function Header({ referralCode }: ReferralProps) {
 /* ── Code-built product showcase: the real Zero Club, not screenshots ── */
 function ProductShowcase() {
   return (
-    <div className="relative mx-auto w-[300px] max-w-[calc(100vw-40px)] min-w-0 justify-self-center pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
+    <div className="relative mx-auto w-[328px] max-w-[calc(100vw-32px)] min-w-0 justify-self-center pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
       {/* Glow */}
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
@@ -485,20 +485,61 @@ function Hero({ referralCode }: ReferralProps) {
         <ProductShowcase />
       </div>
 
-      {/* Stat strip */}
-      <div className="border-t border-[#171717]/[0.06] bg-white/60">
-        <div className="mx-auto grid max-w-[1180px] grid-cols-2 gap-px px-4 py-6 text-center md:grid-cols-4 md:px-6">
-          {[
-            ["Live bootcamps", "Taught by real builders"],
-            ["Proof-of-work profiles", "Reputation you can verify"],
-            ["Creator wallet", "Earn from what you teach"],
-            ["XP that compounds", "Progress you can see"],
-          ].map(([title, sub]) => (
-            <div key={title} className="px-3">
-              <p className="text-[13.5px] font-semibold tracking-tight text-[#171717]">{title}</p>
-              <p className="mt-0.5 text-[11.5px] text-[#666a70]">{sub}</p>
-            </div>
-          ))}
+      {/* Integrated product capability band */}
+      <div className="border-t border-white/[0.08] bg-[#171417] text-white">
+        <div className="mx-auto max-w-[1180px]">
+          <div className="flex min-h-12 items-center justify-between border-b border-white/[0.09] px-4 py-3 md:px-6">
+            <p className="flex items-center gap-2 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#f28fd0]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f]" />
+              The builder system
+            </p>
+            <p className="hidden text-[10px] font-medium tracking-[0.04em] text-white/45 sm:block">
+              Learn. Prove. Earn. Compound.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Live bootcamps",
+                copy: "Learn directly from builders doing the work.",
+                Icon: IconLearn,
+              },
+              {
+                title: "Proof-of-work profiles",
+                copy: "Let shipped work and progress speak first.",
+                Icon: IconProfile,
+              },
+              {
+                title: "Creator wallet",
+                copy: "Earn and manage value without leaving your network.",
+                Icon: IconWallet,
+              },
+              {
+                title: "XP that compounds",
+                copy: "Turn every contribution into visible experience.",
+                Icon: IconPresentation,
+              },
+            ].map(({ title, copy, Icon }, index) => (
+              <article
+                key={title}
+                className={`min-h-[146px] px-4 py-5 md:min-h-[158px] md:px-6 md:py-6 ${
+                  index % 2 === 0 ? "border-r border-white/[0.09]" : ""
+                } ${index < 2 ? "border-b border-white/[0.09] lg:border-b-0" : ""} ${
+                  index < 3 ? "lg:border-r lg:border-white/[0.09]" : "lg:border-r-0"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <span className="grid h-8 w-8 place-items-center rounded-md bg-white/[0.07] text-[#f28fd0] ring-1 ring-inset ring-white/[0.08]">
+                    <Icon active className="h-[17px] w-[17px]" />
+                  </span>
+                  <span className="font-mono text-[9px] tracking-[0.12em] text-white/25">0{index + 1}</span>
+                </div>
+                <h3 className="mt-4 text-[13.5px] font-semibold tracking-tight text-white md:text-[14px]">{title}</h3>
+                <p className="mt-1.5 max-w-[225px] text-[10.5px] leading-[1.55] text-white/50 md:text-[11px]">{copy}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -552,17 +593,21 @@ function LearningSection() {
             Take bootcamps, join clubs, and make your progress visible.
           </h2>
         </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {platformHighlights.map((item) => (
+        <div className="mx-auto mt-10 max-w-[860px] pb-5">
+          {platformHighlights.map((item, index) => (
             <article
               key={item.title}
-              className="group rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_-14px_rgba(0,0,0,0.12)] transition-all hover:ring-[#cc208f]/25 hover:-translate-y-0.5"
+              className="sticky mb-5 min-h-[210px] rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[220px] md:p-8"
+              style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
             >
-              <div className="mb-5 grid h-11 w-11 place-items-center rounded-full bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
-                <item.Icon className="h-[22px] w-[22px]" />
+              <div className="flex items-start justify-between gap-5">
+                <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
+                  <item.Icon active className="h-[22px] w-[22px]" />
+                </div>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
-              <h3 className="text-[17px] font-semibold leading-snug tracking-tight text-[#171717]">{item.title}</h3>
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70]">{item.copy}</p>
+              <h3 className="mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] md:text-[22px]">{item.title}</h3>
+              <p className="mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] md:text-[14px]">{item.copy}</p>
             </article>
           ))}
         </div>
@@ -617,14 +662,18 @@ function OpportunitiesSection() {
             A network for people who want to be known by what they build.
           </h2>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {audienceCards.map((card) => (
+        <div className="pb-5">
+          {audienceCards.map((card, index) => (
             <article
               key={card.title}
-              className="rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_-14px_rgba(0,0,0,0.12)] transition-all hover:ring-[#cc208f]/25 hover:-translate-y-0.5"
+              className="sticky mb-5 min-h-[190px] rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px]"
+              style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
             >
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
-                <card.Icon className="h-[22px] w-[22px]" />
+              <div className="flex items-start justify-between gap-5">
+                <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
+                  <card.Icon active className="h-[22px] w-[22px]" />
+                </div>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
               <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717]">{card.title}</h3>
               <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70]">{card.copy}</p>
@@ -704,17 +753,21 @@ function FeaturesSection() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {zeroClubFeatures.map((feature) => (
+        <div className="mx-auto mt-10 max-w-[900px] pb-5">
+          {zeroClubFeatures.map((feature, index) => (
             <article
               key={feature.title}
-              className="group rounded-lg bg-white p-5 ring-1 ring-[#171717]/[0.06] shadow-[0_8px_24px_-18px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:ring-[#cc208f]/25"
+              className="sticky mb-5 min-h-[190px] rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px] md:p-7"
+              style={{ top: `calc(4.75rem + ${index * 11}px)`, zIndex: index + 1 }}
             >
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
-                {feature.icon}
+              <div className="flex items-start justify-between gap-5">
+                <div className="grid h-10 w-10 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
+                  {feature.icon}
+                </div>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
-              <h3 className="mt-5 text-[16px] font-semibold tracking-tight text-[#171717]">{feature.title}</h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-[#666a70]">{feature.copy}</p>
+              <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] md:text-[20px]">{feature.title}</h3>
+              <p className="mt-2 max-w-[680px] text-[13px] leading-relaxed text-[#666a70] md:text-[13.5px]">{feature.copy}</p>
             </article>
           ))}
         </div>
