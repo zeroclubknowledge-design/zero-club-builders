@@ -56,25 +56,25 @@ const mobileNavGroups = [
   {
     label: "Build",
     items: [
-      { label: "Docs", detail: "Notes, ideas, and work in progress", href: "#features" },
-      { label: "Metrics", detail: "Your proof, progress, and momentum", href: "#features" },
-      { label: "Zero AI", detail: "A practical thinking partner", href: "#features" },
+      { label: "Docs", detail: "The complete guide to Zero Club", href: "/docs" },
+      { label: "Metrics", detail: "Your proof, progress, and momentum", href: "/explore/metrics" },
+      { label: "Zero AI", detail: "A practical thinking partner", href: "/explore/zero-ai" },
     ],
   },
   {
     label: "Explore",
     items: [
-      { label: "Feed", detail: "Follow real work and progress", href: "#feed" },
-      { label: "Bootcamps", detail: "Learn with working professionals", href: "#learning" },
-      { label: "Clubs", detail: "Focused communities around work", href: "#clubs" },
-      { label: "Opportunities", detail: "Open doors through proof", href: "#opportunities" },
+      { label: "Feed", detail: "Follow real work and progress", href: "/explore/feed" },
+      { label: "Bootcamps", detail: "Learn with working professionals", href: "/explore/bootcamps" },
+      { label: "Clubs", detail: "Focused communities around work", href: "/explore/clubs" },
+      { label: "Opportunities", detail: "Open doors through proof", href: "/explore/opportunities" },
     ],
   },
   {
     label: "Earn",
     items: [
-      { label: "Wallet", detail: "Manage what your work earns", href: "#wallet" },
-      { label: "Store", detail: "Sell products and private access", href: "#wallet" },
+      { label: "Wallet", detail: "Manage what your work earns", href: "/explore/wallet" },
+      { label: "Store", detail: "Sell products and private access", href: "/explore/store" },
     ],
   },
 ];
@@ -832,7 +832,7 @@ function FinalCta({ referralCode }: ReferralProps) {
           <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
           <div className="relative">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#f28fd0]">Zero Club</p>
+            <img src="/logo.png" alt="Zero Club" className="mx-auto h-10 w-10 object-contain" />
             <h2 className="mx-auto mt-4 max-w-[680px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] text-white md:text-[52px]">
               Built for the next generation of builders.
             </h2>

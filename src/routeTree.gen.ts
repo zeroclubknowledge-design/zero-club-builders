@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as AppZerohubRouteImport } from './routes/app.zerohub'
 import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
 import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
@@ -87,6 +89,11 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -106,6 +113,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const ExploreSlugRoute = ExploreSlugRouteImport.update({
+  id: '/explore/$slug',
+  path: '/explore/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppZerohubRoute = AppZerohubRouteImport.update({
   id: '/zerohub',
@@ -421,6 +433,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
+  '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/app/admin': typeof AppAdminRouteWithChildren
@@ -441,6 +454,7 @@ export interface FileRoutesByFullPath {
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
+  '/explore/$slug': typeof ExploreSlugRoute
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -489,6 +503,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/app/bookmarks': typeof AppBookmarksRoute
@@ -504,6 +519,7 @@ export interface FileRoutesByTo {
   '/app/store': typeof AppStoreRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
+  '/explore/$slug': typeof ExploreSlugRoute
   '/app': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -554,6 +570,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
+  '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/app/admin': typeof AppAdminRouteWithChildren
@@ -574,6 +591,7 @@ export interface FileRoutesById {
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
+  '/explore/$slug': typeof ExploreSlugRoute
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -625,6 +643,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/app'
+    | '/docs'
     | '/signin'
     | '/signup'
     | '/app/admin'
@@ -645,6 +664,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio'
     | '/app/zero-ai'
     | '/app/zerohub'
+    | '/explore/$slug'
     | '/app/'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -693,6 +713,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/docs'
     | '/signin'
     | '/signup'
     | '/app/bookmarks'
@@ -708,6 +729,7 @@ export interface FileRouteTypes {
     | '/app/store'
     | '/app/zero-ai'
     | '/app/zerohub'
+    | '/explore/$slug'
     | '/app'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -757,6 +779,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/app'
+    | '/docs'
     | '/signin'
     | '/signup'
     | '/app/admin'
@@ -777,6 +800,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio'
     | '/app/zero-ai'
     | '/app/zerohub'
+    | '/explore/$slug'
     | '/app/'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -827,8 +851,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AppRoute: typeof AppRouteWithChildren
+  DocsRoute: typeof DocsRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
+  ExploreSlugRoute: typeof ExploreSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -845,6 +871,13 @@ declare module '@tanstack/react-router' {
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -874,6 +907,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/explore/$slug': {
+      id: '/explore/$slug'
+      path: '/explore/$slug'
+      fullPath: '/explore/$slug'
+      preLoaderRoute: typeof ExploreSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/zerohub': {
       id: '/app/zerohub'
@@ -1499,8 +1539,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AppRoute: AppRouteWithChildren,
+  DocsRoute: DocsRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
+  ExploreSlugRoute: ExploreSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
