@@ -68,6 +68,7 @@ import { Route as AppNotesCreateRouteImport } from './routes/app.notes.create'
 import { Route as AppNotesIdRouteImport } from './routes/app.notes.$id'
 import { Route as AppLiveClassIdRouteImport } from './routes/app.live.$classId'
 import { Route as AppGiftsCodeRouteImport } from './routes/app.gifts.$code'
+import { Route as AppGamesSoloRouteImport } from './routes/app.games.solo'
 import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
 import { Route as AppGamesIdRouteImport } from './routes/app.games.$id'
 import { Route as AppClubsChatRouteImport } from './routes/app.clubs.chat'
@@ -378,6 +379,11 @@ const AppGiftsCodeRoute = AppGiftsCodeRouteImport.update({
   path: '/gifts/$code',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGamesSoloRoute = AppGamesSoloRouteImport.update({
+  id: '/games/solo',
+  path: '/games/solo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGamesCreateRoute = AppGamesCreateRouteImport.update({
   id: '/games/create',
   path: '/games/create',
@@ -470,6 +476,7 @@ export interface FileRoutesByFullPath {
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
+  '/app/games/solo': typeof AppGamesSoloRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
+  '/app/games/solo': typeof AppGamesSoloRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
@@ -609,6 +617,7 @@ export interface FileRoutesById {
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
+  '/app/games/solo': typeof AppGamesSoloRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
@@ -683,6 +692,7 @@ export interface FileRouteTypes {
     | '/app/clubs/chat'
     | '/app/games/$id'
     | '/app/games/create'
+    | '/app/games/solo'
     | '/app/gifts/$code'
     | '/app/live/$classId'
     | '/app/notes/$id'
@@ -749,6 +759,7 @@ export interface FileRouteTypes {
     | '/app/clubs/chat'
     | '/app/games/$id'
     | '/app/games/create'
+    | '/app/games/solo'
     | '/app/gifts/$code'
     | '/app/live/$classId'
     | '/app/notes/$id'
@@ -821,6 +832,7 @@ export interface FileRouteTypes {
     | '/app/clubs/chat'
     | '/app/games/$id'
     | '/app/games/create'
+    | '/app/games/solo'
     | '/app/gifts/$code'
     | '/app/live/$classId'
     | '/app/notes/$id'
@@ -1284,6 +1296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGiftsCodeRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/games/solo': {
+      id: '/app/games/solo'
+      path: '/games/solo'
+      fullPath: '/app/games/solo'
+      preLoaderRoute: typeof AppGamesSoloRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/games/create': {
       id: '/app/games/create'
       path: '/games/create'
@@ -1484,6 +1503,7 @@ interface AppRouteChildren {
   AppClubsChatRoute: typeof AppClubsChatRoute
   AppGamesIdRoute: typeof AppGamesIdRoute
   AppGamesCreateRoute: typeof AppGamesCreateRoute
+  AppGamesSoloRoute: typeof AppGamesSoloRoute
   AppGiftsCodeRoute: typeof AppGiftsCodeRoute
   AppLiveClassIdRoute: typeof AppLiveClassIdRoute
   AppPostIdRoute: typeof AppPostIdRoute
@@ -1533,6 +1553,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppClubsChatRoute: AppClubsChatRoute,
   AppGamesIdRoute: AppGamesIdRoute,
   AppGamesCreateRoute: AppGamesCreateRoute,
+  AppGamesSoloRoute: AppGamesSoloRoute,
   AppGiftsCodeRoute: AppGiftsCodeRoute,
   AppLiveClassIdRoute: AppLiveClassIdRoute,
   AppPostIdRoute: AppPostIdRoute,

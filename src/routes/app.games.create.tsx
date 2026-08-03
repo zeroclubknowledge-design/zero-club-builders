@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -143,6 +143,11 @@ function CreateZeroGame() {
       </header>
 
       <main className="mx-auto grid w-full max-w-[1080px] gap-6 px-4 py-5 md:grid-cols-[minmax(0,1fr)_320px] md:px-7 md:py-8">
+        <section className="flex flex-col gap-3 rounded-md border border-border bg-card p-4 sm:flex-row sm:items-center md:col-span-2">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground"><Gamepad2 className="h-5 w-5 fill-current" /></span>
+          <div className="min-w-0 flex-1"><p className="text-[12px] font-semibold">Prefer playing alone?</p><p className="mt-0.5 text-[10.5px] text-muted-foreground">Solo starts immediately with no lobby, invitations, or winner reward.</p></div>
+          <Link to="/app/games/solo" search={{ game: gameType, difficulty, profession }} className="grid h-10 shrink-0 place-items-center rounded-md bg-foreground px-4 text-[11px] font-semibold text-background">Start Solo</Link>
+        </section>
         <div className="space-y-6">
           <FormSection eyebrow="01 · Game" title="Choose the race">
             <div className="grid gap-3 sm:grid-cols-2">

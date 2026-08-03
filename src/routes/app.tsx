@@ -80,6 +80,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/wallet": "Wallet",
   "/app/chat": "Messages",
   "/app/games": "Zero Games",
+  "/app/games/solo": "Solo Game",
   "/app/premium": "Premium",
   "/app/creator": "Creator Workspace",
   "/app/bookmarks": "Bookmarks",

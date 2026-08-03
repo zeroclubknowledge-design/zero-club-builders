@@ -6,6 +6,7 @@ type SudokuRaceBoardProps = {
   puzzle: string;
   disabled?: boolean;
   submitting?: boolean;
+  submitLabel?: string;
   onProgress?: (progress: number) => void;
   onSubmit: (solution: string) => void;
 };
@@ -14,6 +15,7 @@ export function SudokuRaceBoard({
   puzzle,
   disabled = false,
   submitting = false,
+  submitLabel = "Finish race",
   onProgress,
   onSubmit,
 }: SudokuRaceBoardProps) {
@@ -156,7 +158,7 @@ export function SudokuRaceBoard({
           className="flex h-11 min-w-0 items-center justify-center gap-2 rounded-md bg-foreground px-4 text-[12px] font-semibold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
         >
           <Send className="h-4 w-4 fill-current" />
-          <span>{submitting ? "Checking" : "Finish race"}</span>
+          <span>{submitting ? "Checking" : submitLabel}</span>
         </button>
       </div>
     </div>

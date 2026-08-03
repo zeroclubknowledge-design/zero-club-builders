@@ -17,21 +17,16 @@ import {
   Trophy,
   Users,
   WalletCards,
-  X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { SudokuRaceBoard } from "@/features/games/SudokuRaceBoard";
 import {
-  generatePracticeSudoku,
   getGameName,
   playerCount,
   profileName,
   type ZeroGameCompetition,
-  type ZeroGameDifficulty,
 } from "@/features/games/zeroGames";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/games/")({
   component: ZeroGamesHome,
@@ -75,8 +70,6 @@ function ZeroGamesHome() {
   const { format } = useWalletCurrency();
   const [query, setQuery] = useState("");
   const [activeGame, setActiveGame] = useState<"all" | "sudoku" | "words">("all");
-  const [practice, setPractice] = useState<ReturnType<typeof generatePracticeSudoku> | null>(null);
-  const [practiceDifficulty, setPracticeDifficulty] = useState<ZeroGameDifficulty>("easy");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["zero-games", profile?.id],
@@ -101,11 +94,6 @@ function ZeroGamesHome() {
   const openGames = games.filter((competition) => competition.status === "open");
   const completedGames = games.filter((competition) => competition.status === "completed").slice(0, 4);
 
-  const openPractice = (difficulty: ZeroGameDifficulty) => {
-    setPracticeDifficulty(difficulty);
-    setPractice(generatePracticeSudoku(difficulty));
-  };
-
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-10">
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
@@ -121,6 +109,9 @@ function ZeroGamesHome() {
             <WalletCards className="h-4 w-4 fill-current text-primary" />
             {format(Number(profile?.coins || 0), { notation: "compact" })}
           </Link>
+          <Link to="/app/games/solo" search={{ game: "sudoku", difficulty: "easy", profession: "Web Developer" }} className="hidden h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[11px] font-semibold min-[430px]:flex">
+            <Gamepad2 className="h-4 w-4 fill-current" />Play solo
+          </Link>
           <Link to="/app/games/create" search={{ game: undefined }} className="flex h-9 items-center gap-1.5 rounded-md bg-foreground px-3 text-[11px] font-semibold text-background sm:px-4">
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             <span className="hidden min-[380px]:inline">Create race</span>
@@ -133,14 +124,14 @@ function ZeroGamesHome() {
           <GameProductCard
             type="sudoku"
             title="Zero Sudoku"
-            description="Race on the same logic grid. The first correct finish unlocks the reward."
-            action={<button onClick={() => openPractice("easy")} className="text-[11px] font-semibold text-foreground hover:text-primary">Warm up</button>}
+            description="Solve a fresh logic grid alone or race builders for a winner reward."
+            action={<div className="flex items-center gap-4"><Link to="/app/games/solo" search={{ game: "sudoku", difficulty: "easy", profession: "Web Developer" }} className="text-[11px] font-semibold text-foreground hover:text-primary">Play solo</Link><Link to="/app/games/create" search={{ game: "sudoku" }} className="text-[11px] font-semibold text-muted-foreground hover:text-primary">Create race</Link></div>}
           />
           <GameProductCard
             type="words"
             title="Zero Words"
-            description="Find professional terms across a shared board before everyone else."
-            action={<Link to="/app/games/create" search={{ game: "words" }} className="text-[11px] font-semibold text-foreground hover:text-primary">Create a word race</Link>}
+            description="Trace professional terms at your own pace or compete on a shared board."
+            action={<div className="flex items-center gap-4"><Link to="/app/games/solo" search={{ game: "words", difficulty: "easy", profession: "Web Developer" }} className="text-[11px] font-semibold text-foreground hover:text-primary">Play solo</Link><Link to="/app/games/create" search={{ game: "words" }} className="text-[11px] font-semibold text-muted-foreground hover:text-primary">Create race</Link></div>}
           />
         </section>
 
@@ -175,28 +166,6 @@ function ZeroGamesHome() {
         )}
       </main>
 
-      {practice && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-background md:bg-black/45 md:p-6" role="dialog" aria-modal="true">
-          <div className="mx-auto min-h-full w-full max-w-[760px] bg-background px-4 pb-8 pt-[calc(1rem+env(safe-area-inset-top))] md:min-h-0 md:rounded-md md:border md:border-border md:p-6 md:shadow-2xl">
-            <div className="mb-5 flex items-center justify-between">
-              <div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Practice board</p><h2 className="text-[19px] font-semibold tracking-tight capitalize">{practiceDifficulty} Sudoku</h2></div>
-              <button onClick={() => setPractice(null)} className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card"><X className="h-4 w-4" /></button>
-            </div>
-            <SudokuRaceBoard
-              puzzle={practice.puzzle}
-              onSubmit={(solution) => {
-                if (solution === practice.solution) toast.success("Practice grid complete");
-                else toast.error("A few cells still need another look");
-              }}
-            />
-            <div className="mx-auto mt-5 flex max-w-[560px] flex-wrap gap-2 border-t border-border pt-4">
-              {(["easy", "medium", "hard", "expert"] as ZeroGameDifficulty[]).map((difficulty) => (
-                <button key={difficulty} onClick={() => openPractice(difficulty)} className={`h-8 rounded-md border px-3 text-[10px] font-semibold capitalize ${difficulty === practiceDifficulty ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground"}`}>{difficulty}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

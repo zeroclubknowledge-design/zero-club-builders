@@ -9,6 +9,7 @@ type WordsRaceBoardProps = {
   size?: number;
   disabled?: boolean;
   submitting?: boolean;
+  submitLabel?: string;
   onProgress?: (progress: number) => void;
   onSubmit: (found: Array<{ word: string; path: number[] }>) => void;
 };
@@ -19,6 +20,7 @@ export function WordsRaceBoard({
   size = 12,
   disabled = false,
   submitting = false,
+  submitLabel = "Finish race",
   onProgress,
   onSubmit,
 }: WordsRaceBoardProps) {
@@ -187,7 +189,7 @@ export function WordsRaceBoard({
             <RotateCcw className="h-[18px] w-[18px]" />
           </button>
           <button type="button" disabled={disabled || submitting || foundWords.length !== words.length} onClick={() => onSubmit(foundWords.map((word, foundIndex) => ({ word, path: foundPaths[foundIndex] })))} className="flex h-11 items-center justify-center gap-2 rounded-md bg-foreground text-[12px] font-semibold text-background disabled:opacity-35">
-            <Send className="h-4 w-4 fill-current" /> {submitting ? "Checking" : "Finish race"}
+            <Send className="h-4 w-4 fill-current" /> {submitting ? "Checking" : submitLabel}
           </button>
         </div>
       </div>
@@ -213,7 +215,7 @@ export function WordsRaceBoard({
             <RotateCcw className="h-[18px] w-[18px]" />
           </button>
           <button type="button" disabled={disabled || submitting || foundWords.length !== words.length} onClick={() => onSubmit(foundWords.map((word, foundIndex) => ({ word, path: foundPaths[foundIndex] })))} className="flex h-11 items-center justify-center gap-2 rounded-md bg-foreground text-[12px] font-semibold text-background disabled:opacity-35">
-            <Send className="h-4 w-4 fill-current" /> {submitting ? "Checking" : "Finish race"}
+            <Send className="h-4 w-4 fill-current" /> {submitting ? "Checking" : submitLabel}
           </button>
         </div>
       </aside>
