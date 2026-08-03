@@ -212,7 +212,11 @@ function ComposePage() {
       updateBodyText(html, textBeforeCursor);
     },
     onFocus: () => setIsEditorFocused(true),
-    onBlur: () => setTimeout(() => setIsEditorFocused(false), 200),
+    onBlur: ({ event }) => {
+      const relatedTarget = event.relatedTarget as HTMLElement | null;
+      if (relatedTarget?.closest('.formatting-toolbar')) return;
+      window.setTimeout(() => setIsEditorFocused(false), 200);
+    },
   });
 
   useEffect(() => {
@@ -467,31 +471,6 @@ function ComposePage() {
       <div className="no-scrollbar mx-auto w-full max-w-[860px] flex-1 overflow-y-auto px-4 pb-32 pt-4 sm:px-6 sm:pt-6">
         {/* Post Card */}
         <div className="relative flex flex-col rounded-lg border border-border bg-card p-4 sm:p-6">
-          {/* Static Formatting Toolbar */}
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/40">
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/60 text-foreground/80 transition hover:bg-accent hover:text-foreground active:scale-95"
-              title="Bold"
-            >
-              <Bold className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); insertFormatting('italic'); }}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/60 text-foreground/80 transition hover:bg-accent hover:text-foreground active:scale-95"
-              title="Italic"
-            >
-              <Italic className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); insertFormatting('bullet'); }}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/60 text-foreground/80 transition hover:bg-accent hover:text-foreground active:scale-95"
-              title="Bullet List"
-            >
-              <List className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-          </div>
-
           <div className="relative min-h-[150px] w-full text-lg">
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
@@ -686,6 +665,42 @@ function ComposePage() {
         </div>
 
       </div>
+
+      {/* Keep text controls within thumb reach while composing long posts. */}
+      {isEditorFocused && (
+        <div className="formatting-toolbar fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] left-1/2 z-[60] w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-200">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-2 shadow-xl">
+            <button
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bold'); }}
+              className="grid h-9 w-9 place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90"
+              title="Bold"
+              aria-label="Bold"
+            >
+              <Bold className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+            <button
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); insertFormatting('italic'); }}
+              className="grid h-9 w-9 place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90"
+              title="Italic"
+              aria-label="Italic"
+            >
+              <Italic className="h-4 w-4" strokeWidth={2} />
+            </button>
+            <div className="mx-1 h-5 w-px bg-border" />
+            <button
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bullet'); }}
+              className="grid h-9 w-9 place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90"
+              title="Bullet list"
+              aria-label="Bullet list"
+            >
+              <List className="h-4 w-4" strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 sm:px-6">
