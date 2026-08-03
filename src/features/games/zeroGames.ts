@@ -58,6 +58,12 @@ export type ZeroGamePlayer = {
   profile?: ZeroGameProfile | null;
 };
 
+export type ZeroGamePresence = {
+  competition_id: string;
+  profile_id: string;
+  last_seen_at: string;
+};
+
 export type ZeroGameReward = {
   id: string;
   competition_id: string;

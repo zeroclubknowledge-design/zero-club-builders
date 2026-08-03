@@ -142,6 +142,7 @@ function NotificationsPage() {
       case 'repost': return { icon: ArrowUpFromLine, bg: 'bg-emerald-600', text: 'text-white', action: 'reposted your post' };
       case 'mention': return { icon: AtSign, bg: 'bg-amber-600', text: 'text-white', action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };
       case 'build_tagged': return { icon: Trophy, bg: 'bg-violet-600', text: 'text-white', action: 'tagged their post for verification' };
+      case 'game_buzz': return { icon: BellRing, bg: 'bg-amber-400', text: 'text-black', action: 'buzzed you into a Zero Game' };
       case 'system': return { icon: Zap, bg: 'bg-amber-500', text: 'text-black', action: `Referral reward: You and ${actorName} both earned 200 ZP.` };
       default: return { icon: BellRing, bg: 'bg-muted-foreground', text: 'text-background', action: 'interacted with you' };
     }
@@ -280,7 +281,9 @@ function NotificationsPage() {
               markRead(n.id);
             }
             
-            if (['like', 'comment_like', 'comment', 'repost', 'mention', 'build_tagged'].includes(n.type) && n.entity_id) {
+            if (n.type === 'game_buzz' && n.entity_id) {
+              navigate({ to: '/app/games/$id', params: { id: n.entity_id } });
+            } else if (['like', 'comment_like', 'comment', 'repost', 'mention', 'build_tagged'].includes(n.type) && n.entity_id) {
               navigate({ to: '/app/post/$id', params: { id: n.entity_id } });
             } else if (n.type === 'follow' && n.actor_id) {
               navigate({ to: '/app/profile/$id', params: { id: n.actor_id } });

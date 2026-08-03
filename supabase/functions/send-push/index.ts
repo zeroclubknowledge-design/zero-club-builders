@@ -71,13 +71,20 @@ serve(async (req) => {
         repost: "reposted your post",
         mention: "mentioned you",
         build_tagged: "tagged your work for verification",
+        game_buzz: "buzzed you into a Zero Game",
         system: "sent you an account update",
       };
 
-      title = notificationType === "system" ? "Zero Club update" : actorName;
+      title = notificationType === "system"
+        ? "Zero Club update"
+        : notificationType === "game_buzz"
+          ? `${actorName} is buzzing you`
+          : actorName;
       body = payload.record?.content || actions[notificationType] || "You have a new notification.";
       url = notificationType === "follow"
         ? `/app/profile/${actorId}`
+        : notificationType === "game_buzz" && payload.record?.entity_id
+          ? `/app/games/${payload.record.entity_id}`
         : payload.record?.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
           ? `/app/post/${payload.record.entity_id}`
           : "/app/notifications";
@@ -119,7 +126,11 @@ serve(async (req) => {
       });
     }
 
-    const pushPayload = JSON.stringify({ title, body, url });
+    const notificationType = payload.record?.type || payload.type || "notification";
+    const pushPayload = JSON.stringify({ title, body, url, type: notificationType });
+    const pushOptions = notificationType === "game_buzz"
+      ? { urgency: "high" as const, TTL: 60 }
+      : undefined;
     const promises = [];
 
     // Send push notification to all of the user's devices
@@ -133,7 +144,7 @@ serve(async (req) => {
       };
 
       promises.push(
-        webPush.sendNotification(pushSubscription, pushPayload).catch(async (err) => {
+        webPush.sendNotification(pushSubscription, pushPayload, pushOptions).catch(async (err) => {
           console.error("Error sending push notification:", err);
           // If the subscription is no longer valid, delete it
           if (err.statusCode === 410 || err.statusCode === 404) {

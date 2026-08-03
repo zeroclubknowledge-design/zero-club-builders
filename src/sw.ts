@@ -35,18 +35,22 @@ self.addEventListener('push', (event) => {
   const options: NotificationOptions & {
     vibrate?: number[];
     actions?: { action: string; title: string; icon?: string }[];
+    renotify?: boolean;
   } = {
     body: payload.body,
     icon: '/logo.png', // Uses your app icon
     badge: '/logo.png', // Small monochrome icon for Android status bar
-    vibrate: [100, 50, 100],
+    vibrate: payload.type === 'game_buzz' ? [250, 80, 250, 80, 400] : [100, 50, 100],
+    requireInteraction: payload.type === 'game_buzz',
+    tag: payload.type === 'game_buzz' ? `zero-game-buzz:${payload.url || ''}` : undefined,
+    renotify: payload.type === 'game_buzz',
     data: {
       url: payload.url || '/app',
     },
     actions: [
       {
         action: 'open',
-        title: 'Open App'
+        title: payload.type === 'game_buzz' ? 'Join game' : 'Open App'
       }
     ]
   };

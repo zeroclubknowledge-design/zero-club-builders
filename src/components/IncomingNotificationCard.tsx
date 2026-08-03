@@ -71,6 +71,11 @@ const notificationStyles = {
     label: "tagged your work for verification",
     color: "bg-violet-600 text-white",
   },
+  game_buzz: {
+    Icon: BellRing,
+    label: "is buzzing you into the game",
+    color: "bg-amber-400 text-black",
+  },
   system: {
     Icon: Zap,
     label: "sent you an update",
@@ -84,6 +89,38 @@ const cleanContent = (content?: string | null) =>
     .replace(/\*\*/g, "")
     .replace(/(?<!\*)\*(?!\*)/g, "")
     .trim();
+
+const playGameBuzz = () => {
+  if (typeof window === "undefined") return;
+  navigator.vibrate?.([240, 90, 240, 90, 380]);
+
+  const AudioContextCtor = window.AudioContext
+    || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextCtor) return;
+
+  try {
+    const context = new AudioContextCtor();
+    void context.resume();
+    const start = context.currentTime + 0.03;
+    [0, 0.3, 0.6, 0.9, 1.2].forEach((offset, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(index % 2 === 0 ? 210 : 285, start + offset);
+      gain.gain.setValueAtTime(0.0001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(0.12, start + offset + 0.015);
+      gain.gain.setValueAtTime(0.12, start + offset + 0.19);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + 0.25);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(start + offset);
+      oscillator.stop(start + offset + 0.26);
+    });
+    window.setTimeout(() => { void context.close(); }, 1_900);
+  } catch {
+    // Device push still supplies vibration and the operating system alert.
+  }
+};
 
 export function IncomingNotificationCard({
   recipientId,
@@ -109,9 +146,10 @@ export function IncomingNotificationCard({
 
   useEffect(() => {
     if (!active) return;
-    const timeout = window.setTimeout(dismiss, 4800);
+    if (active.type === "game_buzz") playGameBuzz();
+    const timeout = window.setTimeout(dismiss, active.type === "game_buzz" ? 12_000 : 4_800);
     return () => window.clearTimeout(timeout);
-  }, [active?.id]);
+  }, [active?.id, active?.type]);
 
   useEffect(() => {
     if (!recipientId) return;
@@ -186,6 +224,8 @@ export function IncomingNotificationCard({
     if (!active.is_read) readRef.current?.();
     if (active.type === "follow" && active.actor_id) {
       void navigate({ to: "/app/profile/$id", params: { id: active.actor_id } });
+    } else if (active.type === "game_buzz" && active.entity_id) {
+      void navigate({ to: "/app/games/$id", params: { id: active.entity_id } });
     } else if (active.entity_id && active.type !== "system") {
       void navigate({ to: "/app/post/$id", params: { id: active.entity_id } });
     } else {
@@ -197,7 +237,7 @@ export function IncomingNotificationCard({
   return (
     <aside
       key={active.id}
-      aria-live="polite"
+      aria-live={active.type === "game_buzz" ? "assertive" : "polite"}
       className={`pointer-events-none fixed left-1/2 z-[65] w-[calc(100%-24px)] max-w-[390px] -translate-x-1/2 animate-in fade-in slide-in-from-top-3 duration-200 ${
         belowFeedHeader
           ? "top-[calc(74px+env(safe-area-inset-top))] md:top-3"
@@ -205,7 +245,7 @@ export function IncomingNotificationCard({
       }`}
     >
       <div className="pointer-events-auto overflow-hidden rounded-md border border-border/80 bg-background/98 shadow-[0_14px_36px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl">
-        <div className="h-0.5 w-full bg-primary" />
+        <div className={`h-0.5 w-full ${active.type === "game_buzz" ? "bg-amber-400" : "bg-primary"}`} />
         <div className="flex items-center gap-2.5 p-2.5">
           <button
             type="button"
