@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { getCachedSession } from "@/lib/auth";
 
 export function useUser() {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const query = useQuery({
     queryKey: ["profile", "current"],
     queryFn: async () => {
       console.log("[useUser] Fetching cached session...");
@@ -82,4 +84,26 @@ export function useUser() {
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     retry: 1,
   });
+
+  useEffect(() => {
+    const profileId = query.data?.id;
+    if (!profileId) return;
+
+    const channel = supabase
+      .channel(`current-profile:${profileId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${profileId}` },
+        ({ new: updatedProfile }) => {
+          queryClient.setQueryData(["profile", "current"], (current: any) => current
+            ? { ...current, ...updatedProfile }
+            : current);
+        },
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [query.data?.id, queryClient]);
+
+  return query;
 }

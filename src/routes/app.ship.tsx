@@ -307,15 +307,12 @@ function ShipPage() {
         }
       }
 
-      // Automatically add XP for shipping (Optimistic update or via server function)
-      // For now we trust the client to just show success. 
-      // Realistically we would call an edge function here to securely grant XP.
-
       queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
       queryClient.invalidateQueries({ queryKey: ['my_profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile', 'current'] });
       queryClient.invalidateQueries({ queryKey: ['zerohub_projects'] });
       
-      toast.success("🚀 Project shipped successfully! +50 XP");
+      toast.success(editId && !isNewVersion ? "Project updated successfully" : "Project shipped successfully! +50 XP");
       navigate({ to: "/app/zerohub" });
     } catch (error: any) {
       toast.error(error.message || "Failed to ship project");

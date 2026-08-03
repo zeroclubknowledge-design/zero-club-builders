@@ -316,7 +316,6 @@ function Clubs() {
         
         // Featured Club joining reward
         if (club.name === "Zero K Bootcamp") {
-          await supabase.from('profiles').update({ xp: (profile.xp || 0) + 100 }).eq('id', profile.id);
           toast.success("You earned 100 XP for joining the featured Zero K Bootcamp!");
         }
         
@@ -539,7 +538,7 @@ function Clubs() {
             </div>
             <div className="text-center">
               <span className="block text-sm font-semibold text-foreground tracking-tight tabular-nums">+{profile?.xp || 0}</span>
-              <span className="block text-[8px] font-medium text-muted-foreground/60">XP Today</span>
+              <span className="block text-[8px] font-medium text-muted-foreground/60">Total XP</span>
             </div>
           </div>
         </div>

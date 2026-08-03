@@ -490,13 +490,25 @@ export const getQuests = async () => {
   const { data: { session } } = await getCachedSession();
   if (!session) return [];
 
-  const TODAY_QUESTS = [
-    { id: 'quest_login', title: 'Login', description: 'Log in to Zero Club today.', reward_xp: 100, icon_name: 'Rocket', criteria_type: 'login', criteria_count: 1 },
-    { id: 'quest_post', title: 'Make your first post for the day', description: 'Share something with the community.', reward_xp: 100, icon_name: 'Share2', criteria_type: 'post_today', criteria_count: 1 },
-    { id: 'quest_comment', title: 'Comment on someone\'s post', description: 'Engage with other builders.', reward_xp: 50, icon_name: 'Users', criteria_type: 'comment', criteria_count: 1 },
-    { id: 'quest_quote', title: 'Quote someone else post', description: 'Share a post with your thoughts.', reward_xp: 50, icon_name: 'Star', criteria_type: 'quote', criteria_count: 1 },
-    { id: 'quest_club', title: 'Create your private club and invite up to 20 friends to join', description: 'Build your own community.', reward_xp: 200, icon_name: 'Trophy', criteria_type: 'club', criteria_count: 20 }
+  const fallbackQuests = [
+    { id: 'quest_login', title: 'Login', description: 'Log in to Zero Club today.', type: 'daily', reward_xp: 100, icon_name: 'Rocket', criteria_type: 'login', criteria_count: 1 },
+    { id: 'quest_post', title: 'Make your first post for the day', description: 'Share something with the community.', type: 'daily', reward_xp: 100, icon_name: 'Share2', criteria_type: 'post_today', criteria_count: 1 },
+    { id: 'quest_comment', title: 'Comment on someone\'s post', description: 'Engage with other builders.', type: 'daily', reward_xp: 50, icon_name: 'Users', criteria_type: 'comment', criteria_count: 1 },
+    { id: 'quest_quote', title: 'Quote someone else post', description: 'Share a post with your thoughts.', type: 'daily', reward_xp: 50, icon_name: 'Star', criteria_type: 'quote', criteria_count: 1 },
+    { id: 'quest_club', title: 'Create your private club and invite up to 20 friends to join', description: 'Build your own community.', type: 'milestone', reward_xp: 200, icon_name: 'Trophy', criteria_type: 'club', criteria_count: 20 }
   ];
+
+  const { data: configuredQuests, error: questsError } = await supabase
+    .from('quests')
+    .select('*')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
+
+  const quests = !questsError && configuredQuests?.length
+    ? configuredQuests
+        .filter((quest: any) => !quest.status || quest.status === 'active')
+        .map((quest: any) => ({ ...quest, database_id: quest.id, id: quest.slug || quest.id }))
+    : fallbackQuests;
 
   // Fetch only posts created today in local timezone
   const localTodayStart = new Date();
@@ -504,7 +516,7 @@ export const getQuests = async () => {
   const localTodayStartIso = localTodayStart.toISOString();
 
   // Fetch user stats for progress calculation
-  const [postsCount, commentsCount, quotesCount, userClubsRes] = await Promise.all([
+  const [postsCount, commentsCount, quotesCount, userClubsRes, totalPosts, totalComments, totalQuotes, followsCount, enrollmentsCount, shipsCount, profileResult] = await Promise.all([
     supabase
       .from('posts')
       .select('id', { count: 'exact', head: true })
@@ -524,7 +536,14 @@ export const getQuests = async () => {
     supabase
       .from('clubs')
       .select('id')
-      .eq('creator_id', session.user.id)
+      .eq('creator_id', session.user.id),
+    supabase.from('posts').select('id', { count: 'exact', head: true }).eq('author_id', session.user.id),
+    supabase.from('comments').select('id', { count: 'exact', head: true }).eq('profile_id', session.user.id),
+    supabase.from('posts').select('id', { count: 'exact', head: true }).eq('author_id', session.user.id).not('quoted_post_id', 'is', null),
+    supabase.from('follows').select('following_id', { count: 'exact', head: true }).eq('follower_id', session.user.id),
+    supabase.from('enrollments').select('id', { count: 'exact', head: true }).eq('profile_id', session.user.id),
+    supabase.from('posts').select('id', { count: 'exact', head: true }).eq('author_id', session.user.id).eq('is_build_post', true),
+    supabase.from('profiles').select('bio').eq('id', session.user.id).maybeSingle(),
   ]);
 
   let clubMembersCount = 0;
@@ -537,17 +556,31 @@ export const getQuests = async () => {
     clubMembersCount = count || 0;
   }
 
-  return TODAY_QUESTS.map(q => {
+  const dateStr = getLocalDateString();
+  const { data: claimedQuestEvents } = await supabase
+    .from('xp_events')
+    .select('source_key')
+    .eq('profile_id', session.user.id)
+    .eq('event_type', 'daily_quest');
+  const claimedQuestKeys = new Set((claimedQuestEvents || []).map((event) => event.source_key));
+
+  return quests.map((q: any) => {
     let progress = 0;
     if (q.criteria_type === 'login') progress = 1;
     if (q.criteria_type === 'post_today') progress = postsCount.count || 0;
-    if (q.criteria_type === 'comment') progress = commentsCount.count || 0;
-    if (q.criteria_type === 'quote') progress = quotesCount.count || 0;
+    if (q.criteria_type === 'post') progress = totalPosts.count || 0;
+    if (q.criteria_type === 'comment') progress = q.type === 'daily' ? (commentsCount.count || 0) : (totalComments.count || 0);
+    if (q.criteria_type === 'quote') progress = q.type === 'daily' ? (quotesCount.count || 0) : (totalQuotes.count || 0);
     if (q.criteria_type === 'club') progress = clubMembersCount;
+    if (q.criteria_type === 'follow') progress = followsCount.count || 0;
+    if (q.criteria_type === 'enrollment') progress = enrollmentsCount.count || 0;
+    if (q.criteria_type === 'ship') progress = shipsCount.count || 0;
+    if (q.criteria_type === 'profile') progress = profileResult.data?.bio?.trim() ? 1 : 0;
 
-    const dateStr = getLocalDateString();
     const claimKey = `quest_claimed_${session.user.id}_${q.id}_${dateStr}`;
-    const isClaimed = typeof window !== 'undefined' ? localStorage.getItem(claimKey) === 'true' : false;
+    const isClaimed = claimedQuestKeys.has(`${q.id}:${dateStr}`)
+      || claimedQuestKeys.has(q.id)
+      || (typeof window !== 'undefined' && localStorage.getItem(claimKey) === 'true');
 
     return {
       ...q,
@@ -570,22 +603,9 @@ export const claimQuestRewardAction = async ({ data: questId }: { data: string }
     throw new Error("Quest already claimed today!");
   }
 
-  // Mock successful claim since DB table doesn't exist
-  let reward = 50;
-  if (questId === 'quest_login' || questId === 'quest_post') reward = 100;
-  if (questId === 'quest_club') reward = 200;
-  
-  // Add XP to user profile
-  const { data: profile } = await supabase.from('profiles').select('xp').eq('id', session.user.id).single();
-  const currentXp = profile?.xp || 0;
-  
-  // Award XP per quest claimed
-  await supabase
-    .from('profiles')
-    .update({ 
-      xp: currentXp + reward
-    })
-    .eq('id', session.user.id);
+  const { data, error } = await supabase.rpc('claim_daily_xp_quest', { p_quest_id: questId });
+  if (error) throw error;
+  const reward = Number(data?.reward || 0);
     
   if (typeof window !== 'undefined') {
     localStorage.setItem(claimKey, 'true');

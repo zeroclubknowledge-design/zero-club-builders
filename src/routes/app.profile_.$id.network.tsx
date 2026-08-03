@@ -77,18 +77,35 @@ function ProfileNetwork() {
       const { data: members } = await supabase
         .from('club_members')
         .select('club_id')
-        .eq('profile_id', profile.id);
+        .eq('profile_id', profile.id)
+        .eq('status', 'active');
       
-      const clubIds = members?.map(m => m.club_id) || [];
+      const clubIds = [...new Set(members?.map(m => m.club_id) || [])];
       if (clubIds.length === 0) return [];
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('clubs')
         .select('*')
         .in('id', clubIds)
         .order('created_at', { ascending: false });
-        
-      return data || [];
+      if (error) throw error;
+
+      const { data: clubMembers, error: membersError } = await supabase
+        .from('club_members')
+        .select('club_id')
+        .in('club_id', clubIds)
+        .eq('status', 'active');
+      if (membersError) throw membersError;
+
+      const membersByClub = (clubMembers || []).reduce<Record<string, number>>((counts, member) => {
+        counts[member.club_id] = (counts[member.club_id] || 0) + 1;
+        return counts;
+      }, {});
+
+      return (data || []).map((club) => ({
+        ...club,
+        members_count: membersByClub[club.id] || 0,
+      }));
     }
   });
 
@@ -207,7 +224,7 @@ function ProfileNetwork() {
 
                     <div className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-accent/40 rounded-full px-2.5 py-1 border border-border/20">
                       <Users className="h-3 w-3" />
-                      {c.members_count || 1}
+                      {Number(c.members_count || 0).toLocaleString()}
                     </div>
                   </article>
                 </Link>

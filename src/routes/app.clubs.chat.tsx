@@ -603,7 +603,6 @@ function ClubChat() {
       if (club.name === "Zero K Bootcamp") {
         const hasSentMessageBefore = messages.some(m => m.profile_id === currentUser.id && m.id !== tempId);
         if (!hasSentMessageBefore) {
-          await supabase.from('profiles').update({ xp: (currentUser.user_metadata?.xp || currentUser.xp || 0) + 100 }).eq('id', currentUser.id);
           toast.success("You earned 100 XP for your first message in the featured Zero K Bootcamp!");
         }
       }

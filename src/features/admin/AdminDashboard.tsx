@@ -19,6 +19,7 @@ import {
   HeartPulse,
   KeyRound,
   LayoutDashboard,
+  ListChecks,
   Loader2,
   Megaphone,
   MessageSquareText,
@@ -51,7 +52,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
-type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "system";
+type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "system";
 
 type Snapshot = {
   metrics: Record<string, number>;
@@ -76,6 +77,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "people", label: "People", Icon: Users },
   { id: "moderation", label: "Moderation", Icon: FileWarning },
   { id: "learning", label: "Learning", Icon: GraduationCap },
+  { id: "quests", label: "Quests", Icon: ListChecks },
   { id: "community", label: "Community", Icon: UsersRound },
   { id: "marketplace", label: "Marketplace", Icon: BriefcaseBusiness },
   { id: "commerce", label: "Commerce", Icon: CircleDollarSign },
@@ -133,6 +135,9 @@ export function AdminDashboard() {
         admin_save_promotion: "Campaign saved",
         admin_set_promotion_status: "Campaign status updated",
         admin_delete_promotion: "Campaign deleted",
+        admin_create_xp_quest: "Quest published",
+        admin_update_xp_quest: "Quest updated",
+        admin_delete_xp_quest: "Quest deleted",
       };
       toast.success(messages[variables.fn] || "Change saved");
       queryClient.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
@@ -140,6 +145,8 @@ export function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["admin-promotions"] });
       queryClient.invalidateQueries({ queryKey: ["admin-analytics"] });
       queryClient.invalidateQueries({ queryKey: ["admin-institutions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-xp-quests"] });
+      queryClient.invalidateQueries({ queryKey: ["quests"] });
     },
     onError: (error: any) => toast.error(error.message || "The admin action could not be completed"),
   });
@@ -179,6 +186,19 @@ export function AdminDashboard() {
     },
     enabled: activeTab === "ads",
     staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  const questsQuery = useQuery({
+    queryKey: ["admin-xp-quests"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_admin_xp_quests");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: activeTab === "quests",
+    staleTime: 15_000,
     refetchOnWindowFocus: false,
     retry: false,
   });
@@ -262,6 +282,7 @@ export function AdminDashboard() {
           {activeTab === "people" && <People users={filteredUsers} search={userSearch} setSearch={setUserSearch} type={userType} setType={setUserType} busy={action.isPending} runAction={runAction} />}
           {activeTab === "moderation" && <Moderation reports={data.reports} busy={action.isPending} runAction={runAction} />}
           {activeTab === "learning" && <Learning bootcamps={data.bootcamps} format={format} busy={action.isPending} runAction={runAction} />}
+          {activeTab === "quests" && <QuestManagement query={questsQuery} busy={action.isPending} runAction={runAction} />}
           {activeTab === "community" && <Community clubs={data.clubs} posts={data.posts} />}
           {activeTab === "marketplace" && <Marketplace gigs={data.gigs} format={format} busy={action.isPending} runAction={runAction} />}
           {activeTab === "commerce" && <Commerce snapshot={data} format={format} />}
@@ -383,6 +404,156 @@ function Learning({ bootcamps, format, busy, runAction }: any) {
 }
 
 function Community({ clubs, posts }: any) { return <div><SectionHeading eyebrow="Community operations" title="Clubs and publishing" detail="Visibility into the spaces and conversations shaping the network." /><div className="grid gap-6 xl:grid-cols-2"><section><h2 className="mb-3 text-[13px] font-semibold">Newest clubs</h2><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{clubs.slice(0, 15).map((club: any) => <div key={club.id} className="flex items-center gap-3 p-4"><div className="grid h-9 w-9 place-items-center rounded-lg bg-violet-500/10 text-violet-600"><UsersRound className="h-4 w-4" /></div><div className="min-w-0 flex-1"><p className="truncate text-[12px] font-semibold">{club.name}</p><p className="mt-0.5 text-[9.5px] text-muted-foreground">{club.category} · @{club.creator_username || "builder"}</p></div><div className="text-right"><p className="text-[11px] font-semibold">{compact(club.members)}</p><p className="text-[8.5px] text-muted-foreground">members</p></div></div>)}</div></section><section><h2 className="mb-3 text-[13px] font-semibold">Latest posts</h2><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{posts.slice(0, 15).map((post: any) => <div key={post.id} className="p-4"><div className="flex items-center justify-between"><p className="text-[10px] font-semibold">@{post.author_username || "builder"}</p><span className="text-[9px] text-muted-foreground">{formatTime(post.created_at)}</span></div><p className="mt-2 line-clamp-2 text-[11.5px] leading-relaxed text-foreground/80">{post.content}</p><p className="mt-2 text-[9px] text-muted-foreground">{compact(post.likes_count)} likes · {compact(post.comments_count)} comments · {compact(post.reposts_count)} reposts</p></div>)}</div></section></div></div>; }
+
+const QUEST_REQUIREMENTS = [
+  { value: "login", label: "Open Zero Club" },
+  { value: "post_today", label: "Publish a post today" },
+  { value: "post", label: "Publish posts" },
+  { value: "comment", label: "Write comments" },
+  { value: "quote", label: "Quote posts" },
+  { value: "ship", label: "Publish Ships" },
+  { value: "follow", label: "Follow builders" },
+  { value: "profile", label: "Complete profile bio" },
+  { value: "enrollment", label: "Join bootcamps" },
+  { value: "club", label: "Grow a club" },
+] as const;
+
+const QUEST_ICONS = ["Rocket", "Share2", "Users", "Star", "Trophy", "GraduationCap"];
+const EMPTY_QUEST = {
+  id: null as string | null,
+  title: "",
+  description: "",
+  type: "daily",
+  rewardXp: "100",
+  criteriaType: "post_today",
+  criteriaCount: "1",
+  iconName: "Rocket",
+  status: "draft",
+  sortOrder: "0",
+};
+
+function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean; runAction: (fn: string, args: Record<string, any>) => void }) {
+  const { data, isLoading, error } = query;
+  const [form, setForm] = useState({ ...EMPTY_QUEST });
+  const [search, setSearch] = useState("");
+  const set = (key: string, value: string) => setForm((current) => ({ ...current, [key]: value }));
+
+  if (isLoading) return <TabLoading />;
+  if (error) {
+    if (isMissingRpc(error)) return <MigrationNote file="20260803110000_admin_managed_xp_quests.sql" title="Quest management setup required" />;
+    return <EmptyState Icon={ShieldOff} title="Quests could not load" detail={error.message || "Try refreshing."} />;
+  }
+
+  const quests = (data || []) as any[];
+  const normalizedSearch = search.trim().toLowerCase();
+  const filtered = quests.filter((quest) => !normalizedSearch || `${quest.title} ${quest.description} ${quest.criteria_type}`.toLowerCase().includes(normalizedSearch));
+  const field = "h-10 w-full rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary/50";
+  const label = "text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground";
+
+  const reset = () => setForm({ ...EMPTY_QUEST });
+  const edit = (quest: any) => {
+    setForm({
+      id: quest.id,
+      title: quest.title || "",
+      description: quest.description || "",
+      type: quest.type || "daily",
+      rewardXp: String(quest.reward_xp || 100),
+      criteriaType: quest.criteria_type || "post_today",
+      criteriaCount: String(quest.criteria_count || 1),
+      iconName: quest.icon_name || "Rocket",
+      status: quest.status || "draft",
+      sortOrder: String(quest.sort_order || 0),
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submit = () => {
+    const reward = Number(form.rewardXp);
+    const target = Number(form.criteriaCount);
+    if (form.title.trim().length < 3) { toast.error("Give the Quest a clear title"); return; }
+    if (form.description.trim().length < 10) { toast.error("Add a useful Quest description"); return; }
+    if (!Number.isInteger(reward) || reward < 1 || reward > 10_000) { toast.error("XP reward must be between 1 and 10,000"); return; }
+    if (!Number.isInteger(target) || target < 1 || target > 10_000) { toast.error("Target must be between 1 and 10,000"); return; }
+
+    const args = {
+      new_title: form.title.trim(),
+      new_description: form.description.trim(),
+      new_type: form.type,
+      new_reward_xp: reward,
+      new_criteria_type: form.criteriaType,
+      new_criteria_count: target,
+      new_icon_name: form.iconName,
+      new_status: form.status,
+      new_sort_order: Number(form.sortOrder) || 0,
+    };
+
+    if (form.id) runAction("admin_update_xp_quest", { target_quest_id: form.id, ...args });
+    else runAction("admin_create_xp_quest", args);
+    reset();
+  };
+
+  return (
+    <div>
+      <SectionHeading eyebrow="Experience operations" title="Quests" detail="Create and manage the verified activities that award XP across Zero Club." />
+
+      <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
+        <section className="h-fit rounded-lg border border-border bg-card p-5 xl:sticky xl:top-[77px]">
+          <div className="flex items-start justify-between gap-3">
+            <div><h2 className="text-[13px] font-semibold">{form.id ? "Edit Quest" : "Post a Quest"}</h2><p className="mt-0.5 text-[9.5px] text-muted-foreground">Only completed, active Quests can award XP.</p></div>
+            {form.id && <button onClick={reset} title="Close editor" className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-muted"><X className="h-3.5 w-3.5" /></button>}
+          </div>
+
+          <div className="mt-4 space-y-3">
+            <div><p className={label}>Title</p><input value={form.title} onChange={(event) => set("title", event.target.value)} maxLength={80} placeholder="Share a useful build update" className={`${field} mt-1.5`} /></div>
+            <div><p className={label}>Description</p><textarea value={form.description} onChange={(event) => set("description", event.target.value)} maxLength={240} rows={3} placeholder="Tell members exactly what counts as completed" className={`${field} mt-1.5 h-auto resize-none py-2.5`} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><p className={label}>Frequency</p><select value={form.type} onChange={(event) => set("type", event.target.value)} className={`${field} mt-1.5`}><option value="daily">Daily</option><option value="one-time">One time</option><option value="milestone">Milestone</option></select></div>
+              <div><p className={label}>Status</p><select value={form.status} onChange={(event) => set("status", event.target.value)} className={`${field} mt-1.5`}><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></div>
+            </div>
+            <div><p className={label}>Completion requirement</p><select value={form.criteriaType} onChange={(event) => set("criteriaType", event.target.value)} className={`${field} mt-1.5`}>{QUEST_REQUIREMENTS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><p className={label}>Target</p><input type="number" min="1" max="10000" value={form.criteriaCount} onChange={(event) => set("criteriaCount", event.target.value)} className={`${field} mt-1.5`} /></div>
+              <div><p className={label}>XP reward</p><input type="number" min="1" max="10000" value={form.rewardXp} onChange={(event) => set("rewardXp", event.target.value)} className={`${field} mt-1.5`} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><p className={label}>Icon</p><select value={form.iconName} onChange={(event) => set("iconName", event.target.value)} className={`${field} mt-1.5`}>{QUEST_ICONS.map((icon) => <option key={icon}>{icon}</option>)}</select></div>
+              <div><p className={label}>Display order</p><input type="number" value={form.sortOrder} onChange={(event) => set("sortOrder", event.target.value)} className={`${field} mt-1.5`} /></div>
+            </div>
+            <button disabled={busy} onClick={submit} className="w-full rounded-lg bg-primary py-2.5 text-[12px] font-semibold text-primary-foreground disabled:opacity-50">{form.id ? "Save Quest" : form.status === "active" ? "Publish Quest" : "Save draft"}</button>
+          </div>
+        </section>
+
+        <section className="min-w-0">
+          <div className="grid grid-cols-3 gap-3">
+            <SmallMetric label="Active" value={quests.filter((quest) => quest.status === "active").length} />
+            <SmallMetric label="Drafts" value={quests.filter((quest) => quest.status === "draft").length} />
+            <SmallMetric label="Total" value={quests.length} />
+          </div>
+          <div className="relative mt-4"><Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Quests" className="h-10 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-[11.5px] outline-none focus:border-primary/50" /></div>
+          <div className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+            {filtered.map((quest) => (
+              <div key={quest.id} className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/[0.08] text-primary"><ListChecks className="h-4 w-4" /></div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2"><p className="text-[12.5px] font-semibold">{quest.title}</p><StatusBadge status={quest.status} /></div>
+                    <p className="mt-1 line-clamp-2 text-[10.5px] leading-relaxed text-muted-foreground">{quest.description}</p>
+                    <p className="mt-2 text-[9.5px] text-muted-foreground"><span className="font-semibold text-foreground">+{quest.reward_xp} XP</span> · {QUEST_REQUIREMENTS.find((item) => item.value === quest.criteria_type)?.label || quest.criteria_type} × {quest.criteria_count} · {String(quest.type).replace("-", " ")}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <button title="Edit Quest" onClick={() => edit(quest)} className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:bg-muted"><Pencil className="h-3.5 w-3.5" /></button>
+                    <button title="Delete Quest" disabled={busy} onClick={() => { if (confirm(`Delete Quest \"${quest.title}\"? Members will no longer be able to claim it.`)) runAction("admin_delete_xp_quest", { target_quest_id: quest.id }); }} className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!filtered.length && <EmptyLine text={quests.length ? "No Quests match your search." : "No Quests have been posted yet."} />}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
 
 const EMPTY_GIG = { title: "", description: "", category: "Design", skills: "", budgetType: "fixed", budgetMin: "", budgetMax: "", experience: "Intermediate", location: "Remote", deadline: "", client: "" };
 
