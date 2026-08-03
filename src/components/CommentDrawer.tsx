@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle
 } from "@/components/ui/drawer";
-import { MessageCircle, Send, MoreHorizontal, Heart, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2, Trash2, X } from "lucide-react";
+import { MessageCircle, Send, MoreHorizontal, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2, Trash2, X, ThumbsUp, ThumbsDown, MessageSquare, SlidersHorizontal, Check } from "lucide-react";
 import { useRouter, Link } from "@tanstack/react-router";
 
 import {
@@ -31,6 +31,7 @@ interface CommentDrawerProps {
 }
 
 const commentCache = new Map<string, { comments: any[]; cachedAt: number }>();
+type CommentSort = "top" | "newest";
 
 export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = false, inline = false, onClose, onOpenChange, onCommentAdded }: CommentDrawerProps) {
   const handleOpenChange = (open: boolean) => {
@@ -56,6 +57,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
   const [activePickerId, setActivePickerId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
+  const [commentSort, setCommentSort] = useState<CommentSort>("top");
   const { data: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
   const fetchRequestRef = useRef(0);
@@ -441,6 +443,24 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       });
     };
 
+    const countDescendants = (node: (typeof roots)[number]): number =>
+      node.replies.reduce(
+        (total: number, reply: typeof node) => total + 1 + countDescendants(reply),
+        0,
+      );
+
+    roots.sort((a, b) => {
+      if (commentSort === "newest") {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+
+      const score = (comment: (typeof roots)[number]) =>
+        Number(comment.likes_count || 0) +
+        Number(comment.reactions?.length || 0) +
+        countDescendants(comment) * 2;
+      return score(b) - score(a) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
     roots.forEach(root => {
       const thread: any[] = [{
         ...root,
@@ -464,24 +484,71 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   if (!post) return null;
 
+  const commentSortMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex h-9 items-center gap-2 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          aria-label="Sort comments"
+        >
+          <SlidersHorizontal className="h-[18px] w-[18px]" />
+          <span className="hidden sm:inline">{commentSort === "top" ? "Top" : "Newest"}</span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64 rounded-md border-border bg-background p-1 shadow-xl">
+        <DropdownMenuItem
+          className="flex cursor-pointer items-start gap-3 rounded-sm px-3 py-2.5"
+          onClick={() => setCommentSort("top")}
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground">Top</p>
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">Show the most useful conversations first</p>
+          </div>
+          {commentSort === "top" && <Check className="mt-0.5 h-4 w-4" />}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="flex cursor-pointer items-start gap-3 rounded-sm px-3 py-2.5"
+          onClick={() => setCommentSort("newest")}
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground">Newest</p>
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">Show the most recent comments first</p>
+          </div>
+          {commentSort === "newest" && <Check className="mt-0.5 h-4 w-4" />}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   const DrawerInner = (
     <>
       {inline ? (
-        <div className="mt-8 shrink-0 border-b border-border py-4">
-          <h3 className="text-[20px] font-semibold">Discussion</h3>
+        <div className="mt-8 flex shrink-0 items-center justify-between border-b border-border py-3">
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-[18px] font-semibold">Discussion</h3>
+            <span className="text-xs text-muted-foreground">{comments.length}</span>
+          </div>
+          {commentSortMenu}
         </div>
       ) : (
         <DrawerHeader className="flex h-14 shrink-0 flex-row items-center justify-between border-b border-border px-4 py-0 text-left sm:px-5">
-          <DrawerTitle className="text-[17px] font-semibold">Comments</DrawerTitle>
-          <DrawerClose className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-muted active:opacity-60">
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close comments</span>
-          </DrawerClose>
+          <div className="flex items-baseline gap-2">
+            <DrawerTitle className="text-[17px] font-semibold">Comments</DrawerTitle>
+            <span className="text-xs text-muted-foreground">{comments.length}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {commentSortMenu}
+            <DrawerClose className="grid h-9 w-9 place-items-center rounded-md transition-colors hover:bg-muted active:opacity-60">
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close comments</span>
+            </DrawerClose>
+          </div>
         </DrawerHeader>
       )}
 
       <div className={`flex flex-col flex-1 ${inline ?'w-full' : 'min-h-0'}`}>
-          <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'space-y-5 py-6' : 'no-scrollbar flex-1 space-y-5 overflow-y-auto px-4 pb-32 pt-5 sm:px-6'}`}>
+          <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'space-y-4 py-5' : 'no-scrollbar flex-1 space-y-4 overflow-y-auto px-3 pb-32 pt-4 sm:px-5'}`}>
             {commentsLoading && threadedComments.length === 0 ? (
               <div className="space-y-5 py-1" aria-label="Loading comments">
                 {[0, 1, 2].map(item => (
@@ -505,16 +572,20 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                   if (r.profile_id === currentUser?.id) acc[r.emoji].me = true;
                   return acc;
                 }, {}) || {};
+                const dislikeReaction = groupedReactions["👎"];
+                const visibleReactions = Object.entries(
+                  groupedReactions as Record<string, { count: number; me: boolean }>,
+                ).filter(([emoji]) => emoji !== "👎");
                 
                 return (
                   <div 
                     key={comment.id} 
-                    className={`relative flex gap-3 border-b border-border/70 pb-5 transition-all duration-300 last:border-b-0 ${isReply ?"ml-9" : ""}`}
+                    className={`relative flex gap-2.5 pb-4 transition-all duration-300 ${isReply ?"ml-6" : ""}`}
                   >
                     {/* Curved Connection Line for Replies */}
                     {isReply && (
                       <div 
-                        className="absolute left-[-20px] top-[-16px] w-[14px] h-[32px] border-l-2 border-b-2 border-border/30 rounded-bl-[10px] pointer-events-none" 
+                        className="pointer-events-none absolute left-[-15px] top-[-14px] h-[28px] w-[11px] rounded-bl-[8px] border-b border-l border-border/50"
                       />
                     )}
                     {/* Avatar Container with Thread Line */}
@@ -522,7 +593,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                       <Link 
                         to="/app/profile/$id" 
                         params={{ id: comment.profile_id }}
-                        className="h-8 w-8 rounded-full bg-muted overflow-hidden flex items-center justify-center text-xs font-bold text-muted-foreground transition active:opacity-70 z-10"
+                        className="z-10 flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-muted text-[10px] font-semibold text-muted-foreground transition active:opacity-70"
                       >
                         {comment.profiles?.avatar_url ? (
                           <img src={comment.profiles.avatar_url} className="h-full w-full object-cover" />
@@ -535,16 +606,16 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
                       {/* Twitter-style thread line */}
                       {comment.hasMoreInThread && (
-                        <div className="absolute top-8 bottom-0 w-[2px] bg-border/40 left-1/2 -translate-x-1/2 z-0" style={{ bottom: '-24px' }} />
+                        <div className="absolute top-7 bottom-0 left-1/2 z-0 w-px -translate-x-1/2 bg-border/50" style={{ bottom: '-20px' }} />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
+                      <div className="mb-0.5 flex min-w-0 items-center gap-1.5">
                         <Link 
                           to="/app/profile/$id" 
                           params={{ id: comment.profile_id }}
-                          className="text-sm font-bold text-foreground hover:underline"
+                          className="truncate text-[12px] font-semibold text-foreground hover:underline"
                         >
                           {comment.profiles?.full_name || comment.profiles?.username}
                         </Link>
@@ -580,27 +651,36 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                           </div>
                         </div>
                       ) : (
-                        <div className="mb-2 text-sm leading-relaxed text-foreground/80">
+                        <div className="mb-1.5 text-[13px] leading-[1.45] text-foreground/85">
                           <CommentContent content={comment.content} />
                         </div>
                       )}
                       
-                      <div className="flex flex-col gap-2 mt-2">
-                        <div className="flex flex-wrap items-center gap-4 relative">
+                      <div className="relative mt-2 flex items-center gap-5">
                           <button 
                             onClick={() => handleLikeComment(comment)}
-                            className={`text-[11px] font-bold transition flex items-center gap-1.5 ${comment.isLiked ?"text-primary" : "text-muted-foreground hover:text-primary"}`}
+                            className={`flex min-h-7 items-center gap-1.5 text-[11px] font-medium transition ${comment.isLiked ?"text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                            aria-label={comment.isLiked ? "Unlike comment" : "Like comment"}
                           >
-                            <Heart className={`h-3.5 w-3.5 ${comment.isLiked ?"fill-primary" : ""}`} />
-                            {comment.likes_count > 0 ? comment.likes_count : "Like"}
+                            <ThumbsUp className={`h-[17px] w-[17px] ${comment.isLiked ?"fill-current" : ""}`} />
+                            {comment.likes_count > 0 && <span>{comment.likes_count}</span>}
+                          </button>
+
+                          <button
+                            onClick={() => handleReactComment(comment.id, "👎")}
+                            className={`flex min-h-7 items-center gap-1.5 text-[11px] font-medium transition ${dislikeReaction?.me ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                            aria-label={dislikeReaction?.me ? "Remove dislike" : "Dislike comment"}
+                          >
+                            <ThumbsDown className={`h-[17px] w-[17px] ${dislikeReaction?.me ? "fill-current" : ""}`} />
+                            {dislikeReaction?.count > 0 && <span>{dislikeReaction.count}</span>}
                           </button>
                           
                           <button 
                             onClick={() => setReplyTo(comment)}
-                            className="text-[11px] font-bold text-muted-foreground hover:text-primary transition flex items-center gap-1.5"
+                            className="flex min-h-7 items-center text-muted-foreground transition hover:text-foreground"
+                            aria-label="Reply to comment"
                           >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                            Reply
+                            <MessageSquare className="h-[17px] w-[17px]" />
                           </button>
 
 
@@ -677,11 +757,10 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                           </DropdownMenu>
                         </div>
                       </div>
-
                       {/* Reactions display */}
-                      {Object.keys(groupedReactions).length > 0 && (
+                      {visibleReactions.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
-                          {Object.entries(groupedReactions).map(([emoji, data]: [string, any]) => (
+                          {visibleReactions.map(([emoji, data]) => (
                             <button
                               key={emoji}
                               onClick={() => handleReactComment(comment.id, emoji)}
@@ -695,7 +774,6 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                           ))}
                         </div>
                       )}
-                    </div>
                   </div>
                 </div>
                 );
