@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1, Palette, Minus, Plus } from "lucide-react";
+import { ArrowLeft, X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadMedia } from "@/lib/storage";
@@ -17,7 +17,6 @@ import { Bold, Italic, List } from "lucide-react";
 import { Mark, mergeAttributes } from '@tiptap/core';
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const MentionMark = Mark.create({
   name: 'mentionMark',
@@ -56,7 +55,6 @@ function ComposePage() {
   const [enrolledBootcamps, setEnrolledBootcamps] = useState<any[]>([]);
   const [selectedBootcampId, setSelectedBootcampId] = useState<string | null>(null);
   const [isBuild, setIsBuild] = useState(false);
-  const [customColor, setCustomColor] = useState("#cc208f");
   
   const [mentionSearch, setMentionSearch] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
@@ -185,18 +183,12 @@ function ComposePage() {
     editor.commands.setContent(bodyText || "", { emitUpdate: false });
   }, [editor, bodyText]);
 
-  const insertFormatting = (format: 'bold' | 'italic' | 'bullet' | 'heading' | 'divider') => {
+  const insertFormatting = (format: 'bold' | 'italic' | 'bullet' | 'heading') => {
     if (!editor) return;
     if (format === 'bold') editor.chain().focus().toggleBold().run();
     if (format === 'italic') editor.chain().focus().toggleItalic().run();
     if (format === 'bullet') editor.chain().focus().toggleBulletList().run();
     if (format === 'heading') editor.chain().focus().toggleHeading({ level: 1 }).run();
-    if (format === 'divider') editor.chain().focus().setHorizontalRule().run();
-  };
-
-  const applyColor = (color: string) => {
-    if (!editor) return;
-    editor.chain().focus().setColor(color).run();
   };
 
   useEffect(() => {
@@ -433,8 +425,8 @@ function ComposePage() {
       {/* Main Form Area */}
       <div className="no-scrollbar mx-auto w-full max-w-[860px] flex-1 overflow-y-auto px-4 pb-32 pt-4 sm:px-6 sm:pt-6">
         {/* Post Card */}
-        <div className="relative flex flex-col rounded-lg border border-border bg-card p-4 sm:p-6">
-          <div className="relative min-h-[320px] w-full text-lg sm:min-h-[380px]">
+        <div className="relative flex min-h-[calc(100dvh-10.5rem)] flex-col rounded-lg border border-border bg-card p-4 sm:p-6">
+          <div className="relative min-h-[320px] w-full flex-1 text-lg sm:min-h-[380px]">
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
 
@@ -543,6 +535,50 @@ function ComposePage() {
               Build
             </button>
           </div>
+
+          {/* Keep formatting visible inside the writing surface, including with the mobile keyboard open. */}
+          <div className="formatting-toolbar sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 mt-3 flex justify-center">
+            <div className={`flex items-center justify-center gap-1 rounded-lg border bg-background/95 p-2 backdrop-blur-md transition-shadow ${isEditorFocused ? 'border-foreground/20 shadow-lg' : 'border-border shadow-sm'}`}>
+              <button
+                type="button"
+                onMouseDown={(event) => { event.preventDefault(); insertFormatting('bold'); }}
+                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bold') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+                title="Bold"
+                aria-label="Bold"
+              >
+                <Bold className="h-4 w-4" strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                onMouseDown={(event) => { event.preventDefault(); insertFormatting('italic'); }}
+                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('italic') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+                title="Italic"
+                aria-label="Italic"
+              >
+                <Italic className="h-4 w-4" strokeWidth={2} />
+              </button>
+              <div className="mx-1 h-5 w-px bg-border" />
+              <button
+                type="button"
+                onMouseDown={(event) => { event.preventDefault(); insertFormatting('bullet'); }}
+                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bulletList') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+                title="Bullet list"
+                aria-label="Bullet list"
+              >
+                <List className="h-4 w-4" strokeWidth={2} />
+              </button>
+              <div className="mx-1 h-5 w-px bg-border" />
+              <button
+                type="button"
+                onMouseDown={(event) => { event.preventDefault(); insertFormatting('heading'); }}
+                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('heading', { level: 1 }) ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+                title="Heading"
+                aria-label="Heading"
+              >
+                <Heading1 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Bootcamps Modal/Dropdown equivalent */}
@@ -581,125 +617,6 @@ function ComposePage() {
         )}
 
       </div>
-
-      {/* Keep text controls within thumb reach while composing long posts. */}
-      {isEditorFocused && (
-        <div className="formatting-toolbar fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] left-1/2 z-[60] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-200">
-          <div className="flex items-center justify-center gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 shadow-xl">
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bold'); }}
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bold') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Bold"
-              aria-label="Bold"
-            >
-              <Bold className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('italic'); }}
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('italic') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Italic"
-              aria-label="Italic"
-            >
-              <Italic className="h-4 w-4" strokeWidth={2} />
-            </button>
-            <div className="mx-1 h-5 w-px bg-border" />
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bullet'); }}
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bulletList') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Bullet list"
-              aria-label="Bullet list"
-            >
-              <List className="h-4 w-4" strokeWidth={2} />
-            </button>
-            <div className="mx-1 h-5 w-px shrink-0 bg-border" />
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('heading'); }}
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('heading', { level: 1 }) ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Heading"
-              aria-label="Heading"
-            >
-              <Heading1 className="h-4 w-4" />
-            </button>
-            <div className="mx-1 h-5 w-px shrink-0 bg-border" />
-            <Popover modal={false}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  onMouseDown={(event) => event.preventDefault()}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90"
-                  title="Text colour"
-                  aria-label="Text colour"
-                >
-                  <Palette className="h-4 w-4" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 rounded-lg border-border bg-background p-3 shadow-xl" align="center" side="top" sideOffset={10} onOpenAutoFocus={(event) => event.preventDefault()}>
-                <div className="grid grid-cols-5 gap-2">
-                  {['#ef4444', '#f97316', '#f59e0b', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#cc208f', '#111111'].map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onMouseDown={(event) => { event.preventDefault(); setCustomColor(color); applyColor(color); }}
-                      className="h-8 w-8 rounded-full border border-border/50 transition-transform hover:scale-110 active:scale-95"
-                      style={{ backgroundColor: color }}
-                      aria-label={`Use ${color}`}
-                    />
-                  ))}
-                </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-border/50 pt-3">
-                  <input
-                    type="color"
-                    value={customColor}
-                    onChange={(event) => { setCustomColor(event.target.value); applyColor(event.target.value); }}
-                    className="h-8 w-8 shrink-0 cursor-pointer overflow-hidden rounded border-0 p-0"
-                    aria-label="Custom text colour"
-                  />
-                  <span className="text-xs text-muted-foreground">Custom colour</span>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <div className="mx-1 h-5 w-px shrink-0 bg-border" />
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('divider'); }}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90"
-              title="Add divider"
-              aria-label="Add divider"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-            <Popover modal={false}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  onMouseDown={(event) => event.preventDefault()}
-                  className="ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:bg-primary/90 active:scale-90"
-                  title="Add media"
-                  aria-label="Add media"
-                >
-                  <Plus className="h-5 w-5" strokeWidth={2.5} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 rounded-lg border-border bg-background p-2 shadow-xl" align="end" side="top" sideOffset={12} onOpenAutoFocus={(event) => event.preventDefault()}>
-                <label className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground transition hover:bg-accent">
-                  <ImageIcon className="h-4 w-4" />
-                  Add images
-                  <input type="file" className="hidden" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-                </label>
-                <label className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-foreground transition hover:bg-accent">
-                  <FileVideo className="h-4 w-4" />
-                  Add videos
-                  <input type="file" className="hidden" accept="video/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-                </label>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-      )}
 
       {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 sm:px-6">

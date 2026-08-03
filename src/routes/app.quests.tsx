@@ -315,19 +315,19 @@ function GigMarketplace() {
         </div>
 
         <section className="mt-4">
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <label className="relative flex h-11 flex-1 items-center rounded-lg border border-border bg-card focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10">
-              <Search className="ml-3.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <div className="grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <label className="relative block w-full">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search roles, skills, or industries"
-                className="h-full min-w-0 flex-1 bg-transparent px-3 text-[13px] outline-none placeholder:text-muted-foreground/65"
+                className="h-12 w-full rounded-lg border border-border/60 bg-card px-5 pl-11 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary/35 focus:ring-2 focus:ring-primary/10"
               />
             </label>
             <button
               onClick={() => setShowFilters((value) => !value)}
-              className={`flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-[12px] font-semibold ${showFilters ? "border-primary/30 bg-primary/[0.06] text-primary" : "border-border bg-card text-foreground"}`}
+              className={`flex h-12 w-full items-center justify-center gap-2 rounded-lg border px-4 text-[12px] font-semibold sm:w-auto ${showFilters ? "border-primary/30 bg-primary/[0.06] text-primary" : "border-border bg-card text-foreground"}`}
             >
               <SlidersHorizontal className="h-4 w-4" /> Filters
             </button>
