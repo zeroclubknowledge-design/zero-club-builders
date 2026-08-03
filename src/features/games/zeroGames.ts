@@ -128,10 +128,19 @@ const shuffle = <T,>(values: T[]) => {
   return result;
 };
 
-export function generateWordsPuzzle(profession: string, size = 12) {
+const WORDS_DIFFICULTY_CONFIG: Record<ZeroGameDifficulty, { size: number; count: number }> = {
+  easy: { size: 10, count: 5 },
+  medium: { size: 11, count: 6 },
+  hard: { size: 12, count: 8 },
+  expert: { size: 13, count: 10 },
+};
+
+export function generateWordsPuzzle(profession: string, difficulty: ZeroGameDifficulty = "medium", requestedSize?: number) {
+  const config = WORDS_DIFFICULTY_CONFIG[difficulty] || WORDS_DIFFICULTY_CONFIG.medium;
+  const size = requestedSize || config.size;
   const words = shuffle(WORD_BANK[profession] || WORD_BANK["Software Engineer"])
     .filter((word) => word.length <= size)
-    .slice(0, 8);
+    .slice(0, config.count);
   const grid = Array<string | null>(size * size).fill(null);
   const placed: string[] = [];
   const placements: Array<{ word: string; path: number[] }> = [];

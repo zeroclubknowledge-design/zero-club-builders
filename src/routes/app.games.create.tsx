@@ -103,7 +103,7 @@ function CreateZeroGame() {
     if (!canCreate || creating) return;
     setCreating(true);
     try {
-      const wordsPayload = gameType === "words" ? generateWordsPuzzle(profession) : null;
+      const wordsPayload = gameType === "words" ? generateWordsPuzzle(profession, difficulty) : null;
       const { data, error } = await supabase.rpc("create_zero_game_competition", {
         p_game_type: gameType,
         p_title: title.trim(),

@@ -10,6 +10,9 @@ type WordsRaceBoardProps = {
   disabled?: boolean;
   submitting?: boolean;
   submitLabel?: string;
+  wordListTitle?: string;
+  wordListHint?: string;
+  wordListFirstOnMobile?: boolean;
   onProgress?: (progress: number) => void;
   onSubmit: (found: Array<{ word: string; path: number[] }>) => void;
 };
@@ -21,6 +24,9 @@ export function WordsRaceBoard({
   disabled = false,
   submitting = false,
   submitLabel = "Finish race",
+  wordListTitle = "Word board",
+  wordListHint,
+  wordListFirstOnMobile = false,
   onProgress,
   onSubmit,
 }: WordsRaceBoardProps) {
@@ -155,7 +161,7 @@ export function WordsRaceBoard({
 
   return (
     <div className="mx-auto grid w-full max-w-[980px] gap-5 lg:grid-cols-[minmax(0,620px)_minmax(220px,1fr)] lg:items-start">
-      <div>
+      <div className={wordListFirstOnMobile ? "order-2 lg:order-1" : ""}>
         <div
           ref={boardRef}
           onPointerDown={beginTrace}
@@ -194,9 +200,12 @@ export function WordsRaceBoard({
         </div>
       </div>
 
-      <aside className="rounded-md border border-border bg-card p-4 lg:sticky lg:top-5">
+      <aside className={`rounded-md border border-border bg-card p-4 lg:sticky lg:top-5 ${wordListFirstOnMobile ? "order-1 lg:order-2" : ""}`}>
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Word board</p>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{wordListTitle}</p>
+            {wordListHint && <p className="mt-1 text-[10.5px] leading-4 text-muted-foreground">{wordListHint}</p>}
+          </div>
           <span className="text-[11px] font-semibold tabular-nums text-primary">{foundWords.length}/{words.length}</span>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-1">

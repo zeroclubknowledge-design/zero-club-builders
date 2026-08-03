@@ -49,7 +49,7 @@ function SoloGame() {
 
   const puzzle = useMemo(() => gameType === "sudoku"
     ? generatePracticeSudoku(difficulty)
-    : generateWordsPuzzle(profession), [difficulty, gameType, profession, session]);
+    : generateWordsPuzzle(profession, difficulty), [difficulty, gameType, profession, session]);
 
   const bestTimeKey = `zero-games:solo-best:${gameType}:${difficulty}:${gameType === "words" ? profession : "logic"}`;
 
@@ -161,6 +161,9 @@ function SoloGame() {
                 onProgress={setProgress}
                 onSubmit={() => finish()}
                 submitLabel="Finish game"
+                wordListTitle="Words to find"
+                wordListHint="Trace each word across the board. Words can run straight or diagonally."
+                wordListFirstOnMobile
               />
             )}
           </div>
