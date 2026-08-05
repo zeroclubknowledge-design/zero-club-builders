@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ArrowRight, Bell, BookOpen, Building2, Search, Users, X,
+  ArrowRight, Bell, BookOpen, Building2, CalendarClock, Search, Users, X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getBootcamps } from "@/api";
 import { useQuery } from "@tanstack/react-query";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { supabase } from "@/lib/supabase";
+import { formatCountdown } from "@/features/zeroForm/templates";
 
 export const Route = createFileRoute("/app/bootcamps/")({
   component: Bootcamps,
@@ -80,6 +82,8 @@ function Bootcamps() {
       </header>
 
       <main className="mx-auto w-full max-w-[1180px] px-4 py-5 md:px-7 md:py-7">
+        <UpcomingRegistrations />
+
         <section className="border-b border-border/70 pb-5 md:flex md:items-end md:justify-between md:gap-8 md:pb-7">
           <div className="max-w-xl">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">Learning catalogue</p>
@@ -178,5 +182,65 @@ function Bootcamps() {
         )}
       </main>
     </div>
+  );
+}
+
+/**
+ * Bootcamps the learner pre-registered for through a Zero Form.
+ * Reassures them the registration worked, and counts down to the start
+ * (spec section 22). Once the bootcamp starts the status flips to Active.
+ */
+function UpcomingRegistrations() {
+  const { format } = useWalletCurrency();
+  const { data = [] } = useQuery({
+    queryKey: ["my-zero-form-registrations"],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+      const { data, error } = await supabase.rpc("get_my_zero_form_registrations");
+      if (error) return [];
+      return (data || []) as any[];
+    },
+    retry: false,
+  });
+
+  if (!data.length) return null;
+
+  return (
+    <section className="mb-6 rounded-lg border border-primary/20 bg-primary/[0.03] p-4 sm:p-5">
+      <div className="flex items-center gap-2">
+        <CalendarClock className="h-4 w-4 text-primary" />
+        <h2 className="text-[13.5px] font-semibold tracking-tight">Your upcoming bootcamps</h2>
+      </div>
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+        {data.map((registration: any) => {
+          const live = registration.registration_status === "enrolled"
+            || (registration.starts_at && new Date(registration.starts_at) <= new Date());
+          const countdown = formatCountdown(registration.starts_at);
+          return (
+            <Link
+              key={registration.id}
+              to="/app/bootcamps/$id"
+              params={{ id: registration.bootcamp_id }}
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
+            >
+              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
+                {registration.banner_url && <img src={registration.banner_url} alt="" className="h-full w-full object-cover" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[12.5px] font-semibold">{registration.title}</p>
+                <p className="mt-0.5 text-[10.5px] text-muted-foreground">
+                  {live ? "Available now" : countdown ? `Starts in ${countdown}` : "Starting soon"}
+                  {Number(registration.amount) > 0 && ` · ${format(registration.amount)} paid`}
+                </p>
+              </div>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${live ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"}`}>
+                {live ? "Active" : "Registered"}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

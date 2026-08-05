@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadFile } from "@/lib/storage";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import {
   Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2,
   BarChart3, Settings, Search, ChevronRight, Loader2,
@@ -46,7 +47,7 @@ function InstitutionHub() {
   const queryClient = useQueryClient();
   const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "analytics" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "zero-forms" | "analytics" | "settings">("overview");
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -673,6 +674,12 @@ function InstitutionHub() {
           )}
 
           {/* ────────────────── BOOTCAMPS TAB ────────────────── */}
+          {activeTab === "zero-forms" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <ZeroFormWorkspace ownerLabel="Digital Hub" />
+            </div>
+          )}
+
           {activeTab === "bootcamps" && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

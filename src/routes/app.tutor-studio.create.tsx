@@ -273,6 +273,19 @@ export function BootcampForm({
       }
 
       toast.success(bootcampId ? "Bootcamp updated successfully" : "Bootcamp launched successfully!");
+
+      // Offer Zero Form pre-registration for brand new bootcamps (spec section 19).
+      if (!bootcampId) {
+        toast("Collect learners before you start", {
+          description: "Create a Zero Form to take early registrations and early-bird payments.",
+          action: {
+            label: "Create Zero Form",
+            onClick: () => navigate({ to: "/app/tutor-studio", search: { view: "zero-forms" } as any }),
+          },
+          duration: 9000,
+        });
+      }
+
       navigate({ to: returnTo as any });
     } catch (error: any) {
       toast.error(error.message || "Failed to launch bootcamp");

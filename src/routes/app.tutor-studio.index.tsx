@@ -4,7 +4,8 @@ import {
   BarChart3, Calendar, DollarSign, GripVertical, MoreHorizontal, Edit3, Trash2,
   CheckCircle2, ShieldCheck, Check, Play, Clock, Filter, MessageCircle,
   UserMinus, Star, LayoutGrid, Sparkles, ArrowRight, ChevronDown, Search,
-  BookOpen, Wallet, TrendingUp, Zap, Eye, GraduationCap, Megaphone, Lock, UsersRound
+  BookOpen, Wallet, TrendingUp, Zap, Eye, GraduationCap, Megaphone, Lock, UsersRound,
+  ClipboardList
 } from "lucide-react";
 
 import { useState } from "react";
@@ -18,16 +19,23 @@ import { getTutorBootcamps, deleteBootcampAction, getBootcampLearners } from "@/
 import { useEffect } from "react";
 import { uploadFile } from "@/lib/storage";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
+  // `?view=zero-forms` opens the Zero Forms workspace directly, so the prompt
+  // shown after creating a bootcamp can link straight into it.
+  validateSearch: (search: Record<string, unknown>): { view?: string } => ({
+    view: typeof search.view === "string" ? search.view : undefined,
+  }),
 });
 
 function TutorStudioPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
-  const [view, setView] = useState<"dashboard" | "editor">("dashboard");
+  const initialView = Route.useSearch().view === "zero-forms" ? "zero-forms" : "dashboard";
+  const [view, setView] = useState<"dashboard" | "editor" | "zero-forms">(initialView);
   const [activeTab, setActiveTab] = useState<"details" | "curriculum" | "learners" | "club">("details");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
@@ -440,6 +448,31 @@ function TutorStudioPage() {
     (bootcamp: any) => String(bootcamp.status || "").toLowerCase() === "active"
   ).length;
   const draftBootcamps = Math.max(bootcamps.length - activeBootcamps, 0);
+
+  // ═══════════════════════════════════════════════════════════════
+  // ZERO FORMS VIEW
+  // ═══════════════════════════════════════════════════════════════
+  if (view === "zero-forms") {
+    return (
+      <div className="flex min-h-screen flex-col bg-background pb-20">
+        <header className="sticky top-0 z-40 flex items-center gap-3 border-b hairline bg-background/85 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
+          <button
+            onClick={() => setView("dashboard")}
+            className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            <ChevronLeft className="h-5 w-5" strokeWidth={2} />
+          </button>
+          <div>
+            <p className="text-[10px] font-medium uppercase text-muted-foreground">Tutor Studio</p>
+            <h1 className="text-[17px] font-semibold tracking-tight">Zero Forms</h1>
+          </div>
+        </header>
+        <main className="mx-auto w-full max-w-[1080px] px-4 py-6 sm:px-6">
+          <ZeroFormWorkspace ownerLabel="Tutor Studio" />
+        </main>
+      </div>
+    );
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // EDITOR VIEW
@@ -1259,7 +1292,15 @@ function TutorStudioPage() {
               <h2 className="text-[19px] font-semibold tracking-tight text-foreground">Bootcamps</h2>
               <p className="mt-1 text-[12px] text-muted-foreground">Select a bootcamp to edit every part of it.</p>
             </div>
-            <span className="text-[12px] tabular-nums text-muted-foreground">{bootcamps.length} total</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setView("zero-forms")}
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-[11px] font-semibold hover:bg-muted"
+              >
+                <ClipboardList className="h-3.5 w-3.5" /> Zero Forms
+              </button>
+              <span className="text-[12px] tabular-nums text-muted-foreground">{bootcamps.length} total</span>
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

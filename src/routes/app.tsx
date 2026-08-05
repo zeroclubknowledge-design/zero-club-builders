@@ -27,6 +27,7 @@ import {
   LogIn,
   LogOut,
   ShieldCheck,
+  ClipboardList,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -107,6 +108,7 @@ const INSTITUTION_SIDEBAR_TABS = [
   { key: "overview", label: "Overview", Icon: Activity },
   { key: "tutors", label: "Tutors", Icon: Users },
   { key: "bootcamps", label: "Bootcamps", Icon: LayoutGrid },
+  { key: "zero-forms", label: "Zero Forms", Icon: ClipboardList },
   { key: "analytics", label: "Analytics", Icon: BarChart3 },
   { key: "settings", label: "Settings", Icon: Settings },
 ] as const;

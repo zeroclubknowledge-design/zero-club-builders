@@ -11,6 +11,7 @@ import {
   PlayCircle,
   Pencil,
   ShieldCheck,
+  Share2,
   Sparkles,
   Star,
   Users,
@@ -507,6 +508,8 @@ function BootcampDetail() {
               </button>
             )}
 
+            {canManageBootcamp && <BootcampShareAction bootcamp={bootcamp} />}
+
             {(!isEnrolled && canManageBootcamp) && (
               <div className="mt-3 space-y-3">
                 <Link
@@ -551,6 +554,62 @@ function BootcampDetail() {
           </div>
         </footer>
       </div>
+    </div>
+  );
+}
+
+/**
+ * State-aware sharing (spec section 20). Before the bootcamp starts the
+ * creator shares the Zero Form; once it is live the same button shares the
+ * bootcamp itself. The switch is driven by the server's view of the form.
+ */
+function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
+  const { data } = useQuery({
+    queryKey: ["zero-form-for-bootcamp", bootcamp?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("zero_forms")
+        .select("slug, status")
+        .eq("bootcamp_id", bootcamp.id)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!bootcamp?.id,
+    retry: false,
+  });
+
+  const started = bootcamp?.starts_at ? new Date(bootcamp.starts_at) <= new Date() : true;
+  const usesZeroForm = !!data?.slug && data.status === "published" && !started;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const url = usesZeroForm ? `${origin}/form/${data!.slug}` : `${origin}/app/bootcamps/${bootcamp.id}`;
+  const label = usesZeroForm ? "Share Zero Form" : "Share bootcamp";
+
+  const handleShare = async () => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: bootcamp?.title || "Zero Club bootcamp", url });
+        return;
+      } catch { /* dismissed */ }
+    }
+    await navigator.clipboard.writeText(url);
+    toast.success(usesZeroForm ? "Zero Form link copied" : "Bootcamp link copied");
+  };
+
+  return (
+    <div className="mt-3">
+      <button
+        onClick={handleShare}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card py-3.5 text-sm font-bold transition active:scale-[0.98]"
+      >
+        <Share2 className="h-4 w-4" />
+        {label}
+      </button>
+      {usesZeroForm && (
+        <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
+          Learners register early at your Zero Form price. This switches to the bootcamp link automatically on launch day.
+        </p>
+      )}
     </div>
   );
 }
