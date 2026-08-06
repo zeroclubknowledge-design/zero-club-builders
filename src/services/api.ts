@@ -47,8 +47,13 @@ export const getTutorBootcamps = async () => {
     .select('*, profiles(username, full_name, avatar_url, account_type), enrollments(count)')
     .or(`creator_id.eq.${session.user.id},assigned_tutor_id.eq.${session.user.id}`)
     .order('created_at', { ascending: false });
-  
-  if (error) return [];
+
+  // Surface the problem rather than showing an empty studio, which used to
+  // make a permissions error look like "you have no bootcamps".
+  if (error) {
+    console.error('Could not load your bootcamps:', error);
+    throw new Error(error.message || 'Could not load your bootcamps');
+  }
   return data ?? [];
 };
 

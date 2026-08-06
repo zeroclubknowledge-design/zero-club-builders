@@ -55,7 +55,7 @@ function WalletPage() {
   const [sendingFunds, setSendingFunds] = useState(false);
   const [suggestedRecipients, setSuggestedRecipients] = useState<any[]>([]);
 
-  const { currency, setCurrency, details: currentCurrency, fromBaseAmount } = useWalletCurrency();
+  const { currency, setCurrency, details: currentCurrency, fromBaseAmount, format } = useWalletCurrency();
   const [showBalance, setShowBalance] = useState(true);
 
   const getGreeting = () => {
@@ -67,25 +67,29 @@ function WalletPage() {
 
   const displayBalance = fromBaseAmount(profile?.coins || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
-  const { data: activitiesData, refetch: refetchActivities } = useQuery({
-    queryKey: ["wallet-activities", profile?.id],
+  // Real ledger: every credit and debit, with the balance after each one.
+  // Falls back to the older notification feed if the ledger is not installed yet.
+  const { data: walletHistory, refetch: refetchActivities } = useQuery({
+    queryKey: ["wallet-history", profile?.id],
     enabled: !!profile?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*, actor:profiles!actor_id(username, full_name, avatar_url)")
-        .eq("type", "system")
-        .order("created_at", { ascending: false });
-        
+      const { data, error } = await supabase.rpc("get_my_wallet_history", { limit_count: 60 });
       if (error) {
-        console.error("Error fetching activities:", error);
-        return [];
+        const { data: legacy } = await supabase
+          .from("notifications")
+          .select("*, actor:profiles!actor_id(username, full_name, avatar_url)")
+          .eq("type", "system")
+          .order("created_at", { ascending: false });
+        return { transactions: [], pending_topups: [], legacy: legacy || [] } as any;
       }
-      return data || [];
-    }
+      return data as any;
+    },
   });
 
-  const activities = activitiesData || [];
+  const transactions = (walletHistory?.transactions || []) as any[];
+  const pendingTopups = (walletHistory?.pending_topups || []) as any[];
+  const legacyActivities = (walletHistory?.legacy || []) as any[];
+  const activities = legacyActivities;
 
   useEffect(() => {
     const fetchNetwork = async () => {
@@ -460,7 +464,52 @@ function WalletPage() {
           </button>
         </div>
 
-        {activities.length === 0 ? (
+        {/* Money that has been paid but is still being confirmed. */}
+        {pendingTopups.length > 0 && (
+          <div className="mb-4 rounded-lg bg-amber-500/[0.07] p-3.5 ring-1 ring-amber-500/20">
+            <p className="text-[12px] font-semibold text-amber-700">
+              {pendingTopups.length === 1 ? "A payment is being confirmed" : `${pendingTopups.length} payments are being confirmed`}
+            </p>
+            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+              This usually takes a few seconds. Your balance updates automatically once it clears.
+            </p>
+          </div>
+        )}
+
+        {transactions.length > 0 ? (
+          <div className="space-y-5 md:space-y-0 md:divide-y md:divide-border/30">
+            {transactions.map((entry) => {
+              const credit = entry.direction === "credit";
+              return (
+                <div key={entry.id} className="flex items-center justify-between gap-3 md:py-3.5 md:first:pt-0 md:last:pb-0">
+                  <div className="flex min-w-0 items-center gap-4 md:gap-3">
+                    <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full md:h-10 md:w-10 ${credit ? "bg-emerald-500/10 text-emerald-600" : "bg-foreground/[0.06] text-foreground"}`}>
+                      {credit ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
+                    </div>
+                    <div className="min-w-0">
+                      <h5 className="text-sm font-medium text-foreground md:text-[13px] md:leading-snug">
+                        {entry.description || (credit ? "Money in" : "Money out")}
+                      </h5>
+                      <p className="mt-0.5 text-xs capitalize text-muted-foreground">
+                        {String(entry.source || "").replaceAll("_", " ")} · {new Date(entry.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className={`whitespace-nowrap text-sm font-bold tabular-nums ${credit ? "text-emerald-500" : "text-foreground"}`}>
+                      {credit ? "+" : "-"}{format(Number(entry.amount) || 0)}
+                    </p>
+                    {entry.balance_after !== null && entry.balance_after !== undefined && (
+                      <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
+                        Balance {format(Number(entry.balance_after) || 0)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center mt-6">
             <div className="relative mb-10 w-full max-w-[280px]">
               {/* Skeletons to mimic the uploaded UI */}

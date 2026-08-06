@@ -57,10 +57,12 @@ function TutorStudioPage() {
     coupon_discount_percent: "0"
   });
 
-  const { data: bootcamps = [], isLoading: bootcampsLoading } = useQuery({
+  const { data: bootcamps = [], isLoading: bootcampsLoading, error: bootcampsError, refetch: refetchBootcamps } = useQuery({
     queryKey: ['tutor-bootcamps'],
     queryFn: getTutorBootcamps,
+    retry: 1,
   });
+  const [bootcampFilter, setBootcampFilter] = useState<"all" | "published" | "draft">("all");
 
   const { data: clubCapacity } = useQuery({
     queryKey: ['tutor-club-capacity', profile?.id, profile?.tier],
@@ -444,10 +446,13 @@ function TutorStudioPage() {
       total + Number(bootcamp.price || 0) * Number(bootcamp.enrollments?.[0]?.count || 0),
     0
   );
-  const activeBootcamps = bootcamps.filter(
-    (bootcamp: any) => String(bootcamp.status || "").toLowerCase() === "active"
-  ).length;
+  const isPublished = (bootcamp: any) => String(bootcamp.status || "").toLowerCase() === "active";
+  const activeBootcamps = bootcamps.filter(isPublished).length;
   const draftBootcamps = Math.max(bootcamps.length - activeBootcamps, 0);
+
+  const visibleBootcamps = bootcamps.filter((bootcamp: any) =>
+    bootcampFilter === "all" ? true : bootcampFilter === "published" ? isPublished(bootcamp) : !isPublished(bootcamp),
+  );
 
   // ═══════════════════════════════════════════════════════════════
   // ZERO FORMS VIEW
@@ -1303,10 +1308,38 @@ function TutorStudioPage() {
             </div>
           </div>
 
+          {/* Published vs draft, so a live bootcamp is easy to find. */}
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              ["all", "All", bootcamps.length],
+              ["published", "Published", activeBootcamps],
+              ["draft", "Drafts", draftBootcamps],
+            ] as const).map(([key, label, count]) => (
+              <button
+                key={key}
+                onClick={() => setBootcampFilter(key as any)}
+                className={`h-9 rounded-md border px-3 text-[11.5px] font-semibold transition ${bootcampFilter === key ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+              >
+                {label} <span className="tabular-nums opacity-70">{count}</span>
+              </button>
+            ))}
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {bootcampsLoading ? (
               <div className="sm:col-span-2 xl:col-span-3 rounded-lg border border-border bg-card p-10 text-center text-[13px] text-muted-foreground">Loading your studio...</div>
-            ) : bootcamps.length > 0 ? bootcamps.map((course) => (
+            ) : bootcampsError ? (
+              <div className="sm:col-span-2 xl:col-span-3 rounded-lg border border-destructive/30 bg-destructive/[0.04] p-8 text-center">
+                <p className="text-[13px] font-semibold text-destructive">Your bootcamps could not be loaded</p>
+                <p className="mx-auto mt-1.5 max-w-md text-[11.5px] leading-5 text-muted-foreground">
+                  {(bootcampsError as any)?.message || "Something went wrong."} If this keeps happening, run the
+                  20260806140000_bootcamp_management_access.sql migration in Supabase.
+                </p>
+                <button onClick={() => refetchBootcamps()} className="mt-4 rounded-md bg-foreground px-4 py-2 text-[12px] font-semibold text-background">
+                  Try again
+                </button>
+              </div>
+            ) : visibleBootcamps.length > 0 ? visibleBootcamps.map((course) => (
               <div
                 key={course.id}
                 onClick={() => { setActiveBootcampId(course.id); setActiveTab("details"); setView("editor"); }}
@@ -1356,8 +1389,18 @@ function TutorStudioPage() {
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <BookOpen className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
                 </div>
-                <h3 className="text-[17px] font-semibold text-foreground mb-1.5 tracking-tight">No bootcamps yet</h3>
-                <p className="text-[13.5px] text-muted-foreground max-w-sm mb-7 leading-relaxed">Create your first bootcamp to start sharing your knowledge and earning.</p>
+                <h3 className="text-[17px] font-semibold text-foreground mb-1.5 tracking-tight">
+                  {bootcamps.length === 0 ? "No bootcamps yet"
+                    : bootcampFilter === "published" ? "No published bootcamps"
+                    : "No drafts"}
+                </h3>
+                <p className="text-[13.5px] text-muted-foreground max-w-sm mb-7 leading-relaxed">
+                  {bootcamps.length === 0
+                    ? "Create your first bootcamp to start sharing your knowledge and earning."
+                    : bootcampFilter === "published"
+                      ? "Your bootcamps are still drafts. Open one and set its status to Active to publish it."
+                      : "Everything you have created is published."}
+                </p>
                 <button
                   onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
                   className="rounded-lg bg-primary px-5 py-2.5 text-[13px] font-semibold text-primary-foreground tap hover:opacity-90"

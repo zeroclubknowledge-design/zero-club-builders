@@ -6,9 +6,12 @@ import {
   Check,
   ClipboardList,
   Copy,
+  Download,
   ExternalLink,
   Eye,
   Loader2,
+  Mail,
+  Phone,
   Plus,
   Search,
   Settings2,
@@ -34,6 +37,50 @@ const isMissingRpc = (error: any) =>
   error?.code === "PGRST202" || /Could not find the function|does not exist/i.test(error?.message || "");
 
 const toLocalInput = (iso?: string | null) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
+
+/** Someone who paid (or is on a free bootcamp they completed). */
+const isPaidRow = (row: any) =>
+  row.payment_status === "paid" ||
+  (row.intent !== "interest" && ["confirmed", "enrolled"].includes(row.registration_status));
+
+/** Someone who asked to be remembered but has not paid. */
+const isInterestRow = (row: any) => !isPaidRow(row);
+
+/** Download the visible registrations so the tutor can work offline. */
+function exportCsv(rows: any[], bootcampTitle?: string) {
+  const extraKeys = Array.from(
+    new Set(rows.flatMap((row) => Object.keys(row.registration_data || {}))),
+  );
+  const header = ["Name", "Email", "Phone", "Type", "Status", "Amount", "Registered", ...extraKeys];
+
+  const escape = (value: unknown) => {
+    const text = value === null || value === undefined ? "" : String(value);
+    return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  };
+
+  const lines = rows.map((row) => {
+    const data = row.registration_data || {};
+    return [
+      row.full_name || row.guest_name || row.username || "",
+      row.guest_email || data.email || "",
+      row.guest_phone || data.phone || "",
+      isInterestRow(row) ? "Interested" : "Paid",
+      row.registration_status || "",
+      row.amount || 0,
+      row.registered_at ? new Date(row.registered_at).toISOString() : "",
+      ...extraKeys.map((key) => data[key] ?? ""),
+    ].map(escape).join(",");
+  });
+
+  const csv = [header.map(escape).join(","), ...lines].join("\n");
+  const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${(bootcampTitle || "zero-form").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-registrations.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 /**
  * Zero Forms workspace, shared by the Tutor Studio and the Institution Digital Hub.
@@ -122,8 +169,8 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
 
               <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-4">
                 <Stat label="Registrations" value={form.total_registrations} />
-                <Stat label="Confirmed" value={form.confirmed_registrations} />
-                <Stat label="Pending payment" value={form.pending_payments} />
+                <Stat label="Paid" value={form.confirmed_registrations} />
+                <Stat label="Interested" value={form.interested_registrations ?? 0} />
                 <Stat label="Revenue" value={money(form.revenue)} isText />
               </div>
 
@@ -361,6 +408,7 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"overview" | "responses" | "payments" | "settings">("overview");
   const [search, setSearch] = useState("");
+  const [audience, setAudience] = useState<"all" | "paid" | "interest">("all");
 
   const detail = useQuery({
     queryKey: ["zero-form-detail", formId],
@@ -376,12 +424,20 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
   if (detail.error) return <Empty title="Could not load this Zero Form" detail={(detail.error as any).message} />;
 
   const { form, bootcamp, metrics, registrations = [], state, seats_taken } = detail.data || {};
+
   const rows = (registrations as any[]).filter((row) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
-    return JSON.stringify(row.registration_data || {}).toLowerCase().includes(q)
-      || `${row.full_name || ""} ${row.username || ""}`.toLowerCase().includes(q);
+    const haystack = [
+      JSON.stringify(row.registration_data || {}),
+      row.full_name, row.username, row.guest_name, row.guest_email, row.guest_phone,
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(q);
   });
+
+  const visibleRows = rows.filter((row) =>
+    audience === "all" ? true : audience === "paid" ? isPaidRow(row) : isInterestRow(row),
+  );
 
   if (tab === "settings") {
     return (
@@ -435,7 +491,7 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
         {tab === "overview" && (
           <div>
             <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-              <MetricCard Icon={Users} label="Registrations" value={metrics?.total ?? 0} detail={`${metrics?.confirmed ?? 0} confirmed`} />
+              <MetricCard Icon={Users} label="Registrations" value={metrics?.total ?? 0} detail={`${metrics?.confirmed ?? 0} paid · ${metrics?.interested ?? 0} interested`} />
               <MetricCard Icon={Wallet} label="Revenue" value={money(metrics?.revenue)} detail={`${metrics?.pending_payments ?? 0} awaiting payment`} isText />
               <MetricCard Icon={Eye} label="Form views" value={metrics?.views ?? 0} detail={`${metrics?.conversion ?? 0}% conversion`} />
               <MetricCard
@@ -460,33 +516,99 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
 
         {tab === "responses" && (
           <div>
+            {/* Split by what the person actually did: paid, or asked to be
+                remembered. Both groups keep their full contact details. */}
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {([
+                ["all", "Everyone", rows.length],
+                ["paid", "Paid", rows.filter(isPaidRow).length],
+                ["interest", "Interested", rows.filter(isInterestRow).length],
+              ] as const).map(([key, label, count]) => (
+                <button
+                  key={key}
+                  onClick={() => setAudience(key as any)}
+                  className={`h-9 rounded-lg border px-3 text-[11.5px] font-semibold transition ${audience === key ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                >
+                  {label} <span className="tabular-nums opacity-70">{count}</span>
+                </button>
+              ))}
+              <button
+                onClick={() => exportCsv(visibleRows, bootcamp?.title)}
+                disabled={visibleRows.length === 0}
+                className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-[11.5px] font-semibold hover:bg-muted disabled:opacity-40"
+              >
+                <Download className="h-3.5 w-3.5" /> Export CSV
+              </button>
+            </div>
+
             <label className="mb-3 flex h-10 items-center rounded-lg border border-border bg-card">
               <Search className="ml-3 h-4 w-4 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search responses" className="flex-1 bg-transparent px-3 text-[12px] outline-none" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, email or answer" className="flex-1 bg-transparent px-3 text-[12px] outline-none" />
             </label>
-            {rows.length === 0 ? (
-              <Empty title="No responses yet" detail="Share your Zero Form link to start collecting registrations." />
+
+            {visibleRows.length === 0 ? (
+              <Empty
+                title={audience === "interest" ? "Nobody has registered interest yet" : audience === "paid" ? "No paid registrations yet" : "No responses yet"}
+                detail="Share your Zero Form link to start collecting registrations."
+              />
             ) : (
               <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-                {rows.map((row) => (
-                  <div key={row.id} className="p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-[12.5px] font-semibold">{row.full_name || row.username || "Learner"}</p>
-                      <StatusPill status={row.registration_status} />
+                {visibleRows.map((row) => {
+                  const name = row.full_name || row.guest_name || row.username || "Learner";
+                  const email = row.guest_email || (row.registration_data || {}).email;
+                  const phone = row.guest_phone || (row.registration_data || {}).phone;
+                  const interest = isInterestRow(row);
+                  return (
+                    <div key={row.id} className="p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-semibold">{name}</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            {row.user_id ? `@${row.username}` : "Guest"}
+                            {row.amount > 0 && ` · ${money(row.amount)}`}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <span className={`rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${interest ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600"}`}>
+                            {interest ? "Interested" : "Paid"}
+                          </span>
+                          <StatusPill status={row.registration_status} />
+                        </div>
+                      </div>
+
+                      {/* Contact details first — this is what the tutor needs. */}
+                      {(email || phone) && (
+                        <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1">
+                          {email && (
+                            <a href={`mailto:${email}`} className="flex items-center gap-1.5 text-[11.5px] font-medium text-foreground hover:text-primary">
+                              <Mail className="h-3.5 w-3.5 text-muted-foreground" /> {String(email)}
+                            </a>
+                          )}
+                          {phone && (
+                            <a href={`tel:${phone}`} className="flex items-center gap-1.5 text-[11.5px] font-medium text-foreground hover:text-primary">
+                              <Phone className="h-3.5 w-3.5 text-muted-foreground" /> {String(phone)}
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {Object.keys(row.registration_data || {}).length > 0 && (
+                        <div className="mt-2.5 grid gap-x-6 gap-y-1 border-t border-border pt-2.5 sm:grid-cols-2">
+                          {Object.entries(row.registration_data || {}).map(([key, value]) => (
+                            <p key={key} className="text-[11px] text-muted-foreground">
+                              <span className="capitalize">{key.replaceAll("_", " ")}:</span>{" "}
+                              <span className="text-foreground">{String(value)}</span>
+                            </p>
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="mt-2.5 text-[10px] text-muted-foreground">
+                        {interest ? "Registered interest" : "Paid"} {new Date(row.registered_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                      </p>
                     </div>
-                    <div className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
-                      {Object.entries(row.registration_data || {}).map(([key, value]) => (
-                        <p key={key} className="text-[11px] text-muted-foreground">
-                          <span className="capitalize">{key.replaceAll("_", " ")}:</span>{" "}
-                          <span className="text-foreground">{String(value)}</span>
-                        </p>
-                      ))}
-                    </div>
-                    <p className="mt-2 text-[10px] text-muted-foreground">
-                      Registered {new Date(row.registered_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

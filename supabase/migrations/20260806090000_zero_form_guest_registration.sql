@@ -423,4 +423,45 @@ $$;
 
 grant execute on function public.set_zero_form_options(uuid, boolean, boolean) to authenticated;
 
+-- ---------------------------------------------------------------------------
+-- 7. Forms list also reports the interest count
+-- ---------------------------------------------------------------------------
+
+create or replace function public.get_my_zero_forms()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  caller uuid := auth.uid();
+begin
+  if caller is null then raise exception 'Not authenticated'; end if;
+
+  perform public.process_zero_form_launch(bootcamp_id)
+  from public.zero_forms where owner_id = caller;
+
+  return coalesce((
+    select jsonb_agg(to_jsonb(row) order by row.created_at desc) from (
+      select form.id, form.slug, form.title, form.status, form.regular_price,
+             form.early_bird_price, form.registration_deadline, form.seat_limit,
+             form.views, form.created_at, form.published_at,
+             bootcamp.id as bootcamp_id, bootcamp.title as bootcamp_title,
+             bootcamp.banner_url, bootcamp.starts_at, bootcamp.category,
+             public.zero_form_state(form, bootcamp) as state,
+             (select count(*) from public.zero_form_registrations reg where reg.zero_form_id = form.id) as total_registrations,
+             (select count(*) from public.zero_form_registrations reg where reg.zero_form_id = form.id and reg.registration_status in ('confirmed', 'enrolled')) as confirmed_registrations,
+             (select count(*) from public.zero_form_registrations reg where reg.zero_form_id = form.id and reg.registration_status = 'interested') as interested_registrations,
+             (select count(*) from public.zero_form_registrations reg where reg.zero_form_id = form.id and reg.registration_status = 'payment_pending') as pending_payments,
+             (select coalesce(sum(reg.amount), 0) from public.zero_form_registrations reg where reg.zero_form_id = form.id and reg.payment_status = 'paid') as revenue
+      from public.zero_forms form
+      join public.bootcamps bootcamp on bootcamp.id = form.bootcamp_id
+      where form.owner_id = caller
+    ) as row
+  ), '[]'::jsonb);
+end;
+$$;
+
+grant execute on function public.get_my_zero_forms() to authenticated;
+
 notify pgrst, 'reload schema';

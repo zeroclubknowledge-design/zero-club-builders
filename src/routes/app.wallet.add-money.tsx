@@ -43,6 +43,12 @@ function AddMoneyPage() {
 
     try {
       setStatus("paying");
+
+      // Record who this payment belongs to *before* checkout. If the browser
+      // never comes back, the Paystack webhook still knows which wallet to
+      // credit, so money is never lost.
+      await supabase.rpc("start_wallet_topup", { reference, amount: numericAmount });
+
       await openPaystackCheckout({
         email,
         amount: chargeAmount,
@@ -74,7 +80,13 @@ function AddMoneyPage() {
       if (message === "Payment cancelled") {
         toast("Payment cancelled");
       } else {
-        toast.error(message);
+        // The card may still have been charged. Paystack's webhook credits the
+        // wallet independently, so reassure rather than alarm, and refresh in
+        // case the money has already landed.
+        toast.error(message, {
+          description: "If your card was charged, the money will appear in your wallet automatically.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
       }
     } finally {
       setStatus("idle");

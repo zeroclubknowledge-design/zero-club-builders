@@ -229,17 +229,10 @@ function ZeroFormPublicPage() {
   return (
     <Shell>
       <div className="mx-auto max-w-[720px] px-5 pb-24 pt-6">
-        {/* ── Flyer, shown whole at its own proportions ───────────────────── */}
-        {flyer && (
-          <img
-            src={flyer}
-            alt={`${bootcamp?.title} flyer`}
-            className="mb-6 w-full rounded-lg border border-border bg-card object-contain"
-          />
-        )}
-
-        {/* ── Video ad, kept at its natural shape ─────────────────────────── */}
-        {bootcamp?.video_url && (
+        {/* ── One piece of media, at its own natural proportions ──────────────
+            The video always wins when there is one. The flyer is the fallback,
+            and nothing is shown at all when neither has been uploaded. */}
+        {bootcamp?.video_url ? (
           <video
             src={bootcamp.video_url}
             controls
@@ -248,7 +241,13 @@ function ZeroFormPublicPage() {
             poster={flyer || undefined}
             className="mb-6 w-full rounded-lg border border-border bg-black"
           />
-        )}
+        ) : flyer ? (
+          <img
+            src={flyer}
+            alt={`${bootcamp?.title} flyer`}
+            className="mb-6 w-full rounded-lg border border-border bg-card object-contain"
+          />
+        ) : null}
 
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
           {bootcamp?.category || "Bootcamp"} · Early registration
