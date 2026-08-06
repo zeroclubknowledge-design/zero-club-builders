@@ -69,15 +69,32 @@ export function RichText({ content, className = "" }: { content?: string | null;
   );
 }
 
+const ENTITIES: Record<string, string> = {
+  "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&apos;": "'",
+  "&nbsp;": " ", "&rsquo;": "’", "&lsquo;": "‘", "&ldquo;": "“",
+  "&rdquo;": "”", "&mdash;": "—", "&ndash;": "–", "&hellip;": "…",
+};
+
 /** Formatting stripped out, for previews, cards and social sharing. */
 export function richTextToPlain(content?: string | null) {
   const text = (content || "").trim();
   if (!text) return "";
   if (!looksLikeHtml(text)) return text;
 
+  // Block tags must become a space first. Without this, textContent glues the
+  // blocks together — <p>Hello</p><p>World</p> reads back as "HelloWorld" —
+  // which mangles card previews and breaks any text comparison.
+  const spaced = text
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/(p|div|li|ul|ol|h[1-6]|blockquote|tr|td|th|section)>/gi, " ");
+
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    return text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const stripped = spaced.replace(/<[^>]+>/g, " ");
+    return stripped
+      .replace(/&[a-z]+;|&#\d+;/gi, (m) => ENTITIES[m.toLowerCase()] ?? " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
-  const doc = new DOMParser().parseFromString(text, "text/html");
+  const doc = new DOMParser().parseFromString(spaced, "text/html");
   return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
 }

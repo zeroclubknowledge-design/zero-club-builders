@@ -234,10 +234,14 @@ function ZeroFormPublicPage() {
      The Details tab can show two blocks of writing: the bootcamp's own
      description, and the extra note typed on the form. Creators very often
      paste the same text into both, which made the page repeat itself. We
-     compare the plain words (ignoring formatting, spacing and case) and only
-     show the form note when it genuinely says something new. */
+     only show the form note when it genuinely says something new.
+
+     Comparing the two is fussier than it looks: one side is rich text and the
+     other is usually the plain-text original, so spacing, punctuation and
+     smart quotes never line up. We reduce both to letters and digits only,
+     which makes the comparison immune to all of that. */
   const normalise = (value?: string | null) =>
-    richTextToPlain(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+    richTextToPlain(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
   // Deliberately a plain calculation, not a useMemo: this sits after the early
   // returns above, and a hook here would run on some renders but not others,
@@ -247,7 +251,11 @@ function ZeroFormPublicPage() {
     if (!note) return false;
     const main = normalise(bootcamp?.description);
     if (!main) return true;
-    return !main.includes(note) && !note.includes(main);
+    if (main.includes(note) || note.includes(main)) return false;
+    // Also catch the near-copies: a note that merely repeats the opening of
+    // the description, or was lightly edited after being pasted in.
+    const head = (a: string, b: string) => a.slice(0, Math.min(160, b.length));
+    return !main.includes(head(note, main)) && !note.includes(head(main, note));
   })();
 
   return (
@@ -257,14 +265,21 @@ function ZeroFormPublicPage() {
             The video always wins when there is one. The flyer is the fallback,
             and nothing is shown at all when neither has been uploaded. */}
         {bootcamp?.video_url ? (
-          /* Keeping a playing video inside rounded corners needs three things.
-             The moment playback starts the browser hands the video to the GPU
-             as its own layer, and a GPU layer ignores both the parent's
-             `overflow-hidden` and its own `border-radius` — which is why the
-             corners snapped back to square on play. `clip-path` is the fix:
-             it is applied during compositing, so it survives the handover.
-             The mask on the wrapper is the same trick for older Safari. */
-          <div className="isolate mb-6 overflow-hidden rounded-2xl border border-border bg-black [-webkit-mask-image:-webkit-radial-gradient(white,black)]">
+          /* Keeping a playing video inside rounded corners is genuinely awkward.
+             On play the browser hands the video to the GPU as its own layer,
+             and that layer stops obeying the parent's `overflow-hidden`.
+
+             Three defences, because browsers disagree about which one they
+             honour:
+               1. `clip-path` on the video — applied at composite time, so it
+                  survives the handover to the GPU.
+               2. `translateZ(0)` on the wrapper — this is the important one.
+                  It forces the wrapper itself onto a GPU layer, so the GPU
+                  performs the rounded clip for everything inside it. Plain
+                  `isolate` only makes a stacking context, not a GPU layer,
+                  which is why it was not enough on its own.
+               3. The webkit mask — the same idea for older Safari. */
+          <div className="isolate mb-6 transform-gpu overflow-hidden rounded-2xl border border-border bg-black will-change-transform [-webkit-mask-image:-webkit-radial-gradient(white,black)] [-webkit-transform:translateZ(0)] [transform:translateZ(0)]">
             <video
               src={bootcamp.video_url}
               controls

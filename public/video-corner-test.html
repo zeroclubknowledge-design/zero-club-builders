@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Which rounding technique survives playback?</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #f6f6f8; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  p.note { font-size: 13px; color: #555; margin: 0 0 20px; }
+  .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); max-width: 1100px; }
+  .case h2 { font-size: 13px; margin: 0 0 8px; font-weight: 600; }
+  .case p { font-size: 11.5px; color: #666; margin: 8px 0 0; line-height: 1.5; }
+  video { display: block; width: 100%; background: #000; }
+
+  /* A: nothing but overflow-hidden on the wrapper (the original bug) */
+  .a { overflow: hidden; border-radius: 16px; border: 1px solid #ddd; }
+
+  /* B: radius on the video itself */
+  .b { overflow: hidden; border-radius: 16px; border: 1px solid #ddd; }
+  .b video { border-radius: 16px; }
+
+  /* C: clip-path on the video - what is currently shipped */
+  .c { isolation: isolate; overflow: hidden; border-radius: 16px; border: 1px solid #ddd;
+       -webkit-mask-image: -webkit-radial-gradient(white, black); }
+  .c video { border-radius: 16px; -webkit-clip-path: inset(0 round 16px); clip-path: inset(0 round 16px); }
+
+  /* D: C plus forcing the WRAPPER onto its own GPU layer */
+  .d { isolation: isolate; overflow: hidden; border-radius: 16px; border: 1px solid #ddd;
+       -webkit-mask-image: -webkit-radial-gradient(white, black);
+       -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; }
+  .d video { border-radius: 16px; -webkit-clip-path: inset(0 round 16px); clip-path: inset(0 round 16px); }
+</style>
+
+<h1>Rounded-corner test — all four videos are playing</h1>
+<p class="note">Look at the corners of each while it plays. Square corners = that technique failed in this browser.</p>
+
+<div class="grid">
+  <div class="case"><h2>A · overflow-hidden only</h2>
+    <div class="a"><video autoplay muted loop playsinline
+      src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video></div>
+    <p>The original. Expected to fail once the video is composited.</p></div>
+
+  <div class="case"><h2>B · + radius on the video</h2>
+    <div class="b"><video autoplay muted loop playsinline
+      src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video></div>
+    <p>Often ignored once the video moves to the GPU.</p></div>
+
+  <div class="case"><h2>C · + clip-path (shipped now)</h2>
+    <div class="c"><video autoplay muted loop playsinline
+      src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video></div>
+    <p>clip-path is applied at composite time, so it should survive.</p></div>
+
+  <div class="case"><h2>D · + wrapper on its own GPU layer</h2>
+    <div class="d"><video autoplay muted loop playsinline
+      src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video></div>
+    <p>translateZ(0) forces the wrapper to be composited too, so the GPU does the clipping.</p></div>
+</div>
