@@ -265,28 +265,37 @@ function ZeroFormPublicPage() {
             The video always wins when there is one. The flyer is the fallback,
             and nothing is shown at all when neither has been uploaded. */}
         {bootcamp?.video_url ? (
-          /* Keeping a playing video inside rounded corners is genuinely awkward.
-             On play the browser hands the video to the GPU as its own layer,
-             and that layer stops obeying the parent's `overflow-hidden`.
-
-             Three defences, because browsers disagree about which one they
-             honour:
-               1. `clip-path` on the video — applied at composite time, so it
-                  survives the handover to the GPU.
-               2. `translateZ(0)` on the wrapper — this is the important one.
-                  It forces the wrapper itself onto a GPU layer, so the GPU
-                  performs the rounded clip for everything inside it. Plain
-                  `isolate` only makes a stacking context, not a GPU layer,
-                  which is why it was not enough on its own.
-               3. The webkit mask — the same idea for older Safari. */
-          <div className="isolate mb-6 transform-gpu overflow-hidden rounded-2xl border border-border bg-black will-change-transform [-webkit-mask-image:-webkit-radial-gradient(white,black)] [-webkit-transform:translateZ(0)] [transform:translateZ(0)]">
+          /* Keeping a playing video inside rounded corners requires hardware compositing
+             defences across Chrome, Safari, Edge, and Firefox:
+               1. `clip-path: inset(0 round 1rem)` on BOTH wrapper and video — applied
+                  at composite time, ensuring the wrapper container box clips the video
+                  and native shadow DOM media controls during GPU hardware playback.
+               2. `mask-image: linear-gradient(white, white)` and `-webkit-mask-image` —
+                  forces WebKit/Blink to enforce the rounded mask on GPU layers.
+               3. `transform: translateZ(0)` — promotes the wrapper onto its own GPU
+                  compositing layer so the rounded clip remains active during playback. */
+          <div
+            className="isolate mb-6 overflow-hidden rounded-2xl border border-border bg-black transform-gpu will-change-transform"
+            style={{
+              clipPath: "inset(0 round 1rem)",
+              WebkitClipPath: "inset(0 round 1rem)",
+              WebkitMaskImage: "-webkit-linear-gradient(white, white)",
+              maskImage: "linear-gradient(white, white)",
+              transform: "translateZ(0)",
+              WebkitTransform: "translateZ(0)",
+            }}
+          >
             <video
               src={bootcamp.video_url}
               controls
               playsInline
               preload="metadata"
               poster={flyer || undefined}
-              className="block w-full rounded-2xl [clip-path:inset(0_round_1rem)]"
+              className="block w-full rounded-2xl"
+              style={{
+                clipPath: "inset(0 round 1rem)",
+                WebkitClipPath: "inset(0 round 1rem)",
+              }}
             />
           </div>
         ) : flyer ? (

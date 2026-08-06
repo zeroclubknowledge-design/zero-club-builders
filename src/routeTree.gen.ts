@@ -16,6 +16,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as FormSlugRouteImport } from './routes/form.$slug'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as AppZerohubRouteImport } from './routes/app.zerohub'
 import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
@@ -115,6 +116,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const FormSlugRoute = FormSlugRouteImport.update({
+  id: '/form/$slug',
+  path: '/form/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExploreSlugRoute = ExploreSlugRouteImport.update({
   id: '/explore/$slug',
@@ -468,6 +474,7 @@ export interface FileRoutesByFullPath {
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/form/$slug': typeof FormSlugRoute
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -535,6 +542,7 @@ export interface FileRoutesByTo {
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/form/$slug': typeof FormSlugRoute
   '/app': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -609,6 +617,7 @@ export interface FileRoutesById {
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/explore/$slug': typeof ExploreSlugRoute
+  '/form/$slug': typeof FormSlugRoute
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -684,6 +693,7 @@ export interface FileRouteTypes {
     | '/app/zero-ai'
     | '/app/zerohub'
     | '/explore/$slug'
+    | '/form/$slug'
     | '/app/'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -751,6 +761,7 @@ export interface FileRouteTypes {
     | '/app/zero-ai'
     | '/app/zerohub'
     | '/explore/$slug'
+    | '/form/$slug'
     | '/app'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -824,6 +835,7 @@ export interface FileRouteTypes {
     | '/app/zero-ai'
     | '/app/zerohub'
     | '/explore/$slug'
+    | '/form/$slug'
     | '/app/'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -879,6 +891,7 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
+  FormSlugRoute: typeof FormSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -931,6 +944,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/form/$slug': {
+      id: '/form/$slug'
+      path: '/form/$slug'
+      fullPath: '/form/$slug'
+      preLoaderRoute: typeof FormSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/explore/$slug': {
       id: '/explore/$slug'
@@ -1585,6 +1605,7 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   ExploreSlugRoute: ExploreSlugRoute,
+  FormSlugRoute: FormSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
