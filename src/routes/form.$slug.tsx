@@ -10,8 +10,13 @@ import {
   ChevronDown,
   Clock3,
   Loader2,
+  Maximize,
+  Pause,
+  Play,
   PlayCircle,
   Users,
+  Volume2,
+  VolumeX,
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +31,182 @@ export const Route = createFileRoute("/form/$slug")({ component: ZeroFormPublicP
 const money = (value: number) => formatWalletAmount(Number(value) || 0);
 
 type Tab = "details" | "content" | "register";
+
+function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const hideControlsTimeout = useRef<any>(null);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    const nextMuted = !isMuted;
+    videoRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
+  };
+
+  const toggleFullscreen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!containerRef.current) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      containerRef.current.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (!videoRef.current) return;
+    const cur = videoRef.current.currentTime;
+    const dur = videoRef.current.duration || 1;
+    setCurrentTime(cur);
+    setDuration(dur);
+    setProgress((cur / dur) * 100);
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!videoRef.current) return;
+    const newTime = (Number(e.target.value) / 100) * duration;
+    videoRef.current.currentTime = newTime;
+    setProgress(Number(e.target.value));
+  };
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (hideControlsTimeout.current) clearTimeout(hideControlsTimeout.current);
+    if (isPlaying) {
+      hideControlsTimeout.current = setTimeout(() => {
+        setShowControls(false);
+      }, 2500);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds) || seconds <= 0) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => isPlaying && setShowControls(false)}
+      className="group relative mb-6 overflow-hidden rounded-2xl border border-border bg-black shadow-md transform-gpu isolate"
+      style={{
+        clipPath: "inset(0 round 1rem)",
+        WebkitClipPath: "inset(0 round 1rem)",
+        WebkitMaskImage: "-webkit-linear-gradient(white, white)",
+        maskImage: "linear-gradient(white, white)",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
+      }}
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        playsInline
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleTimeUpdate}
+        onEnded={() => {
+          setIsPlaying(false);
+          setShowControls(true);
+        }}
+        onClick={togglePlay}
+        className="block w-full cursor-pointer rounded-2xl object-contain max-h-[480px] bg-black"
+        style={{
+          clipPath: "inset(0 round 1rem)",
+          WebkitClipPath: "inset(0 round 1rem)",
+        }}
+      />
+
+      {/* Center Play Button when Paused */}
+      {!isPlaying && (
+        <button
+          type="button"
+          onClick={togglePlay}
+          className="absolute inset-0 z-10 grid place-items-center bg-black/30 transition-all hover:bg-black/20"
+          aria-label="Play video"
+        >
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-2xl backdrop-blur-md transition-transform duration-200 hover:scale-110 active:scale-95">
+            <Play className="h-7 w-7 translate-x-0.5 fill-current" />
+          </div>
+        </button>
+      )}
+
+      {/* Floating Modern Controls Bar */}
+      <div
+        className={`absolute bottom-0 left-0 right-0 z-20 flex flex-col gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3.5 transition-opacity duration-300 ${
+          showControls || !isPlaying ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="relative flex items-center w-full">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={progress || 0}
+            onChange={handleSeek}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-white/25 accent-primary focus:outline-none"
+          />
+        </div>
+
+        <div className="flex items-center justify-between text-white text-xs font-medium pt-1">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={togglePlay}
+              className="grid h-8 w-8 place-items-center rounded-full bg-white/10 hover:bg-white/20 transition text-white"
+              aria-label={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current translate-x-0.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={toggleMute}
+              className="grid h-8 w-8 place-items-center rounded-full bg-white/10 hover:bg-white/20 transition text-white"
+              aria-label={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
+            <span className="text-[12px] font-mono text-white/80">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="grid h-8 w-8 place-items-center rounded-full bg-white/10 hover:bg-white/20 transition text-white"
+            aria-label="Toggle Fullscreen"
+          >
+            <Maximize className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ZeroFormPublicPage() {
   const { slug } = Route.useParams();
@@ -265,39 +446,7 @@ function ZeroFormPublicPage() {
             The video always wins when there is one. The flyer is the fallback,
             and nothing is shown at all when neither has been uploaded. */}
         {bootcamp?.video_url ? (
-          /* Keeping a playing video inside rounded corners requires hardware compositing
-             defences across Chrome, Safari, Edge, and Firefox:
-               1. `clip-path: inset(0 round 1rem)` on BOTH wrapper and video — applied
-                  at composite time, ensuring the wrapper container box clips the video
-                  and native shadow DOM media controls during GPU hardware playback.
-               2. `mask-image: linear-gradient(white, white)` and `-webkit-mask-image` —
-                  forces WebKit/Blink to enforce the rounded mask on GPU layers.
-               3. `transform: translateZ(0)` — promotes the wrapper onto its own GPU
-                  compositing layer so the rounded clip remains active during playback. */
-          <div
-            className="isolate mb-6 overflow-hidden rounded-2xl border border-border bg-black transform-gpu will-change-transform"
-            style={{
-              clipPath: "inset(0 round 1rem)",
-              WebkitClipPath: "inset(0 round 1rem)",
-              WebkitMaskImage: "-webkit-linear-gradient(white, white)",
-              maskImage: "linear-gradient(white, white)",
-              transform: "translateZ(0)",
-              WebkitTransform: "translateZ(0)",
-            }}
-          >
-            <video
-              src={bootcamp.video_url}
-              controls
-              playsInline
-              preload="metadata"
-              poster={flyer || undefined}
-              className="block w-full rounded-2xl"
-              style={{
-                clipPath: "inset(0 round 1rem)",
-                WebkitClipPath: "inset(0 round 1rem)",
-              }}
-            />
-          </div>
+          <ZeroFormVideoPlayer src={bootcamp.video_url} poster={flyer || undefined} />
         ) : flyer ? (
           <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card">
             <img
