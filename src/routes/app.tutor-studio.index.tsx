@@ -1290,22 +1290,37 @@ function TutorStudioPage() {
           </div>
         </section>
 
+        {/* ── Zero Forms: a proper entry point, not a button squeezed
+               beside a count ────────────────────────── */}
+        <button
+          onClick={() => setView("zero-forms")}
+          className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/35 hover:shadow-soft sm:p-5"
+        >
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary sm:h-12 sm:w-12">
+            <ClipboardList className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-[15px] font-semibold tracking-tight">Zero Forms</h3>
+              <span className="rounded-full bg-primary/[0.09] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-primary">
+                Pre-registration
+              </span>
+            </div>
+            <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
+              Collect learners and early-bird payments before your bootcamp starts.
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+        </button>
+
         {/* ── Bootcamps Grid ────────────────────────── */}
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-[19px] font-semibold tracking-tight text-foreground">Bootcamps</h2>
               <p className="mt-1 text-[12px] text-muted-foreground">Select a bootcamp to edit every part of it.</p>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setView("zero-forms")}
-                className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-[11px] font-semibold hover:bg-muted"
-              >
-                <ClipboardList className="h-3.5 w-3.5" /> Zero Forms
-              </button>
-              <span className="text-[12px] tabular-nums text-muted-foreground">{bootcamps.length} total</span>
-            </div>
+            <span className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{bootcamps.length} total</span>
           </div>
 
           {/* Published vs draft, so a live bootcamp is easy to find. */}
@@ -1332,8 +1347,7 @@ function TutorStudioPage() {
               <div className="sm:col-span-2 xl:col-span-3 rounded-lg border border-destructive/30 bg-destructive/[0.04] p-8 text-center">
                 <p className="text-[13px] font-semibold text-destructive">Your bootcamps could not be loaded</p>
                 <p className="mx-auto mt-1.5 max-w-md text-[11.5px] leading-5 text-muted-foreground">
-                  {(bootcampsError as any)?.message || "Something went wrong."} If this keeps happening, run the
-                  20260806140000_bootcamp_management_access.sql migration in Supabase.
+                  {(bootcampsError as any)?.message || "Something went wrong. Please try again."}
                 </p>
                 <button onClick={() => refetchBootcamps()} className="mt-4 rounded-md bg-foreground px-4 py-2 text-[12px] font-semibold text-background">
                   Try again

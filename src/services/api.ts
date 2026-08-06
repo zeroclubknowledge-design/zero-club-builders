@@ -42,19 +42,41 @@ export const getTutorBootcamps = async () => {
   const { data: { session } } = await getCachedSession();
   if (!session) return [];
 
-  const { data, error } = await supabase
+  // No profiles embed here on purpose. Bootcamps link to profiles twice
+  // (creator_id and assigned_tutor_id), so an embed is ambiguous and the whole
+  // query fails - which used to look like "you have no bootcamps". The creator
+  // is fetched separately instead, exactly like the public bootcamp list does.
+  const { data: bootcamps, error } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url, account_type), enrollments(count)')
+    .select('*')
     .or(`creator_id.eq.${session.user.id},assigned_tutor_id.eq.${session.user.id}`)
     .order('created_at', { ascending: false });
 
-  // Surface the problem rather than showing an empty studio, which used to
-  // make a permissions error look like "you have no bootcamps".
   if (error) {
     console.error('Could not load your bootcamps:', error);
     throw new Error(error.message || 'Could not load your bootcamps');
   }
-  return data ?? [];
+  if (!bootcamps?.length) return [];
+
+  const creatorIds = [...new Set(bootcamps.map((bootcamp: any) => bootcamp.creator_id).filter(Boolean))];
+  const bootcampIds = bootcamps.map((bootcamp: any) => bootcamp.id);
+
+  const [{ data: creators }, { data: enrollments }] = await Promise.all([
+    supabase.from('profiles').select('id, username, full_name, avatar_url, account_type').in('id', creatorIds),
+    supabase.from('enrollments').select('bootcamp_id').in('bootcamp_id', bootcampIds),
+  ]);
+
+  const creatorMap = new Map((creators || []).map((creator: any) => [creator.id, creator]));
+  const enrollmentCounts = new Map<string, number>();
+  (enrollments || []).forEach((row: any) =>
+    enrollmentCounts.set(row.bootcamp_id, (enrollmentCounts.get(row.bootcamp_id) || 0) + 1),
+  );
+
+  return bootcamps.map((bootcamp: any) => ({
+    ...bootcamp,
+    profiles: creatorMap.get(bootcamp.creator_id) || null,
+    enrollments: [{ count: enrollmentCounts.get(bootcamp.id) || 0 }],
+  }));
 };
 
   // Fetch tutors linked to this institution
@@ -73,7 +95,7 @@ export const getTutorBootcamps = async () => {
   
     const { data, error } = await supabase
       .from('bootcamps')
-      .select('*, profiles(username, full_name, avatar_url), club:clubs(id)')
+      .select('*, profiles!bootcamps_creator_id_fkey(username, full_name, avatar_url), club:clubs(id)')
       .in('creator_id', tutorIds)
       .order('created_at', { ascending: false });
     
@@ -109,7 +131,7 @@ export const deleteBootcampAction = createServerFn({ method: 'POST' }).inputVali
 export const getBootcampWithCurriculum = async ({ data: { bootcampId } }: { data: { bootcampId: string } }) => {
   const { data: bootcamp, error: bootcampError } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url, account_type)')
+    .select('*, profiles!bootcamps_creator_id_fkey(username, full_name, avatar_url, account_type)')
     .eq('id', bootcampId)
     .single();
     
@@ -758,7 +780,7 @@ export const searchEverything = async (query: string) => {
   // 2. Search Bootcamps
   const { data: bootcamps } = await supabase
     .from('bootcamps')
-    .select('*, profiles(username, full_name, avatar_url)')
+    .select('*, profiles!bootcamps_creator_id_fkey(username, full_name, avatar_url)')
     .or(`title.ilike.${q},description.ilike.${q},category.ilike.${q}`)
     .eq('status', 'active')
     .limit(10);
