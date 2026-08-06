@@ -43,6 +43,12 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimeout = useRef<any>(null);
 
+  /* The container is given the video's own shape as soon as we know it. This
+     is what stops the video escaping its box: the frame below is pinned to
+     this container's edges, so it can never resize itself when playback
+     starts. 16/9 is only the placeholder until the real dimensions arrive. */
+  const [ratio, setRatio] = useState(16 / 9);
+
   const togglePlay = () => {
     if (!videoRef.current) return;
     if (isPlaying) {
@@ -79,6 +85,14 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
     setProgress((cur / dur) * 100);
   };
 
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (video?.videoWidth && video.videoHeight) {
+      setRatio(video.videoWidth / video.videoHeight);
+    }
+    handleTimeUpdate();
+  };
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!videoRef.current) return;
     const newTime = (Number(e.target.value) / 100) * duration;
@@ -108,13 +122,17 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
-      /* Deliberately SQUARE and clipping. A playing video is moved onto a
-         hardware overlay plane that sits outside the page, so border-radius,
-         overflow-hidden and clip-path all have nothing to bite on. Instead
-         this box stays square and the corners are painted over the video by
-         the mask element below — the same reason the play button is visible
-         over the video. Rounding this box would clip that paint away. */
-      className="group relative mb-6 overflow-hidden bg-black shadow-md"
+      /* This box holds the video's exact shape, so the frame inside can be
+         pinned to its edges and never resize itself mid-playback.
+         It stays SQUARE on purpose: the rounded corners are painted over the
+         top by the mask below, and rounding here would clip that paint away. */
+      className="group relative mx-auto mb-6 overflow-hidden bg-black shadow-md"
+      style={{
+        aspectRatio: String(ratio),
+        // A portrait video would otherwise run taller than the screen. Capping
+        // the WIDTH keeps the true shape intact; capping height would not.
+        maxWidth: ratio < 1 ? `calc(72vh * ${ratio})` : undefined,
+      }}
     >
       <video
         ref={videoRef}
@@ -125,16 +143,22 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => {
           setIsPlaying(false);
           setShowControls(true);
         }}
         onClick={togglePlay}
-        /* object-contain was letterboxing the video inside a black box, which
-           put square black bars inside the rounded frame. object-cover fills
-           the frame edge to edge so there are no bars to square off. */
-        className="block max-h-[480px] w-full cursor-pointer bg-black object-cover"
+        /* Pinned to the container's edges rather than sized by the video's own
+           dimensions — this is what stops it resizing when playback starts.
+
+           object-contain, never object-cover. `cover` asks the browser to CROP
+           the frame, and cropping cannot happen on the hardware overlay path,
+           so the browser draws the whole frame instead and it spills past the
+           box. `contain` only ever shrinks to fit, so it cannot overflow. And
+           because the container now carries the video's exact shape, contain
+           has nothing to letterbox — no black bars either. */
+        className="absolute inset-0 h-full w-full cursor-pointer bg-black object-contain"
       />
 
       {/* ── The rounded corners ──────────────────────────────────────────────
