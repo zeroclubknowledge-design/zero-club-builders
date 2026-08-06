@@ -20,6 +20,7 @@ import { useEffect } from "react";
 import { uploadFile } from "@/lib/storage";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,

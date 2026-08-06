@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadFile } from "@/lib/storage";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import {
   Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2,
   BarChart3, Settings, Search, ChevronRight, Loader2,
