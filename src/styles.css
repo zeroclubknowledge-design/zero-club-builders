@@ -84,6 +84,11 @@
   --border: oklch(18% 0.005 260 / 0.06);
   --border-strong: oklch(18% 0.005 260 / 0.16);
   --hairline: oklch(18% 0.005 260 / 0.06);
+  /* The page colour sitting behind a video. A playing video is handed to a
+     hardware overlay plane that ignores every CSS clip, so rounded corners
+     have to be painted ON TOP in the surrounding colour. This is that colour;
+     the public Zero Form page sits on #f8f7f5 rather than --background. */
+  --zc-media-surface: #f8f7f5;
   --input: oklch(18% 0.005 260 / 0.07);
   --ring: oklch(58% 0.22 350 / 0.55);
 
@@ -123,6 +128,7 @@
   --border-strong: oklch(100% 0 0 / 14%);
   --hairline: oklch(100% 0 0 / 5%);
   --input: oklch(100% 0 0 / 8%);
+  --zc-media-surface: var(--background);
   --ring: oklch(78% 0.12 350 / 0.6);
 
   --gradient-hero: radial-gradient(circle at top right, oklch(78% 0.12 350 / 0.10), transparent 68%),

@@ -108,16 +108,13 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
-      className="group relative mb-6 overflow-hidden rounded-2xl border border-border bg-black shadow-md transform-gpu isolate"
-      style={{
-        borderRadius: "1rem",
-        clipPath: "inset(0 round 1rem)",
-        WebkitClipPath: "inset(0 round 1rem)",
-        WebkitMaskImage: "-webkit-linear-gradient(white, white)",
-        maskImage: "linear-gradient(white, white)",
-        transform: "translateZ(0)",
-        WebkitTransform: "translateZ(0)",
-      }}
+      /* Deliberately SQUARE and clipping. A playing video is moved onto a
+         hardware overlay plane that sits outside the page, so border-radius,
+         overflow-hidden and clip-path all have nothing to bite on. Instead
+         this box stays square and the corners are painted over the video by
+         the mask element below — the same reason the play button is visible
+         over the video. Rounding this box would clip that paint away. */
+      className="group relative mb-6 overflow-hidden bg-black shadow-md"
     >
       <video
         ref={videoRef}
@@ -134,15 +131,28 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
           setShowControls(true);
         }}
         onClick={togglePlay}
-        className="block w-full cursor-pointer rounded-2xl object-cover max-h-[480px] bg-black"
+        /* object-contain was letterboxing the video inside a black box, which
+           put square black bars inside the rounded frame. object-cover fills
+           the frame edge to edge so there are no bars to square off. */
+        className="block max-h-[480px] w-full cursor-pointer bg-black object-cover"
+      />
+
+      {/* ── The rounded corners ──────────────────────────────────────────────
+          A rounded rectangle whose box-shadow spreads OUTWARD in the page
+          colour. Everything outside the rounded shape — precisely the four
+          corner wedges — gets painted over, and the parent's overflow-hidden
+          stops the spread from bleeding across the page. The inset shadow
+          draws the hairline border on top so it stays rounded too.
+          It sits above everything — video, play button and the controls bar —
+          so all three get rounded together; pointer-events-none means clicks
+          still reach the controls underneath. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-30"
         style={{
           borderRadius: "1rem",
-          clipPath: "inset(0 round 1rem)",
-          WebkitClipPath: "inset(0 round 1rem)",
-          WebkitMaskImage: "-webkit-linear-gradient(white, white)",
-          maskImage: "linear-gradient(white, white)",
-          transform: "translateZ(0)",
-          WebkitTransform: "translateZ(0)",
+          boxShadow:
+            "0 0 0 120px var(--zc-media-surface), inset 0 0 0 1px var(--border)",
         }}
       />
 
@@ -458,7 +468,7 @@ function ZeroFormPublicPage() {
             <img
               src={flyer}
               alt={`${bootcamp?.title} flyer`}
-              className="block w-full rounded-2xl object-contain [clip-path:inset(0_round_1rem)]"
+              className="block w-full rounded-2xl object-contain"
             />
           </div>
         ) : null}
