@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { createBootcampAction } from "@/api";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 export const Route = createFileRoute("/app/tutor-studio/create")({
   component: CreateBootcamp,
@@ -449,14 +450,15 @@ export function BootcampForm({
                 <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                   Description
                 </label>
-                <textarea
+                <RichTextEditor
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe what builders will learn…"
-                  rows={4}
-                  className="w-full resize-none rounded-lg border border-border bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
-                  disabled={loading}
+                  onChange={setDescription}
+                  placeholder="Describe what builders will learn. Use bold for key points and bullets for the outline…"
+                  minHeight={180}
                 />
+                <p className="ml-1 text-[10.5px] leading-4 text-muted-foreground">
+                  Use the toolbar to add headings, bold text and bullet points so learners can scan it quickly.
+                </p>
               </div>
 
               {/* Cover Image Upload */}

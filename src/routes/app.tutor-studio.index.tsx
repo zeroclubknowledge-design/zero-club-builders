@@ -1043,12 +1043,11 @@ function TutorStudioPage() {
                 {/* Description */}
                 <div className="space-y-3">
                   <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Description</label>
-                  <textarea
-                    rows={5}
-                    className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground/40 resize-none"
+                  <RichTextEditor
                     value={bootcampSettings.description}
-                    onChange={(e) => setBootcampSettings({ ...bootcampSettings, description: e.target.value })}
-                    placeholder="Describe what learners will learn..."
+                    onChange={(html) => setBootcampSettings({ ...bootcampSettings, description: html })}
+                    placeholder="Describe what learners will learn. Use bold and bullets to organise it..."
+                    minHeight={200}
                   />
                 </div>
 

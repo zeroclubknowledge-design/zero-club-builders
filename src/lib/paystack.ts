@@ -14,7 +14,36 @@ declare global {
   }
 }
 
-export const paystackPublicKey = (import.meta as any).env?.VITE_PAYSTACK_PUBLIC_KEY as string | undefined;
+/**
+ * The Paystack public key, cleaned up before use.
+ *
+ * Pasting into a hosting dashboard often brings along quotes or stray spaces,
+ * and it is easy to paste the secret key by mistake. Both produce Paystack's
+ * unhelpful "Please enter a valid Key" screen, so they are caught here.
+ */
+const rawPaystackKey = ((import.meta as any).env?.VITE_PAYSTACK_PUBLIC_KEY ?? "") as string;
+
+const cleanedPaystackKey = String(rawPaystackKey)
+  .trim()
+  .replace(/^["']|["']$/g, "")   // quotes pasted around the value
+  .replace(/\s+/g, "");           // spaces or line breaks inside it
+
+/** Empty when unset or unusable, so callers can fall back gracefully. */
+export const paystackPublicKey = cleanedPaystackKey.startsWith("pk_") ? cleanedPaystackKey : undefined;
+
+/** Explains precisely why the key was rejected, for a helpful message. */
+export function paystackKeyProblem(): string | null {
+  if (!cleanedPaystackKey) {
+    return "No Paystack public key is set. Add VITE_PAYSTACK_PUBLIC_KEY in Vercel, then redeploy.";
+  }
+  if (cleanedPaystackKey.startsWith("sk_")) {
+    return "That is the secret key. Use the public key (starts with pk_) in the app; the secret key belongs in Supabase.";
+  }
+  if (!cleanedPaystackKey.startsWith("pk_")) {
+    return "The Paystack public key looks wrong. It should start with pk_test_ or pk_live_.";
+  }
+  return null;
+}
 
 let scriptPromise: Promise<void> | null = null;
 
@@ -61,8 +90,9 @@ type CheckoutOptions = {
 
 /** Opens the Paystack popup. Resolves with the reference on success. */
 export async function openPaystackCheckout(options: CheckoutOptions): Promise<string> {
-  if (!paystackPublicKey) {
-    throw new Error("Payments are not configured yet. Add VITE_PAYSTACK_PUBLIC_KEY.");
+  const problem = paystackKeyProblem();
+  if (problem || !paystackPublicKey) {
+    throw new Error(problem || "Payments are not configured yet.");
   }
   await loadPaystack();
 

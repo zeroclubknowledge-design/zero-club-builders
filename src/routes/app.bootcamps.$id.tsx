@@ -25,6 +25,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { enrollUserAction } from "@/api";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import { RichText } from "@/components/RichText";
 
 export const Route = createFileRoute("/app/bootcamps/$id")({
   component: BootcampDetail,
@@ -285,7 +286,11 @@ function BootcampDetail() {
           </div>
           <h1 className="font-display text-2xl font-bold leading-tight">{bootcamp.title}</h1>
           <div className="text-sm leading-relaxed text-muted-foreground">
-            <LinkifiedText text={bootcamp.description || ""} />
+            {/* Formatted descriptions render with their headings and bullets;
+                plain older ones keep their line breaks and clickable links. */}
+            {looksFormatted(bootcamp.description)
+              ? <RichText content={bootcamp.description} />
+              : <LinkifiedText text={bootcamp.description || ""} />}
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
@@ -612,4 +617,9 @@ function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
       )}
     </div>
   );
+}
+
+/** True when a description was written with the rich text editor. */
+function looksFormatted(text?: string | null) {
+  return /<(p|ul|ol|li|h2|h3|strong|em|br|blockquote)\b/i.test(String(text || ""));
 }

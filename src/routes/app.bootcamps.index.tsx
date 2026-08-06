@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { supabase } from "@/lib/supabase";
 import { formatCountdown } from "@/features/zeroForm/templates";
+import { richTextToPlain } from "@/components/RichText";
 
 export const Route = createFileRoute("/app/bootcamps/")({
   component: Bootcamps,
@@ -52,7 +53,7 @@ function Bootcamps() {
     const query = searchQuery.trim().toLowerCase();
     return bootcamps.filter((camp: any) => {
       const matchesCategory = activeCategory === 'All' || camp.category === activeCategory;
-      const searchable = [camp.title, camp.description, camp.category, camp.profiles?.full_name, camp.profiles?.username]
+      const searchable = [camp.title, richTextToPlain(camp.description), camp.category, camp.profiles?.full_name, camp.profiles?.username]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
@@ -134,7 +135,7 @@ function Bootcamps() {
                   <div className="flex min-w-0 flex-col p-5 md:p-7">
                     <div className="flex items-center justify-between gap-4"><span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">{featured.category}</span><span className="text-[13px] font-semibold tabular-nums">{formatPrice(featured.price)}</span></div>
                     <h3 className="mt-3 text-[21px] font-semibold leading-tight tracking-tight md:text-[25px]">{featured.title}</h3>
-                    <p className="mt-2 line-clamp-3 text-[12.5px] leading-relaxed text-muted-foreground md:text-[13.5px]">{featured.description || 'A structured learning experience built around practical work and community feedback.'}</p>
+                    <p className="mt-2 line-clamp-3 text-[12.5px] leading-relaxed text-muted-foreground md:text-[13.5px]">{richTextToPlain(featured.description) || 'A structured learning experience built around practical work and community feedback.'}</p>
                     <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11.5px] text-muted-foreground">
                       <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {relationCount(featured.enrollments)} learners</span>
                       <span className="flex items-center gap-1.5"><BookOpen className="h-3.5 w-3.5" /> {relationCount(featured.modules)} sections</span>
@@ -156,7 +157,7 @@ function Bootcamps() {
                       <div className="flex flex-1 flex-col p-4">
                         <div className="flex items-center justify-between gap-3"><span className="truncate text-[9.5px] font-semibold uppercase tracking-[0.1em] text-primary">{camp.category}</span><span className="shrink-0 text-[12px] font-semibold tabular-nums">{formatPrice(camp.price)}</span></div>
                         <h4 className="mt-2 line-clamp-2 text-[16px] font-semibold leading-snug tracking-tight group-hover:text-primary">{camp.title}</h4>
-                        <p className="mt-1.5 line-clamp-2 text-[11.5px] leading-relaxed text-muted-foreground">{camp.description || 'Structured lessons, feedback, and practical work.'}</p>
+                        <p className="mt-1.5 line-clamp-2 text-[11.5px] leading-relaxed text-muted-foreground">{richTextToPlain(camp.description) || 'Structured lessons, feedback, and practical work.'}</p>
                         <div className="mt-4 flex items-center gap-2.5 border-t border-border/60 pt-3">
                           <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">{camp.profiles?.avatar_url ? <img src={camp.profiles.avatar_url} alt="" className="h-full w-full object-cover" /> : (camp.profiles?.full_name || camp.profiles?.username || 'T').substring(0, 1).toUpperCase()}</div>
                           <span className="min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground">{camp.profiles?.full_name || camp.profiles?.username}</span>
@@ -207,10 +208,14 @@ function UpcomingRegistrations() {
   if (!data.length) return null;
 
   return (
-    <section className="mb-6 rounded-lg border border-primary/20 bg-primary/[0.03] p-4 sm:p-5">
-      <div className="flex items-center gap-2">
-        <CalendarClock className="h-4 w-4 text-primary" />
-        <h2 className="text-[13.5px] font-semibold tracking-tight">Your upcoming bootcamps</h2>
+    <section className="mb-6 overflow-hidden rounded-lg border border-primary/20 bg-primary/[0.03] p-4 sm:p-5">
+      {/* shrink-0 on the icon and min-w-0 on the heading keep this row inside
+          the card on narrow phones; without them the row can overflow. */}
+      <div className="flex min-w-0 items-center gap-2">
+        <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
+        <h2 className="min-w-0 flex-1 text-[13.5px] font-semibold leading-snug tracking-tight">
+          Your upcoming bootcamps
+        </h2>
       </div>
       <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
         {data.map((registration: any) => {
@@ -229,7 +234,7 @@ function UpcomingRegistrations() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[12.5px] font-semibold">{registration.title}</p>
-                <p className="mt-0.5 text-[10.5px] text-muted-foreground">
+                <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground">
                   {live ? "Available now" : countdown ? `Starts in ${countdown}` : "Starting soon"}
                   {Number(registration.amount) > 0 && ` · ${format(registration.amount)} paid`}
                 </p>

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
-import { openPaystackCheckout, buildReference, paystackPublicKey } from "@/lib/paystack";
+import { openPaystackCheckout, buildReference, paystackPublicKey, paystackKeyProblem } from "@/lib/paystack";
 
 export const Route = createFileRoute("/app/wallet/add-money")({ component: AddMoneyPage });
 
@@ -31,8 +31,9 @@ function AddMoneyPage() {
       toast.error("Please sign in again to add money");
       return;
     }
-    if (!paystackPublicKey) {
-      toast.error("Payments are not configured yet. Add your Paystack public key.");
+    const keyProblem = paystackKeyProblem();
+    if (keyProblem) {
+      toast.error("Payments are not set up correctly", { description: keyProblem });
       return;
     }
 
@@ -123,9 +124,9 @@ function AddMoneyPage() {
               : (<>{numericAmount > 0 ? `Pay ${format(numericAmount)} with Paystack` : "Pay with Paystack"}<ArrowRight className="h-4 w-4" /></>)}
           </button>
 
-          {!paystackPublicKey && (
+          {paystackKeyProblem() && (
             <p className="mt-3 rounded-lg bg-amber-500/[0.08] px-3 py-2.5 text-[11px] leading-relaxed text-amber-700 ring-1 ring-amber-500/20">
-              Payments are not switched on yet. Add your Paystack public key as VITE_PAYSTACK_PUBLIC_KEY to enable checkout.
+              {paystackKeyProblem()}
             </p>
           )}
         </section>

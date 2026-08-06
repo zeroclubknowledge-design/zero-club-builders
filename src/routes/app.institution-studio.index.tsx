@@ -726,12 +726,11 @@ function InstitutionHub() {
 
                   <div>
                     <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Description</label>
-                    <textarea
+                    <RichTextEditor
                       value={newBootcamp.description}
-                      onChange={(e) => setNewBootcamp({ ...newBootcamp, description: e.target.value })}
-                      placeholder="Describe what learners will gain..."
-                      rows={3}
-                      className="w-full bg-background ring-1 ring-border rounded-xl px-4 py-3 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition resize-none"
+                      onChange={(html) => setNewBootcamp({ ...newBootcamp, description: html })}
+                      placeholder="Describe what learners will gain. Use bold and bullets to organise it..."
+                      minHeight={160}
                     />
                   </div>
 

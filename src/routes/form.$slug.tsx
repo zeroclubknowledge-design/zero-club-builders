@@ -18,7 +18,8 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import { earlyBirdSaving, formatCountdown } from "@/features/zeroForm/templates";
-import { openPaystackCheckout, buildReference, paystackPublicKey } from "@/lib/paystack";
+import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
+import { RichText } from "@/components/RichText";
 
 export const Route = createFileRoute("/form/$slug")({ component: ZeroFormPublicPage });
 
@@ -111,8 +112,11 @@ function ZeroFormPublicPage() {
 
       // Guests pay by card; the server confirms the row once verified.
       if (result?.status === "payment_required") {
-        if (!paystackPublicKey) {
-          toast.error("Card payment is not switched on yet. Choose 'Register interest' instead.");
+        const keyProblem = paystackKeyProblem();
+        if (keyProblem) {
+          toast.error("Card payment is not available yet", {
+            description: `${keyProblem} Choose "Register interest" instead for now.`,
+          });
           return;
         }
         try {
@@ -322,12 +326,12 @@ function ZeroFormPublicPage() {
               {/* whitespace-pre-line keeps the paragraphs and line breaks the
                   creator typed when they built the bootcamp. */}
               {bootcamp?.description
-                ? <p className="whitespace-pre-line text-[15px] leading-[1.85] text-foreground/90">{bootcamp.description}</p>
+                ? <RichText content={bootcamp.description} className="text-[15px] leading-[1.85] text-foreground/90" />
                 : <Empty text="The organiser has not added a description yet." />}
               {form?.description && (
-                <p className="mt-6 whitespace-pre-line border-t border-border pt-6 text-[14px] leading-[1.85] text-muted-foreground">
-                  {form.description}
-                </p>
+                <div className="mt-6 border-t border-border pt-6">
+                  <RichText content={form.description} className="text-[14px] leading-[1.85] text-muted-foreground" />
+                </div>
               )}
             </section>
           )}
