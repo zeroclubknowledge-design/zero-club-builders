@@ -19,7 +19,7 @@ import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import { earlyBirdSaving, formatCountdown } from "@/features/zeroForm/templates";
 import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
-import { RichText } from "@/components/RichText";
+import { RichText, richTextToPlain } from "@/components/RichText";
 
 export const Route = createFileRoute("/form/$slug")({ component: ZeroFormPublicPage });
 
@@ -230,6 +230,23 @@ function ZeroFormPublicPage() {
 
   const flyer = form?.banner_url || bootcamp?.banner_url;
 
+  /* ── Never print the same words twice ────────────────────────────────────
+     The Details tab can show two blocks of writing: the bootcamp's own
+     description, and the extra note typed on the form. Creators very often
+     paste the same text into both, which made the page repeat itself. We
+     compare the plain words (ignoring formatting, spacing and case) and only
+     show the form note when it genuinely says something new. */
+  const normalise = (value?: string | null) =>
+    richTextToPlain(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+  const showFormNote = useMemo(() => {
+    const note = normalise(form?.description);
+    if (!note) return false;
+    const main = normalise(bootcamp?.description);
+    if (!main) return true;
+    return !main.includes(note) && !note.includes(main);
+  }, [form?.description, bootcamp?.description]);
+
   return (
     <Shell>
       <div className="mx-auto max-w-[720px] px-5 pb-24 pt-6">
@@ -237,20 +254,27 @@ function ZeroFormPublicPage() {
             The video always wins when there is one. The flyer is the fallback,
             and nothing is shown at all when neither has been uploaded. */}
         {bootcamp?.video_url ? (
-          <video
-            src={bootcamp.video_url}
-            controls
-            playsInline
-            preload="metadata"
-            poster={flyer || undefined}
-            className="mb-6 w-full rounded-lg border border-border bg-black"
-          />
+          /* The wrapper carries the rounding and clips the video inside it —
+             a <video> element on its own lets its black box bleed past the
+             corners in Safari and older Chrome. */
+          <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-black">
+            <video
+              src={bootcamp.video_url}
+              controls
+              playsInline
+              preload="metadata"
+              poster={flyer || undefined}
+              className="block w-full rounded-2xl"
+            />
+          </div>
         ) : flyer ? (
-          <img
-            src={flyer}
-            alt={`${bootcamp?.title} flyer`}
-            className="mb-6 w-full rounded-lg border border-border bg-card object-contain"
-          />
+          <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card">
+            <img
+              src={flyer}
+              alt={`${bootcamp?.title} flyer`}
+              className="block w-full rounded-2xl object-contain"
+            />
+          </div>
         ) : null}
 
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
@@ -328,7 +352,7 @@ function ZeroFormPublicPage() {
               {bootcamp?.description
                 ? <RichText content={bootcamp.description} className="text-[15px] leading-[1.85] text-foreground/90" />
                 : <Empty text="The organiser has not added a description yet." />}
-              {form?.description && (
+              {showFormNote && (
                 <div className="mt-6 border-t border-border pt-6">
                   <RichText content={form.description} className="text-[14px] leading-[1.85] text-muted-foreground" />
                 </div>
