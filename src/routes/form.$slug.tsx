@@ -110,6 +110,7 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
       onMouseLeave={() => isPlaying && setShowControls(false)}
       className="group relative mb-6 overflow-hidden rounded-2xl border border-border bg-black shadow-md transform-gpu isolate"
       style={{
+        borderRadius: "1rem",
         clipPath: "inset(0 round 1rem)",
         WebkitClipPath: "inset(0 round 1rem)",
         WebkitMaskImage: "-webkit-linear-gradient(white, white)",
@@ -133,10 +134,15 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
           setShowControls(true);
         }}
         onClick={togglePlay}
-        className="block w-full cursor-pointer rounded-2xl object-contain max-h-[480px] bg-black"
+        className="block w-full cursor-pointer rounded-2xl object-cover max-h-[480px] bg-black"
         style={{
+          borderRadius: "1rem",
           clipPath: "inset(0 round 1rem)",
           WebkitClipPath: "inset(0 round 1rem)",
+          WebkitMaskImage: "-webkit-linear-gradient(white, white)",
+          maskImage: "linear-gradient(white, white)",
+          transform: "translateZ(0)",
+          WebkitTransform: "translateZ(0)",
         }}
       />
 

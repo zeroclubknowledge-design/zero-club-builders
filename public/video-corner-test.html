@@ -28,6 +28,14 @@
        -webkit-mask-image: -webkit-radial-gradient(white, black);
        -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; }
   .d video { border-radius: 16px; -webkit-clip-path: inset(0 round 16px); clip-path: inset(0 round 16px); }
+
+  /* E: Ultimate defence - valid linear-gradient mask, clip-path on BOTH wrapper & video, transform translateZ */
+  .e { isolation: isolate; overflow: hidden; border-radius: 16px; border: 1px solid #ddd;
+       -webkit-mask-image: -webkit-linear-gradient(white, white); mask-image: linear-gradient(white, white);
+       -webkit-clip-path: inset(0 round 16px); clip-path: inset(0 round 16px);
+       -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; }
+  .e video { border-radius: 16px; -webkit-clip-path: inset(0 round 16px); clip-path: inset(0 round 16px);
+             -webkit-mask-image: -webkit-linear-gradient(white, white); mask-image: linear-gradient(white, white); }
 </style>
 
 <h1>Rounded-corner test — all four videos are playing</h1>
