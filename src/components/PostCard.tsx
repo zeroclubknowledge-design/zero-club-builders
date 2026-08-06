@@ -72,7 +72,7 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
           <video
             ref={videoRef}
             src={url}
-            className="block h-auto max-h-[380px] w-auto max-w-full object-contain sm:max-h-[420px] md:max-h-[440px]"
+            className="block h-auto max-h-[380px] w-auto max-w-full object-contain [clip-path:inset(0_round_10px)] sm:max-h-[420px] md:max-h-[440px]"
             muted={isMuted}
             loop
             playsInline

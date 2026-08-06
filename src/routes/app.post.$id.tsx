@@ -886,7 +886,7 @@ function PostDetail() {
                       <video 
                         ref={videoRef}
                         src={url} 
-                        className={`rounded-lg transition duration-300 group-hover:scale-105 ${
+                        className={`rounded-lg [clip-path:inset(0_round_0.5rem)] transition duration-300 group-hover:scale-105 ${
                           post.media_urls.length === 2 
                             ?"w-full h-full object-cover" 
                             : "max-w-full max-h-[600px] w-auto h-auto"

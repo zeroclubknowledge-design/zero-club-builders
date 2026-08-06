@@ -257,17 +257,21 @@ function ZeroFormPublicPage() {
             The video always wins when there is one. The flyer is the fallback,
             and nothing is shown at all when neither has been uploaded. */}
         {bootcamp?.video_url ? (
-          /* The wrapper carries the rounding and clips the video inside it —
-             a <video> element on its own lets its black box bleed past the
-             corners in Safari and older Chrome. */
-          <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-black">
+          /* Keeping a playing video inside rounded corners needs three things.
+             The moment playback starts the browser hands the video to the GPU
+             as its own layer, and a GPU layer ignores both the parent's
+             `overflow-hidden` and its own `border-radius` — which is why the
+             corners snapped back to square on play. `clip-path` is the fix:
+             it is applied during compositing, so it survives the handover.
+             The mask on the wrapper is the same trick for older Safari. */
+          <div className="isolate mb-6 overflow-hidden rounded-2xl border border-border bg-black [-webkit-mask-image:-webkit-radial-gradient(white,black)]">
             <video
               src={bootcamp.video_url}
               controls
               playsInline
               preload="metadata"
               poster={flyer || undefined}
-              className="block w-full rounded-2xl"
+              className="block w-full rounded-2xl [clip-path:inset(0_round_1rem)]"
             />
           </div>
         ) : flyer ? (
@@ -275,7 +279,7 @@ function ZeroFormPublicPage() {
             <img
               src={flyer}
               alt={`${bootcamp?.title} flyer`}
-              className="block w-full rounded-2xl object-contain"
+              className="block w-full rounded-2xl object-contain [clip-path:inset(0_round_1rem)]"
             />
           </div>
         ) : null}
@@ -553,7 +557,20 @@ function Shell({ children }: { children: React.ReactNode }) {
             <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
             <span className="font-display text-[16px] font-semibold tracking-tight">Zero <span className="text-primary">Club</span></span>
           </Link>
-          <span className="rounded-full bg-primary/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Zero Form</span>
+          {/* Zero Form's own mark sits beside its name so visitors arriving
+              from a shared link can see what they have opened. This is the
+              compact cut of the logo — fewer, thicker elements, because the
+              full version turns to mush at 26px. The SVG stays crisp on every
+              screen; the PNG covers the rare browser that refuses SVG here. */}
+          <span className="flex items-center gap-2">
+            <img
+              src="/brand/zero-form/zero-form-icon-compact.svg"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/brand/zero-form/zero-form-icon-compact-128.png"; }}
+              alt=""
+              className="h-[26px] w-[26px] shrink-0"
+            />
+            <span className="font-display text-[14.5px] font-semibold tracking-tight">Zero Form</span>
+          </span>
         </div>
       </header>
       <main>{children}</main>
