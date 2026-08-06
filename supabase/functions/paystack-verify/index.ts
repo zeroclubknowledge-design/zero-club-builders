@@ -31,23 +31,32 @@ serve(async (req) => {
     if (!secretKey) return json({ error: "PAYSTACK_SECRET_KEY is not configured" }, 500);
 
     const authHeader = req.headers.get("Authorization") || "";
-    if (!authHeader.startsWith("Bearer ")) return json({ error: "Not authenticated" }, 401);
+    const body = await req.json();
+    const { reference, zero_form_registration_id: zeroFormRegistrationId } = body;
 
-    const { reference } = await req.json();
     if (!reference || typeof reference !== "string") {
       return json({ error: "A payment reference is required" }, 400);
     }
 
+    // Zero Form guests have no account, so only wallet top-ups require a session.
+    if (!zeroFormRegistrationId && !authHeader.startsWith("Bearer ")) {
+      return json({ error: "Not authenticated" }, 401);
+    }
+
     // Identify the caller from their access token — the wallet credited is
     // always the signed-in user's, never one supplied by the browser.
-    const anonClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: userData, error: userError } = await anonClient.auth.getUser();
-    if (userError || !userData?.user) return json({ error: "Not authenticated" }, 401);
-    const userId = userData.user.id;
+    // Guest Zero Form payments have no user; the registration id identifies them.
+    let userId: string | null = null;
+    if (!zeroFormRegistrationId) {
+      const anonClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: userData, error: userError } = await anonClient.auth.getUser();
+      if (userError || !userData?.user) return json({ error: "Not authenticated" }, 401);
+      userId = userData.user.id;
+    }
 
     // Ask Paystack what really happened.
     const verifyRes = await fetch(
@@ -71,7 +80,7 @@ serve(async (req) => {
 
     // The reference was created for a specific member; reject mismatches.
     const intendedUser = tx?.metadata?.profile_id;
-    if (intendedUser && intendedUser !== userId) {
+    if (!zeroFormRegistrationId && intendedUser && intendedUser !== userId) {
       return json({ error: "This payment belongs to another account" }, 403);
     }
 
@@ -79,6 +88,21 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // Zero Form guest registration: confirm the registration rather than
+    // topping up a wallet. The amount is checked against the stored price.
+    if (zeroFormRegistrationId) {
+      if (intendedUser && intendedUser !== zeroFormRegistrationId) {
+        return json({ error: "This payment belongs to another registration" }, 403);
+      }
+      const { data, error } = await admin.rpc("confirm_zero_form_payment", {
+        target_registration_id: zeroFormRegistrationId,
+        reference,
+        paid_amount: majorUnits,
+      });
+      if (error) return json({ error: error.message }, 500);
+      return json({ success: true, amount: majorUnits, currency: tx.currency || "NGN", ...data });
+    }
 
     const { data, error } = await admin.rpc("credit_wallet_from_paystack", {
       p_profile_id: userId,

@@ -1,14 +1,16 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   BadgeCheck,
   CalendarDays,
+  Check,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   Loader2,
-  Lock,
+  PlayCircle,
   Users,
   Wallet,
 } from "lucide-react";
@@ -16,25 +18,36 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import { earlyBirdSaving, formatCountdown } from "@/features/zeroForm/templates";
+import { openPaystackCheckout, buildReference, paystackPublicKey } from "@/lib/paystack";
 
 export const Route = createFileRoute("/form/$slug")({ component: ZeroFormPublicPage });
 
 const money = (value: number) => formatWalletAmount(Number(value) || 0);
 
+type Tab = "details" | "content" | "register";
+
 function ZeroFormPublicPage() {
   const { slug } = Route.useParams();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const [tab, setTab] = useState<Tab>("details");
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
-  const [confirmed, setConfirmed] = useState<any>(null);
+  const [guest, setGuest] = useState({ name: "", email: "", phone: "" });
+  const [intent, setIntent] = useState<"interest" | "pay">("pay");
+  const [session, setSession] = useState<any>(null);
+  const [checkedSession, setCheckedSession] = useState(false);
+  const [done, setDone] = useState<null | "confirmed" | "interested">(null);
   const [shortfall, setShortfall] = useState<number | null>(null);
+  const registerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setCheckedSession(true);
+    });
   }, []);
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["zero-form-public", slug],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_zero_form_public", { form_slug: slug });
@@ -44,103 +57,150 @@ function ZeroFormPublicPage() {
     retry: false,
   });
 
-  // Count the view once per visit, without blocking the render.
   useEffect(() => {
     if (data?.found) supabase.rpc("record_zero_form_view", { form_slug: slug }).then(() => {});
   }, [data?.found, slug]);
-
-  const fields = (data?.fields || []) as any[];
-
-  // Prefill any answers already submitted so a returning learner sees them.
-  useEffect(() => {
-    const existing = data?.my_registration?.registration_data;
-    if (existing && typeof existing === "object") setAnswers(existing);
-  }, [data?.my_registration]);
-
-  const submit = useMutation({
-    mutationFn: async () => {
-      const { data: result, error } = await supabase.rpc("submit_zero_form", {
-        form_slug: slug,
-        answers,
-      });
-      if (error) throw error;
-      return result as any;
-    },
-    onSuccess: (result) => {
-      if (result?.status === "insufficient_funds") {
-        setShortfall(Number(result.shortfall) || 0);
-        return;
-      }
-      setShortfall(null);
-      setConfirmed(result?.registration || true);
-      queryClient.invalidateQueries({ queryKey: ["zero-form-public", slug] });
-      queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
-      toast.success(result?.status === "already_registered" ? "You are already registered" : "Registration confirmed");
-    },
-    onError: (error: any) => toast.error(error.message || "We could not complete your registration"),
-  });
 
   const form = data?.form;
   const bootcamp = data?.bootcamp;
   const owner = data?.owner;
   const state = data?.state as string | undefined;
-  const isPaid = Number(form?.early_bird_price || 0) > 0;
+  const fields = (data?.fields || []) as any[];
+  const curriculum = (data?.curriculum || []) as any[];
+
+  const price = Number(form?.early_bird_price || 0);
+  const isPaid = price > 0;
   const saving = earlyBirdSaving(form?.regular_price, form?.early_bird_price);
   const countdown = formatCountdown(bootcamp?.starts_at);
+  const allowInterest = form?.allow_interest !== false;
+
+  // Free bootcamps only have one path.
+  useEffect(() => { if (!isPaid) setIntent("interest"); }, [isPaid]);
+
+  useEffect(() => {
+    const existing = data?.my_registration?.registration_data;
+    if (existing && typeof existing === "object") setAnswers(existing);
+  }, [data?.my_registration]);
 
   const missingRequired = useMemo(
     () => fields.filter((f) => f.required && !String(answers[f.field_key] || "").trim()),
     [fields, answers],
   );
 
+  const goRegister = () => {
+    setTab("register");
+    setTimeout(() => registerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+  };
+
+  const submit = useMutation({
+    mutationFn: async () => {
+      const { data: result, error } = await supabase.rpc("submit_zero_form_v2", {
+        form_slug: slug,
+        answers,
+        intent,
+        guest: session ? null : { name: guest.name, email: guest.email, phone: guest.phone },
+      });
+      if (error) throw error;
+      return result as any;
+    },
+    onSuccess: async (result) => {
+      if (result?.status === "insufficient_funds") {
+        setShortfall(Number(result.shortfall) || 0);
+        return;
+      }
+
+      // Guests pay by card; the server confirms the row once verified.
+      if (result?.status === "payment_required") {
+        if (!paystackPublicKey) {
+          toast.error("Card payment is not switched on yet. Choose 'Register interest' instead.");
+          return;
+        }
+        try {
+          const reference = buildReference(result.registration_id);
+          await openPaystackCheckout({
+            email: result.email || guest.email,
+            amount: Number(result.amount),
+            currency: "NGN",
+            reference,
+            profileId: result.registration_id,
+            displayName: guest.name,
+          });
+          const { data: verified, error: verifyError } = await supabase.functions.invoke("paystack-verify", {
+            body: { reference, zero_form_registration_id: result.registration_id },
+          });
+          if (verifyError) throw new Error(verifyError.message);
+          if ((verified as any)?.error) throw new Error((verified as any).error);
+          setDone("confirmed");
+        } catch (paymentError: any) {
+          toast.error(paymentError?.message === "Payment cancelled"
+            ? "Payment cancelled — your details were saved, you can pay again."
+            : paymentError?.message || "Payment could not be completed");
+        }
+        return;
+      }
+
+      setShortfall(null);
+      setDone(result?.status === "interested" ? "interested" : "confirmed");
+      queryClient.invalidateQueries({ queryKey: ["zero-form-public", slug] });
+      queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
+    },
+    onError: (error: any) => toast.error(error.message || "We could not complete your registration"),
+  });
+
+  const handleSubmit = () => {
+    if (!session) {
+      if (!guest.name.trim()) return toast.error("Please enter your name");
+      if (!guest.email.trim()) return toast.error("Please enter your email");
+    }
+    if (missingRequired.length) {
+      return toast.error(`Please fill in: ${missingRequired.map((f) => f.label).join(", ")}`);
+    }
+    submit.mutate();
+  };
+
   if (isLoading) {
-    return (
-      <Shell>
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      </Shell>
-    );
+    return <Shell><div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div></Shell>;
   }
 
   if (error || !data?.found) {
     return (
       <Shell>
-        <Notice
-          title="This registration link is not available"
+        <Notice title="This registration link is not available"
           detail="The link may be mistyped, or the form may have been removed by its creator."
-          action={<Link to="/" className="rounded-full bg-foreground px-6 py-3 text-[13px] font-semibold text-background">Go to Zero Club</Link>}
-        />
+          action={<Link to="/" className="rounded-full bg-foreground px-6 py-3 text-[13px] font-semibold text-background">Go to Zero Club</Link>} />
       </Shell>
     );
   }
 
   // ── Success ──────────────────────────────────────────────────────────────
-  if (confirmed || ["confirmed", "enrolled"].includes(data?.my_registration?.registration_status)) {
+  const alreadyIn = ["confirmed", "enrolled", "interested"].includes(data?.my_registration?.registration_status);
+  if (done || alreadyIn) {
+    const interested = done === "interested" || data?.my_registration?.registration_status === "interested";
     return (
       <Shell>
         <div className="mx-auto max-w-[560px] px-5 py-16 text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-500/10 text-emerald-600">
+          <div className={`mx-auto grid h-14 w-14 place-items-center rounded-full ${interested ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600"}`}>
             <CheckCircle2 className="h-7 w-7" />
           </div>
-          <h1 className="mt-6 font-display text-[30px] font-semibold tracking-tight">You're registered</h1>
+          <h1 className="mt-6 font-display text-[30px] font-semibold tracking-tight">
+            {interested ? "You're on the list" : "You're registered"}
+          </h1>
           <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
-            You have successfully registered for <span className="font-semibold text-foreground">{bootcamp?.title}</span>.
+            {interested
+              ? <>We've saved your details for <span className="font-semibold text-foreground">{bootcamp?.title}</span>. The organiser will contact you before it starts.</>
+              : <>You have successfully registered for <span className="font-semibold text-foreground">{bootcamp?.title}</span>.</>}
           </p>
-
           <div className="mt-8 rounded-lg border border-border bg-card p-5 text-left">
             <Row label="Bootcamp" value={bootcamp?.title} />
             {bootcamp?.starts_at && <Row label="Starts" value={new Date(bootcamp.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} />}
-            <Row label="Amount paid" value={isPaid ? money(form?.early_bird_price) : "Free"} />
-            <Row label="Status" value="Confirmed" />
+            <Row label={interested ? "Amount" : "Amount paid"} value={interested ? "Not paid yet" : isPaid ? money(price) : "Free"} />
+            <Row label="Status" value={interested ? "Interest registered" : "Confirmed"} />
           </div>
-
           <p className="mt-6 text-[13px] leading-6 text-muted-foreground">
-            You will get full access automatically when the bootcamp starts — no further action needed.
+            {interested
+              ? "Nothing else to do for now — you'll hear from the organiser."
+              : "You'll get full access automatically when the bootcamp starts."}
           </p>
-          <Link to="/app/bootcamps" className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-foreground px-7 text-[14px] font-semibold text-background">
-            Go to my bootcamps <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       </Shell>
     );
@@ -158,56 +218,52 @@ function ZeroFormPublicPage() {
     const info = copy[state] || copy.closed;
     return (
       <Shell>
-        <Notice
-          title={info.title}
-          detail={info.detail}
-          action={
-            state === "bootcamp_started" ? (
-              <Link to="/app/bootcamps/$id" params={{ id: bootcamp?.id }} className="rounded-full bg-foreground px-6 py-3 text-[13px] font-semibold text-background">
-                Open the bootcamp
-              </Link>
-            ) : (
-              <Link to="/app/bootcamps" className="rounded-full bg-foreground px-6 py-3 text-[13px] font-semibold text-background">
-                Browse bootcamps
-              </Link>
-            )
-          }
-        />
+        <Notice title={info.title} detail={info.detail}
+          action={<Link to="/app/bootcamps" className="rounded-full bg-foreground px-6 py-3 text-[13px] font-semibold text-background">Browse bootcamps</Link>} />
       </Shell>
     );
   }
 
-  // ── Open: the registration experience ────────────────────────────────────
+  const flyer = form?.banner_url || bootcamp?.banner_url;
+
   return (
     <Shell>
-      {(form?.banner_url || bootcamp?.banner_url) && (
-        <div className="h-[180px] w-full overflow-hidden bg-muted sm:h-[240px]">
-          <img src={form?.banner_url || bootcamp?.banner_url} alt="" className="h-full w-full object-cover" />
-        </div>
-      )}
+      <div className="mx-auto max-w-[720px] px-5 pb-24 pt-6">
+        {/* ── Flyer, shown whole at its own proportions ───────────────────── */}
+        {flyer && (
+          <img
+            src={flyer}
+            alt={`${bootcamp?.title} flyer`}
+            className="mb-6 w-full rounded-lg border border-border bg-card object-contain"
+          />
+        )}
 
-      <div className="mx-auto max-w-[640px] px-5 pb-24 pt-9">
+        {/* ── Video ad, kept at its natural shape ─────────────────────────── */}
+        {bootcamp?.video_url && (
+          <video
+            src={bootcamp.video_url}
+            controls
+            playsInline
+            preload="metadata"
+            poster={flyer || undefined}
+            className="mb-6 w-full rounded-lg border border-border bg-black"
+          />
+        )}
+
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
           {bootcamp?.category || "Bootcamp"} · Early registration
         </p>
-        <h1 className="mt-3 font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[38px]">
+        <h1 className="mt-3 font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.02em] sm:text-[36px]">
           {bootcamp?.title}
         </h1>
-        {bootcamp?.description && (
-          <p className="mt-4 text-[15px] leading-7 text-muted-foreground">{bootcamp.description}</p>
-        )}
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
           {owner && (
             <span className="flex items-center gap-2">
-              {owner.avatar_url ? (
-                <img src={owner.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
-              ) : (
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
-                  {(owner.full_name || owner.username || "Z").charAt(0).toUpperCase()}
-                </span>
-              )}
-              Hosted by <span className="font-semibold text-foreground">{owner.full_name || owner.username}</span>
+              {owner.avatar_url
+                ? <img src={owner.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+                : <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">{(owner.full_name || owner.username || "Z").charAt(0).toUpperCase()}</span>}
+              {owner.full_name || owner.username}
               {owner.account_type === "Institution" && <BadgeCheck className="h-3.5 w-3.5 text-primary" />}
             </span>
           )}
@@ -219,142 +275,234 @@ function ZeroFormPublicPage() {
             </span>
           )}
           {form?.seats_left !== null && form?.seats_left !== undefined && (
-            <span className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
-              {form.seats_left} of {form.seat_limit} seats left
-            </span>
+            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{form.seats_left} seats left</span>
           )}
         </div>
 
-        {/* Pricing */}
-        <section className="mt-8 rounded-lg border-t-2 border-[#cc208f] bg-[#141117] p-6 text-white sm:p-7">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">
-            {isPaid ? "Early bird price" : "Free registration"}
-          </p>
-          <div className="mt-3 flex flex-wrap items-baseline gap-3">
-            <span className="text-[38px] font-semibold leading-none tracking-tight tabular-nums">
-              {isPaid ? money(form.early_bird_price) : "Free"}
+        {/* ── Price and primary action ────────────────────────────────────── */}
+        <div className="mt-6 border-b border-border pb-6">
+          <div className="flex flex-wrap items-baseline gap-3">
+            <span className="text-[34px] font-semibold leading-none tracking-tight tabular-nums">
+              {isPaid ? money(price) : "Free"}
             </span>
-            {isPaid && Number(form.regular_price) > Number(form.early_bird_price) && (
+            {isPaid && Number(form.regular_price) > price && (
               <>
-                <span className="text-[17px] text-white/45 line-through tabular-nums">{money(form.regular_price)}</span>
-                {saving > 0 && (
-                  <span className="rounded-full bg-[#cc208f]/20 px-2.5 py-1 text-[11px] font-semibold text-[#f28fd0] ring-1 ring-[#cc208f]/30">
-                    Save {saving}%
-                  </span>
-                )}
+                <span className="text-[19px] text-muted-foreground line-through tabular-nums">{money(form.regular_price)}</span>
+                {saving > 0 && <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">Save {saving}%</span>}
               </>
             )}
           </div>
-          <p className="mt-4 flex items-center gap-2 text-[12.5px] leading-6 text-white/60">
-            <Clock3 className="h-3.5 w-3.5 shrink-0" />
-            {form?.registration_deadline
-              ? `Register before ${new Date(form.registration_deadline).toLocaleDateString(undefined, { month: "long", day: "numeric" })} to secure this price.`
-              : "Register early to secure your seat before the bootcamp starts."}
-          </p>
-        </section>
-
-        {/* Form */}
-        <section className="mt-8">
-          <h2 className="text-[17px] font-semibold tracking-tight">Your details</h2>
-          <p className="mt-1 text-[12.5px] text-muted-foreground">
-            {fields.length} quick question{fields.length === 1 ? "" : "s"} — this takes under a minute.
-          </p>
-
-          <div className="mt-5 space-y-4">
-            {fields.map((f) => (
-              <FormField
-                key={f.field_key}
-                field={f}
-                value={answers[f.field_key] || ""}
-                onChange={(value) => setAnswers((current) => ({ ...current, [f.field_key]: value }))}
-              />
-            ))}
-          </div>
-
-          {shortfall !== null && (
-            <div className="mt-5 rounded-lg bg-amber-500/[0.08] p-4 ring-1 ring-amber-500/20">
-              <p className="flex items-center gap-2 text-[13px] font-semibold text-amber-700">
-                <Wallet className="h-4 w-4" /> Add {money(shortfall)} to your wallet
-              </p>
-              <p className="mt-1.5 text-[12px] leading-5 text-muted-foreground">
-                Registration is paid from your Zero Club wallet. Top up, then submit again — your answers are saved.
-              </p>
-              <Link to="/app/wallet/add-money" className="mt-3 inline-flex h-10 items-center rounded-lg bg-foreground px-4 text-[12.5px] font-semibold text-background">
-                Add money
-              </Link>
-            </div>
+          {form?.registration_deadline && (
+            <p className="mt-3 flex items-center gap-2 text-[12.5px] text-muted-foreground">
+              <Clock3 className="h-3.5 w-3.5 shrink-0" />
+              Register before {new Date(form.registration_deadline).toLocaleDateString(undefined, { month: "long", day: "numeric" })} to secure this price.
+            </p>
           )}
+          <button onClick={goRegister} className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-foreground px-8 text-[14.5px] font-semibold text-background transition hover:opacity-90">
+            {isPaid ? "Register now" : "Register free"} <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
 
-          {signedIn === false ? (
-            <div className="mt-7 rounded-lg border border-border bg-card p-5 text-center">
-              <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
-              <p className="mt-3 text-[13.5px] font-semibold">Sign in to complete your registration</p>
-              <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
-                Your registration is linked to your Zero Club account so your bootcamp appears automatically when it starts.
-              </p>
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <Link to="/signup" className="inline-flex h-11 items-center rounded-full bg-foreground px-6 text-[13px] font-semibold text-background">
-                  Create a free account
-                </Link>
-                <Link to="/signin" className="inline-flex h-11 items-center rounded-full px-6 text-[13px] font-semibold text-foreground ring-1 ring-border">
-                  Sign in
-                </Link>
-              </div>
-            </div>
-          ) : (
+        {/* ── Three sections ──────────────────────────────────────────────── */}
+        <div className="mt-6 flex gap-1 border-b border-border">
+          {([["details", "Details"], ["content", "Course content"], ["register", "Register"]] as const).map(([key, label]) => (
             <button
-              onClick={() => {
-                if (missingRequired.length) {
-                  toast.error(`Please fill in: ${missingRequired.map((f) => f.label).join(", ")}`);
-                  return;
-                }
-                submit.mutate();
-              }}
-              disabled={submit.isPending}
-              className="mt-7 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-[15px] font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+              key={key}
+              onClick={() => setTab(key)}
+              className={`relative h-11 px-4 text-[13.5px] font-semibold transition-colors ${tab === key ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
-              {submit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isPaid ? `Pay ${money(form.early_bird_price)} and register` : "Register now"}
+              {label}
+              {tab === key && <span className="absolute inset-x-3 bottom-0 h-[2.5px] rounded-full bg-foreground" />}
             </button>
+          ))}
+        </div>
+
+        <div className="pt-6">
+          {tab === "details" && (
+            <section>
+              {/* whitespace-pre-line keeps the paragraphs and line breaks the
+                  creator typed when they built the bootcamp. */}
+              {bootcamp?.description
+                ? <p className="whitespace-pre-line text-[15px] leading-[1.85] text-foreground/90">{bootcamp.description}</p>
+                : <Empty text="The organiser has not added a description yet." />}
+              {form?.description && (
+                <p className="mt-6 whitespace-pre-line border-t border-border pt-6 text-[14px] leading-[1.85] text-muted-foreground">
+                  {form.description}
+                </p>
+              )}
+            </section>
           )}
 
-          <p className="mt-4 text-center text-[11.5px] leading-5 text-muted-foreground">
-            {isPaid
-              ? "Paid securely from your Zero Club wallet. You keep your seat at this price even after it rises."
-              : "No payment needed. Your seat is confirmed as soon as you register."}
-          </p>
-        </section>
+          {tab === "content" && (
+            <section>
+              {curriculum.length === 0 ? (
+                <Empty text="The curriculum will be shared before the bootcamp starts." />
+              ) : (
+                <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+                  {curriculum.map((module: any, index: number) => (
+                    <ModuleRow key={module.id} module={module} defaultOpen={index === 0} />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {tab === "register" && (
+            <section ref={registerRef}>
+              {/* Choose how to register */}
+              {isPaid && allowInterest && (
+                <div className="mb-6 grid gap-2.5 sm:grid-cols-2">
+                  <IntentCard
+                    active={intent === "pay"}
+                    onClick={() => setIntent("pay")}
+                    title="Pay now"
+                    detail={`Secure your seat at ${money(price)} today.`}
+                  />
+                  <IntentCard
+                    active={intent === "interest"}
+                    onClick={() => setIntent("interest")}
+                    title="Register interest"
+                    detail="Leave your details and pay later. No payment now."
+                  />
+                </div>
+              )}
+
+              {/* Guests do not need an account */}
+              {checkedSession && !session && (
+                <div className="mb-5 space-y-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Your contact details</p>
+                  <Field label="Full name" required value={guest.name} placeholder="Ada Obi"
+                    onChange={(v) => setGuest((g) => ({ ...g, name: v }))} />
+                  <Field label="Email" required type="email" value={guest.email} placeholder="you@email.com"
+                    onChange={(v) => setGuest((g) => ({ ...g, email: v }))} />
+                  <Field label="Phone number" type="tel" value={guest.phone} placeholder="+234 800 000 0000"
+                    onChange={(v) => setGuest((g) => ({ ...g, phone: v }))} />
+                  <p className="text-[11.5px] leading-5 text-muted-foreground">
+                    No account needed. Already on Zero Club?{" "}
+                    <Link to="/signin" className="font-semibold text-foreground underline">Sign in</Link> to use your wallet.
+                  </p>
+                </div>
+              )}
+
+              {fields.length > 0 && (
+                <div className="space-y-4">
+                  {checkedSession && !session && <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">A few questions</p>}
+                  {fields.map((f) => (
+                    <FormField key={f.field_key} field={f} value={answers[f.field_key] || ""}
+                      onChange={(value) => setAnswers((current) => ({ ...current, [f.field_key]: value }))} />
+                  ))}
+                </div>
+              )}
+
+              {shortfall !== null && (
+                <div className="mt-5 rounded-lg bg-amber-500/[0.08] p-4 ring-1 ring-amber-500/20">
+                  <p className="flex items-center gap-2 text-[13px] font-semibold text-amber-700">
+                    <Wallet className="h-4 w-4" /> Add {money(shortfall)} to your wallet
+                  </p>
+                  <p className="mt-1.5 text-[12px] leading-5 text-muted-foreground">
+                    Top up, then submit again — your answers are saved. Or choose "Register interest" and pay later.
+                  </p>
+                  <Link to="/app/wallet/add-money" className="mt-3 inline-flex h-10 items-center rounded-lg bg-foreground px-4 text-[12.5px] font-semibold text-background">Add money</Link>
+                </div>
+              )}
+
+              <button
+                onClick={handleSubmit}
+                disabled={submit.isPending}
+                className="mt-7 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-[15px] font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+              >
+                {submit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {!isPaid ? "Register free"
+                  : intent === "interest" ? "Save my details"
+                  : `Pay ${money(price)} and register`}
+              </button>
+
+              <p className="mt-4 text-center text-[11.5px] leading-5 text-muted-foreground">
+                {intent === "interest"
+                  ? "Your details go straight to the organiser. No payment is taken."
+                  : session
+                    ? "Paid securely from your Zero Club wallet."
+                    : "Paid securely by card. You keep this price even after it rises."}
+              </p>
+            </section>
+          )}
+        </div>
       </div>
     </Shell>
   );
 }
 
+/* ── Pieces ──────────────────────────────────────────────────────────────── */
+
+function ModuleRow({ module, defaultOpen }: { module: any; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  const lessons = module.lessons || [];
+  return (
+    <div>
+      <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 p-4 text-left">
+        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`} />
+        <span className="flex-1 text-[14px] font-semibold">{module.title}</span>
+        <span className="shrink-0 text-[12px] text-muted-foreground">{lessons.length} {lessons.length === 1 ? "lesson" : "lessons"}</span>
+      </button>
+      {open && lessons.length > 0 && (
+        <div className="space-y-1 px-4 pb-4 pl-11">
+          {lessons.map((lesson: any) => (
+            <div key={lesson.id} className="flex items-center gap-2.5 text-[13px] text-muted-foreground">
+              <PlayCircle className="h-3.5 w-3.5 shrink-0" />
+              <span>{lesson.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IntentCard({ active, onClick, title, detail }: { active: boolean; onClick: () => void; title: string; detail: string }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`rounded-lg border p-4 text-left transition ${active ? "border-foreground bg-foreground/[0.03]" : "border-border hover:bg-muted/50"}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[13.5px] font-semibold">{title}</span>
+        <span className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full border ${active ? "border-foreground bg-foreground" : "border-border"}`}
+          style={{ height: 18, width: 18 }}>
+          {active && <Check className="h-3 w-3 text-background" strokeWidth={3} />}
+        </span>
+      </div>
+      <p className="mt-1.5 text-[11.5px] leading-5 text-muted-foreground">{detail}</p>
+    </button>
+  );
+}
+
+const inputBase = "w-full rounded-lg border border-border bg-background px-3.5 text-[14px] outline-none transition focus:border-primary/50";
+
+function Field({ label, value, onChange, placeholder, type = "text", required }: any) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[12.5px] font-semibold">
+        {label}{required && <span className="ml-1 text-primary">*</span>}
+      </label>
+      <input type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`} />
+    </div>
+  );
+}
+
 function FormField({ field, value, onChange }: { field: any; value: string; onChange: (value: string) => void }) {
-  const base =
-    "w-full rounded-lg border border-border bg-background px-3.5 text-[14px] outline-none transition focus:border-primary/50";
   const label = (
     <label className="mb-1.5 block text-[12.5px] font-semibold">
-      {field.label}
-      {field.required && <span className="ml-1 text-primary">*</span>}
+      {field.label}{field.required && <span className="ml-1 text-primary">*</span>}
     </label>
   );
 
   if (field.field_type === "textarea") {
-    return (
-      <div>
-        {label}
-        <textarea rows={3} value={value} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${base} resize-none py-2.5`} />
-      </div>
-    );
+    return <div>{label}<textarea rows={3} value={value} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${inputBase} resize-none py-2.5`} /></div>;
   }
 
   if (field.field_type === "select") {
     const options: string[] = Array.isArray(field.options) ? field.options : [];
     return (
-      <div>
-        {label}
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={`${base} h-12`}>
+      <div>{label}
+        <select value={value} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`}>
           <option value="">Select an option</option>
           {options.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
@@ -363,28 +511,19 @@ function FormField({ field, value, onChange }: { field: any; value: string; onCh
   }
 
   const inputType = field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : field.field_type === "phone" ? "tel" : "text";
-  return (
-    <div>
-      {label}
-      <input type={inputType} value={value} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${base} h-12`} />
-    </div>
-  );
+  return <div>{label}<input type={inputType} value={value} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`} /></div>;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#f8f7f5] text-foreground dark:bg-background">
-      <header className="border-b border-border/60 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-[62px] max-w-[640px] items-center justify-between px-5">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-[62px] max-w-[720px] items-center justify-between px-5">
           <Link to="/" className="flex items-center gap-2.5">
             <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
-            <span className="font-display text-[16px] font-semibold tracking-tight">
-              Zero <span className="text-primary">Club</span>
-            </span>
+            <span className="font-display text-[16px] font-semibold tracking-tight">Zero <span className="text-primary">Club</span></span>
           </Link>
-          <span className="rounded-full bg-primary/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">
-            Zero Form
-          </span>
+          <span className="rounded-full bg-primary/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Zero Form</span>
         </div>
       </header>
       <main>{children}</main>
@@ -400,6 +539,10 @@ function Notice({ title, detail, action }: { title: string; detail: string; acti
       {action && <div className="mt-7">{action}</div>}
     </div>
   );
+}
+
+function Empty({ text }: { text: string }) {
+  return <p className="rounded-lg border border-dashed border-border py-10 text-center text-[13px] text-muted-foreground">{text}</p>;
 }
 
 function Row({ label, value }: { label: string; value?: string }) {

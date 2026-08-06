@@ -26,20 +26,74 @@ export default defineConfig(({ command }) => {
       registerType: "autoUpdate",
       includeAssets: ["logo.png", "favicon.ico"],
       manifest: {
+        // A stable identity for the app. Browsers and app stores use this
+        // instead of the URL, so the install stays recognised even if
+        // start_url or the domain changes later. It matches the previous
+        // implicit id (start_url) so existing installs are not orphaned.
+        id: "/app",
         name: "Zero Club",
         short_name: "ZeroClub",
-        description: "An elite community for builders and creators.",
-        theme_color: "#000000",
-        background_color: "#000000",
+        description:
+          "The social network for builders. Learn in live bootcamps, ship work in public, join focused clubs, and turn proof of work into reputation and income.",
+        categories: ["education", "social", "productivity"],
+        lang: "en",
+        dir: "ltr",
+        theme_color: "#f4f2ef",
+        background_color: "#f4f2ef",
         display: "standalone",
+        // Opens in portrait to suit the mobile-first layout, without locking
+        // rotation - live video rooms and games still work in landscape.
+        orientation: "portrait",
         scope: "/",
         start_url: "/app",
         icons: [
+          { src: "/logo.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "/logo.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+        ],
+        screenshots: [
+          // Phone (narrow). All share one aspect ratio, as required.
           {
-            src: "/logo.png",
-            sizes: "512x512",
+            src: "/screenshots/screenshot-feed.png",
+            sizes: "1080x1920",
             type: "image/png",
-            purpose: "any maskable"
+            form_factor: "narrow",
+            label: "Your feed of shipped work and verified proof"
+          },
+          {
+            src: "/screenshots/screenshot-bootcamps.png",
+            sizes: "1080x1920",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Live bootcamps taught by working professionals"
+          },
+          {
+            src: "/screenshots/screenshot-wallet.png",
+            sizes: "1080x1920",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "A creator wallet for earnings, payments and withdrawals"
+          },
+          {
+            src: "/screenshots/screenshot-clubs.png",
+            sizes: "1080x1920",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Private clubs for cohorts, teams and creators"
+          },
+          // Desktop (wide).
+          {
+            src: "/screenshots/screenshot-desktop-feed.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "The Zero Club workspace on desktop"
+          },
+          {
+            src: "/screenshots/screenshot-desktop-bootcamps.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Browse and join bootcamps on desktop"
           }
         ]
       },
