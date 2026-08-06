@@ -239,13 +239,16 @@ function ZeroFormPublicPage() {
   const normalise = (value?: string | null) =>
     richTextToPlain(value || "").replace(/\s+/g, " ").trim().toLowerCase();
 
-  const showFormNote = useMemo(() => {
+  // Deliberately a plain calculation, not a useMemo: this sits after the early
+  // returns above, and a hook here would run on some renders but not others,
+  // which React rejects outright.
+  const showFormNote = (() => {
     const note = normalise(form?.description);
     if (!note) return false;
     const main = normalise(bootcamp?.description);
     if (!main) return true;
     return !main.includes(note) && !note.includes(main);
-  }, [form?.description, bootcamp?.description]);
+  })();
 
   return (
     <Shell>
