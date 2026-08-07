@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useMemo } from "react";
 
 interface LiveSessionState {
   isActive: boolean;
@@ -74,8 +74,17 @@ export function LiveSessionProvider({ children }: { children: React.ReactNode })
     setState((s) => ({ ...s, micOn: on }));
   }, []);
 
+  /* Memoised so the value only changes when the session actually changes.
+     Spreading a fresh object on every render made every consumer's effects
+     re-run constantly, which is how pressing Leave once could immediately
+     restart the call. */
+  const value = useMemo(
+    () => ({ ...state, startSession, minimize, restore, endSession, setMicState }),
+    [state, startSession, minimize, restore, endSession, setMicState],
+  );
+
   return (
-    <LiveSessionContext.Provider value={{ ...state, startSession, minimize, restore, endSession, setMicState }}>
+    <LiveSessionContext.Provider value={value}>
       {children}
     </LiveSessionContext.Provider>
   );

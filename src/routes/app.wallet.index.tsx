@@ -252,7 +252,7 @@ function WalletPage() {
 
       // 3. Log sender system notification/activity
       await supabase.from("notifications").insert({
-        profile_id: profile.id,
+        recipient_id: profile.id,
         actor_id: selectedRecipient.id,
         type: "system",
         content: `Sent ${amountVal} ZP to ${getFirstName(selectedRecipient)}`,
@@ -260,7 +260,7 @@ function WalletPage() {
 
       // 4. Log recipient system notification/activity
       await supabase.from("notifications").insert({
-        profile_id: selectedRecipient.id,
+        recipient_id: selectedRecipient.id,
         actor_id: profile.id,
         type: "system",
         content: `Received ${amountVal} ZP from ${getFirstName(profile)}`,
@@ -290,7 +290,7 @@ function WalletPage() {
     try {
       // Log recipient system notification/activity
       await supabase.from("notifications").insert({
-        profile_id: selectedRecipient.id,
+        recipient_id: selectedRecipient.id,
         actor_id: profile.id,
         type: "system",
         content: `Requested ${amountVal} ZP from you.`,

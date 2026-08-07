@@ -62,6 +62,12 @@ export function GlobalLiveRoom() {
     if (isActive && !client) {
       setClient(AgoraRTC.createClient({ mode: "rtc", codec: "vp8" }));
     }
+    // A client that has already left cannot be reused. Dropping it here means
+    // the next session builds a fresh one, rather than silently failing to
+    // reconnect when someone rejoins after leaving.
+    if (!isActive && client) {
+      setClient(null);
+    }
   }, [isActive, client]);
 
   useEffect(() => {

@@ -286,7 +286,7 @@ function ProfileDetail() {
           
           // Add a notification for the referrer
           await supabase.from('notifications').insert([{
-            profile_id: profile.id,
+            recipient_id: profile.id,
             actor_id: currentUser.id,
             type: 'referral_reward',
             content: 'completed your referral link and you both earned 200 ZP!'
