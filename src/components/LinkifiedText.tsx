@@ -5,6 +5,30 @@ import { Globe, AppWindow } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
+/* ── No lookbehind, ever ──────────────────────────────────────────────────
+   Safari did not support regex lookbehind — (?<= and (?<!) — until iOS 16.4.
+   It is a *parse* error, not a runtime one, so a single lookbehind anywhere
+   in this file stops the whole module loading and the page dies with
+   "Invalid regular expression: invalid group specifier name".
+
+   Each pattern below therefore captures the character before the thing it
+   cares about and puts it back, which works identically on every browser. */
+
+/** A mention that is not part of an email address or already inside a tag.
+ *  Group 1 is the preceding character (kept), group 2 is the @username. */
+const MENTION_PATTERN = /(^|[^"'a-zA-Z0-9._%+-])(@[a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-])/g;
+
+/** Single-asterisk italics, ignoring the ** used for bold. */
+const SINGLE_ASTERISK_PAIR = /(^|[^*])\*([^*][\s\S]*?)\*(?!\*)/g;
+
+/** One stray asterisk that is not part of a ** pair. */
+const LONE_ASTERISK = /(^|[^*])\*(?!\*)/g;
+
+/** Strips markdown asterisks for plain-text previews. Safe on every browser. */
+export function stripMarkdownAsterisks(value: string) {
+  return value.replace(/\*\*/g, "").replace(LONE_ASTERISK, "$1");
+}
+
 const EMAIL_SOURCE = String.raw`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}`;
 const URL_SOURCE = String.raw`(?:(?:https?:\/\/|www\.)[^\s<>"']+|(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}(?::\d{2,5})?(?:\/[^\s<>"']*)?)`;
 const LINK_PATTERN = new RegExp(`(?:${EMAIL_SOURCE}|${URL_SOURCE})`, "gi");
@@ -44,7 +68,9 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
 
   if (!text) return null;
 
-  const mentionsMatch = text.match(/(?<![a-zA-Z0-9._%+-])@[a-zA-Z0-9_-]+/g) || [];
+  // matchAll gives us the capture groups, so the character before the mention
+  // can be discarded rather than matched with a lookbehind.
+  const mentionsMatch = Array.from(text.matchAll(MENTION_PATTERN), (m) => m[2]);
   const uniqueUsernames = Array.from(new Set(mentionsMatch.map((m) => m.substring(1).toLowerCase())));
 
   const { data: mentionedProfiles } = useQuery({
@@ -148,18 +174,20 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
     htmlContent = transformHtmlTextNodes(
       htmlContent,
       (segment) => segment.replace(
-        /(?<!["'a-zA-Z0-9._%+-])(@[a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-])/g,
-        (match) => {
-          const username = match.substring(1);
-          const displayName = profileMap[username.toLowerCase()] || match;
-          return `<strong class="${linkColor} cursor-pointer" data-username="${username}">${displayName}</strong>`;
+        MENTION_PATTERN,
+        // `before` is the character we matched only to prove this is not an
+        // email; it is put straight back so the text is unchanged.
+        (_match, before: string, mention: string) => {
+          const username = mention.substring(1);
+          const displayName = profileMap[username.toLowerCase()] || mention;
+          return `${before}<strong class="${linkColor} cursor-pointer" data-username="${username}">${displayName}</strong>`;
         },
       ),
     );
 
     // Fallback parser to remove asterisks and render bold for text containing literal asterisks
     htmlContent = htmlContent.replace(/\*\*([\s\S]*?)\*\*/g, '<strong class="font-black">$1</strong>');
-    htmlContent = htmlContent.replace(/(?<!\*)\*(?!\*)([\s\S]*?)(?<!\*)\*(?!\*)/g, '<strong class="font-bold">$1</strong>');
+    htmlContent = htmlContent.replace(SINGLE_ASTERISK_PAIR, '$1<strong class="font-bold">$2</strong>');
 
     // Clean up excessive newlines around HTML blocks caused by previous **Title**\n\n<p> formatting
     htmlContent = htmlContent.replace(/\n+(?=<p>|<p |<div>|<div |<h1>|<h1 |<h2>|<h2 |<h3>|<h3 |<h4>|<h4 |<h5>|<h5 |<h6>|<h6 |<ul>|<ul |<ol>|<ol |<li>|<li |<blockquote>|<blockquote |<pre>|<pre |<hr>|<hr |<br>|<br |<table>|<table )/gi, '');

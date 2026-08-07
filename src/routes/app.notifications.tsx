@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { stripMarkdownAsterisks } from "@/components/LinkifiedText";
 import { toast } from "sonner";
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
@@ -149,7 +150,7 @@ function NotificationsPage() {
   };
 
   const renderText = (n: any) => {
-    const text = n.content ? n.content.replace(/<[^>]*>?/gm, '').replace(/\*\*/g, '').replace(/(?<!\*)\*(?!\*)/g, '').trim() : '';
+    const text = n.content ? stripMarkdownAsterisks(n.content.replace(/<[^>]*>?/gm, '')).trim() : '';
     return text.length > 100 ? text.substring(0, 100) + '...' : text;
   }
 

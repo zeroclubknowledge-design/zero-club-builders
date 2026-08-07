@@ -420,7 +420,10 @@ function ClubChat() {
 
   const handleCopyInvite = () => {
     if (!club) return;
-    const inviteLink = `${window.location.origin}/app?club=${club.id}`;
+    // /club/<id> rather than /app?club=<id>: the public page carries the club's
+    // name and picture in its HTML, so the link previews properly when shared.
+    // Anyone signed in is forwarded straight into the app from there.
+    const inviteLink = `${window.location.origin}/club/${club.id}`;
     navigator.clipboard.writeText(inviteLink);
     toast.success("Invite link copied to clipboard!");
   };

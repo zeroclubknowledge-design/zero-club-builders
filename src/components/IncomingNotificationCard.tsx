@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { stripMarkdownAsterisks } from "@/components/LinkifiedText";
 import {
   AtSign,
   BellRing,
@@ -84,11 +85,7 @@ const notificationStyles = {
 } as const;
 
 const cleanContent = (content?: string | null) =>
-  (content || "")
-    .replace(/<[^>]*>?/gm, "")
-    .replace(/\*\*/g, "")
-    .replace(/(?<!\*)\*(?!\*)/g, "")
-    .trim();
+  stripMarkdownAsterisks((content || "").replace(/<[^>]*>?/gm, "")).trim();
 
 const playGameBuzz = () => {
   if (typeof window === "undefined") return;

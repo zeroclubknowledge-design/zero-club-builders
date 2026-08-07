@@ -47,8 +47,13 @@ export const Route = createFileRoute("/app/profile/$id")({
     const profile = loaderData?.profile;
     const title = profile ? `${profile.full_name || profile.username} (${getFirstName(profile)}) on Zero Club` : "Profile | Zero Club";
     const description = profile?.bio || "Zero Club builder on the rise. Check out my builds!";
-    const image = profile?.avatar_url || "/logo.png";
-    
+    /* Preview images must be ABSOLUTE urls. "/logo.png" is relative, so every
+       profile without an avatar previewed with a broken image — crawlers do
+       not resolve relative paths against the page they are reading. */
+    const image = profile?.avatar_url?.startsWith("http")
+      ? profile.avatar_url
+      : "https://zeroclubs.xyz/logo.png";
+
     return {
       meta: [
         { title },
@@ -56,8 +61,11 @@ export const Route = createFileRoute("/app/profile/$id")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:image", content: image },
+        { property: "og:image:alt", content: `${profile?.full_name || profile?.username || "Builder"} on Zero Club` },
         { property: "og:type", content: "profile" },
-        { name: "twitter:card", content: "summary" },
+        // summary_large_image when there is a real photo to show, so it is not
+        // reduced to a thumbnail in the preview card.
+        { name: "twitter:card", content: profile?.avatar_url ? "summary_large_image" : "summary" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: image },
