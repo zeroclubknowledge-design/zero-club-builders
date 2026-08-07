@@ -26,7 +26,63 @@ import { earlyBirdSaving, formatCountdown } from "@/features/zeroForm/templates"
 import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
 import { RichText, richTextToPlain } from "@/components/RichText";
 
-export const Route = createFileRoute("/form/$slug")({ component: ZeroFormPublicPage });
+export const Route = createFileRoute("/form/$slug")({
+  component: ZeroFormPublicPage,
+
+  /* Fetched on the server so the bootcamp's own name is in the page before a
+     single line of JavaScript runs. That matters twice over: it is what the
+     browser tab shows, and it is all a link preview on WhatsApp, X or
+     LinkedIn ever reads — those crawlers do not execute JavaScript, so a
+     title set later on the client would never reach them.
+
+     Never allowed to throw. If this lookup fails the page still renders; it
+     simply falls back to the generic Zero Club title. */
+  loader: async ({ params }) => {
+    try {
+      const { data, error } = await supabase.rpc("get_zero_form_public", { form_slug: params.slug });
+      if (error || !data?.found) return null;
+      return {
+        title: data.bootcamp?.title ?? null,
+        description: data.bootcamp?.description ?? null,
+        image: data.form?.banner_url || data.bootcamp?.banner_url || null,
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  head: ({ loaderData }) => {
+    if (!loaderData?.title) return {};
+
+    const title = `${loaderData.title} — Zero Club`;
+    // Link previews need plain text: strip the rich-text markup and keep it
+    // to roughly the length WhatsApp and X actually display.
+    const plain = richTextToPlain(loaderData.description).slice(0, 200).trim();
+    const description = plain || `Register for ${loaderData.title} on Zero Club.`;
+
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "article" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+    ];
+
+    // Only override the site-wide preview image when this bootcamp has one of
+    // its own, otherwise the generic Zero Club image still shows.
+    if (loaderData.image) {
+      meta.push(
+        { property: "og:image", content: loaderData.image },
+        { name: "twitter:image", content: loaderData.image },
+        { name: "twitter:card", content: "summary_large_image" },
+      );
+    }
+
+    return { meta };
+  },
+});
 
 const money = (value: number) => formatWalletAmount(Number(value) || 0);
 
