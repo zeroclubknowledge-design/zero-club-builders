@@ -45,35 +45,52 @@ Write-Host "STEP 1 - changed files:" -ForegroundColor Yellow
 git -C $Repo status --short
 
 $changes = git -C $Repo status --porcelain
+
+# A clean folder does not mean there is nothing to push. A commit can exist
+# locally and still be missing from GitHub - after a rejected push, say. Skip
+# committing in that case, but carry on to the push.
+$skipCommit = $false
 if ([string]::IsNullOrWhiteSpace($changes)) {
+    git -C $Repo fetch origin main --quiet 2>$null
+    $unpushed = (git -C $Repo rev-list --count origin/main..HEAD 2>$null)
+
+    if ($unpushed -and [int]$unpushed -gt 0) {
+        Write-Host ""
+        Write-Host "Nothing new to commit, but $unpushed commit(s) are not on GitHub yet." -ForegroundColor Yellow
+        Write-Host "Pushing those." -ForegroundColor Yellow
+        $skipCommit = $true
+    } else {
+        Write-Host ""
+        Write-Host "Nothing to commit and nothing to push. Already in sync." -ForegroundColor Green
+        exit 0
+    }
+}
+
+if (-not $skipCommit) {
+    # --- Step 2: stage -----------------------------------------------------
     Write-Host ""
-    Write-Host "Nothing to commit. Working folder is clean." -ForegroundColor Green
-    exit 0
-}
+    Write-Host "STEP 2 - staging..." -ForegroundColor Yellow
+    git -C $Repo add -A
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Staging failed. Read the message above." -ForegroundColor Red
+        exit 1
+    }
 
-# --- Step 2: stage ---------------------------------------------------------
-Write-Host ""
-Write-Host "STEP 2 - staging..." -ForegroundColor Yellow
-git -C $Repo add -A
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Staging failed. Read the message above." -ForegroundColor Red
-    exit 1
-}
+    $stagedCount = (git -C $Repo diff --cached --name-only | Measure-Object -Line).Lines
+    Write-Host "Staged $stagedCount file(s)." -ForegroundColor Green
+    if ($stagedCount -eq 0) {
+        Write-Host "Nothing got staged. Stopping so nothing is lost." -ForegroundColor Red
+        exit 1
+    }
 
-$stagedCount = (git -C $Repo diff --cached --name-only | Measure-Object -Line).Lines
-Write-Host "Staged $stagedCount file(s)." -ForegroundColor Green
-if ($stagedCount -eq 0) {
-    Write-Host "Nothing got staged. Stopping so nothing is lost." -ForegroundColor Red
-    exit 1
-}
-
-# --- Step 3: commit --------------------------------------------------------
-Write-Host ""
-Write-Host "STEP 3 - committing..." -ForegroundColor Yellow
-git -C $Repo commit -m $Message
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Commit failed. Read the message above." -ForegroundColor Red
-    exit 1
+    # --- Step 3: commit ----------------------------------------------------
+    Write-Host ""
+    Write-Host "STEP 3 - committing..." -ForegroundColor Yellow
+    git -C $Repo commit -m $Message
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Commit failed. Read the message above." -ForegroundColor Red
+        exit 1
+    }
 }
 
 # --- Step 4: push ----------------------------------------------------------
