@@ -66,7 +66,12 @@ import {
 /** Pinned so a Bubblewrap release cannot change the output of a reproducible build. */
 const BUBBLEWRAP_VERSION = process.env.BUBBLEWRAP_VERSION ?? "1.25.0";
 
-const PRODUCTION_ORIGIN = "https://zeroclubs.xyz";
+/**
+ * The canonical origin. `www` is what actually serves the site: the apex
+ * returns 404 for /.well-known/assetlinks.json, so a TWA pointed there can
+ * never verify and always shows a browser URL bar.
+ */
+const PRODUCTION_ORIGIN = "https://www.zeroclubs.xyz";
 const ICON_FIELDS = ["iconUrl", "maskableIconUrl", "monochromeIconUrl"];
 
 /**
@@ -259,24 +264,40 @@ function assertToolPathsAreShellSafe({ jdkPath, androidSdkPath }) {
 /**
  * Repairs the project Bubblewrap generates, before Gradle sees it.
  *
- * Bubblewrap 1.25 still emits `jcenter()`. JCenter stopped accepting new
- * publications in 2021 and is now a frozen, frequently unreachable archive.
- * Leaving it in means every dependency resolution races a dead host, and a
- * miss there fails the build outright. mavenCentral() is where
- * androidbrowserhelper actually lives.
+ * Two fixes, both of which must reapply on every build because the project is
+ * deleted and regenerated each time.
  *
- * This runs on every build because the project is deleted and regenerated each
- * time, so editing the file by hand would not survive.
+ * 1. Bubblewrap 1.25 still emits `jcenter()`. JCenter stopped accepting new
+ *    publications in 2021 and is now a frozen, frequently unreachable archive.
+ *    mavenCentral() is where androidbrowserhelper actually lives.
+ *
+ * 2. Bubblewrap bakes `webManifestUrl` into the APK as a string resource, as
+ *    well as using it to download the manifest. Because we serve the manifest
+ *    from a throwaway loopback server, that would ship a dead
+ *    `http://127.0.0.1:<port>/...` address to users. The downloaded *content*
+ *    is what we want from localhost; the *URL* must be the public one. Chrome
+ *    OS and Meta Quest read this resource to offer the web version of the app.
  */
-async function patchGeneratedProject() {
-  const buildGradle = path.join(WORK_DIR, "build.gradle");
-  if (!(await exists(buildGradle))) return;
+async function patchGeneratedProject(iconOrigin) {
+  const rootGradle = path.join(WORK_DIR, "build.gradle");
+  if (await exists(rootGradle)) {
+    const original = await readFile(rootGradle, "utf8");
+    if (original.includes("jcenter()")) {
+      await writeFile(rootGradle, original.split("jcenter()").join("mavenCentral()"), "utf8");
+      log("Replaced the retired jcenter() repository with mavenCentral()");
+    }
+  }
 
-  const original = await readFile(buildGradle, "utf8");
-  if (!original.includes("jcenter()")) return;
+  if (!iconOrigin) return;
 
-  await writeFile(buildGradle, original.split("jcenter()").join("mavenCentral()"), "utf8");
-  log("Replaced the retired jcenter() repository with mavenCentral()");
+  const appGradle = path.join(WORK_DIR, "app", "build.gradle");
+  if (!(await exists(appGradle))) return;
+
+  const original = await readFile(appGradle, "utf8");
+  if (!original.includes(iconOrigin)) return;
+
+  await writeFile(appGradle, original.split(iconOrigin).join(PRODUCTION_ORIGIN), "utf8");
+  log(`Restored the public web manifest URL (was pointing at ${iconOrigin})`);
 }
 
 /* ------------------------------------------------------------------ output */
@@ -504,7 +525,7 @@ async function main() {
       shell: true,
     });
 
-    await patchGeneratedProject();
+    await patchGeneratedProject(iconServer?.origin);
 
     log("Compiling APK and AAB (Gradle may take a few minutes on a cold cache)...");
     await run(

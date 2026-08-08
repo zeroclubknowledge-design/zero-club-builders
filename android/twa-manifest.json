@@ -1,6 +1,6 @@
 {
   "packageId": "xyz.zeroclubs.app",
-  "host": "zeroclubs.xyz",
+  "host": "www.zeroclubs.xyz",
   "name": "Zero Club",
   "launcherName": "Zero Club",
   "display": "standalone",
@@ -13,10 +13,10 @@
   "backgroundColor": "#F4F2EF",
   "enableNotifications": true,
   "startUrl": "/app",
-  "fullScopeUrl": "https://zeroclubs.xyz/",
-  "iconUrl": "https://zeroclubs.xyz/icons/icon-512.png",
-  "maskableIconUrl": "https://zeroclubs.xyz/icons/icon-maskable-512.png",
-  "monochromeIconUrl": "https://zeroclubs.xyz/icons/icon-monochrome-512.png",
+  "fullScopeUrl": "https://www.zeroclubs.xyz/",
+  "iconUrl": "https://www.zeroclubs.xyz/icons/icon-512.png",
+  "maskableIconUrl": "https://www.zeroclubs.xyz/icons/icon-maskable-512.png",
+  "monochromeIconUrl": "https://www.zeroclubs.xyz/icons/icon-monochrome-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",
@@ -26,7 +26,7 @@
   "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://zeroclubs.xyz/manifest.webmanifest",
+  "webManifestUrl": "https://www.zeroclubs.xyz/manifest.webmanifest",
   "fallbackType": "customtabs",
   "features": {},
   "alphaDependencies": {
@@ -38,6 +38,6 @@
   "minSdkVersion": 21,
   "orientation": "default",
   "fingerprints": [],
-  "additionalTrustedOrigins": ["www.zeroclubs.xyz"],
+  "additionalTrustedOrigins": ["zeroclubs.xyz"],
   "retainedBundles": []
 }

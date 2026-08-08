@@ -160,7 +160,7 @@ async function main() {
   console.log("  1. Back up android/android.keystore somewhere durable and private.");
   console.log("  2. node scripts/write-assetlinks.mjs     # bake the fingerprint into the site");
   console.log(
-    "  3. Deploy, then confirm https://zeroclubs.xyz/.well-known/assetlinks.json is live.",
+    "  3. Deploy, then confirm https://www.zeroclubs.xyz/.well-known/assetlinks.json is live.",
   );
   console.log("  4. node scripts/build-android.mjs        # produce the APK and AAB");
   console.log("");

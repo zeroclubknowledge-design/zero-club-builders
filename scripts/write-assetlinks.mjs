@@ -128,7 +128,7 @@ async function check(packageId) {
     throw new BuildError("No local assetlinks.json yet. Run this script without --check first.");
   }
   const local = JSON.parse(await readFile(ASSETLINKS_FILE, "utf8"));
-  const url = "https://zeroclubs.xyz/.well-known/assetlinks.json";
+  const url = "https://www.zeroclubs.xyz/.well-known/assetlinks.json";
 
   log(`Local file lists ${local[0].target.sha256_cert_fingerprints.length} fingerprint(s).`);
   log(`Fetching ${url} ...`);
@@ -213,7 +213,7 @@ async function main() {
   for (const f of fingerprints) console.log(`    ${f}`);
   console.log("");
   console.log("This file is served from public/, so it ships with the next site deploy to");
-  console.log("https://zeroclubs.xyz/.well-known/assetlinks.json. Verify afterwards with:");
+  console.log("https://www.zeroclubs.xyz/.well-known/assetlinks.json. Verify afterwards with:");
   console.log("    node scripts/write-assetlinks.mjs --check");
 
   if (fingerprints.size === 1) {

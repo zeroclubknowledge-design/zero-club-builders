@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
+  Download,
   Heart,
   Menu,
   MessageCircle,
@@ -439,6 +440,42 @@ function ActivityRail() {
   );
 }
 
+/**
+ * Download button for the Android app, shown only on Android.
+ *
+ * An APK is useless on iPhone and desktop, so showing it there would only add
+ * noise to the hero. Detection runs in an effect rather than during render:
+ * this route is server-rendered, `navigator` does not exist on the server, and
+ * assuming a value would make the server and client markup disagree. Starting
+ * hidden and revealing after mount keeps hydration clean, and means non-Android
+ * visitors never see a flash of a button meant for someone else.
+ */
+function AndroidAppDownload() {
+  const [isAndroid, setIsAndroid] = useState(false);
+
+  useEffect(() => {
+    // Excludes Windows Phone, whose old user agent string also contains
+    // "Android" for compatibility reasons.
+    const ua = navigator.userAgent;
+    setIsAndroid(/android/i.test(ua) && !/windows phone/i.test(ua));
+  }, []);
+
+  if (!isAndroid) return null;
+
+  return (
+    <a
+      href="/downloads/zero-club.apk"
+      // Tells the browser to download rather than try to render it, and gives
+      // the saved file a sensible name in the user's Downloads folder.
+      download="zero-club.apk"
+      className="mt-4 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#cc208f] px-7 text-[15px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-[#b31c7d] active:scale-[0.98]"
+    >
+      <Download className="h-4 w-4" />
+      Download the Android app
+    </a>
+  );
+}
+
 function Hero({ referralCode }: ReferralProps) {
   return (
     <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
@@ -474,6 +511,8 @@ function Hero({ referralCode }: ReferralProps) {
               Sign in
             </Link>
           </div>
+
+          <AndroidAppDownload />
 
           <ActivityRail />
 

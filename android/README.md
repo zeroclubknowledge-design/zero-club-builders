@@ -1,7 +1,7 @@
 # Zero Club for Android
 
 The Android app is a **Trusted Web Activity** (TWA): a thin native shell around
-the existing PWA at `https://zeroclubs.xyz`, generated with
+the existing PWA at `https://www.zeroclubs.xyz`, generated with
 [Bubblewrap](https://github.com/GoogleChromeLabs/bubblewrap). There is no second
 codebase. Ship the web app and the Android app updates with it — an Android
 release is only needed when the icon, name, permissions or version change.
@@ -143,7 +143,7 @@ Run `node scripts/write-assetlinks.mjs --check`. The usual cause is Play App
 Signing — see above. Verify independently with Google's checker:
 
 ```
-https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://zeroclubs.xyz&relation=delegate_permission/common.handle_all_urls
+https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://www.zeroclubs.xyz&relation=delegate_permission/common.handle_all_urls
 ```
 
 **"JDK version not supported. JDK version 17 is required."** You are on 11 or
