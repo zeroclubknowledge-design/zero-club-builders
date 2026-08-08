@@ -36,3 +36,24 @@ dist-ssr
 # Generated Files
 .vercel/
 .npm-cache/
+
+# ---------------------------------------------------------------------------
+# Android / Bubblewrap
+#
+# android/.gitignore covers these too; repeated here so the rules still apply
+# if key material is ever created outside android/. Losing android.keystore
+# means losing the ability to update the Play listing, and leaking it means
+# someone else can sign builds Android accepts as Zero Club.
+# ---------------------------------------------------------------------------
+*.keystore
+*.jks
+*.p12
+*.pepk
+keystore.properties
+android/.build/
+android/.twa/
+android/out/
+
+# Build logs can capture tool output that includes signing passwords.
+build-log.txt
+*-build-log.txt

@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "xyz.zeroclubs.app",
+      "sha256_cert_fingerprints": [
+        "FF:F5:E0:C6:57:65:E2:41:B9:92:68:5A:5B:02:C7:2D:23:54:BE:28:74:4A:E6:75:94:70:92:02:0E:50:B0:05"
+      ]
+    }
+  }
+]

@@ -10,7 +10,11 @@
     "build:dev": "npx @tanstack/router-cli generate && vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "android:build": "node scripts/build-android.mjs",
+    "android:keystore": "node scripts/generate-keystore.mjs",
+    "android:assetlinks": "node scripts/write-assetlinks.mjs",
+    "android:version": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

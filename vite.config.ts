@@ -46,9 +46,33 @@ export default defineConfig(({ command }) => {
         orientation: "portrait",
         scope: "/",
         start_url: "/app",
+        // Icons are declared at their true pixel sizes. /logo.png is 1250x1250,
+        // so it was previously mis-declared as 512x512 - installers and the
+        // Bubblewrap TWA generator both pick icons by declared size, so the
+        // mismatch made icon selection unreliable.
+        //
+        // "maskable" must be a distinct, fully opaque asset with the artwork
+        // inside the 80% safe circle. Reusing the transparent edge-to-edge
+        // logo meant Android cropped the star points and composited the
+        // remainder onto an undefined background.
         icons: [
-          { src: "/logo.png", sizes: "512x512", type: "image/png", purpose: "any" },
-          { src: "/logo.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          {
+            src: "/icons/icon-maskable-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable"
+          },
+          {
+            src: "/icons/icon-monochrome-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "monochrome"
+          },
+          // Retained so anything already referencing the original asset, and
+          // any install created before this change, keeps resolving.
+          { src: "/logo.png", sizes: "1250x1250", type: "image/png", purpose: "any" }
         ],
         screenshots: [
           // Phone (narrow). All share one aspect ratio, as required.

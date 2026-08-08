@@ -10,12 +10,23 @@
 
 param(
     [string]$Message = "Add Zero Form and latest Zero Club updates",
-    [switch]$UseToken
+    [switch]$UseToken,
+    [string]$Repo
 )
 
-$Repo   = "C:\Users\user\Downloads\zero-club-builders-main"
+# Defaults to the folder this script lives in, so it always pushes the checkout
+# it shipped with. It used to be hardcoded to one path, which meant running a
+# copy from another folder silently pushed the wrong repository.
+if (-not $Repo) { $Repo = $PSScriptRoot }
+
 $Owner  = "zeroclubknowledge-design"
 $RepoNm = "zero-club-builders"
+
+if (-not (Test-Path (Join-Path $Repo ".git"))) {
+    Write-Host "No git repository at: $Repo" -ForegroundColor Red
+    Write-Host "Pass -Repo <path> to point at one." -ForegroundColor Red
+    exit 1
+}
 
 Write-Host ""
 Write-Host "Zero Club -> GitHub" -ForegroundColor Cyan
@@ -79,19 +90,27 @@ if ($UseToken) {
     git -C $Repo push $remote main
     $pushResult = $LASTEXITCODE
 
+    if ($pushResult -ne 0) {
+        Write-Host ""
+        Write-Host "Push was rejected. Syncing with GitHub, then retrying..." -ForegroundColor Yellow
+        git -C $Repo pull --rebase $remote main
+        git -C $Repo push $remote main
+        $pushResult = $LASTEXITCODE
+    }
+
     $token  = $null
     $remote = $null
     [System.GC]::Collect()
 } else {
     git -C $Repo push origin main
     $pushResult = $LASTEXITCODE
-}
 
-if ($pushResult -ne 0) {
-    Write-Host ""
-    Write-Host "Push was rejected. Syncing with GitHub, then retrying..." -ForegroundColor Yellow
-    git -C $Repo pull --rebase origin main
-    git -C $Repo push origin main
+    if ($pushResult -ne 0) {
+        Write-Host ""
+        Write-Host "Push was rejected. Syncing with GitHub, then retrying..." -ForegroundColor Yellow
+        git -C $Repo pull --rebase origin main
+        git -C $Repo push origin main
+    }
 }
 
 # --- Result ----------------------------------------------------------------
