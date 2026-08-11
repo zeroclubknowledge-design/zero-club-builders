@@ -619,8 +619,8 @@ function ComposePage() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 sm:px-6">
-        <div className="mx-auto flex w-full max-w-[860px] gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 md:sticky md:left-auto md:right-auto md:w-full">
+        <div className="mx-auto flex w-full max-w-[860px] gap-3 px-4 sm:px-6">
         <button 
           onClick={saveDraft}
           className="flex-1 rounded-lg border border-border bg-card py-3 text-[14px] font-semibold text-foreground tap hover:bg-accent"

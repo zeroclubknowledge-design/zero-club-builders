@@ -15,7 +15,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from 
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTutorBootcamps, deleteBootcampAction, getBootcampLearners } from "@/api";
+import { getTutorBootcamps, getBootcampLearners } from "@/api";
 import { useEffect } from "react";
 import { uploadFile } from "@/lib/storage";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -337,9 +337,26 @@ function TutorStudioPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await (deleteBootcampAction as any)({ data: { bootcampId: id } });
+      // Run the delete with the signed-in browser session and request the
+      // deleted row back. Supabase can return no error when row-level security
+      // blocks a delete, so an empty result must not be reported as success.
+      const { data, error } = await supabase
+        .from('bootcamps')
+        .delete()
+        .eq('id', id)
+        .select('id');
+
+      if (error) throw error;
+      if (!data?.some((bootcamp: { id: string }) => bootcamp.id === id)) {
+        throw new Error("Bootcamp was not deleted. Only its creator can delete it.");
+      }
+
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
+      queryClient.setQueryData<any[]>(['tutor-bootcamps'], (current = []) =>
+        current.filter((bootcamp) => bootcamp.id !== deletedId)
+      );
       toast.success("Bootcamp deleted successfully");
       queryClient.invalidateQueries({ queryKey: ['tutor-bootcamps'] });
       setActiveBootcampId(null);

@@ -1,6 +1,6 @@
 import { useLoaderData, createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Hash, Lock, MessageCircle, Plus, Sparkles, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "lucide-react";
+import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useState, useEffect, useRef } from "react";
@@ -583,8 +583,8 @@ function Clubs() {
         {/* Discover / Featured Clubs */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[15px] font-semibold tracking-tight flex items-center gap-2 text-foreground">
-              Discover <Sparkles className="h-4 w-4 text-primary fill-primary/20" />
+            <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
+              Discover
             </h2>
             <button 
               onClick={() => setShowAllDiscover(!showAllDiscover)}
