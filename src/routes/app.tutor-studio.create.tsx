@@ -49,6 +49,25 @@ export function BootcampForm({
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState("10");
 
+  /**
+   * Extra coupon codes, held as strings while editing so partially typed
+   * values do not fight the inputs. They are written to bootcamp_coupons after
+   * the bootcamp is saved - a new bootcamp has no id to attach them to until
+   * then, and an existing one may be published, which is fine because coupons
+   * live in their own table rather than on the bootcamp row.
+   */
+  type ExtraCoupon = {
+    key: string;
+    id?: string;
+    code: string;
+    discount_percent: string;
+    label: string;
+    max_uses: string;
+    expires_at: string;
+  };
+  const [extraCoupons, setExtraCoupons] = useState<ExtraCoupon[]>([]);
+  const [removedCouponIds, setRemovedCouponIds] = useState<string[]>([]);
+
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,6 +99,15 @@ export function BootcampForm({
         .eq("bootcamp_id", bootcampId)
         .order("order_index", { ascending: true });
 
+      // Extra coupons live in their own table, so they load for any bootcamp,
+      // published or not. A missing table means the migration has not been run
+      // yet - the rest of the editor should still work, so this stays quiet.
+      const { data: fetchedCoupons } = await supabase
+        .from("bootcamp_coupons")
+        .select("id, code, discount_percent, label, max_uses, expires_at")
+        .eq("bootcamp_id", bootcampId)
+        .order("created_at", { ascending: true });
+
       if (moduleError) {
         toast.error(moduleError.message || "Curriculum could not be loaded");
       }
@@ -95,6 +123,21 @@ export function BootcampForm({
       setCouponEnabled(Boolean(bootcamp.coupon_code));
       setCouponCode(bootcamp.coupon_code || "");
       setCouponDiscount(String(bootcamp.coupon_discount_percent || 10));
+      setExtraCoupons(
+        (fetchedCoupons || [])
+          // The launch coupon above already edits the first code, so it is not
+          // repeated here - that would give two inputs for one row.
+          .filter((c: any) => (c.code || "").toUpperCase() !== (bootcamp.coupon_code || "").toUpperCase())
+          .map((c: any) => ({
+            key: c.id,
+            id: c.id,
+            code: c.code || "",
+            discount_percent: String(c.discount_percent ?? 10),
+            label: c.label || "",
+            max_uses: c.max_uses ? String(c.max_uses) : "",
+            expires_at: c.expires_at ? String(c.expires_at).slice(0, 10) : "",
+          })),
+      );
       setModules(
         (fetchedModules || []).map((module: any) => ({
           id: module.id,
@@ -181,6 +224,48 @@ export function BootcampForm({
       const { data: newBootcamp, error: dbError } = await saveQuery.select().single();
 
       if (dbError) throw dbError;
+
+      // Save the extra coupon codes now that a bootcamp id definitely exists.
+      // Failures here are reported but do not roll back the bootcamp: losing a
+      // discount code is far less costly than losing the course itself.
+      const savedBootcampId = bootcampId || newBootcamp?.id;
+      if (savedBootcampId) {
+        try {
+          if (removedCouponIds.length > 0) {
+            await supabase.from("bootcamp_coupons").delete().in("id", removedCouponIds);
+          }
+
+          const rows = extraCoupons
+            .filter((c) => c.code.trim())
+            .map((c) => ({
+              ...(c.id ? { id: c.id } : {}),
+              bootcamp_id: savedBootcampId,
+              code: c.code.trim().toUpperCase(),
+              discount_percent: Math.min(100, Math.max(0, Number(c.discount_percent) || 0)),
+              label: c.label.trim() || null,
+              max_uses: c.max_uses ? Number(c.max_uses) : null,
+              // A date input gives a day; treat it as end of that day so a
+              // code advertised as "valid until the 20th" works all of the 20th.
+              expires_at: c.expires_at ? new Date(`${c.expires_at}T23:59:59`).toISOString() : null,
+              created_by: user.id,
+            }));
+
+          if (rows.length > 0) {
+            const { error: couponError } = await supabase
+              .from("bootcamp_coupons")
+              .upsert(rows, { onConflict: "id" });
+            if (couponError) throw couponError;
+          }
+
+          setRemovedCouponIds([]);
+        } catch (couponErr: any) {
+          toast.error(
+            couponErr?.message?.includes("bootcamp_coupons")
+              ? "Coupon codes could not be saved. Run the bootcamp_coupons migration."
+              : couponErr?.message || "Coupon codes could not be saved.",
+          );
+        }
+      }
 
       if (bootcampId) {
         const { error: clubUpdateError } = await supabase
@@ -833,6 +918,110 @@ export function BootcampForm({
                       <span className="text-muted-foreground">
                         Students pay {format(couponPreviewPrice)}
                       </span>
+                    </div>
+                  )}
+
+                  {/* Extra codes, on top of the launch coupon above. Each can
+                      carry its own discount, cap and expiry, so a creator can
+                      give partners different packages. */}
+                  {!isFree && (
+                    <div className="space-y-2 border-t border-border pt-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-[12.5px] font-semibold tracking-tight text-foreground">More coupon codes</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            One per partner or package. Works on published bootcamps too.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() =>
+                            setExtraCoupons((current) => [
+                              ...current,
+                              { key: `new-${Date.now()}`, code: "", discount_percent: "10", label: "", max_uses: "", expires_at: "" },
+                            ])
+                          }
+                          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-foreground transition hover:bg-accent disabled:opacity-40"
+                          aria-label="Add another coupon code"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {extraCoupons.map((coupon, index) => {
+                        const patch = (changes: Partial<typeof coupon>) =>
+                          setExtraCoupons((current) => current.map((c, i) => (i === index ? { ...c, ...changes } : c)));
+
+                        return (
+                          <div key={coupon.key} className="space-y-2 rounded-lg border border-border bg-card p-3">
+                            <div className="flex items-center gap-2">
+                              <input
+                                value={coupon.code}
+                                onChange={(e) => patch({ code: e.target.value.toUpperCase() })}
+                                placeholder="PARTNER20"
+                                disabled={loading}
+                                className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-[13px] font-semibold outline-none focus:border-primary"
+                              />
+                              <div className="relative w-[86px] shrink-0">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={coupon.discount_percent}
+                                  onChange={(e) => patch({ discount_percent: e.target.value })}
+                                  disabled={loading}
+                                  className="h-10 w-full rounded-lg border border-border bg-background px-3 pr-7 text-[13px] font-semibold outline-none focus:border-primary"
+                                />
+                                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted-foreground">%</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // Remember saved rows so they can be deleted
+                                  // from the table when the form is saved.
+                                  if (coupon.id) setRemovedCouponIds((ids) => [...ids, coupon.id!]);
+                                  setExtraCoupons((current) => current.filter((_, i) => i !== index));
+                                }}
+                                disabled={loading}
+                                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:text-destructive disabled:opacity-40"
+                                aria-label="Remove this coupon"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                              <input
+                                value={coupon.label}
+                                onChange={(e) => patch({ label: e.target.value })}
+                                placeholder="Package name (optional)"
+                                disabled={loading}
+                                className="h-9 rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary"
+                              />
+                              <input
+                                type="number"
+                                min="1"
+                                value={coupon.max_uses}
+                                onChange={(e) => patch({ max_uses: e.target.value })}
+                                placeholder="Max uses"
+                                disabled={loading}
+                                className="h-9 rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary"
+                              />
+                              <input
+                                type="date"
+                                value={coupon.expires_at}
+                                onChange={(e) => patch({ expires_at: e.target.value })}
+                                disabled={loading}
+                                className="h-9 rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary"
+                              />
+                            </div>
+                            <p className="text-[10px] text-muted-foreground">
+                              Leave max uses and the date empty for unlimited and no expiry.
+                            </p>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

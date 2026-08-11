@@ -1,6 +1,6 @@
 import { useLoaderData, createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "lucide-react";
+import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award, GraduationCap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useState, useEffect, useRef } from "react";
@@ -106,8 +106,8 @@ function Clubs() {
         { data: capacityData }
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-        supabase.from('clubs').select('*').eq('creator_id', session.user.id),
-        supabase.from('club_members').select('club_id, clubs(*)').eq('profile_id', session.user.id),
+        supabase.from('clubs').select('*, bootcamps(ends_at)').eq('creator_id', session.user.id),
+        supabase.from('club_members').select('club_id, clubs(*, bootcamps(ends_at))').eq('profile_id', session.user.id),
         supabase.from('clubs').select('*').eq('name', 'Zero K Bootcamp').maybeSingle(),
         supabase.from('messages').select('content').eq('sender_id', session.user.id).like('content', 'CLUB_REQUEST:%'),
         supabase.from('messages').select('*, sender:sender_id(id, username, full_name, avatar_url)').eq('receiver_id', session.user.id).like('content', 'CLUB_REQUEST:%:pending'),
@@ -166,7 +166,22 @@ function Clubs() {
         online_count: onlineCountMap[c.id] || 0
       }));
 
-      return { 
+      // Cohort clubs are filtered out of My Clubs and Discover above, because
+      // they are temporary and belong to a bootcamp rather than being joinable
+      // communities. That left them with nowhere to appear at all, so they get
+      // their own section. Joined and created are merged: a tutor sees the club
+      // for a bootcamp they run even before anyone joins it.
+      const cohortClubs = [
+        ...(joinedClubs?.map(jc => jc.clubs as any) || []),
+        ...(userCreatedClubs || []),
+      ].filter(c => c && isBootcampCohortClub(c));
+
+      const bootClubs = enrich(
+        Array.from(new Map(cohortClubs.map(c => [c.id, c])).values())
+      );
+
+      return {
+        bootClubs,
         myClubs: enrich(joinedClubs?.map(jc => jc.clubs as any).filter(c => c && !isBootcampCohortClub(c)) || []),
         discover: enrich(discoverClubsCombined.filter(c => c && !isBootcampCohortClub(c))),
         profile,
@@ -181,6 +196,7 @@ function Clubs() {
   });
 
   const {
+    bootClubs = [],
     myClubs = [],
     discover = [],
     profile = null,
@@ -692,6 +708,57 @@ function Clubs() {
             )}
           </div>
         </div>
+
+        {/* Bootclubs: the temporary club attached to a bootcamp. Hidden
+            entirely when there are none, so people who run no bootcamps do not
+            get an empty heading. */}
+        {bootClubs.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[15px] font-semibold tracking-tight flex items-center gap-2 text-foreground">
+                Bootclub <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">{bootClubs.length}</span>
+              </h2>
+              <span className="text-[11px] text-muted-foreground">Runs with the bootcamp</span>
+            </div>
+
+            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+              {bootClubs.map((c: any) => {
+                const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
+                const ended = endsAt ? endsAt < new Date() : false;
+
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => navigate({ to: "/app/clubs/chat", search: { club: c.id } as any })}
+                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:bg-accent/50"
+                  >
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                      <GraduationCap className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate text-[13.5px] font-semibold text-foreground">{c.name}</span>
+                        {ended && (
+                          <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+                            Ended
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                        {ended
+                          ? "Read-only archive"
+                          : endsAt
+                            ? `Ends ${endsAt.toLocaleDateString()}`
+                            : `${c.members_count || 0} members`}
+                      </span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* My Clubs */}
         <div className="mb-4">
