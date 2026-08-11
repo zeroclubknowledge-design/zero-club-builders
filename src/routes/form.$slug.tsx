@@ -11,6 +11,7 @@ import {
   Clock3,
   Loader2,
   Maximize,
+  Paperclip,
   Pause,
   Play,
   PlayCircle,
@@ -22,7 +23,16 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
-import { earlyBirdSaving, formatCountdown } from "@/features/zeroForm/templates";
+import {
+  ZERO_FORM_ALLOWED_UPLOAD_TYPES,
+  ZERO_FORM_MAX_UPLOAD_BYTES,
+  ZERO_FORM_UPLOAD_ACCEPT,
+  ZERO_FORM_UPLOAD_BUCKET,
+  earlyBirdSaving,
+  formatCountdown,
+  formatFileSize,
+  isUploadAnswer,
+} from "@/features/zeroForm/templates";
 import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
 import { RichText, richTextToPlain } from "@/components/RichText";
 
@@ -309,7 +319,9 @@ function ZeroFormPublicPage() {
   const queryClient = useQueryClient();
 
   const [tab, setTab] = useState<Tab>("details");
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Checkbox questions hold several values, so an answer is a string or an
+  // array of strings. The answers column is jsonb, so both store as they are.
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [guest, setGuest] = useState({ name: "", email: "", phone: "" });
   const [intent, setIntent] = useState<"interest" | "pay">("pay");
   const [session, setSession] = useState<any>(null);
@@ -361,7 +373,18 @@ function ZeroFormPublicPage() {
   }, [data?.my_registration]);
 
   const missingRequired = useMemo(
-    () => fields.filter((f) => f.required && !String(answers[f.field_key] || "").trim()),
+    () =>
+      fields.filter((f) => {
+        if (!f.required) return false;
+        const answer = answers[f.field_key];
+        // An empty array is an unanswered checkbox question. String(answer)
+        // alone would turn [] into "" and a one-item array into its contents,
+        // so arrays are checked on length instead.
+        if (Array.isArray(answer)) return answer.length === 0;
+        // A file answer is an object; it counts as answered once uploaded.
+        if (isUploadAnswer(answer)) return false;
+        return !String(answer ?? "").trim();
+      }),
     [fields, answers],
   );
 
@@ -691,7 +714,7 @@ function ZeroFormPublicPage() {
                 <div className="space-y-4">
                   {checkedSession && !session && <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">A few questions</p>}
                   {fields.map((f) => (
-                    <FormField key={f.field_key} field={f} value={answers[f.field_key] || ""}
+                    <FormField key={f.field_key} field={f} formId={form?.id} value={answers[f.field_key] ?? (f.field_type === "checkboxes" ? [] : "")}
                       onChange={(value) => setAnswers((current) => ({ ...current, [f.field_key]: value }))} />
                   ))}
                 </div>
@@ -790,22 +813,45 @@ function Field({ label, value, onChange, placeholder, type = "text", required }:
   );
 }
 
-function FormField({ field, value, onChange }: { field: any; value: string; onChange: (value: string) => void }) {
+/**
+ * Renders one question.
+ *
+ * `value` is a string for every type except checkboxes, which holds an array
+ * because a registrant can tick several boxes. The parent stores whatever comes
+ * back from onChange, and the answers column is jsonb, so both shapes persist
+ * without a schema change.
+ */
+function FormField({
+  field,
+  value,
+  onChange,
+  formId,
+}: {
+  field: any;
+  value: any;
+  onChange: (value: any) => void;
+  formId?: string;
+}) {
   const label = (
     <label className="mb-1.5 block text-[12.5px] font-semibold">
       {field.label}{field.required && <span className="ml-1 text-primary">*</span>}
     </label>
   );
 
+  const options: string[] = Array.isArray(field.options)
+    ? field.options.filter((option: string) => String(option).trim())
+    : [];
+
+  const text = typeof value === "string" ? value : "";
+
   if (field.field_type === "textarea") {
-    return <div>{label}<textarea rows={3} value={value} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${inputBase} resize-none py-2.5`} /></div>;
+    return <div>{label}<textarea rows={3} value={text} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${inputBase} resize-none py-2.5`} /></div>;
   }
 
   if (field.field_type === "select") {
-    const options: string[] = Array.isArray(field.options) ? field.options : [];
     return (
       <div>{label}
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`}>
+        <select value={text} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`}>
           <option value="">Select an option</option>
           {options.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
@@ -813,8 +859,177 @@ function FormField({ field, value, onChange }: { field: any; value: string; onCh
     );
   }
 
+  // Pick exactly one, with every choice visible.
+  if (field.field_type === "multiple_choice" || field.field_type === "yes_no") {
+    const choices = field.field_type === "yes_no" ? ["Yes", "No"] : options;
+    return (
+      <div>{label}
+        <div className="space-y-1.5">
+          {choices.map((option) => {
+            const selected = text === option;
+            return (
+              <label
+                key={option}
+                className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-[13.5px] transition ${
+                  selected ? "border-primary bg-primary/[0.06]" : "border-border hover:bg-muted/60"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={field.field_key}
+                  checked={selected}
+                  onChange={() => onChange(option)}
+                  className="h-3.5 w-3.5 accent-[#cc208f]"
+                />
+                {option}
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Pick any number. Stored as an array, so order follows the option list
+  // rather than the order they were ticked - steadier for reading later.
+  if (field.field_type === "checkboxes") {
+    const selected: string[] = Array.isArray(value) ? value : [];
+    const toggle = (option: string) =>
+      onChange(
+        selected.includes(option)
+          ? selected.filter((item) => item !== option)
+          : options.filter((item) => item === option || selected.includes(item)),
+      );
+
+    return (
+      <div>{label}
+        <div className="space-y-1.5">
+          {options.map((option) => {
+            const checked = selected.includes(option);
+            return (
+              <label
+                key={option}
+                className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-[13.5px] transition ${
+                  checked ? "border-primary bg-primary/[0.06]" : "border-border hover:bg-muted/60"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggle(option)}
+                  className="h-3.5 w-3.5 accent-[#cc208f]"
+                />
+                {option}
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (field.field_type === "file_upload") {
+    return <div>{label}<FileUploadField field={field} value={value} onChange={onChange} formId={formId} /></div>;
+  }
+
   const inputType = field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : field.field_type === "phone" ? "tel" : "text";
-  return <div>{label}<input type={inputType} value={value} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`} /></div>;
+  return <div>{label}<input type={inputType} value={text} placeholder={field.placeholder || ""} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`} /></div>;
+}
+
+/**
+ * Uploads straight to the private bucket, then stores a reference.
+ *
+ * The file goes up before the form is submitted, so a large attachment does not
+ * sit in memory and the registrant sees progress. The answer holds the storage
+ * path, the original filename and the size - not the file itself, and not a
+ * URL, since the bucket is private and links are minted on demand.
+ *
+ * Size and type are checked here as a courtesy: the bucket enforces both
+ * server-side, but a rejection after a slow upload is a poor experience.
+ */
+function FileUploadField({
+  field,
+  value,
+  onChange,
+  formId,
+}: {
+  field: any;
+  value: unknown;
+  onChange: (value: any) => void;
+  formId?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const existing = isUploadAnswer(value) ? value : null;
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+
+    if (file.size > ZERO_FORM_MAX_UPLOAD_BYTES) {
+      toast.error(`That file is ${formatFileSize(file.size)}. The limit is 10 MB.`);
+      return;
+    }
+    if (file.type && !ZERO_FORM_ALLOWED_UPLOAD_TYPES.includes(file.type)) {
+      toast.error("Please upload a PDF, Word document or image.");
+      return;
+    }
+    if (!formId) {
+      toast.error("This form is still loading. Try again in a moment.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Keep the original name readable in the path but strip anything that
+      // could confuse a storage key or a later download.
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-80);
+      const path = `${formId}/${crypto.randomUUID()}-${safeName}`;
+
+      const { error } = await supabase.storage
+        .from(ZERO_FORM_UPLOAD_BUCKET)
+        .upload(path, file, { upsert: false, contentType: file.type || undefined });
+
+      if (error) throw error;
+      onChange({ path, name: file.name, size: file.size });
+    } catch (err: any) {
+      toast.error(err?.message || "Could not upload that file.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (existing) {
+    return (
+      <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-3.5 py-2.5">
+        <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 truncate text-[13px]">{existing.name}</span>
+        <span className="shrink-0 text-[11px] text-muted-foreground">{formatFileSize(existing.size)}</span>
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="shrink-0 text-[11px] font-semibold text-muted-foreground hover:text-destructive"
+        >
+          Remove
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <label
+      className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border px-3.5 py-4 text-[13px] text-muted-foreground transition hover:bg-muted/50 ${
+        uploading ? "pointer-events-none opacity-60" : ""
+      }`}
+    >
+      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+      {uploading ? "Uploading…" : "Choose a file — PDF, Word or image, up to 10 MB"}
+      <input
+        type="file"
+        accept={ZERO_FORM_UPLOAD_ACCEPT}
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0])}
+      />
+    </label>
+  );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

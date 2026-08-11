@@ -1,4 +1,6 @@
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -91,12 +93,6 @@ const searchTopics = [
   "Bootcamps",
   "Digital products",
   "Freelancing",
-];
-
-const activityUpdates = [
-  { name: "Amara", action: "shipped a UI case study", signal: "+50 XP" },
-  { name: "Mide", action: "joined Product Club", signal: "New member" },
-  { name: "Tunde", action: "opened a live cohort", signal: "48 seats" },
 ];
 
 const zeroClubFeatures = [
@@ -403,35 +399,69 @@ function ProductShowcase() {
   );
 }
 
+/**
+ * The scrolling rail under the hero, showing real clubs.
+ *
+ * Reads clubs directly with the anon key, which the clubs_select_public policy
+ * permits. Only active, non-private clubs are shown: a private club's name is
+ * not for a logged-out visitor, and an archived one is not a good advert.
+ *
+ * If the query fails or returns nothing, the rail renders nothing at all rather
+ * than falling back to invented clubs. An empty strip is better than a landing
+ * page that promises communities which do not exist.
+ */
 function ActivityRail() {
-  const updates = [...activityUpdates, ...activityUpdates];
+  const { data: clubs = [] } = useQuery({
+    queryKey: ["landing-live-clubs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clubs")
+        .select("id, name, category, is_private, status, created_at")
+        .eq("is_private", false)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      if (error) throw error;
+      return data ?? [];
+    },
+    // The landing page is the most-hit route on the site; clubs change rarely.
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  if (clubs.length === 0) return null;
+
+  // Duplicated so the marquee can loop without a visible seam. The copies are
+  // hidden from screen readers so each club is announced once.
+  const rail = [...clubs, ...clubs];
 
   return (
     <div className="mt-8 w-full max-w-[540px]">
       <div className="flex items-center justify-between px-1 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] sm:text-[10px]">
         <span className="flex items-center gap-2 text-[#9d176d]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
-          Live network
+          Live Clubs
         </span>
         <span>Proof in motion</span>
       </div>
       {/* py/px keep each card's ring from being clipped by the overflow mask */}
       <div className="overflow-hidden px-1 py-1.5 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
         <div className="zc-activity-rail flex w-max gap-2">
-          {updates.map((update, index) => (
+          {rail.map((club, index) => (
             <article
-              key={`${update.name}-${index}`}
-              aria-hidden={index >= activityUpdates.length || undefined}
+              key={`${club.id}-${index}`}
+              aria-hidden={index >= clubs.length || undefined}
               className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:w-[218px] sm:gap-3"
             >
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
-                {update.name.slice(0, 1)}
+                {(club.name || "?").trim().slice(0, 1).toUpperCase()}
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[11.5px] font-semibold text-[#242126]">{update.name}</span>
-                <span className="block truncate text-[10.5px] text-[#666a70]">{update.action}</span>
+                <span className="block truncate text-[11.5px] font-semibold text-[#242126]">{club.name}</span>
+                <span className="block truncate text-[10.5px] text-[#666a70]">{club.category || "Community"}</span>
               </span>
-              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">{update.signal}</span>
+              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">Open</span>
             </article>
           ))}
         </div>

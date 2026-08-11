@@ -19,6 +19,7 @@ import {
   Trash2,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -26,10 +27,18 @@ import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import {
   ZERO_FORM_TEMPLATES,
   ZERO_FORM_STATE_LABEL,
+  ZERO_FORM_FIELD_TYPES,
+  ZERO_FORM_UPLOAD_BUCKET,
   earlyBirdSaving,
+  formatAnswer,
+  formatFileSize,
   getTemplate,
+  isChoiceField,
+  isUploadAnswer,
   zeroFormUrl,
   type ZeroFormField,
+  type ZeroFormFieldType,
+  type ZeroFormUploadAnswer,
 } from "@/features/zeroForm/templates";
 
 const money = (value: number) => formatWalletAmount(Number(value) || 0);
@@ -54,7 +63,10 @@ function exportCsv(rows: any[], bootcampTitle?: string) {
   const header = ["Name", "Email", "Phone", "Type", "Status", "Amount", "Registered", ...extraKeys];
 
   const escape = (value: unknown) => {
-    const text = value === null || value === undefined ? "" : String(value);
+    // formatAnswer turns a checkbox array into "Design, Marketing" rather than
+    // String(array) giving "Design,Marketing" with no space, or a raw JSON
+    // array. The quoting below then protects the commas inside the cell.
+    const text = formatAnswer(value);
     return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
   };
 
@@ -314,30 +326,104 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
 
           <Section title="Questions" detail="Keep it short — long forms lose registrations.">
             <div className="space-y-2">
-              {fields.map((field, index) => (
-                <div key={field.field_key} className="flex items-center gap-2 rounded-lg border border-border bg-background p-2.5">
-                  <div className="min-w-0 flex-1">
-                    <input
-                      value={field.label}
-                      onChange={(e) => setFields((current) => current.map((f, i) => i === index ? { ...f, label: e.target.value } : f))}
-                      className="w-full bg-transparent text-[12.5px] font-semibold outline-none"
-                    />
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">{field.field_type}</p>
+              {fields.map((field, index) => {
+                const updateField = (patch: Partial<typeof field>) =>
+                  setFields((current) => current.map((f, i) => (i === index ? { ...f, ...patch } : f)));
+
+                const options: string[] = Array.isArray(field.options) ? field.options : [];
+
+                return (
+                  <div key={field.field_key} className="rounded-lg border border-border bg-background p-2.5">
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={field.label}
+                        onChange={(e) => updateField({ label: e.target.value })}
+                        className="min-w-0 flex-1 bg-transparent text-[12.5px] font-semibold outline-none"
+                      />
+                      <label className="flex shrink-0 items-center gap-1.5 text-[10.5px] text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          onChange={(e) => updateField({ required: e.target.checked })}
+                          className="h-3.5 w-3.5"
+                        />
+                        Required
+                      </label>
+                      <button
+                        onClick={() => setFields((current) => current.filter((_, i) => i !== index))}
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <select
+                        value={field.field_type}
+                        onChange={(e) => {
+                          const nextType = e.target.value as ZeroFormFieldType;
+                          // Seed two blank options when switching to a choice
+                          // type, so the builder has something to type into
+                          // rather than an empty area with no affordance.
+                          const needsOptions = isChoiceField(nextType) && options.length === 0;
+                          updateField({
+                            field_type: nextType,
+                            options: needsOptions ? ["", ""] : field.options,
+                          });
+                        }}
+                        className="h-8 rounded-lg border border-border bg-background px-2 text-[11px] font-semibold outline-none"
+                      >
+                        {ZERO_FORM_FIELD_TYPES.map((type) => (
+                          <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-muted-foreground">
+                        {ZERO_FORM_FIELD_TYPES.find((t) => t.value === field.field_type)?.hint}
+                      </p>
+                    </div>
+
+                    {isChoiceField(field.field_type) && (
+                      <div className="mt-2 space-y-1.5 border-t border-border/60 pt-2">
+                        {options.map((option, optionIndex) => (
+                          <div key={optionIndex} className="flex items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground">{optionIndex + 1}.</span>
+                            <input
+                              value={option}
+                              placeholder="Option text"
+                              onChange={(e) =>
+                                updateField({
+                                  options: options.map((o, i) => (i === optionIndex ? e.target.value : o)),
+                                })
+                              }
+                              className="h-8 min-w-0 flex-1 rounded-lg border border-border bg-background px-2 text-[11.5px] outline-none"
+                            />
+                            <button
+                              onClick={() =>
+                                updateField({ options: options.filter((_, i) => i !== optionIndex) })
+                              }
+                              className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-muted-foreground hover:text-destructive"
+                              aria-label="Remove option"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => updateField({ options: [...options, ""] })}
+                          className="inline-flex items-center gap-1 rounded-lg px-1 py-1 text-[10.5px] font-semibold text-muted-foreground hover:text-foreground"
+                        >
+                          <Plus className="h-3 w-3" /> Add option
+                        </button>
+                        {options.filter((o) => o.trim()).length < 2 && (
+                          <p className="text-[10px] text-amber-600">
+                            Add at least two options so people have a choice.
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <label className="flex shrink-0 items-center gap-1.5 text-[10.5px] text-muted-foreground">
-                    <input
-                      type="checkbox"
-                      checked={field.required}
-                      onChange={(e) => setFields((current) => current.map((f, i) => i === index ? { ...f, required: e.target.checked } : f))}
-                      className="h-3.5 w-3.5"
-                    />
-                    Required
-                  </label>
-                  <button onClick={() => setFields((current) => current.filter((_, i) => i !== index))} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <button
               onClick={() => setFields((current) => [...current, {
@@ -597,7 +683,9 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
                           {Object.entries(row.registration_data || {}).map(([key, value]) => (
                             <p key={key} className="text-[11px] text-muted-foreground">
                               <span className="capitalize">{key.replaceAll("_", " ")}:</span>{" "}
-                              <span className="text-foreground">{String(value)}</span>
+                              {isUploadAnswer(value)
+                                ? <AttachmentLink answer={value} />
+                                : <span className="text-foreground">{formatAnswer(value)}</span>}
                             </p>
                           ))}
                         </div>
@@ -689,6 +777,48 @@ function ShareButtons({ slug, status, state, bootcampId }: { slug?: string; stat
         </a>
       )}
     </>
+  );
+}
+
+/**
+ * Opens a registrant's attachment.
+ *
+ * The bucket is private, so there is no permanent URL to link to. A signed URL
+ * is minted only when the tutor actually clicks, and expires after a minute -
+ * long enough to open, short enough that a copied link is not a lasting leak.
+ * Generating links up front for every row would also mean one request per
+ * attachment on page load, most of which nobody opens.
+ */
+function AttachmentLink({ answer }: { answer: ZeroFormUploadAnswer }) {
+  const [opening, setOpening] = useState(false);
+
+  const open = async () => {
+    setOpening(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from(ZERO_FORM_UPLOAD_BUCKET)
+        .createSignedUrl(answer.path, 60);
+
+      if (error) throw error;
+      if (!data?.signedUrl) throw new Error("No link was returned.");
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      toast.error(err?.message || "Could not open that file.");
+    } finally {
+      setOpening(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={open}
+      disabled={opening}
+      className="inline-flex max-w-full items-center gap-1 text-left text-primary underline-offset-2 hover:underline disabled:opacity-60"
+    >
+      {opening ? <Loader2 className="h-3 w-3 shrink-0 animate-spin" /> : <Download className="h-3 w-3 shrink-0" />}
+      <span className="truncate">{answer.name}</span>
+      {answer.size > 0 && <span className="shrink-0 text-muted-foreground">({formatFileSize(answer.size)})</span>}
+    </button>
   );
 }
 
