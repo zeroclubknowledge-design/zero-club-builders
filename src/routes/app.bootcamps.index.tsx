@@ -217,29 +217,37 @@ function UpcomingRegistrations() {
           Your upcoming bootcamps
         </h2>
       </div>
-      <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+      <div className="mt-3 grid min-w-0 gap-2.5 sm:grid-cols-2">
         {data.map((registration: any) => {
           const live = registration.registration_status === "enrolled"
             || (registration.starts_at && new Date(registration.starts_at) <= new Date());
           const countdown = formatCountdown(registration.starts_at);
           return (
+            /* min-w-0 on the link itself matters as much as on the text inside
+               it. A grid item defaults to min-width:auto, so without this a
+               long bootcamp name stretches the card past the screen edge and
+               the status badge disappears off-screen. */
             <Link
               key={registration.id}
               to="/app/bootcamps/$id"
               params={{ id: registration.bootcamp_id }}
-              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
+              className="flex w-full min-w-0 items-start gap-3 overflow-hidden rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
             >
               <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
                 {registration.banner_url && <img src={registration.banner_url} alt="" className="h-full w-full object-cover" />}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[12.5px] font-semibold">{registration.title}</p>
-                <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground">
+                {/* Two lines rather than one truncated line: bootcamp names are
+                    descriptive, and "Vibe Coding Bootcamp: From Idea to
+                    Produc…" hides the part that distinguishes one cohort from
+                    another. */}
+                <p className="line-clamp-2 text-[12.5px] font-semibold leading-snug">{registration.title}</p>
+                <p className="mt-1 truncate text-[10.5px] text-muted-foreground">
                   {live ? "Available now" : countdown ? `Starts in ${countdown}` : "Starting soon"}
                   {Number(registration.amount) > 0 && ` · ${format(registration.amount)} paid`}
                 </p>
               </div>
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${live ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"}`}>
+              <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${live ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"}`}>
                 {live ? "Active" : "Registered"}
               </span>
             </Link>
