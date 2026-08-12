@@ -55,8 +55,19 @@ function TutorStudioPage() {
     banner_url: "",
     video_url: "",
     coupon_code: "",
-    coupon_discount_percent: "0"
+    coupon_discount_percent: "0",
+    ends_at: ""
   });
+  const [extraCoupons, setExtraCoupons] = useState<Array<{
+    key: string;
+    id?: string;
+    code: string;
+    discount_percent: string;
+    label: string;
+    max_uses: string;
+    expires_at: string;
+  }>>([]);
+  const [removedCouponIds, setRemovedCouponIds] = useState<string[]>([]);
 
   const { data: bootcamps = [], isLoading: bootcampsLoading, error: bootcampsError, refetch: refetchBootcamps } = useQuery({
     queryKey: ['tutor-bootcamps'],
@@ -124,6 +135,21 @@ function TutorStudioPage() {
 
   const activeBootcamp = curriculumData?.bootcamp;
   const modules = curriculumData?.modules || [];
+
+  const savedCouponsQuery = useQuery({
+    queryKey: ['studio-bootcamp-coupons', activeBootcampId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('bootcamp_coupons')
+        .select('id, code, discount_percent, label, max_uses, expires_at')
+        .eq('bootcamp_id', activeBootcampId!)
+        .order('created_at', { ascending: true });
+      return data || [];
+    },
+    enabled: !!activeBootcampId && view === "editor",
+    retry: false,
+  });
+  const savedCoupons = savedCouponsQuery.data;
 
   const { data: clubData } = useQuery({
     queryKey: ['bootcamp-club', activeBootcampId, activeBootcamp?.title],
@@ -218,13 +244,33 @@ function TutorStudioPage() {
       banner_url: activeBootcamp.banner_url || "",
       video_url: activeBootcamp.video_url || "",
       coupon_code: activeBootcamp.coupon_code || "",
-      coupon_discount_percent: String(activeBootcamp.coupon_discount_percent || "0")
+      coupon_discount_percent: String(activeBootcamp.coupon_discount_percent || "0"),
+      ends_at: activeBootcamp.ends_at ? String(activeBootcamp.ends_at).slice(0, 10) : ""
     });
     setBannerUrl(activeBootcamp.banner_url || null);
     setBootcampBannerFile(null);
     setVideoPreviewUrl(activeBootcamp.video_url || null);
     setBootcampVideoFile(null);
   }, [activeBootcamp?.id]);
+
+  useEffect(() => {
+    if (!activeBootcamp) return;
+    const primaryCode = String(activeBootcamp.coupon_code || "").toUpperCase();
+    setExtraCoupons(
+      (savedCoupons || [])
+        .filter((coupon: any) => String(coupon.code || "").toUpperCase() !== primaryCode)
+        .map((coupon: any) => ({
+          key: coupon.id,
+          id: coupon.id,
+          code: coupon.code || "",
+          discount_percent: String(coupon.discount_percent ?? 10),
+          label: coupon.label || "",
+          max_uses: coupon.max_uses ? String(coupon.max_uses) : "",
+          expires_at: coupon.expires_at ? String(coupon.expires_at).slice(0, 10) : "",
+        })),
+    );
+    setRemovedCouponIds([]);
+  }, [activeBootcamp?.id, savedCoupons]);
 
   // Fetch profile (used for role checks)
   useEffect(() => {
@@ -242,6 +288,14 @@ function TutorStudioPage() {
 
   const handleSaveBootcampSettings = async () => {
     if (!activeBootcampId) return;
+
+    if (bootcampSettings.ends_at && activeBootcamp?.starts_at) {
+      const selectedEnd = new Date(`${bootcampSettings.ends_at}T23:59:59.999`);
+      if (selectedEnd < new Date(activeBootcamp.starts_at)) {
+        toast.error("The bootcamp end date must be on or after its start date");
+        return;
+      }
+    }
 
     const discount = Math.min(100, Math.max(0, Number(bootcampSettings.coupon_discount_percent) || 0));
     const code = bootcampSettings.coupon_code.trim().toUpperCase();
@@ -284,7 +338,10 @@ function TutorStudioPage() {
         banner_url: savedBannerUrl || null,
         video_url: savedVideoUrl || null,
         coupon_code: code || null,
-        coupon_discount_percent: code ? discount : 0
+        coupon_discount_percent: code ? discount : 0,
+        ends_at: bootcampSettings.ends_at
+          ? new Date(`${bootcampSettings.ends_at}T23:59:59.999`).toISOString()
+          : null
       })
       .eq('id', activeBootcampId)
       .select();
@@ -298,6 +355,62 @@ function TutorStudioPage() {
       toast.error(`Changes were not saved. You may not have permission to update this bootcamp or it doesn't exist.`);
       return;
     }
+
+    const primaryCoupon = (savedCoupons || []).find(
+      (coupon: any) => String(coupon.code || "").toUpperCase() === String(activeBootcamp?.coupon_code || "").toUpperCase(),
+    );
+    const couponIdsToRemove = Array.from(new Set([
+      ...removedCouponIds,
+      ...(!code && primaryCoupon?.id ? [primaryCoupon.id] : []),
+    ]));
+
+    if (couponIdsToRemove.length > 0) {
+      const { error: removeCouponError } = await supabase
+        .from('bootcamp_coupons')
+        .delete()
+        .in('id', couponIdsToRemove);
+      if (removeCouponError) {
+        toast.error(`Bootcamp saved, but a coupon could not be removed: ${removeCouponError.message}`);
+        return;
+      }
+    }
+
+    const couponRows = [
+      ...(code ? [{
+        ...(primaryCoupon?.id ? { id: primaryCoupon.id } : {}),
+        bootcamp_id: activeBootcampId,
+        code,
+        discount_percent: discount,
+        label: primaryCoupon?.label || 'Primary coupon',
+        max_uses: primaryCoupon?.max_uses || null,
+        expires_at: primaryCoupon?.expires_at || null,
+      }] : []),
+      ...extraCoupons
+        .filter((coupon) => coupon.code.trim())
+        .map((coupon) => ({
+        ...(coupon.id ? { id: coupon.id } : {}),
+        bootcamp_id: activeBootcampId,
+        code: coupon.code.trim().toUpperCase(),
+        discount_percent: Math.min(100, Math.max(0, Number(coupon.discount_percent) || 0)),
+        label: coupon.label.trim() || null,
+        max_uses: coupon.max_uses ? Number(coupon.max_uses) : null,
+        expires_at: coupon.expires_at
+          ? new Date(`${coupon.expires_at}T23:59:59.999`).toISOString()
+          : null,
+        })),
+    ];
+
+    if (couponRows.length > 0) {
+      const { error: couponError } = await supabase
+        .from('bootcamp_coupons')
+        .upsert(couponRows, { onConflict: 'id' });
+      if (couponError) {
+        toast.error(`Bootcamp saved, but the coupon codes could not be saved: ${couponError.message}`);
+        return;
+      }
+    }
+
+    setRemovedCouponIds([]);
 
     const { error: clubError } = await supabase
       .from('clubs')
@@ -317,6 +430,7 @@ function TutorStudioPage() {
     toast.success("Bootcamp settings saved");
     queryClient.invalidateQueries({ queryKey: ['bootcamp-curriculum', activeBootcampId] });
     queryClient.invalidateQueries({ queryKey: ['tutor-bootcamps'] });
+    queryClient.invalidateQueries({ queryKey: ['studio-bootcamp-coupons', activeBootcampId] });
   };
 
   const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1103,6 +1217,23 @@ function TutorStudioPage() {
                       <span className={`block h-5 w-5 rounded-full bg-background shadow-sm transition ${bootcampSettings.visibility ? "translate-x-5" : "translate-x-0"}`} />
                     </span>
                   </button>
+
+                  <div className="space-y-3 rounded-2xl border border-border/40 bg-card px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 shrink-0 text-muted-foreground/60" />
+                      <div className="min-w-0 flex-1">
+                        <label htmlFor="bootcamp-end-date" className="text-sm font-bold text-foreground">Bootcamp end date</label>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">The Bootcamp Club becomes read-only after this date.</p>
+                      </div>
+                    </div>
+                    <input
+                      id="bootcamp-end-date"
+                      type="date"
+                      value={bootcampSettings.ends_at}
+                      onChange={(e) => setBootcampSettings({ ...bootcampSettings, ends_at: e.target.value })}
+                      className="w-full rounded-2xl bg-background px-5 py-3.5 text-sm font-semibold text-foreground outline-none ring-1 ring-border transition focus:ring-2 focus:ring-primary/40"
+                    />
+                  </div>
                 </div>
 
                 {/* Price / Capacity */}
@@ -1134,9 +1265,23 @@ function TutorStudioPage() {
 
                 {/* Coupon */}
                 <div className="space-y-4 rounded-3xl border border-border/40 bg-background p-5">
-                  <div>
-                    <h3 className="text-[13.5px] font-semibold tracking-tight text-foreground">Coupon</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">Add a discount code learners can apply on the bootcamp details footer.</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-[13.5px] font-semibold tracking-tight text-foreground">Coupons</h3>
+                      <p className="mt-1 text-xs text-muted-foreground">Add discount codes learners can apply on the bootcamp details footer.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setExtraCoupons((current) => [
+                        ...current,
+                        { key: `new-${Date.now()}`, code: "", discount_percent: "10", label: "", max_uses: "", expires_at: "" },
+                      ])}
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border bg-card text-foreground transition hover:bg-accent"
+                      aria-label="Add another coupon code"
+                      title="Add another coupon code"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-[1fr_96px] gap-3">
@@ -1165,6 +1310,72 @@ function TutorStudioPage() {
                       </div>
                     </div>
                   </div>
+
+                  {extraCoupons.map((coupon, index) => {
+                    const patchCoupon = (changes: Partial<typeof coupon>) =>
+                      setExtraCoupons((current) => current.map((item, itemIndex) =>
+                        itemIndex === index ? { ...item, ...changes } : item
+                      ));
+
+                    return (
+                      <div key={coupon.key} className="space-y-3 rounded-2xl border border-border/60 bg-card p-4">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={coupon.code}
+                            onChange={(e) => patchCoupon({ code: e.target.value.toUpperCase() })}
+                            placeholder="PARTNER20"
+                            className="min-w-0 flex-1 rounded-xl bg-background px-4 py-3 text-sm font-semibold text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                          />
+                          <div className="relative w-24 shrink-0">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={coupon.discount_percent}
+                              onChange={(e) => patchCoupon({ discount_percent: e.target.value })}
+                              className="w-full rounded-xl bg-background px-4 py-3 pr-8 text-sm font-semibold text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">%</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (coupon.id) setRemovedCouponIds((ids) => [...ids, coupon.id!]);
+                              setExtraCoupons((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                            }}
+                            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                            aria-label="Remove this coupon"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                          <input
+                            value={coupon.label}
+                            onChange={(e) => patchCoupon({ label: e.target.value })}
+                            placeholder="Package name"
+                            className="rounded-xl bg-background px-3 py-2.5 text-xs text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                          />
+                          <input
+                            type="number"
+                            min="1"
+                            value={coupon.max_uses}
+                            onChange={(e) => patchCoupon({ max_uses: e.target.value })}
+                            placeholder="Max uses"
+                            className="rounded-xl bg-background px-3 py-2.5 text-xs text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                          />
+                          <input
+                            type="date"
+                            value={coupon.expires_at}
+                            onChange={(e) => patchCoupon({ expires_at: e.target.value })}
+                            aria-label="Coupon expiry date"
+                            className="rounded-xl bg-background px-3 py-2.5 text-xs text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <button

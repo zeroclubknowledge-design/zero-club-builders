@@ -709,59 +709,12 @@ function Clubs() {
           </div>
         </div>
 
-        {/* Bootclubs: the temporary club attached to a bootcamp. Hidden
-            entirely when there are none, so people who run no bootcamps do not
-            get an empty heading. */}
-        {bootClubs.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[15px] font-semibold tracking-tight flex items-center gap-2 text-foreground">
-                Bootclub <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">{bootClubs.length}</span>
-              </h2>
-              <span className="text-[11px] text-muted-foreground">Runs with the bootcamp</span>
-            </div>
-
-            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
-              {bootClubs.map((c: any) => {
-                const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
-                const ended = endsAt ? endsAt < new Date() : false;
-
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => navigate({ to: "/app/clubs/chat", search: { club: c.id } as any })}
-                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:bg-accent/50"
-                  >
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                      <GraduationCap className="h-5 w-5" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate text-[13.5px] font-semibold text-foreground">{c.name}</span>
-                        {ended && (
-                          <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                            Ended
-                          </span>
-                        )}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                        {ended
-                          ? "Read-only archive"
-                          : endsAt
-                            ? `Ends ${endsAt.toLocaleDateString()}`
-                            : `${c.members_count || 0} members`}
-                      </span>
-                    </span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* My Clubs */}
-        <div className="mb-4">
+        {/* Permanent clubs and temporary bootcamp clubs are separate peer
+            sections. On larger screens they share one horizontal row; on a
+            phone they stack in the same left-to-right order. */}
+        <div className={`mb-4 grid items-start gap-8 ${bootClubs.length > 0 ? "lg:grid-cols-2" : ""}`}>
+          {/* My Clubs */}
+          <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[15px] font-semibold tracking-tight flex items-center gap-2 text-foreground">
               My Clubs <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-foreground/10 px-1.5 text-[10px] font-bold text-muted-foreground">{myClubs.length}</span>
@@ -769,7 +722,7 @@ function Clubs() {
             <button className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-300">See all</button>
           </div>
 
-          <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+          <div className={`grid gap-3 ${bootClubs.length > 0 ? "" : "md:grid-cols-2 md:gap-4"}`}>
             {myClubs.length > 0 ? myClubs.map((c: any) => (
               <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition-all duration-300 active:scale-[0.98]">
                 <article className="flex items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/30">
@@ -807,7 +760,7 @@ function Clubs() {
                 </article>
               </Link>
             )) : (
-              <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center md:col-span-2">
+              <div className={`rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center ${bootClubs.length > 0 ? "" : "md:col-span-2"}`}>
                 <p className="text-xs text-muted-foreground/60 font-medium mb-4">You haven't joined any clubs yet.</p>
                 <button onClick={handleCreateClick} className="rounded-full bg-[#171218] px-5 py-2.5 text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 active:scale-95 hover:opacity-90">
                   Create a Club
@@ -816,7 +769,7 @@ function Clubs() {
             )}
             
             {myClubs.length > 0 && (
-              <button className="group flex w-full items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card md:col-span-2">
+              <button className={`group flex w-full items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card ${bootClubs.length > 0 ? "" : "md:col-span-2"}`}>
                 <div className="flex items-center gap-2.5 text-xs font-bold text-foreground">
                   <div className="grid h-7 w-7 place-items-center rounded-xl bg-accent/30">
                     <LayoutGrid className="h-3.5 w-3.5 text-primary" />
@@ -827,6 +780,57 @@ function Clubs() {
               </button>
             )}
           </div>
+          </section>
+
+          {/* Bootcamp Clubs: temporary clubs attached to bootcamps. Hidden
+              entirely when there are none. */}
+          {bootClubs.length > 0 && (
+            <section>
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <h2 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-foreground">
+                  Bootcamp Clubs <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">{bootClubs.length}</span>
+                </h2>
+                <span className="text-right text-[11px] text-muted-foreground">Runs with the bootcamp</span>
+              </div>
+
+              <div className="grid gap-3">
+                {bootClubs.map((c: any) => {
+                  const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
+                  const ended = endsAt ? endsAt < new Date() : false;
+
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => navigate({ to: "/app/clubs/chat", search: { club: c.id } as any })}
+                      className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:bg-accent/50"
+                    >
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                        <GraduationCap className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-1.5">
+                          <span className="truncate text-[13.5px] font-semibold text-foreground">{c.name}</span>
+                          {ended && (
+                            <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+                              Ended
+                            </span>
+                          )}
+                        </span>
+                        <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                          {ended
+                            ? "Read-only archive"
+                            : endsAt
+                              ? `Ends ${endsAt.toLocaleDateString()}`
+                              : `${c.members_count || 0} members`}
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
       </div>
 

@@ -48,6 +48,7 @@ export function BootcampForm({
   const [couponEnabled, setCouponEnabled] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState("10");
+  const [endDate, setEndDate] = useState("");
 
   /**
    * Extra coupon codes, held as strings while editing so partially typed
@@ -67,6 +68,7 @@ export function BootcampForm({
   };
   const [extraCoupons, setExtraCoupons] = useState<ExtraCoupon[]>([]);
   const [removedCouponIds, setRemovedCouponIds] = useState<string[]>([]);
+  const [primaryCouponId, setPrimaryCouponId] = useState<string | undefined>();
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -123,6 +125,12 @@ export function BootcampForm({
       setCouponEnabled(Boolean(bootcamp.coupon_code));
       setCouponCode(bootcamp.coupon_code || "");
       setCouponDiscount(String(bootcamp.coupon_discount_percent || 10));
+      setEndDate(bootcamp.ends_at ? String(bootcamp.ends_at).slice(0, 10) : "");
+      setPrimaryCouponId(
+        (fetchedCoupons || []).find(
+          (coupon: any) => String(coupon.code || "").toUpperCase() === String(bootcamp.coupon_code || "").toUpperCase(),
+        )?.id,
+      );
       setExtraCoupons(
         (fetchedCoupons || [])
           // The launch coupon above already edits the first code, so it is not
@@ -215,6 +223,7 @@ export function BootcampForm({
         coupon_discount_percent: couponEnabled && !isFree && normalizedCouponCode ? numericCouponDiscount : 0,
         banner_url: bannerUrl || null,
         video_url: videoUrl || null,
+        ends_at: endDate ? new Date(`${endDate}T23:59:59.999`).toISOString() : null,
         status: 'active'
       };
 
@@ -231,13 +240,28 @@ export function BootcampForm({
       const savedBootcampId = bootcampId || newBootcamp?.id;
       if (savedBootcampId) {
         try {
-          if (removedCouponIds.length > 0) {
-            await supabase.from("bootcamp_coupons").delete().in("id", removedCouponIds);
+          const couponIdsToRemove = Array.from(new Set([
+            ...removedCouponIds,
+            ...((!couponEnabled || isFree || !normalizedCouponCode) && primaryCouponId ? [primaryCouponId] : []),
+          ]));
+          if (couponIdsToRemove.length > 0) {
+            await supabase.from("bootcamp_coupons").delete().in("id", couponIdsToRemove);
           }
 
-          const rows = extraCoupons
-            .filter((c) => c.code.trim())
-            .map((c) => ({
+          const rows = [
+            ...(couponEnabled && !isFree && normalizedCouponCode ? [{
+              ...(primaryCouponId ? { id: primaryCouponId } : {}),
+              bootcamp_id: savedBootcampId,
+              code: normalizedCouponCode,
+              discount_percent: numericCouponDiscount,
+              label: "Primary coupon",
+              max_uses: null,
+              expires_at: null,
+              created_by: user.id,
+            }] : []),
+            ...extraCoupons
+              .filter((c) => c.code.trim())
+              .map((c) => ({
               ...(c.id ? { id: c.id } : {}),
               bootcamp_id: savedBootcampId,
               code: c.code.trim().toUpperCase(),
@@ -248,7 +272,8 @@ export function BootcampForm({
               // code advertised as "valid until the 20th" works all of the 20th.
               expires_at: c.expires_at ? new Date(`${c.expires_at}T23:59:59`).toISOString() : null,
               created_by: user.id,
-            }));
+              })),
+          ];
 
           if (rows.length > 0) {
             const { error: couponError } = await supabase
@@ -398,7 +423,7 @@ export function BootcampForm({
   const saveDraft = () => {
     localStorage.setItem("zero_club_bootcamp_draft", JSON.stringify({
       title, category, description, price, isFree, banner, videoPreview,
-      couponEnabled, couponCode, couponDiscount, modules, savedAt: new Date().toISOString(),
+      couponEnabled, couponCode, couponDiscount, endDate, modules, savedAt: new Date().toISOString(),
     }));
     toast.success("Bootcamp draft saved on this device");
   };
@@ -774,6 +799,22 @@ export function BootcampForm({
             <div className="grid grid-cols-1 gap-5">
               {/* Pricing Card */}
               <div className="space-y-6 rounded-lg border border-border bg-card p-5 sm:p-6">
+                <div className="space-y-2">
+                  <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                    Bootcamp end date
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    disabled={loading}
+                    className="h-12 w-full rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:opacity-50"
+                  />
+                  <p className="ml-1 text-[10.5px] leading-4 text-muted-foreground">
+                    The Bootcamp Club becomes a read-only archive after this date.
+                  </p>
+                </div>
+
                 <div className="space-y-4">
                   <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                     Pricing Model
