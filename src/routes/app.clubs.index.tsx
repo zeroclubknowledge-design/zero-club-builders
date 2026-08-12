@@ -833,8 +833,15 @@ function Clubs() {
                       onClick={() => navigate({ to: "/app/clubs/chat", search: { clubId: c.id } as any })}
                       className="flex w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 text-left transition hover:border-primary/30"
                     >
-                      <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-border/40 bg-accent/20 text-primary">
-                        <GraduationCap className="h-6 w-6" />
+                      {/* The club's own logo, matching how My Clubs cards
+                          render. The graduation icon is only a fallback for a
+                          club that has not been given one. */}
+                      <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20 text-primary">
+                        {c.logo_url || c.banner_url ? (
+                          <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <GraduationCap className="h-6 w-6" />
+                        )}
                       </span>
                       <span className="min-w-0 flex-1 py-0.5">
                         <span className="mb-0.5 flex items-center gap-1.5">
