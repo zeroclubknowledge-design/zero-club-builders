@@ -67,6 +67,9 @@ export function BootcampForm({
     expires_at: string;
   };
   const [extraCoupons, setExtraCoupons] = useState<ExtraCoupon[]>([]);
+  // Share of the price paid to whoever referred a learner. Held as a string so
+  // the field can be cleared while typing.
+  const [referralPercent, setReferralPercent] = useState("0");
   const [removedCouponIds, setRemovedCouponIds] = useState<string[]>([]);
   const [primaryCouponId, setPrimaryCouponId] = useState<string | undefined>();
 
@@ -125,6 +128,7 @@ export function BootcampForm({
       setCouponEnabled(Boolean(bootcamp.coupon_code));
       setCouponCode(bootcamp.coupon_code || "");
       setCouponDiscount(String(bootcamp.coupon_discount_percent || 10));
+      setReferralPercent(String(bootcamp.referral_percent ?? 0));
       setEndDate(bootcamp.ends_at ? String(bootcamp.ends_at).slice(0, 10) : "");
       setPrimaryCouponId(
         (fetchedCoupons || []).find(
@@ -224,6 +228,9 @@ export function BootcampForm({
         banner_url: bannerUrl || null,
         video_url: videoUrl || null,
         ends_at: endDate ? new Date(`${endDate}T23:59:59.999`).toISOString() : null,
+        // Clamped here as well as by a database constraint. A free bootcamp
+        // cannot pay commission on nothing, so it is forced to zero.
+        referral_percent: isFree ? 0 : Math.min(50, Math.max(0, Number(referralPercent) || 0)),
         status: 'active'
       };
 
@@ -896,6 +903,70 @@ export function BootcampForm({
                     />
                   </div>
                 </div>
+
+                {/* Referral bonus. Shown for paid bootcamps only: there is
+                    nothing to share a percentage of on a free one. */}
+                {!isFree && (
+                  <div className="space-y-4 rounded-lg border border-border bg-background p-4">
+                    <div>
+                      <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Referral bonus</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        Pay people who share this bootcamp and bring you a paying learner.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-[110px] shrink-0">
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={referralPercent}
+                          onChange={(e) => setReferralPercent(e.target.value)}
+                          disabled={loading}
+                          className="h-11 w-full rounded-lg border border-border bg-card px-4 pr-8 text-sm font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">%</span>
+                      </div>
+                      <p className="text-[11px] leading-4 text-muted-foreground">
+                        Up to 50%. Set 0 to turn referrals off.
+                      </p>
+                    </div>
+
+                    {/* The split, spelled out. A tutor should never be
+                        surprised by what lands in their wallet. */}
+                    {(() => {
+                      const pct = Math.min(50, Math.max(0, Number(referralPercent) || 0));
+                      const platformCut = numericPrice * 0.1;
+                      const referralCut = numericPrice * (pct / 100);
+                      const tutorCut = numericPrice - platformCut - referralCut;
+                      return (
+                        <div className="space-y-1.5 rounded-lg bg-muted/50 px-4 py-3 text-[11px]">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Zero Club fee (10%)</span>
+                            <span className="font-semibold text-foreground">{format(platformCut)}</span>
+                          </div>
+                          {pct > 0 && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Referral bonus ({pct}%)</span>
+                              <span className="font-semibold text-foreground">{format(referralCut)}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between border-t border-border pt-1.5">
+                            <span className="font-semibold text-foreground">You receive</span>
+                            <span className="font-bold text-primary">{format(tutorCut)}</span>
+                          </div>
+                          {pct > 0 && (
+                            <p className="pt-1 text-[10px] leading-4 text-muted-foreground">
+                              The bonus is paid only when someone buys through a referral link, and
+                              reaches the referrer's wallet after the end of the month.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {/* Coupon Setup */}
                 <div className="space-y-4 rounded-lg border border-border bg-background p-4">
