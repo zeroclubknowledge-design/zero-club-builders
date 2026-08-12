@@ -7,9 +7,9 @@ import {
   Check,
   ChevronDown,
   Download,
-  Heart,
+  ThumbsUp,
   Menu,
-  MessageCircle,
+  MessageSquare,
   Radio,
   Search,
   X,
@@ -363,11 +363,11 @@ function ProductShowcase() {
         {/* Post actions */}
         <div className="relative mt-4 flex items-center gap-3 text-[11px] text-white/45 tabular-nums sm:gap-5 sm:text-[11.5px]">
           <span className="flex items-center gap-1.5">
-            <Heart className="h-3.5 w-3.5 fill-current" />
+            <ThumbsUp className="h-3.5 w-3.5 fill-current" />
             128 likes
           </span>
           <span className="flex items-center gap-1.5">
-            <MessageCircle className="h-3.5 w-3.5 fill-current" />
+            <MessageSquare className="h-3.5 w-3.5 fill-current" />
             24 replies
           </span>
           <span className="ml-auto flex items-center gap-1 text-emerald-400">

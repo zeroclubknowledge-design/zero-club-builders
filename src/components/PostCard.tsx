@@ -3,7 +3,7 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { 
   MoreHorizontal, CheckCircle2, Bookmark, Zap,
   UserPlus, UserMinus, VolumeX, Volume2, Ban, Flag, Link as LinkIcon,
-  ExternalLink, X, Heart, MessageCircle, Share2, Repeat, Mail, EyeOff, Send, Trash2, Quote, Clock, Edit3, Rocket, MapPin, Play
+  ExternalLink, X, ThumbsUp, MessageSquare, Share2, Repeat, Mail, EyeOff, Send, Trash2, Quote, Clock, Edit3, Rocket, MapPin, Play
 } from "lucide-react";
 import { formatDistanceToNow, format } from 'date-fns';
 import {
@@ -638,14 +638,14 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
             }}
             className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
           >
-            <MessageCircle className="h-[17px] w-[17px]" />
+            <MessageSquare className="h-[17px] w-[17px]" />
             <span className="text-[12px] font-medium tabular-nums">{commentsCount || ''}</span>
           </button>
           <button
             onClick={handleLike}
             className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
           >
-            <Heart className={`h-[17px] w-[17px] transition-colors ${liked ? "fill-primary text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`} strokeWidth={liked ? 2 : 1.75} />
+            <ThumbsUp className={`h-[17px] w-[17px] transition-colors ${liked ? "fill-primary text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`} strokeWidth={liked ? 2 : 1.75} />
             <span className={`text-[12px] font-medium tabular-nums transition-colors ${liked ? "text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`}>
               {likesCount || ''}
             </span>

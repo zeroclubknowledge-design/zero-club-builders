@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { 
-  ChevronLeft, MoreHorizontal, MessageCircle, Heart, 
+  ChevronLeft, MoreHorizontal, ThumbsUp,
   Repeat, Share2, Send, CheckCircle2, TrendingUp, UserPlus, UserMinus, Loader2, Bookmark,
   MessageSquare, Mail, Flag, EyeOff, ShieldCheck, Award, Zap, Trash2, Link as LinkIcon,
   VolumeX, Volume2, Pencil, Edit3, Rocket, MapPin
@@ -975,14 +975,14 @@ function PostDetail() {
               }}
               className="flex items-center gap-1.5 transition hover:text-primary active:scale-95 group/btn"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageSquare className="h-4 w-4" />
               <span className="text-xs">{comments.length}</span>
             </button>
             <button 
               onClick={handleLike}
               className="flex items-center gap-1.5 transition active:scale-95 group/btn"
             >
-              <Heart className={`h-4 w-4 ${liked ?"fill-primary text-primary" : "group-hover/btn:text-primary"}`} />
+              <ThumbsUp className={`h-4 w-4 ${liked ?"fill-primary text-primary" : "group-hover/btn:text-primary"}`} />
               <span className={`text-xs ${liked ?"text-primary" : ""}`}>
                 {(post.likes_count || 0) + (liked && !initialLiked ? 1 : 0) - (!liked && initialLiked ? 1 : 0)}
               </span>
@@ -1142,7 +1142,7 @@ function PostDetail() {
                       onClick={() => handleLikeComment(comment)}
                       className={`text-xs font-bold transition flex items-center gap-1 ${comment.isLiked ?"text-primary" : "text-muted-foreground hover:text-primary"}`}
                     >
-                      <Heart className={`h-3 w-3 ${comment.isLiked ?"fill-primary" : ""}`} />
+                      <ThumbsUp className={`h-3 w-3 ${comment.isLiked ?"fill-primary" : ""}`} />
                       {comment.likes_count > 0 ? comment.likes_count : "Like"}
                     </button>
                     <button 
@@ -1153,7 +1153,7 @@ function PostDetail() {
                       }}
                       className="text-xs font-bold text-muted-foreground hover:text-primary transition flex items-center gap-1"
                     >
-                      <MessageCircle className="h-3 w-3" />
+                      <MessageSquare className="h-3 w-3" />
                       Reply
                     </button>
 

@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useMemo } from "react";
 import { 
-  BellRing, UserRoundPlus, HeartHandshake, MessageCircleMore, Zap, 
-  CheckCheck, MoreHorizontal, ArrowUpFromLine, AtSign, Loader2, Trophy 
+  BellRing, UserRoundPlus, ThumbsUp, MessageSquare, Zap,
+  CheckCheck, MoreHorizontal, ArrowUpFromLine, AtSign, Loader2, Trophy
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -136,9 +136,9 @@ function NotificationsPage() {
 
   const getNotifUI = (type: string, actorName?: string, isActorMe?: boolean, recipientName?: string) => {
     switch (type) {
-      case 'like': return { icon: HeartHandshake, bg: 'bg-primary', text: 'text-primary-foreground', action: 'liked your post' };
-      case 'comment_like': return { icon: HeartHandshake, bg: 'bg-rose-500', text: 'text-white', action: 'liked your comment' };
-      case 'comment': return { icon: MessageCircleMore, bg: 'bg-sky-600', text: 'text-white', action: 'commented on your post' };
+      case 'like': return { icon: ThumbsUp, bg: 'bg-primary', text: 'text-primary-foreground', action: 'liked your post' };
+      case 'comment_like': return { icon: ThumbsUp, bg: 'bg-rose-500', text: 'text-white', action: 'liked your comment' };
+      case 'comment': return { icon: MessageSquare, bg: 'bg-sky-600', text: 'text-white', action: 'commented on your post' };
       case 'follow': return { icon: UserRoundPlus, bg: 'bg-emerald-600', text: 'text-white', action: 'started following you' };
       case 'repost': return { icon: ArrowUpFromLine, bg: 'bg-emerald-600', text: 'text-white', action: 'reposted your post' };
       case 'mention': return { icon: AtSign, bg: 'bg-amber-600', text: 'text-white', action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };

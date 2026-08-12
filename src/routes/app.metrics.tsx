@@ -9,9 +9,9 @@ import {
   ChevronLeft,
   Flame,
   GraduationCap,
-  Heart,
+  ThumbsUp,
   Loader2,
-  MessageCircle,
+  MessageSquare,
   Repeat2,
   Rocket,
   Sparkles,
@@ -520,8 +520,8 @@ function MetricsPage() {
               <div className="mt-6 rounded-xl bg-foreground/[0.03] p-4 ring-1 ring-border">
                 <p className="line-clamp-2 text-[13px] leading-6 text-foreground">{insights.topPost.content}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-3 text-[11px] font-medium text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><Heart className="h-3.5 w-3.5" />{insights.topPost.likes_count || 0}</span>
-                  <span className="flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5" />{insights.topPost.comments_count || 0}</span>
+                  <span className="flex items-center gap-1.5"><ThumbsUp className="h-3.5 w-3.5" />{insights.topPost.likes_count || 0}</span>
+                  <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5" />{insights.topPost.comments_count || 0}</span>
                   <span className="flex items-center gap-1.5"><Repeat2 className="h-3.5 w-3.5" />{insights.topPost.reposts_count || 0}</span>
                   <span className="ml-auto text-primary">{compact(insights.topPostEngagement)} total</span>
                 </div>

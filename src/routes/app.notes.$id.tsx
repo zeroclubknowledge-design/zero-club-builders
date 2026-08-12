@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Share2, Bookmark, Heart, Mic, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, Share2, Bookmark, ThumbsUp, Mic, Edit3, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';
@@ -343,7 +343,7 @@ function NoteReaderPage() {
 
           <div className="mb-10 mt-14 flex flex-wrap items-center gap-3 border-y border-border py-5">
             <button onClick={handleLike} className={`group flex h-10 items-center justify-center gap-2 rounded-lg border px-4 transition-colors ${isLiked ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-foreground hover:bg-accent'}`}>
-              <Heart className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isLiked ? 'fill-primary' : ''}`} />
+              <ThumbsUp className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isLiked ? 'fill-primary' : ''}`} />
               <span className="text-sm font-semibold">{isLiked ? 'Liked' : 'Like'}</span>
             </button>
             <button onClick={handleBookmark} className={`group flex h-10 items-center justify-center gap-2 rounded-lg border px-4 transition-colors ${isBookmarked ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-foreground hover:bg-accent'}`}>

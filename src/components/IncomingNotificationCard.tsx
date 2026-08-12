@@ -4,8 +4,8 @@ import { stripMarkdownAsterisks } from "@/components/LinkifiedText";
 import {
   AtSign,
   BellRing,
-  Heart,
-  MessageCircle,
+  ThumbsUp,
+  MessageSquare,
   Repeat2,
   Trophy,
   UserPlus,
@@ -38,17 +38,17 @@ type IncomingNotificationCardProps = {
 
 const notificationStyles = {
   like: {
-    Icon: Heart,
+    Icon: ThumbsUp,
     label: "liked your post",
     color: "bg-rose-500 text-white",
   },
   comment_like: {
-    Icon: Heart,
+    Icon: ThumbsUp,
     label: "liked your comment",
     color: "bg-rose-500 text-white",
   },
   comment: {
-    Icon: MessageCircle,
+    Icon: MessageSquare,
     label: "commented on your post",
     color: "bg-sky-600 text-white",
   },
