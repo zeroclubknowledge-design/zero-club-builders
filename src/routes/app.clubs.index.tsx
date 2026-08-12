@@ -84,6 +84,10 @@ function Clubs() {
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [unreadClubMessages, setUnreadClubMessages] = useState<any[]>([]);
   const [showAllDiscover, setShowAllDiscover] = useState(false);
+  // Which of the two peer tabs is showing. Falls back to My Clubs below when
+  // there are no bootcamp clubs, so the Boot Clubs tab can never be selected
+  // while hidden - which would leave the page looking empty.
+  const [clubsTabRaw, setClubsTab] = useState<"mine" | "boot">("mine");
 
   // Move heavy data fetching to React Query to prevent route blocking
   const { data: clubData, isLoading: isClubsLoading } = useQuery({
@@ -207,6 +211,8 @@ function Clubs() {
     totalOnlineBuilders = 0,
     capacityData = null,
   } = clubData || {};
+
+  const clubsTab = bootClubs.length === 0 ? "mine" : clubsTabRaw;
 
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<any[]>([]);
@@ -709,23 +715,53 @@ function Clubs() {
           </div>
         </div>
 
-        {/* Permanent clubs and temporary bootcamp clubs are separate peer
-            sections. On larger screens they share one horizontal row; on a
-            phone they stack in the same left-to-right order. */}
-        <div className={`mb-4 grid items-start gap-8 ${bootClubs.length > 0 ? "lg:grid-cols-2" : ""}`}>
-          {/* My Clubs */}
-          <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[15px] font-semibold tracking-tight flex items-center gap-2 text-foreground">
-              My Clubs <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-foreground/10 px-1.5 text-[10px] font-bold text-muted-foreground">{myClubs.length}</span>
-            </h2>
-            <button className="text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-300">See all</button>
+        {/* My Clubs and Boot Clubs are two tabs over one list, rather than two
+            stacked sections. Side by side they fit a phone without pushing the
+            bootcamp clubs far below the fold, and the single list underneath
+            keeps every card at the same full width. */}
+        <div className="mb-4 min-w-0">
+          <div className="mb-4 flex items-center gap-5 border-b border-border/30">
+            <button
+              onClick={() => setClubsTab("mine")}
+              className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
+                clubsTab === "mine" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              My Clubs
+              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-foreground/10 px-1.5 text-[10px] font-bold text-muted-foreground">
+                {myClubs.length}
+              </span>
+              {clubsTab === "mine" && (
+                <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
+              )}
+            </button>
+
+            {bootClubs.length > 0 && (
+              <button
+                onClick={() => setClubsTab("boot")}
+                className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
+                  clubsTab === "boot" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Boot Clubs
+                <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">
+                  {bootClubs.length}
+                </span>
+                {clubsTab === "boot" && (
+                  <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
+                )}
+              </button>
+            )}
           </div>
 
-          <div className={`grid gap-3 ${bootClubs.length > 0 ? "" : "md:grid-cols-2 md:gap-4"}`}>
+          {/* My Clubs */}
+          <section className={clubsTab === "mine" ? "" : "hidden"}>
+          {/* min-w-0 on the grid stops a long club name from widening the
+              track and pushing every card past the edge of a phone screen. */}
+          <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
             {myClubs.length > 0 ? myClubs.map((c: any) => (
-              <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition-all duration-300 active:scale-[0.98]">
-                <article className="flex items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/30">
+              <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block min-w-0 transition-all duration-300 active:scale-[0.98]">
+                <article className="flex w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/30">
                   <div className="relative shrink-0">
                     <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20">
                       {c.logo_url || c.banner_url ? (
@@ -760,7 +796,7 @@ function Clubs() {
                 </article>
               </Link>
             )) : (
-              <div className={`rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center ${bootClubs.length > 0 ? "" : "md:col-span-2"}`}>
+              <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center md:col-span-2">
                 <p className="text-xs text-muted-foreground/60 font-medium mb-4">You haven't joined any clubs yet.</p>
                 <button onClick={handleCreateClick} className="rounded-full bg-[#171218] px-5 py-2.5 text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 active:scale-95 hover:opacity-90">
                   Create a Club
@@ -769,7 +805,7 @@ function Clubs() {
             )}
             
             {myClubs.length > 0 && (
-              <button className={`group flex w-full items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card ${bootClubs.length > 0 ? "" : "md:col-span-2"}`}>
+              <button className="group flex w-full min-w-0 items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card md:col-span-2">
                 <div className="flex items-center gap-2.5 text-xs font-bold text-foreground">
                   <div className="grid h-7 w-7 place-items-center rounded-xl bg-accent/30">
                     <LayoutGrid className="h-3.5 w-3.5 text-primary" />
@@ -785,15 +821,8 @@ function Clubs() {
           {/* Bootcamp Clubs: temporary clubs attached to bootcamps. Hidden
               entirely when there are none. */}
           {bootClubs.length > 0 && (
-            <section>
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <h2 className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-foreground">
-                  Bootcamp Clubs <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">{bootClubs.length}</span>
-                </h2>
-                <span className="text-right text-[11px] text-muted-foreground">Runs with the bootcamp</span>
-              </div>
-
-              <div className="grid gap-3">
+            <section className={clubsTab === "boot" ? "" : "hidden"}>
+              <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
                 {bootClubs.map((c: any) => {
                   const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
                   const ended = endsAt ? endsAt < new Date() : false;
@@ -801,30 +830,30 @@ function Clubs() {
                   return (
                     <button
                       key={c.id}
-                      onClick={() => navigate({ to: "/app/clubs/chat", search: { club: c.id } as any })}
-                      className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:bg-accent/50"
+                      onClick={() => navigate({ to: "/app/clubs/chat", search: { clubId: c.id } as any })}
+                      className="flex w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 text-left transition hover:border-primary/30"
                     >
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                        <GraduationCap className="h-5 w-5" />
+                      <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-border/40 bg-accent/20 text-primary">
+                        <GraduationCap className="h-6 w-6" />
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-1.5">
-                          <span className="truncate text-[13.5px] font-semibold text-foreground">{c.name}</span>
+                      <span className="min-w-0 flex-1 py-0.5">
+                        <span className="mb-0.5 flex items-center gap-1.5">
+                          <span className="truncate text-sm font-bold tracking-tight text-foreground">{c.name}</span>
                           {ended && (
                             <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
                               Ended
                             </span>
                           )}
                         </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                          {ended
-                            ? "Read-only archive"
-                            : endsAt
-                              ? `Ends ${endsAt.toLocaleDateString()}`
-                              : `${c.members_count || 0} members`}
+                        <span className="mb-1.5 block truncate text-[11px] font-medium text-muted-foreground/60">
+                          {ended ? "Read-only archive" : endsAt ? `Ends ${endsAt.toLocaleDateString()}` : "Runs with the bootcamp"}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                          <Users className="h-3 w-3" />
+                          {c.members_count || 0} members
                         </span>
                       </span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/30" />
                     </button>
                   );
                 })}
