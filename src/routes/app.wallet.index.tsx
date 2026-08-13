@@ -88,6 +88,42 @@ function WalletPage() {
 
   const transactions = (walletHistory?.transactions || []) as any[];
   const pendingTopups = (walletHistory?.pending_topups || []) as any[];
+
+  /* Re-ask Paystack about one unconfirmed payment. The browser never decides
+     the outcome — paystack-verify asks Paystack and credits only if the money
+     really arrived, and crediting twice is impossible. */
+  const [checkingReference, setCheckingReference] = useState<string | null>(null);
+
+  const checkPendingPayment = async (reference: string) => {
+    setCheckingReference(reference);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-verify", {
+        body: { reference },
+      });
+      if (error) throw new Error(error.message || "We could not check that payment");
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      await refetch?.();
+      await refetchActivities();
+
+      toast.success(
+        (data as any)?.credited === false
+          ? "That payment was already added to your wallet"
+          : "Payment confirmed — your wallet has been updated",
+      );
+    } catch (error: any) {
+      const message = error?.message || "We could not check that payment";
+      // "not successful" means Paystack has no record of the money yet, which
+      // for a transfer usually means it simply has not landed.
+      toast.error(message, {
+        description: message.toLowerCase().includes("not successful")
+          ? "If you have just sent the transfer, give it a few minutes and check again."
+          : undefined,
+      });
+    } finally {
+      setCheckingReference(null);
+    }
+  };
   const legacyActivities = (walletHistory?.legacy || []) as any[];
   const activities = legacyActivities;
 
@@ -464,15 +500,45 @@ function WalletPage() {
           </button>
         </div>
 
-        {/* Money that has been paid but is still being confirmed. */}
+        {/* Money that has been paid but is still being confirmed.
+            Paying by bank transfer means leaving the app, and the checkout page
+            is gone when you come back — so there has to be a way to say "I paid,
+            check again" rather than only waiting on the webhook. */}
         {pendingTopups.length > 0 && (
           <div className="mb-4 rounded-lg bg-amber-500/[0.07] p-3.5 ring-1 ring-amber-500/20">
             <p className="text-[12px] font-semibold text-amber-700">
-              {pendingTopups.length === 1 ? "A payment is being confirmed" : `${pendingTopups.length} payments are being confirmed`}
+              {pendingTopups.length === 1 ? "A payment is waiting to be confirmed" : `${pendingTopups.length} payments are waiting to be confirmed`}
             </p>
             <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
-              This usually takes a few seconds. Your balance updates automatically once it clears.
+              Card payments clear in seconds. A bank transfer can take longer — if you have
+              already sent it, check now.
             </p>
+            <div className="mt-2.5 space-y-1.5">
+              {pendingTopups.map((topup: any) => (
+                <div key={topup.reference} className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-semibold tabular-nums text-foreground">
+                      {format(Number(topup.amount) || 0)}
+                    </p>
+                    <p className="truncate text-[10.5px] text-muted-foreground">
+                      Started {new Date(topup.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => checkPendingPayment(topup.reference)}
+                    disabled={checkingReference !== null}
+                    className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-amber-600 px-3.5 text-[11.5px] font-semibold text-white tap hover:opacity-90 disabled:opacity-50"
+                  >
+                    {checkingReference === topup.reference ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3" />
+                    )}
+                    Check now
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
