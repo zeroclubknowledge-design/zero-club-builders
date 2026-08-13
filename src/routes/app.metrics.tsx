@@ -431,14 +431,14 @@ function MetricsPage() {
             <>
               <MetricCard label="Bootcamps" value={compact(data?.managedBootcamps.length || 0)} detail={`${insights.activePrograms.length} active, ${insights.draftPrograms.length} draft`} Icon={BookOpenCheck} />
               <MetricCard label="Learners" value={compact(data?.managedEnrollments.length || 0)} detail={insights.enrollmentChange === 0 ? "Across your teaching portfolio" : `${insights.enrollmentChange > 0 ? "+" : ""}${insights.enrollmentChange}% in this period`} Icon={GraduationCap} tone="text-emerald-700 bg-emerald-500/10 ring-emerald-500/15" />
-              <MetricCard label="Teaching reach" value={compact(insights.totalEngagement)} detail="Engagement across your published work" Icon={Heart} tone="text-[#9d176d] bg-[#cc208f]/10 ring-[#cc208f]/15" />
+              <MetricCard label="Teaching reach" value={compact(insights.totalEngagement)} detail="Engagement across your published work" Icon={ThumbsUp} tone="text-[#9d176d] bg-[#cc208f]/10 ring-[#cc208f]/15" />
               <MetricCard label="Portfolio value" value={currency(insights.estimatedProgramValue)} detail="Gross value of recorded enrolments" Icon={Banknote} tone="text-amber-700 bg-amber-500/10 ring-amber-500/15" />
             </>
           ) : (
             <>
               <MetricCard label="XP earned" value={compact(data?.profile?.xp || 0)} detail={`Level progress in ${period} days`} Icon={Zap} tone="text-amber-600 bg-amber-500/10 ring-amber-500/15" />
               <MetricCard label="Proofs shipped" value={compact(insights.proofPosts.length)} detail={insights.buildChange === 0 ? "No change in this period" : `${insights.buildChange > 0 ? "+" : ""}${insights.buildChange}% vs previous`} Icon={Rocket} />
-              <MetricCard label="Engagement" value={compact(insights.totalEngagement)} detail={insights.engagementChange === 0 ? "Across all published work" : `${insights.engagementChange > 0 ? "+" : ""}${insights.engagementChange}% in this period`} Icon={Heart} tone="text-[#9d176d] bg-[#cc208f]/10 ring-[#cc208f]/15" />
+              <MetricCard label="Engagement" value={compact(insights.totalEngagement)} detail={insights.engagementChange === 0 ? "Across all published work" : `${insights.engagementChange > 0 ? "+" : ""}${insights.engagementChange}% in this period`} Icon={ThumbsUp} tone="text-[#9d176d] bg-[#cc208f]/10 ring-[#cc208f]/15" />
               <MetricCard label="Network" value={compact(data?.followers.length || 0)} detail={insights.networkChange === 0 ? `${compact(data?.following.length || 0)} people followed` : `${insights.networkChange > 0 ? "+" : ""}${insights.networkChange}% new followers`} Icon={Users} tone="text-sky-700 bg-sky-500/10 ring-sky-500/15" />
             </>
           )}

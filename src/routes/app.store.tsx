@@ -1,10 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Gift, ArrowUpRight, Search, Loader2, ShoppingBag, PackagePlus } from "lucide-react";
+import {
+  ArrowLeft, Gift, ArrowUpRight, Search, Loader2, ShoppingBag, PackagePlus,
+  TicketPercent, Check, ShieldCheck, Tag,
+} from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 export const Route = createFileRoute("/app/store")({
   component: StorePage,
@@ -16,8 +24,14 @@ function StorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [storeItems, setStoreItems] = useState<any[]>([]);
+  const [sellers, setSellers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
+
+  /* Product detail sheet */
+  const [selected, setSelected] = useState<any>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
   const { details: currentCurrency } = useWalletCurrency();
 
@@ -26,7 +40,21 @@ function StorePage() {
       try {
         const { data, error } = await supabase.from("store_items").select("*").order("created_at", { ascending: false });
         if (error && error.code !== '42P01') throw error; // ignore if table doesn't exist yet
-        setStoreItems(data || []);
+        const items = data || [];
+        setStoreItems(items);
+
+        // Seller names are a nice-to-have, so they load separately. A failure
+        // here (or a schema that has drifted) must not blank out the catalog.
+        const sellerIds = Array.from(new Set(items.map((i: any) => i.seller_id).filter(Boolean)));
+        if (sellerIds.length > 0) {
+          const { data: people } = await supabase
+            .from("profiles")
+            .select("id, username, full_name, avatar_url")
+            .in("id", sellerIds);
+          if (people) {
+            setSellers(Object.fromEntries(people.map((p: any) => [p.id, p])));
+          }
+        }
       } catch (err: any) {
         console.error("Failed to load store items:", err);
       } finally {
@@ -38,27 +66,70 @@ function StorePage() {
 
   const categories = useMemo(() => ["All", ...Array.from(new Set(storeItems.map((item) => item.category).filter(Boolean)))], [storeItems]);
 
-  const filteredItems = storeItems.filter(
-    item => 
-      (activeCategory === "All" || item.category === activeCategory) && (
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-  );
+  const filteredItems = storeItems.filter((item) => {
+    if (activeCategory !== "All" && item.category !== activeCategory) return false;
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    // Every field is optional in the database, so coerce before lowercasing —
+    // one product with a null description used to throw and blank the page.
+    const haystack = [item.name, item.description, item.category]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(q);
+  });
 
-  const handlePurchase = async (item: any) => {
+  const openItem = (item: any) => {
+    setSelected(item);
+    setCouponInput("");
+    setAppliedCoupon(null);
+  };
+
+  const priceOf = (item: any) =>
+    (item.discount_percent || 0) > 0
+      ? Math.round(item.price * (100 - item.discount_percent) / 100)
+      : item.price;
+
+  const formatMoney = (n: number, priceType: string) =>
+    priceType === "Coins"
+      ? `${currentCurrency.symbol}${(n / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+      : `${n.toLocaleString()} ZP`;
+
+  const applyCoupon = () => {
+    if (!selected) return;
+    const entered = couponInput.trim().toUpperCase();
+    if (!entered) return;
+    if (
+      selected.coupon_code &&
+      entered === String(selected.coupon_code).toUpperCase() &&
+      (selected.coupon_discount_percent || 0) > 0
+    ) {
+      setAppliedCoupon(entered);
+      toast.success(`Coupon applied — ${selected.coupon_discount_percent}% off`);
+    } else {
+      setAppliedCoupon(null);
+      toast.error("That coupon code isn't valid for this product");
+    }
+  };
+
+  const handlePurchase = async (item: any, coupon?: string | null) => {
     if (!profile) return toast.error("Please login to purchase");
     setPurchasingId(item.id);
     try {
-      const { data, error } = await supabase.rpc("purchase_store_item", { item_id: item.id });
+      // The database function has always accepted a coupon; the store never
+      // sent one, so every code a seller created did nothing.
+      const { data, error } = await supabase.rpc("purchase_store_item", {
+        item_id: item.id,
+        coupon: coupon || null,
+      });
       if (error) throw error;
-      
+
       toast.success(`Purchased ${item.name} successfully!`);
+      setSelected(null);
       if (data?.file_url) {
         window.open(data.file_url, '_blank');
       }
-      
+
       // reload page to reflect new balances
       setTimeout(() => {
         window.location.reload();
@@ -141,7 +212,16 @@ function StorePage() {
               return (
                 <div
                   key={item.id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/30 hover:shadow-soft"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openItem(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openItem(item);
+                    }
+                  }}
+                  className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-lg border border-border bg-card text-left transition-all tap hover:border-primary/30 hover:shadow-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   <div className="p-5">
                     <div className="flex items-center justify-between">
@@ -204,16 +284,20 @@ function StorePage() {
                     </div>
 
                     <button
-                      onClick={() => handlePurchase(item)}
-                      disabled={purchasingId === item.id || item.seller_id === profile?.id}
-                      className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-[12px] font-semibold text-primary-foreground tap hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={(e) => {
+                        // The whole card opens the product now, so the button
+                        // must not also trigger it.
+                        e.stopPropagation();
+                        if (item.seller_id === profile?.id) return;
+                        openItem(item);
+                      }}
+                      disabled={item.seller_id === profile?.id}
+                      className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-[12px] font-semibold text-primary-foreground tap hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {purchasingId === item.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : item.seller_id === profile?.id ? (
+                      {item.seller_id === profile?.id ? (
                         "Your Item"
                       ) : (
-                        <>Buy Now <ArrowUpRight className="h-3 w-3" /></>
+                        <>View <ArrowUpRight className="h-3 w-3" /></>
                       )}
                     </button>
                   </div>
@@ -227,6 +311,177 @@ function StorePage() {
           Zero Store Marketplace
         </p>
       </div>
+
+      {/* ── Product detail ── */}
+      <Drawer open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+        <DrawerContent
+          desktopVariant="panel"
+          className="border-none bg-background p-0 focus:ring-0 max-w-lg mx-auto max-h-[92dvh] flex flex-col"
+        >
+          {selected && (() => {
+            const isOwn = selected.seller_id === profile?.id;
+            const seller = sellers[selected.seller_id];
+            const sale = priceOf(selected);
+            const couponPct = appliedCoupon ? (selected.coupon_discount_percent || 0) : 0;
+            const payable = couponPct > 0 ? Math.round(sale * (100 - couponPct) / 100) : sale;
+            const balance = selected.price_type === "Coins" ? (profile?.coins || 0) : (profile?.zp || 0);
+            const canAfford = balance >= payable;
+
+            return (
+              <>
+                <div className="flex-1 overflow-y-auto no-scrollbar">
+                  {/* Cover */}
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-primary/10">
+                    {selected.cover_url ? (
+                      <img src={selected.cover_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center text-primary">
+                        <Gift className="h-10 w-10" strokeWidth={1.5} />
+                      </div>
+                    )}
+                    {(selected.discount_percent || 0) > 0 && (
+                      <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10.5px] font-semibold text-white backdrop-blur-sm">
+                        <Tag className="h-2.5 w-2.5" /> {selected.discount_percent}% off
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-5 px-6 py-5">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                        {selected.category || "Product"}
+                      </p>
+                      <DrawerTitle className="mt-1.5 text-[21px] font-semibold leading-tight tracking-tight text-foreground">
+                        {selected.name}
+                      </DrawerTitle>
+                    </div>
+
+                    {seller && (
+                      <div className="flex items-center gap-2.5">
+                        <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                          {seller.avatar_url
+                            ? <img src={seller.avatar_url} alt="" className="h-full w-full object-cover" />
+                            : (seller.full_name || seller.username || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-[13px] font-semibold tracking-tight text-foreground">
+                            {seller.full_name || seller.username}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">Seller on Zero Store</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {selected.description && (
+                      <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed text-muted-foreground">
+                        {selected.description}
+                      </p>
+                    )}
+
+                    <div className="flex items-start gap-2.5 rounded-lg bg-card px-4 py-3 ring-1 ring-border">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" strokeWidth={1.9} />
+                      <p className="text-[12px] leading-relaxed text-muted-foreground">
+                        Paid from your {selected.price_type === "Coins" ? "wallet" : "ZP"} balance. The file opens
+                        immediately after purchase and stays yours.
+                      </p>
+                    </div>
+
+                    {/* Coupon */}
+                    {selected.coupon_code && !isOwn && (
+                      <div className="space-y-2">
+                        <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                          Have a coupon?
+                        </label>
+                        {appliedCoupon ? (
+                          <div className="flex items-center justify-between rounded-lg bg-success/[0.07] px-4 py-3 ring-1 ring-success/20">
+                            <span className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.06em] text-success">
+                              <Check className="h-3.5 w-3.5" /> {appliedCoupon}
+                            </span>
+                            <button
+                              onClick={() => { setAppliedCoupon(null); setCouponInput(""); }}
+                              className="text-[11.5px] font-medium text-muted-foreground hover:text-foreground"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+                            <input
+                              value={couponInput}
+                              onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                              onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
+                              placeholder="Enter code"
+                              className="h-11 w-full rounded-lg bg-background px-4 text-[13.5px] font-medium tracking-[0.08em] outline-none ring-1 ring-border placeholder:tracking-normal placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-primary/40"
+                            />
+                            <button
+                              onClick={applyCoupon}
+                              disabled={!couponInput.trim()}
+                              className="flex h-11 items-center gap-1.5 rounded-lg px-4 text-[12.5px] font-semibold text-foreground ring-1 ring-border tap hover:bg-foreground/[0.04] disabled:opacity-40"
+                            >
+                              <TicketPercent className="h-3.5 w-3.5" /> Apply
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Price + buy */}
+                <div className="shrink-0 border-t hairline px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                  <div className="mb-3 space-y-1">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                        You pay
+                      </span>
+                      <span className="flex items-baseline gap-2">
+                        {payable < selected.price && (
+                          <span className="text-[12px] text-muted-foreground line-through tabular-nums">
+                            {formatMoney(selected.price, selected.price_type)}
+                          </span>
+                        )}
+                        <span className="text-[20px] font-semibold tracking-tight text-foreground tabular-nums">
+                          {formatMoney(payable, selected.price_type)}
+                        </span>
+                      </span>
+                    </div>
+                    {!isOwn && !canAfford && (
+                      <p className="text-right text-[11.5px] font-medium text-destructive">
+                        Your balance is {formatMoney(balance, selected.price_type)} — top up to buy this.
+                      </p>
+                    )}
+                  </div>
+
+                  {isOwn ? (
+                    <Link
+                      to="/app/my-store"
+                      className="flex h-12 w-full items-center justify-center rounded-full ring-1 ring-border text-[13.5px] font-semibold tracking-tight text-foreground tap hover:bg-foreground/[0.03]"
+                    >
+                      This is your product — manage it
+                    </Link>
+                  ) : !canAfford ? (
+                    <button
+                      onClick={() => { setSelected(null); navigate({ to: "/app/wallet" }); }}
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[13.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
+                    >
+                      Top up your wallet <ArrowUpRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handlePurchase(selected, appliedCoupon)}
+                      disabled={purchasingId === selected.id}
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[13.5px] font-semibold tracking-tight text-primary-foreground tap hover:opacity-90 disabled:opacity-50"
+                    >
+                      {purchasingId === selected.id && <Loader2 className="h-4 w-4 animate-spin" />}
+                      Buy now
+                    </button>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

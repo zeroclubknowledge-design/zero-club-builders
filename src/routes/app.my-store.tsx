@@ -299,60 +299,75 @@ function MyStorePage() {
                 const sale = effectivePrice(item.price, item.discount_percent || 0);
                 return (
                   <div key={item.id} className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
-                    <div className="flex gap-4 p-4">
-                      <div className="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
+                    {/* Identity row: thumbnail, name, actions. Nothing numeric
+                        lives here, so a long product name can use the full
+                        width without crowding the price. */}
+                    <div className="flex items-center gap-3.5 p-4">
+                      <div className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
                         {item.cover_url ? (
                           <img src={item.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
                         ) : (
                           <Gift className="h-6 w-6" strokeWidth={1.75} />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <h3 className="text-[15px] font-semibold tracking-tight text-foreground truncate">{item.name}</h3>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mt-0.5">
-                              {item.category || "Product"}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              onClick={() => openEdit(item)}
-                              title="Edit product"
-                              className="grid h-8 w-8 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] tap"
-                            >
-                              <Edit3 className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setDeleting(item)}
-                              title="Delete product"
-                              className="grid h-8 w-8 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-destructive hover:bg-destructive/5 tap"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="text-[14px] font-semibold tracking-tight text-foreground tabular-nums">
-                            {formatPrice(sale, item.price_type)}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-[15px] font-semibold tracking-tight text-foreground">{item.name}</h3>
+                        <p className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          {item.category || "Product"}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <button
+                          onClick={() => openEdit(item)}
+                          title="Edit product"
+                          aria-label={`Edit ${item.name}`}
+                          className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] tap"
+                        >
+                          <Edit3 className="h-[15px] w-[15px]" />
+                        </button>
+                        <button
+                          onClick={() => setDeleting(item)}
+                          title="Delete product"
+                          aria-label={`Delete ${item.name}`}
+                          className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-destructive hover:bg-destructive/5 tap"
+                        >
+                          <Trash2 className="h-[15px] w-[15px]" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Price row: its own band with a rule above it. The two
+                        numbers sit in one baseline group on the left and the
+                        badges wrap to their own line on a narrow screen, so
+                        they can never end up touching. */}
+                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t hairline bg-foreground/[0.015] px-4 py-3">
+                      <div className="flex items-baseline gap-2.5">
+                        <span className="text-[16px] font-semibold tracking-tight text-foreground tabular-nums">
+                          {formatPrice(sale, item.price_type)}
+                        </span>
+                        {(item.discount_percent || 0) > 0 && (
+                          <span className="text-[12px] text-muted-foreground/70 line-through tabular-nums">
+                            {formatPrice(item.price, item.price_type)}
                           </span>
+                        )}
+                      </div>
+
+                      {((item.discount_percent || 0) > 0 || item.coupon_code) && (
+                        <div className="flex flex-wrap items-center gap-1.5">
                           {(item.discount_percent || 0) > 0 && (
-                            <>
-                              <span className="text-[11.5px] text-muted-foreground line-through tabular-nums">
-                                {formatPrice(item.price, item.price_type)}
-                              </span>
-                              <span className="flex items-center gap-1 rounded-full bg-success/10 ring-1 ring-success/20 px-2 py-0.5 text-[10px] font-semibold text-success">
-                                <Tag className="h-2.5 w-2.5" /> {item.discount_percent}% off
-                              </span>
-                            </>
+                            <span className="flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[10.5px] font-semibold text-success ring-1 ring-success/20">
+                              <Tag className="h-2.5 w-2.5" /> {item.discount_percent}% off
+                            </span>
                           )}
                           {item.coupon_code && (
-                            <span className="flex items-center gap-1 rounded-full bg-primary/8 ring-1 ring-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                              <TicketPercent className="h-2.5 w-2.5" /> {item.coupon_code} · −{item.coupon_discount_percent}%
+                            <span className="flex max-w-full items-center gap-1 rounded-full bg-primary/8 px-2.5 py-1 text-[10.5px] font-semibold text-primary ring-1 ring-primary/15">
+                              <TicketPercent className="h-2.5 w-2.5 shrink-0" />
+                              <span className="truncate">{item.coupon_code}</span>
+                              <span className="shrink-0">· −{item.coupon_discount_percent}%</span>
                             </span>
                           )}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 );
