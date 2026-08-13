@@ -1,6 +1,6 @@
 import { getFirstName } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards } from "lucide-react";
+import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMessages, sendMessageAction, editMessageAction } from "@/api";
 import { useUser } from "@/hooks/useUser";
@@ -22,6 +22,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { directMessagePreview, parseFundLinkMessage } from "@/lib/directMessage";
 
 export const Route = createFileRoute("/app/chat/$id")({
   component: ChatViewPage,
@@ -128,6 +129,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
   };
 
   const repliedMessage = m.reply_to_id ? messages.find((msg: any) => msg.id === m.reply_to_id) : null;
+  const fundLink = parseFundLinkMessage(m.content);
 
   const handleAcceptInvite = async (messageId: string, instId: string, instName: string) => {
     if (!currentUser) return;
@@ -220,7 +222,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
 
         <div className={`flex flex-col ${isMe ?"items-end" : "items-start"} min-w-0`}>
           {/* Action menu for my messages */}
-          {isMe && (new Date().getTime() - new Date(m.created_at).getTime() < 30 * 60 * 1000) && (
+          {isMe && !fundLink && (new Date().getTime() - new Date(m.created_at).getTime() < 30 * 60 * 1000) && (
             <div className="opacity-0 group-hover:opacity-100 transition-opacity mb-1 flex justify-end w-full">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -263,7 +265,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                       {repliedMessage.sender_id === (isMe ? m.sender_id : otherUser?.id) ? 'You' : (otherUser?.full_name || otherUser?.username || 'Someone')}
                     </span>
                     <p className={`text-[11px] truncate max-w-[180px] ${isMe ?'text-white/90' : 'text-foreground/80'}`}>
-                      {repliedMessage.content}
+                      {directMessagePreview(repliedMessage.content, { sentByCurrentUser: repliedMessage.sender_id === currentUser?.id })}
                     </p>
                   </div>
                 )}
@@ -303,30 +305,42 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                       <p className="text-xs opacity-70 mt-1">Invitation sent to user.</p>
                     )}
                   </div>
-                ) : m.content.startsWith('FUND_LINK:') ? (
-                  /* A wallet fund link, delivered to the inbox rather than as a
-                     bare URL, so the ask is legible before anyone taps it. */
-                  <div className="flex min-w-[220px] flex-col gap-3">
-                    <div className="flex items-center gap-2 font-bold">
-                      <WalletCards className="h-4 w-4" /> Fund request
-                    </div>
-                    <p className={`text-[14px] ${isMe ? 'text-background/90' : 'text-foreground/90'}`}>
-                      {isMe ? (
-                        <>You shared a link to fund your Zero Club wallet.</>
-                      ) : (
-                        <><strong>{m.content.split(':')[2]}</strong> is asking you to add money to their Zero Club wallet.</>
-                      )}
-                    </p>
-                    {!isMe && (
-                      <Link
-                        to="/fund/$slug"
-                        params={{ slug: m.content.split(':')[1] }}
-                        className="rounded-lg bg-primary py-2 text-center text-xs font-bold text-primary-foreground transition hover:opacity-90"
-                      >
-                        Open and pay
-                      </Link>
-                    )}
-                  </div>
+                ) : fundLink ? (
+                  /* The whole card is a normal same-origin link. Stopping the
+                     gesture events here keeps swipe-to-reply from swallowing
+                     taps on mobile. */
+                  <a
+                    href={`/fund/${encodeURIComponent(fundLink.slug)}`}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
+                    className={`group/fund flex min-w-[232px] max-w-[280px] flex-col overflow-hidden rounded-lg border text-left transition active:scale-[0.985] ${
+                      isMe
+                        ? "border-background/20 bg-background/[0.08] hover:bg-background/[0.13]"
+                        : "border-primary/20 bg-card hover:border-primary/35 hover:shadow-sm"
+                    }`}
+                  >
+                    <span className="flex items-start gap-3 p-3.5">
+                      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${isMe ? "bg-background/15" : "bg-primary/10 text-primary"}`}>
+                        <WalletCards className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className={`block text-[10px] font-semibold uppercase tracking-[0.12em] ${isMe ? "text-background/65" : "text-primary"}`}>
+                          Zero Club wallet
+                        </span>
+                        <span className="mt-1 block text-[14px] font-bold leading-snug">
+                          {isMe ? "Your wallet fund link" : `Fund ${fundLink.ownerName}'s wallet`}
+                        </span>
+                        <span className={`mt-1 block text-[11px] leading-relaxed ${isMe ? "text-background/70" : "text-muted-foreground"}`}>
+                          {isMe ? "Shared in this conversation" : "Pay securely with your wallet or card"}
+                        </span>
+                      </span>
+                    </span>
+                    <span className={`flex items-center justify-between border-t px-3.5 py-2.5 pr-14 text-[11px] font-bold ${isMe ? "border-background/15 text-background" : "border-border/60 text-primary"}`}>
+                      {isMe ? "View fund link" : "Open and fund wallet"}
+                      <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover/fund:-translate-y-0.5 group-hover/fund:translate-x-0.5" />
+                    </span>
+                  </a>
                 ) : m.content.startsWith('ACCEPTED_TUTOR_INVITE:') ? (
                    <p className={`text-[14px] font-bold ${isMe ? 'text-background' : 'text-green-600 dark:text-green-400'}`}>✅ Accepted invitation to join {m.content.split(':')[1]}</p>
                 ) : m.content.startsWith('REJECTED_TUTOR_INVITE:') ? (

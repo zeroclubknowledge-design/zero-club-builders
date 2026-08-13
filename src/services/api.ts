@@ -734,6 +734,7 @@ export const getConversations = async () => {
           id: otherUser.id,
           user: otherUser,
           lastMessage: msg.content,
+          lastSenderId: msg.sender_id,
           time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           unread: unreadConversations.has(otherUser.id),
           status
@@ -798,4 +799,3 @@ export const searchEverything = async (query: string) => {
     profiles: profiles || []
   };
 };
-

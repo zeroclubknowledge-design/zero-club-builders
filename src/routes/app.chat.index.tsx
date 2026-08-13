@@ -6,6 +6,7 @@ import { useState, useMemo } from "react";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { directMessagePreview } from "@/lib/directMessage";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -59,7 +60,7 @@ function ChatInboxPage() {
       filtered = filtered.filter((c: any) => 
         c.user?.full_name?.toLowerCase().includes(q) || 
         c.user?.username?.toLowerCase().includes(q) ||
-        c.lastMessage?.toLowerCase().includes(q)
+        directMessagePreview(c.lastMessage, { sentByCurrentUser: c.lastSenderId === currentUser?.id }).toLowerCase().includes(q)
       );
     }
 
@@ -69,7 +70,7 @@ function ChatInboxPage() {
     }
     
     return filtered;
-  }, [conversations, searchQuery, activeTab]);
+  }, [conversations, searchQuery, activeTab, currentUser?.id]);
 
   if (isLoading) {
     return (
@@ -203,17 +204,7 @@ function ChatInboxPage() {
               </div>
               <div className="flex items-center justify-between gap-4">
                 <p className={`text-xs md:text-[12.5px] truncate max-w-[200px] md:max-w-[420px] leading-relaxed ${chat.unread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-                  {chat.lastMessage?.includes('$$MEDIA$$') ? (() => {
-                    const textPart = chat.lastMessage.split('$$MEDIA$$')[0].trim();
-                    if (textPart) return textPart;
-                    const urls = chat.lastMessage.split('$$MEDIA$$')[1] || '';
-                    const firstUrl = urls.split(',')[0]?.toLowerCase() || '';
-                    let mediaType = "an attachment";
-                    if (firstUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp)/i) || firstUrl.includes('image')) mediaType = "a picture";
-                    else if (firstUrl.match(/\.(mp4|webm|ogg|mov)/i) || firstUrl.includes('video')) mediaType = "a video";
-                    else if (firstUrl.match(/\.(mp3|wav|m4a|aac)/i) || firstUrl.includes('audio')) mediaType = "a voice note";
-                    return `Sent ${mediaType}`;
-                  })() : chat.lastMessage}
+                  {directMessagePreview(chat.lastMessage, { sentByCurrentUser: chat.lastSenderId === currentUser?.id })}
                 </p>
               </div>
             </div>

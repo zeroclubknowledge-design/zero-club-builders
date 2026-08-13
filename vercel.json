@@ -9,6 +9,17 @@
       "includeFiles": "dist/server/**"
     }
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "clipboard-write=(self \"https://checkout.paystack.com\" \"https://standard.paystack.co\" \"https://js.paystack.co\")"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/_next/(.*)",

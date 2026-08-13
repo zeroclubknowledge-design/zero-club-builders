@@ -61,6 +61,7 @@ import { getCachedSession } from "@/lib/auth";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
+import { directMessagePreview } from "@/lib/directMessage";
 import { IncomingNotificationCard } from "@/components/IncomingNotificationCard";
 
 export const Route = createFileRoute("/app")({
@@ -942,6 +943,8 @@ function AppLayout() {
                       const parts = content.split(":");
                       const clubName = parts[2] || "Club";
                       displayContent = `🔒 Requested to join your club: ${clubName}`;
+                    } else if (content.startsWith("FUND_LINK:")) {
+                      displayContent = directMessagePreview(content);
                     } else if (content.includes("$$MEDIA$$")) {
                       const textPart = content.split("$$MEDIA$$")[0].trim();
                       if (textPart) {

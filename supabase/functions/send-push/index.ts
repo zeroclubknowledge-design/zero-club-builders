@@ -96,6 +96,11 @@ serve(async (req) => {
         title = "Club Request";
         body = `Request to join ${parts[2] || "Club"}`;
         url = "/app/notifications";
+      } else if (content.startsWith("FUND_LINK:")) {
+        const parts = content.split(":");
+        title = "Wallet fund link";
+        body = `${parts.slice(2).join(":") || "A Zero Club member"} sent you a wallet fund link`;
+        url = `/app/chat/${payload.record.sender_id}`;
       } else {
         const senderId = payload.record.sender_id;
         const { data: sender } = senderId ? await supabase.from("profiles").select("full_name, username").eq("id", senderId).maybeSingle() : { data: null };
