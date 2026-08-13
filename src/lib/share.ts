@@ -1,0 +1,72 @@
+import { toast } from "sonner";
+
+/**
+ * Sharing helpers, kept in one place so the store page and the seller's own
+ * store produce identical links. A link that differs between the two would be
+ * a support problem nobody would think to look for.
+ */
+
+/** Falls back to the production origin during SSR, where `window` is absent. */
+export function appOrigin(): string {
+  return typeof window !== "undefined" ? window.location.origin : "https://www.zeroclubs.xyz";
+}
+
+/** The canonical shareable link for a Zero Store product. */
+export function storeProductUrl(productId: string): string {
+  return `${appOrigin()}/app/store?product=${productId}`;
+}
+
+/**
+ * Copies text, with a fallback for the cases where the async clipboard is not
+ * available: it needs a secure context and is blocked in some older Android
+ * webviews, which is exactly where a lot of Zero Club traffic lives.
+ */
+export async function copyToClipboard(text: string, message = "Link copied"): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(message);
+    return true;
+  } catch {
+    try {
+      const field = document.createElement("textarea");
+      field.value = text;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      document.execCommand("copy");
+      document.body.removeChild(field);
+      toast.success(message);
+      return true;
+    } catch {
+      toast.error("Couldn't copy the link — you can copy it from the address bar");
+      return false;
+    }
+  }
+}
+
+/**
+ * Opens the device share sheet when there is one, otherwise copies.
+ *
+ * A dismissed share sheet rejects, which is indistinguishable from a failure,
+ * so a dismissal falls through to copying. That is the friendlier mistake to
+ * make: the person still ends up with the link.
+ */
+export async function shareOrCopy(options: {
+  title: string;
+  text?: string;
+  url: string;
+  copiedMessage?: string;
+}): Promise<void> {
+  const { title, text, url, copiedMessage } = options;
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    try {
+      await navigator.share({ title, text, url });
+      return;
+    } catch {
+      /* dismissed or unsupported target */
+    }
+  }
+  await copyToClipboard(url, copiedMessage);
+}

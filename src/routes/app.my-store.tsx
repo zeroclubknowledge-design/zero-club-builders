@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ChevronLeft, Plus, Loader2, Trash2, Edit3, UploadCloud, FileArchive,
-  Tag, TicketPercent, Gift, ChevronDown, ExternalLink, X,
+  Tag, TicketPercent, Gift, ChevronDown, ExternalLink, X, Share2,
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { useUser } from "@/hooks/useUser";
 import { clampPercent, formatPercent } from "@/lib/utils";
+import { shareOrCopy, storeProductUrl } from "@/lib/share";
 import { IconStore } from "@/components/icons";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import {
@@ -323,6 +324,19 @@ function MyStorePage() {
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5">
+                        <button
+                          onClick={() => shareOrCopy({
+                            title: item.name || "Zero Store",
+                            text: `${item.name || "This product"} on Zero Store`,
+                            url: storeProductUrl(item.id),
+                            copiedMessage: "Product link copied",
+                          })}
+                          title="Share product link"
+                          aria-label={`Share ${item.name}`}
+                          className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-primary hover:bg-primary/5 tap"
+                        >
+                          <Share2 className="h-[15px] w-[15px]" />
+                        </button>
                         <button
                           onClick={() => openEdit(item)}
                           title="Edit product"

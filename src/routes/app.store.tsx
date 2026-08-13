@@ -1,14 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft, Gift, ArrowUpRight, Search, Loader2, ShoppingBag, PackagePlus,
-  TicketPercent, Check, ShieldCheck, Tag,
+  TicketPercent, Check, ShieldCheck, Tag, Share2, Copy,
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { formatPercent } from "@/lib/utils";
+import { copyToClipboard, shareOrCopy, storeProductUrl } from "@/lib/share";
 import {
   Drawer,
   DrawerContent,
@@ -17,6 +18,12 @@ import {
 
 export const Route = createFileRoute("/app/store")({
   component: StorePage,
+  // ?product=<id> is what makes a product shareable. The open product lives in
+  // the URL rather than in component state alone, so the address bar always
+  // holds a link worth sending, and Android's back button closes the sheet.
+  validateSearch: (search: Record<string, unknown>): { product?: string } => ({
+    product: search.product ? String(search.product) : undefined,
+  }),
 });
 
 function StorePage() {
@@ -29,10 +36,12 @@ function StorePage() {
   const [loading, setLoading] = useState(true);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
 
-  /* Product detail sheet */
+  /* Product detail sheet — driven by ?product= in the URL */
+  const { product: productParam } = Route.useSearch();
   const [selected, setSelected] = useState<any>(null);
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const missingWarned = useRef<string | null>(null);
 
   const { details: currentCurrency } = useWalletCurrency();
 
@@ -80,11 +89,51 @@ function StorePage() {
     return haystack.includes(q);
   });
 
-  const openItem = (item: any) => {
-    setSelected(item);
-    setCouponInput("");
-    setAppliedCoupon(null);
-  };
+  // Opening and closing are just navigations. The effect below is the only
+  // thing that sets `selected`, so a shared link, a tap on a card and the back
+  // button all take the same path and cannot disagree with each other.
+  const openItem = (item: any) =>
+    navigate({ to: "/app/store", search: { product: item.id } });
+
+  const closeItem = () =>
+    navigate({ to: "/app/store", search: { product: undefined }, replace: true });
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (!productParam) {
+      setSelected(null);
+      return;
+    }
+
+    const match = storeItems.find((i: any) => i.id === productParam);
+    if (match) {
+      setSelected(match);
+      setCouponInput("");
+      setAppliedCoupon(null);
+      missingWarned.current = null;
+    } else {
+      setSelected(null);
+      // Only complain once per id, or the toast repeats on every re-render.
+      if (missingWarned.current !== productParam) {
+        missingWarned.current = productParam;
+        toast.error("That product is no longer on Zero Store");
+      }
+    }
+  }, [loading, productParam, storeItems]);
+
+  /* ── Sharing ── */
+
+  const copyProductLink = (item: any) =>
+    copyToClipboard(storeProductUrl(item.id), "Product link copied");
+
+  const shareProduct = (item: any) =>
+    shareOrCopy({
+      title: item.name || "Zero Store",
+      text: `${item.name || "This product"} on Zero Store`,
+      url: storeProductUrl(item.id),
+      copiedMessage: "Product link copied",
+    });
 
   const priceOf = (item: any) =>
     (item.discount_percent || 0) > 0
@@ -126,7 +175,7 @@ function StorePage() {
       if (error) throw error;
 
       toast.success(`Purchased ${item.name} successfully!`);
-      setSelected(null);
+      closeItem();
       if (data?.file_url) {
         window.open(data.file_url, '_blank');
       }
@@ -314,7 +363,7 @@ function StorePage() {
       </div>
 
       {/* ── Product detail ── */}
-      <Drawer open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+      <Drawer open={selected !== null} onOpenChange={(open) => !open && closeItem()}>
         <DrawerContent
           desktopVariant="panel"
           className="border-none bg-background p-0 focus:ring-0 max-w-lg mx-auto max-h-[92dvh] flex flex-col"
@@ -345,6 +394,27 @@ function StorePage() {
                         <Tag className="h-2.5 w-2.5" /> {formatPercent(selected.discount_percent)}% off
                       </span>
                     )}
+
+                    {/* Share sits on the cover so it is reachable without
+                        scrolling, whatever the description length. */}
+                    <div className="absolute right-4 top-4 flex items-center gap-2">
+                      <button
+                        onClick={() => copyProductLink(selected)}
+                        title="Copy link"
+                        aria-label="Copy product link"
+                        className="grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur-sm tap hover:bg-black/70"
+                      >
+                        <Copy className="h-[15px] w-[15px]" />
+                      </button>
+                      <button
+                        onClick={() => shareProduct(selected)}
+                        title="Share product"
+                        aria-label="Share product"
+                        className="flex h-9 items-center gap-1.5 rounded-full bg-black/55 px-3.5 text-[12px] font-semibold text-white backdrop-blur-sm tap hover:bg-black/70"
+                      >
+                        <Share2 className="h-[14px] w-[14px]" /> Share
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-5 px-6 py-5">
@@ -462,7 +532,7 @@ function StorePage() {
                     </Link>
                   ) : !canAfford ? (
                     <button
-                      onClick={() => { setSelected(null); navigate({ to: "/app/wallet" }); }}
+                      onClick={() => navigate({ to: "/app/wallet" })}
                       className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[13.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
                     >
                       Top up your wallet <ArrowUpRight className="h-4 w-4" />
