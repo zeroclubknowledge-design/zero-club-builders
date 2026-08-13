@@ -350,6 +350,29 @@ export const IconSpark = ({ className, active }: ZeroIconProps) => (
   </Svg>
 );
 
+/**
+ * Tab-bar menu. Three rules in the resting state; the active state thickens
+ * them into bars rather than filling a shape, because there is no silhouette
+ * here to fill the way Home or Clubs have one.
+ */
+export const IconMenu = ({ className, active }: ZeroIconProps) => (
+  <Svg className={className}>
+    {active ? (
+      <>
+        <rect x="3" y="5" width="18" height="2.6" rx="1.3" fill="currentColor" />
+        <rect x="3" y="10.7" width="18" height="2.6" rx="1.3" fill="currentColor" />
+        <rect x="3" y="16.4" width="18" height="2.6" rx="1.3" fill="currentColor" />
+      </>
+    ) : (
+      <>
+        <path d="M4 6.3h16" {...stroke} />
+        <path d="M4 12h16" {...stroke} />
+        <path d="M4 17.7h16" {...stroke} />
+      </>
+    )}
+  </Svg>
+);
+
 export const IconShield = ({ className, active }: ZeroIconProps) => (
   <Svg className={className}>
     {active ? (

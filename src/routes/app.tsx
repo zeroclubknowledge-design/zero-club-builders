@@ -28,6 +28,7 @@ import {
   LogOut,
   ShieldCheck,
   ClipboardList,
+  X,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -47,7 +48,7 @@ import {
   IconHome, IconLearn, IconClubs, IconWallet, IconMessages, IconGames,
   IconProfile, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics,
   IconPresentation, IconInstitution, IconStore,
-  IconBell, IconRocket, IconSpark, IconShield,
+  IconBell, IconRocket, IconSpark, IconShield, IconMenu,
 } from "@/components/icons";
 import { supabase } from "@/lib/supabase";
 import {
@@ -70,8 +71,26 @@ const tabs = [
   { to: "/app/", label: "Feed", Icon: IconHome, exact: true },
   { to: "/app/bootcamps", label: "Learn", Icon: IconLearn },
   { to: "/app/clubs", label: "Clubs", Icon: IconClubs },
-  { to: "/app/games", label: "Games", Icon: IconGames },
+  // Not a destination — opens the menu card. Kept in this list so it keeps the
+  // same slot, size and spacing as the tabs either side of it.
+  { to: null, label: "Menu", Icon: IconMenu },
   { to: "/app/chat", label: "Messages", Icon: IconMessages },
+];
+
+/**
+ * What lives on the menu card.
+ *
+ * These are all destinations you go to occasionally and deliberately, rather
+ * than the four you move between constantly. Everything here is hidden from
+ * the sidebar on mobile so the same link never appears in two places at once.
+ */
+const MENU_ITEMS = [
+  { to: "/app/quests", label: "Opportunities", note: "Gigs, briefs and open calls", Icon: IconRocket },
+  { to: "/app/store", label: "Zero Store", note: "Buy from builders", Icon: IconStore },
+  { to: "/app/zerohub", label: "ZeroHub", note: "Explore the network", Icon: IconCompass },
+  { to: "/app/notes", label: "ZeroNotes", note: "Your notes and drafts", Icon: IconNotes },
+  { to: "/app/games", label: "Games", note: "Play and earn ZP", Icon: IconGames },
+  { to: "/app/zero-ai", label: "Zero AI", note: "Ask, draft, summarise", Icon: IconSpark },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -377,12 +396,15 @@ function SidebarContent({
                 : []),
               { Icon: IconStore, label: "My Store", to: "/app/my-store" },
               { Icon: IconWallet, label: "Wallet", to: "/app/wallet" },
-              { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
               { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
               { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
-              { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
-              { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
-              { Icon: IconSpark, label: "Zero AI", to: "/app/zero-ai" },
+              // desktopOnly: these five live on the mobile menu card instead,
+              // so listing them here as well would repeat them. Desktop has no
+              // bottom nav and therefore no menu card, so it keeps them.
+              { Icon: IconRocket, label: "Opportunities", to: "/app/quests", desktopOnly: true },
+              { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes", desktopOnly: true },
+              { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub", desktopOnly: true },
+              { Icon: IconSpark, label: "Zero AI", to: "/app/zero-ai", desktopOnly: true },
               ...(profile?.account_type === "Tutor"
                 ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
                 : []),
@@ -455,13 +477,19 @@ type BottomNavProps = {
   isChat: boolean;
   isDetail: boolean;
   unreadCount: number;
+  onOpenMenu: () => void;
+  menuOpen: boolean;
 };
 
-function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomNavProps) {
+function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onOpenMenu, menuOpen }: BottomNavProps) {
   return (
     <nav
       data-zc-bottom-nav
-      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-20px)] max-w-md -translate-x-1/2 transition-all duration-300 md:hidden ${
+      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 ${
+        // Above the menu backdrop while the card is open, so the nav stays
+        // sharp and the Menu tab can be tapped again to close.
+        menuOpen ? "z-[90]" : "z-50"
+      } w-[calc(100%-20px)] max-w-md -translate-x-1/2 transition-all duration-300 md:hidden ${
         visible &&
         !isDetail &&
         !pathname.includes("/app/live") &&
@@ -474,19 +502,46 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount }: BottomN
       <div className="grid grid-cols-5 gap-1 rounded-xl border border-border/70 bg-background/95 p-1.5 shadow-[0_18px_48px_-20px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         {tabs.map((t) => {
           const normalize = (p: string) => p.replace(/\/$/, "");
-          const active = t.exact
+          const active = !t.to
+            ? menuOpen
+            : t.exact
             ? normalize(pathname) === normalize(t.to)
             : pathname.startsWith(t.to);
+
+          const tabClass = `relative flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg tap transition-all duration-200 active:scale-95 ${
+            active
+              ? "bg-primary/[0.12] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+              : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
+          }`;
+
+          // The menu slot is a button, not a link: it opens a card rather than
+          // navigating anywhere.
+          if (!t.to) {
+            return (
+              <button
+                key={t.label}
+                type="button"
+                onClick={onOpenMenu}
+                aria-haspopup="dialog"
+                aria-expanded={menuOpen}
+                className={tabClass}
+              >
+                <t.Icon
+                  className={`h-[20px] w-[20px] shrink-0 transition-transform duration-300 ease-out ${active ? "-translate-y-px scale-110" : ""}`}
+                  active={active}
+                />
+                <span className="max-w-full truncate px-0.5 text-[9px] font-semibold leading-none tracking-tight">
+                  {t.label}
+                </span>
+              </button>
+            );
+          }
 
           return (
             <Link
               key={t.to}
               to={t.to}
-              className={`relative flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg tap transition-all duration-200 active:scale-95 ${
-                active
-                  ? "bg-primary/[0.12] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-                  : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
-              }`}
+              className={tabClass}
             >
               <t.Icon
                 className={`h-[20px] w-[20px] shrink-0 transition-transform duration-300 ease-out ${active ? "-translate-y-px scale-110" : ""}`}
@@ -681,6 +736,9 @@ function AppLayout() {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuClosing, setIsMenuClosing] = useState(false);
+
   const handleCloseSidebar = () => {
     setIsSidebarClosing(true);
     setTimeout(() => {
@@ -688,6 +746,32 @@ function AppLayout() {
       setIsSidebarClosing(false);
     }, 450);
   };
+
+  const handleCloseMenu = () => {
+    setIsMenuClosing(true);
+    setTimeout(() => {
+      setIsMenuOpen(false);
+      setIsMenuClosing(false);
+    }, 260);
+  };
+
+  // Any navigation closes the card. Without this it would still be sitting
+  // there, over the page it just sent you to.
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsMenuClosing(false);
+  }, [pathname]);
+
+  // The card is a layer over the page, so the hardware back button should
+  // dismiss it rather than leaving the app — this is running inside a TWA.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleCloseMenu();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMenuOpen]);
 
   useEffect(() => {
     const handleOpenSidebar = () => setIsSidebarOpen(true);
@@ -1229,6 +1313,70 @@ function AppLayout() {
           </>
         )}
 
+        {/* ── Menu card (mobile) ──
+            Opened from the Menu slot in the bottom nav. Mobile only, because
+            the bottom nav itself is mobile only — on desktop these same
+            destinations stay in the sidebar. */}
+        {(isMenuOpen || isMenuClosing) && (
+          <div className="md:hidden">
+            <div
+              className={`fixed inset-0 z-[70] bg-black/45 backdrop-blur-md ${isMenuClosing ? "animate-out fade-out duration-250 ease-in fill-mode-forwards" : "animate-in fade-in duration-250 ease-out"}`}
+              onClick={handleCloseMenu}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu"
+              // Sits above the bottom nav rather than over it, so the Menu tab
+              // stays visible and lit while the card is open — and tapping it
+              // again closes the card.
+              className={`fixed inset-x-3 bottom-[calc(max(10px,env(safe-area-inset-bottom))+74px)] z-[80] overflow-hidden rounded-2xl border border-border/70 bg-background shadow-[0_24px_70px_-20px_rgba(0,0,0,0.6)] ${isMenuClosing ? "animate-out fade-out slide-out-to-bottom-4 duration-250 ease-in fill-mode-forwards" : "animate-in fade-in slide-in-from-bottom-4 duration-250 ease-out"}`}
+            >
+              <div className="flex items-center justify-between px-5 pb-1 pt-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Menu
+                </p>
+                <button
+                  onClick={handleCloseMenu}
+                  aria-label="Close menu"
+                  className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground tap hover:bg-foreground/[0.05] hover:text-foreground"
+                >
+                  <X className="h-[18px] w-[18px]" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 px-3 pb-4 pt-2">
+                {MENU_ITEMS.map((item) => {
+                  const active = pathname.startsWith(item.to);
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={handleCloseMenu}
+                      className={`flex min-w-0 flex-col gap-2.5 rounded-xl p-3.5 tap transition-colors ${
+                        active
+                          ? "bg-primary/[0.1] ring-1 ring-primary/20"
+                          : "bg-foreground/[0.03] hover:bg-foreground/[0.06]"
+                      }`}
+                    >
+                      <item.Icon
+                        active={active}
+                        className={`h-[21px] w-[21px] shrink-0 ${active ? "text-primary" : "text-foreground"}`}
+                      />
+                      <div className="min-w-0">
+                        <div className={`truncate text-[13.5px] font-semibold tracking-tight ${active ? "text-primary" : "text-foreground"}`}>
+                          {item.label}
+                        </div>
+                        <div className="truncate text-[11px] text-muted-foreground">{item.note}</div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Theme Selection Sheet */}
         <Drawer open={isThemeOpen} onOpenChange={setIsThemeOpen}>
           <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
@@ -1283,6 +1431,8 @@ function AppLayout() {
             isChat={isChat}
             isDetail={isDetail}
             unreadCount={unreadMessagesCount}
+            onOpenMenu={() => (isMenuOpen ? handleCloseMenu() : setIsMenuOpen(true))}
+            menuOpen={isMenuOpen && !isMenuClosing}
           />
         )}
       </div>

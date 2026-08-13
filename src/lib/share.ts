@@ -1,5 +1,10 @@
 import { toast } from "sonner";
 
+// Bump this when the shape of product link metadata changes. Messaging apps
+// cache link previews very aggressively, so a versioned URL makes them fetch
+// the corrected card instead of keeping an older image-less result.
+export const PRODUCT_PREVIEW_VERSION = "2";
+
 /**
  * Sharing helpers, kept in one place so the store page and the seller's own
  * store produce identical links. A link that differs between the two would be
@@ -20,7 +25,32 @@ export function appOrigin(): string {
  * WhatsApp or X. Signed-in visitors are redirected straight into the store.
  */
 export function storeProductUrl(productId: string): string {
-  return `${appOrigin()}/product/${productId}`;
+  return `${appOrigin()}/product/${productId}?preview=${PRODUCT_PREVIEW_VERSION}`;
+}
+
+/**
+ * Return a crawler-friendly rendition of a public product cover.
+ *
+ * Store covers can be several megabytes. WhatsApp and similar clients often
+ * read the text metadata but silently skip an image that is too expensive to
+ * download. Weserv fetches the same public file, fits it to the standard
+ * 1200x630 social-card canvas, converts it to JPEG, and caches the result.
+ * The original URL remains untouched everywhere inside the store.
+ */
+export function socialProductImageUrl(coverUrl: string): string {
+  const source = coverUrl.trim();
+  if (!source || !/^https:\/\//i.test(source)) return source;
+  if (source.startsWith("https://images.weserv.nl/")) return source;
+
+  const params = new URLSearchParams({
+    url: source,
+    w: "1200",
+    h: "630",
+    fit: "cover",
+    output: "jpg",
+    q: "80",
+  });
+  return `https://images.weserv.nl/?${params.toString()}`;
 }
 
 /**

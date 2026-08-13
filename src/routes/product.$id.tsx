@@ -4,6 +4,7 @@ import { ArrowRight, Gift, ShieldCheck, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount, useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { formatPercent } from "@/lib/utils";
+import { PRODUCT_PREVIEW_VERSION, socialProductImageUrl } from "@/lib/share";
 
 /**
  * Public landing page for a shared Zero Store product link.
@@ -77,7 +78,7 @@ export const Route = createFileRoute("/product/$id")({
       // Hardcoded rather than derived from the request: the head runs where
       // there is no window, and this is the only origin these links are shared
       // from. It is what WhatsApp shows as the source under the card.
-      { property: "og:url", content: `https://www.zeroclubs.xyz/product/${loaderData.id}` },
+      { property: "og:url", content: `https://www.zeroclubs.xyz/product/${loaderData.id}?preview=${PRODUCT_PREVIEW_VERSION}` },
       { property: "og:site_name", content: "Zero Club" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
@@ -86,9 +87,16 @@ export const Route = createFileRoute("/product/$id")({
     // Only override the site-wide preview image when this product has a cover
     // of its own, otherwise the generic logo is still better than nothing.
     if (loaderData.cover_url) {
+      const previewImage = socialProductImageUrl(loaderData.cover_url);
       meta.push(
-        { property: "og:image", content: loaderData.cover_url },
-        { name: "twitter:image", content: loaderData.cover_url },
+        { property: "og:image", content: previewImage },
+        { property: "og:image:secure_url", content: previewImage },
+        { property: "og:image:type", content: "image/jpeg" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: `${loaderData.name} product cover` },
+        { name: "twitter:image", content: previewImage },
+        { name: "twitter:image:alt", content: `${loaderData.name} product cover` },
         { name: "twitter:card", content: "summary_large_image" },
       );
     }
