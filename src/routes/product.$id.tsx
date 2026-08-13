@@ -4,7 +4,7 @@ import { ArrowRight, Gift, ShieldCheck, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount, useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { formatPercent } from "@/lib/utils";
-import { PRODUCT_PREVIEW_VERSION, socialProductImageUrl } from "@/lib/share";
+import { PRODUCT_PREVIEW_VERSION } from "@/lib/share";
 
 /**
  * Public landing page for a shared Zero Store product link.
@@ -87,7 +87,11 @@ export const Route = createFileRoute("/product/$id")({
     // Only override the site-wide preview image when this product has a cover
     // of its own, otherwise the generic logo is still better than nothing.
     if (loaderData.cover_url) {
-      const previewImage = socialProductImageUrl(loaderData.cover_url);
+      // Keep the public image on the same Zero Club origin and give it a clean
+      // path without query parameters. Some messaging crawlers obey the image
+      // renderer's robots.txt, which rejects every query-string image even
+      // though a normal browser can load it successfully.
+      const previewImage = `https://www.zeroclubs.xyz/product/${loaderData.id}/preview-v3`;
       meta.push(
         { property: "og:image", content: previewImage },
         { property: "og:image:secure_url", content: previewImage },

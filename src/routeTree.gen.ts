@@ -51,6 +51,7 @@ import { Route as AppClubsIndexRouteImport } from './routes/app.clubs.index'
 import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
+import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
 import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
 import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
 import { Route as AppWalletSendRouteImport } from './routes/app.wallet.send'
@@ -295,6 +296,11 @@ const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const ProductIdPreviewV3Route = ProductIdPreviewV3RouteImport.update({
+  id: '/preview-v3',
+  path: '/preview-v3',
+  getParentRoute: () => ProductIdRoute,
+} as any)
 const AppWalletWithdrawRoute = AppWalletWithdrawRouteImport.update({
   id: '/wallet/withdraw',
   path: '/wallet/withdraw',
@@ -488,7 +494,7 @@ export interface FileRoutesByFullPath {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
-  '/product/$id': typeof ProductIdRoute
+  '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -518,6 +524,7 @@ export interface FileRoutesByFullPath {
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin/': typeof AppAdminIndexRoute
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
@@ -558,7 +565,7 @@ export interface FileRoutesByTo {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
-  '/product/$id': typeof ProductIdRoute
+  '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -588,6 +595,7 @@ export interface FileRoutesByTo {
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin': typeof AppAdminIndexRoute
   '/app/bootcamps': typeof AppBootcampsIndexRoute
   '/app/chat': typeof AppChatIndexRoute
@@ -635,7 +643,7 @@ export interface FileRoutesById {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
-  '/product/$id': typeof ProductIdRoute
+  '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -665,6 +673,7 @@ export interface FileRoutesById {
   '/app/wallet/send': typeof AppWalletSendRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin/': typeof AppAdminIndexRoute
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
   '/app/chat/': typeof AppChatIndexRoute
@@ -743,6 +752,7 @@ export interface FileRouteTypes {
     | '/app/wallet/send'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/product/$id/preview-v3'
     | '/app/admin/'
     | '/app/bootcamps/'
     | '/app/chat/'
@@ -813,6 +823,7 @@ export interface FileRouteTypes {
     | '/app/wallet/send'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/product/$id/preview-v3'
     | '/app/admin'
     | '/app/bootcamps'
     | '/app/chat'
@@ -889,6 +900,7 @@ export interface FileRouteTypes {
     | '/app/wallet/send'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/product/$id/preview-v3'
     | '/app/admin/'
     | '/app/bootcamps/'
     | '/app/chat/'
@@ -917,7 +929,7 @@ export interface RootRouteChildren {
   ClubIdRoute: typeof ClubIdRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
-  ProductIdRoute: typeof ProductIdRoute
+  ProductIdRoute: typeof ProductIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -1215,6 +1227,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/admin/'
       preLoaderRoute: typeof AppAdminIndexRouteImport
       parentRoute: typeof AppAdminRoute
+    }
+    '/product/$id/preview-v3': {
+      id: '/product/$id/preview-v3'
+      path: '/preview-v3'
+      fullPath: '/product/$id/preview-v3'
+      preLoaderRoute: typeof ProductIdPreviewV3RouteImport
+      parentRoute: typeof ProductIdRoute
     }
     '/app/wallet/withdraw': {
       id: '/app/wallet/withdraw'
@@ -1637,6 +1656,18 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface ProductIdRouteChildren {
+  ProductIdPreviewV3Route: typeof ProductIdPreviewV3Route
+}
+
+const ProductIdRouteChildren: ProductIdRouteChildren = {
+  ProductIdPreviewV3Route: ProductIdPreviewV3Route,
+}
+
+const ProductIdRouteWithChildren = ProductIdRoute._addFileChildren(
+  ProductIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
@@ -1647,7 +1678,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClubIdRoute: ClubIdRoute,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
-  ProductIdRoute: ProductIdRoute,
+  ProductIdRoute: ProductIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
