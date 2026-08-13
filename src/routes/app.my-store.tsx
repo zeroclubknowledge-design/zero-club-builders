@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { useUser } from "@/hooks/useUser";
+import { clampPercent, formatPercent } from "@/lib/utils";
 import { IconStore } from "@/components/icons";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import {
@@ -98,10 +99,13 @@ function MyStorePage() {
       category: item.category || "Template",
       price: String(item.price_type === "Coins" ? fromBaseAmount(item.price ?? 0) : item.price ?? ""),
       priceType: item.price_type === "ZP" ? "ZP" : "Coins",
-      discountPercent: String(item.discount_percent ?? 0),
+      // Round-trip through clampPercent so "66.6700" from Postgres becomes
+      // "66.67". String(), not formatPercent — a number input needs a dot as
+      // the decimal separator regardless of the device's locale.
+      discountPercent: String(clampPercent(item.discount_percent ?? 0, 90)),
       couponEnabled: !!item.coupon_code,
       couponCode: item.coupon_code || "",
-      couponPercent: String(item.coupon_discount_percent || 10),
+      couponPercent: String(clampPercent(item.coupon_discount_percent || 10, 90)),
     });
     setCoverFile(null);
     setCoverPreview(item.cover_url || null);
@@ -121,8 +125,10 @@ function MyStorePage() {
 
   const enteredPrice = Math.max(0, Number(form.price) || 0);
   const numericPrice = form.priceType === "Coins" ? toBaseAmount(enteredPrice) : enteredPrice;
-  const numericDiscount = Math.min(90, Math.max(0, parseInt(form.discountPercent) || 0));
-  const numericCoupon = Math.min(90, Math.max(0, parseInt(form.couponPercent) || 0));
+  // parseFloat, not parseInt — a 66.67% discount is a legitimate price, and
+  // parseInt silently turned it into 66, quietly overcharging the buyer.
+  const numericDiscount = clampPercent(form.discountPercent, 90);
+  const numericCoupon = clampPercent(form.couponPercent, 90);
   const salePrice = effectivePrice(numericPrice, numericDiscount);
   const couponPrice = effectivePrice(salePrice, form.couponEnabled ? numericCoupon : 0);
 
@@ -356,14 +362,14 @@ function MyStorePage() {
                         <div className="flex flex-wrap items-center gap-1.5">
                           {(item.discount_percent || 0) > 0 && (
                             <span className="flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[10.5px] font-semibold text-success ring-1 ring-success/20">
-                              <Tag className="h-2.5 w-2.5" /> {item.discount_percent}% off
+                              <Tag className="h-2.5 w-2.5" /> {formatPercent(item.discount_percent)}% off
                             </span>
                           )}
                           {item.coupon_code && (
                             <span className="flex max-w-full items-center gap-1 rounded-full bg-primary/8 px-2.5 py-1 text-[10.5px] font-semibold text-primary ring-1 ring-primary/15">
                               <TicketPercent className="h-2.5 w-2.5 shrink-0" />
                               <span className="truncate">{item.coupon_code}</span>
-                              <span className="shrink-0">· −{item.coupon_discount_percent}%</span>
+                              <span className="shrink-0">· −{formatPercent(item.coupon_discount_percent)}%</span>
                             </span>
                           )}
                         </div>
@@ -518,6 +524,10 @@ function MyStorePage() {
                     type="number"
                     min="0"
                     max="90"
+                    // step 0.01 and inputMode decimal so the browser accepts a
+                    // fractional discount and a phone keypad offers the dot.
+                    step="0.01"
+                    inputMode="decimal"
                     value={form.discountPercent}
                     onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
                     className={`${inputClass} pr-8 tabular-nums`}
@@ -554,6 +564,8 @@ function MyStorePage() {
                       type="number"
                       min="1"
                       max="90"
+                      step="0.01"
+                      inputMode="decimal"
                       value={form.couponPercent}
                       onChange={(e) => setForm({ ...form, couponPercent: e.target.value })}
                       className={`${inputClass} pr-8 tabular-nums`}

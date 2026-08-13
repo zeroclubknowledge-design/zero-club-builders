@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { formatPercent } from "@/lib/utils";
 import {
   Drawer,
   DrawerContent,
@@ -105,7 +106,7 @@ function StorePage() {
       (selected.coupon_discount_percent || 0) > 0
     ) {
       setAppliedCoupon(entered);
-      toast.success(`Coupon applied — ${selected.coupon_discount_percent}% off`);
+      toast.success(`Coupon applied — ${formatPercent(selected.coupon_discount_percent)}% off`);
     } else {
       setAppliedCoupon(null);
       toast.error("That coupon code isn't valid for this product");
@@ -257,7 +258,7 @@ function StorePage() {
                   <div className="border-t hairline px-5 py-3.5 flex items-center justify-between gap-4">
                     <div className="text-left">
                       <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                        {item.discount_percent > 0 ? `Price · ${item.discount_percent}% off` : "Price"}
+                        {item.discount_percent > 0 ? `Price · ${formatPercent(item.discount_percent)}% off` : "Price"}
                       </p>
                       <div className="flex items-baseline gap-1.5 mt-0.5">
                         {(() => {
@@ -341,7 +342,7 @@ function StorePage() {
                     )}
                     {(selected.discount_percent || 0) > 0 && (
                       <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10.5px] font-semibold text-white backdrop-blur-sm">
-                        <Tag className="h-2.5 w-2.5" /> {selected.discount_percent}% off
+                        <Tag className="h-2.5 w-2.5" /> {formatPercent(selected.discount_percent)}% off
                       </span>
                     )}
                   </div>
