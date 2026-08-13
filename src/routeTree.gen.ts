@@ -16,6 +16,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as FormSlugRouteImport } from './routes/form.$slug'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as ClubIdRouteImport } from './routes/club.$id'
@@ -117,6 +118,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const ProductIdRoute = ProductIdRouteImport.update({
+  id: '/product/$id',
+  path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const FormSlugRoute = FormSlugRouteImport.update({
   id: '/form/$slug',
@@ -482,6 +488,7 @@ export interface FileRoutesByFullPath {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
+  '/product/$id': typeof ProductIdRoute
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -551,6 +558,7 @@ export interface FileRoutesByTo {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
+  '/product/$id': typeof ProductIdRoute
   '/app': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -627,6 +635,7 @@ export interface FileRoutesById {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
+  '/product/$id': typeof ProductIdRoute
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -704,6 +713,7 @@ export interface FileRouteTypes {
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
+    | '/product/$id'
     | '/app/'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -773,6 +783,7 @@ export interface FileRouteTypes {
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
+    | '/product/$id'
     | '/app'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -848,6 +859,7 @@ export interface FileRouteTypes {
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
+    | '/product/$id'
     | '/app/'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
@@ -905,6 +917,7 @@ export interface RootRouteChildren {
   ClubIdRoute: typeof ClubIdRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
+  ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -957,6 +970,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/product/$id': {
+      id: '/product/$id'
+      path: '/product/$id'
+      fullPath: '/product/$id'
+      preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/form/$slug': {
       id: '/form/$slug'
@@ -1627,6 +1647,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClubIdRoute: ClubIdRoute,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
+  ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

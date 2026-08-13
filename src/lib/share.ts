@@ -11,9 +11,16 @@ export function appOrigin(): string {
   return typeof window !== "undefined" ? window.location.origin : "https://www.zeroclubs.xyz";
 }
 
-/** The canonical shareable link for a Zero Store product. */
+/**
+ * The canonical shareable link for a Zero Store product.
+ *
+ * Points at /product/<id>, not /app/store?product=<id>. Both open the same
+ * thing, but only /product/<id> is server-rendered with the product's own name
+ * and cover image, so that is the one that previews properly when pasted into
+ * WhatsApp or X. Signed-in visitors are redirected straight into the store.
+ */
 export function storeProductUrl(productId: string): string {
-  return `${appOrigin()}/app/store?product=${productId}`;
+  return `${appOrigin()}/product/${productId}`;
 }
 
 /**
