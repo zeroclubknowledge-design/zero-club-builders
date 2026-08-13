@@ -1,6 +1,6 @@
 import { getFirstName } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound } from "lucide-react";
+import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMessages, sendMessageAction, editMessageAction } from "@/api";
 import { useUser } from "@/hooks/useUser";
@@ -301,6 +301,30 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                     )}
                     {isMe && (
                       <p className="text-xs opacity-70 mt-1">Invitation sent to user.</p>
+                    )}
+                  </div>
+                ) : m.content.startsWith('FUND_LINK:') ? (
+                  /* A wallet fund link, delivered to the inbox rather than as a
+                     bare URL, so the ask is legible before anyone taps it. */
+                  <div className="flex min-w-[220px] flex-col gap-3">
+                    <div className="flex items-center gap-2 font-bold">
+                      <WalletCards className="h-4 w-4" /> Fund request
+                    </div>
+                    <p className={`text-[14px] ${isMe ? 'text-background/90' : 'text-foreground/90'}`}>
+                      {isMe ? (
+                        <>You shared a link to fund your Zero Club wallet.</>
+                      ) : (
+                        <><strong>{m.content.split(':')[2]}</strong> is asking you to add money to their Zero Club wallet.</>
+                      )}
+                    </p>
+                    {!isMe && (
+                      <Link
+                        to="/fund/$slug"
+                        params={{ slug: m.content.split(':')[1] }}
+                        className="rounded-lg bg-primary py-2 text-center text-xs font-bold text-primary-foreground transition hover:opacity-90"
+                      >
+                        Open and pay
+                      </Link>
                     )}
                   </div>
                 ) : m.content.startsWith('ACCEPTED_TUTOR_INVITE:') ? (

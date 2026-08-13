@@ -53,6 +53,11 @@ export function socialProductImageUrl(coverUrl: string): string {
   return `https://images.weserv.nl/?${params.toString()}`;
 }
 
+/** The shareable link for a wallet fund link. */
+export function fundLinkUrl(slug: string): string {
+  return `${appOrigin()}/fund/${slug}`;
+}
+
 /**
  * Copies text, with a fallback for the cases where the async clipboard is not
  * available: it needs a secure context and is blocked in some older Android

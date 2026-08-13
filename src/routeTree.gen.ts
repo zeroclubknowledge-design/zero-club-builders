@@ -17,6 +17,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
+import { Route as FundSlugRouteImport } from './routes/fund.$slug'
 import { Route as FormSlugRouteImport } from './routes/form.$slug'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as ClubIdRouteImport } from './routes/club.$id'
@@ -39,6 +40,7 @@ import { Route as AppComposeRouteImport } from './routes/app.compose'
 import { Route as AppBoostRouteImport } from './routes/app.boost'
 import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
+import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as AppWalletIndexRouteImport } from './routes/app.wallet.index'
 import { Route as AppTutorStudioIndexRouteImport } from './routes/app.tutor-studio.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
@@ -123,6 +125,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const ProductIdRoute = ProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FundSlugRoute = FundSlugRouteImport.update({
+  id: '/fund/$slug',
+  path: '/fund/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FormSlugRoute = FormSlugRouteImport.update({
@@ -234,6 +241,11 @@ const AppAdminRoute = AppAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AppRoute,
+} as any)
+const ApiContactRoute = ApiContactRouteImport.update({
+  id: '/api/contact',
+  path: '/api/contact',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppWalletIndexRoute = AppWalletIndexRouteImport.update({
   id: '/wallet/',
@@ -472,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/api/contact': typeof ApiContactRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -494,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
+  '/fund/$slug': typeof FundSlugRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
@@ -548,6 +562,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/api/contact': typeof ApiContactRoute
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
@@ -565,6 +580,7 @@ export interface FileRoutesByTo {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
+  '/fund/$slug': typeof FundSlugRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
@@ -621,6 +637,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/api/contact': typeof ApiContactRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -643,6 +660,7 @@ export interface FileRoutesById {
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
+  '/fund/$slug': typeof FundSlugRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
@@ -700,6 +718,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/signin'
     | '/signup'
+    | '/api/contact'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -722,6 +741,7 @@ export interface FileRouteTypes {
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
+    | '/fund/$slug'
     | '/product/$id'
     | '/app/'
     | '/app/bootcamps/$id'
@@ -776,6 +796,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/signin'
     | '/signup'
+    | '/api/contact'
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
@@ -793,6 +814,7 @@ export interface FileRouteTypes {
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
+    | '/fund/$slug'
     | '/product/$id'
     | '/app'
     | '/app/bootcamps/$id'
@@ -848,6 +870,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/signin'
     | '/signup'
+    | '/api/contact'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -870,6 +893,7 @@ export interface FileRouteTypes {
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
+    | '/fund/$slug'
     | '/product/$id'
     | '/app/'
     | '/app/bootcamps/$id'
@@ -926,9 +950,11 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
+  ApiContactRoute: typeof ApiContactRoute
   ClubIdRoute: typeof ClubIdRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
+  FundSlugRoute: typeof FundSlugRoute
   ProductIdRoute: typeof ProductIdRouteWithChildren
 }
 
@@ -988,6 +1014,13 @@ declare module '@tanstack/react-router' {
       path: '/product/$id'
       fullPath: '/product/$id'
       preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fund/$slug': {
+      id: '/fund/$slug'
+      path: '/fund/$slug'
+      fullPath: '/fund/$slug'
+      preLoaderRoute: typeof FundSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/form/$slug': {
@@ -1143,6 +1176,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/admin'
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/api/contact': {
+      id: '/api/contact'
+      path: '/api/contact'
+      fullPath: '/api/contact'
+      preLoaderRoute: typeof ApiContactRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/wallet/': {
       id: '/app/wallet/'
@@ -1675,9 +1715,11 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
+  ApiContactRoute: ApiContactRoute,
   ClubIdRoute: ClubIdRoute,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
+  FundSlugRoute: FundSlugRoute,
   ProductIdRoute: ProductIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport

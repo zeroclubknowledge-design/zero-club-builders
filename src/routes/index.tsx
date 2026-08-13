@@ -7,6 +7,9 @@ import {
   Check,
   ChevronDown,
   Download,
+  LoaderCircle,
+  Mail,
+  Send,
   ThumbsUp,
   Menu,
   MessageSquare,
@@ -402,9 +405,9 @@ function ProductShowcase() {
 /**
  * The scrolling rail under the hero, showing real clubs.
  *
- * Reads clubs directly with the anon key, which the clubs_select_public policy
- * permits. Only active, non-private clubs are shown: a private club's name is
- * not for a logged-out visitor, and an archived one is not a good advert.
+ * Reads clubs directly with the anon key and only shows active clubs that have
+ * a real logo or banner. The landing rail is a visual showcase only: it does
+ * not expose a private club's posts, members, chat, or join controls.
  *
  * If the query fails or returns nothing, the rail renders nothing at all rather
  * than falling back to invented clubs. An empty strip is better than a landing
@@ -416,14 +419,36 @@ function ActivityRail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clubs")
-        .select("id, name, category, is_private, status, created_at")
-        .eq("is_private", false)
+        .select("id, name, category, logo_url, banner_url, status, created_at")
         .eq("status", "active")
+        .or("logo_url.not.is.null,banner_url.not.is.null")
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(18);
 
       if (error) throw error;
-      return data ?? [];
+
+      // Prefer category variety, then fill the remaining spaces with the most
+      // recently created image-backed clubs. At most six distinct clubs are
+      // shown so the hero remains compact on phones.
+      const imageBacked = (data ?? []).filter((club) => Boolean(club.logo_url || club.banner_url));
+      const selected: typeof imageBacked = [];
+      const usedCategories = new Set<string>();
+
+      for (const club of imageBacked) {
+        const category = (club.category || "Community").trim().toLowerCase();
+        if (!usedCategories.has(category)) {
+          selected.push(club);
+          usedCategories.add(category);
+        }
+        if (selected.length === 6) break;
+      }
+
+      for (const club of imageBacked) {
+        if (selected.length === 6) break;
+        if (!selected.some((item) => item.id === club.id)) selected.push(club);
+      }
+
+      return selected;
     },
     // The landing page is the most-hit route on the site; clubs change rarely.
     staleTime: 5 * 60 * 1000,
@@ -454,14 +479,19 @@ function ActivityRail() {
               aria-hidden={index >= clubs.length || undefined}
               className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:w-[218px] sm:gap-3"
             >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[11px] font-semibold text-[#9d176d]">
-                {(club.name || "?").trim().slice(0, 1).toUpperCase()}
+              <span className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-[#cc208f]/10 ring-1 ring-[#171717]/[0.06]">
+                <img
+                  src={club.logo_url || club.banner_url || ""}
+                  alt={`${club.name} club`}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-[11.5px] font-semibold text-[#242126]">{club.name}</span>
                 <span className="block truncate text-[10.5px] text-[#666a70]">{club.category || "Community"}</span>
               </span>
-              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">Open</span>
+              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">Live</span>
             </article>
           ))}
         </div>
@@ -853,6 +883,167 @@ const faqs = [
   { q: "Is Zero Club free to use?", a: "It is free to join and start building your network. We also offer Premium memberships for advanced features, and creators can charge for their own content." },
 ];
 
+type ContactFormState = {
+  name: string;
+  email: string;
+  subject: string;
+  description: string;
+  website: string;
+};
+
+const emptyContactForm: ContactFormState = {
+  name: "",
+  email: "",
+  subject: "",
+  description: "",
+  website: "",
+};
+
+function ContactSection() {
+  const [form, setForm] = useState<ContactFormState>(emptyContactForm);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [feedback, setFeedback] = useState("");
+
+  const updateField = (field: keyof ContactFormState, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    if (status !== "idle") {
+      setStatus("idle");
+      setFeedback("");
+    }
+  };
+
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus("sending");
+    setFeedback("");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const result = (await response.json().catch(() => ({}))) as { error?: string };
+
+      if (!response.ok) throw new Error(result.error || "Your message could not be sent. Please try again.");
+
+      setForm(emptyContactForm);
+      setStatus("sent");
+      setFeedback("Message sent. The Zero Club team will get back to you soon.");
+    } catch (error) {
+      setStatus("error");
+      setFeedback(error instanceof Error ? error.message : "Your message could not be sent. Please try again.");
+    }
+  };
+
+  const inputClass =
+    "mt-2 w-full rounded-lg border border-[#171717]/[0.08] bg-white px-4 py-3 text-[14px] text-[#171717] outline-none transition placeholder:text-[#8a8c91] focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/[0.07]";
+
+  return (
+    <section id="contact" className="border-b border-[#171717]/[0.06] bg-white">
+      <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:py-24">
+        <div className="lg:pt-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Contact us</p>
+          <h2 className="mt-3 max-w-[440px] font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+            Let&apos;s talk about what you&apos;re building.
+          </h2>
+          <p className="mt-5 max-w-[430px] text-[14px] leading-relaxed text-[#666a70] md:text-[15px]">
+            Have a question, partnership idea, or need help with Zero Club? Send us a note and it will go directly to our team.
+          </p>
+          <a
+            href="mailto:admin@zeroclubs.xyz"
+            className="mt-7 inline-flex items-center gap-2 text-[13px] font-semibold text-[#9d176d] transition hover:text-[#cc208f]"
+          >
+            <Mail className="h-4 w-4" />
+            admin@zeroclubs.xyz
+          </a>
+        </div>
+
+        <form onSubmit={submit} className="rounded-lg bg-[#f4f2ef] p-5 ring-1 ring-[#171717]/[0.06] sm:p-7" noValidate={false}>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="text-[12px] font-semibold text-[#343238]">
+              Name
+              <input
+                required
+                autoComplete="name"
+                maxLength={100}
+                value={form.name}
+                onChange={(event) => updateField("name", event.target.value)}
+                className={inputClass}
+                placeholder="Your name"
+              />
+            </label>
+            <label className="text-[12px] font-semibold text-[#343238]">
+              Email
+              <input
+                required
+                type="email"
+                autoComplete="email"
+                maxLength={254}
+                value={form.email}
+                onChange={(event) => updateField("email", event.target.value)}
+                className={inputClass}
+                placeholder="you@example.com"
+              />
+            </label>
+          </div>
+
+          <label className="mt-5 block text-[12px] font-semibold text-[#343238]">
+            Subject
+            <input
+              required
+              maxLength={160}
+              value={form.subject}
+              onChange={(event) => updateField("subject", event.target.value)}
+              className={inputClass}
+              placeholder="How can we help?"
+            />
+          </label>
+
+          <label className="mt-5 block text-[12px] font-semibold text-[#343238]">
+            Description
+            <textarea
+              required
+              rows={5}
+              maxLength={5000}
+              value={form.description}
+              onChange={(event) => updateField("description", event.target.value)}
+              className={`${inputClass} min-h-[138px] resize-y`}
+              placeholder="Tell us a little more..."
+            />
+          </label>
+
+          <label className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+            Website
+            <input
+              tabIndex={-1}
+              autoComplete="off"
+              value={form.website}
+              onChange={(event) => updateField("website", event.target.value)}
+            />
+          </label>
+
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <button
+              type="submit"
+              disabled={status === "sending"}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[14px] font-semibold text-white transition hover:opacity-90 active:scale-[0.98] disabled:cursor-wait disabled:opacity-65"
+            >
+              {status === "sending" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {status === "sending" ? "Sending..." : "Send message"}
+            </button>
+            {feedback && (
+              <p role="status" className={`max-w-[360px] text-[12px] leading-relaxed ${status === "sent" ? "text-emerald-700" : "text-red-600"}`}>
+                {feedback}
+              </p>
+            )}
+          </div>
+        </form>
+      </div>
+    </section>
+  );
+}
+
 function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -938,7 +1129,7 @@ function Footer() {
               <ul className="grid gap-2.5">
                 {group.links.map((link) => (
                   <li key={link}>
-                    <a href="#people" className="text-[13px] font-medium text-[#666a70] transition-colors hover:text-[#171717]">
+                    <a href={link === "Contact" ? "#contact" : "#people"} className="text-[13px] font-medium text-[#666a70] transition-colors hover:text-[#171717]">
                       {link}
                     </a>
                   </li>
@@ -970,6 +1161,7 @@ function Landing() {
         <OpportunitiesSection />
         <WalletSection />
         <FeaturesSection />
+        <ContactSection />
         <FaqSection />
         <FinalCta referralCode={ref} />
       </main>
