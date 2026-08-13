@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'supabase/functions/**'
+      - '.github/workflows/deploy-functions.yml'
   workflow_dispatch:
 
 jobs:
@@ -26,4 +27,6 @@ jobs:
           version: latest
 
       - name: Deploy Edge Functions
-        run: supabase functions deploy agora-token --project-ref $PROJECT_ID
+        run: |
+          supabase functions deploy agora-token --project-ref $PROJECT_ID
+          supabase functions deploy send-push --project-ref $PROJECT_ID
