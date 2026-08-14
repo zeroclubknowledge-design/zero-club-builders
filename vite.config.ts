@@ -23,7 +23,12 @@ export default defineConfig(({ command }) => {
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      registerType: "autoUpdate",
+      // "prompt", not "autoUpdate". autoUpdate makes the injected registration
+      // reload the page the moment a new service worker takes control, which
+      // happens whenever the app regains focus after a deploy — so leaving the
+      // app and coming back threw away whatever you were doing. With "prompt"
+      // the new version is picked up on the next cold start instead.
+      registerType: "prompt",
       includeAssets: ["logo.png", "favicon.ico"],
       manifest: {
         // A stable identity for the app. Browsers and app stores use this

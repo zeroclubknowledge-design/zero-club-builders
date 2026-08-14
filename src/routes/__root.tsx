@@ -11,22 +11,18 @@ import {
 import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { LiveSessionProvider } from "@/contexts/LiveSessionContext";
+import { isChunkLoadError, recoverFromChunkError } from "@/lib/chunk-recovery";
 
 const GlobalLiveRoom = lazy(() => 
   import("@/components/GlobalLiveRoom")
     .then(m => ({ default: m.GlobalLiveRoom }))
     .catch((error) => {
       console.error("GlobalLiveRoom import failed:", error);
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          for (let registration of registrations) {
-            registration.unregister();
-          }
-          window.location.reload();
-        });
-      } else {
-        window.location.reload();
-      }
+      // Guarded: this used to reload unconditionally, so a chunk that stayed
+      // missing would reload the app forever. The live room is optional, so
+      // when recovery is on cooldown the app renders without it rather than
+      // taking the whole page down.
+      if (isChunkLoadError(error)) recoverFromChunkError();
       return { default: () => null };
     })
 );
@@ -73,12 +69,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   };
 
   useEffect(() => {
-    const isChunkError = error.message?.includes('Failed to fetch dynamically imported module') || 
-                        error.message?.includes('Importing a module script failed') || 
-                        error.name === 'ChunkLoadError';
-                        
-    if (isChunkError) {
-      handleHardReload();
+    // Guarded, so a chunk that stays missing shows this screen rather than
+    // reloading forever. The button below is still an unconditional hard
+    // reload, because a person pressing it cannot become a loop.
+    if (isChunkLoadError(error) && !recoverFromChunkError()) {
+      console.warn("Chunk error recovery already attempted; showing the error screen.");
     }
   }, [error]);
 

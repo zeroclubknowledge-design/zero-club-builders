@@ -13,9 +13,29 @@ precacheAndRoute(self.__WB_MANIFEST || []);
 // Clean old caches
 cleanupOutdatedCaches();
 
-// Take control of all pages immediately
-self.skipWaiting();
+/*
+ * A new version waits rather than seizing the open page.
+ *
+ * This used to call self.skipWaiting() unconditionally at the top level. The
+ * effect, combined with registerType: "autoUpdate", was that every time the
+ * app regained focus the browser revalidated the service worker, and if
+ * anything had been deployed since, the new worker activated immediately,
+ * claimed the running page, and the injected registration reloaded it. Anyone
+ * who switched to their bank app and came back lost their place.
+ *
+ * Waiting means the update applies on the next cold start instead, which for
+ * a phone app is soon enough. clientsClaim still runs so the very first
+ * install controls the page without needing a reload, and the ChunkLoadError
+ * handler in __root.tsx already covers the one case where a stale page really
+ * must refresh: a code chunk that no longer exists on the server.
+ */
 clientsClaim();
+
+// Left as an explicit opt-in, so an update can still be applied on demand
+// (post {type: 'SKIP_WAITING'}) without any background reload.
+self.addEventListener('message', (event) => {
+  if ((event.data as any)?.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 /*
  * Runtime caching. Precaching alone only covers build output; these rules make

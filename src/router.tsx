@@ -1,8 +1,14 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { installChunkRecovery } from "./lib/chunk-recovery";
 
 export const getRouter = () => {
+  // Registered here rather than in a component: a chunk can fail to load
+  // before any component has mounted, and this runs on both the first render
+  // and every subsequent navigation attempt.
+  installChunkRecovery();
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
