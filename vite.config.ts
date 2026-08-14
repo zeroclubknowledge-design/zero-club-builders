@@ -23,6 +23,9 @@ export default defineConfig(({ command }) => {
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
+      // Registration is handled once in RootComponent. Keeping the plugin
+      // from injecting a second registrar gives every install one update path.
+      injectRegister: false,
       // "prompt", not "autoUpdate". autoUpdate makes the injected registration
       // reload the page the moment a new service worker takes control, which
       // happens whenever the app regains focus after a deploy — so leaving the

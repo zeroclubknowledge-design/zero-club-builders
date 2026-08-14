@@ -70,6 +70,7 @@ export const Route = createFileRoute("/app/clubs/")({
 function Clubs() {
   const { details: currencyDetails } = useWalletCurrency();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -77,6 +78,7 @@ function Clubs() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [newClub, setNewClub] = useState({ name: "", description: "", category: "Study Group", price: 0 });
   const [isPaid, setIsPaid] = useState(false);
+  const [clubDraftReady, setClubDraftReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [joiningClubId, setJoiningClubId] = useState<string | null>(null);
   
@@ -88,6 +90,39 @@ function Clubs() {
   // there are no bootcamp clubs, so the Boot Clubs tab can never be selected
   // while hidden - which would leave the page looking empty.
   const [clubsTabRaw, setClubsTab] = useState<"mine" | "boot">("mine");
+
+  useEffect(() => {
+    try {
+      const storedDraft = sessionStorage.getItem("zc:club-create-draft");
+      if (storedDraft) {
+        const parsedDraft = JSON.parse(storedDraft);
+        setNewClub((current) => ({
+          name: typeof parsedDraft.name === "string" ? parsedDraft.name : current.name,
+          description: typeof parsedDraft.description === "string" ? parsedDraft.description : current.description,
+          category: typeof parsedDraft.category === "string" ? parsedDraft.category : current.category,
+          price: typeof parsedDraft.price === "number" ? parsedDraft.price : current.price,
+        }));
+        setIsPaid(parsedDraft.isPaid === true);
+      }
+    } catch {
+      // Ignore malformed drafts and browsers that disable session storage.
+    } finally {
+      setClubDraftReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!clubDraftReady) return;
+
+    try {
+      sessionStorage.setItem(
+        "zc:club-create-draft",
+        JSON.stringify({ ...newClub, isPaid }),
+      );
+    } catch {
+      // Keep the form usable when session storage is unavailable.
+    }
+  }, [clubDraftReady, isPaid, newClub]);
 
   // Move heavy data fetching to React Query to prevent route blocking
   const { data: clubData, isLoading: isClubsLoading } = useQuery({
@@ -478,8 +513,16 @@ function Clubs() {
       }]);
 
       const firstClubPremium = String(clubCapacity.plan_key) === 'creator' && clubCapacity.permanent_club_count === 0 && !profile?.first_club_benefit_redeemed;
+      try {
+        sessionStorage.removeItem("zc:club-create-draft");
+      } catch {
+        // The Club exists already; draft cleanup is best effort.
+      }
+      setNewClub({ name: "", description: "", category: "Study Group", price: 0 });
+      setIsPaid(false);
+      setShowCreate(false);
+      await queryClient.invalidateQueries({ queryKey: ["clubs_data"] });
       toast.success(firstClubPremium ? "Club created with 6 months of premium Club experience." : "Club created successfully.");
-      window.location.reload(); // Refresh to show new club
     } catch (err: any) {
       toast.error(err.message || "Failed to create club");
     } finally {
@@ -871,7 +914,7 @@ function Clubs() {
       </div>
 
       {/* Create Club Drawer */}
-      <Drawer open={showCreate} onOpenChange={setShowCreate}>
+      <Drawer open={showCreate} onOpenChange={setShowCreate} repositionInputs={false}>
         <DrawerContent className="mx-auto max-h-[90dvh] max-w-lg border-none bg-background p-0">
           <div className="px-4 pb-6 pt-1 sm:px-6 sm:pb-8 sm:pt-6">
             <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
@@ -890,7 +933,7 @@ function Clubs() {
                 <label className="text-[11px] text-muted-foreground ml-1">Club Name</label>
                 <input 
                   value={newClub.name}
-                  onChange={e => setNewClub({...newClub, name: e.target.value})}
+                  onChange={e => setNewClub(current => ({ ...current, name: e.target.value }))}
                   placeholder="e.g. Lagos Design Squad" 
                   className="w-full rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                 />
@@ -899,7 +942,7 @@ function Clubs() {
                 <label className="text-[11px] text-muted-foreground ml-1">Description</label>
                 <textarea 
                   value={newClub.description}
-                  onChange={e => setNewClub({...newClub, description: e.target.value})}
+                  onChange={e => setNewClub(current => ({ ...current, description: e.target.value }))}
                   placeholder="What's this club about?" 
                   rows={3}
                   className="w-full resize-none rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
@@ -911,6 +954,7 @@ function Clubs() {
                   <div className="flex gap-2">
                     {["Free", "Paid"].map(type => (
                       <button
+                        type="button"
                         key={type}
                         onClick={() => setIsPaid(type === "Paid")}
                         className={`flex-1 rounded-lg border py-3.5 text-xs font-semibold transition ${
@@ -932,7 +976,7 @@ function Clubs() {
                   <input 
                     type="number"
                     value={newClub.price}
-                    onChange={e => setNewClub({...newClub, price: Number(e.target.value)})}
+                    onChange={e => setNewClub(current => ({ ...current, price: Number(e.target.value) }))}
                     placeholder="e.g. 5000" 
                     className="w-full rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
@@ -940,6 +984,7 @@ function Clubs() {
               )}
 
               <button 
+                type="button"
                 onClick={handleCreateClub}
                 disabled={isSubmitting}
                 className="mt-2 w-full rounded-full bg-[#171218] py-4 text-sm font-bold text-[#f8f1e7] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 hover:opacity-90"

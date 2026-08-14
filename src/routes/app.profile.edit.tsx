@@ -1,9 +1,8 @@
-import { useLoaderData, useNavigate, createFileRoute, useRouter } from "@tanstack/react-router";
+import { useNavigate, createFileRoute, useRouter } from "@tanstack/react-router";
 import { ChevronLeft, Camera, X, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
-import { updateProfileAction } from "@/api";
 import { toast } from "sonner";
 import { ImageCropper } from "@/components/ImageCropper";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,28 +20,58 @@ function EditProfile() {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   
-  // Use useEffect to update formData when profile loads
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || "",
-    bio: profile?.bio || "",
-    location: profile?.location || "",
-    website: profile?.website || ""
+    full_name: "",
+    bio: "",
+    location: "",
+    website: ""
   });
-  const [avatar, setAvatar] = useState<string>(profile?.avatar_url || "");
-  const [banner, setBanner] = useState<string>(profile?.banner_url || "");
+  const [avatar, setAvatar] = useState("");
+  const [banner, setBanner] = useState("");
+  const [draftProfileId, setDraftProfileId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile) {
-      setFormData({
-        full_name: profile.full_name || "",
-        bio: profile.bio || "",
-        location: profile.location || "",
-        website: profile.website || ""
-      });
-      setAvatar(profile.avatar_url || "");
-      setBanner(profile.banner_url || "");
+    if (!profile?.id || draftProfileId === profile.id) return;
+
+    const storedDraftKey = `zc:profile-draft:${profile.id}`;
+    let nextFormData = {
+      full_name: profile.full_name || "",
+      bio: profile.bio || "",
+      location: profile.location || "",
+      website: profile.website || ""
+    };
+
+    try {
+      const storedDraft = sessionStorage.getItem(storedDraftKey);
+      if (storedDraft) {
+        const parsedDraft = JSON.parse(storedDraft);
+        nextFormData = {
+          full_name: typeof parsedDraft.full_name === "string" ? parsedDraft.full_name : nextFormData.full_name,
+          bio: typeof parsedDraft.bio === "string" ? parsedDraft.bio : nextFormData.bio,
+          location: typeof parsedDraft.location === "string" ? parsedDraft.location : nextFormData.location,
+          website: typeof parsedDraft.website === "string" ? parsedDraft.website : nextFormData.website,
+        };
+      }
+    } catch {
+      // Ignore malformed drafts and browsers that disable session storage.
     }
-  }, [profile]);
+
+    setFormData(nextFormData);
+    setAvatar(profile.avatar_url || "");
+    setBanner(profile.banner_url || "");
+    setDraftProfileId(profile.id);
+  }, [profile, draftProfileId]);
+
+  useEffect(() => {
+    if (!profile?.id || draftProfileId !== profile.id) return;
+
+    try {
+      sessionStorage.setItem(`zc:profile-draft:${profile.id}`, JSON.stringify(formData));
+    } catch {
+      // Some private browsing modes disable session storage. The in-memory
+      // form still works normally in that case.
+    }
+  }, [formData, profile?.id, draftProfileId]);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -66,8 +95,14 @@ function EditProfile() {
 
       if (error) throw error;
 
+      try {
+        sessionStorage.removeItem(`zc:profile-draft:${profile.id}`);
+      } catch {
+        // Saving the profile succeeded; storage cleanup is best effort.
+      }
+
       // Force React Query and TanStack Router to refetch the fresh profile data
-      await queryClient.invalidateQueries({ queryKey: ['my_profile'] });
+      await queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
       await router.invalidate();
 
       toast.success("Profile updated!");
