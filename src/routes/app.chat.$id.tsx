@@ -1,4 +1,3 @@
-import { getFirstName } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -964,7 +963,12 @@ function ChatViewPage() {
             )}
           </Link>
           <h3 className="font-bold">{otherUser?.full_name || otherUser?.username}</h3>
-          <p className="text-xs text-muted-foreground">{getFirstName(otherUser)} · Builder</p>
+          {/* The username, not "First name · Builder". The line above already
+              carries the display name, so repeating a truncated version of it
+              next to a label everyone shares said nothing about who this is. */}
+          {otherUser?.username && (
+            <p className="text-xs text-muted-foreground">@{otherUser.username}</p>
+          )}
         </div>
 
         {messages.map((m: any) => (
