@@ -1,3 +1,5 @@
+import { describeMedia } from "@/lib/contentPreview";
+
 export type FundLinkMessage = {
   slug: string;
   ownerName: string;
@@ -50,13 +52,11 @@ export function directMessagePreview(
     const [textPart = "", mediaPart = ""] = value.split("$$MEDIA$$");
     if (textPart.trim()) return textPart.trim();
 
-    const firstUrl = mediaPart.split(",")[0]?.toLowerCase() || "";
-    if (/\.(jpeg|jpg|gif|png|webp|bmp)/i.test(firstUrl) || firstUrl.includes("image"))
-      return "Sent a picture";
-    if (/\.(mp4|webm|ogg|mov)/i.test(firstUrl) || firstUrl.includes("video")) return "Sent a video";
-    if (/\.(mp3|wav|m4a|aac)/i.test(firstUrl) || firstUrl.includes("audio"))
-      return "Sent a voice note";
-    return "Sent an attachment";
+    // Was sniffing the URL for file extensions, which missed the encoded
+    // token format entirely — a .webm voice note read as neither audio nor
+    // video. describeMedia decodes the token's declared type instead.
+    const described = describeMedia(mediaPart.split(",").map((t) => t.trim()).filter(Boolean));
+    return `Sent ${described || "an attachment"}`;
   }
 
   return value;

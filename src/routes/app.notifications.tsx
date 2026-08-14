@@ -7,6 +7,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { stripMarkdownAsterisks } from "@/components/LinkifiedText";
+import { contentPreview } from "@/lib/contentPreview";
 import { toast } from "sonner";
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
@@ -150,7 +151,11 @@ function NotificationsPage() {
   };
 
   const renderText = (n: any) => {
-    const text = n.content ? stripMarkdownAsterisks(n.content.replace(/<[^>]*>?/gm, '')).trim() : '';
+    // contentPreview first: a voice-note-only comment has no text to show, so
+    // the raw $$MEDIA$$ token was being printed. It describes the attachment
+    // instead ("a voice note") and never leaks the marker or the URL.
+    const raw = contentPreview(n.content);
+    const text = raw ? stripMarkdownAsterisks(raw.replace(/<[^>]*>?/gm, '')).trim() : '';
     return text.length > 100 ? text.substring(0, 100) + '...' : text;
   }
 
