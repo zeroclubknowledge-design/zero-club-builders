@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, Edit3, Circle, MoreHorizontal, ChevronLeft, MessageSquare, Users as UsersIcon, ChevronDown, Check, Settings, MessageCircle, User, MessageSquarePlus } from "lucide-react";
+import { Search, Edit3, Circle, MoreHorizontal, ChevronLeft, MessageSquare, Users as UsersIcon, ChevronDown, Check, Settings, MessageCircle, User, MessageSquarePlus, BadgeCheck, Headphones, Pin } from "lucide-react";
 import { getConversations } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
@@ -31,6 +31,7 @@ function ChatInboxPage() {
     refetchInterval: 5000, 
   });
   const { data: currentUser } = useUser();
+  const supportConversation = conversations.find((conversation: any) => conversation.isSupport);
 
   const handleMarkAllAsRead = async () => {
     if (!currentUser) return;
@@ -52,7 +53,7 @@ function ChatInboxPage() {
 
   const filteredConversations = useMemo(() => {
     // Completely remove club requests from personal inbox
-    let filtered = conversations.filter((c: any) => !c.lastMessage?.startsWith('CLUB_REQUEST:') && c.lastMessage !== 'DISMISSED_CLUB_REQUEST');
+    let filtered = conversations.filter((c: any) => !c.isSupport && !c.lastMessage?.startsWith('CLUB_REQUEST:') && c.lastMessage !== 'DISMISSED_CLUB_REQUEST');
     
     // Search filtering
     if (searchQuery) {
@@ -164,6 +165,47 @@ function ChatInboxPage() {
 
       {/* Conversation List */}
       <div className="flex flex-1 flex-col md:mx-8 md:mb-16 md:mt-3 md:max-w-[820px] md:flex-none md:overflow-hidden md:rounded-lg md:border md:border-border/60 md:bg-card lg:mx-10">
+        {supportConversation && (
+          <Link
+            to="/app/chat/$id"
+            params={{ id: supportConversation.id }}
+            className={`group relative flex items-center gap-4 border-b border-primary/15 bg-primary/[0.055] px-5 py-4 transition hover:bg-primary/[0.085] active:bg-primary/[0.1] md:px-6 md:py-[18px] ${supportConversation.unread ? "bg-primary/[0.09]" : ""}`}
+          >
+            <div className="relative shrink-0">
+              <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-primary/10 text-primary ring-2 ring-primary/15 shadow-sm transition group-active:scale-95">
+                {supportConversation.user?.avatar_url ? (
+                  <img src={supportConversation.user.avatar_url} alt="Zero Club Support" className="h-full w-full object-cover" />
+                ) : (
+                  <Headphones className="h-5 w-5" />
+                )}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground ring-2 ring-background">
+                <Headphones className="h-2.5 w-2.5" />
+              </span>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span className="truncate text-[14px] font-semibold leading-none tracking-tight text-foreground">Zero Club Support</span>
+                  <BadgeCheck className="h-4 w-4 shrink-0 fill-primary text-primary-foreground" />
+                </span>
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-primary">
+                  <Pin className="h-2.5 w-2.5 fill-current" /> Official
+                </span>
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-4">
+                <p className={`truncate text-xs leading-relaxed md:text-[12.5px] ${supportConversation.unread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                  {supportConversation.lastMessage
+                    ? directMessagePreview(supportConversation.lastMessage, { sentByCurrentUser: supportConversation.lastSenderId === currentUser?.id })
+                    : "Message the Zero Club team for help"}
+                </p>
+                {supportConversation.unread && <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />}
+              </div>
+            </div>
+          </Link>
+        )}
+
         {filteredConversations.map((chat: any) => (
           <Link 
             key={chat.id} 
@@ -212,7 +254,7 @@ function ChatInboxPage() {
         ))}
 
         {/* Premium Empty State */}
-        {filteredConversations.length === 0 && (
+        {filteredConversations.length === 0 && !supportConversation && (
           <div className="flex flex-1 flex-col items-center justify-center py-32 text-center px-10 animate-in fade-in duration-700">
             <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
               <MessageCircle className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />

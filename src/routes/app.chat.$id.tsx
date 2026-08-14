@@ -1,6 +1,6 @@
 import { getFirstName } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight } from "lucide-react";
+import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMessages, sendMessageAction, editMessageAction } from "@/api";
 import { useUser } from "@/hooks/useUser";
@@ -828,6 +828,11 @@ function ChatViewPage() {
     );
   }
 
+  const isSupportChat = Boolean(otherUser?.is_admin);
+  const otherUserDisplayName = isSupportChat
+    ? "Zero Club Support"
+    : otherUser?.full_name || otherUser?.username;
+
   return (
     <div 
       className="fixed inset-x-0 z-[60] mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-background md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
@@ -840,7 +845,7 @@ function ChatViewPage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <Link to="/app/profile/$id" params={{ id }} aria-label={`Open ${otherUser?.full_name || otherUser?.username || 'user'} profile`} className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground transition active:scale-95">
+            <Link to="/app/profile/$id" params={{ id }} aria-label={`Open ${otherUserDisplayName || 'user'} profile`} className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground transition active:scale-95">
               {otherUser?.avatar_url ? (
                 <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
               ) : (
@@ -848,9 +853,17 @@ function ChatViewPage() {
               )}
             </Link>
             <div>
-              <h2 className="text-sm font-bold leading-tight">{otherUser?.full_name || otherUser?.username}</h2>
+              <h2 className="flex items-center gap-1.5 text-sm font-bold leading-tight">
+                {otherUserDisplayName}
+                {isSupportChat && <BadgeCheck className="h-4 w-4 fill-primary text-primary-foreground" />}
+              </h2>
               <div className="flex items-center gap-1.5">
-                {(() => {
+                {isSupportChat ? (
+                  <>
+                    <Headphones className="h-3 w-3 text-primary" />
+                    <span className="text-[10px] font-medium text-primary">Official Zero Club support</span>
+                  </>
+                ) : (() => {
                   const lastSeen = otherUser?.updated_at ? new Date(otherUser.updated_at).getTime() : 0;
                   const now = Date.now();
                   const diffMins = (now - lastSeen) / (1000 * 60);

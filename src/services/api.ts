@@ -743,7 +743,44 @@ export const getConversations = async () => {
     }
   });
 
-  return Array.from(conversationsMap.values());
+  const conversations = Array.from(conversationsMap.values());
+
+  // The protected is_admin flag is the source of truth for the official
+  // support identity. This makes support available before a member has ever
+  // sent a message, without creating millions of placeholder message rows.
+  const { data: supportProfile } = await supabase
+    .from("profiles")
+    .select("id, username, full_name, avatar_url, updated_at, is_admin")
+    .eq("is_admin", true)
+    .neq("id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!supportProfile) return conversations;
+
+  const supportIndex = conversations.findIndex((conversation: any) => conversation.id === supportProfile.id);
+  const existingSupport = supportIndex >= 0 ? conversations[supportIndex] : null;
+  const supportConversation = existingSupport
+    ? {
+        ...existingSupport,
+        user: { ...existingSupport.user, ...supportProfile },
+        isSupport: true,
+        pinned: true,
+      }
+    : {
+        id: supportProfile.id,
+        user: supportProfile,
+        lastMessage: "Message the Zero Club team for help",
+        lastSenderId: null,
+        time: "",
+        unread: false,
+        status: "support",
+        isSupport: true,
+        pinned: true,
+      };
+
+  return [supportConversation, ...conversations.filter((conversation: any) => conversation.id !== supportProfile.id)];
 };
 
 // Edit a message

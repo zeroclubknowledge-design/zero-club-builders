@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -415,6 +415,74 @@ function ClubChat() {
       toast.success("Member removed from squad!");
       setMembers(members.filter(m => m.profile_id !== profileId));
       setSelectedMember(null);
+    }
+  };
+
+  /* ── Adding builders directly ──
+     Searches every profile rather than the member list, which is what the
+     squad search above it does. Anyone already in the club is filtered out so
+     an admin never taps Add on someone who is already there. */
+  const [addQuery, setAddQuery] = useState("");
+  const [addResults, setAddResults] = useState<any[]>([]);
+  const [addSearching, setAddSearching] = useState(false);
+  const [addingId, setAddingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const q = addQuery.trim();
+    if (q.length < 2) {
+      setAddResults([]);
+      setAddSearching(false);
+      return;
+    }
+    let cancelled = false;
+    setAddSearching(true);
+    const timer = setTimeout(async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url")
+        .or(`username.ilike.%${q}%,full_name.ilike.%${q}%`)
+        .limit(8);
+      if (cancelled) return;
+      const existing = new Set(members.map((m) => m.profile_id));
+      setAddResults((data || []).filter((p: any) => !existing.has(p.id)));
+      setAddSearching(false);
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [addQuery, isAdmin, members]);
+
+  const handleAddMember = async (person: any) => {
+    if (!club) return;
+    setAddingId(person.id);
+    try {
+      const { data, error } = await supabase.rpc("add_club_member", {
+        p_club_id: club.id,
+        p_profile_id: person.id,
+        p_role: "Member",
+      });
+      if (error) throw error;
+
+      if ((data as any)?.added === false) {
+        toast("Already in the squad");
+      } else {
+        toast.success(`${person.full_name || person.username} added to the squad`);
+      }
+
+      // Re-read rather than patching state by hand, so the row carries the
+      // same shape (profiles joined) as every other member.
+      const { data: mems } = await supabase
+        .from("club_members")
+        .select("*, profiles(*)")
+        .eq("club_id", club.id);
+      setMembers(mems || []);
+      setAddResults((prev) => prev.filter((p) => p.id !== person.id));
+    } catch (error: any) {
+      toast.error(error?.message || "Could not add that member");
+    } finally {
+      setAddingId(null);
     }
   };
 
@@ -1327,10 +1395,72 @@ function ClubChat() {
                             );
                           })()}
 
+                          {/* Admins can add someone outright rather than only
+                              sharing a link and hoping they join. */}
+                          {isAdmin && (
+                            <div className="mb-4 shrink-0 rounded-lg border border-border/70 bg-card p-3">
+                              <p className="mb-2 text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                                Add a builder
+                              </p>
+                              <div className="relative">
+                                <UserPlus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <input
+                                  type="text"
+                                  placeholder="Search @username or name"
+                                  value={addQuery}
+                                  onChange={(e) => setAddQuery(e.target.value)}
+                                  className="h-10 w-full rounded-lg border border-border/60 bg-background pl-9 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                                />
+                              </div>
+
+                              {addQuery.trim().length >= 2 && (
+                                <div className="mt-2 space-y-1.5">
+                                  {addSearching ? (
+                                    <p className="py-2 text-center text-[11px] text-muted-foreground">Searching…</p>
+                                  ) : addResults.length === 0 ? (
+                                    <p className="py-2 text-center text-[11px] text-muted-foreground">
+                                      Nobody new matches that
+                                    </p>
+                                  ) : (
+                                    addResults.map((person) => (
+                                      <div key={person.id} className="flex items-center gap-2.5 rounded-lg bg-background p-2">
+                                        <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                                          {person.avatar_url ? (
+                                            <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                                          ) : (
+                                            (person.full_name || person.username || "?").charAt(0).toUpperCase()
+                                          )}
+                                        </div>
+                                        <div className="min-w-0 flex-1 text-left">
+                                          <p className="truncate text-[12.5px] font-semibold text-foreground">
+                                            {person.full_name || person.username}
+                                          </p>
+                                          <p className="truncate text-[10.5px] text-muted-foreground">@{person.username}</p>
+                                        </div>
+                                        <button
+                                          onClick={() => handleAddMember(person)}
+                                          disabled={addingId !== null}
+                                          className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 text-[11.5px] font-bold text-primary-foreground transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                                        >
+                                          {addingId === person.id ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <Plus className="h-3 w-3" />
+                                          )}
+                                          Add
+                                        </button>
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           <div className="relative mb-4 shrink-0">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               placeholder="Find a builder..."
                               value={squadSearch}
                               onChange={(e) => setSquadSearch(e.target.value)}
