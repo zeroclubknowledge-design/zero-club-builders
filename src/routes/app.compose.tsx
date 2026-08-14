@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { uploadMedia } from "@/lib/storage";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import { ImageCropper } from "@/components/ImageCropper";
 import { VideoEditor } from "@/components/VideoEditor";
 import { useQueryClient } from "@tanstack/react-query";
@@ -146,7 +147,15 @@ function ComposePage() {
   };
 
   const [isEditorFocused, setIsEditorFocused] = useState(false);
-  
+
+  /* Pin the formatting bar above the keyboard while writing. Both conditions
+     matter: the inset alone would leave it floating after the editor is
+     blurred, and focus alone would pin it to the bottom of the screen on
+     desktop where there is no keyboard at all. */
+  const keyboardInset = useKeyboardInset();
+  const toolbarPinned = isEditorFocused && keyboardInset > 0;
+
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1] }, codeBlock: false }),
@@ -536,8 +545,23 @@ function ComposePage() {
             </button>
           </div>
 
-          {/* Keep formatting visible inside the writing surface, including with the mobile keyboard open. */}
-          <div className="formatting-toolbar sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 mt-3 flex justify-center">
+          {/* Sits directly on top of the keyboard while writing.
+              `sticky` alone could not do this: it is measured against the
+              layout viewport, which the keyboard covers rather than shrinks, so
+              the toolbar ended up hidden underneath it exactly when it was
+              needed. When the keyboard is down it returns to the flow. */}
+          {/* Holds the space the toolbar vacates when it goes fixed, so the
+              text does not jump as the keyboard opens. 54px = 36 button + 16
+              padding + 2 border, and mt-3 matches the toolbar's own margin. */}
+          {toolbarPinned && <div className="mt-3 h-[54px]" aria-hidden />}
+          <div
+            className={
+              toolbarPinned
+                ? "formatting-toolbar fixed inset-x-0 z-50 flex justify-center px-4"
+                : "formatting-toolbar sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 mt-3 flex justify-center"
+            }
+            style={toolbarPinned ? { bottom: keyboardInset } : undefined}
+          >
             <div className={`flex items-center justify-center gap-1 rounded-lg border bg-background/95 p-2 backdrop-blur-md transition-shadow ${isEditorFocused ? 'border-foreground/20 shadow-lg' : 'border-border shadow-sm'}`}>
               <button
                 type="button"
