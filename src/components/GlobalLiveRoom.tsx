@@ -7,8 +7,11 @@ import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
   MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2, Lock,
-  Expand, Shrink, GraduationCap, Radio, Loader2,
+  Expand, Shrink, GraduationCap, Radio, Loader2, Smile,
 } from "lucide-react";
+
+/** One tap, no search field — the six that actually get used in a class. */
+const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 import { LinkifiedText } from "@/components/LinkifiedText";
@@ -353,6 +356,42 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* ── Remote presenter tracking (broadcast + heartbeat, expires when stale) ── */
   const [remotePresenter, setRemotePresenter] = useState<{ uid: string; at: number } | null>(null);
 
+  /*
+   * ── Reactions ──
+   *
+   * Sent over the same Supabase broadcast channel the chat already uses, so a
+   * reaction costs no extra connection and arrives in the same order as
+   * everything else. They are deliberately not persisted: a reaction is a
+   * moment in the room, not a record, and nobody joining later wants to
+   * replay them.
+   *
+   * Each one gets a random horizontal offset so a burst of the same emoji
+   * fans out instead of stacking into a single opaque blob.
+   */
+  const [reactions, setReactions] = useState<
+    { id: string; emoji: string; name?: string; left: number }[]
+  >([]);
+
+  const pushReaction = (emoji: string, name?: string) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setReactions((prev) => [...prev.slice(-14), { id, emoji, name, left: 8 + Math.random() * 62 }]);
+    // Matches the float animation below; removed so the list cannot grow
+    // without bound during a long session.
+    setTimeout(() => setReactions((prev) => prev.filter((r) => r.id !== id)), 3200);
+  };
+
+  const [showReactionTray, setShowReactionTray] = useState(false);
+
+  const sendReaction = (emoji: string) => {
+    pushReaction(emoji, "You");
+    chatChannelRef.current?.send({
+      type: "broadcast",
+      event: "reaction",
+      payload: { emoji, name: profile?.username || "Someone" },
+    });
+    setShowReactionTray(false);
+  };
+
   /* ── Chat + presenting broadcast channel ── */
   useEffect(() => {
     const ch = supabase.channel(`live-chat-${channel}`, {
@@ -361,6 +400,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     ch.on("broadcast", { event: "chat" }, ({ payload }: any) => {
       setChatMessages((prev) => [...prev, payload as ChatMessage]);
       if (!chatVisibleRef.current) setUnreadCount((c) => c + 1);
+    });
+    ch.on("broadcast", { event: "reaction" }, ({ payload }: any) => {
+      if (payload?.emoji) pushReaction(payload.emoji, payload.name);
     });
     ch.on("broadcast", { event: "presenting" }, ({ payload }: any) => {
       if (payload?.presenting && payload?.uid != null) {
@@ -794,7 +836,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         className="fixed z-[9999] select-none cursor-grab active:cursor-grabbing"
         style={{ right: `${position.x}px`, bottom: `${position.y}px` }}
       >
-        <div className="w-[152px] rounded-2xl overflow-hidden shadow-lift ring-1 ring-white/15 bg-[#141117] animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
+        <div className="w-[152px] rounded-lg overflow-hidden shadow-lift ring-1 ring-white/15 bg-[#141117] animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
           <div
             className="relative aspect-[4/3] bg-[#0A0A0C] flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={handleRestore}
@@ -907,8 +949,27 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       {/* ═══ STAGE + PANEL ═══ */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0 gap-2 px-2.5 md:px-4 pb-2">
         {/* ── STAGE ── */}
-        <div className={`relative overflow-hidden rounded-2xl bg-black ring-1 ring-white/[0.08] min-h-0 ${theater ? "flex-1" : "shrink-0 aspect-video md:aspect-auto md:flex-1"}`}>
+        <div className={`relative overflow-hidden rounded-lg bg-black ring-1 ring-white/[0.08] min-h-0 ${theater ? "flex-1" : "shrink-0 aspect-[4/3] md:aspect-auto md:flex-1"}`}>
           {renderStage()}
+
+          {/* Reactions float up the stage. pointer-events-none so they can
+              never intercept a tap meant for the video underneath. */}
+          <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+            {reactions.map((r) => (
+              <div
+                key={r.id}
+                className="absolute bottom-2 flex flex-col items-center"
+                style={{ left: `${r.left}%`, animation: "zc-reaction-float 3.2s ease-out forwards" }}
+              >
+                <span className="text-[30px] leading-none drop-shadow-lg">{r.emoji}</span>
+                {r.name && (
+                  <span className="mt-0.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[8.5px] font-semibold text-white/90 backdrop-blur-sm">
+                    {r.name}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
 
           {/* Stage overlays */}
           {stageIsLive && (
@@ -973,7 +1034,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
         {/* ── PANEL: Chat / Learners ── */}
         {!theater && (
-          <div className="flex-1 md:flex-none md:w-[380px] min-h-0 flex flex-col rounded-2xl bg-[#101014] ring-1 ring-white/[0.06] overflow-hidden">
+          <div className="flex-1 md:flex-none md:w-[380px] min-h-0 flex flex-col rounded-lg bg-[#101014] ring-1 ring-white/[0.06] overflow-hidden">
             {/* Tabs */}
             <div className="shrink-0 flex border-b border-white/[0.06]">
               <button
@@ -1030,7 +1091,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                               </span>
                               <span className="text-[10px] text-white/35 shrink-0 tabular-nums">{formatTime(msg.timestamp)}</span>
                             </div>
-                            <div className={`mt-1 rounded-xl rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
+                            <div className={`mt-1 rounded-lg rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
                               <div className="break-words text-[13px] leading-relaxed text-white/85">
                                 <LinkifiedText text={msg.content} linkColor="font-semibold text-[#f28fd0] underline underline-offset-2 hover:text-white" />
                               </div>
@@ -1078,7 +1139,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
                       {!isAdmin && selfHasCamera && (
-                        <div className={`relative aspect-video overflow-hidden rounded-xl bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
+                        <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
                           <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
                           <TilePill name="You" muted={!micOn} />
                         </div>
@@ -1086,7 +1147,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                       {cameraOnUsers.map((user) => (
                         <div
                           key={user.uid}
-                          className={`relative aspect-video overflow-hidden rounded-xl bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}
+                          className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}
                         >
                           {findVideo(user.uid) && (
                             <RemoteVideoTrack track={findVideo(user.uid)!} play={true} className="w-full h-full object-cover" />
@@ -1112,7 +1173,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   ) : (
                     <div className="space-y-1.5">
                       {!isAdmin && !selfHasCamera && (
-                        <div className="flex items-center justify-between rounded-xl bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
+                        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
                           <div className="flex items-center gap-2.5 min-w-0">
                             <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-8 h-8" />
                             <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">You</span>
@@ -1123,7 +1184,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                       {audioOnlyUsers.map((user) => (
                         <div
                           key={user.uid}
-                          className={`flex items-center justify-between rounded-xl bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
+                          className={`flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <Avatar url={userAvatars[user.uid]} name={userNames[user.uid] || "B"} className="w-8 h-8" />
@@ -1153,8 +1214,28 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           enough room for proper 48px targets — the old buttons were 36px tall
           with text competing for the same space. aria-label and title carry
           the meaning for anyone who needs it. */}
-      <div className="z-20 shrink-0 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1">
-        <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2.5 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
+      <div className="relative z-20 shrink-0 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1">
+        {/* Quick reactions. A short fixed row rather than a full picker: in a
+            live class you want one tap, not a search field. */}
+        {showReactionTray && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setShowReactionTray(false)} />
+            <div className="absolute bottom-full left-1/2 z-20 mb-2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#1a1a20] px-2 py-1.5 ring-1 ring-white/12 shadow-lift animate-in fade-in slide-in-from-bottom-2 duration-200">
+              {QUICK_REACTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => sendReaction(emoji)}
+                  aria-label={`React with ${emoji}`}
+                  className="grid h-10 w-10 place-items-center rounded-full text-[22px] leading-none transition hover:bg-white/10 active:scale-90"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
           <button
             onClick={() => setMicOn((p) => !p)}
             disabled={isLeaving}
@@ -1175,6 +1256,17 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${cameraOn ? "bg-white/[0.1] text-white hover:bg-white/[0.16]" : "bg-red-500 text-white"}`}
           >
             {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+          </button>
+
+          <button
+            onClick={() => setShowReactionTray((p) => !p)}
+            disabled={isLeaving}
+            title="Send a reaction"
+            aria-label="Send a reaction"
+            aria-expanded={showReactionTray}
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${showReactionTray ? "bg-white text-black" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
+          >
+            <Smile className="h-5 w-5" />
           </button>
 
           {isAdmin ? (

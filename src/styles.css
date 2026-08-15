@@ -291,10 +291,29 @@
   .zc-showcase-float { animation: zc-showcase-float 5s ease-in-out infinite; }
   .zc-showcase-float-delayed { animation: zc-showcase-float 5s ease-in-out 1.1s infinite; }
 
+  /* Live room reactions. Drifts up and sideways rather than straight up, so a
+     burst of the same emoji reads as several reactions instead of one column. */
+  @keyframes zc-reaction-float {
+    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+    12%  { opacity: 1; transform: translateY(-14px) scale(1.1); }
+    28%  { transform: translateY(-42px) translateX(6px) scale(1); }
+    60%  { opacity: 1; transform: translateY(-110px) translateX(-8px) scale(1); }
+    100% { opacity: 0; transform: translateY(-190px) translateX(4px) scale(0.85); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .zc-activity-rail,
     .zc-showcase-float,
     .zc-showcase-float-delayed { animation: none; }
+
+    /* Reactions still need to appear and clear themselves, so this fades
+       rather than disabling the animation outright. */
+    @keyframes zc-reaction-float {
+      0%   { opacity: 0; }
+      15%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
   }
 }
 
