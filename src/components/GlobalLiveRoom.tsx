@@ -7,7 +7,7 @@ import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
   MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2, Lock,
-  Expand, Shrink, GraduationCap, Radio,
+  Expand, Shrink, GraduationCap, Radio, Loader2,
 } from "lucide-react";
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
@@ -175,6 +175,26 @@ const MicDot = ({ on }: { on: boolean }) =>
     <MicOff className="w-3.5 h-3.5 text-white/35 shrink-0" />
   );
 
+/**
+ * The name pill on a video tile, as in the reference UI: one dark capsule
+ * bottom-left carrying the name and the mic state together.
+ *
+ * The mic icon lives inside the pill rather than floating in the opposite
+ * corner, because over a moving camera feed a bare dot has no reliable
+ * contrast — the pill gives it a background to sit on.
+ */
+const TilePill = ({ name, muted, tutor }: { name: string; muted: boolean; tutor?: boolean }) => (
+  <div className="absolute bottom-1.5 left-1.5 z-10 flex max-w-[calc(100%-0.75rem)] items-center gap-1.5 rounded-full bg-black/65 px-2 py-1 backdrop-blur-sm">
+    {muted && <MicOff className="h-3 w-3 shrink-0 text-red-400" />}
+    <span className="truncate text-[10.5px] font-semibold text-white">{name}</span>
+    {tutor && (
+      <span className="shrink-0 rounded-full bg-[#cc208f] px-1.5 text-[8px] font-semibold uppercase tracking-[0.08em] text-white">
+        Tutor
+      </span>
+    )}
+  </div>
+);
+
 function LiveRoomContent({ channel, token }: { channel: string; token: string }) {
   const navigate = useNavigate();
   const { data: profile } = useUser();
@@ -252,30 +272,79 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   useJoin({ appid: APP_ID, channel, token }, true);
   const client = useRTCClient();
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
-  const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, { encoderConfig: "720p_1" });
+  /*
+   * 480p, not 720p.
+   *
+   * These tiles are a few hundred pixels wide on a phone, so 720p was spending
+   * roughly three times the bitrate to fill them. On a mobile network that
+   * surplus is what turns into freezing and lag, and "motion" tells the
+   * encoder to protect frame rate over sharpness — the right trade for faces
+   * talking. Screen sharing keeps its own high-detail config, where text
+   * legibility genuinely matters.
+   */
+  const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, {
+    encoderConfig: "480p_1",
+    optimizationMode: "motion",
+  });
 
+  /*
+   * setMuted, not setEnabled.
+   *
+   * setEnabled(false) closes the capture device, and setEnabled(true) has to
+   * reacquire it from the OS — on a phone that is a multi-second stall, and it
+   * is the single biggest reason unmuting felt so slow.
+   *
+   * setMuted only stops the encoder sending frames. The device stays open, so
+   * it is effectively instant. Remote users still get user-unpublished /
+   * user-published, so hasAudio and hasVideo update exactly as before.
+   */
   useEffect(() => {
-    if (localMicrophoneTrack) {
-      localMicrophoneTrack.setEnabled(micOn).catch(console.error);
-    }
+    localMicrophoneTrack?.setMuted(!micOn).catch(console.error);
   }, [micOn, localMicrophoneTrack]);
 
   useEffect(() => {
-    if (localCameraTrack) {
-      localCameraTrack.setEnabled(cameraOn).catch(console.error);
-    }
+    localCameraTrack?.setMuted(!cameraOn).catch(console.error);
   }, [cameraOn, localCameraTrack]);
 
   const videoTrackToPublish = isScreenSharing && screenTrack ? screenTrack : localCameraTrack;
 
-  // Filter out tracks when they are muted so usePublish actively unpublishes them
-  // This causes Agora to update the remote users' hasVideo/hasAudio state properly
-  const tracksToPublish = [
-    micOn ? localMicrophoneTrack : null,
-    (cameraOn || isScreenSharing) ? videoTrackToPublish : null
-  ].filter(Boolean);
-  
+  /*
+   * Published once, and left published.
+   *
+   * This array used to drop a track whenever it was muted, which made
+   * usePublish call unpublish() and then publish() again on the way back.
+   * Each of those is a full renegotiation with Agora's servers — one to three
+   * seconds, every single tap of the mic button, and the delay everyone else
+   * in the room saw before your change took effect.
+   *
+   * Muting is now handled entirely by setMuted above, which needs no
+   * renegotiation at all. The publish list only changes when the actual track
+   * changes: camera to screen share and back.
+   */
+  const tracksToPublish = [localMicrophoneTrack, videoTrackToPublish].filter(Boolean);
+
   usePublish(tracksToPublish as any);
+
+  /*
+   * Active speaker. Two seconds is Agora's default reporting interval, which
+   * is far too slow to feel live — 200ms is what makes the ring follow the
+   * conversation rather than trail it.
+   */
+  const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
+  useEffect(() => {
+    if (!client) return;
+    client.enableAudioVolumeIndicator();
+    const onVolume = (volumes: { uid: any; level: number }[]) => {
+      const loudest = volumes.reduce(
+        (best, v) => (v.level > (best?.level ?? 0) ? v : best),
+        null as { uid: any; level: number } | null,
+      );
+      // A floor, so room noise does not make the ring flicker between people.
+      setActiveSpeaker(loudest && loudest.level > 12 ? String(loudest.uid) : null);
+    };
+    client.on("volume-indicator", onVolume);
+    return () => { client.off("volume-indicator", onVolume); };
+  }, [client]);
 
   const remoteUsers = useRemoteUsers();
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
@@ -613,6 +682,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       : (presenceUsers.find((p) => p.isAdmin)?.name || "your tutor");
 
   const findVideo = (uid: any) => videoTracks.find((t) => t.getUserId() === uid);
+
+  // Agora reports the local user as uid 0 in the volume indicator.
+  const isSelfSpeaking =
+    micOn && (activeSpeaker === "0" || (client?.uid != null && activeSpeaker === String(client.uid)));
 
   // Learners = everyone who isn't on stage
   const stageUid = isAdmin ? null : (remotePresenterUser?.uid ?? remoteTutor?.uid ?? null);
@@ -993,7 +1066,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             {/* ── Learners tab ── */}
             {activeTab === "learners" && (
               <div className="flex-1 overflow-y-auto p-4 space-y-5 no-scrollbar">
-                {/* Camera on */}
+                {/* Camera on — Meet-style tiles: name pill bottom-left, mic
+                    state on the pill itself, and a ring on whoever is talking
+                    so you can see who has the floor without reading names. */}
                 <div>
                   <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-white/40 mb-2.5">
                     <Video className="w-3 h-3" /> Camera on ({cameraCount})
@@ -1003,21 +1078,24 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
                       {!isAdmin && selfHasCamera && (
-                        <div className="relative aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+                        <div className={`relative aspect-video overflow-hidden rounded-xl bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
                           <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
-                          <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow">You</div>
-                          <span className={`absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full ${micOn ? "bg-emerald-400" : "bg-red-500"}`} />
+                          <TilePill name="You" muted={!micOn} />
                         </div>
                       )}
                       {cameraOnUsers.map((user) => (
-                        <div key={user.uid} className="relative aspect-video rounded-xl overflow-hidden bg-[#141117] ring-1 ring-white/[0.08]">
+                        <div
+                          key={user.uid}
+                          className={`relative aspect-video overflow-hidden rounded-xl bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}
+                        >
                           {findVideo(user.uid) && (
                             <RemoteVideoTrack track={findVideo(user.uid)!} play={true} className="w-full h-full object-cover" />
                           )}
-                          <div className="absolute bottom-1 left-1.5 z-10 text-[10px] font-semibold text-white drop-shadow truncate max-w-[80%]">
-                            {userNames[user.uid] || "Builder"}
-                          </div>
-                          <span className={`absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full ${user.hasAudio ? "bg-emerald-400" : "bg-red-500"}`} />
+                          <TilePill
+                            name={userNames[user.uid] || "Builder"}
+                            muted={!user.hasAudio}
+                            tutor={adminUids.has(String(user.uid))}
+                          />
                         </div>
                       ))}
                     </div>
@@ -1043,7 +1121,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                         </div>
                       )}
                       {audioOnlyUsers.map((user) => (
-                        <div key={user.uid} className="flex items-center justify-between rounded-xl bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
+                        <div
+                          key={user.uid}
+                          className={`flex items-center justify-between rounded-xl bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
+                        >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <Avatar url={userAvatars[user.uid]} name={userNames[user.uid] || "B"} className="w-8 h-8" />
                             <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">
@@ -1068,57 +1149,70 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       </div>
 
       {/* ═══ CONTROL BAR ═══ */}
+      {/* Icon only. The shapes are universal, and dropping the labels buys
+          enough room for proper 48px targets — the old buttons were 36px tall
+          with text competing for the same space. aria-label and title carry
+          the meaning for anyone who needs it. */}
       <div className="z-20 shrink-0 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1">
-        <div className="mx-auto flex w-full max-w-[430px] items-center gap-1 rounded-full bg-white/[0.06] p-1 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2.5 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
           <button
             onClick={() => setMicOn((p) => !p)}
             disabled={isLeaving}
-            className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 transition-all tap disabled:opacity-50 ${micOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
+            title={micOn ? "Mute microphone" : "Unmute microphone"}
+            aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
+            aria-pressed={!micOn}
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${micOn ? "bg-white/[0.1] text-white hover:bg-white/[0.16]" : "bg-red-500 text-white"}`}
           >
-            {micOn ? <Mic className="h-[15px] w-[15px] shrink-0" /> : <MicOff className="h-[15px] w-[15px] shrink-0" />}
-            <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{micOn ? "Mic on" : "Mic off"}</span>
+            {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
           </button>
+
           <button
             onClick={() => setCameraOn((p) => !p)}
             disabled={isLeaving}
-            className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 transition-all tap disabled:opacity-50 ${cameraOn ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-red-500/15 text-red-400 ring-1 ring-red-500/30"}`}
+            title={cameraOn ? "Turn off camera" : "Turn on camera"}
+            aria-label={cameraOn ? "Turn off camera" : "Turn on camera"}
+            aria-pressed={!cameraOn}
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${cameraOn ? "bg-white/[0.1] text-white hover:bg-white/[0.16]" : "bg-red-500 text-white"}`}
           >
-            {cameraOn ? <Video className="h-[15px] w-[15px] shrink-0" /> : <VideoOff className="h-[15px] w-[15px] shrink-0" />}
-            <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{cameraOn ? "Cam on" : "Cam off"}</span>
+            {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
           </button>
+
           {isAdmin ? (
             <button
               onClick={toggleScreenShare}
               disabled={isLeaving}
-              className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 transition-all tap disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.08] text-white hover:bg-white/[0.14]"}`}
+              title={isScreenSharing ? "Stop presenting" : "Present your screen"}
+              aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
+              aria-pressed={isScreenSharing}
+              className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
             >
-              {isScreenSharing ? <MonitorOff className="h-[15px] w-[15px] shrink-0" /> : <MonitorUp className="h-[15px] w-[15px] shrink-0" />}
-              <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{isScreenSharing ? "Stop" : "Present"}</span>
+              {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
             </button>
           ) : (
             <button
               onClick={toggleScreenShare}
               disabled={isLeaving}
               title="Only the tutor can present"
-              className="relative flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full bg-white/[0.05] px-2 text-white/40 tap disabled:opacity-50"
+              aria-label="Only the tutor can present"
+              className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50"
             >
-              <MonitorUp className="h-[15px] w-[15px] shrink-0" />
-              <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">Present</span>
+              <MonitorUp className="h-5 w-5" />
               <span className="absolute -top-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
-                <Lock className="w-2 h-2 text-white/60" />
+                <Lock className="h-2 w-2 text-white/60" />
               </span>
             </button>
           )}
 
-          <div className="h-5 w-px shrink-0 bg-white/10" />
+          <div className="h-6 w-px shrink-0 bg-white/10" />
 
           <button
             onClick={handleLeave}
             disabled={isLeaving}
-            className="flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full bg-red-500 px-2 text-white transition-all tap hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
+            title="Leave the live room"
+            aria-label="Leave the live room"
+            className="grid h-12 w-[68px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
           >
-            <PhoneOff className="h-[15px] w-[15px] shrink-0" />
-            <span className="whitespace-nowrap text-[10px] font-semibold tracking-tight sm:text-[11px]">{isLeaving ? "Leaving" : "Leave"}</span>
+            {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneOff className="h-5 w-5" />}
           </button>
         </div>
       </div>
