@@ -422,7 +422,7 @@ function WalletPage() {
 
           {/* One continuous premium surface: light, spacing and dividers carry
               the hierarchy without the old card-inside-a-card treatment. */}
-          <div className="relative mb-4 overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-6 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-7 md:p-8">
+          <div className="relative mb-4 overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-6 md:p-7">
             <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[#f15bb5]/80 to-transparent" />
             <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
             <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
@@ -430,14 +430,12 @@ function WalletPage() {
 
             <div className="relative z-10">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-[14px] bg-white/[0.07] ring-1 ring-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                    <img src="/logo.png" alt="" className="h-6 w-6 object-contain" />
-                  </span>
-                  <span>
-                    <span className="block text-[12px] font-semibold tracking-[-0.01em] text-white">Zero Wallet</span>
-                    <span className="mt-0.5 block text-[9px] font-medium uppercase tracking-[0.16em] text-white/40">Personal account</span>
-                  </span>
+                <div className="min-w-0">
+                  <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">Available balance</p>
+                  <h2 className="mt-2.5 flex items-start text-[40px] font-semibold leading-none tracking-[-0.045em] tabular-nums sm:text-[46px] md:text-[52px]">
+                    <span className="mr-2 mt-1 text-[20px] font-medium tracking-normal text-white/55 sm:text-[23px]">{currentCurrency.symbol}</span>
+                    <span>{showBalance ? displayBalance : "••••"}</span>
+                  </h2>
                 </div>
 
                 <button
@@ -448,17 +446,9 @@ function WalletPage() {
                   {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <p className="mt-2.5 text-[10.5px] text-white/40">Ready to spend across Zero Club</p>
 
-              <div className="mt-8">
-                <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">Available balance</p>
-                <h2 className="mt-2.5 flex items-start text-[40px] font-semibold leading-none tracking-[-0.045em] tabular-nums sm:text-[46px] md:text-[52px]">
-                  <span className="mr-2 mt-1 text-[20px] font-medium tracking-normal text-white/55 sm:text-[23px]">{currentCurrency.symbol}</span>
-                  <span>{showBalance ? displayBalance : "••••"}</span>
-                </h2>
-                <p className="mt-3 text-[10.5px] text-white/40">Ready to spend across Zero Club</p>
-              </div>
-
-              <div className="mt-7 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-5 border-y border-white/[0.09] py-[18px]">
+              <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-5 border-y border-white/[0.09] py-4">
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-[0.15em] text-white/40">
                     <span className={`h-1.5 w-1.5 rounded-full ${withdrawable > 0 ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" : "bg-white/25"}`} />
@@ -477,7 +467,7 @@ function WalletPage() {
                 </div>
               </div>
 
-              <div className="mt-5 flex items-center justify-between gap-4">
+              <div className="mt-4 flex items-center justify-between gap-4">
                 <button
                   onClick={handleCopyDetails}
                   aria-label="Copy wallet account details"
