@@ -195,7 +195,7 @@ function BrandMark({ light = false }: { light?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2" aria-label="Zero Club home">
       <img src="/logo.png" alt="" className="h-8 w-8 object-contain" />
-      <span className={`font-display text-[19px] font-semibold tracking-tight ${light ? "text-white" : "text-[#171717]"}`}>
+      <span className={`font-display text-[19px] font-semibold tracking-tight ${light ? "text-white" : "text-[#171717] dark:text-white"}`}>
         Zero <span className="text-[#cc208f]">Club</span>
       </span>
     </Link>
@@ -227,7 +227,7 @@ function Header({ referralCode }: ReferralProps) {
     <header
       className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-200 ${
         isOpen || isScrolled
-          ? "border-[#171717]/[0.08] bg-[#f4f2ef] shadow-[0_1px_0_rgba(23,23,23,0.02)]"
+          ? "border-[#171717]/[0.08] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] shadow-[0_1px_0_rgba(23,23,23,0.02)]"
           : "border-transparent bg-transparent shadow-none"
       }`}
     >
@@ -279,13 +279,13 @@ function Header({ referralCode }: ReferralProps) {
     </header>
 
       {isOpen && (
-        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 z-40 overflow-y-auto border-t border-[#171717]/[0.08] bg-[#f4f2ef] px-5 py-5 lg:hidden">
+        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 z-40 overflow-y-auto border-t border-[#171717]/[0.08] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-5 lg:hidden">
           <div className="mx-auto max-w-xl pb-10">
             <div className="space-y-7">
               {mobileNavGroups.map((group) => (
                 <section key={group.label}>
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73]">{group.label}</p>
-                  <div className="divide-y divide-[#171717]/[0.08] border-y border-[#171717]/[0.08]">
+                  <div className="divide-y divide-[#171717]/[0.08] border-y border-[#171717]/[0.08] dark:border-white/10">
                     {group.items.map((item) => (
                       <a
                         key={item.label}
@@ -305,7 +305,7 @@ function Header({ referralCode }: ReferralProps) {
               ))}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-3">
-              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-[#171717]/12 text-[13px] font-semibold text-[#242126]">
+              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-[#171717]/12 dark:border-white/12 text-[13px] font-semibold text-[#242126]">
                 Sign in
               </Link>
               <Link to="/signup" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg bg-[#171417] px-4 text-[13px] font-semibold text-white">
@@ -380,13 +380,13 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 rounded-lg bg-white p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
+      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 rounded-lg bg-white dark:bg-[#141118] p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
         <span className="relative grid h-9 w-9 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
         </span>
         <div>
-          <p className="text-[12px] font-semibold tracking-tight text-[#171717]">Live bootcamp</p>
+          <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Live bootcamp</p>
           <p className="text-[10.5px] text-[#666a70]">UI Engineering · 48 learners</p>
         </div>
       </div>
@@ -477,7 +477,7 @@ function ActivityRail() {
             <article
               key={`${club.id}-${index}`}
               aria-hidden={index >= clubs.length || undefined}
-              className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:w-[218px] sm:gap-3"
+              className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:w-[218px] sm:gap-3"
             >
               <span className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-[#cc208f]/10 ring-1 ring-[#171717]/[0.06]">
                 <img
@@ -538,14 +538,14 @@ function AndroidAppDownload() {
 
 function Hero({ referralCode }: ReferralProps) {
   return (
-    <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
+    <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
         <div className="min-w-0">
           <p className="inline-flex items-center gap-2 rounded-full bg-[#cc208f]/[0.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f] ring-1 ring-[#cc208f]/15">
             The builder network
           </p>
-          <h1 className="mt-6 max-w-[620px] font-display text-[44px] font-semibold leading-[1.04] tracking-[-0.035em] text-[#171717] md:text-[64px]">
+          <h1 className="mt-6 max-w-[620px] font-display text-[44px] font-semibold leading-[1.04] tracking-[-0.035em] text-[#171717] dark:text-white md:text-[64px]">
             Where builders become <span className="text-[#cc208f]">undeniable</span>.
           </h1>
           <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-[#4d4f55] md:text-[19px]">
@@ -628,12 +628,9 @@ function Hero({ referralCode }: ReferralProps) {
                   index < 3 ? "lg:border-r lg:border-white/[0.09]" : "lg:border-r-0"
                 }`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <span className="grid h-8 w-8 place-items-center rounded-md bg-white/[0.07] text-[#f28fd0] ring-1 ring-inset ring-white/[0.08]">
-                    <Icon active className="h-[17px] w-[17px]" />
-                  </span>
-                  <span className="font-mono text-[9px] tracking-[0.12em] text-white/25">0{index + 1}</span>
-                </div>
+                <span className="grid h-8 w-8 place-items-center rounded-md bg-white/[0.07] text-[#f28fd0] ring-1 ring-inset ring-white/[0.08]">
+                  <Icon active className="h-[17px] w-[17px]" />
+                </span>
                 <h3 className="mt-4 text-[13.5px] font-semibold tracking-tight text-white md:text-[14px]">{title}</h3>
                 <p className="mt-1.5 max-w-[225px] text-[10.5px] leading-[1.55] text-white/50 md:text-[11px]">{copy}</p>
               </article>
@@ -647,22 +644,22 @@ function Hero({ referralCode }: ReferralProps) {
 
 function TopicExplorer() {
   return (
-    <section id="people" className="border-b border-[#171717]/[0.06] bg-white">
+    <section id="people" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-24">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Find your people</p>
-          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             The people and work that move your goals forward
           </h2>
         </div>
         <div>
-          <label className="mb-5 flex min-h-13 items-center gap-3 rounded-full bg-[#f4f2ef] px-5 py-3.5 ring-1 ring-transparent transition-all focus-within:bg-white focus-within:ring-[#cc208f]/40">
+          <label className="mb-5 flex min-h-13 items-center gap-3 rounded-full bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-3.5 ring-1 ring-transparent transition-all focus-within:bg-white focus-within:ring-[#cc208f]/40">
             <Search className="h-4.5 w-4.5 shrink-0 text-[#666a70]" />
             <input
               type="text"
               aria-label="Search Zero Club"
               placeholder="Search goals, people, clubs, bootcamps, and projects"
-              className="w-full bg-transparent text-[15px] text-[#171717] outline-none placeholder:text-[#666a70]"
+              className="w-full bg-transparent text-[15px] text-[#171717] dark:text-white outline-none placeholder:text-[#666a70]"
             />
           </label>
           <div className="flex flex-wrap gap-2">
@@ -684,11 +681,11 @@ function TopicExplorer() {
 
 function LearningSection() {
   return (
-    <section id="learning" className="border-b border-[#171717]/[0.06] bg-[#fbfaf8]">
+    <section id="learning" className="border-b border-[#171717]/[0.06] bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
         <div className="max-w-[640px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Learning that compounds</p>
-          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Take bootcamps, join clubs, and make your progress visible.
           </h2>
         </div>
@@ -696,7 +693,7 @@ function LearningSection() {
           {platformHighlights.map((item, index) => (
             <article
               key={item.title}
-              className="sticky mb-5 min-h-[210px] rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[220px] md:p-8"
+              className="sticky mb-5 min-h-[210px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[220px] md:p-8"
               style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
             >
               <div className="flex items-start justify-between gap-5">
@@ -705,7 +702,7 @@ function LearningSection() {
                 </div>
                 <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
-              <h3 className="mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] md:text-[22px]">{item.title}</h3>
+              <h3 className="mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">{item.title}</h3>
               <p className="mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] md:text-[14px]">{item.copy}</p>
             </article>
           ))}
@@ -717,18 +714,18 @@ function LearningSection() {
 
 function ClubsSection() {
   return (
-    <section id="clubs" className="border-b border-[#171717]/[0.06] bg-white">
+    <section id="clubs" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-4 py-16 md:px-6 lg:grid-cols-2 lg:py-24">
         <div className="order-2 lg:order-1">
           <img
             src="/landing-communities-purpose.png"
             alt="Zero Club private clubs"
-            className="h-[360px] w-full rounded-lg bg-[#f7f5f2] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
+            className="h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
           />
         </div>
         <div className="order-1 lg:order-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Communities with a purpose</p>
-          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Private spaces for cohorts, creator circles, and serious teams.
           </h2>
           <div className="mt-8 grid gap-4">
@@ -753,11 +750,11 @@ function ClubsSection() {
 
 function OpportunitiesSection() {
   return (
-    <section id="opportunities" className="border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
+    <section id="opportunities" className="border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-24">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Open doors through proof</p>
-          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             A network for people who want to be known by what they build.
           </h2>
         </div>
@@ -765,7 +762,7 @@ function OpportunitiesSection() {
           {audienceCards.map((card, index) => (
             <article
               key={card.title}
-              className="sticky mb-5 min-h-[190px] rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px]"
+              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px]"
               style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
             >
               <div className="flex items-start justify-between gap-5">
@@ -774,7 +771,7 @@ function OpportunitiesSection() {
                 </div>
                 <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
-              <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717]">{card.title}</h3>
+              <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">{card.title}</h3>
               <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70]">{card.copy}</p>
             </article>
           ))}
@@ -786,11 +783,11 @@ function OpportunitiesSection() {
 
 function WalletSection() {
   return (
-    <section id="wallet" className="border-b border-[#171717]/[0.06] bg-white">
+    <section id="wallet" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-4 py-16 md:px-6 lg:grid-cols-2 lg:py-24">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Creator economy built in</p>
-          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Teach, sell, earn, and manage it all in one account.
           </h2>
           <div className="mt-8 flex flex-wrap gap-2">
@@ -823,10 +820,10 @@ function WalletSection() {
               </div>
             </div>
           </div>
-          <div className="relative -mt-4 mx-6 rounded-lg bg-white p-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.25)] ring-1 ring-[#171717]/[0.06]">
+          <div className="relative -mt-4 mx-6 rounded-lg bg-white dark:bg-[#141118] p-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.25)] ring-1 ring-[#171717]/[0.06]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[12px] font-semibold tracking-tight text-[#171717]">Bootcamp enrollment</p>
+                <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Bootcamp enrollment</p>
                 <p className="text-[10.5px] text-[#666a70]">UI Engineering · just now</p>
               </div>
               <span className="text-[13px] font-semibold text-emerald-600 tabular-nums">+ ₦15,000</span>
@@ -840,11 +837,11 @@ function WalletSection() {
 
 function FeaturesSection() {
   return (
-    <section id="features" className="border-b border-[#171717]/[0.06] bg-[#f4f2ef]">
+    <section id="features" className="border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
         <div className="max-w-[650px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">The Zero Club toolkit</p>
-          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             The tools behind a more visible kind of progress.
           </h2>
           <p className="mt-4 text-[15px] leading-relaxed text-[#666a70]">
@@ -856,7 +853,7 @@ function FeaturesSection() {
           {zeroClubFeatures.map((feature, index) => (
             <article
               key={feature.title}
-              className="sticky mb-5 min-h-[190px] rounded-lg bg-white p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px] md:p-7"
+              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px] md:p-7"
               style={{ top: `calc(4.75rem + ${index * 11}px)`, zIndex: index + 1 }}
             >
               <div className="flex items-start justify-between gap-5">
@@ -865,7 +862,7 @@ function FeaturesSection() {
                 </div>
                 <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
-              <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] md:text-[20px]">{feature.title}</h3>
+              <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white md:text-[20px]">{feature.title}</h3>
               <p className="mt-2 max-w-[680px] text-[13px] leading-relaxed text-[#666a70] md:text-[13.5px]">{feature.copy}</p>
             </article>
           ))}
@@ -937,14 +934,14 @@ function ContactSection() {
   };
 
   const inputClass =
-    "mt-2 w-full rounded-lg border border-[#171717]/[0.08] bg-white px-4 py-3 text-[14px] text-[#171717] outline-none transition placeholder:text-[#8a8c91] focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/[0.07]";
+    "mt-2 w-full rounded-lg border border-[#171717]/[0.08] dark:border-white/10 bg-white dark:bg-[#141118] px-4 py-3 text-[14px] text-[#171717] dark:text-white outline-none transition placeholder:text-[#8a8c91] focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/[0.07]";
 
   return (
-    <section id="contact" className="border-b border-[#171717]/[0.06] bg-white">
+    <section id="contact" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:py-24">
         <div className="lg:pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Contact us</p>
-          <h2 className="mt-3 max-w-[440px] font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 max-w-[440px] font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Let&apos;s talk about what you&apos;re building.
           </h2>
           <p className="mt-5 max-w-[430px] text-[14px] leading-relaxed text-[#666a70] md:text-[15px]">
@@ -959,7 +956,7 @@ function ContactSection() {
           </a>
         </div>
 
-        <form onSubmit={submit} className="rounded-lg bg-[#f4f2ef] p-5 ring-1 ring-[#171717]/[0.06] sm:p-7" noValidate={false}>
+        <form onSubmit={submit} className="rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] p-5 ring-1 ring-[#171717]/[0.06] sm:p-7" noValidate={false}>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="text-[12px] font-semibold text-[#343238]">
               Name
@@ -1048,11 +1045,11 @@ function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="border-b border-[#171717]/[0.06] bg-[#fbfaf8]">
+    <section className="border-b border-[#171717]/[0.06] bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
         <div className="mb-10 text-center md:mb-14">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Questions</p>
-          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] md:text-[42px]">
+          <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Everything you're wondering
           </h2>
         </div>
@@ -1060,12 +1057,12 @@ function FaqSection() {
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <div key={i} className={`overflow-hidden rounded-lg bg-white ring-1 transition-all ${isOpen ? "ring-[#cc208f]/25" : "ring-[#171717]/[0.06]"}`}>
+              <div key={i} className={`overflow-hidden rounded-lg bg-white dark:bg-[#141118] ring-1 transition-all ${isOpen ? "ring-[#cc208f]/25" : "ring-[#171717]/[0.06]"}`}>
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                   className="flex w-full items-center justify-between px-6 py-4 text-left"
                 >
-                  <h3 className="text-[15.5px] font-semibold tracking-tight text-[#171717]">{faq.q}</h3>
+                  <h3 className="text-[15.5px] font-semibold tracking-tight text-[#171717] dark:text-white">{faq.q}</h3>
                   <ChevronDown className={`h-4.5 w-4.5 shrink-0 text-[#666a70] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 <div
@@ -1086,7 +1083,7 @@ function FaqSection() {
 
 function FinalCta({ referralCode }: ReferralProps) {
   return (
-    <section className="bg-white px-4 py-16 md:px-6 md:py-20">
+    <section className="bg-white dark:bg-[#141118] px-4 py-16 md:px-6 md:py-20">
       <div className="mx-auto max-w-[1180px]">
         <div className="relative overflow-hidden rounded-lg bg-[#141117] px-6 py-16 text-center md:px-16 md:py-20">
           <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
@@ -1102,7 +1099,7 @@ function FinalCta({ referralCode }: ReferralProps) {
             <Link
               to="/signup"
               search={{ ref: referralCode, club: undefined }}
-              className="mt-9 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#171717] transition hover:opacity-90 active:scale-[0.98]"
+              className="mt-9 inline-flex items-center gap-2 rounded-full bg-white dark:bg-[#141118] px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#171717] dark:text-white transition hover:opacity-90 active:scale-[0.98]"
               preload={false}
             >
               Get started free <ArrowRight className="h-4 w-4" />
@@ -1116,7 +1113,7 @@ function FinalCta({ referralCode }: ReferralProps) {
 
 function Footer() {
   return (
-    <footer className="border-t border-[#171717]/[0.06] bg-[#f4f2ef] px-4 py-12 md:px-6">
+    <footer className="border-t border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12] px-4 py-12 md:px-6">
       <div className="mx-auto max-w-[1180px]">
         <div className="mb-10 flex flex-wrap items-center justify-between gap-5">
           <BrandMark />
@@ -1125,7 +1122,7 @@ function Footer() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {footerGroups.map((group) => (
             <div key={group.title}>
-              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#171717]">{group.title}</h3>
+              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#171717] dark:text-white">{group.title}</h3>
               <ul className="grid gap-2.5">
                 {group.links.map((link) => (
                   <li key={link}>
@@ -1151,7 +1148,7 @@ function Landing() {
   const { ref } = useSearch({ from: "/" });
 
   return (
-    <div className="min-h-screen bg-white font-['Montserrat'] text-[#171717] selection:bg-[#cc208f]/20">
+    <div className="min-h-screen bg-white dark:bg-[#141118] font-['Montserrat'] text-[#171717] dark:text-white selection:bg-[#cc208f]/20">
       <Header referralCode={ref} />
       <main>
         <Hero referralCode={ref} />

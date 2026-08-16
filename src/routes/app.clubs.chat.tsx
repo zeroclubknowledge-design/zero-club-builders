@@ -1006,8 +1006,11 @@ function ClubChat() {
                       {/* Header */}
                       <div className="px-6 pt-2 pb-5">
                         <div className="mb-1.5 flex items-center gap-3">
+                          {/* A video camera, not a lightning bolt. These are
+                              live rooms — the icon should say what the tool
+                              does rather than gesture at energy. */}
                           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                            <Zap className="w-4 h-4 text-primary-foreground fill-current" />
+                            <Video className="h-[18px] w-[18px] text-primary-foreground" strokeWidth={1.9} />
                           </div>
                           <div>
                             <p className="text-[10px] font-semibold uppercase text-primary">Live club tools</p>
