@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
-import { openPaystackCheckout, buildReference, paystackPublicKey, paystackKeyProblem } from "@/lib/paystack";
+import { openPaystackCheckout, buildReference, paystackPublicKey, paystackKeyProblem, describeVerifyFailure } from "@/lib/paystack";
 import { fundLinkUrl, copyToClipboard, shareOrCopy } from "@/lib/share";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
@@ -182,11 +182,8 @@ function AddMoneyPage() {
       // yet. For a transfer that usually means it simply has not landed, so
       // the record is kept and the card stays on screen to try again.
       if (!silent) {
-        toast.error(message, {
-          description: message.toLowerCase().includes("not successful")
-            ? "If you have just sent the transfer, give it a minute and check again."
-            : undefined,
-        });
+        const described = describeVerifyFailure(err);
+        toast.error(described.message, { description: described.description });
       }
     } finally {
       checkingRef.current = false;

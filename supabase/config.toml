@@ -403,6 +403,23 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
 
+[functions.paystack-webhook]
+# Paystack calls this endpoint directly and has no way to send a Supabase
+# access token. With JWT verification on, the gateway answers 401 before the
+# function ever runs, Paystack gives up retrying, and a wallet is never
+# credited — which is exactly what happened to a live bank transfer here.
+#
+# Dropping the check is safe because the function does its own, stronger one:
+# it verifies Paystack's HMAC SHA-512 signature against PAYSTACK_SECRET_KEY and
+# rejects anything that does not match. An attacker cannot forge that without
+# the secret key, whereas a Supabase JWT is held by every signed-in user.
+verify_jwt = false
+
+[functions.paystack-verify]
+# Stays on. This one is called from the browser and identifies the caller from
+# their session, so it must know who is asking.
+verify_jwt = true
+
 # [experimental.pgdelta]
 # When enabled, pg-delta becomes the active engine for supported schema flows.
 # enabled = false

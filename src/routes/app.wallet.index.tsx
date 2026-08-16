@@ -1,6 +1,7 @@
 import { useLoaderData, createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { describeVerifyFailure } from "@/lib/paystack";
 import { useUser } from "@/hooks/useUser";
 import { 
   ArrowUpRight, Store, Send, QrCode, TrendingUp, 
@@ -112,14 +113,11 @@ function WalletPage() {
           : "Payment confirmed — your wallet has been updated",
       );
     } catch (error: any) {
-      const message = error?.message || "We could not check that payment";
-      // "not successful" means Paystack has no record of the money yet, which
-      // for a transfer usually means it simply has not landed.
-      toast.error(message, {
-        description: message.toLowerCase().includes("not successful")
-          ? "If you have just sent the transfer, give it a few minutes and check again."
-          : undefined,
-      });
+      // Covers both "the transfer has not landed" and "the checker itself is
+      // unreachable", which are very different problems and used to read the
+      // same alarming way.
+      const { message, description } = describeVerifyFailure(error);
+      toast.error(message, { description });
     } finally {
       setCheckingReference(null);
     }

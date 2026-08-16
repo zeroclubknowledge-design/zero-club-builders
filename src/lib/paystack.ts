@@ -45,6 +45,41 @@ export function paystackKeyProblem(): string | null {
   return null;
 }
 
+/**
+ * Turns a failed `functions.invoke` into something a person can act on.
+ *
+ * supabase-js raises "Failed to send a request to the Edge Function" when the
+ * fetch itself never completed — the function is not deployed, CORS rejected
+ * the call, or the device is offline. It is not a payment failure, and showing
+ * it verbatim reads as if the money went missing.
+ *
+ * The important part of the message is the reassurance: the Paystack webhook
+ * credits wallets independently of the browser, so an unreachable verify
+ * endpoint delays confirmation but never loses money.
+ */
+export function describeVerifyFailure(error: unknown): { message: string; description?: string } {
+  const raw = (error as any)?.message || String(error || "");
+
+  if (/failed to send a request|failed to fetch|networkerror|load failed/i.test(raw)) {
+    return {
+      message: navigator.onLine
+        ? "We couldn't reach the payment checker"
+        : "You appear to be offline",
+      description:
+        "Your payment is safe. If it went through, it will be added to your wallet automatically — try again in a moment.",
+    };
+  }
+
+  if (/not successful/i.test(raw)) {
+    return {
+      message: "That payment hasn't arrived yet",
+      description: "If you have just sent a transfer, give it a minute and check again.",
+    };
+  }
+
+  return { message: raw || "We could not confirm that payment" };
+}
+
 let scriptPromise: Promise<void> | null = null;
 
 export function loadPaystack(): Promise<void> {
