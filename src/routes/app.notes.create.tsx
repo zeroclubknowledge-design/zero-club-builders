@@ -10,6 +10,8 @@ import { useUser } from '@/hooks/useUser';
 import { VideoEditor } from '@/components/VideoEditor';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { useKeyboardInset } from '@/hooks/useKeyboardInset';
+import { readNoteDraft, writeNoteDraft, clearNoteDraft, stripHtml } from '@/lib/noteDraft';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -116,15 +118,27 @@ const TipTapBlock = ({
 function NotesCreatePage() {
   const navigate = useNavigate();
   const { data: profile } = useUser();
-  const [title, setTitle] = useState('');
+  const keyboardInset = useKeyboardInset();
+
+  /*
+   * The draft is restored synchronously in the initial state rather than in an
+   * effect. Restoring afterwards would mount the editor with an empty block
+   * first, and TipTap would have already taken that empty value as its
+   * starting content — the text would come back in state but not on screen.
+   */
+  const restored = useRef(readNoteDraft());
+
+  const [title, setTitle] = useState(restored.current?.title ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [isPaid, setIsPaid] = useState(false);
-  
-  const [blocks, setBlocks] = useState<NoteBlock[]>([
-    { id: Math.random().toString(36).substring(2, 15), type: 'text', content: '' }
-  ]);
-  
+  const [isPaid, setIsPaid] = useState(restored.current?.isPaid ?? false);
+
+  const [blocks, setBlocks] = useState<NoteBlock[]>(
+    restored.current?.blocks?.length
+      ? restored.current.blocks
+      : [{ id: Math.random().toString(36).substring(2, 15), type: 'text', content: '' }]
+  );
+
   const [isPublishing, setIsPublishing] = useState(false);
   const [mentionSearch, setMentionSearch] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
@@ -136,6 +150,10 @@ function NotesCreatePage() {
   const [showIdlePublish, setShowIdlePublish] = useState(false);
   const [contentRevision, setContentRevision] = useState(0);
   const [customColor, setCustomColor] = useState('#000000');
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(
+    restored.current ? restored.current.at : null,
+  );
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const blockContentsRef = useRef<Record<string, string>>({});
@@ -152,6 +170,58 @@ function NotesCreatePage() {
     const idleTimer = window.setTimeout(() => setShowIdlePublish(true), 1200);
     return () => window.clearTimeout(idleTimer);
   }, [title, blocks, contentRevision, hasDraftContent, isPublishing, showPublishModal]);
+
+  /*
+   * Autosave the draft.
+   *
+   * The content is read from blockContentsRef, not from `blocks`. Typing does
+   * NOT update block state — updateBlockText writes the ref and bumps
+   * contentRevision, deliberately, to avoid re-rendering the editor on every
+   * keystroke. Saving `blocks` would therefore have written empty text and the
+   * whole feature would have looked like it worked while saving nothing.
+   *
+   * Debounced, and it also saves on the way out: pagehide and
+   * visibilitychange are exactly when the app is backgrounded and Android may
+   * decide to reclaim the process.
+   *
+   * Only text and dividers are stored. Media blocks hold blob: URLs that die
+   * with the page, so restoring one would show a broken image.
+   */
+  useEffect(() => {
+    const snapshot = () => {
+      const materialised = blocks
+        .filter((b) => b.type === 'text' || b.type === 'heading' || b.type === 'divider')
+        .map((b) => ({
+          id: b.id,
+          type: b.type,
+          content: blockContentsRef.current[b.id] ?? b.content ?? '',
+        }));
+
+      const hasText =
+        title.trim().length > 0 ||
+        materialised.some((b) => stripHtml(b.content).trim().length > 0);
+
+      if (!hasText) {
+        clearNoteDraft();
+        setDraftSavedAt(null);
+        return;
+      }
+
+      writeNoteDraft({ title, isPaid, blocks: materialised, at: Date.now() });
+      setDraftSavedAt(Date.now());
+    };
+
+    const timer = window.setTimeout(snapshot, 800);
+    const onLeave = () => { window.clearTimeout(timer); snapshot(); };
+
+    window.addEventListener('pagehide', onLeave);
+    document.addEventListener('visibilitychange', onLeave);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('pagehide', onLeave);
+      document.removeEventListener('visibilitychange', onLeave);
+    };
+  }, [title, blocks, isPaid, contentRevision]);
 
   // Automatically scroll to bottom when adding a new block
   const endOfBlocksRef = useRef<HTMLDivElement>(null);
@@ -457,6 +527,7 @@ function NotesCreatePage() {
 
       await createNoteAction({ data: noteData });
 
+      clearNoteDraft();
       toast.success('Note published successfully!');
       navigate({ to: '/app/notes' });
 
@@ -483,10 +554,38 @@ function NotesCreatePage() {
         
         <div className="min-w-0 flex-1">
           <p className="text-[11px] text-muted-foreground">ZeroNotes</p>
-          <p className="truncate text-sm font-semibold">New note</p>
+          <p className="truncate text-sm font-semibold">
+            New note
+            {/* Saying it out loud, because a draft nobody knows about is the
+                same as no draft — you still close the page carefully. */}
+            {draftSavedAt && (
+              <span className="ml-2 text-[10.5px] font-medium text-muted-foreground">
+                Draft saved
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
+          {/* Restoring a draft has to be undoable, or someone who wanted a
+              blank page has to delete their old note by hand to get one. */}
+          {restored.current && draftSavedAt && (
+            <button
+              onClick={() => {
+                clearNoteDraft();
+                setDraftSavedAt(null);
+                setTitle('');
+                setIsPaid(false);
+                setBlocks([{ id: Math.random().toString(36).substring(2, 15), type: 'text', content: '' }]);
+                restored.current = null;
+                setContentRevision((r) => r + 1);
+                toast.success('Draft discarded');
+              }}
+              className="hidden rounded-lg border border-border px-3 py-2 text-[12px] font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground sm:block"
+            >
+              Discard draft
+            </button>
+          )}
+          <button
             onClick={() => setShowPublishModal(true)}
             disabled={isPublishing}
             className="flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-95 disabled:opacity-50"
@@ -723,9 +822,18 @@ function NotesCreatePage() {
         </div>
       </div>
 
-      {/* Floating Formatting Toolbar (Appears when typing) */}
+      {/* Floating Formatting Toolbar — rides on top of the keyboard.
+          `fixed bottom-4` is measured against the layout viewport, which the
+          mobile keyboard covers rather than shrinks, so the toolbar sat
+          underneath it exactly when you were typing. keyboardInset is the
+          height the keyboard is covering, so offsetting by it puts the bar
+          directly above the keys. Falls back to the old offsets on desktop,
+          where there is no keyboard. */}
       {activeMentionBlockId && (
-        <div className={`formatting-toolbar fixed left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 ${showIdlePublish ? 'bottom-[84px]' : 'bottom-4 sm:bottom-6'}`}>
+        <div
+          className={`formatting-toolbar fixed left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 ${keyboardInset > 0 ? '' : showIdlePublish ? 'bottom-[84px]' : 'bottom-4 sm:bottom-6'}`}
+          style={keyboardInset > 0 ? { bottom: keyboardInset + 8 } : undefined}
+        >
           <div className="flex items-center gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 shadow-xl">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
