@@ -138,11 +138,15 @@ function SidebarContent({
   onOpenTheme,
   onClose,
   isInstitutionStudio,
+  unreadMessagesCount = 0,
+  unreadNotificationsCount = 0,
 }: {
   profile: any;
   onOpenTheme: () => void;
   onClose?: () => void;
   isInstitutionStudio?: boolean;
+  unreadMessagesCount?: number;
+  unreadNotificationsCount?: number;
 }) {
   const [accounts, setAccounts] = React.useState<any[]>([]);
   const [institutionActiveTab, setInstitutionActiveTab] = React.useState("overview");
@@ -386,8 +390,8 @@ function SidebarContent({
             {[
               // Desktop-only: mirror the mobile bottom nav (hidden on md+)
               { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
-              { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true },
-              { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true },
+              { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true, badge: unreadNotificationsCount },
+              { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true, badge: unreadMessagesCount },
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
               { Icon: IconClubs, label: "Clubs", to: "/app/clubs", learnerDesktopOnly: isLearnerAccount },
               { Icon: IconGames, label: "Zero Games", to: "/app/games", desktopOnly: true },
@@ -429,7 +433,12 @@ function SidebarContent({
                       active={isActive}
                       className={`h-[19px] w-[19px] transition-all duration-200 ${isActive ? "scale-110 text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
                     />
-                    <span>{item.label}</span>
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    {item.badge > 0 && (
+                      <span className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-primary px-1.5 text-[10px] font-bold tabular-nums text-primary-foreground">
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    )}
                   </>
                 )}
               </Link>
@@ -1231,7 +1240,13 @@ function AppLayout() {
     <div className="zc-app-shell mx-auto min-h-screen w-full bg-background md:flex md:max-w-none md:justify-center">
       {/* Desktop Sidebar (Left Column) — hidden on admin routes, which have their own sidebar */}
       <div className={`sticky top-0 z-40 h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-[#f8f7f5] no-scrollbar dark:bg-background ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
-        <SidebarContent profile={profile} onOpenTheme={() => setIsThemeOpen(true)} isInstitutionStudio={pathname.startsWith("/app/institution-studio")} />
+        <SidebarContent
+          profile={profile}
+          onOpenTheme={() => setIsThemeOpen(true)}
+          isInstitutionStudio={pathname.startsWith("/app/institution-studio")}
+          unreadMessagesCount={unreadMessagesCount}
+          unreadNotificationsCount={unreadNotificationsCount}
+        />
       </div>
 
       {/* Main Center Column */}
@@ -1305,6 +1320,8 @@ function AppLayout() {
               <SidebarContent
                 profile={profile}
                 isInstitutionStudio={pathname.startsWith("/app/institution-studio")}
+                unreadMessagesCount={unreadMessagesCount}
+                unreadNotificationsCount={unreadNotificationsCount}
                 onClose={handleCloseSidebar}
                 onOpenTheme={() => {
                   setIsSidebarOpen(false);

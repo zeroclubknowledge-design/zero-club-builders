@@ -8,7 +8,7 @@ import {
   History, Star, Users, PenLine, Plus,
   Wallet as WalletIcon, Search, HelpCircle, BarChart3, Gift,
   ChevronLeft, Loader2, ArrowRight, ArrowDownLeft, Copy,
-  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, ShieldCheck
+  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
@@ -423,10 +423,12 @@ function WalletPage() {
           {/* One continuous premium surface: light, spacing and dividers carry
               the hierarchy without the old card-inside-a-card treatment. */}
           <div className="relative mb-4 overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-6 md:p-7">
-            <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[#f15bb5]/80 to-transparent" />
+            {/* The pink hairline along the top and the tilted outlined square
+                have gone. Both were decoration pretending to be structure,
+                which is what read as cheap. The two soft colour washes stay —
+                they give the card depth without drawing a shape on it. */}
             <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
             <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
-            <div className="pointer-events-none absolute -right-10 top-16 h-36 w-36 rotate-12 rounded-[42px] border border-white/[0.035]" />
 
             <div className="relative z-10">
               <div className="flex items-start justify-between gap-4">
@@ -448,23 +450,16 @@ function WalletPage() {
               </div>
               <p className="mt-2.5 text-[10.5px] text-white/40">Ready to spend across Zero Club</p>
 
-              <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-5 border-y border-white/[0.09] py-4">
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-[0.15em] text-white/40">
-                    <span className={`h-1.5 w-1.5 rounded-full ${withdrawable > 0 ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" : "bg-white/25"}`} />
-                    Withdrawable earnings
-                  </p>
-                  <p className="mt-1.5 text-[18px] font-semibold tracking-tight tabular-nums text-white">
-                    {showBalance ? (split ? format(withdrawable) : "—") : "••••"}
-                  </p>
-                </div>
-                <div className="max-w-[138px] border-l border-white/[0.09] pl-5">
-                  <p className="text-[10px] leading-[1.55] text-white/40">
-                    {withdrawable > 0
-                      ? "Creator earnings ready for bank withdrawal."
-                      : "Earn from teaching, sales or referrals to withdraw."}
-                  </p>
-                </div>
+              {/* The number carries the meaning on its own. The explanatory
+                  column and the rules boxing it in were doing the work a
+                  label should do. */}
+              <div className="mt-5">
+                <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-white/40">
+                  Withdrawable earnings
+                </p>
+                <p className="mt-1.5 text-[18px] font-semibold tracking-tight tabular-nums text-white">
+                  {showBalance ? (split ? format(withdrawable) : "—") : "••••"}
+                </p>
               </div>
 
               <div className="mt-4 flex items-center justify-between gap-4">
@@ -480,9 +475,6 @@ function WalletPage() {
                     <Copy className="h-3 w-3" />
                   </span>
                 </button>
-                <span className="flex shrink-0 items-center gap-1.5 text-[9px] font-medium uppercase tracking-[0.12em] text-white/35">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400/75" /> Protected
-                </span>
               </div>
             </div>
           </div>
