@@ -8,7 +8,7 @@ import {
   History, Star, Users, PenLine, Plus,
   Wallet as WalletIcon, Search, HelpCircle, BarChart3, Gift,
   ChevronLeft, Loader2, ArrowRight, ArrowDownLeft, Copy,
-  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, Landmark
+  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, Landmark, X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
@@ -88,7 +88,7 @@ function WalletPage() {
   });
 
   const transactions = (walletHistory?.transactions || []) as any[];
-  const pendingTopups = (walletHistory?.pending_topups || []) as any[];
+  const allPendingTopups = (walletHistory?.pending_topups || []) as any[];
 
   /* How much of this balance came from work, as opposed to being topped up.
      Only earnings can be withdrawn, so the two numbers have to be visible
@@ -105,6 +105,35 @@ function WalletPage() {
   });
 
   const withdrawable = Number(split?.withdrawable ?? 0);
+
+  /* Dismissing hides the card on this device and nothing more. It does not
+     cancel the payment and cannot: if the money does arrive, Paystack's
+     webhook still credits the wallet. Kept in localStorage and keyed by
+     reference so a genuinely new payment reappears. */
+  const DISMISSED_KEY = "zc_dismissed_topups";
+  const [dismissedRefs, setDismissedRefs] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(DISMISSED_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const dismissPending = (references: string[]) => {
+    setDismissedRefs((prev) => {
+      const next = Array.from(new Set([...prev, ...references])).slice(-50);
+      try {
+        localStorage.setItem(DISMISSED_KEY, JSON.stringify(next));
+      } catch {
+        /* storage unavailable — it just will not persist */
+      }
+      return next;
+    });
+  };
+
+  const pendingTopups = allPendingTopups.filter(
+    (t: any) => !dismissedRefs.includes(t.reference),
+  );
 
   /* Re-ask Paystack about one unconfirmed payment. The browser never decides
      the outcome — paystack-verify asks Paystack and credits only if the money
@@ -532,8 +561,19 @@ function WalletPage() {
             is gone when you come back — so there has to be a way to say "I paid,
             check again" rather than only waiting on the webhook. */}
         {pendingTopups.length > 0 && (
-          <div className="mb-4 rounded-lg bg-amber-500/[0.07] p-3.5 ring-1 ring-amber-500/20">
-            <p className="text-[12px] font-semibold text-amber-700">
+          <div className="relative mb-4 rounded-lg bg-amber-500/[0.07] p-3.5 ring-1 ring-amber-500/20">
+            {/* Dismiss, not cancel. This hides the card on this device; the
+                payment is untouched and the webhook still credits it if the
+                money lands. */}
+            <button
+              onClick={() => dismissPending(pendingTopups.map((t: any) => t.reference))}
+              title="Dismiss"
+              aria-label="Dismiss this notice"
+              className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-amber-700/60 transition hover:bg-amber-500/10 hover:text-amber-700 tap"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <p className="pr-8 text-[12px] font-semibold text-amber-700">
               {pendingTopups.length === 1 ? "A payment is waiting to be confirmed" : `${pendingTopups.length} payments are waiting to be confirmed`}
             </p>
             <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
