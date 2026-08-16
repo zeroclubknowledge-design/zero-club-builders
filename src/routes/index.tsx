@@ -802,21 +802,41 @@ function WalletSection() {
         {/* The actual wallet card from the product, built in code */}
         <div className="relative mx-auto w-full max-w-[440px]">
           <div className="pointer-events-none absolute -top-10 -right-8 h-52 w-52 rounded-full bg-[#cc208f]/15 blur-[70px]" />
-          <div className="relative overflow-hidden rounded-lg bg-[#141117] p-8 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06]">
-            <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-[#cc208f]/25 blur-[80px]" />
-            <div className="relative z-10">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Balance</p>
-                <IconWallet className="h-5 w-5 text-white/40" />
+          {/* Kept in step with the real card in app/wallet: the same gradient
+              shell, the same 26px radius, the same two colour washes and
+              embossed rings, and the same two figures — balance above,
+              withdrawable earnings on the bottom line. If the product card
+              changes, this is the one to change with it. */}
+          <div className="relative flex min-h-[252px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-7 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10">
+            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
+            <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
+            <div className="pointer-events-none absolute -bottom-14 right-20 h-28 w-28 rotate-12 border-[16px] border-white opacity-[0.035]" />
+
+            <div className="relative z-10 flex flex-1 flex-col">
+              <div className="mb-5 flex items-center gap-2">
+                <img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" />
+                <span className="text-[11.5px] font-semibold tracking-tight text-white/85">Zero Wallet</span>
               </div>
-              <h3 className="mt-3 text-[40px] font-semibold tracking-tight leading-none tabular-nums">
-                <span className="mr-1 align-top text-[24px] font-normal text-white/70">₦</span>248,500
-              </h3>
-              <div className="mt-6 flex items-center justify-between">
-                <div className="flex items-center gap-2 rounded-full bg-white/[0.06] px-3.5 py-1.5 ring-1 ring-white/10">
-                  <span className="text-[10.5px] font-medium tracking-[0.14em] text-white/70">ZC · 9710478080</span>
+
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">Available balance</p>
+                  <h3 className="mt-2.5 flex items-start text-[46px] font-semibold leading-none tracking-[-0.045em] tabular-nums">
+                    <span className="mr-2 mt-1 text-[23px] font-medium tracking-normal text-white/55">₦</span>
+                    <span>248,500</span>
+                  </h3>
                 </div>
-                <img src="/logo.png" alt="" className="h-6 w-6 object-contain opacity-60" />
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/[0.065] text-white/55 ring-1 ring-white/[0.08]">
+                  <IconWallet className="h-4 w-4" />
+                </span>
+              </div>
+
+              <div className="mt-auto flex items-baseline justify-between gap-4 pt-6">
+                <p className="text-[9.5px] font-medium uppercase tracking-[0.15em] text-white/45">
+                  Withdrawable earnings
+                </p>
+                <p className="shrink-0 text-[17px] font-semibold tracking-tight tabular-nums text-white">₦92,400</p>
               </div>
             </div>
           </div>
