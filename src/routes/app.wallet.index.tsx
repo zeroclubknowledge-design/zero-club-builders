@@ -8,7 +8,7 @@ import {
   History, Star, Users, PenLine, Plus,
   Wallet as WalletIcon, Search, HelpCircle, BarChart3, Gift,
   ChevronLeft, Loader2, ArrowRight, ArrowDownLeft, Copy,
-  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings
+  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, ShieldCheck
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
@@ -420,56 +420,79 @@ function WalletPage() {
       <div className="md:mx-auto md:w-full md:min-w-0">
       <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pt-0 flex flex-col w-full">
 
-          {/* Premium Balance Card */}
-          <div className="relative mb-4 overflow-hidden rounded-lg border-t-2 border-[#cc208f] bg-[#141117] p-7 text-white shadow-[0_20px_50px_-28px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.06] md:p-9">
+          {/* One continuous premium surface: light, spacing and dividers carry
+              the hierarchy without the old card-inside-a-card treatment. */}
+          <div className="relative mb-4 overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-6 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-7 md:p-8">
+            <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[#f15bb5]/80 to-transparent" />
+            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
+            <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
+            <div className="pointer-events-none absolute -right-10 top-16 h-36 w-36 rotate-12 rounded-[42px] border border-white/[0.035]" />
+
             <div className="relative z-10">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Balance</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-[14px] bg-white/[0.07] ring-1 ring-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                    <img src="/logo.png" alt="" className="h-6 w-6 object-contain" />
+                  </span>
+                  <span>
+                    <span className="block text-[12px] font-semibold tracking-[-0.01em] text-white">Zero Wallet</span>
+                    <span className="mt-0.5 block text-[9px] font-medium uppercase tracking-[0.16em] text-white/40">Personal account</span>
+                  </span>
+                </div>
+
                 <button
                   onClick={() => setShowBalance(!showBalance)}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-white/[0.06] text-white/60 hover:text-white tap"
+                  aria-label={showBalance ? "Hide wallet balances" : "Show wallet balances"}
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.065] text-white/55 ring-1 ring-white/[0.08] transition hover:bg-white/10 hover:text-white tap"
                 >
-                  {showBalance ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
-              <h2 className="mt-3 text-[36px] font-semibold leading-none tracking-tight tabular-nums sm:text-[42px] md:text-[48px]">
-                <span className="mr-1 text-[26px] font-normal align-top text-white/70">{currentCurrency.symbol}</span>
-                {showBalance ? displayBalance : "••••"}
-              </h2>
+              <div className="mt-8">
+                <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">Available balance</p>
+                <h2 className="mt-2.5 flex items-start text-[40px] font-semibold leading-none tracking-[-0.045em] tabular-nums sm:text-[46px] md:text-[52px]">
+                  <span className="mr-2 mt-1 text-[20px] font-medium tracking-normal text-white/55 sm:text-[23px]">{currentCurrency.symbol}</span>
+                  <span>{showBalance ? displayBalance : "••••"}</span>
+                </h2>
+                <p className="mt-3 text-[10.5px] text-white/40">Ready to spend across Zero Club</p>
+              </div>
 
-              {/* The second number, stated plainly. Total balance is what you
-                  can spend on Zero Club; only what you earned can leave for a
-                  bank account. Showing one figure and a Withdraw button that
-                  rejects most of it is how you make people feel cheated. */}
-              {split && (
-                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-white/[0.05] px-3.5 py-2.5 ring-1 ring-white/10">
-                  <div className="min-w-0">
-                    <p className="text-[9.5px] font-medium uppercase tracking-[0.14em] text-white/45">
-                      Available to withdraw
-                    </p>
-                    <p className="mt-0.5 text-[16px] font-semibold tabular-nums text-white">
-                      {showBalance ? format(withdrawable) : "••••"}
-                    </p>
-                  </div>
-                  <p className="min-w-0 flex-1 text-[10.5px] leading-4 text-white/45">
-                    {withdrawable > 0
-                      ? "Money you earned from teaching, selling or referrals."
-                      : "Earn from teaching, selling or referrals to withdraw. Money you add is for spending on Zero Club."}
+              <div className="mt-7 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-5 border-y border-white/[0.09] py-[18px]">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-[0.15em] text-white/40">
+                    <span className={`h-1.5 w-1.5 rounded-full ${withdrawable > 0 ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" : "bg-white/25"}`} />
+                    Withdrawable earnings
+                  </p>
+                  <p className="mt-1.5 text-[18px] font-semibold tracking-tight tabular-nums text-white">
+                    {showBalance ? (split ? format(withdrawable) : "—") : "••••"}
                   </p>
                 </div>
-              )}
+                <div className="max-w-[138px] border-l border-white/[0.09] pl-5">
+                  <p className="text-[10px] leading-[1.55] text-white/40">
+                    {withdrawable > 0
+                      ? "Creator earnings ready for bank withdrawal."
+                      : "Earn from teaching, sales or referrals to withdraw."}
+                  </p>
+                </div>
+              </div>
 
-              <div className="mt-6 flex items-center justify-between">
-                <div className="flex items-center gap-2 rounded-full bg-white/[0.06] px-3.5 py-1.5 ring-1 ring-white/10">
-                  <span className="text-[10.5px] font-medium tracking-[0.14em] text-white/70">
+              <div className="mt-5 flex items-center justify-between gap-4">
+                <button
+                  onClick={handleCopyDetails}
+                  aria-label="Copy wallet account details"
+                  className="group flex min-w-0 items-center gap-2 text-left text-white/55 transition hover:text-white tap"
+                >
+                  <span className="truncate font-mono text-[10px] font-medium tracking-[0.11em]">
                     ZC · {profile?.id?.slice(0, 10).toUpperCase() || "9710478080"}
                   </span>
-                  <button onClick={handleCopyDetails} className="text-white/50 hover:text-white tap">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/[0.055] ring-1 ring-white/[0.07] transition group-hover:bg-white/10">
                     <Copy className="h-3 w-3" />
-                  </button>
-                </div>
-                <img src="/logo.png" alt="" className="h-6 w-6 object-contain opacity-60" />
+                  </span>
+                </button>
+                <span className="flex shrink-0 items-center gap-1.5 text-[9px] font-medium uppercase tracking-[0.12em] text-white/35">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400/75" /> Protected
+                </span>
               </div>
             </div>
           </div>
