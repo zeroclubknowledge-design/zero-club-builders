@@ -149,10 +149,10 @@ function NotesIndexPage() {
         
         {loading ? (
           <div className="flex flex-col gap-8 animate-pulse">
-            <div className="aspect-[4/5] w-full rounded-lg bg-muted/50 md:aspect-video" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-32 w-full rounded-lg bg-muted/50" />
-              <div className="h-32 w-full rounded-lg bg-muted/50" />
+            <div className="aspect-[16/10] w-full rounded-lg bg-muted/50 sm:aspect-[2/1] md:aspect-[24/9]" />
+            <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-5">
+              <div className="h-28 w-full rounded-lg bg-muted/50" />
+              <div className="h-28 w-full rounded-lg bg-muted/50" />
             </div>
           </div>
         ) : filteredNotes.length === 0 ? (
@@ -183,7 +183,7 @@ function NotesIndexPage() {
             {/* Editorial Hero Note */}
             {featuredNote && (
               <Link to="/app/notes/$id" params={{ id: featuredNote.id }} className="block group">
-                <article className="relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-black shadow-[0_24px_60px_-32px_rgba(0,0,0,0.65)] transition duration-500 group-hover:-translate-y-0.5 md:aspect-[24/9]">
+                <article className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-black shadow-[0_1px_2px_rgba(0,0,0,0.05),0_18px_40px_-20px_rgba(0,0,0,0.35)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_6px_rgba(0,0,0,0.06),0_26px_54px_-22px_rgba(0,0,0,0.45)] sm:aspect-[2/1] md:aspect-[24/9]">
                   {featuredNote.cover_url ? (
                     <img 
                       src={featuredNote.cover_url} 
@@ -293,13 +293,13 @@ function NotesIndexPage() {
                   </h3>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-5">
                   {recentNotes.map((note) => (
                     <Link key={note.id} to="/app/notes/$id" params={{ id: note.id }} className="group block relative">
                       {/* Mobile: Horizontal, Desktop: Vertical */}
-                      <article className="flex flex-row gap-4 rounded-lg border border-transparent p-2 transition-colors hover:border-border/50 hover:bg-card md:flex-col md:gap-5 md:p-3">
+                      <article className="flex flex-row overflow-hidden rounded-lg border border-border/60 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04),0_10px_26px_-14px_rgba(0,0,0,0.16)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-border group-hover:shadow-[0_2px_5px_rgba(0,0,0,0.05),0_18px_40px_-16px_rgba(0,0,0,0.24)]">
                         {/* Cover Image */}
-                        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg border border-border/30 bg-accent/30 transition-transform duration-500 md:aspect-[4/3] md:h-auto md:w-full md:group-hover:-translate-y-1">
+                        <div className="relative aspect-[4/3] w-[40%] shrink-0 overflow-hidden bg-accent/30 sm:w-[36%]">
                           {note.cover_url ? (
                             <img 
                               src={note.cover_url} 
@@ -311,7 +311,7 @@ function NotesIndexPage() {
                             </div>
                           )}
                           {/* Read time badge (desktop only, over image) */}
-                          <div className="hidden md:flex absolute top-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full text-white/90 text-[10px] font-medium tracking-[0.14em] items-center gap-1.5">
+                          <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 text-[9px] font-medium tracking-[0.12em] text-white/90 backdrop-blur-md md:left-4 md:top-4 md:px-3 md:py-1.5 md:text-[10px]">
                             3 MIN READ
                           </div>
 
@@ -365,7 +365,7 @@ function NotesIndexPage() {
                           )}
                         </div>
                         
-                        <div className="flex flex-col flex-1 py-1 md:py-0 justify-center md:justify-start min-w-0">
+                        <div className="flex min-w-0 flex-1 flex-col justify-center p-3.5 sm:p-4">
                           <h3 className="font-semibold text-[17px] md:text-[21px] tracking-tight leading-[1.25] text-foreground group-hover:text-primary transition-colors mb-2 md:mb-3 line-clamp-2 md:line-clamp-2 font-serif">
                             {note.title || "Untitled Note"}
                           </h3>

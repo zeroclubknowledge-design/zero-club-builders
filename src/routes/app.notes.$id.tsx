@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Share2, Bookmark, ThumbsUp, Mic, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, Share2, Bookmark, ThumbsUp, Mic, Edit3, Trash2, Bell, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';
@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { LinkifiedText } from '@/components/LinkifiedText';
 import { CommentDrawer } from '@/components/CommentDrawer';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { followUserAction, unfollowUserAction, deleteNoteAction } from '@/api';
+import { deleteNoteAction } from '@/api';
 
 export const Route = createFileRoute('/app/notes/$id')({
   loader: async ({ params: { id } }) => {
@@ -81,35 +81,49 @@ function NoteReaderPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const { data: followData, refetch: refetchFollow } = useQuery({
-    queryKey: ['follows', profile?.id, note?.author_id],
+  /*
+   * Subscribing, not following.
+   *
+   * Following a builder is about their feed. Subscribing is about their
+   * writing, and people want one without the other — you can enjoy someone's
+   * posts without wanting every long-form note, and want somebody's notes
+   * without following them at all. Separate table, separate switch.
+   */
+  const { data: subscribedData, refetch: refetchSubscription } = useQuery({
+    queryKey: ['note-subscription', profile?.id, note?.author_id],
     queryFn: async () => {
       if (!profile?.id || !note?.author_id) return false;
       const { data } = await supabase
-        .from('follows')
-        .select('*')
-        .eq('follower_id', profile.id)
-        .eq('following_id', note.author_id)
-        .single();
+        .from('note_subscriptions')
+        .select('id')
+        .eq('subscriber_id', profile.id)
+        .eq('author_id', note.author_id)
+        .maybeSingle();
       return !!data;
     },
     enabled: !!profile?.id && !!note?.author_id
   });
 
-  const isFollowing = !!followData;
+  const isSubscribed = !!subscribedData;
 
-  const followMutation = useMutation({
-    mutationFn: async (follow: boolean) => {
+  const subscribeMutation = useMutation({
+    mutationFn: async () => {
       if (!profile?.id || !note?.author_id) throw new Error("Missing IDs");
-      if (follow) {
-        await followUserAction({ data: { followerId: profile.id, followingId: note.author_id }});
-      } else {
-        await unfollowUserAction({ data: { followerId: profile.id, followingId: note.author_id }});
-      }
+      // One call decides insert or delete, so a double tap cannot leave the
+      // button and the database disagreeing.
+      const { data, error } = await supabase.rpc('toggle_note_subscription', {
+        p_author_id: note.author_id,
+      });
+      if (error) throw error;
+      return !!(data as any)?.subscribed;
     },
-    onSuccess: (_, variables) => {
-      refetchFollow();
-      toast.success(variables ? "Following author!" : "Unfollowed author");
+    onSuccess: (subscribed) => {
+      refetchSubscription();
+      toast.success(
+        subscribed
+          ? "Subscribed — you'll get their new notes"
+          : "Unsubscribed from their notes",
+      );
     },
     onError: (error) => {
       toast.error(error.message || "An error occurred");
@@ -159,12 +173,12 @@ function NoteReaderPage() {
     setIsDeleteDialogOpen(false);
   };
 
-  const handleFollow = () => {
+  const handleSubscribe = () => {
     if (!profile) {
-      toast.error("Please sign in to follow users");
+      toast.error("Please sign in to subscribe");
       return;
     }
-    followMutation.mutate(!isFollowing);
+    subscribeMutation.mutate();
   };
 
   if (loading) {
@@ -304,13 +318,17 @@ function NoteReaderPage() {
                   <span className="text-base font-semibold text-foreground">
                     {note.profiles?.full_name || note.profiles?.username}
                   </span>
+                  {/* Never on your own notes — subscribing to yourself is
+                      meaningless, and the database rejects it too. */}
                   {profile?.id !== note.author_id && (
-                    <button 
-                      onClick={handleFollow}
-                      disabled={followMutation.isPending}
-                      className={`rounded-lg px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${isFollowing ? 'bg-muted text-muted-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
+                    <button
+                      onClick={handleSubscribe}
+                      disabled={subscribeMutation.isPending}
+                      title={isSubscribed ? "Stop getting their new notes" : "Get their new notes"}
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${isSubscribed ? 'bg-muted text-muted-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                     >
-                      {isFollowing ? 'Following' : 'Follow'}
+                      {isSubscribed ? <Check className="h-3 w-3" /> : <Bell className="h-3 w-3" />}
+                      {isSubscribed ? 'Subscribed' : 'Subscribe'}
                     </button>
                   )}
                 </div>
