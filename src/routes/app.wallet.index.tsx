@@ -451,7 +451,7 @@ function WalletPage() {
 
           {/* One continuous premium surface: light, spacing and dividers carry
               the hierarchy without the old card-inside-a-card treatment. */}
-          <div className="relative mb-4 overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-6 md:p-7">
+          <div className="relative mb-4 flex min-h-[228px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:min-h-[252px] sm:p-6 md:p-7">
             {/* The pink hairline along the top and the tilted outlined square
                 have gone. Both were decoration pretending to be structure,
                 which is what read as cheap. The two soft colour washes stay —
@@ -459,7 +459,21 @@ function WalletPage() {
             <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
             <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
 
-            <div className="relative z-10">
+            {/* The same device the Zero Club Gift card uses: thick-bordered
+                rings in the current colour at very low opacity. They read as
+                embossing on the material rather than as drawn lines, which is
+                why they add texture where the old hairline rule looked cheap. */}
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
+            <div className="pointer-events-none absolute -bottom-14 right-20 h-28 w-28 rotate-12 border-[16px] border-white opacity-[0.035]" />
+
+            <div className="relative z-10 flex flex-1 flex-col">
+              {/* Brand line, as on the gift card. It gives the extra height
+                  something to hold rather than just more empty space. */}
+              <div className="mb-5 flex items-center gap-2">
+                <img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" />
+                <span className="text-[11.5px] font-semibold tracking-tight text-white/85">Zero Wallet</span>
+              </div>
+
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">Available balance</p>
@@ -482,7 +496,7 @@ function WalletPage() {
                   profile id — not an account number anyone could pay into and
                   not something support ever asked for, so copying it achieved
                   nothing. This is the second figure people actually want. */}
-              <div className="mt-6 flex items-baseline justify-between gap-4">
+              <div className="mt-auto flex items-baseline justify-between gap-4 pt-6">
                 <p className="text-[9.5px] font-medium uppercase tracking-[0.15em] text-white/45">
                   Withdrawable earnings
                 </p>

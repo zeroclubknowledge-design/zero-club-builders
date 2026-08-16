@@ -14,6 +14,7 @@ function GiftCardsPage() {
   const [templateId, setTemplateId] = useState("signature");
   const [service, setService] = useState("bootcamps");
   const [message, setMessage] = useState("");
+  const [customPurpose, setCustomPurpose] = useState("");
   const [createdCard, setCreatedCard] = useState<any>(null);
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const displayAmount = Number(amount) || 0;
@@ -33,11 +34,15 @@ function GiftCardsPage() {
     mutationFn: async () => {
       if (numericAmount <= 0) throw new Error("Enter a valid gift amount.");
       if (numericAmount > Number(profile?.coins || 0)) throw new Error("Your wallet balance is too low for this gift.");
+      if (service === "custom" && !customPurpose.trim()) {
+        throw new Error("Say what this custom gift is for.");
+      }
       const { data, error } = await supabase.rpc("create_gift_card", {
         gift_amount: numericAmount,
         gift_template: templateId,
         gift_service: service,
         gift_message: message.trim() || null,
+        gift_custom_purpose: service === "custom" ? customPurpose.trim() : null,
       });
       if (error) throw error;
       return Array.isArray(data) ? data[0] : data;
@@ -99,10 +104,27 @@ function GiftCardsPage() {
 
           <div><label className="text-[10px] font-semibold uppercase text-muted-foreground">What can this gift be used for?</label><div className="mt-3 grid gap-2 sm:grid-cols-2">{giftServices.map((item) => <button key={item.id} onClick={() => setService(item.id)} className={`flex items-center justify-between gap-3 rounded-lg border p-3.5 text-left ${service === item.id ? "border-primary bg-primary/[0.045]" : "border-border bg-card"}`}><div><p className="text-[12.5px] font-semibold">{item.label}</p><p className="mt-0.5 text-[10.5px] text-muted-foreground">{item.description}</p></div>{service === item.id && <Check className="h-4 w-4 shrink-0 text-primary" />}</button>)}</div></div>
 
+          {service === "custom" && (
+            <div>
+              <label className="text-[10px] font-semibold uppercase text-muted-foreground">What is this gift for?</label>
+              <input
+                value={customPurpose}
+                onChange={(event) => setCustomPurpose(event.target.value.slice(0, 60))}
+                placeholder="e.g. Data for your bootcamp week"
+                className="mt-3 w-full rounded-lg border border-border bg-card p-4 text-[13px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              />
+              {/* Said plainly, because "custom" could easily be read as
+                  restricting where the money can go. It does not. */}
+              <p className="mt-1.5 text-[10.5px] text-muted-foreground">
+                A note for the recipient. The money still lands in their wallet to spend freely.
+              </p>
+            </div>
+          )}
+
           <div><label className="text-[10px] font-semibold uppercase text-muted-foreground">Personal message <span className="normal-case text-muted-foreground/60">(optional)</span></label><textarea value={message} onChange={(event) => setMessage(event.target.value.slice(0, 140))} rows={3} placeholder="Add a short note for the recipient" className="mt-3 w-full resize-none rounded-lg border border-border bg-card p-4 text-[13px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" /><p className="mt-1 text-right text-[9px] text-muted-foreground">{message.length}/140</p></div>
         </section>
 
-        <aside className="w-full min-w-0 border-t border-border pt-6 lg:sticky lg:top-28 lg:self-start lg:border-0 lg:pt-0"><div className="mx-auto w-full max-w-[520px] lg:max-w-none"><GiftCardVisual amount={numericAmount} service={service} templateId={templateId} message={message} /><div className="mt-3 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-4"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><p className="text-[11.5px] leading-relaxed text-muted-foreground">The amount is reserved from your wallet when the card is created. It remains locked to the selected service.</p></div><button onClick={() => createGift.mutate()} disabled={createGift.isPending || numericAmount <= 0 || numericAmount > Number(profile?.coins || 0)} className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-[14px] font-semibold text-primary-foreground disabled:opacity-40">{createGift.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Create gift card<ArrowRight className="h-4 w-4" /></>}</button></div></aside>
+        <aside className="w-full min-w-0 border-t border-border pt-6 lg:sticky lg:top-28 lg:self-start lg:border-0 lg:pt-0"><div className="mx-auto w-full max-w-[520px] lg:max-w-none"><GiftCardVisual amount={numericAmount} service={service} templateId={templateId} message={message} /><div className="mt-3 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-4"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><p className="text-[11.5px] leading-relaxed text-muted-foreground">{service === "support" || service === "custom" ? "The amount leaves your wallet now and lands in theirs the moment they claim it." : "The amount is reserved from your wallet when the card is created. It remains locked to the selected service."}</p></div><button onClick={() => createGift.mutate()} disabled={createGift.isPending || numericAmount <= 0 || numericAmount > Number(profile?.coins || 0) || (service === "custom" && !customPurpose.trim())} className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-[14px] font-semibold text-primary-foreground disabled:opacity-40">{createGift.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Create gift card<ArrowRight className="h-4 w-4" /></>}</button></div></aside>
       </main>
     </div>
   );

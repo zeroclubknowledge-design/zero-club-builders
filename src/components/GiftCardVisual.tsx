@@ -11,6 +11,10 @@ export const giftTemplates = [
 ] as const;
 
 export const giftServices = [
+  // Wallet-backed first: these are the two that actually put spendable money
+  // in the recipient's balance, so they lead.
+  { id: "support", label: "Support", description: "Cash straight into their wallet" },
+  { id: "custom", label: "Custom", description: "Cash into their wallet, with a note on what it is for" },
   { id: "bootcamps", label: "Bootcamps", description: "Enrollment in any eligible bootcamp" },
   { id: "membership", label: "Membership", description: "Zero Club Premium membership" },
   { id: "zero-ai", label: "Zero AI", description: "Zero AI access and usage" },
