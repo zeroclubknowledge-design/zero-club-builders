@@ -44,6 +44,26 @@ export function isChunkLoadError(value: unknown): boolean {
 }
 
 /**
+ * A stale app shell running against freshly deployed code.
+ *
+ * Distinct from a missing chunk: here the module loads fine, it just is not
+ * the shape the running shell expects, so the router reads `component` off a
+ * route that no longer exists in the build it was given. It surfaces as
+ * "Cannot read properties of undefined (reading 'component')".
+ *
+ * Same cure as a missing chunk — one reload picks up an app shell and a route
+ * tree that agree with each other. Kept narrow deliberately: only the router's
+ * own property names, so an ordinary null-reference bug elsewhere still
+ * reaches the error screen where it belongs.
+ */
+export function isStaleShellError(value: unknown): boolean {
+  const message = value instanceof Error ? value.message : typeof value === "string" ? value : "";
+  return /Cannot read propert(y|ies) of undefined \(reading '(component|options|routeTree|_addFileChildren)'\)/.test(
+    message,
+  );
+}
+
+/**
  * Reload at most once per tab per minute. Returns false when the attempt was
  * suppressed, so the caller can fall back to showing an error instead.
  */
@@ -91,7 +111,7 @@ export function installChunkRecovery() {
 
   // A lazy import that rejects with nobody to catch it.
   window.addEventListener("unhandledrejection", (event) => {
-    if (isChunkLoadError(event.reason)) {
+    if (isChunkLoadError(event.reason) || isStaleShellError(event.reason)) {
       event.preventDefault();
       reloadOnce();
     }

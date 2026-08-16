@@ -8,7 +8,7 @@ import {
   History, Star, Users, PenLine, Plus,
   Wallet as WalletIcon, Search, HelpCircle, BarChart3, Gift,
   ChevronLeft, Loader2, ArrowRight, ArrowDownLeft, Copy,
-  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings
+  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, Landmark
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
@@ -448,33 +448,18 @@ function WalletPage() {
                   {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="mt-2.5 text-[10.5px] text-white/40">Ready to spend across Zero Club</p>
-
-              {/* The number carries the meaning on its own. The explanatory
-                  column and the rules boxing it in were doing the work a
-                  label should do. */}
-              <div className="mt-5">
-                <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-white/40">
+              {/* Withdrawable earnings sits on the bottom line now, where the
+                  ZC reference code used to be. That code was a truncated
+                  profile id — not an account number anyone could pay into and
+                  not something support ever asked for, so copying it achieved
+                  nothing. This is the second figure people actually want. */}
+              <div className="mt-6 flex items-baseline justify-between gap-4">
+                <p className="text-[9.5px] font-medium uppercase tracking-[0.15em] text-white/45">
                   Withdrawable earnings
                 </p>
-                <p className="mt-1.5 text-[18px] font-semibold tracking-tight tabular-nums text-white">
+                <p className="shrink-0 text-[17px] font-semibold tracking-tight tabular-nums text-white">
                   {showBalance ? (split ? format(withdrawable) : "—") : "••••"}
                 </p>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between gap-4">
-                <button
-                  onClick={handleCopyDetails}
-                  aria-label="Copy wallet account details"
-                  className="group flex min-w-0 items-center gap-2 text-left text-white/55 transition hover:text-white tap"
-                >
-                  <span className="truncate font-mono text-[10px] font-medium tracking-[0.11em]">
-                    ZC · {profile?.id?.slice(0, 10).toUpperCase() || "9710478080"}
-                  </span>
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/[0.055] ring-1 ring-white/[0.07] transition group-hover:bg-white/10">
-                    <Copy className="h-3 w-3" />
-                  </span>
-                </button>
               </div>
             </div>
           </div>
@@ -499,34 +484,35 @@ function WalletPage() {
 
       {/* ── Quick Actions Grid (Under Add Money & Send) ── */}
       <section className="px-6 mt-6 md:px-0 md:mt-8">
-        <div className="grid grid-cols-4 gap-3 md:gap-3">
-          <Link to="/app/store" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
-            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
-              <Store className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
-            </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Store</span>
-          </Link>
+        {/* One definition for all four, so they cannot drift apart again.
+            Withdraw was a masked PNG and Gifts was a filled glyph, while Store
+            and Earn were line icons — three different weights in one row. All
+            four are now lucide strokes at the same size.
 
-          <Link to="/app/quests" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
-            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
-              <TrendingUp className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
-            </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Earn</span>
-          </Link>
-
-          <Link to="/app/wallet/withdraw" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
-            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
-              <CustomWalletIcon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
-            </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Withdraw</span>
-          </Link>
-
-          <Link to="/app/gifts" className="group flex flex-col items-center gap-2 transition-transform active:scale-95 md:flex-row md:justify-start md:gap-3 md:rounded-lg md:bg-card md:px-4 md:py-3.5 md:ring-1 md:ring-border md:hover:ring-foreground/15">
-            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border/40 bg-secondary md:h-9 md:w-9 md:border-none md:bg-primary/8 md:ring-1 md:ring-primary/15">
-              <Gift className="h-5 w-5 fill-current text-muted-foreground group-hover:text-foreground transition-colors md:h-4 md:w-4 md:text-primary" />
-            </div>
-            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors md:text-[13.5px] md:font-semibold md:tracking-tight md:text-foreground">Gifts</span>
-          </Link>
+            On the cream theme these tiles used bg-secondary, which sits almost
+            on top of the page background, so the row read as four floating
+            icons with no container. bg-card with a real ring and a soft shadow
+            gives them an actual surface in both themes. */}
+        <div className="grid grid-cols-4 gap-2.5 md:gap-3">
+          {[
+            { to: "/app/store", label: "Store", Icon: Store },
+            { to: "/app/quests", label: "Earn", Icon: TrendingUp },
+            { to: "/app/wallet/withdraw", label: "Withdraw", Icon: Landmark },
+            { to: "/app/gifts", label: "Gifts", Icon: Gift },
+          ].map(({ to, label, Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className="group flex flex-col items-center gap-2 rounded-lg bg-card px-1.5 py-3 ring-1 ring-border shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_20px_-14px_rgba(0,0,0,0.14)] transition-all active:scale-[0.97] hover:ring-foreground/15 md:flex-row md:justify-start md:gap-3 md:px-4 md:py-3.5"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary ring-1 ring-primary/15 md:h-9 md:w-9 md:rounded-lg">
+                <Icon className="h-[18px] w-[18px] md:h-4 md:w-4" strokeWidth={1.9} />
+              </span>
+              <span className="truncate text-[11px] font-semibold tracking-tight text-foreground md:text-[13.5px]">
+                {label}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 

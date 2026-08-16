@@ -11,7 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { LiveSessionProvider } from "@/contexts/LiveSessionContext";
-import { isChunkLoadError, recoverFromChunkError } from "@/lib/chunk-recovery";
+import { isChunkLoadError, isStaleShellError, recoverFromChunkError } from "@/lib/chunk-recovery";
 
 const GlobalLiveRoom = lazy(() => 
   import("@/components/GlobalLiveRoom")
@@ -72,7 +72,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     // Guarded, so a chunk that stays missing shows this screen rather than
     // reloading forever. The button below is still an unconditional hard
     // reload, because a person pressing it cannot become a loop.
-    if (isChunkLoadError(error) && !recoverFromChunkError()) {
+    if ((isChunkLoadError(error) || isStaleShellError(error)) && !recoverFromChunkError()) {
       console.warn("Chunk error recovery already attempted; showing the error screen.");
     }
   }, [error]);
