@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft, ShieldCheck, ArrowRight, WalletCards, Loader2,
-  Link2 as LinkIcon, Share2, Copy, Search, Send, Check,
+  Link2 as LinkIcon, Share2, Copy, Search, Send, Check, X,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -16,6 +16,43 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 export const Route = createFileRoute("/app/wallet/add-money")({ component: AddMoneyPage });
 
 const QUICK_AMOUNTS = [1000, 2000, 5000, 10000];
+
+/*
+ * Paying by bank transfer means leaving Zero Club for a banking app. The
+ * service worker no longer reloads on return, but Android can still kill the
+ * process outright to reclaim memory, and no amount of front-end code prevents
+ * that. So rather than betting on the page surviving, the reference is written
+ * to storage before checkout opens and picked back up when the page returns —
+ * whether it was still running or started fresh.
+ */
+const PENDING_KEY = "zc_pending_topup";
+const PENDING_MAX_AGE = 24 * 60 * 60 * 1000;
+
+type PendingTopup = { reference: string; amount: number; at: number };
+
+function readPending(): PendingTopup | null {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PendingTopup;
+    if (!parsed?.reference || Date.now() - parsed.at > PENDING_MAX_AGE) {
+      localStorage.removeItem(PENDING_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writePending(value: PendingTopup | null) {
+  try {
+    if (value) localStorage.setItem(PENDING_KEY, JSON.stringify(value));
+    else localStorage.removeItem(PENDING_KEY);
+  } catch {
+    /* storage disabled — the webhook is still the backstop */
+  }
+}
 
 function AddMoneyPage() {
   const navigate = useNavigate();
@@ -111,6 +148,72 @@ function AddMoneyPage() {
     toast.success(`Sent to @${person.username}`);
   };
 
+  /* ── Surviving the trip to a banking app ── */
+  const [pending, setPending] = useState<PendingTopup | null>(null);
+  const [checking, setChecking] = useState(false);
+  const checkingRef = useRef(false);
+
+  const confirmPending = async (record: PendingTopup, silent = false) => {
+    // A guard rather than just the state flag: visibilitychange and focus can
+    // both fire for one return to the app, and two verifies racing produces a
+    // confusing double toast.
+    if (checkingRef.current) return;
+    checkingRef.current = true;
+    setChecking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-verify", {
+        body: { reference: record.reference },
+      });
+      if (error) throw new Error(error.message || "Could not confirm the payment");
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      writePending(null);
+      setPending(null);
+      await queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
+      await queryClient.invalidateQueries({ queryKey: ["wallet-history"] });
+      toast.success(
+        (data as any)?.credited === false
+          ? "That payment was already in your wallet"
+          : "Payment confirmed — wallet updated",
+      );
+    } catch (err: any) {
+      const message = err?.message || "Could not confirm the payment";
+      // "not successful" means Paystack has no money against this reference
+      // yet. For a transfer that usually means it simply has not landed, so
+      // the record is kept and the card stays on screen to try again.
+      if (!silent) {
+        toast.error(message, {
+          description: message.toLowerCase().includes("not successful")
+            ? "If you have just sent the transfer, give it a minute and check again."
+            : undefined,
+        });
+      }
+    } finally {
+      checkingRef.current = false;
+      setChecking(false);
+    }
+  };
+
+  // On arrival, and every time the app comes back to the foreground.
+  useEffect(() => {
+    const attempt = () => {
+      if (document.visibilityState !== "visible") return;
+      const record = readPending();
+      setPending(record);
+      // Silent: coming back from a banking app should either quietly credit
+      // you or say nothing, never greet you with an error.
+      if (record) confirmPending(record, true);
+    };
+
+    attempt();
+    document.addEventListener("visibilitychange", attempt);
+    window.addEventListener("focus", attempt);
+    return () => {
+      document.removeEventListener("visibilitychange", attempt);
+      window.removeEventListener("focus", attempt);
+    };
+  }, []);
+
   const handlePay = async () => {
     if (numericAmount <= 0) return;
 
@@ -139,6 +242,12 @@ function AddMoneyPage() {
       // credit, so money is never lost.
       await supabase.rpc("start_wallet_topup", { reference, amount: numericAmount });
 
+      // Locally too, so this device can pick the payment back up on return
+      // even if the page was destroyed while you were in your banking app.
+      const record = { reference, amount: numericAmount, at: Date.now() };
+      writePending(record);
+      setPending(record);
+
       await openPaystackCheckout({
         email,
         amount: chargeAmount,
@@ -156,6 +265,9 @@ function AddMoneyPage() {
       if (error) throw new Error(error.message || "We could not confirm your payment");
       if ((data as any)?.error) throw new Error((data as any).error);
 
+      writePending(null);
+      setPending(null);
+
       await queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
       await queryClient.invalidateQueries({ queryKey: ["wallet-activities"] });
 
@@ -168,6 +280,11 @@ function AddMoneyPage() {
     } catch (error: any) {
       const message = error?.message || "Payment could not be completed";
       if (message === "Payment cancelled") {
+        // Cancelling means no money moved, so the pending record would only
+        // nag on every return. A transfer left open is a different thing and
+        // keeps its record.
+        writePending(null);
+        setPending(null);
         toast("Payment cancelled");
       } else {
         // The card may still have been charged. Paystack's webhook credits the
@@ -193,6 +310,42 @@ function AddMoneyPage() {
       </header>
 
       <main className="mx-auto grid max-w-[760px] gap-5 px-4 py-6 md:grid-cols-[minmax(0,1fr)_250px] md:px-7 md:py-8">
+        {/* A payment already in flight. Shown for real rather than only
+            auto-checked in the background, so that if the transfer lands late
+            there is something on screen to press. */}
+        {pending && (
+          <div className="rounded-lg bg-amber-500/[0.08] p-4 ring-1 ring-amber-500/25 md:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-amber-700">
+                  {format(pending.amount)} waiting to be confirmed
+                </p>
+                <p className="mt-0.5 text-[11.5px] leading-5 text-muted-foreground">
+                  Sent the transfer? This checks with Paystack and adds it to your wallet.
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={() => confirmPending(pending)}
+                  disabled={checking}
+                  className="flex h-9 items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 text-[12px] font-semibold text-white tap hover:opacity-90 disabled:opacity-50"
+                >
+                  {checking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  Confirm payment
+                </button>
+                <button
+                  onClick={() => { writePending(null); setPending(null); }}
+                  title="Dismiss"
+                  aria-label="Dismiss"
+                  className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground tap hover:bg-foreground/[0.05]"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <section className="rounded-lg border border-border bg-card p-5 sm:p-7">
           <div className="text-center">
             <label className="text-[11px] font-medium uppercase text-muted-foreground">Amount to add</label>
