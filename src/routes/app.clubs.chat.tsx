@@ -422,6 +422,7 @@ function ClubChat() {
      Searches every profile rather than the member list, which is what the
      squad search above it does. Anyone already in the club is filtered out so
      an admin never taps Add on someone who is already there. */
+  const [showAddPanel, setShowAddPanel] = useState(false);
   const [addQuery, setAddQuery] = useState("");
   const [addResults, setAddResults] = useState<any[]>([]);
   const [addSearching, setAddSearching] = useState(false);
@@ -1346,16 +1347,30 @@ function ClubChat() {
                   if (!open) {
                     setSelectedMember(null);
                     setSquadActionMember(null);
+                    // Reopening should land on the squad, not on a stale
+                    // search from last time.
+                    setShowAddPanel(false);
+                    setAddQuery("");
                   }
                 }}>
                   <DrawerContent desktopVariant="panel" className="mx-auto flex h-[88dvh] max-w-[760px] flex-col overflow-hidden border-none bg-background p-4 sm:h-[85%] sm:p-6">
                     <div className="relative w-full h-full overflow-hidden">
-                      <div 
-                        className="flex w-[200%] h-full transition-transform duration-300 ease-in-out"
-                        style={{ transform: selectedMember ? 'translateX(-50%)' : 'translateX(0%)' }}
+                      {/* Three panels now: the squad, one member's settings, and
+                          adding someone. Each gets the drawer's full height,
+                          which on a phone is the difference between a usable
+                          screen and a cramped strip. */}
+                      <div
+                        className="flex w-[300%] h-full transition-transform duration-300 ease-in-out"
+                        style={{
+                          transform: selectedMember
+                            ? 'translateX(-33.3333%)'
+                            : showAddPanel
+                              ? 'translateX(-66.6667%)'
+                              : 'translateX(0%)',
+                        }}
                       >
                         {/* PANEL 1: CLUB SQUAD MEMBER LIST */}
-                        <div data-vaul-no-drag className="h-full w-1/2 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-1 no-scrollbar">
+                        <div data-vaul-no-drag className="h-full w-1/3 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-1 no-scrollbar">
                           <DrawerHeader className="mb-3 shrink-0 p-0 pr-10 text-left sm:mb-6 sm:p-4 sm:pr-10">
                             <DrawerTitle className="text-[18px] font-semibold tracking-tight sm:text-2xl">Club Squad</DrawerTitle>
                             <p className="text-xs text-muted-foreground">The team building {club?.name}</p>
@@ -1395,66 +1410,26 @@ function ClubChat() {
                             );
                           })()}
 
-                          {/* Admins can add someone outright rather than only
-                              sharing a link and hoping they join. */}
+                          {/* Opens a full-height panel rather than expanding
+                              inline. Inline, the results pushed the member list
+                              down and the Android keyboard covered them the
+                              moment you started typing. */}
                           {isAdmin && (
-                            <div className="mb-4 shrink-0 rounded-lg border border-border/70 bg-card p-3">
-                              <p className="mb-2 text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                                Add a builder
-                              </p>
-                              <div className="relative">
-                                <UserPlus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <input
-                                  type="text"
-                                  placeholder="Search @username or name"
-                                  value={addQuery}
-                                  onChange={(e) => setAddQuery(e.target.value)}
-                                  className="h-10 w-full rounded-lg border border-border/60 bg-background pl-9 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
-                                />
-                              </div>
-
-                              {addQuery.trim().length >= 2 && (
-                                <div className="mt-2 space-y-1.5">
-                                  {addSearching ? (
-                                    <p className="py-2 text-center text-[11px] text-muted-foreground">Searching…</p>
-                                  ) : addResults.length === 0 ? (
-                                    <p className="py-2 text-center text-[11px] text-muted-foreground">
-                                      Nobody new matches that
-                                    </p>
-                                  ) : (
-                                    addResults.map((person) => (
-                                      <div key={person.id} className="flex items-center gap-2.5 rounded-lg bg-background p-2">
-                                        <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
-                                          {person.avatar_url ? (
-                                            <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
-                                          ) : (
-                                            (person.full_name || person.username || "?").charAt(0).toUpperCase()
-                                          )}
-                                        </div>
-                                        <div className="min-w-0 flex-1 text-left">
-                                          <p className="truncate text-[12.5px] font-semibold text-foreground">
-                                            {person.full_name || person.username}
-                                          </p>
-                                          <p className="truncate text-[10.5px] text-muted-foreground">@{person.username}</p>
-                                        </div>
-                                        <button
-                                          onClick={() => handleAddMember(person)}
-                                          disabled={addingId !== null}
-                                          className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 text-[11.5px] font-bold text-primary-foreground transition hover:opacity-90 active:scale-95 disabled:opacity-50"
-                                        >
-                                          {addingId === person.id ? (
-                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                          ) : (
-                                            <Plus className="h-3 w-3" />
-                                          )}
-                                          Add
-                                        </button>
-                                      </div>
-                                    ))
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                            <button
+                              onClick={() => setShowAddPanel(true)}
+                              className="mb-4 flex w-full shrink-0 items-center gap-3 rounded-lg border border-border/70 bg-card p-4 text-left transition active:scale-[0.99] hover:bg-accent/30"
+                            >
+                              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                                <UserPlus className="h-[18px] w-[18px]" />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-bold text-foreground">Add a builder</span>
+                                <span className="block text-[10px] text-muted-foreground">
+                                  Search anyone on Zero Club and add them
+                                </span>
+                              </span>
+                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            </button>
                           )}
 
                           <div className="relative mb-4 shrink-0">
@@ -1559,7 +1534,7 @@ function ClubChat() {
                         </div>
 
                         {/* PANEL 2: MEMBER SETTINGS VIEW */}
-                        <div data-vaul-no-drag className="h-full w-1/2 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-2 no-scrollbar">
+                        <div data-vaul-no-drag className="h-full w-1/3 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-2 no-scrollbar">
                           <div className="shrink-0 flex flex-col gap-4 mb-6 pr-10">
                             <button 
                               onClick={() => setSelectedMember(null)}
@@ -1653,6 +1628,119 @@ function ClubChat() {
                               </button>
                             </div>
                           )}
+                        </div>
+
+                        {/* PANEL 3: ADD A BUILDER
+                            A column, not a scrolling block: the header and
+                            search stay put while only the results scroll, so
+                            the field never slides away under your thumb while
+                            you are typing into it. */}
+                        <div data-vaul-no-drag className="flex h-full w-1/3 shrink-0 flex-col px-2">
+                          <div className="shrink-0 pr-10">
+                            <button
+                              onClick={() => { setShowAddPanel(false); setAddQuery(""); }}
+                              className="mb-4 flex items-center gap-1.5 self-start rounded-full border border-border bg-accent/20 px-2.5 py-1 text-xs font-bold text-muted-foreground transition hover:text-foreground"
+                            >
+                              <ChevronLeft className="h-3.5 w-3.5" /> Back to Squad
+                            </button>
+                            <h3 className="text-left text-lg font-bold tracking-tight">Add a builder</h3>
+                            <p className="mb-4 text-left text-xs text-muted-foreground">
+                              They join {club?.name} straight away and get a notification.
+                            </p>
+
+                            <div className="relative mb-3">
+                              <UserPlus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                              <input
+                                type="text"
+                                inputMode="search"
+                                autoComplete="off"
+                                placeholder="Search @username or name"
+                                value={addQuery}
+                                onChange={(e) => setAddQuery(e.target.value)}
+                                className="h-12 w-full rounded-lg border border-border/60 bg-card pl-9 pr-9 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                              />
+                              {addQuery && (
+                                <button
+                                  onClick={() => setAddQuery("")}
+                                  aria-label="Clear search"
+                                  className="absolute right-2.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition hover:bg-accent"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Only this scrolls, and it keeps room beneath the
+                              last row so the keyboard cannot bury it. */}
+                          <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-[40vh] no-scrollbar">
+                            {addQuery.trim().length < 2 ? (
+                              <div className="pt-10 text-center">
+                                <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-accent/30 text-muted-foreground">
+                                  <UserPlus className="h-5 w-5" />
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Type at least 2 letters to search
+                                </p>
+                              </div>
+                            ) : addSearching ? (
+                              /* Skeletons rather than a spinner, so the rows do
+                                 not jump into place as results land. */
+                              <div className="space-y-2">
+                                {[0, 1, 2].map((i) => (
+                                  <div key={i} className="flex items-center gap-3 rounded-lg bg-card p-3">
+                                    <div className="h-10 w-10 shrink-0 rounded-full bg-foreground/[0.06] shimmer" />
+                                    <div className="min-w-0 flex-1 space-y-1.5">
+                                      <div className="h-3 w-2/3 rounded bg-foreground/[0.06] shimmer" />
+                                      <div className="h-2.5 w-1/3 rounded bg-foreground/[0.05] shimmer" />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : addResults.length === 0 ? (
+                              <div className="pt-10 text-center">
+                                <p className="text-sm font-semibold text-foreground">No one new found</p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  They may already be in the squad, or try a different spelling.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                {addResults.map((person) => (
+                                  <div
+                                    key={person.id}
+                                    className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3"
+                                  >
+                                    <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
+                                      {person.avatar_url ? (
+                                        <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                                      ) : (
+                                        (person.full_name || person.username || "?").charAt(0).toUpperCase()
+                                      )}
+                                    </div>
+                                    <div className="min-w-0 flex-1 text-left">
+                                      <p className="truncate text-sm font-bold text-foreground">
+                                        {person.full_name || person.username}
+                                      </p>
+                                      <p className="truncate text-[11px] text-muted-foreground">@{person.username}</p>
+                                    </div>
+                                    <button
+                                      onClick={() => handleAddMember(person)}
+                                      disabled={addingId !== null}
+                                      className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                                    >
+                                      {addingId === person.id ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                      ) : (
+                                        <Plus className="h-3.5 w-3.5" />
+                                      )}
+                                      Add
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
