@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Clock, ArrowRight, Landmark, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";
+import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/wallet/withdraw")({ component: WithdrawPage });
@@ -12,8 +14,30 @@ function WithdrawPage() {
   const { details, format, toBaseAmount } = useWalletCurrency();
   const [amount, setAmount] = useState("");
   const numericAmount = toBaseAmount(Number(amount) || 0);
+
+  /*
+   * The cap is earnings, not balance.
+   *
+   * Topped-up money is float — it came in to be spent on Zero Club, and paying
+   * it back out to a bank account is a refund, not a withdrawal. Allowing it
+   * would also open the card-in / bank-out route that chargeback fraud runs on.
+   *
+   * Falls back to the full balance only when the split function is not
+   * installed, so this page still behaves rather than showing zero.
+   */
+  const { data: split } = useQuery({
+    queryKey: ["withdrawable", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_withdrawable_balance");
+      if (error) return null;
+      return data as { balance: number; earned: number; withdrawable: number } | null;
+    },
+  });
+
   const balance = profile?.coins || 0;
-  const overBalance = numericAmount > balance;
+  const withdrawable = split ? Number(split.withdrawable) : balance;
+  const overBalance = numericAmount > withdrawable;
 
   return (
     <div className="min-h-screen bg-background pb-20 text-foreground">
@@ -30,7 +54,13 @@ function WithdrawPage() {
             <label className="text-[11px] font-medium uppercase text-muted-foreground">Amount to withdraw</label>
             <div className="mt-4 flex items-baseline justify-center gap-1"><span className="text-[26px] text-muted-foreground">{details.symbol}</span><input type="number" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" autoFocus className="w-auto min-w-[80px] max-w-[240px] bg-transparent text-center text-[48px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:text-[56px]" style={{ width: `${Math.max(1, amount.length)}ch` }} /></div>
             <div className={`mx-auto mt-2 h-[2px] w-16 rounded-full ${overBalance ? "bg-destructive" : "bg-primary/60"}`} />
-            <p className={`mt-3 text-[12px] tabular-nums ${overBalance ? "font-medium text-destructive" : "text-muted-foreground"}`}>{overBalance ? "Exceeds available balance" : `Available · ${format(balance)}`}</p>
+            <p className={`mt-3 text-[12px] tabular-nums ${overBalance ? "font-medium text-destructive" : "text-muted-foreground"}`}>{overBalance ? "More than you have earned" : `Available to withdraw · ${format(withdrawable)}`}</p>
+            {split && Number(split.balance) > withdrawable && (
+              <p className="mx-auto mt-2 max-w-[280px] text-[11px] leading-relaxed text-muted-foreground">
+                Your balance is {format(Number(split.balance))}, but only earnings can be
+                withdrawn. Money you added is for spending on Zero Club.
+              </p>
+            )}
           </div>
 
           <button disabled={numericAmount <= 0 || overBalance} className="mt-9 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground disabled:opacity-40">{numericAmount > 0 && !overBalance ? `Withdraw ${format(numericAmount)}` : "Confirm withdrawal"}<ArrowRight className="h-4 w-4" /></button>

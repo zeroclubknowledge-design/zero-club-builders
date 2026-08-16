@@ -90,6 +90,22 @@ function WalletPage() {
   const transactions = (walletHistory?.transactions || []) as any[];
   const pendingTopups = (walletHistory?.pending_topups || []) as any[];
 
+  /* How much of this balance came from work, as opposed to being topped up.
+     Only earnings can be withdrawn, so the two numbers have to be visible
+     side by side or the Withdraw button is a trap. Fails soft: if the
+     function is not installed yet, the split simply is not shown. */
+  const { data: split } = useQuery({
+    queryKey: ["withdrawable", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_withdrawable_balance");
+      if (error) return null;
+      return data as { balance: number; earned: number; withdrawable: number } | null;
+    },
+  });
+
+  const withdrawable = Number(split?.withdrawable ?? 0);
+
   /* Re-ask Paystack about one unconfirmed payment. The browser never decides
      the outcome — paystack-verify asks Paystack and credits only if the money
      really arrived, and crediting twice is impossible. */
@@ -421,6 +437,28 @@ function WalletPage() {
                 <span className="mr-1 text-[26px] font-normal align-top text-white/70">{currentCurrency.symbol}</span>
                 {showBalance ? displayBalance : "••••"}
               </h2>
+
+              {/* The second number, stated plainly. Total balance is what you
+                  can spend on Zero Club; only what you earned can leave for a
+                  bank account. Showing one figure and a Withdraw button that
+                  rejects most of it is how you make people feel cheated. */}
+              {split && (
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-white/[0.05] px-3.5 py-2.5 ring-1 ring-white/10">
+                  <div className="min-w-0">
+                    <p className="text-[9.5px] font-medium uppercase tracking-[0.14em] text-white/45">
+                      Available to withdraw
+                    </p>
+                    <p className="mt-0.5 text-[16px] font-semibold tabular-nums text-white">
+                      {showBalance ? format(withdrawable) : "••••"}
+                    </p>
+                  </div>
+                  <p className="min-w-0 flex-1 text-[10.5px] leading-4 text-white/45">
+                    {withdrawable > 0
+                      ? "Money you earned from teaching, selling or referrals."
+                      : "Earn from teaching, selling or referrals to withdraw. Money you add is for spending on Zero Club."}
+                  </p>
+                </div>
+              )}
 
               <div className="mt-6 flex items-center justify-between">
                 <div className="flex items-center gap-2 rounded-full bg-white/[0.06] px-3.5 py-1.5 ring-1 ring-white/10">
