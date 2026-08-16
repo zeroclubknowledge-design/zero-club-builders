@@ -1342,7 +1342,17 @@ function ClubChat() {
                   </Drawer>
                 )}
 
-                <Drawer open={showMembers} onOpenChange={(open) => {
+                {/* repositionInputs={false}
+                    Vaul's default is to shove the whole drawer upwards by the
+                    keyboard height whenever an input takes focus. This drawer
+                    is already 88dvh tall, so that push carried the top of the
+                    panel — the search field and the first results — clean off
+                    the screen the moment you started typing a username.
+
+                    The lift is unnecessary here anyway: the search sits at the
+                    top of its panel and the results scroll beneath it, so the
+                    keyboard was never covering the field to begin with. */}
+                <Drawer repositionInputs={false} open={showMembers} onOpenChange={(open) => {
                   setShowMembers(open);
                   if (!open) {
                     setSelectedMember(null);
@@ -1354,7 +1364,20 @@ function ClubChat() {
                   }
                 }}>
                   <DrawerContent desktopVariant="panel" className="mx-auto flex h-[88dvh] max-w-[760px] flex-col overflow-hidden border-none bg-background p-4 sm:h-[85%] sm:p-6">
-                    <div className="relative w-full h-full overflow-hidden">
+                    {/* Second guard. Focusing an input makes the browser call
+                        scrollIntoView, which walks up and scrolls the nearest
+                        scrollable ancestor — including one with
+                        overflow-hidden, which then stays offset with no
+                        scrollbar to drag it back. Forcing it to zero means the
+                        panel cannot drift out of frame. */}
+                    <div
+                      className="relative w-full h-full overflow-hidden"
+                      onScroll={(event) => {
+                        const el = event.currentTarget;
+                        if (el.scrollTop !== 0) el.scrollTop = 0;
+                        if (el.scrollLeft !== 0) el.scrollLeft = 0;
+                      }}
+                    >
                       {/* Three panels now: the squad, one member's settings, and
                           adding someone. Each gets the drawer's full height,
                           which on a phone is the difference between a usable
