@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { vapidKeyProblem, vapidApplicationServerKey } from "@/lib/webPush";
 
 type NotificationSettingsItem = {
   icon: typeof Bell;
@@ -16,22 +17,6 @@ type NotificationSettingsItem = {
 export const Route = createFileRoute("/app/settings/notifications")({
   component: NotificationsSettings,
 });
-
-// Helper function to convert VAPID key to Uint8Array
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
 
 function supportsWebPush() {
   return window.isSecureContext
@@ -123,10 +108,11 @@ function NotificationsSettings() {
         return;
       }
 
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!vapidPublicKey) {
-        throw new Error("Push setup is incomplete. Add VITE_VAPID_PUBLIC_KEY to the deployed app.");
-      }
+      // Checked before asking for permission. Prompting someone and then
+      // failing on a misconfigured key spends a permission request that
+      // browsers only grant once.
+      const keyProblem = vapidKeyProblem();
+      if (keyProblem) throw new Error(keyProblem);
 
       setPushStatus("Waiting for browser permission...");
       const permission = Notification.permission === 'granted'
@@ -149,9 +135,12 @@ function NotificationsSettings() {
       let subscription = existingSubscription;
 
       if (!subscription) {
+        // Cannot be undefined here — vapidKeyProblem() already threw above if
+        // the key was unusable — but the cast keeps that guarantee explicit.
+        const applicationServerKey = vapidApplicationServerKey() as BufferSource;
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+          applicationServerKey,
         });
       }
 
