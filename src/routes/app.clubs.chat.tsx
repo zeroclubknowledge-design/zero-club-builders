@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2 } from "lucide-react";
+import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -487,14 +488,26 @@ function ClubChat() {
     }
   };
 
+  // /club/<id> rather than /app?club=<id>: the public page carries the club's
+  // name and picture in its HTML, so the link previews properly when shared.
+  // Anyone signed in is forwarded straight into the app from there.
+  const inviteLink = () => `${window.location.origin}/club/${club?.id}`;
+
   const handleCopyInvite = () => {
     if (!club) return;
-    // /club/<id> rather than /app?club=<id>: the public page carries the club's
-    // name and picture in its HTML, so the link previews properly when shared.
-    // Anyone signed in is forwarded straight into the app from there.
-    const inviteLink = `${window.location.origin}/club/${club.id}`;
-    navigator.clipboard.writeText(inviteLink);
-    toast.success("Invite link copied to clipboard!");
+    // Goes through the shared helper for the older-webview fallback, rather
+    // than calling navigator.clipboard directly and failing silently.
+    copyToClipboard(inviteLink(), "Invite link copied");
+  };
+
+  const handleShareInvite = () => {
+    if (!club) return;
+    shareOrCopy({
+      title: club.name,
+      text: `Join ${club.name} on Zero Club`,
+      url: inviteLink(),
+      copiedMessage: "Invite link copied",
+    });
   };
 
   const handleUpdateClub = async () => {
@@ -1399,39 +1412,34 @@ function ClubChat() {
                             <p className="text-xs text-muted-foreground">The team building {club?.name}</p>
                           </DrawerHeader>
 
-                          {club && (() => {
-                            const currentUserRole = currentUser ? members.find(mem => mem.profile_id === currentUser.id)?.role : undefined;
-                            const isAdmin = club.creator_id === currentUser?.id || currentUserRole === 'Administrator';
-                            return (
-                              <div className="mb-6 flex shrink-0 items-center justify-between rounded-lg border border-border/70 bg-card p-4">
-                                <div className="text-left flex flex-col">
-                                  <button
-                                    onClick={handleCopyInvite}
-                                    disabled={!isAdmin}
-                                    className={`text-sm font-bold text-left transition ${
-                                      isAdmin 
-                                        ?'text-primary hover:underline cursor-pointer' 
-                                        : 'text-muted-foreground cursor-default'
-                                    }`}
-                                  >
-                                    Invite a Friend
-                                  </button>
-                                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                                    {isAdmin ? "Share this club squad link to recruit more builders" : "Squad invites are managed by admins"}
-                                  </p>
-                                </div>
-                                {isAdmin && (
-                                  <button 
-                                    onClick={handleCopyInvite}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/30 text-foreground transition hover:bg-accent/50 active:scale-95"
-                                    title="Copy Invite Link"
-                                  >
-                                    <Copy className="h-3.5 w-3.5" />
-                                  </button>
-                                )}
+                          {/* Sharing is for everyone in the squad. Any member
+                              can bring a friend to a club they belong to —
+                              that is how a club grows. Adding someone outright
+                              stays with admins, below. */}
+                          {club && (
+                            <div className="mb-6 shrink-0 rounded-lg border border-border/70 bg-card p-4">
+                              <p className="text-left text-sm font-bold text-foreground">Invite a friend</p>
+                              <p className="mt-0.5 text-left text-[10px] text-muted-foreground">
+                                Share {club.name} with anyone — they can join from the link.
+                              </p>
+                              <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                                <button
+                                  onClick={handleShareInvite}
+                                  className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-bold text-primary-foreground transition hover:opacity-90 active:scale-[0.98]"
+                                >
+                                  <Share2 className="h-3.5 w-3.5" /> Share link
+                                </button>
+                                <button
+                                  onClick={handleCopyInvite}
+                                  title="Copy invite link"
+                                  aria-label="Copy invite link"
+                                  className="flex h-10 w-11 items-center justify-center rounded-lg border border-border bg-accent/30 text-foreground transition hover:bg-accent/50 active:scale-95"
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </button>
                               </div>
-                            );
-                          })()}
+                            </div>
+                          )}
 
                           {/* Opens a full-height panel rather than expanding
                               inline. Inline, the results pushed the member list
