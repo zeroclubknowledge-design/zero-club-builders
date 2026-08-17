@@ -25,12 +25,15 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { RichText } from "@/components/RichText";
+import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/app/bootcamps/$id")({
   component: BootcampDetail,
 });
 
 function BootcampDetail() {
+  const queryClient = useQueryClient();
   const { format } = useWalletCurrency();
   const { id } = Route.useParams();
 
@@ -90,6 +93,7 @@ function BootcampDetail() {
   const [isClubAdmin, setIsClubAdmin] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [applyZeroGift, setApplyZeroGift] = useState(false);
 
   useEffect(() => {
     if (bootcamp?.id) checkEnrollment();
@@ -185,6 +189,7 @@ function BootcampDetail() {
       const { data: enrollmentResult, error: enrollError } = await supabase.rpc("enroll_in_bootcamp", {
         p_bootcamp_id: bootcamp.id,
         p_coupon_code: appliedCoupon ? couponInput.trim().toUpperCase() : null,
+        p_apply_gift: applyZeroGift,
       });
       if (enrollError) throw enrollError;
 
@@ -210,9 +215,16 @@ function BootcampDetail() {
       }
 
       setIsEnrolled(true);
+      queryClient.invalidateQueries({ queryKey: zeroGiftBalanceQueryKey("bootcamps") });
+      const giftApplied = Math.max(0, Number(result?.gift_applied) || 0);
+      const walletCharged = Math.max(0, Number(result?.wallet_charged) || 0);
       toast.success(
-        Number(result?.charged) > 0
-          ? `${format(Number(result.charged))} paid from your wallet. You are enrolled!`
+        giftApplied > 0 && walletCharged > 0
+          ? `${format(giftApplied)} Zero Gift and ${format(walletCharged)} from your wallet applied. You are enrolled!`
+          : giftApplied > 0
+            ? `${format(giftApplied)} Zero Gift applied. You are enrolled!`
+          : Number(result?.charged) > 0
+            ? `${format(Number(result.charged))} paid from your wallet. You are enrolled!`
           : "Enrolled successfully!"
       );
     } catch (error: any) {
@@ -523,6 +535,16 @@ function BootcampDetail() {
                   </div>
                 )}
               </div>
+            )}
+
+            {!isEnrolled && couponPrice > 0 && (
+              <ZeroGiftPaymentOption
+                service="bootcamps"
+                amount={couponPrice}
+                applied={applyZeroGift}
+                onAppliedChange={setApplyZeroGift}
+                formatAmount={formatPrice}
+              />
             )}
 
             {isEnrolled ? (

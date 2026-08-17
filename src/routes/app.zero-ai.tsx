@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronLeft } from "lucide-react";
+import { ArrowRight, ChevronLeft, Gift } from "lucide-react";
+import { useZeroGiftBalance } from "@/components/ZeroGiftPaymentOption";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/zero-ai")({
   component: ZeroAIPage,
@@ -36,6 +38,9 @@ const principles = [
 ];
 
 function ZeroAIPage() {
+  const { available } = useZeroGiftBalance("zero-ai");
+  const { format } = useWalletCurrency();
+
   return (
     <div className="min-h-screen bg-[#f8f7f5] text-foreground dark:bg-background">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-xl">
@@ -57,6 +62,15 @@ function ZeroAIPage() {
       </header>
 
       <main className="mx-auto w-full max-w-[1080px] px-5 pb-24 md:px-8">
+        {available > 0 && (
+          <div className="mt-6 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/[0.05] p-4">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><Gift className="h-4 w-4" /></div>
+            <div>
+              <p className="text-[13px] font-semibold">You have {format(available)} in Zero AI gifts</p>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">Your balance is reserved and will be available through “Apply Zero Gift” when paid Zero AI tools launch.</p>
+            </div>
+          </div>
+        )}
         <section className="py-16 md:py-24">
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-primary">
             Zero Club intelligence

@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
 import { formatNaira, resolvePlanKey } from "@/features/membership/plans";
+import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
@@ -193,6 +194,7 @@ function MembershipPage() {
   const queryClient = useQueryClient();
   const [audience, setAudience] = useState<Audience>("Learner");
   const [showInstitutionForm, setShowInstitutionForm] = useState(false);
+  const [applyZeroGift, setApplyZeroGift] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["my_profile"],
@@ -234,21 +236,26 @@ function MembershipPage() {
   const subscribeMutation = useMutation({
     mutationFn: async (plan: Plan) => {
       if (!profile) throw new Error("Please sign in to manage your membership.");
-      if (plan.id.startsWith("institution-")) return plan;
+      if (plan.id.startsWith("institution-")) return { plan, payment: null };
       if (plan.storedTier === "Basic") {
-        const { error } = await supabase.rpc("downgrade_to_basic");
+        const { data, error } = await supabase.rpc("downgrade_to_basic");
         if (error) throw error;
-        return plan;
+        return { plan, payment: data };
       }
 
-      const { error } = await supabase.rpc("activate_membership", {
+      const { data, error } = await supabase.rpc("activate_membership", {
         requested_plan: plan.planKey,
         enable_auto_renew: false,
+        p_apply_gift: applyZeroGift,
       });
       if (error) throw error;
-      return plan;
+      const payment = data as any;
+      if (payment?.status === "insufficient_funds") {
+        throw new Error(`Insufficient wallet balance. Add ${formatNaira(Number(payment.shortfall) || 0)} to continue.`);
+      }
+      return { plan, payment };
     },
-    onSuccess: (plan) => {
+    onSuccess: ({ plan, payment }) => {
       if (plan.id.startsWith("institution-")) {
         setShowInstitutionForm(true);
         return;
@@ -257,20 +264,37 @@ function MembershipPage() {
       queryClient.invalidateQueries({ queryKey: ["my_profile"] });
       queryClient.invalidateQueries({ queryKey: ["membership-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["clubs_data"] });
-      toast.success(plan.storedTier === "Basic" ? "Switched to Basic." : `${plan.name} is now active.`);
+      queryClient.invalidateQueries({ queryKey: zeroGiftBalanceQueryKey("membership") });
+      const giftApplied = Math.max(0, Number((payment as any)?.gift_applied) || 0);
+      toast.success(
+        plan.storedTier === "Basic"
+          ? "Switched to Basic."
+          : giftApplied > 0
+            ? `${formatNaira(giftApplied)} Zero Gift applied. ${plan.name} is now active.`
+            : `${plan.name} is now active.`
+      );
     },
     onError: (error: Error) => toast.error(error.message),
   });
 
   const renewMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("renew_my_membership");
+      const { data, error } = await supabase.rpc("renew_my_membership", {
+        p_apply_gift: applyZeroGift,
+      });
       if (error) throw error;
+      const payment = data as any;
+      if (payment?.status === "insufficient_funds") {
+        throw new Error(`Insufficient wallet balance. Add ${formatNaira(Number(payment.shortfall) || 0)} to renew.`);
+      }
+      return payment;
     },
-    onSuccess: () => {
+    onSuccess: (payment) => {
       queryClient.invalidateQueries({ queryKey: ["membership-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["my_profile"] });
-      toast.success("Membership renewed.");
+      queryClient.invalidateQueries({ queryKey: zeroGiftBalanceQueryKey("membership") });
+      const giftApplied = Math.max(0, Number(payment?.gift_applied) || 0);
+      toast.success(giftApplied > 0 ? `${formatNaira(giftApplied)} Zero Gift applied. Membership renewed.` : "Membership renewed.");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -360,6 +384,16 @@ function MembershipPage() {
             <h3 className="text-[15px] font-semibold tracking-tight">{selectedAudience.title}</h3>
             <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{selectedAudience.description}</p>
           </div>
+        </section>
+
+        <section className="mt-4 max-w-xl">
+          <ZeroGiftPaymentOption
+            service="membership"
+            amount={0}
+            applied={applyZeroGift}
+            onAppliedChange={setApplyZeroGift}
+            formatAmount={formatNaira}
+          />
         </section>
 
         {activeSubscription && (

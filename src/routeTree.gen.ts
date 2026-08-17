@@ -73,6 +73,7 @@ import { Route as AppPostIdRouteImport } from './routes/app.post.$id'
 import { Route as AppNotesCreateRouteImport } from './routes/app.notes.create'
 import { Route as AppNotesIdRouteImport } from './routes/app.notes.$id'
 import { Route as AppLiveClassIdRouteImport } from './routes/app.live.$classId'
+import { Route as AppGiftsUnclaimedRouteImport } from './routes/app.gifts.unclaimed'
 import { Route as AppGiftsCodeRouteImport } from './routes/app.gifts.$code'
 import { Route as AppGamesSoloRouteImport } from './routes/app.games.solo'
 import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
@@ -411,6 +412,11 @@ const AppLiveClassIdRoute = AppLiveClassIdRouteImport.update({
   path: '/live/$classId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGiftsUnclaimedRoute = AppGiftsUnclaimedRouteImport.update({
+  id: '/gifts/unclaimed',
+  path: '/gifts/unclaimed',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGiftsCodeRoute = AppGiftsCodeRouteImport.update({
   id: '/gifts/$code',
   path: '/gifts/$code',
@@ -525,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/solo': typeof AppGamesSoloRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
+  '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
@@ -599,6 +606,7 @@ export interface FileRoutesByTo {
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/solo': typeof AppGamesSoloRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
+  '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
@@ -680,6 +688,7 @@ export interface FileRoutesById {
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/solo': typeof AppGamesSoloRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
+  '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
@@ -762,6 +771,7 @@ export interface FileRouteTypes {
     | '/app/games/create'
     | '/app/games/solo'
     | '/app/gifts/$code'
+    | '/app/gifts/unclaimed'
     | '/app/live/$classId'
     | '/app/notes/$id'
     | '/app/notes/create'
@@ -836,6 +846,7 @@ export interface FileRouteTypes {
     | '/app/games/create'
     | '/app/games/solo'
     | '/app/gifts/$code'
+    | '/app/gifts/unclaimed'
     | '/app/live/$classId'
     | '/app/notes/$id'
     | '/app/notes/create'
@@ -916,6 +927,7 @@ export interface FileRouteTypes {
     | '/app/games/create'
     | '/app/games/solo'
     | '/app/gifts/$code'
+    | '/app/gifts/unclaimed'
     | '/app/live/$classId'
     | '/app/notes/$id'
     | '/app/notes/create'
@@ -1420,6 +1432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLiveClassIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/gifts/unclaimed': {
+      id: '/app/gifts/unclaimed'
+      path: '/gifts/unclaimed'
+      fullPath: '/app/gifts/unclaimed'
+      preLoaderRoute: typeof AppGiftsUnclaimedRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/gifts/$code': {
       id: '/app/gifts/$code'
       path: '/gifts/$code'
@@ -1643,6 +1662,7 @@ interface AppRouteChildren {
   AppGamesCreateRoute: typeof AppGamesCreateRoute
   AppGamesSoloRoute: typeof AppGamesSoloRoute
   AppGiftsCodeRoute: typeof AppGiftsCodeRoute
+  AppGiftsUnclaimedRoute: typeof AppGiftsUnclaimedRoute
   AppLiveClassIdRoute: typeof AppLiveClassIdRoute
   AppPostIdRoute: typeof AppPostIdRoute
   AppProfileIdRoute: typeof AppProfileIdRoute
@@ -1694,6 +1714,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGamesCreateRoute: AppGamesCreateRoute,
   AppGamesSoloRoute: AppGamesSoloRoute,
   AppGiftsCodeRoute: AppGiftsCodeRoute,
+  AppGiftsUnclaimedRoute: AppGiftsUnclaimedRoute,
   AppLiveClassIdRoute: AppLiveClassIdRoute,
   AppPostIdRoute: AppPostIdRoute,
   AppProfileIdRoute: AppProfileIdRoute,

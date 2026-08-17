@@ -4,6 +4,7 @@ import {
   TicketPercent, Check, ShieldCheck, Tag, Share2, Copy,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
@@ -15,6 +16,11 @@ import {
   DrawerContent,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+  ZeroGiftPaymentOption,
+  useZeroGiftBalance,
+  zeroGiftBalanceQueryKey,
+} from "@/components/ZeroGiftPaymentOption";
 
 export const Route = createFileRoute("/app/store")({
   component: StorePage,
@@ -28,6 +34,7 @@ export const Route = createFileRoute("/app/store")({
 
 function StorePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: profile } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -41,7 +48,9 @@ function StorePage() {
   const [selected, setSelected] = useState<any>(null);
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [applyZeroGift, setApplyZeroGift] = useState(false);
   const missingWarned = useRef<string | null>(null);
+  const { available: zeroStoreGiftBalance } = useZeroGiftBalance("zero-store", Boolean(profile));
 
   const { details: currentCurrency } = useWalletCurrency();
 
@@ -111,6 +120,7 @@ function StorePage() {
       setSelected(match);
       setCouponInput("");
       setAppliedCoupon(null);
+      setApplyZeroGift(false);
       missingWarned.current = null;
     } else {
       setSelected(null);
@@ -171,10 +181,20 @@ function StorePage() {
       const { data, error } = await supabase.rpc("purchase_store_item", {
         item_id: item.id,
         coupon: coupon || null,
+        p_apply_gift: applyZeroGift,
       });
       if (error) throw error;
 
-      toast.success(`Purchased ${item.name} successfully!`);
+      if (data?.status === "insufficient_funds") {
+        const shortfall = Math.max(0, Number(data.shortfall) || 0);
+        throw new Error(`Insufficient wallet balance. Add ${formatMoney(shortfall, "Coins")} to complete this purchase.`);
+      }
+
+      const giftApplied = Math.max(0, Number(data?.gift_applied) || 0);
+      toast.success(giftApplied > 0
+        ? `${formatMoney(giftApplied, "Coins")} Zero Gift applied. ${item.name} is yours.`
+        : `Purchased ${item.name} successfully!`);
+      queryClient.invalidateQueries({ queryKey: zeroGiftBalanceQueryKey("zero-store") });
       closeItem();
       if (data?.file_url) {
         window.open(data.file_url, '_blank');
@@ -374,8 +394,11 @@ function StorePage() {
             const sale = priceOf(selected);
             const couponPct = appliedCoupon ? (selected.coupon_discount_percent || 0) : 0;
             const payable = couponPct > 0 ? Math.round(sale * (100 - couponPct) / 100) : sale;
-            const balance = selected.price_type === "Coins" ? (profile?.coins || 0) : (profile?.zp || 0);
-            const canAfford = balance >= payable;
+            const isCoins = selected.price_type === "Coins";
+            const balance = isCoins ? (profile?.coins || 0) : (profile?.zp || 0);
+            const giftToApply = isCoins && applyZeroGift ? Math.min(payable, zeroStoreGiftBalance) : 0;
+            const walletDue = isCoins ? Math.max(0, payable - giftToApply) : payable;
+            const canAfford = balance >= walletDue;
 
             return (
               <>
@@ -495,6 +518,16 @@ function StorePage() {
                         )}
                       </div>
                     )}
+
+                    {isCoins && !isOwn && (
+                      <ZeroGiftPaymentOption
+                        service="zero-store"
+                        amount={payable}
+                        applied={applyZeroGift}
+                        onAppliedChange={setApplyZeroGift}
+                        formatAmount={(amount) => formatMoney(amount, "Coins")}
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -518,7 +551,7 @@ function StorePage() {
                     </div>
                     {!isOwn && !canAfford && (
                       <p className="text-right text-[11.5px] font-medium text-destructive">
-                        Your balance is {formatMoney(balance, selected.price_type)} — top up to buy this.
+                        Your {isCoins ? "wallet" : "balance"} has {formatMoney(balance, selected.price_type)} — add {formatMoney(walletDue - balance, selected.price_type)} to buy this.
                       </p>
                     )}
                   </div>

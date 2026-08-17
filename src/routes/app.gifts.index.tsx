@@ -6,7 +6,15 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { shareOrCopy, copyToClipboard } from "@/lib/share";
+import { shareOrCopy } from "@/lib/share";
+
+const GIFT_SERVICE_DESTINATIONS: Record<string, { href?: string; action: string }> = {
+  bootcamps: { href: "/app/bootcamps", action: "Use for a bootcamp" },
+  membership: { href: "/app/premium", action: "Use for membership" },
+  "zero-ai": { href: "/app/zero-ai", action: "View Zero AI" },
+  "tutor-session": { action: "Ready for tutor sessions" },
+  "zero-store": { href: "/app/store", action: "Shop Zero Store" },
+};
 
 export const Route = createFileRoute("/app/gifts/")({ component: GiftCardsPage });
 
@@ -31,33 +39,47 @@ function GiftCardsPage() {
     },
   });
 
-  /* Gifts already created and still unclaimed.
-     Creating a gift moved money out of the wallet immediately, so a card whose
-     link was lost is real money stranded with no way to reach anybody. The
-     codes were only ever shown once, on the screen straight after creation. */
-  const { data: unclaimed = [], refetch: refetchUnclaimed } = useQuery({
-    queryKey: ["unclaimed-gifts", profile?.id],
+  /* Only the count here — the cards themselves live on their own page.
+     Creating a gift debits the wallet immediately, so an unshared card is real
+     money sitting idle; the button has to say so plainly. */
+  const { data: unclaimedCount = 0, refetch: refetchUnclaimed } = useQuery({
+    queryKey: ["unclaimed-gift-count", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("gift_cards")
+        .select("id", { count: "exact", head: true })
+        .eq("creator_id", profile!.id)
+        .eq("status", "active");
+      return count || 0;
+    },
+  });
+
+  const { data: availableGifts = [] } = useQuery({
+    queryKey: ["available-restricted-zero-gifts", profile?.id],
     enabled: !!profile?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, service, template_id, message, custom_purpose, created_at")
-        .eq("creator_id", profile!.id)
-        .eq("status", "active")
-        .order("created_at", { ascending: false });
-      if (error) return [];
+        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at")
+        .eq("claimed_by", profile!.id)
+        .eq("status", "claimed")
+        .gt("remaining_amount", 0)
+        .order("claimed_at", { ascending: false });
+      // Before the restricted-gift migration reaches a deployment, keep the
+      // Gifts page usable. Other failures should still surface to monitoring.
+      if (error && ["42703", "PGRST204"].includes(error.code || "")) return [];
+      if (error) throw error;
       return data || [];
     },
   });
-
-  const giftUrl = (code: string) => `${window.location.origin}/app/gifts/${code}`;
 
   const shareGift = (card: any) => {
     const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
     shareOrCopy({
       title: "A Zero Club Gift for you",
       text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
-      url: giftUrl(card.code),
+      url: `${window.location.origin}/app/gifts/${card.code}`,
       copiedMessage: "Gift link copied",
     });
   };
@@ -106,74 +128,48 @@ function GiftCardsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7"><div className="mx-auto flex max-w-[1080px] items-center justify-between"><div className="flex items-center gap-3"><Link to="/app/wallet" className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card"><ArrowLeft className="h-5 w-5" /></Link><div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold">Create a gift</h1></div></div><div className="text-right"><p className="text-[9px] uppercase text-muted-foreground">Balance</p><p className="text-[13px] font-semibold tabular-nums">{format(Number(profile?.coins || 0))}</p></div></div></header>
+      <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7"><div className="mx-auto flex max-w-[1080px] items-center justify-between"><div className="flex items-center gap-3"><Link to="/app/wallet" className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card"><ArrowLeft className="h-5 w-5" /></Link><div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold">Create a gift</h1></div></div><div className="flex items-center gap-3">{unclaimedCount > 0 && (<Link to="/app/gifts/unclaimed" className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11.5px] font-semibold text-foreground transition hover:bg-accent/40"><Gift className="h-3.5 w-3.5 text-primary" />Unclaimed<span className="grid h-4 min-w-[16px] place-items-center rounded-full bg-primary px-1 text-[9.5px] font-bold tabular-nums text-primary-foreground">{unclaimedCount}</span></Link>)}<div className="text-right"><p className="text-[9px] uppercase text-muted-foreground">Balance</p><p className="text-[13px] font-semibold tabular-nums">{format(Number(profile?.coins || 0))}</p></div></div></div></header>
 
       <main className="mx-auto grid min-w-0 max-w-[1080px] gap-6 px-4 py-6 md:px-7 md:py-8 lg:grid-cols-[minmax(0,1fr)_390px]">
         <section className="min-w-0 space-y-6">
-          {/* Unclaimed gifts, with their links. Without this the code was shown
-              exactly once and then lost, stranding money that had already left
-              the wallet. */}
-          {unclaimed.length > 0 && (
-            <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[13px] font-semibold tracking-tight text-foreground">
-                    Waiting to be claimed
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {unclaimed.length} gift{unclaimed.length === 1 ? "" : "s"} you created. Share a link to send one.
-                  </p>
-                </div>
-                <span className="shrink-0 rounded-full bg-primary/8 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-primary ring-1 ring-primary/15">
-                  {format(unclaimed.reduce((sum: number, card: any) => sum + Number(card.amount || 0), 0))}
-                </span>
-              </div>
+          <div><span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><Gift className="h-4 w-4 fill-current" />Zero Club Gifts</span><h2 className="mt-3 font-display text-[27px] font-semibold tracking-tight sm:text-[34px]">Give money, or give access.</h2><p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">Send cash straight to someone&rsquo;s wallet with Support, add a note on what it&rsquo;s for with Custom, or lock the value to one thing &mdash; a bootcamp, a membership, a product. You choose which below.</p></div>
 
-              <div className="mt-3 space-y-2">
-                {unclaimed.map((card: any) => {
-                  const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
+          {availableGifts.length > 0 && (
+            <section className="rounded-xl border border-primary/20 bg-primary/[0.035] p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Your available Zero Gifts</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">Apply these at checkout for the service shown. Your wallet only pays any amount left over.</p>
+                </div>
+                <span className="grid h-7 min-w-7 shrink-0 place-items-center rounded-full bg-primary px-2 text-[11px] font-bold text-primary-foreground">{availableGifts.length}</span>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {availableGifts.map((gift: any) => {
+                  const label = giftServices.find((item) => item.id === gift.service)?.label || gift.service;
+                  const destination = GIFT_SERVICE_DESTINATIONS[gift.service] || { action: "Use this gift" };
                   return (
-                    <div
-                      key={card.id}
-                      className="flex items-center gap-3 rounded-lg border border-border/60 bg-background p-3"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary ring-1 ring-primary/15">
-                        <Gift className="h-[16px] w-[16px]" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-semibold tabular-nums text-foreground">
-                          {format(Number(card.amount))}
-                          <span className="ml-2 text-[11px] font-medium text-muted-foreground">{label}</span>
-                        </p>
-                        <p className="truncate font-mono text-[10.5px] text-muted-foreground">{card.code}</p>
+                    <div key={gift.id} className="rounded-lg border border-border bg-card p-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-[12.5px] font-semibold">{label}</p>
+                          <p className="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted-foreground">Gift {gift.code}</p>
+                        </div>
+                        <p className="shrink-0 text-[15px] font-semibold tabular-nums text-primary">{format(Number(gift.remaining_amount) || 0)}</p>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <button
-                          onClick={() => copyToClipboard(giftUrl(card.code), "Gift link copied")}
-                          title="Copy link"
-                          aria-label={`Copy the link for gift ${card.code}`}
-                          className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground transition hover:text-foreground hover:bg-accent/40"
-                        >
-                          <Check className="hidden" />
-                          <Copy className="h-[15px] w-[15px]" />
-                        </button>
-                        <button
-                          onClick={() => shareGift(card)}
-                          title="Share gift"
-                          aria-label={`Share gift ${card.code}`}
-                          className="flex h-9 items-center gap-1.5 rounded-lg bg-foreground px-3 text-[11.5px] font-semibold text-background transition hover:opacity-90"
-                        >
-                          <Share2 className="h-3.5 w-3.5" /> Share
-                        </button>
+                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-2.5">
+                        <span className="text-[10.5px] text-muted-foreground">of {format(Number(gift.amount) || 0)} remaining</span>
+                        {destination.href ? (
+                          <a href={destination.href} className="text-[10.5px] font-semibold text-primary hover:underline">{destination.action} →</a>
+                        ) : (
+                          <span className="text-[10.5px] font-semibold text-primary">{destination.action}</span>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
+            </section>
           )}
-
-          <div><span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><Gift className="h-4 w-4 fill-current" />Zero Club Gifts</span><h2 className="mt-3 font-display text-[27px] font-semibold tracking-tight sm:text-[34px]">Give money, or give access.</h2><p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">Send cash straight to someone&rsquo;s wallet with Support, add a note on what it&rsquo;s for with Custom, or lock the value to one thing &mdash; a bootcamp, a membership, a product. You choose which below.</p></div>
 
           <div className="rounded-lg border border-border bg-card p-5">
             <label className="text-[10px] font-semibold uppercase text-muted-foreground">Gift amount</label>

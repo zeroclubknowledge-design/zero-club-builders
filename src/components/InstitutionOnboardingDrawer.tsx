@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { supabase } from "@/lib/supabase";
 import { formatNaira } from "@/features/membership/plans";
+import { ZeroGiftPaymentOption, useZeroGiftBalance, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 
 const INSTITUTION_TYPES = [
   "University", "Polytechnic", "College", "Secondary school", "Training provider",
@@ -31,6 +32,8 @@ export function InstitutionOnboardingDrawer({
 }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({ ...EMPTY });
+  const [applyZeroGift, setApplyZeroGift] = useState(false);
+  const { available: membershipGiftBalance } = useZeroGiftBalance("membership", open);
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
   const status = useQuery({
@@ -80,14 +83,22 @@ export function InstitutionOnboardingDrawer({
 
   const activate = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc("activate_digital_hub");
+      const { data, error } = await supabase.rpc("activate_digital_hub", {
+        p_apply_gift: applyZeroGift,
+      });
       if (error) throw error;
-      return data as any;
+      const payment = data as any;
+      if (payment?.status === "insufficient_funds") {
+        throw new Error(`Insufficient wallet balance. Add ${formatNaira(Number(payment.shortfall) || 0)} to activate.`);
+      }
+      return payment;
     },
-    onSuccess: () => {
-      toast.success("Digital Hub activated for 12 months");
+    onSuccess: (payment) => {
+      const giftApplied = Math.max(0, Number(payment?.gift_applied) || 0);
+      toast.success(giftApplied > 0 ? `${formatNaira(giftApplied)} Zero Gift applied. Digital Hub activated.` : "Digital Hub activated for 12 months");
       queryClient.invalidateQueries({ queryKey: ["institution-status"] });
       queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
+      queryClient.invalidateQueries({ queryKey: zeroGiftBalanceQueryKey("membership") });
       onActivated?.();
     },
     onError: (error: any) => toast.error(error.message || "Activation failed"),
@@ -95,6 +106,8 @@ export function InstitutionOnboardingDrawer({
 
   const price = Number(status.data?.price || (form.organization_size === "large" ? 400000 : 150000));
   const balance = Number(profile?.coins || 0);
+  const giftToApply = applyZeroGift ? Math.min(price, membershipGiftBalance) : 0;
+  const walletDue = Math.max(0, price - giftToApply);
   const trialDaysLeft = Number(status.data?.trial_days_left || 0);
   const hasApplication = !!status.data?.has_application;
   const isActive = !!status.data?.is_active;
@@ -200,7 +213,16 @@ export function InstitutionOnboardingDrawer({
                   <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
                     <Wallet className="h-3.5 w-3.5 text-primary" />
                      Wallet balance <strong className="font-semibold text-foreground tabular-nums">{formatNaira(balance)}</strong>
-                     {balance < price && <span className="text-amber-600">· fund {formatNaira(price - balance)} more to activate</span>}
+                     {balance < walletDue && <span className="text-amber-600">· fund {formatNaira(walletDue - balance)} more to activate</span>}
+                  </div>
+                  <div className="mt-3">
+                    <ZeroGiftPaymentOption
+                      service="membership"
+                      amount={price}
+                      applied={applyZeroGift}
+                      onAppliedChange={setApplyZeroGift}
+                      formatAmount={formatNaira}
+                    />
                   </div>
                 </section>
 
@@ -216,9 +238,9 @@ export function InstitutionOnboardingDrawer({
                   {hasApplication && (
                     <button
                       onClick={() => activate.mutate()}
-                      disabled={activate.isPending || balance < price}
+                      disabled={activate.isPending || balance < walletDue}
                       className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-[13.5px] font-semibold disabled:opacity-50"
-                      title={balance < price ? "Fund your wallet to activate" : undefined}
+                      title={balance < walletDue ? "Fund your wallet to activate" : undefined}
                     >
                       {activate.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                       Activate Digital Hub
