@@ -10,8 +10,10 @@ import {
   LoaderCircle,
   Mail,
   Send,
+  Sun,
   ThumbsUp,
   Menu,
+  Moon,
   MessageSquare,
   Radio,
   Search,
@@ -203,6 +205,23 @@ function BrandMark({ light = false }: { light?: boolean }) {
 }
 
 function Header({ referralCode }: ReferralProps) {
+  /*
+   * Public-page theme switch. Toggles the same `dark` class Tailwind reads,
+   * but restores whatever the document arrived with on unmount — so trying the
+   * dark landing page never rewrites a member's saved app theme. Nothing goes
+   * to localStorage on purpose: this is a look at the page, not a setting.
+   */
+  const [dark, setDark] = useState(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const had = root.classList.contains("dark");
+    root.classList.toggle("dark", dark);
+    return () => { root.classList.toggle("dark", had); };
+  }, [dark]);
+
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -247,6 +266,16 @@ function Header({ referralCode }: ReferralProps) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setDark((value) => !value)}
+            title={dark ? "Switch to light" : "Switch to dark"}
+            aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+            aria-pressed={dark}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#4d4f55] transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:h-10 sm:w-10"
+          >
+            {dark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+          </button>
           <Link
             to="/signin"
             search={{ ref: referralCode, club: undefined }}
@@ -542,10 +571,7 @@ function Hero({ referralCode }: ReferralProps) {
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 rounded-full bg-[#cc208f]/[0.08] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f] ring-1 ring-[#cc208f]/15">
-            The builder network
-          </p>
-          <h1 className="mt-6 max-w-[620px] font-display text-[44px] font-semibold leading-[1.04] tracking-[-0.035em] text-[#171717] dark:text-white md:text-[64px]">
+          <h1 className="mt-0 max-w-[620px] font-display text-[44px] font-semibold leading-[1.04] tracking-[-0.035em] text-[#171717] dark:text-white md:text-[64px]">
             Where builders become <span className="text-[#cc208f]">undeniable</span>.
           </h1>
           <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-[#4d4f55] md:text-[19px]">
