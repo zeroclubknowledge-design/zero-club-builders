@@ -563,10 +563,19 @@ function Hero({ referralCode }: ReferralProps) {
               skills, then proof, then what the proof opens. `block` rather
               than <br>, so each line is its own box and the tight leading
               applies evenly instead of collapsing at the breaks. */}
-          <h1 className="mt-0 max-w-[620px] font-display text-[44px] font-semibold leading-[1.06] tracking-[-0.035em] text-[#171717] dark:text-white md:text-[64px]">
-            <span className="block">Build Skills.</span>
-            <span className="block">Build Proof.</span>
-            <span className="block text-[#cc208f]">Build Opportunities.</span>
+          {/* Sized against the viewport rather than at fixed breakpoints.
+              "Build Opportunities." is the longest line by some way, and at a
+              flat 44px it wrapped on a phone and split the phrase in two.
+              clamp() scales all three together so the set stays visually
+              even. The ceiling is 48px, not 64px: from lg the hero splits
+              into two columns and the text side is only ~566px wide, so the
+              old size overflowed on DESKTOP as well as on a phone. And
+              whitespace-nowrap guarantees none of them can ever break, at any
+              width, rather than relying on the maths staying true. */}
+          <h1 className="mt-0 max-w-[620px] font-display text-[clamp(23px,6.6vw,48px)] font-semibold leading-[1.08] tracking-[-0.035em] text-[#171717] dark:text-white">
+            <span className="block whitespace-nowrap">Build Skills.</span>
+            <span className="block whitespace-nowrap">Build Proof.</span>
+            <span className="block whitespace-nowrap text-[#cc208f]">Build Opportunities.</span>
           </h1>
           <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-[#4d4f55] dark:text-white/60 md:text-[19px]">
             Learn in live bootcamps, ship work in public, join serious communities —
