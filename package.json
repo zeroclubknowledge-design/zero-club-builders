@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "generate:gift-cards": "node scripts/generate-gift-cards.mjs",
     "android:build": "node scripts/build-android.mjs",
     "android:keystore": "node scripts/generate-keystore.mjs",
     "android:assetlinks": "node scripts/write-assetlinks.mjs",
@@ -86,6 +87,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

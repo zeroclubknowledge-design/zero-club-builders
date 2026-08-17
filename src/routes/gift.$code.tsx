@@ -63,18 +63,13 @@ export const Route = createFileRoute("/gift/$code")({
         ? `${amount} straight into your Zero Club wallet. Open to claim it.`
         : `${amount} of Zero Club credit for ${label}. Open to claim it.`);
 
-    // The card is drawn as SVG by /api/gift-card/<code>.svg. Messaging apps
-    // will not accept SVG as a preview image, so weserv fetches it and hands
-    // back a JPEG on the standard 1200x630 canvas.
-    const svg = `https://www.zeroclubs.xyz/api/gift-card/${params.code}`;
-    const image = `https://images.weserv.nl/?${new URLSearchParams({
-      url: svg.replace(/^https:\/\//, ""),
-      w: "1200",
-      h: "630",
-      fit: "cover",
-      output: "jpg",
-      q: "88",
-    }).toString()}`;
+    // Direct, reliable PNG card preview image hosted on domain.
+    // Messaging apps (WhatsApp, Telegram, X, iMessage) require raster PNG/JPEG
+    // and fail on SVGs or 3rd party proxies like weserv.
+    const validTemplates = ["signature", "studio", "paper", "signal", "cobalt", "sun"];
+    const templateId = loaderData?.template_id;
+    const templateName = templateId && validTemplates.includes(templateId) ? templateId : "signature";
+    const image = `https://www.zeroclubs.xyz/gifts/card-${templateName}.png`;
 
     return {
       meta: [
@@ -84,10 +79,10 @@ export const Route = createFileRoute("/gift/$code")({
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "Zero Club" },
-        { property: "og:url", content: `https://www.zeroclubs.xyz/gift/${params.code}` },
+        { property: "og:url", content: `https://www.zeroclubs.xyz/gift/${params.code}?v=3` },
         { property: "og:image", content: image },
         { property: "og:image:secure_url", content: image },
-        { property: "og:image:type", content: "image/jpeg" },
+        { property: "og:image:type", content: "image/png" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: `${amount || "A"} Zero Club Gift` },
