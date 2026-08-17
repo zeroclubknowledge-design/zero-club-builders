@@ -84,7 +84,7 @@ import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
 import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
-import { Route as ApiGiftCardCodeDotsvgRouteImport } from './routes/api.gift-card.$code[.]svg'
+import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
 import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
@@ -469,9 +469,9 @@ const AppBootcampsIdRoute = AppBootcampsIdRouteImport.update({
   path: '/bootcamps/$id',
   getParentRoute: () => AppRoute,
 } as any)
-const ApiGiftCardCodeDotsvgRoute = ApiGiftCardCodeDotsvgRouteImport.update({
-  id: '/api/gift-card/$code.svg',
-  path: '/api/gift-card/$code.svg',
+const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
+  id: '/api/gift-card/$code',
+  path: '/api/gift-card/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
@@ -535,7 +535,7 @@ export interface FileRoutesByFullPath {
   '/gift/$code': typeof GiftCodeRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
-  '/api/gift-card/$code.svg': typeof ApiGiftCardCodeDotsvgRoute
+  '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -612,7 +612,7 @@ export interface FileRoutesByTo {
   '/gift/$code': typeof GiftCodeRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
-  '/api/gift-card/$code.svg': typeof ApiGiftCardCodeDotsvgRoute
+  '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -696,7 +696,7 @@ export interface FileRoutesById {
   '/gift/$code': typeof GiftCodeRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
-  '/api/gift-card/$code.svg': typeof ApiGiftCardCodeDotsvgRoute
+  '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -781,7 +781,7 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/product/$id'
     | '/app/'
-    | '/api/gift-card/$code.svg'
+    | '/api/gift-card/$code'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -858,7 +858,7 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/product/$id'
     | '/app'
-    | '/api/gift-card/$code.svg'
+    | '/api/gift-card/$code'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -941,7 +941,7 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/product/$id'
     | '/app/'
-    | '/api/gift-card/$code.svg'
+    | '/api/gift-card/$code'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -1005,7 +1005,7 @@ export interface RootRouteChildren {
   FundSlugRoute: typeof FundSlugRoute
   GiftCodeRoute: typeof GiftCodeRoute
   ProductIdRoute: typeof ProductIdRouteWithChildren
-  ApiGiftCardCodeDotsvgRoute: typeof ApiGiftCardCodeDotsvgRoute
+  ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1535,11 +1535,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBootcampsIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/api/gift-card/$code.svg': {
-      id: '/api/gift-card/$code.svg'
-      path: '/api/gift-card/$code.svg'
-      fullPath: '/api/gift-card/$code.svg'
-      preLoaderRoute: typeof ApiGiftCardCodeDotsvgRouteImport
+    '/api/gift-card/$code': {
+      id: '/api/gift-card/$code'
+      path: '/api/gift-card/$code'
+      fullPath: '/api/gift-card/$code'
+      preLoaderRoute: typeof ApiGiftCardCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/wallet/transaction/$id': {
@@ -1804,7 +1804,7 @@ const rootRouteChildren: RootRouteChildren = {
   FundSlugRoute: FundSlugRoute,
   GiftCodeRoute: GiftCodeRoute,
   ProductIdRoute: ProductIdRouteWithChildren,
-  ApiGiftCardCodeDotsvgRoute: ApiGiftCardCodeDotsvgRoute,
+  ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

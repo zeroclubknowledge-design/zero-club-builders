@@ -66,9 +66,9 @@ export const Route = createFileRoute("/gift/$code")({
     // The card is drawn as SVG by /api/gift-card/<code>.svg. Messaging apps
     // will not accept SVG as a preview image, so weserv fetches it and hands
     // back a JPEG on the standard 1200x630 canvas.
-    const svg = `https://www.zeroclubs.xyz/api/gift-card/${params.code}.svg`;
+    const svg = `https://www.zeroclubs.xyz/api/gift-card/${params.code}`;
     const image = `https://images.weserv.nl/?${new URLSearchParams({
-      url: svg,
+      url: svg.replace(/^https:\/\//, ""),
       w: "1200",
       h: "630",
       fit: "cover",

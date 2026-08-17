@@ -92,10 +92,20 @@ async function render(code: string): Promise<Response> {
   });
 }
 
-export const Route = createFileRoute("/api/gift-card/$code.svg")({
+/*
+ * No .svg extension in the path.
+ *
+ * The first version was api.gift-card.$code[.]svg.ts, hoping the escape would
+ * give a literal dot. It produced a route whose parameter was effectively
+ * named "code.svg", so /api/gift-card/ZC-XXXX.svg never matched and the
+ * rasteriser got nothing to convert — the preview kept its text and lost its
+ * image. The content type is what identifies an SVG, not the filename.
+ */
+export const Route = createFileRoute("/api/gift-card/$code")({
   server: {
     handlers: {
-      GET: ({ params }: any) => render(String(params.code || "").replace(/\.svg$/, "")),
+      // Tolerates a trailing .svg so any link already shared still resolves.
+      GET: ({ params }: any) => render(String(params.code || "").replace(/\.svg$/i, "")),
     },
   },
 });
