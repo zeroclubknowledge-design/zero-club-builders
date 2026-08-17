@@ -182,10 +182,22 @@ function BootcampDetail() {
       // Enrols the caller, decided server-side from their session. The old
       // server function passed profileId from the browser and ran without a
       // session, which both failed RLS and would have let anyone enrol anyone.
-      const { error: enrollError } = await supabase.rpc("enroll_in_bootcamp", {
+      const { data: enrollmentResult, error: enrollError } = await supabase.rpc("enroll_in_bootcamp", {
         p_bootcamp_id: bootcamp.id,
+        p_coupon_code: appliedCoupon ? couponInput.trim().toUpperCase() : null,
       });
       if (enrollError) throw enrollError;
+
+      const result = enrollmentResult as any;
+      if (result?.status === "insufficient_funds") {
+        const shortfall = Math.max(0, Number(result.shortfall) || 0);
+        toast.error(
+          shortfall > 0
+            ? `Insufficient wallet balance. Add ${format(shortfall)} to enroll.`
+            : "Insufficient wallet balance. Add money to your wallet and try again."
+        );
+        return;
+      }
 
       if (club) {
         await supabase.from("club_members").insert([
@@ -198,9 +210,18 @@ function BootcampDetail() {
       }
 
       setIsEnrolled(true);
-      toast.success("Enrolled successfully!");
+      toast.success(
+        Number(result?.charged) > 0
+          ? `${format(Number(result.charged))} paid from your wallet. You are enrolled!`
+          : "Enrolled successfully!"
+      );
     } catch (error: any) {
-      toast.error(error.message);
+      const message = String(error?.message || "Could not complete enrollment");
+      toast.error(
+        /insufficient wallet|wallet balance is too low/i.test(message)
+          ? "Insufficient wallet balance. Add money to your wallet and try again."
+          : message
+      );
     } finally {
       setLoading(false);
     }
