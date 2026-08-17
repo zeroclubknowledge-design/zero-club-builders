@@ -197,21 +197,21 @@ function SignUpPage() {
   };
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417]">
+    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417] dark:text-white">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-[42vh] bg-[radial-gradient(circle_at_22%_14%,rgba(204,32,143,0.16),transparent_35%),radial-gradient(circle_at_84%_8%,rgba(143,88,73,0.14),transparent_30%)]" />
 
       <header className="relative z-20 mx-auto flex h-[calc(68px+env(safe-area-inset-top))] w-full max-w-[1240px] items-center justify-between px-5 pt-[env(safe-area-inset-top)] lg:px-8">
         <Link
           to="/signin"
-          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 dark:border-white/12 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
           aria-label="Back to sign in"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
         </Link>
         <Link
           to="/signin"
-          className="rounded-xl border border-black/10 bg-white/75 px-4 py-2 text-sm font-medium text-[#171417] shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="rounded-xl border border-black/10 dark:border-white/12 bg-white/75 px-4 py-2 text-sm font-medium text-[#171417] dark:text-white shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
         >
           Sign in
         </Link>
@@ -271,13 +271,13 @@ function SignUpPage() {
           <div className="mb-8 text-center lg:mb-6 lg:text-left">
             <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0 lg:mb-5">
               <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
-              <span className="font-display text-xl font-medium">Zero Club</span>
+              <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
             </Link>
             <p className="mx-auto mb-4 flex w-fit max-w-full items-center justify-center gap-2 rounded-full border border-[#cc208f]/18 bg-[#cc208f]/8 px-3 py-1.5 text-center text-[12px] font-medium leading-5 text-[#9d176d] lg:mx-0">
               <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={1.8} />
               One code, no password
             </p>
-            <h1 className="font-display text-[40px] font-normal leading-[1.08] text-[#241f23] sm:text-[50px] lg:text-[44px] xl:text-[48px]">
+            <h1 className="font-display text-[40px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[50px] lg:text-[44px] xl:text-[48px]">
               Start your Zero Club profile.
             </h1>
             <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] dark:text-white/55 lg:mx-0 lg:mt-3">
@@ -285,16 +285,16 @@ function SignUpPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6 lg:p-6">
+          <div className="rounded-2xl border border-black/10 dark:border-white/12 bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6 lg:p-6">
             {step === "info" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23]">Create account</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970]">Set up the identity attached to your proof.</p>
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Create account</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">Set up the identity attached to your proof.</p>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056]">Account type</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Account type</span>
                   <div className="grid grid-cols-3 gap-2">
                     {accountTypeOptions.map((role) => (
                       <button
@@ -304,12 +304,12 @@ function SignUpPage() {
                         className={`min-h-[96px] rounded-xl border p-3 text-left transition ${
                           accountType === role.id
                             ? "border-[#cc208f]/45 bg-[#cc208f]/9 text-[#9d176d] ring-4 ring-[#cc208f]/8"
-                            : "border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] text-[#655b61] hover:bg-white"
+                            : "border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] text-[#655b61] dark:text-white/60 hover:bg-white"
                         }`}
                       >
                         <role.Icon className="mb-3 h-6 w-6" active={accountType === role.id} />
                         <span className="block text-[13px] font-medium">{role.label}</span>
-                        <span className="mt-0.5 block text-[11px] text-[#81767d]">{role.helper}</span>
+                        <span className="mt-0.5 block text-[11px] text-[#81767d] dark:text-white/50">{role.helper}</span>
                       </button>
                     ))}
                   </div>
@@ -317,58 +317,58 @@ function SignUpPage() {
 
                 <div className="grid gap-4 lg:grid-cols-2">
                   <label className="block min-w-0 space-y-2">
-                    <span className="text-[12px] font-medium text-[#5a5056]">Username</span>
+                    <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Username</span>
                     <span className="relative block">
-                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
+                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                       <input
                         type="text"
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
 
                   <label className="block min-w-0 space-y-2">
-                    <span className="text-[12px] font-medium text-[#5a5056]">Email address</span>
+                    <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
                     <span className="relative block">
-                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                       <input
                         type="email"
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056]">Referral code <span className="text-[#9b9297]">optional</span></span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Referral code <span className="text-[#9b9297] dark:text-white/40">optional</span></span>
                   <span className="relative block">
-                    <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
+                    <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                     <input
                       type="text"
                       placeholder="Enter referral code"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      className={`h-14 w-full rounded-xl border bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 pr-20 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10"}`}
+                      className={`h-14 w-full rounded-xl border bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 pr-20 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10 dark:border-white/12"}`}
                     />
                     {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#9d176d]">Applied</span>}
                   </span>
                 </label>
 
-                <label className="flex items-start gap-3 rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3">
+                <label className="flex items-start gap-3 rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3">
                   <input
                     type="checkbox"
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-black/20 accent-[#cc208f]"
+                    className="mt-1 h-4 w-4 rounded border-black/20 accent-[#cc208f] dark:border-white/25"
                   />
-                  <span className="text-xs leading-5 text-[#746970]">
-                    I agree to the <span className="font-medium text-[#241f23] underline">Terms of Service</span> and <span className="font-medium text-[#241f23] underline">Privacy Policy</span>.
+                  <span className="text-xs leading-5 text-[#746970] dark:text-white/55">
+                    I agree to the <span className="font-medium text-[#241f23] dark:text-white underline">Terms of Service</span> and <span className="font-medium text-[#241f23] dark:text-white underline">Privacy Policy</span>.
                   </span>
                 </label>
 
@@ -383,21 +383,21 @@ function SignUpPage() {
             ) : (
               <form onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23]">Verify email</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970]">
-                    Sent to <span className="font-medium text-[#241f23]">{email}</span>.
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Verify email</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
+                    Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
                   </p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056]">Confirmation code</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
                   <input
                     type="text"
                     placeholder="000000"
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-14 w-full rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -410,10 +410,10 @@ function SignUpPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
                     Go back
                   </button>
                 </div>

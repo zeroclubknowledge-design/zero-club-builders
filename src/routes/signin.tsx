@@ -117,14 +117,14 @@ function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417]">
+    <div className="min-h-screen overflow-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417] dark:text-white">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-[42vh] bg-[radial-gradient(circle_at_24%_18%,rgba(204,32,143,0.16),transparent_34%),radial-gradient(circle_at_78%_8%,rgba(143,88,73,0.14),transparent_30%)]" />
 
       <header className="relative z-20 mx-auto flex h-[calc(68px+env(safe-area-inset-top))] w-full max-w-6xl items-center justify-between px-5 pt-[env(safe-area-inset-top)] lg:px-8">
         <Link
           to="/"
-          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 dark:border-white/12 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
           aria-label="Back to home"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
@@ -132,7 +132,7 @@ function SignInPage() {
         <Link
           to="/signup"
           search={{ ref, club }}
-          className="rounded-xl border border-black/10 bg-white/75 px-4 py-2 text-sm font-medium text-[#171417] shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="rounded-xl border border-black/10 dark:border-white/12 bg-white/75 px-4 py-2 text-sm font-medium text-[#171417] dark:text-white shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
         >
           Create account
         </Link>
@@ -143,13 +143,13 @@ function SignInPage() {
           <div className="mb-8 text-center lg:text-left">
             <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0">
               <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
-              <span className="font-display text-xl font-medium">Zero Club</span>
+              <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
             </Link>
             <p className="mx-auto mb-4 flex w-fit max-w-full items-center justify-center gap-2 rounded-full border border-[#cc208f]/18 bg-[#cc208f]/8 px-3 py-1.5 text-center text-[12px] font-medium leading-5 text-[#9d176d] lg:mx-0">
               <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={1.8} />
               Passwordless secure access
             </p>
-            <h1 className="font-display text-[42px] font-normal leading-[1.08] text-[#241f23] sm:text-[52px]">
+            <h1 className="font-display text-[42px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[52px]">
               Return to your proof of work.
             </h1>
             <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] dark:text-white/55 lg:mx-0">
@@ -157,24 +157,24 @@ function SignInPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6">
+          <div className="rounded-2xl border border-black/10 dark:border-white/12 bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6">
             {step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23]">Sign in</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970]">We will send a short confirmation code.</p>
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Sign in</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">We will send a short confirmation code.</p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056]">Email address</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
                   <span className="relative block">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279]" strokeWidth={1.7} />
+                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                     <input
                       type="email"
                       placeholder="ada@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                      className="h-14 w-full rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                     />
                   </span>
                 </label>
@@ -190,21 +190,21 @@ function SignInPage() {
             ) : (
               <form onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23]">Enter the code</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970]">
-                    Sent to <span className="font-medium text-[#241f23]">{email}</span>.
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Enter the code</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
+                    Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
                   </p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056]">Confirmation code</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
                   <input
                     type="text"
                     placeholder="000000"
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-14 w-full rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -217,10 +217,10 @@ function SignInPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
                     Change email
                   </button>
                 </div>
