@@ -4,50 +4,77 @@ import { useCallback, useEffect, useState } from "react";
  * Light/dark for the signed-out pages — landing, sign in, sign up, docs,
  * explore.
  *
- * Two things make this its own hook rather than a toggle inside one header.
+ * The choice is applied BEFORE first paint by the inline script in
+ * __root.tsx, which reads the same key. That matters for two reasons:
  *
- * It has to PERSIST between public pages. The first version lived in the
- * landing header and restored the document on unmount, so choosing dark and
- * then tapping Sign in landed you on a light page — the theme lasted exactly
- * as long as the component did.
+ *   • Applying it from an effect meant the page painted with the member's app
+ *     theme and then visibly flipped to the public one.
+ *   • That flip was a mutation of <html> during hydration, which can make
+ *     React abandon hydration and re-render the whole tree — seen as the page
+ *     opening and then going blank.
  *
- * And it has to stay SEPARATE from the app's own theme. That one lives under
- * `darkMode` / `darkTheme` in localStorage and is a saved account preference.
- * A visitor trying the dark landing page is not changing how their app looks,
- * so this writes to its own key and puts the document back the way it found it
- * when they leave for /app.
+ * So this hook does not touch the DOM on mount. It only reads what the script
+ * already decided, and writes when somebody actually presses the switch.
+ *
+ * The key is deliberately separate from the app's `darkMode`: a visitor trying
+ * the dark landing page is not changing how a member's app looks.
  */
 
 const KEY = "zc_public_theme";
 
-function readStored(): boolean | null {
-  if (typeof window === "undefined") return null;
+/** Kept in step with the allowlist in the __root.tsx inline script. */
+function isPublicPath(pathname: string): boolean {
+  return (
+    pathname === "/" ||
+    pathname === "/docs" ||
+    pathname === "/signin" ||
+    pathname === "/signup" ||
+    pathname.startsWith("/explore/")
+  );
+}
+
+function applyAppTheme() {
   try {
-    const value = localStorage.getItem(KEY);
-    return value === "dark" ? true : value === "light" ? false : null;
+    const root = document.documentElement;
+    root.classList.remove("dark", "dim", "lights-out", "premium");
+    const mode = localStorage.getItem("darkMode") || "off";
+    const theme = localStorage.getItem("darkTheme") || "lights-out";
+    if (mode === "premium") return;
+    const isDark =
+      mode === "on" ||
+      (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    if (isDark) {
+      root.classList.add("dark");
+      root.classList.add(theme);
+    }
   } catch {
-    return null;
+    /* nothing sensible to do */
   }
 }
 
 export function usePublicTheme() {
-  const [dark, setDark] = useState<boolean>(() => {
-    const stored = readStored();
-    if (stored !== null) return stored;
-    // No choice made yet: follow whatever the document already is, so a member
-    // arriving from the dark app does not get flashed a light page.
-    return typeof document !== "undefined" && document.documentElement.classList.contains("dark");
-  });
+  // Seeded from the DOM the inline script already set, so first render agrees
+  // with what is on screen and nothing needs correcting afterwards.
+  const [dark, setDark] = useState<boolean>(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
+  );
 
   useEffect(() => {
+    // Only ever runs in response to the switch — never on mount, because the
+    // inline script has already put the document in the right state.
     const root = document.documentElement;
-    const had = root.classList.contains("dark");
-    root.classList.toggle("dark", dark);
-    // Restored on unmount so entering /app returns to the member's own theme.
-    return () => {
-      root.classList.toggle("dark", had);
-    };
+    if (root.classList.contains("dark") !== dark) {
+      root.classList.toggle("dark", dark);
+    }
   }, [dark]);
+
+  // Leaving the public pages hands the document back to the member's own
+  // theme, deterministically, rather than to whatever it happened to be.
+  useEffect(() => {
+    return () => {
+      if (!isPublicPath(window.location.pathname)) applyAppTheme();
+    };
+  }, []);
 
   const toggle = useCallback(() => {
     setDark((value) => {

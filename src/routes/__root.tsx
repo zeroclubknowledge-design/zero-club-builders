@@ -138,14 +138,32 @@ function RootShell({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var dM = localStorage.getItem('darkMode') || 'off';
-                var dT = localStorage.getItem('darkTheme') || 'lights-out';
-                document.documentElement.classList.remove('dark', 'dim', 'lights-out', 'premium');
-                if (dM !== 'premium') {
-                  var isD = dM === 'on' || (dM === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                  if (isD) {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.classList.add(dT);
+                var root = document.documentElement;
+                root.classList.remove('dark', 'dim', 'lights-out', 'premium');
+
+                // Signed-out pages have their own light/dark choice, kept
+                // separately from the member's app theme. It has to be applied
+                // HERE, before first paint. Applying it from a React effect
+                // instead meant the page painted with the app theme and then
+                // visibly flipped — and mutating <html> during hydration is
+                // exactly the kind of thing that makes a page blank out.
+                var p = location.pathname;
+                var isPublic = p === '/' || p === '/docs' || p === '/signin' ||
+                               p === '/signup' || p.indexOf('/explore/') === 0;
+
+                if (isPublic) {
+                  if (localStorage.getItem('zc_public_theme') === 'dark') {
+                    root.classList.add('dark');
+                  }
+                } else {
+                  var dM = localStorage.getItem('darkMode') || 'off';
+                  var dT = localStorage.getItem('darkTheme') || 'lights-out';
+                  if (dM !== 'premium') {
+                    var isD = dM === 'on' || (dM === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    if (isD) {
+                      root.classList.add('dark');
+                      root.classList.add(dT);
+                    }
                   }
                 }
               } catch(e) {}
