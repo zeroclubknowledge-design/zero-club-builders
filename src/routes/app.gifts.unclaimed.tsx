@@ -98,55 +98,55 @@ function UnclaimedGiftsPage() {
               These have already left your wallet. Send a link so someone can claim one.
             </p>
 
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-8 lg:grid-cols-2">
               {gifts.map((card: any) => {
                 const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
                 return (
                   <div key={card.id} className="min-w-0">
-                    {/* The card, with copy laid over it — the link belongs to
-                        the card, so the button belongs there too. */}
-                    <div className="group relative w-full">
-                      <GiftCardVisual
-                        amount={card.amount}
-                        service={card.service}
-                        templateId={card.template_id}
-                        code={card.code}
-                        message={card.message}
-                        compact
-                      />
-                      <button
-                        onClick={() => copyToClipboard(giftUrl(card.code), "Gift link copied")}
-                        title="Copy the link to this gift"
-                        aria-label={`Copy the link to gift ${card.code}`}
-                        className="absolute right-3 top-3 z-10 flex h-9 items-center gap-1.5 rounded-full bg-black/55 px-3 text-[11px] font-semibold text-white backdrop-blur-sm transition hover:bg-black/75 active:scale-95"
-                      >
-                        <Copy className="h-3.5 w-3.5" /> Copy link
-                      </button>
-                    </div>
+                    {/* Full size, exactly as it appears on the Gifts page —
+                        nothing overlaid, so the card is never obscured. */}
+                    <GiftCardVisual
+                      amount={card.amount}
+                      service={card.service}
+                      templateId={card.template_id}
+                      code={card.code}
+                      message={card.message}
+                    />
 
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    {/* Amount, then the two actions, all beneath the card. */}
+                    <div className="mt-3 w-full max-w-[520px] space-y-2.5">
                       <div className="min-w-0">
-                        <p className="truncate text-[12.5px] font-semibold tracking-tight">
+                        <p className="truncate text-[14px] font-semibold tracking-tight tabular-nums text-foreground">
                           {format(Number(card.amount))}
-                          <span className="ml-2 text-[11px] font-medium text-muted-foreground">{label}</span>
+                          <span className="ml-2 text-[11.5px] font-medium text-muted-foreground">{label}</span>
                         </p>
                         {card.custom_purpose && (
-                          <p className="truncate text-[10.5px] text-muted-foreground">{card.custom_purpose}</p>
+                          <p className="truncate text-[11px] text-muted-foreground">{card.custom_purpose}</p>
                         )}
                       </div>
-                      <button
-                        onClick={() =>
-                          shareOrCopy({
-                            title: "A Zero Club Gift for you",
-                            text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
-                            url: giftUrl(card.code),
-                            copiedMessage: "Gift link copied",
-                          })
-                        }
-                        className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-foreground px-3.5 text-[11.5px] font-semibold text-background transition hover:opacity-90"
-                      >
-                        <Share2 className="h-3.5 w-3.5" /> Share
-                      </button>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => copyToClipboard(giftUrl(card.code), "Gift link copied")}
+                          aria-label={`Copy the link to gift ${card.code}`}
+                          className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-[12px] font-semibold text-foreground transition hover:bg-accent/40 active:scale-[0.98]"
+                        >
+                          <Copy className="h-3.5 w-3.5" /> Copy link
+                        </button>
+                        <button
+                          onClick={() =>
+                            shareOrCopy({
+                              title: "A Zero Club Gift for you",
+                              text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
+                              url: giftUrl(card.code),
+                              copiedMessage: "Gift link copied",
+                            })
+                          }
+                          className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
+                        >
+                          <Share2 className="h-3.5 w-3.5" /> Share
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

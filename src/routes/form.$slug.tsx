@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   CalendarDays,
@@ -315,6 +316,7 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
 }
 
 function ZeroFormPublicPage() {
+
   const { slug } = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -1033,14 +1035,62 @@ function FileUploadField({
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
+  /*
+   * Can we go back, and where to?
+   *
+   * document.referrer tells us whether this form was reached from inside Zero
+   * Club or opened cold from a shared link. Only the first case gets a back
+   * button — for a stranger arriving from WhatsApp, "back" would leave the
+   * form entirely, which is not a kindness.
+   *
+   * Resolved once on mount because referrer is empty on later client-side
+   * navigations, and history.length cannot be read during SSR.
+   */
+  const [cameFromApp, setCameFromApp] = useState(false);
+
+  useEffect(() => {
+    try {
+      const sameOrigin = document.referrer && new URL(document.referrer).origin === window.location.origin;
+      setCameFromApp(Boolean(sameOrigin) || window.history.length > 1);
+    } catch {
+      setCameFromApp(window.history.length > 1);
+    }
+  }, []);
+
+  const goBack = () => {
+    // Returns to the exact screen they left, which a hardcoded link cannot do.
+    if (window.history.length > 1) window.history.back();
+    else window.location.href = "/app";
+  };
+
   return (
     <div className="min-h-screen bg-[#f8f7f5] text-foreground dark:bg-background">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[62px] max-w-[720px] items-center justify-between px-5">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
-            <span className="font-display text-[16px] font-semibold tracking-tight">Zero <span className="text-primary">Club</span></span>
-          </Link>
+          <div className="flex min-w-0 items-center gap-2.5">
+            {/* A form opened from inside the app is a dead end without this.
+                /form/$slug sits outside the /app layout, so it has no bottom
+                nav and no sidebar — in the installed Android app that means no
+                way back at all short of killing the app and reopening it.
+
+                Prefers history.back() so it returns to whatever you were
+                actually looking at, and falls back to the app for anyone who
+                arrived cold from a shared link. */}
+            {cameFromApp && (
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label="Back"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent/40 active:scale-95"
+              >
+                <ArrowLeft className="h-[18px] w-[18px]" />
+              </button>
+            )}
+            <Link to="/" className="flex min-w-0 items-center gap-2.5">
+              <img src="/logo.png" alt="" className="h-7 w-7 shrink-0 object-contain" />
+              <span className="truncate font-display text-[16px] font-semibold tracking-tight">Zero <span className="text-primary">Club</span></span>
+            </Link>
+          </div>
           {/* Zero Form's own mark sits beside its name so visitors arriving
               from a shared link can see what they have opened. This is the
               compact cut of the logo — fewer, thicker elements, because the
