@@ -559,8 +559,14 @@ function Hero({ referralCode }: ReferralProps) {
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
         <div className="min-w-0">
-          <h1 className="mt-0 max-w-[620px] font-display text-[44px] font-semibold leading-[1.04] tracking-[-0.035em] text-[#171717] dark:text-white md:text-[64px]">
-            Where builders become <span className="text-[#cc208f]">undeniable</span>.
+          {/* Three deliberate lines, so the progression reads as a sequence:
+              skills, then proof, then what the proof opens. `block` rather
+              than <br>, so each line is its own box and the tight leading
+              applies evenly instead of collapsing at the breaks. */}
+          <h1 className="mt-0 max-w-[620px] font-display text-[44px] font-semibold leading-[1.06] tracking-[-0.035em] text-[#171717] dark:text-white md:text-[64px]">
+            <span className="block">Build Skills.</span>
+            <span className="block">Build Proof.</span>
+            <span className="block text-[#cc208f]">Build Opportunities.</span>
           </h1>
           <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-[#4d4f55] dark:text-white/60 md:text-[19px]">
             Learn in live bootcamps, ship work in public, join serious communities —

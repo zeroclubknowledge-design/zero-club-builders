@@ -204,14 +204,14 @@ function SignUpPage() {
       <header className="relative z-20 mx-auto flex h-[calc(68px+env(safe-area-inset-top))] w-full max-w-[1240px] items-center justify-between px-5 pt-[env(safe-area-inset-top)] lg:px-8">
         <Link
           to="/signin"
-          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 dark:border-white/12 bg-white/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 dark:border-white/12 bg-white/75 dark:bg-[#141118]/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
           aria-label="Back to sign in"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
         </Link>
         <Link
           to="/signin"
-          className="rounded-xl border border-black/10 dark:border-white/12 bg-white/75 px-4 py-2 text-sm font-medium text-[#171417] dark:text-white shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="rounded-xl border border-black/10 dark:border-white/12 bg-white/75 dark:bg-[#141118]/75 px-4 py-2 text-sm font-medium text-[#171417] dark:text-white shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
         >
           Sign in
         </Link>
@@ -285,7 +285,7 @@ function SignUpPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 dark:border-white/12 bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6 lg:p-6">
+          <div className="rounded-2xl border border-black/10 dark:border-white/12 bg-white/88 dark:bg-[#141118]/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6 lg:p-6">
             {step === "info" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
