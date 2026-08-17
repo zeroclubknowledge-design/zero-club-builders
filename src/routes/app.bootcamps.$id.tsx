@@ -22,7 +22,6 @@ import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { enrollUserAction } from "@/api";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { RichText } from "@/components/RichText";
@@ -180,12 +179,13 @@ function BootcampDetail() {
 
     setLoading(true);
     try {
-      await (enrollUserAction as any)({
-        data: {
-          bootcampId: bootcamp.id,
-          profileId: currentUser.id,
-        },
+      // Enrols the caller, decided server-side from their session. The old
+      // server function passed profileId from the browser and ran without a
+      // session, which both failed RLS and would have let anyone enrol anyone.
+      const { error: enrollError } = await supabase.rpc("enroll_in_bootcamp", {
+        p_bootcamp_id: bootcamp.id,
       });
+      if (enrollError) throw enrollError;
 
       if (club) {
         await supabase.from("club_members").insert([
