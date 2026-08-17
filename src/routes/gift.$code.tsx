@@ -38,21 +38,28 @@ export const Route = createFileRoute("/gift/$code")({
   },
 
   head: ({ loaderData, params }) => {
-    if (!loaderData) return {};
-
-    const label =
+    const label = !loaderData
+      ? "Zero Club"
+      :
       giftServices.find((item) => item.id === loaderData.service)?.label || loaderData.service;
-    const amount = "₦" + Math.round(Number(loaderData.amount) || 0).toLocaleString("en-NG");
-    const claimed = loaderData.status !== "active";
 
-    const title = claimed
+    const amount = loaderData
+      ? "₦" + Math.round(Number(loaderData.amount) || 0).toLocaleString("en-NG")
+      : null;
+    const claimed = loaderData ? loaderData.status !== "active" : false;
+
+    const title = !amount
+      ? "You have received a Zero Club Gift"
+      : claimed
       ? `This ${amount} Zero Club Gift has been claimed`
       : `You have received a ${amount} Zero Club Gift`;
 
     const description =
-      loaderData.custom_purpose ||
-      loaderData.message ||
-      (loaderData.service === "support" || loaderData.service === "custom"
+      loaderData?.custom_purpose ||
+      loaderData?.message ||
+      (!amount
+        ? "Open your Zero Club Gift to claim it."
+        : loaderData!.service === "support" || loaderData!.service === "custom"
         ? `${amount} straight into your Zero Club wallet. Open to claim it.`
         : `${amount} of Zero Club credit for ${label}. Open to claim it.`);
 
@@ -83,7 +90,7 @@ export const Route = createFileRoute("/gift/$code")({
         { property: "og:image:type", content: "image/jpeg" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: `${amount} Zero Club Gift` },
+        { property: "og:image:alt", content: `${amount || "A"} Zero Club Gift` },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },

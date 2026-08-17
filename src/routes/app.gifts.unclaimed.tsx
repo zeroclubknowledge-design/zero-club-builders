@@ -4,7 +4,8 @@ import { ArrowLeft, Copy, Gift, Loader2, Share2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { copyToClipboard, shareOrCopy } from "@/lib/share";
+import { copyToClipboard } from "@/lib/share";
+import { ShareMenu } from "@/components/ShareMenu";
 
 /**
  * Gifts you created that nobody has claimed yet.
@@ -124,19 +125,12 @@ function UnclaimedGiftsPage() {
                         >
                           <Copy className="h-3.5 w-3.5" /> Copy link
                         </button>
-                        <button
-                          onClick={() =>
-                            shareOrCopy({
-                              title: "A Zero Club Gift for you",
-                              text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
-                              url: giftUrl(card.code),
-                              copiedMessage: "Gift link copied",
-                            })
-                          }
-                          className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
-                        >
-                          <Share2 className="h-3.5 w-3.5" /> Share
-                        </button>
+                        <ShareMenu
+                          url={giftUrl(card.code)}
+                          title="A Zero Club Gift for you"
+                          text={`You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`}
+                          className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
+                        />
                       </div>
                     </div>
                   </div>
