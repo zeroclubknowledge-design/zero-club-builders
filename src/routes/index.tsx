@@ -57,25 +57,25 @@ const mobileNavGroups = [
   {
     label: "Build",
     items: [
-      { label: "Docs", detail: "The complete guide to Zero Club", href: "/docs" },
-      { label: "Metrics", detail: "Your proof, progress, and momentum", href: "/explore/metrics" },
-      { label: "Zero AI", detail: "A practical thinking partner", href: "/explore/zero-ai" },
+      { label: "Docs", detail: "The complete guide to Zero Club", href: "/docs", slug: null },
+      { label: "Metrics", detail: "Your proof, progress, and momentum", href: "/explore/metrics", slug: "metrics" },
+      { label: "Zero AI", detail: "A practical thinking partner", href: "/explore/zero-ai", slug: "zero-ai" },
     ],
   },
   {
     label: "Explore",
     items: [
-      { label: "Feed", detail: "Follow real work and progress", href: "/explore/feed" },
-      { label: "Bootcamps", detail: "Learn with working professionals", href: "/explore/bootcamps" },
-      { label: "Clubs", detail: "Focused communities around work", href: "/explore/clubs" },
-      { label: "Opportunities", detail: "Open doors through proof", href: "/explore/opportunities" },
+      { label: "Feed", detail: "Follow real work and progress", href: "/explore/feed", slug: "feed" },
+      { label: "Bootcamps", detail: "Learn with working professionals", href: "/explore/bootcamps", slug: "bootcamps" },
+      { label: "Clubs", detail: "Focused communities around work", href: "/explore/clubs", slug: "clubs" },
+      { label: "Opportunities", detail: "Open doors through proof", href: "/explore/opportunities", slug: "opportunities" },
     ],
   },
   {
     label: "Earn",
     items: [
-      { label: "Wallet", detail: "Manage what your work earns", href: "/explore/wallet" },
-      { label: "Store", detail: "Sell products and private access", href: "/explore/store" },
+      { label: "Wallet", detail: "Manage what your work earns", href: "/explore/wallet", slug: "wallet" },
+      { label: "Store", detail: "Sell products and private access", href: "/explore/store", slug: "store" },
     ],
   },
 ];
@@ -279,8 +279,9 @@ function Header({ referralCode }: ReferralProps) {
                       {group.items.map((item) => (
                         <Link
                           key={item.href}
-                          to={item.href}
-                          search={item.href === "/docs" ? { page: undefined } : undefined}
+                          {...(item.slug
+                            ? { to: "/explore/$slug" as const, params: { slug: item.slug } }
+                            : { to: "/docs" as const, search: { page: undefined } })}
                           onClick={() => setOpenGroup(null)}
                           preload={false}
                           className="group/item flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#171717]/[0.04] dark:hover:bg-white/[0.06]"

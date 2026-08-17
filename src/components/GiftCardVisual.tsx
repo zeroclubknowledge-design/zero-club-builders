@@ -39,6 +39,9 @@ export function GiftCardVisual({
 }) {
   const template = giftTemplates.find((item) => item.id === templateId) || giftTemplates[0];
   const serviceLabel = giftServices.find((item) => item.id === service)?.label || service;
+  // Support and Custom land as spendable balance; everything else stays
+  // locked to one service, so the footer cannot claim the same thing for both.
+  const walletBacked = service === "support" || service === "custom";
   const { format } = useWalletCurrency();
 
   return (
@@ -51,11 +54,11 @@ export function GiftCardVisual({
           <div className={`grid h-8 w-8 place-items-center rounded-lg ${template.accent}`}><Gift className="h-4 w-4 fill-current" /></div>
         </div>
         <div>
-          <p className={`truncate text-[8px] font-semibold uppercase sm:text-[9px] ${template.muted}`}>For {serviceLabel}</p>
+          <p className={`truncate text-[8px] font-semibold uppercase sm:text-[9px] ${template.muted}`}>{walletBacked ? serviceLabel : `For ${serviceLabel}`}</p>
           <p className="mt-1 text-[26px] font-semibold leading-none tracking-tight tabular-nums sm:text-[38px]">{format(Number(amount || 0))}</p>
           {message && <p className={`mt-2 line-clamp-1 text-[10px] ${template.muted}`}>{message}</p>}
         </div>
-        <div className={`flex min-w-0 items-end justify-between gap-2 text-[7px] font-medium uppercase sm:text-[9px] ${template.muted}`}><span className="truncate">Restricted gift credit</span><span className="max-w-[42%] truncate font-mono normal-case">{code || "ZC-GIFT"}</span></div>
+        <div className={`flex min-w-0 items-end justify-between gap-2 text-[7px] font-medium uppercase sm:text-[9px] ${template.muted}`}><span className="truncate">{walletBacked ? "Zero Club wallet credit" : "Restricted gift credit"}</span><span className="max-w-[42%] truncate font-mono normal-case">{code || "ZC-GIFT"}</span></div>
       </div>
     </div>
   );

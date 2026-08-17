@@ -92,7 +92,7 @@ function GiftCardsPage() {
 
       <main className="mx-auto grid min-w-0 max-w-[1080px] gap-6 px-4 py-6 md:px-7 md:py-8 lg:grid-cols-[minmax(0,1fr)_390px]">
         <section className="min-w-0 space-y-6">
-          <div><span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><Gift className="h-4 w-4 fill-current" />Restricted kindness</span><h2 className="mt-3 font-display text-[27px] font-semibold tracking-tight sm:text-[34px]">Give access, not just money.</h2><p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">Choose exactly what this gift supports. The value becomes a restricted entitlement when claimed and never enters the recipient's general wallet.</p></div>
+          <div><span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><Gift className="h-4 w-4 fill-current" />Zero Club Gifts</span><h2 className="mt-3 font-display text-[27px] font-semibold tracking-tight sm:text-[34px]">Give money, or give access.</h2><p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">Send cash straight to someone&rsquo;s wallet with Support, add a note on what it&rsquo;s for with Custom, or lock the value to one thing &mdash; a bootcamp, a membership, a product. You choose which below.</p></div>
 
           <div className="rounded-lg border border-border bg-card p-5">
             <label className="text-[10px] font-semibold uppercase text-muted-foreground">Gift amount</label>
