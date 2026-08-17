@@ -82,6 +82,7 @@ import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
 import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
+import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
 import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
@@ -455,6 +456,11 @@ const AppBootcampsIdRoute = AppBootcampsIdRouteImport.update({
   path: '/bootcamps/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
+  id: '/wallet/transaction/$id',
+  path: '/wallet/transaction/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsPremiumFeaturesRoute =
   AppSettingsPremiumFeaturesRouteImport.update({
     id: '/features',
@@ -555,6 +561,7 @@ export interface FileRoutesByFullPath {
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
+  '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -628,6 +635,7 @@ export interface FileRoutesByTo {
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
+  '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -708,6 +716,7 @@ export interface FileRoutesById {
   '/app/notes_/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
+  '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -789,6 +798,7 @@ export interface FileRouteTypes {
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
+    | '/app/wallet/transaction/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -862,6 +872,7 @@ export interface FileRouteTypes {
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
+    | '/app/wallet/transaction/$id'
   id:
     | '__root__'
     | '/'
@@ -941,6 +952,7 @@ export interface FileRouteTypes {
     | '/app/notes_/$id/edit'
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
+    | '/app/wallet/transaction/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1471,6 +1483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBootcampsIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/wallet/transaction/$id': {
+      id: '/app/wallet/transaction/$id'
+      path: '/wallet/transaction/$id'
+      fullPath: '/app/wallet/transaction/$id'
+      preLoaderRoute: typeof AppWalletTransactionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settings/premium/features': {
       id: '/app/settings/premium/features'
       path: '/features'
@@ -1642,6 +1661,7 @@ interface AppRouteChildren {
   AppBootcampsIdEditRoute: typeof AppBootcampsIdEditRoute
   AppNotesIdEditRoute: typeof AppNotesIdEditRoute
   AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
+  AppWalletTransactionIdRoute: typeof AppWalletTransactionIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1692,6 +1712,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBootcampsIdEditRoute: AppBootcampsIdEditRoute,
   AppNotesIdEditRoute: AppNotesIdEditRoute,
   AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
+  AppWalletTransactionIdRoute: AppWalletTransactionIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

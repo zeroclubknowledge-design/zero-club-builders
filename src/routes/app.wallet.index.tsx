@@ -628,7 +628,12 @@ function WalletPage() {
             {transactions.map((entry) => {
               const credit = entry.direction === "credit";
               return (
-                <div key={entry.id} className="flex items-center justify-between gap-3 md:py-3.5 md:first:pt-0 md:last:pb-0">
+                <Link
+                  key={entry.id}
+                  to="/app/wallet/transaction/$id"
+                  params={{ id: entry.id }}
+                  className="flex items-center justify-between gap-3 rounded-lg transition-colors hover:bg-foreground/[0.03] md:py-3.5 md:first:pt-0 md:last:pb-0"
+                >
                   <div className="flex min-w-0 items-center gap-4 md:gap-3">
                     <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full md:h-10 md:w-10 ${credit ? "bg-emerald-500/10 text-emerald-600" : "bg-foreground/[0.06] text-foreground"}`}>
                       {credit ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
@@ -652,7 +657,7 @@ function WalletPage() {
                       </p>
                     )}
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

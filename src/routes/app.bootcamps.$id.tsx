@@ -399,19 +399,46 @@ function BootcampDetail() {
           </Accordion>
         </section>
 
-        <section className="mt-10">
-          <h2 className="text-lg font-bold">This bootcamp includes:</h2>
-          <div className="mt-4 grid grid-cols-2 gap-4">
+        {/* Each item is a card rather than a bare icon and label, and the
+            section carries its own bottom padding — previously the footer's
+            border sat directly under the last row with nothing between them.
+
+            The fifth item spans both columns on purpose: five things in a
+            two-column grid leaves one stranded beside an empty cell, which is
+            the sort of gap that reads as a bug rather than a layout. */}
+        <section className="mt-10 pb-10">
+          <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            What you get
+          </h2>
+          <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-foreground">
+            This bootcamp includes
+          </p>
+
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
             {[
-              { icon: Award, label: "Proof of Work Certificate" },
-              { icon: BookOpen, label: "Proof of Knowledge" },
-              { icon: FileText, label: "ZeroNotes" },
-              { icon: Sparkles, label: "Earn XP" },
-              { icon: Users, label: "Tutor Access" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <item.icon className="h-4 w-4 text-primary" />
-                <span>{item.label}</span>
+              { icon: Award, label: "Proof of Work Certificate", note: "Verifiable on your profile" },
+              { icon: BookOpen, label: "Proof of Knowledge", note: "Assessed, not assumed" },
+              { icon: FileText, label: "ZeroNotes", note: "Notes you keep for good" },
+              { icon: Sparkles, label: "Earn XP", note: "Progress that compounds" },
+              { icon: Users, label: "Tutor Access", note: "Ask questions as you build" },
+            ].map((item, index, all) => (
+              <div
+                key={item.label}
+                className={`flex items-start gap-3 rounded-lg border border-border/60 bg-card p-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_20px_-16px_rgba(0,0,0,0.16)] ${
+                  index === all.length - 1 && all.length % 2 === 1 ? "col-span-2" : ""
+                }`}
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary ring-1 ring-primary/15">
+                  <item.icon className="h-[17px] w-[17px]" strokeWidth={1.9} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[12.5px] font-semibold leading-tight tracking-tight text-foreground">
+                    {item.label}
+                  </span>
+                  <span className="mt-0.5 block text-[10.5px] leading-4 text-muted-foreground">
+                    {item.note}
+                  </span>
+                </span>
               </div>
             ))}
           </div>

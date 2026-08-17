@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, Gift, Loader2, Share2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, Gift, Loader2, Share2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { shareOrCopy, copyToClipboard } from "@/lib/share";
 
 export const Route = createFileRoute("/app/gifts/")({ component: GiftCardsPage });
 
@@ -30,6 +31,37 @@ function GiftCardsPage() {
     },
   });
 
+  /* Gifts already created and still unclaimed.
+     Creating a gift moved money out of the wallet immediately, so a card whose
+     link was lost is real money stranded with no way to reach anybody. The
+     codes were only ever shown once, on the screen straight after creation. */
+  const { data: unclaimed = [], refetch: refetchUnclaimed } = useQuery({
+    queryKey: ["unclaimed-gifts", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("gift_cards")
+        .select("id, code, amount, service, template_id, message, custom_purpose, created_at")
+        .eq("creator_id", profile!.id)
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+      if (error) return [];
+      return data || [];
+    },
+  });
+
+  const giftUrl = (code: string) => `${window.location.origin}/app/gifts/${code}`;
+
+  const shareGift = (card: any) => {
+    const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
+    shareOrCopy({
+      title: "A Zero Club Gift for you",
+      text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
+      url: giftUrl(card.code),
+      copiedMessage: "Gift link copied",
+    });
+  };
+
   const createGift = useMutation({
     mutationFn: async () => {
       if (numericAmount <= 0) throw new Error("Enter a valid gift amount.");
@@ -48,26 +80,12 @@ function GiftCardsPage() {
       return Array.isArray(data) ? data[0] : data;
     },
     onSuccess: (card) => {
+      refetchUnclaimed();
       setCreatedCard(card);
       toast.success("Your Zero Club Gift Card is ready.");
     },
     onError: (error: Error) => toast.error(error.message),
   });
-
-  const shareGift = async () => {
-    if (!createdCard) return;
-    const url = `${window.location.origin}/app/gifts/${createdCard.code}`;
-    const shareData = { title: "A Zero Club Gift for you", text: `You received a ${format(Number(createdCard.amount))} Zero Club Gift for ${giftServices.find((item) => item.id === createdCard.service)?.label || createdCard.service}.`, url };
-    try {
-      if (navigator.share) await navigator.share(shareData);
-      else {
-        await navigator.clipboard.writeText(url);
-        toast.success("Gift link copied.");
-      }
-    } catch (error: any) {
-      if (error?.name !== "AbortError") toast.error("Could not share the gift link.");
-    }
-  };
 
   if (createdCard) {
     const serviceLabel = giftServices.find((item) => item.id === createdCard.service)?.label || createdCard.service;
@@ -79,7 +97,7 @@ function GiftCardsPage() {
           <h2 className="mt-4 font-display text-[27px] font-semibold tracking-tight">Your gift is ready to make a difference.</h2>
           <p className="mt-2 max-w-lg text-[13.5px] leading-relaxed text-muted-foreground">This gift can only be claimed for {serviceLabel}. Share the secure card link with the person you chose.</p>
           <div className="mt-7 w-full max-w-[520px]"><GiftCardVisual amount={createdCard.amount} service={createdCard.service} templateId={createdCard.template_id} code={createdCard.code} message={createdCard.message} /></div>
-          <button onClick={shareGift} className="mt-7 flex h-12 w-full max-w-[520px] items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground"><Share2 className="h-4 w-4 fill-current" />Share gift card</button>
+          <button onClick={() => shareGift(createdCard)} className="mt-7 flex h-12 w-full max-w-[520px] items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground"><Share2 className="h-4 w-4 fill-current" />Share gift card</button>
           <button onClick={() => { setCreatedCard(null); setAmount(""); setMessage(""); }} className="mt-3 text-[12px] font-semibold text-muted-foreground">Create another gift</button>
         </main>
       </div>
@@ -92,6 +110,69 @@ function GiftCardsPage() {
 
       <main className="mx-auto grid min-w-0 max-w-[1080px] gap-6 px-4 py-6 md:px-7 md:py-8 lg:grid-cols-[minmax(0,1fr)_390px]">
         <section className="min-w-0 space-y-6">
+          {/* Unclaimed gifts, with their links. Without this the code was shown
+              exactly once and then lost, stranding money that had already left
+              the wallet. */}
+          {unclaimed.length > 0 && (
+            <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold tracking-tight text-foreground">
+                    Waiting to be claimed
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    {unclaimed.length} gift{unclaimed.length === 1 ? "" : "s"} you created. Share a link to send one.
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-primary/8 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-primary ring-1 ring-primary/15">
+                  {format(unclaimed.reduce((sum: number, card: any) => sum + Number(card.amount || 0), 0))}
+                </span>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {unclaimed.map((card: any) => {
+                  const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
+                  return (
+                    <div
+                      key={card.id}
+                      className="flex items-center gap-3 rounded-lg border border-border/60 bg-background p-3"
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary ring-1 ring-primary/15">
+                        <Gift className="h-[16px] w-[16px]" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold tabular-nums text-foreground">
+                          {format(Number(card.amount))}
+                          <span className="ml-2 text-[11px] font-medium text-muted-foreground">{label}</span>
+                        </p>
+                        <p className="truncate font-mono text-[10.5px] text-muted-foreground">{card.code}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <button
+                          onClick={() => copyToClipboard(giftUrl(card.code), "Gift link copied")}
+                          title="Copy link"
+                          aria-label={`Copy the link for gift ${card.code}`}
+                          className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground transition hover:text-foreground hover:bg-accent/40"
+                        >
+                          <Check className="hidden" />
+                          <Copy className="h-[15px] w-[15px]" />
+                        </button>
+                        <button
+                          onClick={() => shareGift(card)}
+                          title="Share gift"
+                          aria-label={`Share gift ${card.code}`}
+                          className="flex h-9 items-center gap-1.5 rounded-lg bg-foreground px-3 text-[11.5px] font-semibold text-background transition hover:opacity-90"
+                        >
+                          <Share2 className="h-3.5 w-3.5" /> Share
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div><span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><Gift className="h-4 w-4 fill-current" />Zero Club Gifts</span><h2 className="mt-3 font-display text-[27px] font-semibold tracking-tight sm:text-[34px]">Give money, or give access.</h2><p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">Send cash straight to someone&rsquo;s wallet with Support, add a note on what it&rsquo;s for with Custom, or lock the value to one thing &mdash; a bootcamp, a membership, a product. You choose which below.</p></div>
 
           <div className="rounded-lg border border-border bg-card p-5">
