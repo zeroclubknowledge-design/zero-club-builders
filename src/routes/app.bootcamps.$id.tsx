@@ -506,7 +506,7 @@ function BootcampDetail() {
               <button
                 onClick={handleEnroll}
                 disabled={loading}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary py-3.5 text-sm font-bold text-primary-foreground shadow-glow transition active:scale-[0.98] disabled:opacity-70"
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-[0_10px_28px_-12px_rgba(204,32,143,0.75)] transition hover:brightness-95 active:scale-[0.98] disabled:opacity-70"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                 Enroll Now

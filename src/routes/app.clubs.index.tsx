@@ -550,7 +550,7 @@ function Clubs() {
               >
                 <Bell className="h-4 w-4" />
                 {((incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length) + unreadClubMessages.length) > 0 && (
-                  <span className="absolute -top-1 -right-1 grid h-4.5 w-4.5 place-items-center rounded-full bg-primary text-[8px] font-bold text-white ring-2 ring-background">
+                  <span className="absolute -top-1 -right-1 grid h-4.5 w-4.5 place-items-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground ring-2 ring-background">
                     {(incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length) + unreadClubMessages.length}
                   </span>
                 )}

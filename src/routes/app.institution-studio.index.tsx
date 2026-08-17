@@ -825,7 +825,7 @@ function InstitutionHub() {
                               {b.status === "active" ? "Published" : "Draft"}
                             </span>
                             {isOwnBootcamp && (
-                              <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-primary/80 text-white backdrop-blur-md ring-1 ring-white/15">
+                              <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground backdrop-blur-md ring-1 ring-white/15">
                                 Your bootcamp
                               </span>
                             )}

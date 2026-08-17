@@ -70,15 +70,16 @@
   --muted: oklch(98.2% 0.004 75);
   --muted-foreground: oklch(48% 0.012 260);
 
-  /* Accent is Magenta */
-  --accent: oklch(58% 0.22 350);
+  /* Accent is Zero Club pink. */
+  --accent: #cc208f;
   --accent-foreground: oklch(100% 0 0);
 
   --destructive: #b42318;
   --destructive-foreground: oklch(100% 0 0);
   --success: oklch(68% 0.16 155);
   --success-foreground: oklch(100% 0 0);
-  --warning: #8f5849;
+  /* Brand warnings use Zero Club pink instead of the former brown accent. */
+  --warning: #cc208f;
   --warning-foreground: oklch(100% 0 0);
   
   --border: oklch(18% 0.005 260 / 0.06);
@@ -121,8 +122,12 @@
   --muted: oklch(22% 0.02 330);
   --muted-foreground: oklch(70% 0 0);
 
-  --accent: oklch(78% 0.12 350);
-  --accent-foreground: oklch(16% 0.02 330);
+  --accent: #cc208f;
+  --accent-foreground: oklch(100% 0 0);
+
+  /* Keep attention states unmistakably on-brand in every dark variant. */
+  --warning: #cc208f;
+  --warning-foreground: oklch(100% 0 0);
 
   --border: oklch(100% 0 0 / 8%);
   --border-strong: oklch(100% 0 0 / 14%);

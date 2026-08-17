@@ -1222,7 +1222,7 @@ function ClubChat() {
                                     fileInputRef.current?.setAttribute('data-target', 'logo_url');
                                     fileInputRef.current?.click();
                                   }}
-                                  className="absolute -right-2 -bottom-2 h-7 w-7 rounded-full bg-primary text-white shadow-glow flex items-center justify-center hover:scale-110 transition-transform z-50"
+                                  className="absolute -right-2 -bottom-2 h-7 w-7 rounded-full bg-primary text-primary-foreground shadow-glow flex items-center justify-center hover:scale-110 transition-transform z-50"
                                 >
                                   <Camera className="h-3.5 w-3.5" />
                                 </button>
@@ -1643,7 +1643,7 @@ function ClubChat() {
                                     <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{roleOption.desc}</p>
                                   </div>
                                   {isActive && (
-                                    <div className="h-5 w-5 rounded-full bg-primary text-white flex items-center justify-center shrink-0">
+                                    <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0">
                                       <Check className="h-3.5 w-3.5" />
                                     </div>
                                   )}
@@ -2167,7 +2167,7 @@ function ClubChat() {
             <div className="p-4 bg-white/5">
               <button 
                 onClick={() => setShowRules(false)}
-                className="w-full bg-primary text-white font-bold py-3.5 rounded-2xl shadow-glow transition active:scale-95"
+                className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-2xl shadow-glow transition active:scale-95"
               >
                 I Understand
               </button>
@@ -2346,7 +2346,7 @@ function ClubChat() {
               onClick={handleSendMessage}
               disabled={!msg.trim() && mediaFiles.length === 0}
               className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
-                msg.trim() || mediaFiles.length > 0 ?'bg-primary text-white' : 'text-muted-foreground'
+                msg.trim() || mediaFiles.length > 0 ?'bg-primary text-primary-foreground' : 'text-muted-foreground'
               }`}
             >
               <Send className="h-4 w-4" />
@@ -3298,4 +3298,3 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
     </div>
   );
 }
-

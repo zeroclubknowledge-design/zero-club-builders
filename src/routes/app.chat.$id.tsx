@@ -1094,7 +1094,7 @@ function ChatViewPage() {
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && mediaFiles.length === 0) || sending}
                 className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
-                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ?'bg-success text-success-foreground' : 'bg-primary text-white') : 'text-muted-foreground'
+                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ?'bg-success text-success-foreground' : 'bg-primary text-primary-foreground') : 'text-muted-foreground'
                 }`}
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />)}
