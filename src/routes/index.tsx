@@ -53,14 +53,6 @@ type ReferralProps = {
   referralCode?: string;
 };
 
-const navItems = [
-  { label: "People", href: "#people" },
-  { label: "Learning", href: "#learning" },
-  { label: "Clubs", href: "#clubs" },
-  { label: "Opportunities", href: "#opportunities" },
-  { label: "Wallet", href: "#wallet" },
-];
-
 const mobileNavGroups = [
   {
     label: "Build",
@@ -212,6 +204,17 @@ function Header({ referralCode }: ReferralProps) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+
+  // A dropdown opened by hover still needs a keyboard way out.
+  useEffect(() => {
+    if (!openGroup) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenGroup(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openGroup]);
 
   useEffect(() => {
     const updateHeader = () => setIsScrolled(window.scrollY > 12);
@@ -241,16 +244,64 @@ function Header({ referralCode }: ReferralProps) {
       <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-[1180px] items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6">
         <BrandMark />
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#666a70] dark:text-white/55 transition-colors hover:bg-[#171717]/[0.04] hover:text-[#171717]"
-            >
-              {item.label}
-            </a>
-          ))}
+        {/* The same three groups the mobile menu uses, as dropdowns.
+            The old bar was five #anchor links that only scrolled this page —
+            so the desktop header advertised sections while the mobile menu
+            offered real destinations. One source of truth now: mobileNavGroups
+            drives both. */}
+        <nav
+          className="hidden items-center gap-1 lg:flex"
+          aria-label="Primary navigation"
+          onMouseLeave={() => setOpenGroup(null)}
+        >
+          {mobileNavGroups.map((group) => {
+            const isOpen = openGroup === group.label;
+            return (
+              <div key={group.label} className="relative" onMouseEnter={() => setOpenGroup(group.label)}>
+                <button
+                  type="button"
+                  onClick={() => setOpenGroup(isOpen ? null : group.label)}
+                  aria-expanded={isOpen}
+                  aria-haspopup="true"
+                  className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight transition-colors ${
+                    isOpen
+                      ? "bg-[#171717]/[0.05] text-[#171717] dark:bg-white/10 dark:text-white"
+                      : "text-[#666a70] hover:bg-[#171717]/[0.04] hover:text-[#171717] dark:text-white/55 dark:hover:bg-white/10 dark:hover:text-white"
+                  }`}
+                >
+                  {group.label}
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isOpen && (
+                  <div className="absolute left-0 top-full z-50 w-[320px] pt-2">
+                    <div className="overflow-hidden rounded-xl border border-[#171717]/[0.08] bg-[#f7f6f3] p-1.5 shadow-[0_28px_60px_-28px_rgba(23,23,23,0.35)] dark:border-white/10 dark:bg-[#16131a]">
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          search={item.href === "/docs" ? { page: undefined } : undefined}
+                          onClick={() => setOpenGroup(null)}
+                          preload={false}
+                          className="group/item flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#171717]/[0.04] dark:hover:bg-white/[0.06]"
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13px] font-semibold tracking-tight text-[#171717] dark:text-white">
+                              {item.label}
+                            </span>
+                            <span className="mt-0.5 block text-[11px] leading-4 text-[#6d6269] dark:text-white/50">
+                              {item.detail}
+                            </span>
+                          </span>
+                          <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#cc208f] opacity-0 transition-opacity group-hover/item:opacity-100" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -572,7 +623,7 @@ function Hero({ referralCode }: ReferralProps) {
               old size overflowed on DESKTOP as well as on a phone. And
               whitespace-nowrap guarantees none of them can ever break, at any
               width, rather than relying on the maths staying true. */}
-          <h1 className="mt-0 max-w-[620px] font-display text-[clamp(23px,6.6vw,48px)] font-semibold leading-[1.08] tracking-[-0.035em] text-[#171717] dark:text-white">
+          <h1 className="mt-0 max-w-[620px] font-display text-[clamp(25px,8vw,48px)] font-semibold leading-[1.08] tracking-[-0.035em] text-[#171717] dark:text-white">
             <span className="block whitespace-nowrap">Build Skills.</span>
             <span className="block whitespace-nowrap">Build Proof.</span>
             <span className="block whitespace-nowrap text-[#cc208f]">Build Opportunities.</span>
