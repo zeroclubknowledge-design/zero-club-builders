@@ -396,7 +396,7 @@ function ProductShowcase() {
       <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
 
       {/* Main: a shipped-work post inside the dark app frame */}
-      <div className="relative overflow-hidden rounded-lg bg-[#141117] p-4 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06] sm:p-6">
+      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-4 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06] sm:p-6">
         <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[#cc208f]/15 blur-[80px]" />
 
         {/* Post header */}
@@ -449,19 +449,20 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 rounded-lg bg-white dark:bg-[#141118] p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] dark:ring-white/10 sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
-        <span className="relative grid h-9 w-9 place-items-center rounded-full bg-red-500/10">
+      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 overflow-hidden rounded-lg bg-white dark:bg-gradient-to-br dark:from-[#201924] dark:via-[#151218] dark:to-[#0e0c10] p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] dark:ring-white/10 sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
+        <span className="pointer-events-none absolute -right-6 -top-8 hidden h-20 w-20 rounded-full bg-[#cc208f]/25 blur-[30px] dark:block" />
+        <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
         </span>
-        <div>
+        <div className="relative">
           <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Live bootcamp</p>
           <p className="text-[10.5px] text-[#666a70] dark:text-white/55">UI Engineering · 48 learners</p>
         </div>
       </div>
 
       {/* Floating: wallet mini-card */}
-      <div className="zc-showcase-float-delayed absolute bottom-0 right-0 w-[124px] overflow-hidden rounded-lg bg-[#141117] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:p-4">
+      <div className="zc-showcase-float-delayed absolute bottom-0 right-0 w-[124px] overflow-hidden rounded-lg bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:p-4">
         <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
         <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">Creator wallet</p>
         <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-white tabular-nums sm:text-[20px]">₦248,500</p>
@@ -1179,7 +1180,7 @@ function FinalCta({ referralCode }: ReferralProps) {
   return (
     <section className="bg-white dark:bg-[#141118] px-4 py-16 md:px-6 md:py-20">
       <div className="mx-auto max-w-[1180px]">
-        <div className="relative overflow-hidden rounded-lg bg-[#141117] px-6 py-16 text-center md:px-16 md:py-20">
+        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] px-6 py-16 text-center md:px-16 md:py-20">
           <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
           <div className="relative">
