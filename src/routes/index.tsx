@@ -246,7 +246,7 @@ function Header({ referralCode }: ReferralProps) {
             <a
               key={item.label}
               href={item.href}
-              className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#666a70] transition-colors hover:bg-[#171717]/[0.04] hover:text-[#171717]"
+              className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#666a70] dark:text-white/55 transition-colors hover:bg-[#171717]/[0.04] hover:text-[#171717]"
             >
               {item.label}
             </a>
@@ -260,14 +260,14 @@ function Header({ referralCode }: ReferralProps) {
             title={dark ? "Switch to light" : "Switch to dark"}
             aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
             aria-pressed={dark}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#4d4f55] transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:h-10 sm:w-10"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#4d4f55] dark:text-white/60 transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:h-10 sm:w-10"
           >
             {dark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
           </button>
           <Link
             to="/signin"
             search={{ ref: referralCode, club: undefined }}
-            className="hidden rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:inline-flex"
+            className="hidden rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:inline-flex"
             preload={false}
           >
             Sign in
@@ -283,7 +283,7 @@ function Header({ referralCode }: ReferralProps) {
           </Link>
           <button
             type="button"
-            className="grid h-10 w-10 place-items-center rounded-full text-[#303236] transition hover:bg-[#171717]/[0.04] dark:text-white dark:hover:bg-white/10 lg:hidden"
+            className="grid h-10 w-10 place-items-center rounded-full text-[#303236] dark:text-white transition hover:bg-[#171717]/[0.04] dark:text-white dark:hover:bg-white/10 lg:hidden"
             aria-label={isOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={isOpen}
             onClick={() => setIsOpen((value) => !value)}
@@ -397,14 +397,14 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 rounded-lg bg-white dark:bg-[#141118] p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
+      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 rounded-lg bg-white dark:bg-[#141118] p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] dark:ring-white/10 sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
         <span className="relative grid h-9 w-9 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
         </span>
         <div>
           <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Live bootcamp</p>
-          <p className="text-[10.5px] text-[#666a70]">UI Engineering · 48 learners</p>
+          <p className="text-[10.5px] text-[#666a70] dark:text-white/55">UI Engineering · 48 learners</p>
         </div>
       </div>
 
@@ -480,7 +480,7 @@ function ActivityRail() {
 
   return (
     <div className="mt-8 w-full max-w-[540px]">
-      <div className="flex items-center justify-between px-1 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] sm:text-[10px]">
+      <div className="flex items-center justify-between px-1 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] dark:text-white/55 sm:text-[10px]">
         <span className="flex items-center gap-2 text-[#9d176d]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
           Live Clubs
@@ -496,7 +496,7 @@ function ActivityRail() {
               aria-hidden={index >= clubs.length || undefined}
               className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:w-[218px] sm:gap-3"
             >
-              <span className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-[#cc208f]/10 ring-1 ring-[#171717]/[0.06]">
+              <span className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-[#cc208f]/10 ring-1 ring-[#171717]/[0.06] dark:ring-white/10">
                 <img
                   src={club.logo_url || club.banner_url || ""}
                   alt={`${club.name} club`}
@@ -505,8 +505,8 @@ function ActivityRail() {
                 />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[11.5px] font-semibold text-[#242126]">{club.name}</span>
-                <span className="block truncate text-[10.5px] text-[#666a70]">{club.category || "Community"}</span>
+                <span className="block truncate text-[11.5px] font-semibold text-[#242126] dark:text-white">{club.name}</span>
+                <span className="block truncate text-[10.5px] text-[#666a70] dark:text-white/55">{club.category || "Community"}</span>
               </span>
               <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">Live</span>
             </article>
@@ -555,14 +555,14 @@ function AndroidAppDownload() {
 
 function Hero({ referralCode }: ReferralProps) {
   return (
-    <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12]">
+    <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:pb-24 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
         <div className="min-w-0">
           <h1 className="mt-0 max-w-[620px] font-display text-[44px] font-semibold leading-[1.04] tracking-[-0.035em] text-[#171717] dark:text-white md:text-[64px]">
             Where builders become <span className="text-[#cc208f]">undeniable</span>.
           </h1>
-          <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-[#4d4f55] md:text-[19px]">
+          <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-[#4d4f55] dark:text-white/60 md:text-[19px]">
             Learn in live bootcamps, ship work in public, join serious communities —
             and turn proof of work into reputation and income.
           </p>
@@ -579,7 +579,7 @@ function Hero({ referralCode }: ReferralProps) {
             <Link
               to="/signin"
               search={{ ref: referralCode, club: undefined }}
-              className="inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-semibold tracking-tight text-[#303236] ring-1 ring-[#171717]/15 transition hover:bg-white active:scale-[0.98]"
+              className="inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-semibold tracking-tight text-[#303236] dark:text-white ring-1 ring-[#171717]/15 transition hover:bg-white active:scale-[0.98] dark:text-white dark:ring-white/25 dark:hover:bg-white/10"
               preload={false}
             >
               Sign in
@@ -590,7 +590,7 @@ function Hero({ referralCode }: ReferralProps) {
 
           <ActivityRail />
 
-          <p className="mt-6 text-[12.5px] leading-relaxed text-[#666a70]">
+          <p className="mt-6 text-[12.5px] leading-relaxed text-[#666a70] dark:text-white/55">
             Free to join · Profiles, clubs, bootcamps, wallet, and XP built in
           </p>
         </div>
@@ -658,7 +658,7 @@ function Hero({ referralCode }: ReferralProps) {
 
 function TopicExplorer() {
   return (
-    <section id="people" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
+    <section id="people" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-24">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Find your people</p>
@@ -668,7 +668,7 @@ function TopicExplorer() {
         </div>
         <div>
           <label className="mb-5 flex min-h-13 items-center gap-3 rounded-full bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-3.5 ring-1 ring-transparent transition-all focus-within:bg-white focus-within:ring-[#cc208f]/40">
-            <Search className="h-4.5 w-4.5 shrink-0 text-[#666a70]" />
+            <Search className="h-4.5 w-4.5 shrink-0 text-[#666a70] dark:text-white/55" />
             <input
               type="text"
               aria-label="Search Zero Club"
@@ -681,7 +681,7 @@ function TopicExplorer() {
               <a
                 key={topic}
                 href="#learning"
-                className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] ring-1 ring-[#171717]/12 transition hover:bg-[#171717] hover:text-white hover:ring-transparent"
+                className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 ring-1 ring-[#171717]/12 transition hover:bg-[#171717] hover:text-white hover:ring-transparent"
               >
                 {topic}
               </a>
@@ -695,7 +695,7 @@ function TopicExplorer() {
 
 function LearningSection() {
   return (
-    <section id="learning" className="border-b border-[#171717]/[0.06] bg-[#fbfaf8] dark:bg-[#16131a]">
+    <section id="learning" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
         <div className="max-w-[640px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Learning that compounds</p>
@@ -717,7 +717,7 @@ function LearningSection() {
                 <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
               <h3 className="mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">{item.title}</h3>
-              <p className="mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] md:text-[14px]">{item.copy}</p>
+              <p className="mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[14px]">{item.copy}</p>
             </article>
           ))}
         </div>
@@ -728,7 +728,7 @@ function LearningSection() {
 
 function ClubsSection() {
   return (
-    <section id="clubs" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
+    <section id="clubs" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-4 py-16 md:px-6 lg:grid-cols-2 lg:py-24">
         <div className="order-2 lg:order-1">
           <img
@@ -752,7 +752,7 @@ function ClubsSection() {
                 <span className="mt-0.5 grid h-5.5 w-5.5 shrink-0 place-items-center rounded-full bg-[#cc208f]/10">
                   <Check className="h-3 w-3 text-[#cc208f]" strokeWidth={2.5} />
                 </span>
-                <p className="text-[15.5px] leading-relaxed text-[#4d4f55]">{item}</p>
+                <p className="text-[15.5px] leading-relaxed text-[#4d4f55] dark:text-white/60">{item}</p>
               </div>
             ))}
           </div>
@@ -764,7 +764,7 @@ function ClubsSection() {
 
 function OpportunitiesSection() {
   return (
-    <section id="opportunities" className="border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12]">
+    <section id="opportunities" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-24">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Open doors through proof</p>
@@ -786,7 +786,7 @@ function OpportunitiesSection() {
                 <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
               <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">{card.title}</h3>
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70]">{card.copy}</p>
+              <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55">{card.copy}</p>
             </article>
           ))}
         </div>
@@ -797,7 +797,7 @@ function OpportunitiesSection() {
 
 function WalletSection() {
   return (
-    <section id="wallet" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
+    <section id="wallet" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-4 py-16 md:px-6 lg:grid-cols-2 lg:py-24">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Creator economy built in</p>
@@ -806,7 +806,7 @@ function WalletSection() {
           </h2>
           <div className="mt-8 flex flex-wrap gap-2">
             {["Paid bootcamps", "Digital products", "Creator wallet", "Coupons", "Private access"].map((item) => (
-              <span key={item} className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] ring-1 ring-[#171717]/12">
+              <span key={item} className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 ring-1 ring-[#171717]/12">
                 {item}
               </span>
             ))}
@@ -854,11 +854,11 @@ function WalletSection() {
               </div>
             </div>
           </div>
-          <div className="relative -mt-4 mx-6 rounded-lg bg-white dark:bg-[#141118] p-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.25)] ring-1 ring-[#171717]/[0.06]">
+          <div className="relative -mt-4 mx-6 rounded-lg bg-white dark:bg-[#141118] p-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.25)] ring-1 ring-[#171717]/[0.06] dark:ring-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Bootcamp enrollment</p>
-                <p className="text-[10.5px] text-[#666a70]">UI Engineering · just now</p>
+                <p className="text-[10.5px] text-[#666a70] dark:text-white/55">UI Engineering · just now</p>
               </div>
               <span className="text-[13px] font-semibold text-emerald-600 tabular-nums">+ ₦15,000</span>
             </div>
@@ -871,14 +871,14 @@ function WalletSection() {
 
 function FeaturesSection() {
   return (
-    <section id="features" className="border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12]">
+    <section id="features" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
         <div className="max-w-[650px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">The Zero Club toolkit</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             The tools behind a more visible kind of progress.
           </h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-[#666a70]">
+          <p className="mt-4 text-[15px] leading-relaxed text-[#666a70] dark:text-white/55">
             Learn, build, find your people, and turn momentum into the next opportunity without spreading your work across separate apps.
           </p>
         </div>
@@ -897,7 +897,7 @@ function FeaturesSection() {
                 <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
               </div>
               <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white md:text-[20px]">{feature.title}</h3>
-              <p className="mt-2 max-w-[680px] text-[13px] leading-relaxed text-[#666a70] md:text-[13.5px]">{feature.copy}</p>
+              <p className="mt-2 max-w-[680px] text-[13px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[13.5px]">{feature.copy}</p>
             </article>
           ))}
         </div>
@@ -971,28 +971,21 @@ function ContactSection() {
     "mt-2 w-full rounded-lg border border-[#171717]/[0.08] dark:border-white/10 bg-white dark:bg-[#141118] px-4 py-3 text-[14px] text-[#171717] dark:text-white outline-none transition placeholder:text-[#8a8c91] focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/[0.07]";
 
   return (
-    <section id="contact" className="border-b border-[#171717]/[0.06] bg-white dark:bg-[#141118]">
+    <section id="contact" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:py-24">
         <div className="lg:pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Contact us</p>
           <h2 className="mt-3 max-w-[440px] font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Let&apos;s talk about what you&apos;re building.
           </h2>
-          <p className="mt-5 max-w-[430px] text-[14px] leading-relaxed text-[#666a70] md:text-[15px]">
+          <p className="mt-5 max-w-[430px] text-[14px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[15px]">
             Have a question, partnership idea, or need help with Zero Club? Send us a note and it will go directly to our team.
           </p>
-          <a
-            href="mailto:admin@zeroclubs.xyz"
-            className="mt-7 inline-flex items-center gap-2 text-[13px] font-semibold text-[#9d176d] transition hover:text-[#cc208f]"
-          >
-            <Mail className="h-4 w-4" />
-            admin@zeroclubs.xyz
-          </a>
         </div>
 
-        <form onSubmit={submit} className="rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] p-5 ring-1 ring-[#171717]/[0.06] sm:p-7" noValidate={false}>
+        <form onSubmit={submit} className="rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] p-5 ring-1 ring-[#171717]/[0.06] dark:ring-white/10 sm:p-7" noValidate={false}>
           <div className="grid gap-5 sm:grid-cols-2">
-            <label className="text-[12px] font-semibold text-[#343238]">
+            <label className="text-[12px] font-semibold text-[#343238] dark:text-white/75">
               Name
               <input
                 required
@@ -1004,7 +997,7 @@ function ContactSection() {
                 placeholder="Your name"
               />
             </label>
-            <label className="text-[12px] font-semibold text-[#343238]">
+            <label className="text-[12px] font-semibold text-[#343238] dark:text-white/75">
               Email
               <input
                 required
@@ -1019,7 +1012,7 @@ function ContactSection() {
             </label>
           </div>
 
-          <label className="mt-5 block text-[12px] font-semibold text-[#343238]">
+          <label className="mt-5 block text-[12px] font-semibold text-[#343238] dark:text-white/75">
             Subject
             <input
               required
@@ -1031,7 +1024,7 @@ function ContactSection() {
             />
           </label>
 
-          <label className="mt-5 block text-[12px] font-semibold text-[#343238]">
+          <label className="mt-5 block text-[12px] font-semibold text-[#343238] dark:text-white/75">
             Description
             <textarea
               required
@@ -1079,7 +1072,7 @@ function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="border-b border-[#171717]/[0.06] bg-[#fbfaf8] dark:bg-[#16131a]">
+    <section className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1180px] px-4 py-16 md:px-6 lg:py-24">
         <div className="mb-10 text-center md:mb-14">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Questions</p>
@@ -1091,20 +1084,20 @@ function FaqSection() {
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <div key={i} className={`overflow-hidden rounded-lg bg-white dark:bg-[#141118] ring-1 transition-all ${isOpen ? "ring-[#cc208f]/25" : "ring-[#171717]/[0.06]"}`}>
+              <div key={i} className={`overflow-hidden rounded-lg bg-white dark:bg-[#141118] ring-1 transition-all ${isOpen ? "ring-[#cc208f]/25" : "ring-[#171717]/[0.06] dark:ring-white/10"}`}>
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                   className="flex w-full items-center justify-between px-6 py-4 text-left"
                 >
                   <h3 className="text-[15.5px] font-semibold tracking-tight text-[#171717] dark:text-white">{faq.q}</h3>
-                  <ChevronDown className={`h-4.5 w-4.5 shrink-0 text-[#666a70] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4.5 w-4.5 shrink-0 text-[#666a70] dark:text-white/55 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 <div
                   className={`overflow-hidden px-6 transition-all duration-300 ${
                     isOpen ? "max-h-[200px] pb-5 opacity-100" : "max-h-0 pb-0 opacity-0"
                   }`}
                 >
-                  <p className="text-[14px] leading-relaxed text-[#666a70]">{faq.a}</p>
+                  <p className="text-[14px] leading-relaxed text-[#666a70] dark:text-white/55">{faq.a}</p>
                 </div>
               </div>
             );
@@ -1147,11 +1140,11 @@ function FinalCta({ referralCode }: ReferralProps) {
 
 function Footer() {
   return (
-    <footer className="border-t border-[#171717]/[0.06] bg-[#f4f2ef] dark:bg-[#0f0d12] px-4 py-12 md:px-6">
+    <footer className="border-t border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] px-4 py-12 md:px-6">
       <div className="mx-auto max-w-[1180px]">
         <div className="mb-10 flex flex-wrap items-center justify-between gap-5">
           <BrandMark />
-          <p className="text-[12px] text-[#666a70]">The social network for builders.</p>
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">The social network for builders.</p>
         </div>
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {footerGroups.map((group) => (
@@ -1160,7 +1153,7 @@ function Footer() {
               <ul className="grid gap-2.5">
                 {group.links.map((link) => (
                   <li key={link}>
-                    <a href={link === "Contact" ? "#contact" : "#people"} className="text-[13px] font-medium text-[#666a70] transition-colors hover:text-[#171717]">
+                    <a href={link === "Contact" ? "#contact" : "#people"} className="text-[13px] font-medium text-[#666a70] dark:text-white/55 transition-colors hover:text-[#171717]">
                       {link}
                     </a>
                   </li>
@@ -1169,9 +1162,9 @@ function Footer() {
             </div>
           ))}
         </div>
-        <div className="mt-12 flex items-center justify-between border-t border-[#171717]/[0.06] pt-6">
-          <p className="text-[12px] text-[#666a70]">Zero Club © 2026</p>
-          <p className="text-[12px] text-[#666a70]">Made for builders, by builders.</p>
+        <div className="mt-12 flex items-center justify-between border-t border-[#171717]/[0.06] dark:border-white/10 pt-6">
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">Zero Club © 2026</p>
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">Made for builders, by builders.</p>
         </div>
       </div>
     </footer>

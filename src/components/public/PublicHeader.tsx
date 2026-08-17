@@ -83,7 +83,7 @@ export function PublicHeader({ section }: { section?: string }) {
               {dark ? <Sun className="h-[17px] w-[17px]" /> : <Moon className="h-[17px] w-[17px]" />}
             </button>
             <Link to="/signin" search={{ ref: undefined, club: undefined }} className="hidden px-3 py-2 text-[12px] font-semibold text-[#555155] dark:text-white/60 sm:block">Sign in</Link>
-            <Link to="/signup" search={{ ref: undefined, club: undefined }} className="grid h-9 place-items-center rounded-md bg-[#171717] px-4 text-[11.5px] font-semibold text-white">Join</Link>
+            <Link to="/signup" search={{ ref: undefined, club: undefined }} className="grid h-9 place-items-center rounded-md bg-[#171717] dark:bg-white px-4 text-[11.5px] font-semibold text-white dark:text-[#171717]">Join</Link>
             <button type="button" onClick={() => setOpen((value) => !value)} className="grid h-9 w-9 place-items-center rounded-md text-[#171717] dark:text-white lg:hidden" aria-label={open ? "Close menu" : "Open menu"}>
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -92,9 +92,9 @@ export function PublicHeader({ section }: { section?: string }) {
       </header>
 
       {open && (
-        <div className="fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-[#f7f6f3] dark:bg-[#100e13] px-5 py-8 lg:hidden">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8a8388]">Explore Zero Club</p>
-          <div className="mt-4 divide-y divide-[#171717]/10 border-y border-[#171717]/10 dark:border-white/10">
+        <div className="fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-[#f7f6f3] dark:bg-[#100e13] px-5 py-8 text-[#171717] dark:text-white lg:hidden">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8a8388] dark:text-white/45">Explore Zero Club</p>
+          <div className="mt-4 divide-y divide-[#171717]/10 dark:divide-white/10 border-y border-[#171717]/10 dark:border-white/10">
             <Link to="/docs" search={{ page: undefined }} onClick={() => setOpen(false)} className="block py-4 font-display text-[26px] font-medium tracking-tight">Docs</Link>
             {productLinks.map((item) => (
               <Link key={item.slug} to="/explore/$slug" params={{ slug: item.slug }} onClick={() => setOpen(false)} className="block py-4 font-display text-[26px] font-medium tracking-tight">

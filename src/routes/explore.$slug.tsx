@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { PublicHeader } from "@/components/public/PublicHeader";
+import { usePublicTheme } from "@/hooks/usePublicTheme";
 
 type ProductPage = {
   name: string;
@@ -143,14 +144,16 @@ export const Route = createFileRoute("/explore/$slug")({
 });
 
 function ProductDetailPage() {
+  // Adopts the theme chosen on the landing page.
+  usePublicTheme();
   const product = Route.useLoaderData() as ProductPage;
   const Icon = product.Icon;
 
   return (
-    <div className="min-h-screen bg-[#f7f6f3] font-sans text-[#171717]">
+    <div className="min-h-screen bg-[#f7f6f3] dark:bg-[#100e13] font-sans text-[#171717] dark:text-white">
       <PublicHeader section={product.name} />
       <main>
-        <section className="border-b border-[#171717]/[0.08]">
+        <section className="border-b border-[#171717]/[0.08] dark:border-white/10">
           <div className="mx-auto grid max-w-[1180px] gap-12 px-5 py-16 md:px-8 md:py-24 lg:grid-cols-[1fr_0.72fr] lg:items-end">
             <div>
               <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">
@@ -160,7 +163,7 @@ function ProductDetailPage() {
               <h1 className="mt-8 max-w-[760px] font-display text-[43px] font-semibold leading-[1.02] tracking-[-0.035em] md:text-[68px]">{product.statement}</h1>
             </div>
             <div className="border-l-2 border-[#cc208f] pl-5">
-              <p className="text-[15px] leading-7 text-[#5f5a5d]">{product.summary}</p>
+              <p className="text-[15px] leading-7 text-[#5f5a5d] dark:text-white/55">{product.summary}</p>
               <div className="mt-7 flex flex-wrap gap-2.5">
                 <Link to="/signup" search={{ ref: undefined, club: undefined }} className="inline-flex h-11 items-center gap-2 rounded-md bg-[#171717] px-5 text-[11.5px] font-semibold text-white">Start building <ArrowRight className="h-3.5 w-3.5" /></Link>
                 <Link to="/docs" search={{ page: product.docPage }} className="inline-flex h-11 items-center rounded-md border border-[#171717]/15 px-5 text-[11.5px] font-semibold">Read the guide</Link>
@@ -180,34 +183,34 @@ function ProductDetailPage() {
           </div>
         </section>
 
-        <section className="border-b border-[#171717]/[0.08]">
+        <section className="border-b border-[#171717]/[0.08] dark:border-white/10">
           <div className="mx-auto max-w-[1180px] px-5 py-16 md:px-8 md:py-24">
             <div className="max-w-[620px]">
               <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">Designed for useful work</p>
               <h2 className="mt-3 font-display text-[32px] font-semibold leading-tight tracking-[-0.025em] md:text-[46px]">What makes {product.name} different</h2>
             </div>
-            <div className="mt-12 divide-y divide-[#171717]/10 border-y border-[#171717]/10">
+            <div className="mt-12 divide-y divide-[#171717]/10 border-y border-[#171717]/10 dark:border-white/10">
               {product.principles.map((item, index) => (
                 <article key={item.title} className="grid gap-4 py-7 md:grid-cols-[80px_0.7fr_1fr] md:items-start md:gap-8 md:py-9">
                   <span className="font-mono text-[10px] text-[#9d176d]">0{index + 1}</span>
                   <h3 className="font-display text-[21px] font-semibold tracking-tight">{item.title}</h3>
-                  <p className="max-w-[620px] text-[13px] leading-6 text-[#625d61]">{item.copy}</p>
+                  <p className="max-w-[620px] text-[13px] leading-6 text-[#625d61] dark:text-white/60">{item.copy}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="bg-white">
+        <section className="bg-white dark:bg-[#141118]">
           <div className="mx-auto grid max-w-[1180px] gap-12 px-5 py-16 md:px-8 md:py-24 lg:grid-cols-[0.7fr_1fr]">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">A clear path</p>
               <h2 className="mt-3 font-display text-[31px] font-semibold tracking-tight">How it works</h2>
-              <p className="mt-5 max-w-sm text-[13px] leading-6 text-[#625d61]">{product.forWhom}</p>
+              <p className="mt-5 max-w-sm text-[13px] leading-6 text-[#625d61] dark:text-white/60">{product.forWhom}</p>
             </div>
-            <ol className="border-t border-[#171717]/10">
+            <ol className="border-t border-[#171717]/10 dark:border-white/10">
               {product.workflow.map((step, index) => (
-                <li key={step} className="flex items-center gap-5 border-b border-[#171717]/10 py-5">
+                <li key={step} className="flex items-center gap-5 border-b border-[#171717]/10 dark:border-white/10 py-5">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#171717] text-[10px] font-semibold text-white">{index + 1}</span>
                   <span className="text-[13px] font-medium leading-5">{step}</span>
                   <Check className="ml-auto h-4 w-4 shrink-0 text-[#cc208f]" />
@@ -217,7 +220,7 @@ function ProductDetailPage() {
           </div>
         </section>
 
-        <section className="border-t border-[#171717]/[0.08] bg-[#f7f6f3] px-5 py-16 text-center md:py-20">
+        <section className="border-t border-[#171717]/[0.08] dark:border-white/10 bg-[#f7f6f3] dark:bg-[#100e13] px-5 py-16 text-center md:py-20">
           <ShieldCheck className="mx-auto h-6 w-6 fill-[#cc208f] text-[#cc208f]" />
           <h2 className="mx-auto mt-5 max-w-xl font-display text-[30px] font-semibold tracking-tight md:text-[40px]">Put your next step where your progress can be seen.</h2>
           <Link to="/signup" search={{ ref: undefined, club: undefined }} className="mt-7 inline-flex h-11 items-center gap-2 rounded-md bg-[#171717] px-5 text-[11.5px] font-semibold text-white">Join Zero Club <ArrowRight className="h-4 w-4" /></Link>
