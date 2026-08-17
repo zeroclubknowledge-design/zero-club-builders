@@ -53,6 +53,17 @@ export function socialProductImageUrl(coverUrl: string): string {
   return `https://images.weserv.nl/?${params.toString()}`;
 }
 
+// WhatsApp, Telegram and X cache a preview against the exact URL and will
+// replay a stale one for days — which is why re-sharing the same gift code kept
+// showing the old card no matter what had been deployed. Bump this whenever the
+// gift preview changes.
+export const GIFT_PREVIEW_VERSION = "1";
+
+/** The shareable link for a Zero Club Gift, carrying the preview version. */
+export function giftLinkUrl(code: string): string {
+  return `${appOrigin()}/gift/${code}?v=${GIFT_PREVIEW_VERSION}`;
+}
+
 /** The shareable link for a wallet fund link. */
 export function fundLinkUrl(slug: string): string {
   return `${appOrigin()}/fund/${slug}`;

@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { shareOrCopy } from "@/lib/share";
+import { shareOrCopy, giftLinkUrl } from "@/lib/share";
 
 const GIFT_SERVICE_DESTINATIONS: Record<string, { href?: string; action: string }> = {
   bootcamps: { href: "/app/bootcamps", action: "Use for a bootcamp" },
@@ -79,7 +79,7 @@ function GiftCardsPage() {
     shareOrCopy({
       title: "A Zero Club Gift for you",
       text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
-      url: `${window.location.origin}/gift/${card.code}`,
+      url: giftLinkUrl(card.code),
       copiedMessage: "Gift link copied",
     });
   };

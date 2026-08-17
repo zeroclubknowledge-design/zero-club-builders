@@ -4,7 +4,7 @@ import { ArrowLeft, Copy, Gift, Loader2, Share2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { copyToClipboard } from "@/lib/share";
+import { copyToClipboard, giftLinkUrl } from "@/lib/share";
 import { ShareMenu } from "@/components/ShareMenu";
 
 /**
@@ -42,7 +42,7 @@ function UnclaimedGiftsPage() {
     },
   });
 
-  const giftUrl = (code: string) => `${window.location.origin}/gift/${code}`;
+  const giftUrl = (code: string) => giftLinkUrl(code);
 
   const total = (gifts || []).reduce((sum, card: any) => sum + Number(card.amount || 0), 0);
 
