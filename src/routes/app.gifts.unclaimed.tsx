@@ -41,7 +41,7 @@ function UnclaimedGiftsPage() {
     },
   });
 
-  const giftUrl = (code: string) => `${window.location.origin}/app/gifts/${code}`;
+  const giftUrl = (code: string) => `${window.location.origin}/gift/${code}`;
 
   const total = (gifts || []).reduce((sum, card: any) => sum + Number(card.amount || 0), 0);
 
@@ -113,18 +113,9 @@ function UnclaimedGiftsPage() {
                       message={card.message}
                     />
 
-                    {/* Amount, then the two actions, all beneath the card. */}
-                    <div className="mt-3 w-full max-w-[520px] space-y-2.5">
-                      <div className="min-w-0">
-                        <p className="truncate text-[14px] font-semibold tracking-tight tabular-nums text-foreground">
-                          {format(Number(card.amount))}
-                          <span className="ml-2 text-[11.5px] font-medium text-muted-foreground">{label}</span>
-                        </p>
-                        {card.custom_purpose && (
-                          <p className="truncate text-[11px] text-muted-foreground">{card.custom_purpose}</p>
-                        )}
-                      </div>
-
+                    {/* Just the actions. The amount and purpose are on the
+                        card above, so repeating them was noise. */}
+                    <div className="mt-3 w-full max-w-[520px]">
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => copyToClipboard(giftUrl(card.code), "Gift link copied")}

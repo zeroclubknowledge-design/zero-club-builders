@@ -79,7 +79,7 @@ function GiftCardsPage() {
     shareOrCopy({
       title: "A Zero Club Gift for you",
       text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
-      url: `${window.location.origin}/app/gifts/${card.code}`,
+      url: `${window.location.origin}/gift/${card.code}`,
       copiedMessage: "Gift link copied",
     });
   };
