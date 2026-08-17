@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, X, Sun, Moon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePublicTheme } from "@/hooks/usePublicTheme";
 
 const productLinks = [
   { label: "Feed", slug: "feed" },
@@ -11,37 +12,7 @@ const productLinks = [
 
 export function PublicHeader({ section }: { section?: string }) {
   const [open, setOpen] = useState(false);
-
-  /*
-   * Theme switch for the public pages only.
-   *
-   * It toggles the same `dark` class Tailwind reads, but remembers whatever
-   * the document had on arrival and puts it back on unmount. So a signed-in
-   * member who prefers the dark app can try the light landing page — or the
-   * reverse — and their saved preference is untouched. Nothing is written to
-   * localStorage here on purpose: this is a look at the page, not a setting.
-   */
-  const [dark, setDark] = useState(
-    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
-  );
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const had = root.classList.contains("dark");
-    root.classList.toggle("dark", dark);
-    return () => {
-      root.classList.toggle("dark", had);
-    };
-  }, [dark]);
-
-  useEffect(() => {
-    if (!open) return;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = overflow;
-    };
-  }, [open]);
+  const { dark, toggle: toggleTheme } = usePublicTheme();
 
   return (
     <>
@@ -74,7 +45,7 @@ export function PublicHeader({ section }: { section?: string }) {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setDark((value) => !value)}
+              onClick={toggleTheme}
               title={dark ? "Switch to light" : "Switch to dark"}
               aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
               aria-pressed={dark}
@@ -92,7 +63,7 @@ export function PublicHeader({ section }: { section?: string }) {
       </header>
 
       {open && (
-        <div className="fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-[#f7f6f3] dark:bg-[#100e13] px-5 py-8 text-[#171717] dark:text-white lg:hidden">
+        <div role="dialog" aria-modal="true" aria-label="Zero Club navigation" className="fixed inset-x-0 top-16 z-40 h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain bg-[#f7f6f3] dark:bg-[#100e13] px-5 py-8 text-[#171717] dark:text-white lg:hidden">
           <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8a8388] dark:text-white/45">Explore Zero Club</p>
           <div className="mt-4 divide-y divide-[#171717]/10 dark:divide-white/10 border-y border-[#171717]/10 dark:border-white/10">
             <Link to="/docs" search={{ page: undefined }} onClick={() => setOpen(false)} className="block py-4 font-display text-[26px] font-medium tracking-tight">Docs</Link>

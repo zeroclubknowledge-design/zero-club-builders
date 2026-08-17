@@ -166,6 +166,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
                     }
                   }
                 }
+
+                var themeMeta = document.querySelector('meta[name="theme-color"]');
+                if (themeMeta) {
+                  themeMeta.content = root.classList.contains('dark')
+                    ? (root.classList.contains('lights-out') ? '#000000' : '#100e13')
+                    : '#f4f2ef';
+                }
               } catch(e) {}
             `,
           }}

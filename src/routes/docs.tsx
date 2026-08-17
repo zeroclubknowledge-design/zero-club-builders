@@ -12,7 +12,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { docPages, getDocPage } from "@/features/docs/content";
-import { usePublicTheme } from "@/hooks/usePublicTheme";
 
 export const Route = createFileRoute("/docs")({
   component: DocsPage,
@@ -32,8 +31,6 @@ function sectionId(title: string) {
 }
 
 function DocsPage() {
-  // Adopts the theme chosen on the landing page.
-  usePublicTheme();
   const { page: pageSlug } = Route.useSearch();
   const page = getDocPage(pageSlug);
   const [query, setQuery] = useState("");

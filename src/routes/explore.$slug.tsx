@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { PublicHeader } from "@/components/public/PublicHeader";
-import { usePublicTheme } from "@/hooks/usePublicTheme";
 
 type ProductPage = {
   name: string;
@@ -144,8 +143,6 @@ export const Route = createFileRoute("/explore/$slug")({
 });
 
 function ProductDetailPage() {
-  // Adopts the theme chosen on the landing page.
-  usePublicTheme();
   const product = Route.useLoaderData() as ProductPage;
   const Icon = product.Icon;
 

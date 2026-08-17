@@ -6,7 +6,10 @@
  * while somebody is editing a profile or composing a Club.
  */
 
-const VERSION = "zc-v4";
+// Bump whenever navigation or shell behavior changes. Chrome keeps service
+// worker caches longer than ordinary browser tabs, so a stable version here
+// can leave an installed mobile app serving an old shell after a deployment.
+const VERSION = "zc-v5-chrome-navigation";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const IMAGE_CACHE = `${VERSION}-images`;

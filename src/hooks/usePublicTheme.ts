@@ -21,6 +21,13 @@ import { useCallback, useEffect, useState } from "react";
  */
 
 const KEY = "zc_public_theme";
+const LIGHT_THEME_COLOR = "#f4f2ef";
+const DARK_THEME_COLOR = "#100e13";
+
+function updateBrowserThemeColor(dark: boolean) {
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (meta) meta.content = dark ? DARK_THEME_COLOR : LIGHT_THEME_COLOR;
+}
 
 /** Kept in step with the allowlist in the __root.tsx inline script. */
 function isPublicPath(pathname: string): boolean {
@@ -47,26 +54,35 @@ function applyAppTheme() {
       root.classList.add("dark");
       root.classList.add(theme);
     }
+    updateBrowserThemeColor(isDark);
   } catch {
     /* nothing sensible to do */
   }
 }
 
 export function usePublicTheme() {
-  // Seeded from the DOM the inline script already set, so first render agrees
-  // with what is on screen and nothing needs correcting afterwards.
-  const [dark, setDark] = useState<boolean>(
-    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
-  );
+  // The server cannot read localStorage, so both the server and the browser's
+  // hydration render begin from the same value. After hydration we only sync
+  // the switch state from the class the pre-paint script already applied; the
+  // page theme itself never needs to flip.
+  const [dark, setDark] = useState(false);
+  const [themeReady, setThemeReady] = useState(false);
 
   useEffect(() => {
-    // Only ever runs in response to the switch — never on mount, because the
-    // inline script has already put the document in the right state.
+    const initialDark = document.documentElement.classList.contains("dark");
+    setDark(initialDark);
+    setThemeReady(true);
+    updateBrowserThemeColor(initialDark);
+  }, []);
+
+  useEffect(() => {
+    if (!themeReady) return;
     const root = document.documentElement;
     if (root.classList.contains("dark") !== dark) {
       root.classList.toggle("dark", dark);
     }
-  }, [dark]);
+    updateBrowserThemeColor(dark);
+  }, [dark, themeReady]);
 
   // Leaving the public pages hands the document back to the member's own
   // theme, deterministically, rather than to whatever it happened to be.

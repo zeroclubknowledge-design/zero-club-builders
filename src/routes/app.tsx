@@ -137,6 +137,7 @@ function SidebarContent({
   profile,
   onOpenTheme,
   onClose,
+  onNavigate,
   isInstitutionStudio,
   unreadMessagesCount = 0,
   unreadNotificationsCount = 0,
@@ -144,6 +145,7 @@ function SidebarContent({
   profile: any;
   onOpenTheme: () => void;
   onClose?: () => void;
+  onNavigate?: () => void;
   isInstitutionStudio?: boolean;
   unreadMessagesCount?: number;
   unreadNotificationsCount?: number;
@@ -174,7 +176,8 @@ function SidebarContent({
         // Close sidebar if user clicked a link (navigation)
         const target = e.target as HTMLElement;
         if (target.closest("a")) {
-          onClose?.();
+          if (onNavigate) onNavigate();
+          else onClose?.();
         }
       }}
     >
@@ -733,6 +736,44 @@ const getInitialSession = () => {
   return null;
 };
 
+type AppThemeMode = "on" | "off" | "system";
+type AppDarkTheme = "dim" | "lights-out";
+
+const getStoredAppThemeMode = (): AppThemeMode => {
+  if (typeof window === "undefined") return "off";
+  try {
+    const stored = localStorage.getItem("darkMode");
+    return stored === "on" || stored === "system" ? stored : "off";
+  } catch {
+    return "off";
+  }
+};
+
+const getStoredAppDarkTheme = (): AppDarkTheme => {
+  if (typeof window === "undefined") return "lights-out";
+  try {
+    return localStorage.getItem("darkTheme") === "dim" ? "dim" : "lights-out";
+  } catch {
+    return "lights-out";
+  }
+};
+
+const applyAppDocumentTheme = (mode: AppThemeMode, theme: AppDarkTheme) => {
+  const root = document.documentElement;
+  root.classList.remove("dark", "dim", "lights-out", "premium");
+
+  const isDark =
+    mode === "on" ||
+    (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  if (isDark) {
+    root.classList.add("dark", theme);
+  }
+
+  const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (themeColor) themeColor.content = isDark ? (theme === "lights-out" ? "#000000" : "#202633") : "#f4f2ef";
+};
+
 function AppLayout() {
   const location = useLocation();
   const { pathname } = location;
@@ -748,29 +789,50 @@ function AppLayout() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMenuClosing, setIsMenuClosing] = useState(false);
+  const sidebarCloseTimer = useRef<number | null>(null);
+  const menuCloseTimer = useRef<number | null>(null);
+
+  const closeSidebarImmediately = () => {
+    if (sidebarCloseTimer.current !== null) window.clearTimeout(sidebarCloseTimer.current);
+    sidebarCloseTimer.current = null;
+    setIsSidebarOpen(false);
+    setIsSidebarClosing(false);
+  };
+
+  const closeMenuImmediately = () => {
+    if (menuCloseTimer.current !== null) window.clearTimeout(menuCloseTimer.current);
+    menuCloseTimer.current = null;
+    setIsMenuOpen(false);
+    setIsMenuClosing(false);
+  };
 
   const handleCloseSidebar = () => {
+    if (sidebarCloseTimer.current !== null) window.clearTimeout(sidebarCloseTimer.current);
     setIsSidebarClosing(true);
-    setTimeout(() => {
-      setIsSidebarOpen(false);
-      setIsSidebarClosing(false);
+    sidebarCloseTimer.current = window.setTimeout(() => {
+      closeSidebarImmediately();
     }, 450);
   };
 
   const handleCloseMenu = () => {
+    if (menuCloseTimer.current !== null) window.clearTimeout(menuCloseTimer.current);
     setIsMenuClosing(true);
-    setTimeout(() => {
-      setIsMenuOpen(false);
-      setIsMenuClosing(false);
+    menuCloseTimer.current = window.setTimeout(() => {
+      closeMenuImmediately();
     }, 260);
   };
 
   // Any navigation closes the card. Without this it would still be sitting
   // there, over the page it just sent you to.
   useEffect(() => {
-    setIsMenuOpen(false);
-    setIsMenuClosing(false);
+    closeSidebarImmediately();
+    closeMenuImmediately();
   }, [pathname]);
+
+  useEffect(() => () => {
+    if (sidebarCloseTimer.current !== null) window.clearTimeout(sidebarCloseTimer.current);
+    if (menuCloseTimer.current !== null) window.clearTimeout(menuCloseTimer.current);
+  }, []);
 
   // The card is a layer over the page, so the hardware back button should
   // dismiss it rather than leaving the app — this is running inside a TWA.
@@ -1038,56 +1100,26 @@ function AppLayout() {
   const router = useRouter();
 
   // Theme State
-  const [darkMode, setDarkMode] = useState<"on" | "off" | "system" | "premium">("off");
-  const [darkTheme, setDarkTheme] = useState<"dim" | "lights-out">("lights-out");
-  const [themeLoaded, setThemeLoaded] = useState(false);
+  const [darkMode, setDarkMode] = useState<AppThemeMode>(getStoredAppThemeMode);
+  const [darkTheme, setDarkTheme] = useState<AppDarkTheme>(getStoredAppDarkTheme);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedDarkMode = localStorage.getItem("darkMode") as
-        | "on"
-        | "off"
-        | "system"
-        | "premium";
-      const storedDarkTheme = localStorage.getItem("darkTheme") as "dim" | "lights-out";
-
-      if (storedDarkMode) setDarkMode(storedDarkMode === "premium" ? "off" : storedDarkMode);
-      if (storedDarkTheme) setDarkTheme(storedDarkTheme);
-      setThemeLoaded(true);
+    applyAppDocumentTheme(darkMode, darkTheme);
+    try {
+      localStorage.setItem("darkMode", darkMode);
+      localStorage.setItem("darkTheme", darkTheme);
+    } catch {
+      // Some embedded/private Chrome contexts deny storage. The selected
+      // theme still applies for the current session without blanking the app.
     }
-  }, []);
-
-  useEffect(() => {
-    if (!themeLoaded) return;
-
-    const root = window.document.documentElement;
-
-    const applyTheme = () => {
-      root.classList.remove("dark", "dim", "lights-out", "premium");
-
-      if (darkMode !== "premium") {
-        const isDark =
-          darkMode === "on" ||
-          (darkMode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (isDark) {
-          root.classList.add("dark");
-          root.classList.add(darkTheme);
-        }
-      }
-    };
-
-    applyTheme();
 
     if (darkMode === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const handleChange = () => applyTheme();
+      const handleChange = () => applyAppDocumentTheme(darkMode, darkTheme);
       mediaQuery.addEventListener("change", handleChange);
       return () => mediaQuery.removeEventListener("change", handleChange);
     }
-
-    localStorage.setItem("darkMode", darkMode);
-    localStorage.setItem("darkTheme", darkTheme);
-  }, [darkMode, darkTheme, themeLoaded]);
+  }, [darkMode, darkTheme]);
 
   useEffect(() => {
     let mounted = true;
@@ -1310,7 +1342,7 @@ function AppLayout() {
           <>
             {/* Blurred overlay - closes sidebar on click */}
             <div
-              className={`fixed inset-0 z-[70] bg-black/50 backdrop-blur-md ${isSidebarClosing ? "animate-out fade-out duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in duration-500 ease-out"}`}
+              className={`fixed inset-0 z-[70] bg-black/50 ${isSidebarClosing ? "animate-out fade-out duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in duration-500 ease-out"}`}
               onClick={handleCloseSidebar}
             />
             {/* Floating sidebar panel */}
@@ -1323,9 +1355,9 @@ function AppLayout() {
                 unreadMessagesCount={unreadMessagesCount}
                 unreadNotificationsCount={unreadNotificationsCount}
                 onClose={handleCloseSidebar}
+                onNavigate={closeSidebarImmediately}
                 onOpenTheme={() => {
-                  setIsSidebarOpen(false);
-                  setIsSidebarClosing(false);
+                  closeSidebarImmediately();
                   setIsThemeOpen(true);
                 }}
               />
@@ -1340,7 +1372,7 @@ function AppLayout() {
         {(isMenuOpen || isMenuClosing) && (
           <div className="md:hidden">
             <div
-              className={`fixed inset-0 z-[70] bg-black/45 backdrop-blur-md ${isMenuClosing ? "animate-out fade-out duration-250 ease-in fill-mode-forwards" : "animate-in fade-in duration-250 ease-out"}`}
+              className={`fixed inset-0 z-[70] bg-black/45 ${isMenuClosing ? "animate-out fade-out duration-250 ease-in fill-mode-forwards" : "animate-in fade-in duration-250 ease-out"}`}
               onClick={handleCloseMenu}
             />
             <div
@@ -1372,7 +1404,7 @@ function AppLayout() {
                     <Link
                       key={item.to}
                       to={item.to}
-                      onClick={handleCloseMenu}
+                      onClick={closeMenuImmediately}
                       className={`flex min-w-0 flex-col gap-2.5 rounded-xl p-3.5 tap transition-colors ${
                         active
                           ? "bg-primary/[0.1] ring-1 ring-primary/20"

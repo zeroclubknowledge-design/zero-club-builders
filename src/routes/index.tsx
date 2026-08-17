@@ -223,15 +223,6 @@ function Header({ referralCode }: ReferralProps) {
     return () => window.removeEventListener("scroll", updateHeader);
   }, []);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isOpen]);
-
   return (
     <>
     <header
@@ -348,7 +339,7 @@ function Header({ referralCode }: ReferralProps) {
     </header>
 
       {isOpen && (
-        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 z-40 overflow-y-auto border-t border-[#171717]/[0.08] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-5 lg:hidden">
+        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 z-40 overflow-y-auto overscroll-contain border-t border-[#171717]/[0.08] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-5 lg:hidden">
           <div className="mx-auto max-w-xl pb-10">
             <div className="space-y-7">
               {mobileNavGroups.map((group) => (
@@ -356,10 +347,13 @@ function Header({ referralCode }: ReferralProps) {
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73] dark:text-white/45">{group.label}</p>
                   <div className="divide-y divide-[#171717]/[0.08] dark:divide-white/10 border-y border-[#171717]/[0.08] dark:border-white/10">
                     {group.items.map((item) => (
-                      <a
+                      <Link
                         key={item.label}
-                        href={item.href}
+                        {...(item.slug
+                          ? { to: "/explore/$slug" as const, params: { slug: item.slug } }
+                          : { to: "/docs" as const, search: { page: undefined } })}
                         onClick={() => setIsOpen(false)}
+                        preload={false}
                         className="group flex items-center justify-between gap-4 py-3.5 transition-colors active:opacity-70"
                       >
                         <span>
@@ -367,7 +361,7 @@ function Header({ referralCode }: ReferralProps) {
                           <span className="mt-1 block text-[11.5px] leading-5 text-[#6d6269] dark:text-white/55">{item.detail}</span>
                         </span>
                         <ArrowUpRight className="h-5 w-5 shrink-0 text-[#cc208f] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </section>
