@@ -1,15 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Resvg, initWasm } from "@resvg/resvg-wasm";
+import wasmModule from "@resvg/resvg-wasm/index_bg.wasm?module";
 import { supabase } from "@/lib/supabase";
 
+let wasmInitialized = false;
+async function ensureWasm() {
+  if (!wasmInitialized) {
+    try {
+      await initWasm(wasmModule);
+      wasmInitialized = true;
+    } catch (e: any) {
+      if (e?.message?.includes("Already initialized") || String(e).includes("Already")) {
+        wasmInitialized = true;
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+
 /**
- * The gift card, drawn as an image, for link previews.
- *
- * Messaging apps will not render HTML into a preview and will not accept SVG
- * as an og:image — they want a raster. So this endpoint draws the card as SVG,
- * and the page that references it passes this URL through images.weserv.nl,
- * which fetches the SVG and returns a JPEG at the social-card size. That is
- * the whole trick, and it means a real card image with real numbers without
- * adding a headless browser or an image-rendering dependency.
+ * Dynamically draws the actual created Zero Club Gift Card as a real PNG image
+ * for messaging app previews (WhatsApp, Telegram, X, iMessage, etc.).
  *
  * Sized 1200x630, the standard social card canvas.
  */
@@ -47,33 +59,34 @@ function formatNaira(amount: number): string {
   return "₦" + Math.round(Number(amount) || 0).toLocaleString("en-NG");
 }
 
-function card(data: any): string {
+function cardSvg(data: any): string {
   const t = TEMPLATES[data?.template_id] || TEMPLATES.signature;
   const walletBacked = data?.service === "support" || data?.service === "custom";
   const label = SERVICE_LABELS[data?.service] || String(data?.service || "Gift");
   const purpose = walletBacked ? label : `For ${label}`;
   const note = data?.custom_purpose || data?.message || "";
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Zero Club Gift">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="${t.shell}"/>
   <circle cx="1120" cy="-40" r="230" fill="${t.ink}" opacity="0.05"/>
   <circle cx="90" cy="690" r="200" fill="${t.accent}" opacity="0.10"/>
 
-  <text x="80" y="118" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="30" font-weight="600" fill="${t.ink}">Zero Club Gift</text>
-  <rect x="1020" y="76" width="100" height="52" rx="26" fill="${t.accent}"/>
-  <text x="1070" y="110" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="${t.accentInk}">GIFT</text>
+  <text x="80" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="${t.ink}">Zero Club Gift</text>
+  <rect x="1010" y="74" width="110" height="52" rx="26" fill="${t.accent}"/>
+  <text x="1065" y="108" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="800" fill="${t.accentInk}" letter-spacing="1">GIFT</text>
 
-  <text x="80" y="330" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="3" fill="${t.muted}">${escapeXml(purpose.toUpperCase())}</text>
-  <text x="80" y="452" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="132" font-weight="700" fill="${t.ink}">${escapeXml(formatNaira(data?.amount))}</text>
+  <text x="80" y="310" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="3" fill="${t.muted}">${escapeXml(purpose.toUpperCase())}</text>
+  <text x="80" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="120" font-weight="800" fill="${t.ink}" letter-spacing="-1">${escapeXml(formatNaira(data?.amount))}</text>
 
-  ${note ? `<text x="80" y="512" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="28" fill="${t.muted}">${escapeXml(String(note).slice(0, 64))}</text>` : ""}
+  ${note ? `<text x="80" y="505" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="${t.muted}">${escapeXml(String(note).slice(0, 60))}</text>` : ""}
 
-  <text x="80" y="574" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" letter-spacing="2" fill="${t.muted}">${walletBacked ? "ZERO CLUB WALLET CREDIT" : "RESTRICTED GIFT CREDIT"}</text>
-  <text x="1120" y="574" text-anchor="end" font-family="Consolas, Menlo, monospace" font-size="24" fill="${t.muted}">${escapeXml(data?.code || "ZC-GIFT")}</text>
+  <line x1="80" y1="535" x2="1120" y2="535" stroke="${t.muted}" stroke-opacity="0.25" stroke-width="1.5"/>
+  <text x="80" y="578" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="2" fill="${t.muted}">${walletBacked ? "ZERO CLUB WALLET CREDIT" : "RESTRICTED GIFT CREDIT"}</text>
+  <text x="1120" y="578" text-anchor="end" font-family="Consolas, Monaco, monospace" font-size="24" font-weight="600" fill="${t.muted}">${escapeXml(data?.code || "ZC-GIFT")}</text>
 </svg>`;
 }
 
-async function render(code: string): Promise<Response> {
+async function renderPng(code: string): Promise<Response> {
   let data: any = null;
   try {
     const result = await supabase.rpc("get_gift_card_public", { gift_code: code });
@@ -82,30 +95,38 @@ async function render(code: string): Promise<Response> {
     /* fall through to a generic card rather than failing the preview */
   }
 
-  return new Response(card(data || { code, amount: 0, template_id: "signature", service: "support" }), {
-    headers: {
-      "Content-Type": "image/svg+xml; charset=utf-8",
-      // Cached hard: a gift's face never changes once created, and the
-      // rasteriser will fetch this repeatedly.
-      "Cache-Control": "public, max-age=3600, s-maxage=86400",
-    },
-  });
+  const cardData = data || { code, amount: 0, template_id: "signature", service: "support" };
+  const svg = cardSvg(cardData);
+
+  try {
+    await ensureWasm();
+    const resvg = new Resvg(svg, {
+      fitTo: { mode: "width", value: 1200 },
+    });
+    const pngBuffer = resvg.render().asPng();
+
+    return new Response(pngBuffer, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "public, max-age=86400, s-maxage=604800",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch {
+    return new Response(svg, {
+      headers: {
+        "Content-Type": "image/svg+xml; charset=utf-8",
+        "Cache-Control": "public, max-age=3600, s-maxage=86400",
+      },
+    });
+  }
 }
 
-/*
- * No .svg extension in the path.
- *
- * The first version was api.gift-card.$code[.]svg.ts, hoping the escape would
- * give a literal dot. It produced a route whose parameter was effectively
- * named "code.svg", so /api/gift-card/ZC-XXXX.svg never matched and the
- * rasteriser got nothing to convert — the preview kept its text and lost its
- * image. The content type is what identifies an SVG, not the filename.
- */
 export const Route = createFileRoute("/api/gift-card/$code")({
   server: {
     handlers: {
-      // Tolerates a trailing .svg so any link already shared still resolves.
-      GET: ({ params }: any) => render(String(params.code || "").replace(/\.svg$/i, "")),
+      GET: ({ params }: any) => renderPng(String(params.code || "").replace(/\.(png|svg)$/i, "")),
+      HEAD: ({ params }: any) => renderPng(String(params.code || "").replace(/\.(png|svg)$/i, "")),
     },
   },
 });
