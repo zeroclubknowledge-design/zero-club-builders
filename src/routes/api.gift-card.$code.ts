@@ -1,27 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Resvg, initWasm } from "@resvg/resvg-wasm";
-import wasmModule from "@resvg/resvg-wasm/index_bg.wasm?module";
 import { supabase } from "@/lib/supabase";
 
-let wasmInitialized = false;
-async function ensureWasm() {
-  if (!wasmInitialized) {
-    try {
-      await initWasm(wasmModule);
-      wasmInitialized = true;
-    } catch (e: any) {
-      if (e?.message?.includes("Already initialized") || String(e).includes("Already")) {
-        wasmInitialized = true;
-      } else {
-        throw e;
-      }
-    }
-  }
-}
-
 /**
- * Dynamically draws the actual created Zero Club Gift Card as a real PNG image
- * for messaging app previews (WhatsApp, Telegram, X, iMessage, etc.).
+ * Clean SVG gift card endpoint.
  *
  * Sized 1200x630, the standard social card canvas.
  */
@@ -86,7 +67,7 @@ function cardSvg(data: any): string {
 </svg>`;
 }
 
-async function renderPng(code: string): Promise<Response> {
+async function renderSvg(code: string): Promise<Response> {
   let data: any = null;
   try {
     const result = await supabase.rpc("get_gift_card_public", { gift_code: code });
@@ -98,35 +79,20 @@ async function renderPng(code: string): Promise<Response> {
   const cardData = data || { code, amount: 0, template_id: "signature", service: "support" };
   const svg = cardSvg(cardData);
 
-  try {
-    await ensureWasm();
-    const resvg = new Resvg(svg, {
-      fitTo: { mode: "width", value: 1200 },
-    });
-    const pngBuffer = resvg.render().asPng();
-
-    return new Response(pngBuffer, {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=86400, s-maxage=604800",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
-  } catch {
-    return new Response(svg, {
-      headers: {
-        "Content-Type": "image/svg+xml; charset=utf-8",
-        "Cache-Control": "public, max-age=3600, s-maxage=86400",
-      },
-    });
-  }
+  return new Response(svg, {
+    headers: {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Cache-Control": "public, max-age=86400, s-maxage=604800",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
 }
 
 export const Route = createFileRoute("/api/gift-card/$code")({
   server: {
     handlers: {
-      GET: ({ params }: any) => renderPng(String(params.code || "").replace(/\.(png|svg)$/i, "")),
-      HEAD: ({ params }: any) => renderPng(String(params.code || "").replace(/\.(png|svg)$/i, "")),
+      GET: ({ params }: any) => renderSvg(String(params.code || "").replace(/\.(png|svg)$/i, "")),
+      HEAD: ({ params }: any) => renderSvg(String(params.code || "").replace(/\.(png|svg)$/i, "")),
     },
   },
 });

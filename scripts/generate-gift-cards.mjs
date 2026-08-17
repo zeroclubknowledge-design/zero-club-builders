@@ -21,36 +21,37 @@ const TEMPLATES = {
 
 function generateSvg(t) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <defs>
-    <linearGradient id="overlayGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${t.ink}" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="${t.accent}" stop-opacity="0.12"/>
-    </linearGradient>
-  </defs>
-  <!-- Background Card -->
+  <!-- Card Base Background -->
   <rect width="1200" height="630" fill="${t.shell}"/>
   
-  <!-- Subtle decorative shapes -->
-  <circle cx="1120" cy="-40" r="280" fill="${t.ink}" opacity="0.04"/>
-  <circle cx="90" cy="690" r="260" fill="${t.accent}" opacity="0.08"/>
-  <circle cx="1080" cy="500" r="180" fill="url(#overlayGrad)" opacity="0.7"/>
+  <!-- Concentric Border Rings (matching GiftCardVisual.tsx) -->
+  <circle cx="1120" cy="-40" r="230" fill="none" stroke="${t.ink}" stroke-width="48" opacity="0.08"/>
+  <circle cx="1000" cy="660" r="200" fill="none" stroke="${t.ink}" stroke-width="36" opacity="0.06"/>
+  <circle cx="90" cy="690" r="220" fill="${t.accent}" opacity="0.10"/>
 
-  <!-- Top bar: Brand & Badge -->
-  <text x="80" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="700" fill="${t.ink}" letter-spacing="-0.5">Zero Club Gift</text>
-  
-  <rect x="1000" y="76" width="120" height="54" rx="27" fill="${t.accent}"/>
-  <text x="1060" y="111" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" fill="${t.accentInk}" letter-spacing="1">GIFT</text>
+  <!-- Top Bar: Logo Mark & Header -->
+  <g transform="translate(80, 70)">
+    <!-- Star Logo Mark -->
+    <path d="M22 0L27 16L44 22L27 28L22 44L17 28L0 22L17 16Z" fill="${t.accent}"/>
+    <text x="56" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="${t.ink}">Zero Club Gift</text>
+  </g>
 
-  <!-- Middle Content: Purpose & Gift Card Art -->
-  <text x="80" y="310" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" letter-spacing="4" fill="${t.muted}">ZERO CLUB GIFT CARD</text>
-  <text x="80" y="430" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="96" font-weight="800" fill="${t.ink}" letter-spacing="-2">A Gift For You</text>
+  <!-- Top Right Gift Badge -->
+  <g transform="translate(1030, 64)">
+    <rect width="90" height="56" rx="16" fill="${t.accent}"/>
+    <!-- Gift Icon -->
+    <path d="M30 18H60V30H30V18ZM25 30H65V46C65 47.1 64.1 48 63 48H27C25.9 48 25 47.1 25 46V30ZM45 18V48M45 18C45 15.2 42.8 13 40 13C37.2 13 35 15.2 35 18C35 18 39 18 45 18ZM45 18C45 15.2 47.2 13 50 13C52.8 13 55 15.2 55 18C55 18 51 18 45 18Z" stroke="${t.accentInk}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
 
-  <text x="80" y="495" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="500" fill="${t.muted}">Open and claim your gift in Zero Club</text>
+  <!-- Main Card Body -->
+  <text x="80" y="295" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="4" fill="${t.muted}">ZERO CLUB GIFT CARD</text>
+  <text x="80" y="425" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="108" font-weight="800" fill="${t.ink}" letter-spacing="-2">Zero Club Gift</text>
+  <text x="80" y="490" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="${t.muted}">Open to claim your Zero Club credit</text>
 
-  <!-- Bottom Bar: Credit type & Platform -->
+  <!-- Divider & Bottom Bar -->
   <line x1="80" y1="535" x2="1120" y2="535" stroke="${t.muted}" stroke-opacity="0.25" stroke-width="1.5"/>
-  <text x="80" y="580" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600" letter-spacing="2" fill="${t.muted}">ZERO CLUB WALLET CREDIT</text>
-  <text x="1120" y="580" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600" fill="${t.muted}">zeroclubs.xyz</text>
+  <text x="80" y="580" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="2" fill="${t.muted}">ZERO CLUB WALLET CREDIT</text>
+  <text x="1120" y="580" text-anchor="end" font-family="Consolas, Monaco, monospace" font-size="24" font-weight="600" fill="${t.muted}">zeroclubs.xyz</text>
 </svg>`;
 }
 

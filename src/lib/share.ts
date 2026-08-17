@@ -57,7 +57,7 @@ export function socialProductImageUrl(coverUrl: string): string {
 // replay a stale one for days — which is why re-sharing the same gift code kept
 // showing the old card no matter what had been deployed. Bump this whenever the
 // gift preview changes.
-export const GIFT_PREVIEW_VERSION = "4";
+export const GIFT_PREVIEW_VERSION = "5";
 
 /** The shareable link for a Zero Club Gift, carrying the preview version. */
 export function giftLinkUrl(code: string): string {

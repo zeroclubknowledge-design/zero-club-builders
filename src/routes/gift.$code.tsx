@@ -63,9 +63,12 @@ export const Route = createFileRoute("/gift/$code")({
         ? `${amount} straight into your Zero Club wallet. Open to claim it.`
         : `${amount} of Zero Club credit for ${label}. Open to claim it.`);
 
-    // Dynamic raster PNG drawn directly for this exact gift card (amount, template, note, code)
+    // Direct, reliable raster PNG matching the created Zero Club card template
     // Sized 1200x630, standard OpenGraph format supported by WhatsApp, Telegram, X, iMessage.
-    const image = `https://www.zeroclubs.xyz/api/gift-card/${params.code}.png?v=4`;
+    const validTemplates = ["signature", "studio", "paper", "signal", "cobalt", "sun"];
+    const templateId = loaderData?.template_id;
+    const templateName = templateId && validTemplates.includes(templateId) ? templateId : "signature";
+    const image = `https://www.zeroclubs.xyz/gifts/card-${templateName}.png?v=5`;
 
     return {
       meta: [
@@ -75,7 +78,7 @@ export const Route = createFileRoute("/gift/$code")({
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "Zero Club" },
-        { property: "og:url", content: `https://www.zeroclubs.xyz/gift/${params.code}?v=4` },
+        { property: "og:url", content: `https://www.zeroclubs.xyz/gift/${params.code}?v=5` },
         { property: "og:image", content: image },
         { property: "og:image:secure_url", content: image },
         { property: "og:image:type", content: "image/png" },
