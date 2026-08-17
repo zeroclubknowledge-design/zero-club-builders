@@ -84,6 +84,7 @@ import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
 import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
+import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
 import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
 import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
@@ -469,6 +470,11 @@ const AppBootcampsIdRoute = AppBootcampsIdRouteImport.update({
   path: '/bootcamps/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiGiftImageCodeRoute = ApiGiftImageCodeRouteImport.update({
+  id: '/api/gift-image/$code',
+  path: '/api/gift-image/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
   id: '/api/gift-card/$code',
   path: '/api/gift-card/$code',
@@ -536,6 +542,7 @@ export interface FileRoutesByFullPath {
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
+  '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -613,6 +620,7 @@ export interface FileRoutesByTo {
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
+  '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -697,6 +705,7 @@ export interface FileRoutesById {
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
+  '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -782,6 +791,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/app/'
     | '/api/gift-card/$code'
+    | '/api/gift-image/$code'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -859,6 +869,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/app'
     | '/api/gift-card/$code'
+    | '/api/gift-image/$code'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -942,6 +953,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/app/'
     | '/api/gift-card/$code'
+    | '/api/gift-image/$code'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -1006,6 +1018,7 @@ export interface RootRouteChildren {
   GiftCodeRoute: typeof GiftCodeRoute
   ProductIdRoute: typeof ProductIdRouteWithChildren
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
+  ApiGiftImageCodeRoute: typeof ApiGiftImageCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1535,6 +1548,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBootcampsIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/gift-image/$code': {
+      id: '/api/gift-image/$code'
+      path: '/api/gift-image/$code'
+      fullPath: '/api/gift-image/$code'
+      preLoaderRoute: typeof ApiGiftImageCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/gift-card/$code': {
       id: '/api/gift-card/$code'
       path: '/api/gift-card/$code'
@@ -1805,6 +1825,7 @@ const rootRouteChildren: RootRouteChildren = {
   GiftCodeRoute: GiftCodeRoute,
   ProductIdRoute: ProductIdRouteWithChildren,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
+  ApiGiftImageCodeRoute: ApiGiftImageCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
