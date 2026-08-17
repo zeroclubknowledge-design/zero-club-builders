@@ -109,11 +109,11 @@ function DocsPage() {
     <div className="min-h-screen bg-[#f7f6f3] dark:bg-[#100e13] font-sans text-[#171717] dark:text-white">
       <PublicHeader section="Documentation" />
 
-      <div className="sticky top-16 z-30 flex h-12 items-center justify-between border-b border-[#171717]/[0.08] dark:border-white/10 bg-[#f7f6f3]/95 px-4 backdrop-blur-xl lg:hidden">
-        <button type="button" onClick={() => setMobileNavOpen(true)} className="flex items-center gap-2 text-[11px] font-semibold">
+      <div className="sticky top-16 z-30 flex h-12 items-center justify-between border-b border-[#171717]/[0.08] dark:border-white/10 bg-[#f7f6f3]/95 dark:bg-[#100e13]/95 px-4 backdrop-blur-xl lg:hidden">
+        <button type="button" onClick={() => setMobileNavOpen(true)} className="flex items-center gap-2 text-[11px] font-semibold text-[#171717] dark:text-white">
           <Menu className="h-4 w-4" /> All docs
         </button>
-        <span className="max-w-[58vw] truncate text-[10.5px] font-medium text-[#6f696d]">{page.title}</span>
+        <span className="max-w-[58vw] truncate text-[10.5px] font-medium text-[#6f696d] dark:text-white/55">{page.title}</span>
       </div>
 
       {mobileNavOpen && (
