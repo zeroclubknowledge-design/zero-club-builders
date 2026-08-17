@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePublicTheme } from "@/hooks/usePublicTheme";
 import {
   IconClubs,
   IconInstitution,
@@ -205,22 +206,9 @@ function BrandMark({ light = false }: { light?: boolean }) {
 }
 
 function Header({ referralCode }: ReferralProps) {
-  /*
-   * Public-page theme switch. Toggles the same `dark` class Tailwind reads,
-   * but restores whatever the document arrived with on unmount — so trying the
-   * dark landing page never rewrites a member's saved app theme. Nothing goes
-   * to localStorage on purpose: this is a look at the page, not a setting.
-   */
-  const [dark, setDark] = useState(
-    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
-  );
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const had = root.classList.contains("dark");
-    root.classList.toggle("dark", dark);
-    return () => { root.classList.toggle("dark", had); };
-  }, [dark]);
+  // Shared with sign in, sign up, docs and explore, so the choice survives
+  // leaving this page.
+  const { dark, toggle: toggleTheme } = usePublicTheme();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -268,7 +256,7 @@ function Header({ referralCode }: ReferralProps) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setDark((value) => !value)}
+            onClick={toggleTheme}
             title={dark ? "Switch to light" : "Switch to dark"}
             aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
             aria-pressed={dark}
@@ -279,7 +267,7 @@ function Header({ referralCode }: ReferralProps) {
           <Link
             to="/signin"
             search={{ ref: referralCode, club: undefined }}
-            className="hidden rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] transition-colors hover:bg-[#171717]/[0.04] sm:inline-flex"
+            className="hidden rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:inline-flex"
             preload={false}
           >
             Sign in
@@ -295,7 +283,7 @@ function Header({ referralCode }: ReferralProps) {
           </Link>
           <button
             type="button"
-            className="grid h-10 w-10 place-items-center rounded-full text-[#303236] transition hover:bg-[#171717]/[0.04] lg:hidden"
+            className="grid h-10 w-10 place-items-center rounded-full text-[#303236] transition hover:bg-[#171717]/[0.04] dark:text-white dark:hover:bg-white/10 lg:hidden"
             aria-label={isOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={isOpen}
             onClick={() => setIsOpen((value) => !value)}
@@ -313,8 +301,8 @@ function Header({ referralCode }: ReferralProps) {
             <div className="space-y-7">
               {mobileNavGroups.map((group) => (
                 <section key={group.label}>
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73]">{group.label}</p>
-                  <div className="divide-y divide-[#171717]/[0.08] border-y border-[#171717]/[0.08] dark:border-white/10">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73] dark:text-white/45">{group.label}</p>
+                  <div className="divide-y divide-[#171717]/[0.08] dark:divide-white/10 border-y border-[#171717]/[0.08] dark:border-white/10">
                     {group.items.map((item) => (
                       <a
                         key={item.label}
@@ -323,8 +311,8 @@ function Header({ referralCode }: ReferralProps) {
                         className="group flex items-center justify-between gap-4 py-3.5 transition-colors active:opacity-70"
                       >
                         <span>
-                          <span className="block font-display text-[28px] font-medium leading-none tracking-tight text-[#171417]">{item.label}</span>
-                          <span className="mt-1 block text-[11.5px] leading-5 text-[#6d6269]">{item.detail}</span>
+                          <span className="block font-display text-[28px] font-medium leading-none tracking-tight text-[#171417] dark:text-white">{item.label}</span>
+                          <span className="mt-1 block text-[11.5px] leading-5 text-[#6d6269] dark:text-white/55">{item.detail}</span>
                         </span>
                         <ArrowUpRight className="h-5 w-5 shrink-0 text-[#cc208f] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                       </a>
@@ -334,10 +322,10 @@ function Header({ referralCode }: ReferralProps) {
               ))}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-3">
-              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-[#171717]/12 dark:border-white/12 text-[13px] font-semibold text-[#242126]">
+              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-[#171717]/12 dark:border-white/12 text-[13px] font-semibold text-[#242126] dark:text-white">
                 Sign in
               </Link>
-              <Link to="/signup" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg bg-[#171417] px-4 text-[13px] font-semibold text-white">
+              <Link to="/signup" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg bg-[#171417] dark:bg-white px-4 text-[13px] font-semibold text-white dark:text-[#171417]">
                 Join Zero Club
               </Link>
             </div>

@@ -4,6 +4,7 @@ import { ArrowRight, ChevronLeft, Gift, Loader2, Mail, ShieldCheck, User } from 
 import { IconClubs, IconInstitution, IconPresentation, IconProfile } from "@/components/icons";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { usePublicTheme } from "@/hooks/usePublicTheme";
 
 export const Route = createFileRoute("/signup")({
   component: SignUpPage,
@@ -33,6 +34,8 @@ const proofPoints = [
 ];
 
 function SignUpPage() {
+  // Adopts the theme chosen on the landing page.
+  usePublicTheme();
   const router = useRouter();
   const { ref, club } = useSearch({ from: "/signup" });
   const [username, setUsername] = useState(() => localStorage.getItem("signup_username") || "");
@@ -194,7 +197,7 @@ function SignUpPage() {
   };
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] text-[#171417]">
+    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417]">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-[42vh] bg-[radial-gradient(circle_at_22%_14%,rgba(204,32,143,0.16),transparent_35%),radial-gradient(circle_at_84%_8%,rgba(143,88,73,0.14),transparent_30%)]" />
 
@@ -277,7 +280,7 @@ function SignUpPage() {
             <h1 className="font-display text-[40px] font-normal leading-[1.08] text-[#241f23] sm:text-[50px] lg:text-[44px] xl:text-[48px]">
               Start your Zero Club profile.
             </h1>
-            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] lg:mx-0 lg:mt-3">
+            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] dark:text-white/55 lg:mx-0 lg:mt-3">
               Choose your account type, reserve your handle, and enter with a secure email code.
             </p>
           </div>
@@ -301,7 +304,7 @@ function SignUpPage() {
                         className={`min-h-[96px] rounded-xl border p-3 text-left transition ${
                           accountType === role.id
                             ? "border-[#cc208f]/45 bg-[#cc208f]/9 text-[#9d176d] ring-4 ring-[#cc208f]/8"
-                            : "border-black/10 bg-[#fbfaf7] text-[#655b61] hover:bg-white"
+                            : "border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] text-[#655b61] hover:bg-white"
                         }`}
                       >
                         <role.Icon className="mb-3 h-6 w-6" active={accountType === role.id} />
@@ -322,7 +325,7 @@ function SignUpPage() {
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
@@ -336,7 +339,7 @@ function SignUpPage() {
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
@@ -351,13 +354,13 @@ function SignUpPage() {
                       placeholder="Enter referral code"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      className={`h-14 w-full rounded-xl border bg-[#fbfaf7] px-4 pl-11 pr-20 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10"}`}
+                      className={`h-14 w-full rounded-xl border bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 pr-20 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10"}`}
                     />
                     {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#9d176d]">Applied</span>}
                   </span>
                 </label>
 
-                <label className="flex items-start gap-3 rounded-xl border border-black/10 bg-[#fbfaf7] px-4 py-3">
+                <label className="flex items-start gap-3 rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3">
                   <input
                     type="checkbox"
                     checked={agreedToTerms}
@@ -394,7 +397,7 @@ function SignUpPage() {
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -407,10 +410,10 @@ function SignUpPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 bg-[#fbfaf7] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-xl border border-black/10 bg-[#fbfaf7] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
                     Go back
                   </button>
                 </div>

@@ -4,6 +4,7 @@ import { ArrowRight, ChevronLeft, Loader2, Mail, ShieldCheck } from "lucide-reac
 import { IconClubs, IconNotes, IconWallet } from "@/components/icons";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { usePublicTheme } from "@/hooks/usePublicTheme";
 
 export const Route = createFileRoute("/signin")({
   component: SignInPage,
@@ -27,6 +28,8 @@ const proofItems = [
 ];
 
 function SignInPage() {
+  // Adopts the theme chosen on the landing page.
+  usePublicTheme();
   const router = useRouter();
   const { ref, club } = useSearch({ from: "/signin" });
   const [email, setEmail] = useState(() => localStorage.getItem("signin_email") || "");
@@ -114,7 +117,7 @@ function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f8f6f1] text-[#171417]">
+    <div className="min-h-screen overflow-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417]">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-[42vh] bg-[radial-gradient(circle_at_24%_18%,rgba(204,32,143,0.16),transparent_34%),radial-gradient(circle_at_78%_8%,rgba(143,88,73,0.14),transparent_30%)]" />
 
@@ -149,7 +152,7 @@ function SignInPage() {
             <h1 className="font-display text-[42px] font-normal leading-[1.08] text-[#241f23] sm:text-[52px]">
               Return to your proof of work.
             </h1>
-            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] lg:mx-0">
+            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] dark:text-white/55 lg:mx-0">
               Sign in with a one-time email code and continue from your feed, clubs, bootcamps, wallet, and profile.
             </p>
           </div>
@@ -171,7 +174,7 @@ function SignInPage() {
                       placeholder="ada@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                      className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                     />
                   </span>
                 </label>
@@ -201,7 +204,7 @@ function SignInPage() {
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-14 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -214,10 +217,10 @@ function SignInPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 bg-[#fbfaf7] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-xl border border-black/10 bg-[#fbfaf7] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
+                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-xl border border-black/10 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] transition hover:bg-white">
                     Change email
                   </button>
                 </div>
