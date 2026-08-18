@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1 } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { ArrowLeft, X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1, FileStack } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadMedia } from "@/lib/storage";
@@ -427,7 +427,14 @@ function ComposePage() {
         <span className="absolute left-1/2 -translate-x-1/2 font-semibold text-foreground">
           Create Post
         </span>
-        <div className="w-10" /> {/* Spacer */}
+        {/* Reaching drafts used to require saving the post you were writing
+            first, which is a strange price to pay for looking at a list. */}
+        <Link
+          to="/app/drafts"
+          className="flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[12px] font-semibold text-foreground transition hover:bg-accent active:scale-95"
+        >
+          <FileStack className="h-4 w-4 text-muted-foreground" /> Drafts
+        </Link>
         </div>
       </header>
 
@@ -512,20 +519,7 @@ function ComposePage() {
 
           {/* Toolbar */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
-            <div className="flex items-center gap-4">
-              <label className="relative cursor-pointer transition active:scale-95 group">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center border border-border bg-card group-hover:bg-accent pointer-events-none">
-                  <ImageIcon className="h-4 w-4 text-foreground/70 group-hover:text-foreground" />
-                </div>
-                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-              </label>
-              <label className="relative cursor-pointer transition active:scale-95 group">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center border border-border bg-card group-hover:bg-accent pointer-events-none">
-                  <FileVideo className="h-4 w-4 text-foreground/70 group-hover:text-foreground" />
-                </div>
-                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="video/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-              </label>
-            </div>
+            <div />
             
             <button 
               onClick={() => {
@@ -563,6 +557,15 @@ function ComposePage() {
             style={toolbarPinned ? { bottom: keyboardInset } : undefined}
           >
             <div className={`flex items-center justify-center gap-1 rounded-lg border bg-background/95 p-2 backdrop-blur-md transition-shadow ${isEditorFocused ? 'border-foreground/20 shadow-lg' : 'border-border shadow-sm'}`}>
+              <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a photo">
+                <ImageIcon className="h-4 w-4" />
+                <input type="file" className="hidden" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />
+              </label>
+              <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a video">
+                <FileVideo className="h-4 w-4" />
+                <input type="file" className="hidden" accept="video/*" multiple onChange={handleMediaUpload} disabled={uploading} />
+              </label>
+              <div className="mx-1 h-5 w-px bg-border" />
               <button
                 type="button"
                 onMouseDown={(event) => { event.preventDefault(); insertFormatting('bold'); }}

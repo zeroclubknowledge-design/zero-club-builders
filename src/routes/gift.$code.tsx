@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 
 /**
- * Public landing page for a shared Zero Club Gift.
+ * Public landing page for a shared Zero Card.
  *
  * Gift links used to point at /app/gifts/<code>, which is inside the signed-in
  * app: client-rendered, behind auth, and therefore invisible to the crawler
@@ -49,16 +49,16 @@ export const Route = createFileRoute("/gift/$code")({
     const claimed = loaderData ? loaderData.status !== "active" : false;
 
     const title = !amount
-      ? "You have received a Zero Club Gift"
+      ? "You have received a Zero Card"
       : claimed
-      ? `This ${amount} Zero Club Gift has been claimed`
-      : `You have received a ${amount} Zero Club Gift`;
+      ? `This ${amount} Zero Card has been claimed`
+      : `You have received a ${amount} Zero Card`;
 
     const description =
       loaderData?.custom_purpose ||
       loaderData?.message ||
       (!amount
-        ? "Open your Zero Club Gift to claim it."
+        ? "Open your Zero Card to claim it."
         : loaderData!.service === "support" || loaderData!.service === "custom"
         ? `${amount} straight into your Zero Club wallet. Open to claim it.`
         : `${amount} of Zero Club credit for ${label}. Open to claim it.`);
@@ -82,7 +82,7 @@ export const Route = createFileRoute("/gift/$code")({
         { property: "og:image:type", content: "image/png" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: `${amount || "A"} Zero Club Gift` },
+        { property: "og:image:alt", content: `${amount || "A"} Zero Card` },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
@@ -136,7 +136,7 @@ function GiftLinkPage() {
               {claimed ? "Already claimed" : "A gift for you"}
             </p>
             <h1 className="mt-3 font-display text-[26px] font-semibold leading-tight tracking-tight">
-              {claimed ? "This gift has been claimed" : "You have received a Zero Club Gift"}
+              {claimed ? "This gift has been claimed" : "You have received a Zero Card"}
             </h1>
 
             <div className="mx-auto mt-7 flex w-full justify-center">

@@ -459,7 +459,7 @@ function WalletPage() {
             <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
             <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
 
-            {/* The same device the Zero Club Gift card uses: thick-bordered
+            {/* The same device the Zero Card card uses: thick-bordered
                 rings in the current colour at very low opacity. They read as
                 embossing on the material rather than as drawn lines, which is
                 why they add texture where the old hairline rule looked cheap. */}

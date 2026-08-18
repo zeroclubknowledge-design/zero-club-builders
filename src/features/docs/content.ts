@@ -275,7 +275,7 @@ export const docPages: DocPage[] = [
         paragraphs: ["Changing currency in Wallet settings updates monetary presentation across the product, including Gifts and supported commerce surfaces. A converted display does not rewrite the original transaction record."],
       },
       {
-        title: "Zero Club Gifts",
+        title: "Zero Cards",
         paragraphs: ["A Gift lets one member fund a specific next step for another. The creator selects an amount, a visual template, and the Zero Club service for which the value can be claimed."],
         bullets: ["The Gift is created only when the funding account can cover it.", "The recipient opens the shared gift and claims it into the intended service context.", "A successful claim confirms both the value and the newly available service.", "Purpose restriction prevents well-intended support from being spent elsewhere."],
       },

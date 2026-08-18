@@ -77,8 +77,8 @@ function GiftCardsPage() {
   const shareGift = (card: any) => {
     const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
     shareOrCopy({
-      title: "A Zero Club Gift for you",
-      text: `You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`,
+      title: "A Zero Card for you",
+      text: `You received a ${format(Number(card.amount))} Zero Card — ${label}.`,
       url: giftLinkUrl(card.code),
       copiedMessage: "Gift link copied",
     });
@@ -104,7 +104,7 @@ function GiftCardsPage() {
     onSuccess: (card) => {
       refetchUnclaimed();
       setCreatedCard(card);
-      toast.success("Your Zero Club Gift Card is ready.");
+      toast.success("Your Zero Card is ready.");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -132,7 +132,7 @@ function GiftCardsPage() {
 
       <main className="mx-auto grid min-w-0 max-w-[1080px] gap-6 px-4 py-6 md:px-7 md:py-8 lg:grid-cols-[minmax(0,1fr)_390px]">
         <section className="min-w-0 space-y-6">
-          <div><span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><Gift className="h-4 w-4 fill-current" />Zero Club Gifts</span><h2 className="mt-3 font-display text-[27px] font-semibold tracking-tight sm:text-[34px]">Give money, or give access.</h2><p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">Send cash straight to someone&rsquo;s wallet with Support, add a note on what it&rsquo;s for with Custom, or lock the value to one thing &mdash; a bootcamp, a membership, a product. You choose which below.</p></div>
+          <div><span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase text-primary"><Gift className="h-4 w-4 fill-current" />Zero Cards</span><h2 className="mt-3 font-display text-[27px] font-semibold tracking-tight sm:text-[34px]">Give money, or give access.</h2><p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">Send cash straight to someone&rsquo;s wallet with Support, add a note on what it&rsquo;s for with Custom, or lock the value to one thing &mdash; a bootcamp, a membership, a product. You choose which below.</p></div>
 
           {availableGifts.length > 0 && (
             <section className="rounded-xl border border-primary/20 bg-primary/[0.035] p-4 sm:p-5">

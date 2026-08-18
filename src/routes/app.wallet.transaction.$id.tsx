@@ -18,7 +18,7 @@ const SOURCE_LABELS: Record<string, { label: string; detail: string }> = {
   bootcamp: { label: "Bootcamp", detail: "Bootcamp enrolment" },
   store: { label: "Zero Store", detail: "A digital product on Zero Store" },
   referral: { label: "Referral commission", detail: "Your share from someone you referred" },
-  gift: { label: "Zero Club Gift", detail: "A gift card sent or claimed" },
+  gift: { label: "Zero Card", detail: "A gift card sent or claimed" },
   membership: { label: "Membership", detail: "Zero Club membership" },
   zero_form: { label: "Zero Form", detail: "A bootcamp registration form" },
   transfer: { label: "Transfer", detail: "Sent between Zero Club wallets" },

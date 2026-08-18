@@ -1,9 +1,5 @@
 import { useLoaderData, createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { 
-  Heart, MessageCircle, Share2, Plus, Bell, Repeat, 
-  Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2,
-  Radio, Video, ArrowRight
-} from "lucide-react";
+import { Heart, MessageCircle, Share2, Plus, Bell, Repeat, Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -495,48 +491,62 @@ function Feed() {
           </button>
         </DrawerTrigger>
         <DrawerContent className="mx-auto max-h-[72dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] focus:ring-0">
-          <DrawerTitle className="mb-1 text-[18px] font-semibold tracking-tight text-foreground">Create something</DrawerTitle>
-          <p className="mb-4 text-[12px] text-muted-foreground">Choose a format and get straight to work.</p>
+          {/* One shape for every option, so nothing looks like an
+              afterthought — the Go live tile was previously built by hand with
+              a different layout and a solid red chip, which made it read as a
+              warning rather than an invitation. */}
+          <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">Create something</DrawerTitle>
+          <p className="mb-4 mt-1 text-[12.5px] text-muted-foreground">Choose a format and get straight to work.</p>
+
           <div className="grid grid-cols-2 gap-2.5">
-            <Link to="/app/compose" className="group flex min-h-[108px] flex-col items-start rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:bg-accent/40">
-              <div className="h-11 w-11 shrink-0 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
-                <Pencil className="h-[18px] w-[18px] text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground text-[15px] tracking-tight">Post</h3>
-                <p className="text-[12.5px] text-muted-foreground mt-0.5 leading-snug">Start a conversation with the community.</p>
-              </div>
-              <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-            </Link>
+            {[
+              {
+                to: "/app/compose",
+                Icon: PenLine,
+                label: "Post",
+                copy: "Start a conversation",
+                tint: "bg-primary/[0.08] text-primary ring-primary/15",
+              },
+              {
+                to: "/app/ship",
+                Icon: Rocket,
+                label: "Ship",
+                copy: "Share proof of work",
+                tint: "bg-[#cc208f]/[0.08] text-[#cc208f] ring-[#cc208f]/15",
+              },
+              {
+                to: "/app/notes/create",
+                Icon: NotebookPen,
+                label: "Note",
+                copy: "Write something longer",
+                tint: "bg-emerald-500/[0.08] text-emerald-600 dark:text-emerald-400 ring-emerald-500/15",
+              },
+              {
+                onClick: () => { setCreateOpen(false); window.setTimeout(() => setLivePickerOpen(true), 180); },
+                Icon: Radio,
+                label: "Go live",
+                copy: "Open a community room",
+                tint: "bg-red-500/[0.08] text-red-500 ring-red-500/15",
+              },
+            ].map(({ to, onClick, Icon, label, copy, tint }) => {
+              const inner = (
+                <>
+                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ring-1 ${tint}`}>
+                    <Icon className="h-[19px] w-[19px]" strokeWidth={1.9} />
+                  </span>
+                  <span className="mt-3 block text-[15px] font-semibold tracking-tight text-foreground">{label}</span>
+                  <span className="mt-0.5 block text-[12px] leading-snug text-muted-foreground">{copy}</span>
+                </>
+              );
+              const className =
+                "flex min-h-[124px] flex-col items-start rounded-xl bg-card p-4 text-left ring-1 ring-border shadow-[0_1px_2px_rgba(0,0,0,0.03),0_10px_26px_-16px_rgba(0,0,0,0.18)] transition-all tap hover:-translate-y-0.5 hover:ring-foreground/15 active:scale-[0.98]";
 
-            <Link to="/app/ship" className="group flex min-h-[108px] flex-col items-start rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:bg-accent/40">
-              <div className="h-11 w-11 shrink-0 rounded-full bg-[#cc208f]/8 ring-1 ring-[#cc208f]/15 flex items-center justify-center">
-                <Rocket className="h-[18px] w-[18px] text-[#cc208f]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground text-[15px] tracking-tight">Ship</h3>
-                <p className="text-[12.5px] text-muted-foreground mt-0.5 leading-snug">Share proof of work and earn XP.</p>
-              </div>
-              <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-            </Link>
-
-            <Link to="/app/notes/create" className="group flex min-h-[108px] flex-col items-start rounded-lg bg-card p-3.5 ring-1 ring-border transition-all tap hover:bg-accent/40">
-              <div className="h-11 w-11 shrink-0 rounded-full bg-emerald-500/8 ring-1 ring-emerald-500/15 flex items-center justify-center">
-                <FileText className="h-[18px] w-[18px] text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground text-[15px] tracking-tight">Note</h3>
-                <p className="text-[12.5px] text-muted-foreground mt-0.5 leading-snug">Capture ideas, notes and learning insights.</p>
-              </div>
-              <span className="text-muted-foreground text-lg opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-            </Link>
-            <button
-              onClick={() => { setCreateOpen(false); window.setTimeout(() => setLivePickerOpen(true), 180); }}
-              className="flex min-h-[108px] flex-col items-start rounded-lg bg-red-500/[0.04] p-3.5 text-left ring-1 ring-red-500/20 transition-colors hover:bg-red-500/[0.08]"
-            >
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-red-500 text-white"><Radio className="h-[18px] w-[18px]" /></div>
-              <div className="mt-3"><h3 className="text-[15px] font-semibold tracking-tight">Go live</h3><p className="mt-0.5 text-[12px] text-muted-foreground">Open a community room.</p></div>
-            </button>
+              return to ? (
+                <Link key={label} to={to} className={className}>{inner}</Link>
+              ) : (
+                <button key={label} type="button" onClick={onClick} className={className}>{inner}</button>
+              );
+            })}
           </div>
         </DrawerContent>
       </Drawer>

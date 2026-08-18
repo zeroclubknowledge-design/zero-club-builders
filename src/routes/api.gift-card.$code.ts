@@ -52,7 +52,7 @@ function cardSvg(data: any): string {
   <circle cx="1120" cy="-40" r="230" fill="${t.ink}" opacity="0.05"/>
   <circle cx="90" cy="690" r="200" fill="${t.accent}" opacity="0.10"/>
 
-  <text x="80" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="${t.ink}">Zero Club Gift</text>
+  <text x="80" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="${t.ink}">Zero Card</text>
   <rect x="1010" y="74" width="110" height="52" rx="26" fill="${t.accent}"/>
   <text x="1065" y="108" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="800" fill="${t.accentInk}" letter-spacing="1">GIFT</text>
 

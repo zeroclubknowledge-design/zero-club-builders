@@ -3,7 +3,7 @@ import { ImageResponse } from "@vercel/og";
 import { supabase } from "@/lib/supabase";
 
 /**
- * The real Zero Club Gift card, rendered to PNG for link previews.
+ * The real Zero Card card, rendered to PNG for link previews.
  *
  * Everything before this was a compromise. Static per-template PNGs could not
  * carry the amount or the code, so a shared gift previewed as generic artwork.
@@ -82,7 +82,7 @@ async function renderCard(rawCode: string) {
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", fontSize: "30px", fontWeight: 600, color: t.ink }}>
-            Zero Club Gift
+            Zero Card
           </div>
           <div
             style={{

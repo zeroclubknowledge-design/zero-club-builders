@@ -66,7 +66,7 @@ export function ShareMenu({ url, text, title, className, label = "Share" }: Shar
     {
       label: "Email",
       Icon: Mail,
-      href: `mailto:?subject=${encodeURIComponent(title || "A Zero Club Gift for you")}&body=${encodeURIComponent(message)}`,
+      href: `mailto:?subject=${encodeURIComponent(title || "A Zero Card for you")}&body=${encodeURIComponent(message)}`,
     },
   ];
 

@@ -59,7 +59,7 @@ export function socialProductImageUrl(coverUrl: string): string {
 // gift preview changes.
 export const GIFT_PREVIEW_VERSION = "5";
 
-/** The shareable link for a Zero Club Gift, carrying the preview version. */
+/** The shareable link for a Zero Card, carrying the preview version. */
 export function giftLinkUrl(code: string): string {
   return `${appOrigin()}/gift/${code}?v=${GIFT_PREVIEW_VERSION}`;
 }

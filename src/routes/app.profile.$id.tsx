@@ -33,15 +33,38 @@ export const Route = createFileRoute("/app/profile/$id")({
       .from('profiles')
       .select('*');
     
-    const { data: profile, error } = await (isUuid 
-      ? query.eq('id', id) 
-      : query.ilike('username', id)
-    ).maybeSingle();
+    /*
+     * Never throws.
+     *
+     * This used to `throw error` on any failure and `throw new Error` when the
+     * row came back empty. A loader that throws takes the whole navigation
+     * down, so one slow or momentarily unauthenticated request meant the
+     * profile simply would not open — and trying again a few times eventually
+     * caught a good attempt. That is the "reload the app many times" symptom.
+     *
+     * None of those conditions are permanent. One retry covers the common
+     * transient case, and returning null lets the page render and fetch the
+     * profile itself on the client, where react-query retries properly.
+     */
+    const fetchProfile = async () =>
+      (isUuid ? supabase.from('profiles').select('*').eq('id', id)
+              : supabase.from('profiles').select('*').ilike('username', id)
+      ).maybeSingle();
 
-    if (error) throw error;
-    if (!profile) throw new Error("Profile not found");
+    try {
+      let { data: profile, error } = await fetchProfile();
 
-    return { profile };
+      // A single immediate retry: the usual cause is the auth token not being
+      // attached yet on a cold start, which resolves within milliseconds.
+      if (error || !profile) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        ({ data: profile } = await fetchProfile());
+      }
+
+      return { profile: profile ?? null };
+    } catch {
+      return { profile: null };
+    }
   },
   head: ({ loaderData }) => {
     const profile = loaderData?.profile;
@@ -84,8 +107,34 @@ const isVideoUrl = (url: string) => {
 
 function ProfileDetail() {
   const navigate = useNavigate();
-  const { profile } = Route.useLoaderData();
+  const { profile: loaderProfile } = Route.useLoaderData();
+
   const { id } = Route.useParams();
+
+  /*
+   * The client-side safety net.
+   *
+   * When the loader came back empty — a slow first request, a session that was
+   * not ready — this fetches the profile again with proper retries instead of
+   * leaving the page broken until somebody reloads the app.
+   */
+  const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile-detail", id],
+    enabled: !loaderProfile,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(400 * 2 ** attempt, 3000),
+    queryFn: async () => {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      const { data, error } = await (isUuid
+        ? supabase.from("profiles").select("*").eq("id", id)
+        : supabase.from("profiles").select("*").ilike("username", id)
+      ).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const profile = loaderProfile ?? fetchedProfile ?? null;
   const queryClient = useQueryClient();
   
   const { data: networkStats } = useQuery({

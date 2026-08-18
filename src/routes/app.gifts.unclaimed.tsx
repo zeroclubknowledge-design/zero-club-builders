@@ -59,7 +59,7 @@ function UnclaimedGiftsPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="min-w-0">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Club Gifts</p>
+              <p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Cards</p>
               <h1 className="truncate text-[18px] font-semibold tracking-tight">Unclaimed</h1>
             </div>
           </div>
@@ -127,8 +127,8 @@ function UnclaimedGiftsPage() {
                         </button>
                         <ShareMenu
                           url={giftUrl(card.code)}
-                          title="A Zero Club Gift for you"
-                          text={`You received a ${format(Number(card.amount))} Zero Club Gift — ${label}.`}
+                          title="A Zero Card for you"
+                          text={`You received a ${format(Number(card.amount))} Zero Card — ${label}.`}
                           className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
                         />
                       </div>
