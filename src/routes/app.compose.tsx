@@ -517,28 +517,6 @@ function ComposePage() {
             </div>
           )}
 
-          {/* Toolbar */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
-            <div />
-            
-            <button 
-              onClick={() => {
-                const newState = !isBuild;
-                setIsBuild(newState);
-                if (newState && enrolledBootcamps.length > 0) {
-                  setSelectedBootcampId(enrolledBootcamps[0].id);
-                } else {
-                  setSelectedBootcampId(null);
-                }
-              }}
-              className={`text-[12px] font-semibold tracking-tight px-4 py-1.5 rounded-full border tap ${
-                isBuild ? "border-primary/40 text-primary bg-primary/8" : "border-border text-muted-foreground hover:bg-foreground/[0.03]"
-              }`}
-            >
-              Build
-            </button>
-          </div>
-
           {/* Sits directly on top of the keyboard while writing.
               `sticky` alone could not do this: it is measured against the
               layout viewport, which the keyboard covers rather than shrinks, so
