@@ -398,7 +398,7 @@ function SidebarContent({
               { Icon: IconProfile, label: "Profile", to: "/app/profile" },
               { Icon: IconClubs, label: "Clubs", to: "/app/clubs", learnerDesktopOnly: isLearnerAccount },
               { Icon: IconGames, label: "Zero Games", to: "/app/games", desktopOnly: true },
-              { Icon: IconGem, label: "Membership", to: "/app/premium" },
+              { Icon: IconGem, label: "Go PRO", to: "/app/premium" },
               ...(String(profile?.tier || "").toLowerCase() === "creator"
                 ? [{ Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" }]
                 : []),
@@ -428,13 +428,13 @@ function SidebarContent({
                 to={item.to}
                 activeOptions={{ exact: !!item.exact }}
                 activeProps={{ className: "bg-primary/[0.08] !font-semibold !text-foreground" }}
-                className={`group ${item.desktopOnly || item.learnerDesktopOnly ? "hidden md:flex" : "flex"} items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98]`}
+                className={`group ${item.desktopOnly || item.learnerDesktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-lg px-3 py-3 text-[15.5px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98] md:py-2.5 md:text-[14px]`}
               >
                 {({ isActive }: { isActive: boolean }) => (
                   <>
                     <item.Icon
                       active={isActive}
-                      className={`h-[19px] w-[19px] transition-all duration-200 ${isActive ? "scale-110 text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                      className={`h-[21px] w-[21px] shrink-0 transition-all duration-200 md:h-[19px] md:w-[19px] ${isActive ? "scale-110 text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
                     />
                     <span className="min-w-0 flex-1 truncate">{item.label}</span>
                     {item.badge > 0 && (
@@ -616,7 +616,7 @@ function DesktopWorkspaceRail({
         ? [
             { label: "Creator Workspace", to: "/app/creator", Icon: IconClubs },
             { label: "Manage Clubs", to: "/app/clubs", Icon: Users },
-            { label: "Membership", to: "/app/premium", Icon: IconGem },
+            { label: "Go PRO", to: "/app/premium", Icon: IconGem },
           ]
         : [
           { label: "Ship work", to: "/app/ship", Icon: Rocket },
@@ -1347,7 +1347,7 @@ function AppLayout() {
             />
             {/* Floating sidebar panel */}
             <div
-              className={`fixed bottom-3 left-3 top-3 z-[80] flex w-[min(310px,calc(100vw-24px))] flex-col overflow-hidden rounded-xl border border-border/70 bg-background shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
+              className={`fixed bottom-3 left-3 top-3 z-[80] flex w-[min(440px,calc(100vw-72px))] flex-col overflow-hidden rounded-xl border border-border/70 bg-background shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
             >
               <SidebarContent
                 profile={profile}

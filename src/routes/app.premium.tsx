@@ -352,10 +352,7 @@ function MembershipPage() {
       <main className="mx-auto max-w-[1180px] px-4 py-6 md:px-7 md:py-9">
         <section className="grid gap-6 border-b border-border pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase text-primary">
-              <Sparkles className="h-4 w-4 fill-current" /> Membership built around your work
-            </span>
-            <h2 className="mt-3 font-display text-[30px] font-semibold leading-tight tracking-tight sm:text-[40px]">
+            <h2 className="mt-0 font-display text-[30px] font-semibold leading-tight tracking-tight sm:text-[40px]">
               Choose what helps you move forward.
             </h2>
             <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-muted-foreground sm:text-[15px]">
