@@ -306,10 +306,38 @@
     100% { opacity: 0; transform: translateY(-190px) translateX(4px) scale(0.85); }
   }
 
+  /* Go PRO — the brand mark, alive.
+     Four separate movements rather than one, because a single spinning ring
+     reads as a loading spinner. Together they read as something orbiting. */
+  @keyframes zc-pro-spin { to { transform: rotate(360deg); } }
+  @keyframes zc-pro-spin-reverse { to { transform: rotate(-360deg); } }
+  @keyframes zc-pro-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-6px) scale(1.04); }
+  }
+  @keyframes zc-pro-halo {
+    0%, 100% { opacity: 0.4;  transform: scale(0.92); }
+    50%      { opacity: 0.85; transform: scale(1.1); }
+  }
+  @keyframes zc-pro-twinkle {
+    0%, 100% { opacity: 0.12; transform: scale(0.7); }
+    50%      { opacity: 0.85; transform: scale(1); }
+  }
+  .zc-pro-spin         { animation: zc-pro-spin 16s linear infinite; }
+  .zc-pro-spin-reverse { animation: zc-pro-spin-reverse 24s linear infinite; }
+  .zc-pro-float        { animation: zc-pro-float 4.6s ease-in-out infinite; }
+  .zc-pro-halo         { animation: zc-pro-halo 4.6s ease-in-out infinite; }
+  .zc-pro-twinkle      { animation: zc-pro-twinkle 3.4s ease-in-out infinite; }
+
   @media (prefers-reduced-motion: reduce) {
     .zc-activity-rail,
     .zc-showcase-float,
-    .zc-showcase-float-delayed { animation: none; }
+    .zc-showcase-float-delayed,
+    .zc-pro-spin,
+    .zc-pro-spin-reverse,
+    .zc-pro-float,
+    .zc-pro-halo,
+    .zc-pro-twinkle { animation: none; }
 
     /* Reactions still need to appear and clear themselves, so this fades
        rather than disabling the animation outright. */

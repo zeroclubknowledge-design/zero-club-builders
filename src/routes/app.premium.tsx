@@ -1,18 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
+  BadgeCheck,
   BarChart3,
-  BookOpen,
+  Bot,
   Building2,
   CalendarDays,
   Check,
   ChevronLeft,
   GraduationCap,
+  LifeBuoy,
   Loader2,
+  PenLine,
   ShieldCheck,
-  Sparkles,
+  Trophy,
   Users,
   Wallet,
+  Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -167,32 +171,92 @@ const plans: Plan[] = [
   },
 ];
 
-const audienceCopy: Record<Audience, { title: string; description: string; icon: typeof GraduationCap }> = {
+const audienceCopy: Record<Audience, { title: string; description: string }> = {
   Learner: {
-    title: "Build proof that opens doors",
+    title: "Don’t learn in silence",
     description: "Learn, publish progress, join focused communities, and make your work easier to discover.",
-    icon: GraduationCap,
   },
   Creator: {
     title: "Build communities that compound",
-    description: "Move beyond participation and operate up to three permanent Clubs with management, insight, and a first-Club premium runway.",
-    icon: Users,
+    description: "Operate up to three permanent Clubs with management, insight, and a first-Club premium runway.",
   },
   Tutor: {
     title: "Turn expertise into outcomes",
     description: "Package knowledge, run structured cohorts, support learners, and earn from your teaching.",
-    icon: BookOpen,
   },
   Institution: {
     title: "Coordinate learning at scale",
     description: "Bring tutors, bootcamps, communities, and learner signals into one accountable workspace.",
-    icon: Building2,
   },
 };
+
+/*
+ * A feature line deserves its own icon, the way the reference does it — a
+ * column of identical ticks tells you nothing about what you are getting.
+ * First match wins, so the list is ordered from most specific to least.
+ */
+const FEATURE_ICONS: Array<[RegExp, typeof Check]> = [
+  [/zero ai|ai (assistance|curriculum|cohort|interview)|assistant/i, Bot],
+  [/game|competition/i, Trophy],
+  [/verified|badge/i, BadgeCheck],
+  [/analytic|insight|oversight|signal/i, BarChart3],
+  [/club|community|member|moderation|campus/i, Users],
+  [/xp|multiplier|reward|earn/i, Zap],
+  [/trial|6 months|renewal/i, CalendarDays],
+  [/bootcamp|curriculum|cohort|learner|programme|program/i, GraduationCap],
+  [/post|profile|feed|publish|edit|note/i, PenLine],
+  [/discount|pricing|coupon|wallet|sell/i, Wallet],
+  [/support|onboarding|priority|implementation/i, LifeBuoy],
+  [/hub|organisation|organization|role/i, Building2],
+];
+
+function featureIcon(text: string) {
+  for (const [pattern, Icon] of FEATURE_ICONS) if (pattern.test(text)) return Icon;
+  return Check;
+}
+
+/** Fixed positions, so the field is the same every render — no re-layout flicker. */
+const STARS = [
+  { top: "12%", left: "9%", size: 3, delay: "0s" },
+  { top: "22%", left: "84%", size: 4, delay: "0.7s" },
+  { top: "38%", left: "16%", size: 2, delay: "1.4s" },
+  { top: "8%", left: "62%", size: 2, delay: "2.1s" },
+  { top: "44%", left: "91%", size: 3, delay: "0.4s" },
+  { top: "30%", left: "44%", size: 2, delay: "1.8s" },
+  { top: "17%", left: "31%", size: 2, delay: "2.6s" },
+];
+
+function AnimatedBrandMark() {
+  return (
+    <div className="relative mx-auto grid h-[118px] w-[118px] place-items-center">
+      {/* Glow first, so the mark sits inside its own light. */}
+      <span
+        aria-hidden
+        className="zc-pro-halo absolute inset-[-14px] rounded-full bg-[radial-gradient(circle,rgba(204,32,143,0.55)_0%,rgba(204,32,143,0.12)_45%,transparent_70%)] blur-[10px]"
+      />
+
+      {/* A bare rotating ring reads as a spinner; the travelling dot is what
+          makes it read as an orbit. */}
+      <span aria-hidden className="zc-pro-spin absolute inset-0 rounded-full border border-white/12">
+        <span className="absolute left-1/2 top-0 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f06ac3] shadow-[0_0_12px_rgba(240,106,195,0.95)]" />
+      </span>
+      <span aria-hidden className="zc-pro-spin-reverse absolute inset-[13px] rounded-full border border-dashed border-white/[0.09]">
+        <span className="absolute bottom-0 left-1/2 h-1 w-1 -translate-x-1/2 translate-y-1/2 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+      </span>
+
+      <img
+        src="/logo.png"
+        alt="Zero Club"
+        className="zc-pro-float relative h-[54px] w-[54px] object-contain drop-shadow-[0_12px_30px_rgba(204,32,143,0.55)]"
+      />
+    </div>
+  );
+}
 
 function MembershipPage() {
   const queryClient = useQueryClient();
   const [audience, setAudience] = useState<Audience>("Learner");
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [showInstitutionForm, setShowInstitutionForm] = useState(false);
   const [applyZeroGift, setApplyZeroGift] = useState(false);
 
@@ -233,6 +297,17 @@ function MembershipPage() {
     [audience]
   );
 
+  /*
+   * Derived, not synced. Storing the selection and then correcting it from an
+   * effect when the audience changes is the classic way to end up with a
+   * render loop; falling back here means switching audience simply lands on
+   * that audience's headline plan with nothing to keep in step.
+   */
+  const selectedPlan =
+    visiblePlans.find((plan) => plan.id === selectedPlanId) ||
+    visiblePlans.find((plan) => plan.featured) ||
+    visiblePlans[0];
+
   const subscribeMutation = useMutation({
     mutationFn: async (plan: Plan) => {
       if (!profile) throw new Error("Please sign in to manage your membership.");
@@ -270,7 +345,7 @@ function MembershipPage() {
         plan.storedTier === "Basic"
           ? "Switched to Basic."
           : giftApplied > 0
-            ? `${formatNaira(giftApplied)} Zero Gift applied. ${plan.name} is now active.`
+            ? `${formatNaira(giftApplied)} Zero Card applied. ${plan.name} is now active.`
             : `${plan.name} is now active.`
       );
     },
@@ -294,7 +369,7 @@ function MembershipPage() {
       queryClient.invalidateQueries({ queryKey: ["my_profile"] });
       queryClient.invalidateQueries({ queryKey: zeroGiftBalanceQueryKey("membership") });
       const giftApplied = Math.max(0, Number(payment?.gift_applied) || 0);
-      toast.success(giftApplied > 0 ? `${formatNaira(giftApplied)} Zero Gift applied. Membership renewed.` : "Membership renewed.");
+      toast.success(giftApplied > 0 ? `${formatNaira(giftApplied)} Zero Card applied. Membership renewed.` : "Membership renewed.");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -311,11 +386,10 @@ function MembershipPage() {
   const currentPlanKey = membershipDashboard?.plan_key || resolvePlanKey(profile);
   const activeSubscription = membershipDashboard?.subscription;
 
-  const isCurrentPlan = (plan: Plan) => {
-    return Boolean(plan.planKey && plan.planKey === currentPlanKey);
-  };
+  const isCurrentPlan = (plan?: Plan) => Boolean(plan?.planKey && plan.planKey === currentPlanKey);
 
-  const handlePlanAction = (plan: Plan) => {
+  const handlePlanAction = (plan?: Plan) => {
+    if (!plan) return;
     if (isCurrentPlan(plan) && !plan.id.startsWith("institution-")) return;
     // Institutions go through onboarding rather than a one-click purchase.
     if (plan.id.startsWith("institution-")) {
@@ -325,20 +399,29 @@ function MembershipPage() {
     subscribeMutation.mutate(plan);
   };
 
-  const selectedAudience = audienceCopy[audience];
-  const AudienceIcon = selectedAudience.icon;
+  const copy = audienceCopy[audience];
+  const selectedIsCurrent = isCurrentPlan(selectedPlan);
+  const selectedIsInstitution = Boolean(selectedPlan?.id.startsWith("institution-"));
+  const priceText =
+    selectedPlan?.priceValue === null
+      ? "Custom"
+      : selectedPlan?.priceValue === 0
+        ? "Free"
+        : formatNaira(selectedPlan?.priceValue || 0);
+
+  const ctaBusy = subscribeMutation.isPending && subscribeMutation.variables?.id === selectedPlan?.id;
 
   return (
-    <div className="min-h-screen bg-background pb-20 text-foreground">
+    <div className="min-h-screen bg-background pb-24 text-foreground">
       <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-[680px] items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <Link to="/app" aria-label="Back" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
               <ChevronLeft className="h-5 w-5" />
             </Link>
             <div className="min-w-0">
               <p className="text-[11px] font-medium uppercase text-muted-foreground">Zero Club</p>
-              <h1 className="truncate text-[19px] font-semibold tracking-tight">Membership</h1>
+              <h1 className="truncate text-[19px] font-semibold tracking-tight">Go PRO</h1>
             </div>
           </div>
           <div className="hidden items-center gap-2 text-[12px] text-muted-foreground sm:flex">
@@ -349,57 +432,181 @@ function MembershipPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1180px] px-4 py-6 md:px-7 md:py-9">
-        <section className="grid gap-6 border-b border-border pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <div className="max-w-2xl">
-            <h2 className="mt-0 font-display text-[30px] font-semibold leading-tight tracking-tight sm:text-[40px]">
-              Choose what helps you move forward.
+      <main className="mx-auto max-w-[680px] px-4 py-5 md:px-7 md:py-8">
+        {/* One committed dark stage, whichever theme the app is in — the same
+            decision the wallet card makes. Membership should feel like the
+            expensive room, not another settings page. */}
+        <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(125%_95%_at_50%_-15%,#33203a_0%,#1b1520_42%,#0c0a0e_100%)] px-4 pb-6 pt-8 text-white shadow-[0_30px_80px_-40px_rgba(0,0,0,0.85)] sm:px-6">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            {STARS.map((star, index) => (
+              <span
+                key={index}
+                className="zc-pro-twinkle absolute rounded-full bg-[#7cc8ff]"
+                style={{ top: star.top, left: star.left, height: star.size, width: star.size, animationDelay: star.delay }}
+              />
+            ))}
+            <span className="absolute -right-24 -top-28 h-72 w-72 rounded-full border-[64px] border-white/[0.03]" />
+          </div>
+
+          <div className="relative">
+            <AnimatedBrandMark />
+
+            <h2 className="mx-auto mt-5 max-w-[19ch] text-center font-display text-[25px] font-semibold leading-[1.15] tracking-tight sm:text-[29px]">
+              {copy.title.split(" ").slice(0, -1).join(" ")}{" "}
+              <span className="text-[#f06ac3]">{copy.title.split(" ").slice(-1)}</span>
             </h2>
-            <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-muted-foreground sm:text-[15px]">
-              Zero Club memberships support the different ways people learn, teach, build communities, and operate programs.
+            <p className="mx-auto mt-2.5 max-w-[36ch] text-center text-[12.5px] leading-relaxed text-white/55">
+              {copy.description}
+            </p>
+
+            {/* Audience tabs — underlined, one row, scrollable rather than
+                wrapping, so the row never changes height. */}
+            <div
+              role="tablist"
+              aria-label="Choose your pathway"
+              className="no-scrollbar mt-6 flex gap-1 overflow-x-auto border-b border-white/10"
+            >
+              {(["Learner", "Creator", "Tutor", "Institution"] as Audience[]).map((item) => {
+                const active = audience === item;
+                return (
+                  <button
+                    key={item}
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => { setAudience(item); setSelectedPlanId(null); }}
+                    className={`relative shrink-0 px-4 pb-3 pt-1 text-[14px] font-semibold tracking-tight transition-colors ${active ? "text-white" : "text-white/45 hover:text-white/75"}`}
+                  >
+                    {item}
+                    <span
+                      className={`absolute inset-x-2 bottom-0 h-[2.5px] rounded-full bg-white transition-opacity ${active ? "opacity-100" : "opacity-0"}`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* What you get. */}
+            <div className="mt-5 rounded-xl bg-white/[0.045] p-4 ring-1 ring-white/[0.08] sm:p-5">
+              <ul className="space-y-[15px]">
+                {selectedPlan?.features.map((feature) => {
+                  const Icon = featureIcon(feature);
+                  return (
+                    <li key={feature} className="flex items-start gap-3.5">
+                      <Icon className="mt-[1px] h-[18px] w-[18px] shrink-0 text-white/85" strokeWidth={1.8} />
+                      <span className="text-[13.5px] leading-snug text-white/90">{feature}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {selectedPlan?.limitations && selectedPlan.limitations.length > 0 && (
+                <div className="mt-5 border-t border-white/10 pt-4">
+                  <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Not included</p>
+                  <ul className="space-y-2.5">
+                    {selectedPlan.limitations.map((limitation) => (
+                      <li key={limitation} className="flex items-start gap-3.5 text-[12.5px] text-white/45">
+                        <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-current" />
+                        <span>{limitation}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Price selector. The chosen tile is outlined in white and the
+                others recede — the same read as the reference. */}
+            <div className="mt-5 grid grid-cols-2 gap-2.5">
+              {visiblePlans.map((plan, index) => {
+                const active = plan.id === selectedPlan?.id;
+                const current = isCurrentPlan(plan);
+                const spanFull = visiblePlans.length % 2 === 1 && index === visiblePlans.length - 1;
+                return (
+                  <button
+                    key={plan.id}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    aria-pressed={active}
+                    className={`${spanFull ? "col-span-2" : ""} rounded-xl border p-3.5 text-left transition ${
+                      active
+                        ? "border-white bg-white/[0.07] shadow-[0_0_0_1px_rgba(255,255,255,0.35)]"
+                        : "border-white/12 hover:border-white/25"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-[14px] font-semibold tracking-tight ${active ? "text-white" : "text-white/55"}`}>
+                        {plan.name}
+                      </span>
+                      {current ? (
+                        <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-emerald-300">Current</span>
+                      ) : plan.featured ? (
+                        <span className={`text-[11px] font-semibold ${active ? "text-[#f06ac3]" : "text-[#f06ac3]/55"}`}>Popular</span>
+                      ) : null}
+                    </div>
+                    <p className={`mt-1.5 text-[17px] font-semibold tracking-tight tabular-nums ${active ? "text-white" : "text-white/45"}`}>
+                      {plan.priceValue === null ? "Custom" : plan.priceValue === 0 ? "Free" : formatNaira(plan.priceValue)}
+                      <span className={`ml-1 text-[11px] font-medium ${active ? "text-white/50" : "text-white/30"}`}>{plan.billingLabel}</span>
+                    </p>
+                    <p className={`mt-1 text-[11px] leading-snug ${active ? "text-white/50" : "text-white/30"}`}>{plan.eyebrow}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Zero Card credit, if any is waiting. Hides itself when there is
+                none, so this space is normally empty. */}
+            <div className="mt-3">
+              <ZeroGiftPaymentOption
+                service="membership"
+                amount={selectedPlan?.priceValue || 0}
+                applied={applyZeroGift}
+                onAppliedChange={setApplyZeroGift}
+                formatAmount={formatNaira}
+                dark
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handlePlanAction(selectedPlan)}
+              disabled={ctaBusy || isLoading || (selectedIsCurrent && !selectedIsInstitution)}
+              className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-white text-[15px] font-semibold tracking-tight text-[#12101a] transition hover:bg-white/92 active:scale-[0.985] disabled:cursor-default disabled:bg-white/25 disabled:text-white/60"
+            >
+              {ctaBusy ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : selectedIsCurrent && !selectedIsInstitution ? (
+                "Your current membership"
+              ) : selectedIsInstitution ? (
+                <>Start institution onboarding <ArrowRight className="h-4 w-4" /></>
+              ) : selectedPlan?.priceValue === 0 ? (
+                "Switch to Basic"
+              ) : (
+                <>Subscribe &amp; Pay</>
+              )}
+            </button>
+
+            <p className="mt-3 text-center text-[11.5px] text-white/45">
+              {selectedIsInstitution
+                ? "A 30-day trial starts once your organisation is verified."
+                : selectedPlan?.priceValue === 0
+                  ? "No payment needed. Basic stays free."
+                  : `${priceText} ${selectedPlan?.billingLabel}, paid from your Zero Club wallet.`}
+            </p>
+
+            <p className="mt-4 rounded-lg border border-white/10 p-3 text-[10.5px] italic leading-relaxed text-white/40">
+              By subscribing you agree to the Zero Club <Link to="/docs" className="underline underline-offset-2 hover:text-white/70">Terms</Link>.
+              Membership is charged from your Zero Club wallet and does not renew by itself unless you switch auto-renew on.
+              You can change plan or cancel at any time; prices are subject to change.
             </p>
           </div>
-
-          <div className="grid grid-cols-2 rounded-lg border border-border bg-card p-1 sm:grid-cols-4" aria-label="Choose your plan pathway">
-            {(["Learner", "Creator", "Tutor", "Institution"] as Audience[]).map((item) => (
-              <button
-                key={item}
-                onClick={() => setAudience(item)}
-                className={`min-w-0 rounded-md px-3 py-2.5 text-[12px] font-semibold transition sm:px-4 ${audience === item ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-6 flex items-start gap-4 rounded-lg border border-primary/20 bg-primary/[0.045] p-4 sm:p-5">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <AudienceIcon className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="text-[15px] font-semibold tracking-tight">{selectedAudience.title}</h3>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{selectedAudience.description}</p>
-          </div>
-        </section>
-
-        <section className="mt-4 max-w-xl">
-          <ZeroGiftPaymentOption
-            service="membership"
-            amount={0}
-            applied={applyZeroGift}
-            onAppliedChange={setApplyZeroGift}
-            formatAmount={formatNaira}
-          />
         </section>
 
         {activeSubscription && (
-          <section className="mt-6 grid gap-4 border-y border-border bg-card px-4 py-5 sm:grid-cols-[1fr_auto] sm:items-center sm:px-5">
+          <section className="mt-4 grid gap-4 rounded-xl border border-border bg-card px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center sm:px-5">
             <div className="flex min-w-0 items-start gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><CalendarDays className="h-4 w-4" /></span>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CalendarDays className="h-4 w-4" /></span>
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Current membership</p>
-                <p className="mt-1 text-[14px] font-semibold">{membershipDashboard?.plan?.name || currentPlanKey.replaceAll("_", " ")}</p>
+                <p className="mt-1 text-[14px] font-semibold">{membershipDashboard?.plan?.name || String(currentPlanKey).replaceAll("_", " ")}</p>
                 <p className="mt-1 text-[10.5px] text-muted-foreground">
                   Status: <span className="capitalize text-foreground">{String(activeSubscription.status).replaceAll("_", " ")}</span>
                   {activeSubscription.renewal_date && <> · Renewal {new Date(activeSubscription.renewal_date).toLocaleDateString()}</>}
@@ -407,100 +614,26 @@ function MembershipPage() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => autoRenewMutation.mutate(!activeSubscription.auto_renew)} disabled={autoRenewMutation.isPending} className={`h-9 rounded-md border px-3 text-[10.5px] font-semibold ${activeSubscription.auto_renew ? "border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-700 dark:text-emerald-400" : "border-border text-muted-foreground"}`}>
+              <button type="button" onClick={() => autoRenewMutation.mutate(!activeSubscription.auto_renew)} disabled={autoRenewMutation.isPending} className={`h-9 rounded-lg border px-3 text-[10.5px] font-semibold ${activeSubscription.auto_renew ? "border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-700 dark:text-emerald-400" : "border-border text-muted-foreground"}`}>
                 Auto-renew {activeSubscription.auto_renew ? "On" : "Off"}
               </button>
-              <button type="button" onClick={() => renewMutation.mutate()} disabled={renewMutation.isPending} className="h-9 rounded-md bg-foreground px-3 text-[10.5px] font-semibold text-background disabled:opacity-50">
+              <button type="button" onClick={() => renewMutation.mutate()} disabled={renewMutation.isPending} className="h-9 rounded-lg bg-foreground px-3 text-[10.5px] font-semibold text-background disabled:opacity-50">
                 {renewMutation.isPending ? "Renewing..." : "Renew now"}
               </button>
             </div>
           </section>
         )}
 
-        <section className={`mt-6 grid gap-4 ${visiblePlans.length === 1 ? "max-w-xl" : visiblePlans.length >= 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
-          {visiblePlans.map((plan) => {
-            const current = isCurrentPlan(plan);
-            const institutional = plan.id.startsWith("institution-");
-            const isRecommended = plan.recommendedFor === audience;
-            const darkCard = Boolean(plan.featured);
-            return (
-              <article key={plan.id} className={`relative overflow-hidden rounded-lg border p-5 sm:p-6 ${darkCard ? "border-primary/35 bg-[#171218] text-white" : "border-border bg-card"}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className={`text-[10px] font-semibold uppercase ${darkCard ? "text-[#f06ac3]" : "text-primary"}`}>{plan.eyebrow}</p>
-                    <h3 className="mt-2 text-[22px] font-semibold tracking-tight">{plan.name}</h3>
-                  </div>
-                  {(current || isRecommended) && (
-                    <span className={`rounded-md px-2 py-1 text-[9px] font-semibold uppercase ${current ? "bg-emerald-500/15 text-emerald-400" : "bg-primary/15 text-[#f06ac3]"}`}>
-                      {current ? "Current" : "Recommended"}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-5 flex items-end gap-1.5">
-                  <span className="text-[29px] font-semibold tracking-tight tabular-nums">{plan.priceValue === null ? "Custom" : plan.priceValue === 0 ? "Free" : formatNaira(plan.priceValue)}</span>
-                  <span className={`pb-1 text-[11px] ${darkCard ? "text-white/50" : "text-muted-foreground"}`}>{plan.billingLabel}</span>
-                </div>
-                {plan.pricingNote && <p className={`mt-2 text-[10.5px] ${plan.featured ? "text-[#f28fd0]" : "text-primary"}`}>{plan.pricingNote}</p>}
-                <p className={`mt-3 text-[13px] leading-relaxed ${darkCard ? "text-white/60" : "text-muted-foreground"}`}>{plan.description}</p>
-
-                <div className={`my-5 h-px ${darkCard ? "bg-white/10" : "bg-border"}`} />
-                <ul className="space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2.5 text-[12.5px]">
-                      <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${darkCard ? "bg-[#cc208f] text-white" : "bg-primary/10 text-primary"}`}>
-                        <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                      </span>
-                      <span className={darkCard ? "text-white/78" : "text-foreground/80"}>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {plan.limitations && plan.limitations.length > 0 && (
-                  <div className={`mt-5 border-t pt-4 ${darkCard ? "border-white/10" : "border-border"}`}>
-                    <p className={`mb-2.5 text-[10px] font-semibold uppercase ${darkCard ? "text-white/45" : "text-muted-foreground"}`}>Not included</p>
-                    <ul className="space-y-2.5">
-                      {plan.limitations.map((limitation) => (
-                        <li key={limitation} className={`flex items-start gap-2.5 text-[12px] ${darkCard ? "text-white/50" : "text-muted-foreground"}`}>
-                          <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-current" />
-                          <span>{limitation}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => handlePlanAction(plan)}
-                  disabled={subscribeMutation.isPending || isLoading || (current && !institutional)}
-                  className={`mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg text-[13px] font-semibold transition disabled:cursor-default disabled:opacity-60 ${darkCard ? "bg-white text-black hover:bg-white/90" : "bg-primary text-primary-foreground hover:opacity-90"}`}
-                >
-                  {subscribeMutation.isPending && subscribeMutation.variables?.id === plan.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : current && !institutional ? (
-                    "Current membership"
-                  ) : institutional ? (
-                    <>Start institution onboarding<ArrowRight className="h-4 w-4" /></>
-                  ) : (
-                    <>Choose {plan.name}<ArrowRight className="h-4 w-4" /></>
-                  )}
-                </button>
-              </article>
-            );
-          })}
-        </section>
-
-        <section className="mt-8 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
+        <section className="mt-4 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
           {[
-            { icon: ShieldCheck, title: "Secure membership", copy: "Membership payments use your protected Zero Club wallet balance." },
+            { icon: ShieldCheck, title: "Paid from your wallet", copy: "No card details leave Zero Club — membership settles against your protected balance." },
             { icon: BarChart3, title: "Real outcomes", copy: "Plans unlock tools for proof, learning, teaching, and cohort insight." },
             { icon: Users, title: "Built for every role", copy: "Personal and institutional workspaces stay purposefully separate." },
           ].map((item) => (
-            <div key={item.title} className="bg-card p-5">
-              <item.icon className="h-5 w-5 text-primary" />
-              <h3 className="mt-3 text-[13px] font-semibold">{item.title}</h3>
-              <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground">{item.copy}</p>
+            <div key={item.title} className="bg-card p-4">
+              <item.icon className="h-[18px] w-[18px] text-primary" />
+              <h3 className="mt-2.5 text-[12.5px] font-semibold tracking-tight">{item.title}</h3>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">{item.copy}</p>
             </div>
           ))}
         </section>

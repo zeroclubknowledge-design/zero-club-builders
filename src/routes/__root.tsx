@@ -4,9 +4,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { copyToClipboard } from "@/lib/share";
 
 import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
@@ -54,7 +56,27 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  
+
+  /*
+   * Which page broke.
+   *
+   * A minified React error on its own ("Minified React error #185") is not
+   * diagnosable — it says what went wrong but not where, and the person
+   * reporting it has usually moved on by the time anyone asks. The path and
+   * stack are already here; showing them costs nothing and turns a screenshot
+   * into something that can be fixed.
+   */
+  const path = useRouterState({ select: (state) => state.location.pathname });
+
+  const copyDetails = () => {
+    const details = [
+      `Page: ${path}`,
+      `Error: ${error.name}: ${error.message}`,
+      error.stack ? `\n${error.stack.slice(0, 900)}` : "",
+    ].join("\n");
+    copyToClipboard(details, "Error details copied");
+  };
+
   const handleHardReload = () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -82,9 +104,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="max-w-sm text-center">
         <h1 className="text-2xl font-semibold">Something broke</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <p className="mt-3 break-all rounded-lg border border-border bg-card px-3 py-2 font-mono text-[11px] text-muted-foreground">
+          {path}
+        </p>
         <div className="mt-6 flex flex-col items-center gap-3">
           <button onClick={() => { router.invalidate(); reset(); }} className="rounded-full bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
             Try again
+          </button>
+          <button onClick={copyDetails} className="text-xs text-muted-foreground hover:text-foreground underline">
+            Copy error details
           </button>
           <button onClick={handleHardReload} className="text-xs text-muted-foreground hover:text-foreground underline">
             Clear cache and reload
