@@ -586,7 +586,7 @@ function InstitutionHub() {
                       value={inviteQuery}
                       onChange={(e) => setInviteQuery(e.target.value)}
                       placeholder="Enter tutor username..."
-                      className="w-full h-12 bg-background ring-1 ring-border rounded-xl pl-11 pr-5 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
+                      className="w-full h-12 bg-card rounded-xl pl-11 pr-5 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                     />
                   </div>
                   <button
@@ -710,7 +710,7 @@ function InstitutionHub() {
                         value={newBootcamp.title}
                         onChange={(e) => setNewBootcamp({ ...newBootcamp, title: e.target.value })}
                         placeholder="e.g. Full-Stack Web Development"
-                        className="w-full h-11 bg-background ring-1 ring-border rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
+                        className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
                     <div>
@@ -718,7 +718,7 @@ function InstitutionHub() {
                       <select
                         value={newBootcamp.category}
                         onChange={(e) => setNewBootcamp({ ...newBootcamp, category: e.target.value })}
-                        className="w-full h-11 bg-background ring-1 ring-border rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition appearance-none"
+                        className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition appearance-none"
                       >
                         {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
@@ -743,7 +743,7 @@ function InstitutionHub() {
                         min="0"
                         value={newBootcamp.price}
                         onChange={(e) => setNewBootcamp({ ...newBootcamp, price: e.target.value })}
-                        className="w-full h-11 bg-background ring-1 ring-border rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
+                        className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
                     <div>
@@ -755,7 +755,7 @@ function InstitutionHub() {
                       <button
                         type="button"
                         onClick={() => bannerInputRef.current?.click()}
-                        className="w-full h-11 bg-background ring-1 ring-border rounded-xl px-4 text-[13.5px] font-medium text-muted-foreground flex items-center gap-2 hover:bg-accent/30 transition"
+                        className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium text-muted-foreground flex items-center gap-2 hover:bg-accent/30 transition"
                       >
                         <UploadCloud className="h-4 w-4" />
                         {bannerFile ? bannerFile.name : "Upload banner"}
@@ -1063,7 +1063,7 @@ function InstitutionHub() {
                         <input
                           value={settingsForm.full_name}
                           onChange={(e) => setSettingsForm({ ...settingsForm, full_name: e.target.value })}
-                          className="w-full h-11 bg-background ring-1 ring-border rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
+                          className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                         />
                       </div>
                       <div>
@@ -1072,7 +1072,7 @@ function InstitutionHub() {
                           value={settingsForm.bio}
                           onChange={(e) => setSettingsForm({ ...settingsForm, bio: e.target.value })}
                           rows={3}
-                          className="w-full bg-background ring-1 ring-border rounded-xl px-4 py-3 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition resize-none"
+                          className="w-full bg-card rounded-xl px-4 py-3 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition resize-none"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1081,7 +1081,7 @@ function InstitutionHub() {
                           <input
                             value={settingsForm.location}
                             onChange={(e) => setSettingsForm({ ...settingsForm, location: e.target.value })}
-                            className="w-full h-11 bg-background ring-1 ring-border rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
+                            className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                           />
                         </div>
                         <div>
@@ -1089,7 +1089,7 @@ function InstitutionHub() {
                           <input
                             value={settingsForm.website}
                             onChange={(e) => setSettingsForm({ ...settingsForm, website: e.target.value })}
-                            className="w-full h-11 bg-background ring-1 ring-border rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
+                            className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                           />
                         </div>
                       </div>

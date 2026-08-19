@@ -212,7 +212,7 @@ function MyStorePage() {
   const activeCoupons = products.filter((p: any) => p.coupon_code).length;
 
   const inputClass =
-    "w-full bg-background ring-1 ring-border rounded-lg px-4 py-3 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/50";
+    "w-full bg-card rounded-lg px-4 py-3 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/50";
   const labelClass = "text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1";
 
   return (

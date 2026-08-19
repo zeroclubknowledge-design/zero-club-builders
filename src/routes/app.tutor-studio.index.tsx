@@ -920,7 +920,7 @@ function TutorStudioPage() {
                   </div>
                 ) : (
                 <div className="relative z-10 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background ring-1 ring-border">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className="h-11 w-11 rounded-full bg-amber-500/8 ring-1 ring-amber-500/15 grid place-items-center text-amber-600 dark:text-amber-400 shrink-0">
                         <Star className="h-5 w-5" strokeWidth={1.75} />
@@ -953,7 +953,7 @@ function TutorStudioPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background ring-1 ring-border">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className="h-11 w-11 rounded-full bg-blue-500/8 ring-1 ring-blue-500/15 grid place-items-center text-blue-600 dark:text-blue-400 shrink-0">
                         <ShieldCheck className="h-5 w-5" strokeWidth={1.75} />
@@ -1152,7 +1152,7 @@ function TutorStudioPage() {
                     type="text"
                     value={bootcampSettings.title}
                     onChange={(e) => setBootcampSettings({ ...bootcampSettings, title: e.target.value })}
-                    className="w-full bg-background ring-1 ring-border rounded-2xl px-5 py-4 text-base font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground/40"
+                    className="w-full bg-card rounded-2xl px-5 py-4 text-base font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition placeholder:text-muted-foreground/40"
                     placeholder="e.g. Advanced UI/UX Design"
                   />
                 </div>
@@ -1165,7 +1165,7 @@ function TutorStudioPage() {
                       <select
                         value={bootcampSettings.category}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, category: e.target.value })}
-                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
+                        className="w-full appearance-none bg-card rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       >
                         <option>Design</option>
                         <option>Development</option>
@@ -1183,7 +1183,7 @@ function TutorStudioPage() {
                       <select
                         value={bootcampSettings.status}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, status: e.target.value })}
-                        className="w-full appearance-none bg-background ring-1 ring-border rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
+                        className="w-full appearance-none bg-card rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       >
                         <option value="draft">Draft</option>
                         <option value="active">Active</option>
@@ -1270,7 +1270,7 @@ function TutorStudioPage() {
                         type="number"
                         value={bootcampSettings.price}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, price: e.target.value })}
-                        className="w-full bg-background ring-1 ring-border rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
+                        className="w-full bg-card rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
                   </div>
@@ -1281,7 +1281,7 @@ function TutorStudioPage() {
                       <input
                         type="number"
                         defaultValue="50"
-                        className="w-full bg-background ring-1 ring-border rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
+                        className="w-full bg-card rounded-2xl pl-12 pr-5 py-4 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
                       />
                     </div>
                   </div>
