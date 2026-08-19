@@ -530,8 +530,8 @@ body::-webkit-scrollbar { display: none; }
    What counts as a card: a rounded box with a full neutral border or ring.
    What is deliberately left alone:
 
-     • single-sided rules (border-b, border-t, …) — those are headers,
-       dividers and separators, not boxes;
+     • rules on some sides only (border-b, border-t, border-x, border-y …) —
+       those are headers, dividers and column separators, not boxes;
      • anything rounded-full — pills, avatars, icon buttons, toggles;
      • inputs, textareas and selects — strip the outline off a field and it
        disappears into whatever it sits on;
@@ -545,7 +545,7 @@ body::-webkit-scrollbar { display: none; }
 @layer components {
   .bg-card,
   .bg-popover,
-  :is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]),
+  :is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-x"]):not([class~="border-y"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]),
   :is(div, section, article, aside, main, li, a, button, label, span)[class*="ring-border"]:not([class*="rounded-full"]) {
     box-shadow: var(--shadow-card);
   }
@@ -558,14 +558,14 @@ body::-webkit-scrollbar { display: none; }
 }
 
 /* Unlayered: this has to beat the utility that draws the stroke. */
-:is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]),
+:is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-x"]):not([class~="border-y"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]),
 :is(div, section, article, aside, main, li, a, button, label, span)[class*="ring-border"]:not([class*="rounded-full"]) {
   border-color: transparent;
   --tw-ring-color: transparent;
 }
 
 /* Had a stroke, has no fill of its own — give it the card surface. */
-:is(div, section, article, aside, li, a, button, label)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]):not([class*="bg-"]),
+:is(div, section, article, aside, li, a, button, label)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-x"]):not([class~="border-y"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]):not([class*="bg-"]),
 :is(div, section, article, aside, li, a, button, label)[class*="ring-border"]:not([class*="rounded-full"]):not([class*="bg-"]) {
   background-color: var(--card);
 }

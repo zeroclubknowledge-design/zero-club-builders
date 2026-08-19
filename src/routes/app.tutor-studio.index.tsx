@@ -1487,8 +1487,11 @@ function TutorStudioPage() {
             </div>
           </div>
         </section>
+        {/* The capacity strip was a full-bleed band with a rule above and below
+            — the one thing on this page that was not a card, which is why it
+            kept its square corners while everything around it rounded. */}
         {clubCapacity && (
-          <section className="flex flex-col gap-3 border-y border-border bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <section className="flex flex-col gap-3 rounded-2xl bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.11em] text-primary">Permanent Club capacity</p>
               <p className="mt-1 text-[13px] font-semibold">{clubCapacity.permanent_club_count} / {clubCapacity.permanent_club_limit ?? "organisation-specific"} Clubs</p>
