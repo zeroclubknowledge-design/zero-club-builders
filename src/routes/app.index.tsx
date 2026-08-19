@@ -362,21 +362,38 @@ function Feed() {
           <>
             {activeTab === 'Live' ? (
               <div className="space-y-5 p-3 sm:p-5">
-                <section className="overflow-hidden rounded-lg border border-white/[0.06] bg-[#171318] p-5 text-white sm:p-6">
-                  <div className="flex items-start justify-between gap-5">
-                    <div className="min-w-0">
-                      <div className="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">
-                        <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" /><span className="relative h-2 w-2 rounded-full bg-red-500" /></span>
-                        Live on Zero Club
+                {/* Built from the same material as the wallet card: dark
+                    gradient base, soft colour washes for depth, and thick
+                    low-opacity rings that read as embossing rather than as
+                    lines drawn on top. A third red wash carries the one thing
+                    this card is about — being live. */}
+                <section className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#241a2b] via-[#17131b] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-7">
+                  <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/22 blur-[72px]" />
+                  <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/18 blur-[76px]" />
+                  <div className="pointer-events-none absolute -right-20 top-2 h-40 w-40 rounded-full bg-[#ff3b5c]/15 blur-[70px]" />
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
+                  <div className="pointer-events-none absolute -bottom-14 right-20 h-28 w-28 rotate-12 border-[16px] border-white opacity-[0.035]" />
+
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between gap-5">
+                      <div className="min-w-0">
+                        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/[0.07] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 ring-1 ring-white/10">
+                          <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" /><span className="relative h-2 w-2 rounded-full bg-red-500" /></span>
+                          Live on Zero Club
+                        </div>
+                        <h2 className="max-w-md text-[23px] font-semibold leading-tight tracking-tight sm:text-[27px]">
+                          Teach, build and solve problems together in <span className="text-[#f06ac3]">real time</span>.
+                        </h2>
+                        <p className="mt-2.5 max-w-lg text-[12.5px] leading-relaxed text-white/55">Start inside a community you manage, or join a room when its host goes live.</p>
                       </div>
-                      <h2 className="max-w-md text-[23px] font-semibold leading-tight tracking-tight sm:text-[27px]">Teach, build and solve problems together in real time.</h2>
-                      <p className="mt-2 max-w-lg text-[12.5px] leading-relaxed text-white/55">Start inside a community you manage, or join a room when its host goes live.</p>
+                      <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#cc208f] to-[#7a2bff] text-white shadow-[0_14px_32px_-12px_rgba(204,32,143,0.9)] ring-1 ring-white/15 sm:grid">
+                        <Radio className="h-6 w-6" />
+                      </div>
                     </div>
-                    <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground sm:grid"><Radio className="h-6 w-6" /></div>
+                    <button onClick={() => setLivePickerOpen(true)} className="mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[12.5px] font-semibold text-[#12101a] shadow-[0_12px_26px_-14px_rgba(0,0,0,0.9)] transition hover:bg-white/92 active:scale-[0.98]">
+                      <Radio className="h-4 w-4" /> Go live now
+                    </button>
                   </div>
-                  <button onClick={() => setLivePickerOpen(true)} className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg bg-white px-4 text-[12.5px] font-semibold text-black">
-                    <Radio className="h-4 w-4" /> Go live now
-                  </button>
                 </section>
 
                 <section>
