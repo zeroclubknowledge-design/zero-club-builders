@@ -642,7 +642,7 @@ function TutorStudioPage() {
         </header>
 
         {/* ── Floating Pill Tabs ────────────────────────── */}
-        <div className="px-5 py-4 max-w-[1240px] mx-auto w-full">
+        <div className="w-full px-5 py-4 md:px-8">
           <div className="inline-flex items-center bg-foreground/[0.04] p-1 rounded-full overflow-x-auto no-scrollbar max-w-full gap-0.5">
             {[
               { id: "details", label: "Details", icon: Layout },
@@ -670,7 +670,10 @@ function TutorStudioPage() {
         </div>
 
         {/* ── Tab Content ────────────────────────── */}
-        <div className="px-5 max-w-[1240px] mx-auto w-full">
+        {/* No max-width. This is a workspace: the curriculum builder, the
+            learner list and the settings form should use whatever room the
+            window gives them, the way the institution studio already does. */}
+        <div className="w-full px-5 md:px-8">
 
           {/* ─── CURRICULUM TAB ─────────────────── */}
           {activeTab === "curriculum" && (
@@ -1099,17 +1102,23 @@ function TutorStudioPage() {
 
           {/* ─── SETTINGS TAB ─────────────────── */}
           {activeTab === "details" && (
-            <div className="space-y-8 max-w-[1100px] pb-10">
+            <div className="w-full space-y-8 pb-10">
               <div className="pb-5 border-b border-border/40">
                 <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Bootcamp Details</h2>
                 <p className="text-xs text-muted-foreground mt-1">Edit the page learners see before enrolling.</p>
               </div>
 
-              <div className="space-y-6 bg-card p-6 rounded-2xl ring-1 ring-border shadow-soft">
+              {/* The card that used to wrap this whole form is gone. It added a
+                  ring, a shadow and 24px of padding on every side for no
+                  purpose — the form is the entire tab, so there was nothing for
+                  it to separate the form from. The fields now sit on the page. */}
+              <div className="space-y-6">
                 {/* Cover */}
                 <div className="space-y-3">
                   <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Cover Image</label>
-                  <label className="group border-2 border-dashed border-border/50 rounded-3xl h-48 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
+                  {/* Taller now that it has the full width to sit in — at 192px a
+                      full-bleed cover reads as a letterbox strip. */}
+                  <label className="group border-2 border-dashed border-border/50 rounded-3xl h-56 md:h-72 xl:h-80 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
                     {(bannerUrl || bootcampSettings.banner_url) && (
                       <>
                         <img src={bannerUrl || bootcampSettings.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
