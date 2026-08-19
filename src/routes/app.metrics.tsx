@@ -378,7 +378,7 @@ function MetricsPage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-background pb-28 md:pb-10">
+    <div className="min-h-screen overflow-x-hidden bg-background pb-28 md:pb-10">
       <header className="sticky top-0 z-30 border-b hairline bg-background/88 backdrop-blur-xl">
         <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-6xl items-end justify-between gap-3 px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-7">
           <div className="flex items-center gap-3">
@@ -441,9 +441,9 @@ function MetricsPage() {
         </section>
 
         <section className="mt-5 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-          <article className="rounded-2xl bg-card p-5 shadow-soft ring-1 ring-border md:p-6">
+          <article className="min-w-0 rounded-2xl bg-card p-5 shadow-soft ring-1 ring-border md:p-6">
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">Momentum</p>
                 <h3 className="mt-1.5 text-[18px] font-semibold tracking-tight text-foreground">
                   {insights.isInstitution ? "Network activity, last 7 days" : insights.isTutor ? "Teaching activity, last 7 days" : "Your last 7 days"}
@@ -470,7 +470,7 @@ function MetricsPage() {
             </div>
           </article>
 
-          <article className="overflow-hidden rounded-2xl bg-[#171417] p-5 text-white shadow-lift md:p-6">
+          <article className="min-w-0 overflow-hidden rounded-2xl bg-[#171417] p-5 text-white shadow-lift md:p-6">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-[#f2a8dc] ring-1 ring-white/10"><Award className="h-5 w-5" /></span>
               <div>
@@ -490,9 +490,9 @@ function MetricsPage() {
         </section>
 
         <section className="mt-5 grid gap-4 lg:grid-cols-2">
-          <article className="rounded-2xl bg-card p-5 shadow-soft ring-1 ring-border md:p-6">
+          <article className="min-w-0 rounded-2xl bg-card p-5 shadow-soft ring-1 ring-border md:p-6">
             <div className="flex items-center justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{insights.isOperator ? "Programme pulse" : "Top proof"}</p>
                 <h3 className="mt-1.5 text-[18px] font-semibold tracking-tight text-foreground">{insights.isInstitution ? "Latest institution programme" : insights.isTutor ? "Latest teaching programme" : "Your strongest published work"}</h3>
               </div>
@@ -529,7 +529,7 @@ function MetricsPage() {
             )}
           </article>
 
-          <Link to={insights.nextAction.to} className="group rounded-2xl bg-primary p-5 text-primary-foreground shadow-[0_18px_38px_-24px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] md:p-6">
+          <Link to={insights.nextAction.to} className="group min-w-0 rounded-2xl bg-primary p-5 text-primary-foreground shadow-[0_18px_38px_-24px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] md:p-6">
             <div className="flex items-start justify-between gap-4">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/15 ring-1 ring-white/20"><insights.nextAction.Icon className="h-5 w-5" /></span>
               <ArrowUpRight className="h-5 w-5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />

@@ -1,5 +1,5 @@
 import { useLoaderData, createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Heart, MessageCircle, Share2, Plus, Bell, Repeat, Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen } from "@/components/icons/solar";
+import { Heart, MessageCircle, Share2, Plus, Bell, Repeat, Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck } from "@/components/icons/solar";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -52,6 +52,120 @@ function LiveClubCard({ club, currentUserId, onOpen }: { club: any; currentUserI
         </button>
       </div>
     </article>
+  );
+}
+
+/**
+ * Every institution on Zero Club, and nothing else.
+ *
+ * This tab used to be "Academy" and showed the ordinary feed, which meant it
+ * was a label with no behaviour behind it. Institutions are the one kind of
+ * account people go looking for deliberately — you search for a school, you do
+ * not stumble across it in a feed — so the tab is now a directory.
+ */
+function InstitutionDirectory() {
+  const { data: institutions = [], isLoading } = useQuery({
+    queryKey: ["institutions-directory"],
+    queryFn: async () => {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url, banner_url, bio, location")
+        .ilike("account_type", "institution")
+        .order("created_at", { ascending: false })
+        .limit(60);
+
+      const list = profiles || [];
+      if (list.length === 0) return [];
+
+      // One round trip for the counts rather than two per institution.
+      const ids = list.map((item: any) => item.id);
+      const [{ data: tutorLinks }, { data: programmes }] = await Promise.all([
+        supabase.from("institution_tutors").select("institution_id").in("institution_id", ids),
+        supabase.from("bootcamps").select("creator_id").in("creator_id", ids).eq("status", "active"),
+      ]);
+
+      const tally = (rows: any[] | null, key: string) => {
+        const counts: Record<string, number> = {};
+        for (const row of rows || []) counts[row[key]] = (counts[row[key]] || 0) + 1;
+        return counts;
+      };
+      const tutorCounts = tally(tutorLinks, "institution_id");
+      const programmeCounts = tally(programmes, "creator_id");
+
+      return list.map((item: any) => ({
+        ...item,
+        tutorCount: tutorCounts[item.id] || 0,
+        programmeCount: programmeCounts[item.id] || 0,
+      }));
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="grid min-h-40 place-items-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 p-3 sm:p-5">
+      <div className="px-1">
+        <h2 className="text-[16px] font-semibold tracking-tight">Institutions on Zero Club</h2>
+        <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+          Schools, academies and organisations running programmes here.
+        </p>
+      </div>
+
+      {institutions.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-border px-4 py-12 text-center text-[12.5px] text-muted-foreground">
+          No institutions have joined yet.
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {institutions.map((institution: any) => (
+            <Link
+              key={institution.id}
+              to="/app/institution/$id"
+              params={{ id: institution.username || institution.id }}
+              className="group min-w-0 overflow-hidden rounded-2xl border border-border bg-card transition hover:border-foreground/15"
+            >
+              <div className="relative h-20 bg-gradient-to-br from-[#241a2b] via-[#17131b] to-[#0e0c10]">
+                {institution.banner_url && (
+                  <img src={institution.banner_url} alt="" className="h-full w-full object-cover opacity-70" />
+                )}
+              </div>
+              <div className="flex min-w-0 items-start gap-3 p-4">
+                <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-card text-muted-foreground ring-1 ring-border">
+                  {institution.avatar_url ? (
+                    <img src={institution.avatar_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <Building2 className="h-6 w-6" />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate text-[14.5px] font-semibold tracking-tight">
+                      {institution.full_name || institution.username}
+                    </p>
+                    <BadgeCheck className="h-4 w-4 shrink-0 text-primary" />
+                  </div>
+                  <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
+                    {institution.location || `@${institution.username}`}
+                  </p>
+                  <p className="mt-2 text-[11.5px] text-muted-foreground tabular-nums">
+                    {institution.programmeCount} {institution.programmeCount === 1 ? "programme" : "programmes"}
+                    {" · "}
+                    {institution.tutorCount} {institution.tutorCount === 1 ? "tutor" : "tutors"}
+                  </p>
+                </div>
+                <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -187,7 +301,7 @@ function Feed() {
           {!showSearch ? (
             <>
               <div className="no-scrollbar flex min-w-0 flex-1 gap-5 overflow-x-auto">
-                {["Discover", "Following", "Live", "News", "Academy"].map((tab) => (
+                {["Discover", "Following", "Live", "News", "Institution"].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -364,7 +478,9 @@ function Feed() {
           </div>
         ) : (
           <>
-            {activeTab === 'Live' ? (
+            {activeTab === 'Institution' ? (
+              <InstitutionDirectory />
+            ) : activeTab === 'Live' ? (
               <div className="space-y-5 p-3 sm:p-5">
                 {/* Built from the same material as the wallet card: dark
                     gradient base, soft colour washes for depth, and thick

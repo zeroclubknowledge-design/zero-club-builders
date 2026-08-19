@@ -179,7 +179,10 @@ function TutorStudioPage() {
     enabled: !!clubData?.id
   });
 
-  const studyRep = clubMembers.find((m: any) => m.role === 'Study Rep');
+  // A cohort can run several reps — one per track, per time zone, per shift.
+  // This used to be a single find(), which is why assigning a second rep
+  // silently demoted the first.
+  const studyReps = clubMembers.filter((m: any) => m.role === 'Study Rep');
   const clubAdmins = clubMembers.filter((m: any) => m.role === 'Administrator');
 
   const updateMemberRole = async (profileId: string, newRole: string) => {
@@ -209,17 +212,17 @@ function TutorStudioPage() {
     return true;
   };
 
-  const handleAssignRep = async (profileId: string) => {
-    const currentRep = clubMembers.find((m: any) => m.role === 'Study Rep');
-    if (currentRep && currentRep.profile_id !== profileId) {
-      const demoted = await updateMemberRole(currentRep.profile_id, 'Member');
-      if (!demoted) return;
-    }
-    const ok = await updateMemberRole(profileId, 'Study Rep');
-    if (ok) {
-      toast.success('Study Rep updated');
-      setRoleDrawer(null);
-    }
+  /*
+   * Add or remove a rep, leaving the others alone.
+   *
+   * The drawer stays open afterwards: appointing reps is usually done a few at
+   * a time, and closing after each one made adding a second person feel like
+   * the app was fighting you.
+   */
+  const handleToggleRep = async (member: any) => {
+    const isRep = member.role === 'Study Rep';
+    const ok = await updateMemberRole(member.profile_id, isRep ? 'Member' : 'Study Rep');
+    if (ok) toast.success(isRep ? 'Study Rep removed' : 'Study Rep added');
   };
 
   const handleToggleAdmin = async (member: any) => {
@@ -923,22 +926,32 @@ function TutorStudioPage() {
                         <Star className="h-5 w-5" strokeWidth={1.75} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Study Rep</p>
-                        {studyRep ? (
+                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Study Reps</p>
+                        {studyReps.length > 0 ? (
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            <span className="font-medium text-foreground">{studyRep.profiles?.full_name || studyRep.profiles?.username}</span> oversees daily activities
+                            <span className="font-medium text-foreground">
+                              {studyReps.map((rep: any) => rep.profiles?.full_name || rep.profiles?.username).join(", ")}
+                            </span>{" "}
+                            {studyReps.length === 1 ? "oversees" : "oversee"} daily activities
                           </p>
                         ) : (
-                          <p className="text-xs text-muted-foreground mt-0.5">Not assigned yet — pick a member to lead daily activities</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">None yet — pick members to lead daily activities</p>
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setRoleDrawer("rep")}
-                      className="shrink-0 px-4 py-2 rounded-full ring-1 ring-border text-xs font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
-                    >
-                      {studyRep ? "Change Rep" : "Assign Rep"}
-                    </button>
+                    <div className="flex shrink-0 items-center gap-3">
+                      {studyReps.length > 0 && (
+                        <span className="rounded-full px-3 py-1.5 text-xs font-semibold tracking-tight text-foreground ring-1 ring-border tabular-nums">
+                          {studyReps.length} {studyReps.length === 1 ? "rep" : "reps"}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => setRoleDrawer("rep")}
+                        className="shrink-0 px-4 py-2 rounded-full ring-1 ring-border text-xs font-semibold tracking-tight text-foreground hover:bg-foreground/[0.04] tap"
+                      >
+                        {studyReps.length > 0 ? "Manage reps" : "Assign reps"}
+                      </button>
+                    </div>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-background ring-1 ring-border">
                     <div className="flex items-center gap-4 min-w-0">
@@ -970,12 +983,12 @@ function TutorStudioPage() {
               <Drawer open={roleDrawer !== null} onOpenChange={(open) => !open && setRoleDrawer(null)}>
                 <DrawerContent className="mx-auto max-w-lg border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
                   <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[20px]">
-                    {roleDrawer === "rep" ? "Assign Study Rep" : "Manage administrators"}
+                    {roleDrawer === "rep" ? "Study Reps" : "Manage administrators"}
                   </DrawerTitle>
                   <p className="mt-1 text-[13px] text-muted-foreground">
                     {roleDrawer === "rep"
-                      ? "The Study Rep oversees daily activities and answers questions. Only one member holds this role."
-                      : "Administrators can moderate the club chat and manage members."}
+                      ? "Reps oversee daily activities and answer questions. Appoint as many as the cohort needs — tap a rep again to step them down."
+                      : "Administrators can moderate the club chat and manage members. Promote as many as you need."}
                   </p>
 
                   <div className="mt-5 max-h-[50vh] overflow-y-auto no-scrollbar divide-y divide-hairline">
@@ -1009,19 +1022,19 @@ function TutorStudioPage() {
                           </div>
 
                           {roleDrawer === "rep" ? (
-                            isRep ? (
-                              <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/8 ring-1 ring-primary/15 px-3 py-1.5 text-[11px] font-semibold text-primary">
-                                <Check className="h-3 w-3" strokeWidth={2.5} /> Current Rep
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => handleAssignRep(member.profile_id)}
-                                disabled={busy || updatingMemberId !== null}
-                                className="shrink-0 rounded-full bg-foreground px-4 py-1.5 text-[11.5px] font-semibold tracking-tight text-background tap hover:opacity-90 disabled:opacity-40"
-                              >
-                                {busy ? "Saving…" : "Make Rep"}
-                              </button>
-                            )
+                            <button
+                              onClick={() => handleToggleRep(member)}
+                              disabled={busy || updatingMemberId !== null}
+                              className={`shrink-0 rounded-full px-4 py-1.5 text-[11.5px] font-semibold tracking-tight tap disabled:opacity-40 ${
+                                isRep
+                                  ? "bg-primary/8 text-primary ring-1 ring-primary/15 hover:bg-primary/[0.14]"
+                                  : "bg-foreground text-background hover:opacity-90"
+                              }`}
+                            >
+                              {busy ? "Saving…" : isRep ? (
+                                <span className="flex items-center gap-1"><Check className="h-3 w-3" strokeWidth={2.5} /> Rep</span>
+                              ) : "Make Rep"}
+                            </button>
                           ) : isOwner ? (
                             <span className="shrink-0 rounded-full ring-1 ring-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground">Owner</span>
                           ) : (

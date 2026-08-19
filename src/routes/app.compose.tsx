@@ -520,73 +520,6 @@ function ComposePage() {
             </div>
           )}
 
-          {/* Sits directly on top of the keyboard while writing.
-              `sticky` alone could not do this: it is measured against the
-              layout viewport, which the keyboard covers rather than shrinks, so
-              the toolbar ended up hidden underneath it exactly when it was
-              needed. When the keyboard is down it returns to the flow. */}
-          {/* Holds the space the toolbar vacates when it goes fixed, so the
-              text does not jump as the keyboard opens. 54px = 36 button + 16
-              padding + 2 border, and mt-3 matches the toolbar's own margin. */}
-          {toolbarPinned && <div className="mt-3 h-[54px]" aria-hidden />}
-          <div
-            className={
-              toolbarPinned
-                ? "formatting-toolbar fixed inset-x-0 z-50 flex justify-center px-4"
-                : "formatting-toolbar sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 mt-3 flex justify-center"
-            }
-            style={toolbarPinned ? { bottom: keyboardInset } : undefined}
-          >
-            <div className={`flex items-center justify-center gap-1 rounded-lg border bg-background/95 p-2 backdrop-blur-md transition-shadow ${isEditorFocused ? 'border-foreground/20 shadow-lg' : 'border-border shadow-sm'}`}>
-              <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a photo">
-                <ImageIcon className="h-4 w-4" />
-                <input type="file" className="hidden" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-              </label>
-              <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a video">
-                <FileVideo className="h-4 w-4" />
-                <input type="file" className="hidden" accept="video/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-              </label>
-              <div className="mx-1 h-5 w-px bg-border" />
-              <button
-                type="button"
-                onMouseDown={(event) => { event.preventDefault(); insertFormatting('bold'); }}
-                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bold') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-                title="Bold"
-                aria-label="Bold"
-              >
-                <Bold className="h-4 w-4" strokeWidth={2.5} />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(event) => { event.preventDefault(); insertFormatting('italic'); }}
-                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('italic') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-                title="Italic"
-                aria-label="Italic"
-              >
-                <Italic className="h-4 w-4" strokeWidth={2} />
-              </button>
-              <div className="mx-1 h-5 w-px bg-border" />
-              <button
-                type="button"
-                onMouseDown={(event) => { event.preventDefault(); insertFormatting('bullet'); }}
-                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bulletList') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-                title="Bullet list"
-                aria-label="Bullet list"
-              >
-                <List className="h-4 w-4" strokeWidth={2} />
-              </button>
-              <div className="mx-1 h-5 w-px bg-border" />
-              <button
-                type="button"
-                onMouseDown={(event) => { event.preventDefault(); insertFormatting('heading'); }}
-                className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('heading', { level: 1 }) ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-                title="Heading"
-                aria-label="Heading"
-              >
-                <Heading1 className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Bootcamps Modal/Dropdown equivalent */}
@@ -628,6 +561,73 @@ function ComposePage() {
 
       {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 md:sticky md:left-auto md:right-auto md:w-full">
+        {/* The toolbar lives in the footer, directly above Save and Post —
+            where a writing app keeps its controls.
+
+            While the keyboard is open it detaches and pins itself just above
+            it. `sticky` cannot do that: it is measured against the layout
+            viewport, which the keyboard covers rather than shrinks, so the
+            toolbar ended up underneath the keyboard exactly when it was
+            needed. The Save and Post buttons stay at the bottom; they are not
+            what you reach for mid-sentence. */}
+        <div
+          className={
+            toolbarPinned
+              ? "formatting-toolbar fixed inset-x-0 z-50 flex justify-center px-4"
+              : "formatting-toolbar mb-3 flex justify-center px-4"
+          }
+          style={toolbarPinned ? { bottom: keyboardInset } : undefined}
+        >
+          <div className={`flex items-center justify-center gap-1 rounded-lg border bg-background/95 p-2 backdrop-blur-md transition-shadow ${isEditorFocused ? 'border-foreground/20 shadow-lg' : 'border-border shadow-sm'}`}>
+            <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a photo">
+              <ImageIcon className="h-4 w-4" />
+              <input type="file" className="hidden" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />
+            </label>
+            <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a video">
+              <FileVideo className="h-4 w-4" />
+              <input type="file" className="hidden" accept="video/*" multiple onChange={handleMediaUpload} disabled={uploading} />
+            </label>
+            <div className="mx-1 h-5 w-px bg-border" />
+            <button
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bold'); }}
+              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bold') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+              title="Bold"
+              aria-label="Bold"
+            >
+              <Bold className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+            <button
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); insertFormatting('italic'); }}
+              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('italic') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+              title="Italic"
+              aria-label="Italic"
+            >
+              <Italic className="h-4 w-4" strokeWidth={2} />
+            </button>
+            <div className="mx-1 h-5 w-px bg-border" />
+            <button
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bullet'); }}
+              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bulletList') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+              title="Bullet list"
+              aria-label="Bullet list"
+            >
+              <List className="h-4 w-4" strokeWidth={2} />
+            </button>
+            <div className="mx-1 h-5 w-px bg-border" />
+            <button
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); insertFormatting('heading'); }}
+              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('heading', { level: 1 }) ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
+              title="Heading"
+              aria-label="Heading"
+            >
+              <Heading1 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
         <div className="mx-auto flex w-full max-w-[860px] gap-3 px-4 sm:px-6">
         <button 
           onClick={saveDraft}
