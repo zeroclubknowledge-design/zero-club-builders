@@ -142,9 +142,12 @@ function InstitutionPage() {
         {/* The hero carries the identity: the crest, the name, and the four
             numbers that say whether this place is actually running anything. */}
         <section className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#241a2b] via-[#17131b] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-35px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-7">
-          {institution.banner_url && (
-            <img src={institution.banner_url} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20" />
-          )}
+          {/* No banner behind this. A profile banner is arbitrary artwork —
+              faces, logos, text of its own — and the name and stats sitting on
+              top of it became unreadable on anything busy. The gradient is the
+              only background here, so the type always has the same surface
+              under it. The banner still belongs to the institution; it is just
+              not load-bearing. */}
           <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/22 blur-[72px]" />
           <div className="pointer-events-none absolute -bottom-24 -right-16 h-52 w-52 rounded-full bg-[#713bff]/16 blur-[76px]" />
           <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />

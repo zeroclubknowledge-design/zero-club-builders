@@ -522,28 +522,50 @@ body::-webkit-scrollbar { display: none; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Cards are elevated.
+   Cards are elevated, never outlined.
 
-   One rule rather than an edit in three hundred files: every card surface
-   gets a drop shadow so it sits above the page. It lives in the components
-   layer, so any element that asks for a specific shadow still wins — the
-   wallet card and the dark hero panels keep the ones they were given.
+   Done in CSS rather than by editing three hundred files, so it holds for
+   pages written later too.
 
-   Borders are left alone. The shadow is the lift; the hairline still marks
-   the edge.
+   What counts as a card: a rounded box with a full neutral border or ring.
+   What is deliberately left alone:
+
+     • single-sided rules (border-b, border-t, …) — those are headers,
+       dividers and separators, not boxes;
+     • anything rounded-full — pills, avatars, icon buttons, toggles;
+     • inputs, textareas and selects — strip the outline off a field and it
+       disappears into whatever it sits on;
+     • coloured borders — a red edge on a destructive card or a pink one on a
+       selected item is carrying meaning.
+
+   Boxes that had a stroke and no fill of their own also get the card colour,
+   because a box with neither stroke nor fill is not a card, it is nothing.
    ───────────────────────────────────────────────────────────────────────── */
 
 @layer components {
   .bg-card,
-  .bg-popover {
+  .bg-popover,
+  :is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class*="rounded-full"]),
+  :is(div, section, article, aside, main, li, a, button, label, span)[class*="ring-border"]:not([class*="rounded-full"]) {
     box-shadow: var(--shadow-card);
   }
-}
 
-@layer components {
   /* A card inside a card would stack two shadows and read as a smudge. The
      inner one keeps the fill and drops the lift. */
   .bg-card .bg-card {
     box-shadow: none;
   }
+}
+
+/* Unlayered: this has to beat the utility that draws the stroke. */
+:is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class*="rounded-full"]),
+:is(div, section, article, aside, main, li, a, button, label, span)[class*="ring-border"]:not([class*="rounded-full"]) {
+  border-color: transparent;
+  --tw-ring-color: transparent;
+}
+
+/* Had a stroke, has no fill of its own — give it the card surface. */
+:is(div, section, article, aside, li, a, button, label)[class*="border-border"]:not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class*="rounded-full"]):not([class*="bg-"]),
+:is(div, section, article, aside, li, a, button, label)[class*="ring-border"]:not([class*="rounded-full"]):not([class*="bg-"]) {
+  background-color: var(--card);
 }
