@@ -162,6 +162,57 @@
   --popover: oklch(0.24 0.04 250);
 }
 
+/* Rose Noir — black lifted with the Zero Club pink.
+   Unlike Black and Dim, which only retint flat surfaces, this one paints an
+   actual gradient behind the app. The token below stays a solid near-black so
+   that anything which does not pick the gradient up still looks deliberate
+   rather than broken. */
+.dark.rose-noir {
+  --background: oklch(0.09 0.035 350);
+  --card: oklch(0.145 0.042 348);
+  --popover: oklch(0.12 0.04 348);
+  --secondary: oklch(0.185 0.045 348);
+  --muted: oklch(0.17 0.04 348);
+  --muted-foreground: oklch(0.75 0.03 350);
+
+  /* The one dark theme where primary is the brand colour rather than white —
+     pink on black is the whole point of it. */
+  --primary: #cc208f;
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: color-mix(in oklab, #cc208f 42%, transparent);
+
+  --accent: #cc208f;
+  --accent-foreground: oklch(1 0 0);
+
+  --border: oklch(0.72 0.16 350 / 18%);
+  --border-strong: oklch(0.72 0.16 350 / 30%);
+  --hairline: oklch(0.72 0.16 350 / 12%);
+  --input: oklch(1 0 0 / 8%);
+  --ring: oklch(0.72 0.18 350 / 65%);
+
+  --gradient-card: linear-gradient(160deg, oklch(0.175 0.05 348), oklch(0.1 0.03 350));
+  --gradient-hero: radial-gradient(circle at top right, oklch(0.72 0.18 350 / 0.16), transparent 66%);
+  --shadow-glow: 0 10px 34px -14px color-mix(in oklab, #cc208f 55%, transparent);
+
+  --zc-noir-veil:
+    radial-gradient(115% 80% at 50% -12%, rgba(204, 32, 143, 0.34) 0%, rgba(204, 32, 143, 0.10) 34%, transparent 64%),
+    radial-gradient(95% 65% at 105% 105%, rgba(122, 43, 255, 0.16) 0%, transparent 62%),
+    linear-gradient(180deg, #150710 0%, #0a0409 48%, #000000 100%);
+}
+
+/* Pinned to the viewport, so two stacked full-bleed panels continue one wash
+   instead of each restarting the gradient at its own top edge.
+   Alpha variants (bg-background/95 and friends) are deliberately left alone —
+   sticky headers still need to blur what is behind them. */
+.dark.rose-noir body,
+.dark.rose-noir .bg-background {
+  background-color: transparent;
+  background-image: var(--zc-noir-veil);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .premium {
   /* Premium Ivory Theme — #f7f8ef */
   color-scheme: light;

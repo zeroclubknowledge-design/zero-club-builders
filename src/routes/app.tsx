@@ -28,6 +28,7 @@ import {
   LogOut,
   ShieldCheck,
   ClipboardList,
+  Lock,
   X,
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
@@ -58,6 +59,7 @@ import {
   switchAccount,
 } from "@/lib/multiAccount";
 import { getCachedSession } from "@/lib/auth";
+import { NOIR_THEME, getNoirAccess, startNoirTrial } from "@/lib/noirTheme";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
@@ -428,13 +430,13 @@ function SidebarContent({
                 to={item.to}
                 activeOptions={{ exact: !!item.exact }}
                 activeProps={{ className: "bg-primary/[0.08] !font-semibold !text-foreground" }}
-                className={`group ${item.desktopOnly || item.learnerDesktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-lg px-3 py-3 text-[15.5px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98] md:py-2.5 md:text-[14px]`}
+                className={`group ${item.desktopOnly || item.learnerDesktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-lg px-3 py-3.5 text-[17px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98] md:py-2.5 md:text-[15px]`}
               >
                 {({ isActive }: { isActive: boolean }) => (
                   <>
                     <item.Icon
                       active={isActive}
-                      className={`h-[21px] w-[21px] shrink-0 transition-all duration-200 md:h-[19px] md:w-[19px] ${isActive ? "scale-110 text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                      className={`h-[22.5px] w-[22.5px] shrink-0 transition-all duration-200 md:h-[20px] md:w-[20px] ${isActive ? "scale-110 text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
                     />
                     <span className="min-w-0 flex-1 truncate">{item.label}</span>
                     {item.badge > 0 && (
@@ -737,7 +739,7 @@ const getInitialSession = () => {
 };
 
 type AppThemeMode = "on" | "off" | "system";
-type AppDarkTheme = "dim" | "lights-out";
+type AppDarkTheme = "dim" | "lights-out" | "rose-noir";
 
 const getStoredAppThemeMode = (): AppThemeMode => {
   if (typeof window === "undefined") return "off";
@@ -752,15 +754,22 @@ const getStoredAppThemeMode = (): AppThemeMode => {
 const getStoredAppDarkTheme = (): AppDarkTheme => {
   if (typeof window === "undefined") return "lights-out";
   try {
-    return localStorage.getItem("darkTheme") === "dim" ? "dim" : "lights-out";
+    const stored = localStorage.getItem("darkTheme");
+    return stored === "dim" || stored === "rose-noir" ? stored : "lights-out";
   } catch {
     return "lights-out";
   }
 };
 
+const DARK_THEME_COLORS: Record<AppDarkTheme, string> = {
+  "lights-out": "#000000",
+  dim: "#202633",
+  "rose-noir": "#0a0409",
+};
+
 const applyAppDocumentTheme = (mode: AppThemeMode, theme: AppDarkTheme) => {
   const root = document.documentElement;
-  root.classList.remove("dark", "dim", "lights-out", "premium");
+  root.classList.remove("dark", "dim", "lights-out", "rose-noir", "premium");
 
   const isDark =
     mode === "on" ||
@@ -771,7 +780,7 @@ const applyAppDocumentTheme = (mode: AppThemeMode, theme: AppDarkTheme) => {
   }
 
   const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (themeColor) themeColor.content = isDark ? (theme === "lights-out" ? "#000000" : "#202633") : "#f4f2ef";
+  if (themeColor) themeColor.content = isDark ? DARK_THEME_COLORS[theme] : "#f4f2ef";
 };
 
 function AppLayout() {
@@ -1103,6 +1112,9 @@ function AppLayout() {
   const [darkMode, setDarkMode] = useState<AppThemeMode>(getStoredAppThemeMode);
   const [darkTheme, setDarkTheme] = useState<AppDarkTheme>(getStoredAppDarkTheme);
 
+  // Recomputed each render so the countdown in the picker is never stale.
+  const noirAccess = getNoirAccess(profile);
+
   useEffect(() => {
     applyAppDocumentTheme(darkMode, darkTheme);
     try {
@@ -1120,6 +1132,25 @@ function AppLayout() {
       return () => mediaQuery.removeEventListener("change", handleChange);
     }
   }, [darkMode, darkTheme]);
+
+  /*
+   * Rose Noir when the free month is over and there is no membership.
+   *
+   * Checked here rather than only at the moment of selection, because the
+   * theme is already applied by the pre-paint script from localStorage — the
+   * expiry has to be noticed after the fact. Setting a different theme changes
+   * the dependency, so this runs once and stops.
+   */
+  useEffect(() => {
+    if (darkTheme !== NOIR_THEME || profileLoading || !profile) return;
+    if (getNoirAccess(profile).allowed) return;
+
+    setDarkTheme("lights-out");
+    toast("Your free month of Rose Noir has ended", {
+      description: "Go PRO to keep it.",
+      action: { label: "Go PRO", onClick: () => navigate({ to: "/app/premium" }) },
+    });
+  }, [darkTheme, profile, profileLoading, navigate]);
 
   useEffect(() => {
     let mounted = true;
@@ -1437,28 +1468,68 @@ function AppLayout() {
 
             <div className="space-y-1">
               {[
-                { key: "standard", label: "Standard", desc: "Warm ivory, editorial", active: darkMode === "off", onClick: () => setDarkMode("off") },
-                { key: "black", label: "Black", desc: "Lights out — pure contrast", active: darkMode === "on" && darkTheme === "lights-out", onClick: () => { setDarkMode("on"); setDarkTheme("lights-out"); } },
-                { key: "dim", label: "Dim", desc: "Softer dark for evenings", active: darkMode === "on" && darkTheme === "dim", onClick: () => { setDarkMode("on"); setDarkTheme("dim"); } },
-              ].map((opt) => (
+                { key: "standard", label: "Standard", desc: "Warm ivory, editorial", swatch: "bg-[#f4f2ef]", active: darkMode === "off", onClick: () => setDarkMode("off") },
+                { key: "black", label: "Black", desc: "Lights out — pure contrast", swatch: "bg-black", active: darkMode === "on" && darkTheme === "lights-out", onClick: () => { setDarkMode("on"); setDarkTheme("lights-out"); } },
+                { key: "dim", label: "Dim", desc: "Softer dark for evenings", swatch: "bg-[#202633]", active: darkMode === "on" && darkTheme === "dim", onClick: () => { setDarkMode("on"); setDarkTheme("dim"); } },
+                {
+                  key: NOIR_THEME,
+                  label: "Rose Noir",
+                  desc: noirAccess.allowed
+                    ? noirAccess.via === "premium"
+                      ? "Black, lit with Zero Club pink"
+                      : `Black, lit with Zero Club pink · ${noirAccess.daysLeft} ${noirAccess.daysLeft === 1 ? "day" : "days"} free`
+                    : "Black, lit with Zero Club pink · members only",
+                  swatch: "bg-[linear-gradient(150deg,#cc208f_0%,#3d0a2a_52%,#000000_100%)]",
+                  locked: !noirAccess.allowed,
+                  badge: noirAccess.via === "trial" ? "FREE MONTH" : noirAccess.via === "expired" ? "PRO" : null,
+                  active: darkMode === "on" && darkTheme === NOIR_THEME,
+                  onClick: () => {
+                    if (!noirAccess.allowed) {
+                      setIsThemeOpen(false);
+                      navigate({ to: "/app/premium" });
+                      return;
+                    }
+                    startNoirTrial();
+                    setDarkMode("on");
+                    setDarkTheme(NOIR_THEME);
+                  },
+                },
+              ].map((opt: any) => (
                 <button
                   key={opt.key}
                   onClick={opt.onClick}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3 tap transition-colors ${opt.active ? "bg-primary/[0.06] ring-1 ring-primary/20" : "hover:bg-foreground/[0.03]"}`}
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 tap transition-colors ${opt.active ? "bg-primary/[0.06] ring-1 ring-primary/20" : "hover:bg-foreground/[0.03]"}`}
                 >
-                  <div className="text-left">
-                    <div className="text-[15px] font-semibold tracking-tight">{opt.label}</div>
-                    <div className="text-[12px] text-muted-foreground mt-0.5">{opt.desc}</div>
+                  {/* A colour chip, because the names alone do not tell you what
+                      you are choosing — least of all this new one. */}
+                  <span className={`h-9 w-9 shrink-0 rounded-lg ring-1 ring-border ${opt.swatch}`} />
+
+                  <div className="min-w-0 flex-1 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[15px] font-semibold tracking-tight">{opt.label}</span>
+                      {opt.badge && (
+                        <span className={`rounded-full px-1.5 py-0.5 text-[8.5px] font-bold tracking-[0.08em] ${opt.locked ? "bg-foreground/10 text-muted-foreground" : "bg-[#cc208f]/15 text-[#cc208f]"}`}>
+                          {opt.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 truncate text-[12px] text-muted-foreground">{opt.desc}</div>
                   </div>
-                  <div className={`h-5 w-5 rounded-full grid place-items-center transition-colors ${opt.active ? "bg-primary" : "ring-1 ring-border"}`}>
-                    {opt.active && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
-                  </div>
+
+                  {opt.locked ? (
+                    <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <div className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors ${opt.active ? "bg-primary" : "ring-1 ring-border"}`}>
+                      {opt.active && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
 
             <p className="mt-6 border-t hairline pt-4 text-[11px] leading-relaxed text-muted-foreground">
               Standard uses the Zero Club editorial palette. Dark variants are personal display options.
+              Rose Noir is free for a month on this device, then included with any paid membership.
             </p>
 
             <button

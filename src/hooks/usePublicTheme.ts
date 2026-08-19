@@ -43,7 +43,7 @@ function isPublicPath(pathname: string): boolean {
 function applyAppTheme() {
   try {
     const root = document.documentElement;
-    root.classList.remove("dark", "dim", "lights-out", "premium");
+    root.classList.remove("dark", "dim", "lights-out", "rose-noir", "premium");
     const mode = localStorage.getItem("darkMode") || "off";
     const theme = localStorage.getItem("darkTheme") || "lights-out";
     if (mode === "premium") return;

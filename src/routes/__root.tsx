@@ -167,7 +167,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
             __html: `
               try {
                 var root = document.documentElement;
-                root.classList.remove('dark', 'dim', 'lights-out', 'premium');
+                root.classList.remove('dark', 'dim', 'lights-out', 'rose-noir', 'premium');
 
                 // Signed-out pages have their own light/dark choice, kept
                 // separately from the member's app theme. It has to be applied
@@ -198,7 +198,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 var themeMeta = document.querySelector('meta[name="theme-color"]');
                 if (themeMeta) {
                   themeMeta.content = root.classList.contains('dark')
-                    ? (root.classList.contains('lights-out') ? '#000000' : '#100e13')
+                    ? (root.classList.contains('lights-out') ? '#000000'
+                      : root.classList.contains('rose-noir') ? '#0a0409'
+                      : '#100e13')
                     : '#f4f2ef';
                 }
               } catch(e) {}
