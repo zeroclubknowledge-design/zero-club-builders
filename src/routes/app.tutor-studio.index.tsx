@@ -903,7 +903,7 @@ function TutorStudioPage() {
               </div>
 
               {/* Roles & Permissions */}
-              <section className="rounded-2xl ring-1 ring-border bg-card p-6 relative overflow-hidden shadow-soft">
+              <section className="relative overflow-hidden">
                 <div className="relative z-10 flex items-center gap-3 mb-6">
                   <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary">
                     <ShieldCheck className="h-4 w-4" strokeWidth={1.75} />
@@ -1052,7 +1052,7 @@ function TutorStudioPage() {
               </Drawer>
 
               {/* Classrooms */}
-              <section className="rounded-2xl ring-1 ring-border bg-card p-6 shadow-soft">
+              <section>
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-2xl bg-violet-500/10 text-violet-500">
@@ -1193,10 +1193,12 @@ function TutorStudioPage() {
                 </div>
 
                 {/* Video / Visibility */}
-                <div className="space-y-5 rounded-3xl border border-border/40 bg-background p-5">
+                {/* Was a bordered box drawn in the page's own colour — a card
+                    that separated nothing from anything. */}
+                <div className="space-y-5">
                   <div className="space-y-3">
                     <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Preview Video</label>
-                    <label className="group border-2 border-dashed border-border/50 rounded-3xl h-48 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
+                    <label className="group border-2 border-dashed border-border/50 rounded-3xl h-56 md:h-72 xl:h-80 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
                       {(videoPreviewUrl || bootcampSettings.video_url) ? (
                         <>
                           <video src={videoPreviewUrl || bootcampSettings.video_url} className="absolute inset-0 h-full w-full object-cover" muted loop playsInline />
@@ -1273,7 +1275,7 @@ function TutorStudioPage() {
                 </div>
 
                 {/* Coupon */}
-                <div className="space-y-4 rounded-3xl border border-border/40 bg-background p-5">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <h3 className="text-[13.5px] font-semibold tracking-tight text-foreground">Coupons</h3>

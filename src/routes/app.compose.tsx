@@ -440,8 +440,11 @@ function ComposePage() {
 
       {/* Main Form Area */}
       <div className="no-scrollbar mx-auto w-full max-w-[860px] flex-1 overflow-y-auto px-4 pb-32 pt-4 sm:px-6 sm:pt-6">
-        {/* Post Card */}
-        <div className="relative flex min-h-[calc(100dvh-10.5rem)] flex-col rounded-lg border border-border bg-card p-4 sm:p-6">
+        {/* No card. Writing a post is the whole purpose of this screen, so the
+            bordered panel was drawing a box around the page itself — and the
+            padding on all four sides made the writing column narrower than it
+            needed to be. The caret now sits straight on the background. */}
+        <div className="relative flex min-h-[calc(100dvh-10.5rem)] flex-col">
           <div className="relative min-h-[320px] w-full flex-1 text-lg sm:min-h-[380px]">
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
