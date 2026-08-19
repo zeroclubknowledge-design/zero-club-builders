@@ -110,9 +110,8 @@
 :root {
   --zc-header-h: calc(66px + env(safe-area-inset-top));
 
-  /* Every card in the app is filled and elevated — never outlined.
-     A hairline says "this is a region". A shadow says "this is an object you
-     can act on", which is what a card is. */
+  /* The lift under every card in the app. Two shadows: a tight one that keeps
+     the card's edge crisp, and a wide soft one that does the popping. */
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 22px -12px rgb(0 0 0 / 0.22);
 }
 
@@ -132,7 +131,7 @@
   /* Dark Theme */
   --background: oklch(16% 0.02 330);
   --foreground: oklch(98% 0 0);
-  --card: oklch(22.5% 0.022 330);
+  --card: oklch(19% 0.02 330);
   --card-foreground: oklch(98% 0 0);
   --popover: oklch(17% 0.02 330);
   --popover-foreground: oklch(98% 0 0);
@@ -183,7 +182,7 @@
 .dark.dim {
   /* Slightly more blueish/grayish dark */
   --background: oklch(0.22 0.04 250);
-  --card: oklch(0.30 0.04 250);
+  --card: oklch(0.26 0.04 250);
   --popover: oklch(0.24 0.04 250);
 }
 
@@ -194,7 +193,7 @@
    rather than broken. */
 .dark.rose-noir {
   --background: oklch(0.09 0.035 350);
-  --card: oklch(0.175 0.045 348);
+  --card: oklch(0.145 0.042 348);
   --popover: oklch(0.12 0.04 348);
   --secondary: oklch(0.185 0.045 348);
   --muted: oklch(0.17 0.04 348);
@@ -523,16 +522,15 @@ body::-webkit-scrollbar { display: none; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Cards: filled and elevated, everywhere.
+   Cards are elevated.
 
-   Two rules rather than one edit in three hundred files. The first gives every
-   card surface a shadow so it sits above the page; because it lives in the
-   components layer, any element that asks for a specific shadow still wins.
+   One rule rather than an edit in three hundred files: every card surface
+   gets a drop shadow so it sits above the page. It lives in the components
+   layer, so any element that asks for a specific shadow still wins — the
+   wallet card and the dark hero panels keep the ones they were given.
 
-   The second removes the neutral outline. It has to be unlayered to beat the
-   utility that draws it, and it deliberately matches only the *neutral* border
-   and ring tokens — a red border on a destructive card, or a pink one on a
-   selected card, still means something and is left alone.
+   Borders are left alone. The shadow is the lift; the hairline still marks
+   the edge.
    ───────────────────────────────────────────────────────────────────────── */
 
 @layer components {
@@ -540,14 +538,6 @@ body::-webkit-scrollbar { display: none; }
   .bg-popover {
     box-shadow: var(--shadow-card);
   }
-}
-
-.bg-card[class*="border-border"],
-.bg-card[class*="ring-border"],
-.bg-popover[class*="border-border"],
-.bg-popover[class*="ring-border"] {
-  border-color: transparent;
-  --tw-ring-color: transparent;
 }
 
 @layer components {
