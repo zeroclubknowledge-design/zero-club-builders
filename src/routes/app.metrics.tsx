@@ -331,22 +331,21 @@ function MetricsPage() {
   }
 
   const profileName = data?.profile?.full_name || data?.profile?.username || "Builder";
+  // The header is just "Metrics" now, so the per-role subtitle that used to sit
+  // under it is gone with it. The eyebrow and title still lead the page body.
   const roleView = insights.isInstitution
     ? {
         eyebrow: "Institution intelligence",
         title: `See your learning network clearly, ${profileName.split(" ")[0]}.`,
-        subtitle: "Programmes, tutors, cohorts, and delivery health",
       }
     : insights.isTutor
       ? {
           eyebrow: "Teaching performance",
           title: `Turn expertise into learner outcomes, ${profileName.split(" ")[0]}.`,
-          subtitle: "Your bootcamps, learners, reach, and teaching momentum",
         }
       : {
           eyebrow: "Builder record",
           title: `Keep the signal moving, ${profileName.split(" ")[0]}.`,
-          subtitle: "Your proof, progress, and momentum",
         };
   const portfolioStats = insights.isInstitution
     ? [
@@ -386,10 +385,7 @@ function MetricsPage() {
             <Link to="/app" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground tap" aria-label="Back to feed">
               <ChevronLeft className="h-[19px] w-[19px]" />
             </Link>
-            <div>
-              <h1 className="font-display text-[19px] font-semibold tracking-tight text-foreground">Metrics</h1>
-              <p className="text-[10.5px] text-muted-foreground">{roleView.subtitle}</p>
-            </div>
+            <h1 className="font-display text-[19px] font-semibold tracking-tight text-foreground">Metrics</h1>
           </div>
           <span className="flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border">
             <span className={`h-1.5 w-1.5 rounded-full ${isFetching ? "bg-amber-500 animate-pulse" : "bg-emerald-500"}`} />

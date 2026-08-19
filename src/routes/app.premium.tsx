@@ -12,7 +12,6 @@ import {
   LifeBuoy,
   Loader2,
   PenLine,
-  ShieldCheck,
   Trophy,
   Users,
   Wallet,
@@ -624,19 +623,6 @@ function MembershipPage() {
           </section>
         )}
 
-        <section className="mt-4 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
-          {[
-            { icon: ShieldCheck, title: "Paid from your wallet", copy: "No card details leave Zero Club — membership settles against your protected balance." },
-            { icon: BarChart3, title: "Real outcomes", copy: "Plans unlock tools for proof, learning, teaching, and cohort insight." },
-            { icon: Users, title: "Built for every role", copy: "Personal and institutional workspaces stay purposefully separate." },
-          ].map((item) => (
-            <div key={item.title} className="bg-card p-4">
-              <item.icon className="h-[18px] w-[18px] text-primary" />
-              <h3 className="mt-2.5 text-[12.5px] font-semibold tracking-tight">{item.title}</h3>
-              <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">{item.copy}</p>
-            </div>
-          ))}
-        </section>
       </main>
 
       <InstitutionOnboardingDrawer
