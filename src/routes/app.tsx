@@ -1108,6 +1108,7 @@ function AppLayout() {
   }, []);
   const router = useRouter();
 
+
   // Theme State
   const [darkMode, setDarkMode] = useState<AppThemeMode>(getStoredAppThemeMode);
   const [darkTheme, setDarkTheme] = useState<AppDarkTheme>(getStoredAppDarkTheme);
@@ -1263,6 +1264,40 @@ function AppLayout() {
   const isWideWorkspace = isInstitutionStudio || isAdminStudio;
   const hideHeader = !isFeed;
 
+  /*
+   * Publish the header's real height as --zc-header-h.
+   *
+   * Sticky sub-headers pin directly under this one, and hard-coding the number
+   * in each of them is what opened the band under the feed tabs: the moment
+   * the header rendered a pixel taller than the constant, scrolling posts
+   * showed through the difference. Measuring means they cannot disagree.
+   */
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const element = headerRef.current;
+    if (!element) {
+      // No header on this route — fall back to the value in the stylesheet.
+      document.documentElement.style.removeProperty("--zc-header-h");
+      return;
+    }
+
+    const publish = () => {
+      const height = Math.round(element.getBoundingClientRect().height);
+      if (height > 0) document.documentElement.style.setProperty("--zc-header-h", `${height}px`);
+    };
+
+    publish();
+    // The header's height does not depend on the variable, so this cannot loop.
+    const observer = new ResizeObserver(publish);
+    observer.observe(element);
+    window.addEventListener("orientationchange", publish);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("orientationchange", publish);
+    };
+  }, [hideHeader]);
+
   useEffect(() => {
     let lastScrollY = window.scrollY;
 
@@ -1322,6 +1357,7 @@ function AppLayout() {
         />
         {!hideHeader && (
           <header
+            ref={headerRef}
             className="fixed left-1/2 top-0 z-50 flex h-[calc(66px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between border-b border-border bg-background px-5 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[66px] md:max-w-full md:translate-x-0 md:pt-0"
           >
             <div className="flex w-10 items-center md:hidden">
@@ -1413,7 +1449,7 @@ function AppLayout() {
               // Sits above the bottom nav rather than over it, so the Menu tab
               // stays visible and lit while the card is open — and tapping it
               // again closes the card.
-              className={`fixed inset-x-3 bottom-[calc(max(10px,env(safe-area-inset-bottom))+74px)] z-[80] overflow-hidden rounded-2xl border border-border/70 bg-background shadow-[0_24px_70px_-20px_rgba(0,0,0,0.6)] ${isMenuClosing ? "animate-out fade-out slide-out-to-bottom-4 duration-250 ease-in fill-mode-forwards" : "animate-in fade-in slide-in-from-bottom-4 duration-250 ease-out"}`}
+              className={`zc-noir-surface fixed inset-x-3 bottom-[calc(max(10px,env(safe-area-inset-bottom))+74px)] z-[80] overflow-hidden rounded-2xl border border-border/70 bg-background shadow-[0_24px_70px_-20px_rgba(0,0,0,0.6)] ${isMenuClosing ? "animate-out fade-out slide-out-to-bottom-4 duration-250 ease-in fill-mode-forwards" : "animate-in fade-in slide-in-from-bottom-4 duration-250 ease-out"}`}
             >
               <div className="flex items-center justify-between px-5 pb-1 pt-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -1542,7 +1578,7 @@ function AppLayout() {
         </Drawer>
 
         <div
-          className={`zc-desktop-content ${!hideHeader ? "pt-[calc(66px+env(safe-area-inset-top))] md:pt-0" : "pt-[env(safe-area-inset-top)]"} pb-0`}
+          className={`zc-desktop-content ${!hideHeader ? "pt-[var(--zc-header-h)] md:pt-0" : "pt-[env(safe-area-inset-top)]"} pb-0`}
         >
           <Outlet />
         </div>

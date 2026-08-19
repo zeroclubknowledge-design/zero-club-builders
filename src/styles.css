@@ -101,6 +101,20 @@
   --shadow-lift: 0 1px 2px color-mix(in oklab, oklch(18% 0.005 260) 6%, transparent), 0 12px 32px -12px color-mix(in oklab, oklch(18% 0.005 260) 22%, transparent);
 }
 
+/* The height of the fixed app header.
+   Every sticky sub-header on a page — the feed tabs above all — pins directly
+   beneath it, and they used to each hard-code 66px + the safe area. When the
+   real header came out any taller, a transparent band opened between the two
+   and posts scrolled through it. AppLayout measures the header and overwrites
+   this at runtime; the value here is only what the first paint uses. */
+:root {
+  --zc-header-h: calc(66px + env(safe-area-inset-top));
+}
+
+@media (min-width: 768px) {
+  :root { --zc-header-h: 66px; }
+}
+
 .dark {
   color-scheme: dark;
 
@@ -211,6 +225,24 @@
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+/* Panels that float over the page — the menu card, bottom sheets, drawers —
+   need their own gradient rather than a slice of the page's.
+   The page veil is pinned to the viewport so that stacked full-height surfaces
+   line up, but that means a panel anchored to the bottom of the screen only
+   ever shows the bottom of the sweep, which is pure black. So these carry a
+   self-contained gradient sized to the panel: the pink reads wherever the
+   panel happens to sit. */
+.dark.rose-noir .zc-noir-surface {
+  background-color: transparent;
+  background-image:
+    radial-gradient(125% 150% at 10% 0%, rgba(204, 32, 143, 0.40) 0%, rgba(204, 32, 143, 0.13) 38%, transparent 70%),
+    radial-gradient(90% 120% at 100% 100%, rgba(122, 43, 255, 0.18) 0%, transparent 65%),
+    linear-gradient(158deg, #1d0c17 0%, #120810 48%, #0a0509 100%);
+  background-attachment: scroll;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 .premium {

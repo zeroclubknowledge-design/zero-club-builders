@@ -44,7 +44,10 @@ const DrawerContent = React.forwardRef<
       ref={ref}
       data-zc-drawer-variant={desktopVariant}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 flex h-auto flex-col rounded-t-[16px] border-t border-border/50 bg-background outline-none",
+        // zc-noir-surface: every bottom sheet is anchored to the foot of the
+        // screen, where the page's own gradient has already faded to black.
+        // This gives each one its own sweep instead. Inert outside Rose Noir.
+        "zc-noir-surface fixed inset-x-0 bottom-0 z-50 flex h-auto flex-col rounded-t-[16px] border-t border-border/50 bg-background outline-none",
         className,
       )}
       {...props}
