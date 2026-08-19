@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Landmark, CreditCard, History, ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Landmark, CreditCard, History, ChevronRight, ShieldCheck } from "@/components/icons/solar";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";

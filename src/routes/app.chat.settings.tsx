@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ChevronLeft, Bell, Lock, Shield, Ban, Eye } from "lucide-react";
+import { ChevronLeft, Bell, Lock, Shield, Ban, Eye } from "@/components/icons/solar";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 

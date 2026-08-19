@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Loader2, ShieldCheck, WalletCards, CreditCard, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Loader2, ShieldCheck, WalletCards, CreditCard, CheckCircle2 } from "@/components/icons/solar";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";

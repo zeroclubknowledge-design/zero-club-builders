@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Scissors, Play, Pause, Loader2, Check, ChevronLeft, Brush, Crop, Wand2, RefreshCw } from 'lucide-react';
+import { X, Scissors, Play, Pause, Loader2, Check, ChevronLeft, Brush, Crop, Wand2, RefreshCw } from "@/components/icons/solar";
 import { toast } from 'sonner';
 
 interface VideoEditorProps {

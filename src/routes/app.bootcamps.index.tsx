@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight, Bell, BookOpen, Building2, CalendarClock, Search, Users, X,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useMemo, useState } from "react";
 import { getBootcamps } from "@/api";
 import { useQuery } from "@tanstack/react-query";

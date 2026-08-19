@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Info, HelpCircle, ShieldAlert, FileText, ChevronRight } from "lucide-react";
+import { ChevronLeft, Info, HelpCircle, ShieldAlert, FileText, ChevronRight } from "@/components/icons/solar";
 
 export const Route = createFileRoute("/app/settings/resources")({
   component: ResourcesSettings,

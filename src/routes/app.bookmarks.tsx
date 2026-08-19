@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bookmark, Search, ChevronLeft, X, Loader2 } from "lucide-react";
+import { Bookmark, Search, ChevronLeft, X, Loader2 } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { enrichPosts } from "@/api";
 import { useState, useEffect } from "react";

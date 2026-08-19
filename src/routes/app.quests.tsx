@@ -19,7 +19,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Users,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";

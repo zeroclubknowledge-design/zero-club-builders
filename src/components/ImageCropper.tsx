@@ -3,7 +3,7 @@ import Cropper from 'react-easy-crop';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { RotateCw } from 'lucide-react';
+import { RotateCw } from "@/components/icons/solar";
 import { getCroppedImg } from '@/lib/cropImage';
 
 interface ImageCropperProps {

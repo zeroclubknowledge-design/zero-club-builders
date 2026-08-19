@@ -1,4 +1,4 @@
-import { Award } from "lucide-react";
+import { Award } from "@/components/icons/solar";
 import { getLevelFromXp, getLevelProgress } from "@/lib/utils";
 
 type ProfileExperienceProps = {

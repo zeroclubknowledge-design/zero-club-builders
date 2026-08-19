@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Bell, Mail, Smartphone, Settings2, ChevronRight, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, Bell, Mail, Smartphone, Settings2, ChevronRight, Check, Loader2 } from "@/components/icons/solar";
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";

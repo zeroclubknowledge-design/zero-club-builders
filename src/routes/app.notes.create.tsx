@@ -1,6 +1,6 @@
 import { getFirstName } from "@/lib/utils";
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, Trash2, Heading1, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette, Check } from 'lucide-react';
+import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, Trash2, Heading1, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette, Check } from "@/components/icons/solar";
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { uploadNoteMedia } from '@/lib/storage';

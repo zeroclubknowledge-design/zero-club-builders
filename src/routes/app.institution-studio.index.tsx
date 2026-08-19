@@ -14,7 +14,7 @@ import {
   UploadCloud, UserPlus, Activity, ArrowUpRight,
   Calendar, Hash, Video, Check, X, Edit3,
   ChevronLeft, MoreHorizontal, Shield, Star, Clock
-} from "lucide-react";
+} from "@/components/icons/solar";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";

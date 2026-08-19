@@ -16,7 +16,7 @@ import {
   Star,
   Users,
   Video,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";

@@ -30,7 +30,7 @@ import {
   ClipboardList,
   Lock,
   X,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import {
@@ -50,7 +50,7 @@ import {
   IconProfile, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics,
   IconPresentation, IconInstitution, IconStore,
   IconBell, IconRocket, IconSpark, IconShield, IconMenu,
-} from "@/components/icons";
+} from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import {
   prepareAddAccount,

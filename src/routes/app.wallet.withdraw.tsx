@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Clock, ArrowRight, Landmark, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Clock, ArrowRight, Landmark, ShieldCheck } from "@/components/icons/solar";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";

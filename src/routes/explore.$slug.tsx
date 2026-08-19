@@ -11,8 +11,8 @@ import {
   Store,
   UsersRound,
   WalletCards,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons/solar";
+import type { LucideIcon } from "@/components/icons/solar";
 import { PublicHeader } from "@/components/public/PublicHeader";
 
 type ProductPage = {

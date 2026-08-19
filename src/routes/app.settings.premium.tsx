@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Zap, Star, Shield, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, Zap, Star, Shield, ChevronRight, Loader2 } from "@/components/icons/solar";
 import { Switch } from "@/components/ui/switch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { 
   ChevronLeft, Search, User, Lock, Zap, ShieldCheck, 
   Bell, Info, ChevronRight, CreditCard 
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getFirstName } from "@/lib/utils";

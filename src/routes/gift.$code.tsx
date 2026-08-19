@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ArrowRight, Gift } from "lucide-react";
+import { ArrowRight, Gift } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 

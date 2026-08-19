@@ -28,7 +28,7 @@ import {
   Users,
   WalletCards,
   X,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";

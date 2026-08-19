@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons/solar";
 
 export const Route = createFileRoute("/app/tutor-studio")({
   component: TutorStudioLayout,

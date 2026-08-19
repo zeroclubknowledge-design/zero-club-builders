@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Mail, MessageCircle, Send, Share2, X } from "lucide-react";
+import { Copy, Mail, MessageCircle, Send, Share2, X } from "@/components/icons/solar";
 import { copyToClipboard } from "@/lib/share";
 
 /**

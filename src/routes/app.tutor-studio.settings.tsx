@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft, ChevronDown, ChevronRight, Calendar, Loader2,
   User, Wallet, GraduationCap, BellRing, ShieldCheck,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";

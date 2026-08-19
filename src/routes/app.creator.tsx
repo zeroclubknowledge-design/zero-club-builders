@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BarChart3, CalendarDays, ChevronLeft, Gift, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
+import { ArrowRight, BarChart3, CalendarDays, ChevronLeft, Gift, ShieldCheck, Sparkles, UsersRound } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { fallbackClubCapacity, isBootcampCohortClub } from "@/features/membership/plans";
 

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Zap, Star, Shield, Check } from "lucide-react";
+import { ArrowLeft, Zap, Star, Shield, Check } from "@/components/icons/solar";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/boost")({

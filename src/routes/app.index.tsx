@@ -1,5 +1,5 @@
 import { useLoaderData, createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Heart, MessageCircle, Share2, Plus, Bell, Repeat, Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen } from "lucide-react";
+import { Heart, MessageCircle, Share2, Plus, Bell, Repeat, Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen } from "@/components/icons/solar";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -8,7 +8,7 @@ import { getPosts, searchEverything } from "@/api";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
-import { Star, Users, Rocket, UserPlus, FileText, Pencil, Sparkles } from "lucide-react";
+import { Star, Users, Rocket, UserPlus, FileText, Pencil, Sparkles } from "@/components/icons/solar";
 import { getCachedSession } from "@/lib/auth";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
 import { useSharedPresence } from "@/hooks/useSharedPresence";

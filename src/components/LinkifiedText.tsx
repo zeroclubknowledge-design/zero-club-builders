@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
-import { Globe, AppWindow } from "lucide-react";
+import { Globe, AppWindow } from "@/components/icons/solar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 

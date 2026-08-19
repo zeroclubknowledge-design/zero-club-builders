@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Gift, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Gift, Loader2, ShieldCheck } from "@/components/icons/solar";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";

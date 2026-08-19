@@ -19,7 +19,7 @@ import {
   Search,
   X,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useEffect, useState } from "react";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
 import {
@@ -29,7 +29,7 @@ import {
   IconPresentation,
   IconProfile,
   IconWallet,
-} from "@/components/icons";
+} from "@/components/icons/nav";
 
 export const Route = createFileRoute("/")({
   component: Landing,

@@ -11,7 +11,7 @@ import {
   UserPlus,
   X,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 
 type IncomingNotification = {

@@ -8,7 +8,7 @@ import {
   History, Star, Plus, Gift,
   Loader2, ArrowDownLeft,
   EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, Landmark, X
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useState, useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle
 } from "@/components/ui/drawer";
-import { MessageCircle, Send, MoreHorizontal, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2, Trash2, X, ThumbsUp, ThumbsDown, MessageSquare, SlidersHorizontal, Check } from "lucide-react";
+import { MessageCircle, Send, MoreHorizontal, Mail, UserPlus, Flag, EyeOff, Plus, Pencil, Loader2, Trash2, X, ThumbsUp, ThumbsDown, MessageSquare, SlidersHorizontal, Check } from "@/components/icons/solar";
 import { useRouter, Link } from "@tanstack/react-router";
 
 import {
@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { UserMinus } from "lucide-react";
+import { UserMinus } from "@/components/icons/solar";
 import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
 import { fetchPostComments } from "@/features/comments/api";
 

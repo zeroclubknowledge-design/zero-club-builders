@@ -9,7 +9,7 @@ import {
   RotateCcw,
   Sparkles,
   Trophy,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { SudokuRaceBoard } from "@/features/games/SudokuRaceBoard";
 import { WordsRaceBoard } from "@/features/games/WordsRaceBoard";
 import {

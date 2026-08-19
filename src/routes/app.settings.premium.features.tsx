@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, ChevronLeft, UsersRound } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, UsersRound } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { CLUB_LIMITS, PLAN_NAMES, resolvePlanKey } from "@/features/membership/plans";

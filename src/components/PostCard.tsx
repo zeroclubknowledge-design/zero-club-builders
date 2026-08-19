@@ -4,7 +4,7 @@ import {
   MoreHorizontal, CheckCircle2, Bookmark, Zap,
   UserPlus, UserMinus, VolumeX, Volume2, Ban, Flag, Link as LinkIcon,
   ExternalLink, X, ThumbsUp, MessageSquare, Share2, Repeat, Mail, EyeOff, Send, Trash2, Quote, Clock, Edit3, Rocket, MapPin, Play
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { formatDistanceToNow, format } from 'date-fns';
 import {
   DropdownMenu,

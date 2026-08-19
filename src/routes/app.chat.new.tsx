@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Search, ChevronLeft, UserPlus, MessageCircle, Check } from "lucide-react";
+import { Search, ChevronLeft, UserPlus, MessageCircle, Check } from "@/components/icons/solar";
 import { getFollowers } from "@/api";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";

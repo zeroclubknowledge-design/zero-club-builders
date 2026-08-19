@@ -36,7 +36,7 @@ import {
   UsersRound,
   WalletCards,
   X,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import {
   Area,
   AreaChart,

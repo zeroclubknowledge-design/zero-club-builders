@@ -11,7 +11,7 @@ import {
   Quote,
   Redo2,
   Undo2,
-} from "lucide-react";
+} from "@/components/icons/solar";
 
 /**
  * A small rich text editor for descriptions.

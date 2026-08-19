@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { 
   BellRing, UserRoundPlus, ThumbsUp, MessageSquare, Zap,
   CheckCheck, MoreHorizontal, ArrowUpFromLine, AtSign, Loader2, Trophy
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { stripMarkdownAsterisks } from "@/components/LinkifiedText";

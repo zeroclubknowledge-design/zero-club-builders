@@ -1,4 +1,4 @@
-import { Gift } from "lucide-react";
+import { Gift } from "@/components/icons/solar";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const giftTemplates = [

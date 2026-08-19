@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Rocket, Trophy, Flame, ChevronLeft, Calendar, Target, GitBranch,
   Coins, ShieldCheck, ChevronDown, Plus, Compass, CheckCircle2, Loader2,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { PostCard } from "@/components/PostCard";

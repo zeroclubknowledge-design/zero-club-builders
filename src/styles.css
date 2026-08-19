@@ -307,13 +307,6 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
 
-  /* Editorial icon system — clean strokes, no muddy fill */
-  .lucide {
-    stroke-width: 1.75;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
   @keyframes progress {
     0% { transform: translateX(-100%); }
     50% { transform: translateX(-30%); }

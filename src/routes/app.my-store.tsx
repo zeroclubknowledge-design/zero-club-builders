@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ChevronLeft, Plus, Loader2, Trash2, Edit3, UploadCloud, FileArchive,
   Tag, TicketPercent, Gift, ChevronDown, ExternalLink, X, Share2,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import { uploadFile } from "@/lib/storage";
 import { useUser } from "@/hooks/useUser";
 import { clampPercent, formatPercent } from "@/lib/utils";
 import { shareOrCopy, storeProductUrl } from "@/lib/share";
-import { IconStore } from "@/components/icons";
+import { IconStore } from "@/components/icons/nav";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import {
   Drawer,

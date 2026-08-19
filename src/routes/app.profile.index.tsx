@@ -5,7 +5,7 @@ import {
   Search, MoreHorizontal, Hash, Users, MessageCircle, Heart,
   Share2, Settings, UserPlus, Copy, X, Loader2, Star, Play, CheckCircle2, Link2,
   Edit3, Zap, Award, TrendingUp, Pen, Mail, Sparkles
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProfile, enrichPosts } from "@/api";
 import { supabase } from "@/lib/supabase";

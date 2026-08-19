@@ -6,7 +6,7 @@ import {
   UserMinus, Star, LayoutGrid, Sparkles, ArrowRight, ChevronDown, Search,
   BookOpen, Wallet, TrendingUp, Zap, Eye, GraduationCap, Megaphone, Lock, UsersRound,
   ClipboardList
-} from "lucide-react";
+} from "@/components/icons/solar";
 
 import { useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";

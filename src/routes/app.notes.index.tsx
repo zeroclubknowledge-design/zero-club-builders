@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Search, Plus, Edit3, Image as ImageIcon, MoreVertical, Trash2, Share2, X } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Edit3, Image as ImageIcon, MoreVertical, Trash2, Share2, X } from "@/components/icons/solar";
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';

@@ -20,7 +20,7 @@ import {
   Users,
   Wallet,
   X,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";

@@ -5,7 +5,7 @@ import {
   Search, MoreHorizontal, Hash, Users, MessageCircle, Heart, 
   UserPlus, UserMinus, Loader2, Share2, Copy, Flag, X, Send, Link2,
   Bell, BellRing, Star, Play, CheckCircle2, Settings, Shield, Sparkles, Edit3, Mail, Pen, Zap
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { getProfile, enrichPosts } from "@/api";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ import { CommentDrawer } from "@/components/CommentDrawer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
-import { IconMessages } from "@/components/icons";
+import { IconMessages } from "@/components/icons/nav";
 import { useFollow } from "@/hooks/useFollow";
 import { ProfileExperience } from "@/components/ProfileExperience";
 

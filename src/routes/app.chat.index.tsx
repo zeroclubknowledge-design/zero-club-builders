@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, Edit3, Circle, MoreHorizontal, ChevronLeft, MessageSquare, Users as UsersIcon, ChevronDown, Check, Settings, MessageCircle, User, MessageSquarePlus, BadgeCheck, Headphones, Pin } from "lucide-react";
+import { Search, Edit3, Circle, MoreHorizontal, ChevronLeft, MessageSquare, Users as UsersIcon, ChevronDown, Check, Settings, MessageCircle, User, MessageSquarePlus, BadgeCheck, Headphones, Pin } from "@/components/icons/solar";
 import { getConversations } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";

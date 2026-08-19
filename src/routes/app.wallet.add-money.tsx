@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft, ShieldCheck, ArrowRight, WalletCards, Loader2,
   Link2 as LinkIcon, Share2, Copy, Search, Send, Check, X, Coins,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";

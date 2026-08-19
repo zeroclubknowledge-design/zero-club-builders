@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Check, Gift } from "lucide-react";
+import { Check, Gift } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 
 export type RestrictedZeroGiftService =

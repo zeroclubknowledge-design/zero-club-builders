@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, ChevronLeft, Gift, Loader2, Mail, ShieldCheck, User } from "lucide-react";
-import { IconClubs, IconInstitution, IconPresentation, IconProfile } from "@/components/icons";
+import { ArrowRight, ChevronLeft, Gift, Loader2, Mail, ShieldCheck, User } from "@/components/icons/solar";
+import { IconClubs, IconInstitution, IconPresentation, IconProfile } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";

@@ -3,7 +3,7 @@ import {
   ChevronLeft, ChevronDown, UploadCloud, Play,
   Plus, Trash2, GripVertical, CheckCircle2,
   DollarSign, Globe, Lock, Rocket, Save, Loader2, X
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight, Users } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 
 /**

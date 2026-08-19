@@ -17,9 +17,9 @@ import {
   Sparkles,
   Users,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useMemo, useState, type ElementType } from "react";
-import { IconClubs, IconLearn, IconMetrics, IconProfile } from "@/components/icons";
+import { IconClubs, IconLearn, IconMetrics, IconProfile } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/metrics")({

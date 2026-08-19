@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronLeft, Gift } from "lucide-react";
+import { ArrowRight, ChevronLeft, Gift } from "@/components/icons/solar";
 import { useZeroGiftBalance } from "@/components/ZeroGiftPaymentOption";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 

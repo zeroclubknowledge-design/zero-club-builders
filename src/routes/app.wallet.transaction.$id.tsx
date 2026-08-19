@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, ArrowDownLeft, ArrowUpRight, Check, Copy, Loader2, Receipt, ShieldCheck,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { copyToClipboard } from "@/lib/share";

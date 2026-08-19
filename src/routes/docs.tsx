@@ -8,7 +8,7 @@ import {
   Menu,
   Search,
   X,
-} from "lucide-react";
+} from "@/components/icons/solar";
 import { useEffect, useMemo, useState } from "react";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { docPages, getDocPage } from "@/features/docs/content";

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Accessibility, Languages, Eye, Type, ChevronRight } from "lucide-react";
+import { ChevronLeft, Accessibility, Languages, Eye, Type, ChevronRight } from "@/components/icons/solar";
 
 export const Route = createFileRoute("/app/settings/accessibility")({
   component: AccessibilitySettings,
