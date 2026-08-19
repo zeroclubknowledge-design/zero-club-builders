@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft, ShieldCheck, ArrowRight, WalletCards, Loader2,
-  Link2 as LinkIcon, Share2, Copy, Search, Send, Check, X,
+  Link2 as LinkIcon, Share2, Copy, Search, Send, Check, X, Coins,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,6 +16,9 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 export const Route = createFileRoute("/app/wallet/add-money")({ component: AddMoneyPage });
 
 const QUICK_AMOUNTS = [1000, 2000, 5000, 10000];
+
+/** 1000 ZP = ₦100. Kept in step with zp_per_naira() in the database. */
+const ZP_PER_NAIRA = 10;
 
 /*
  * Paying by bank transfer means leaving Zero Club for a banking app. The
@@ -63,6 +66,42 @@ function AddMoneyPage() {
   const [status, setStatus] = useState<"idle" | "paying" | "verifying">("idle");
   const numericAmount = toBaseAmount(Number(amount) || 0);
   const busy = status !== "idle";
+
+  /* ── ZP ──
+     The rate is mirrored here only to show the person what they will get.
+     redeem_zp_to_wallet does the arithmetic that counts, server-side, so a
+     stale client can never convert at a rate of its own choosing. */
+  const [zpAmount, setZpAmount] = useState("");
+  const [converting, setConverting] = useState(false);
+  const zpBalance = Math.max(0, Number(profile?.zp) || 0);
+  const zpCredit = Math.floor((Number(zpAmount) || 0) / ZP_PER_NAIRA);
+
+  const handleConvertZp = async () => {
+    const points = Number(zpAmount) || 0;
+    if (points < ZP_PER_NAIRA) {
+      toast.error(`Convert at least ${ZP_PER_NAIRA} ZP`);
+      return;
+    }
+    if (points > zpBalance) {
+      toast.error("That is more ZP than you have");
+      return;
+    }
+
+    setConverting(true);
+    try {
+      const { data, error } = await supabase.rpc("redeem_zp_to_wallet", { p_zp: points });
+      if (error) throw error;
+      const result = data as any;
+      toast.success(`${Number(result?.zp_used || points).toLocaleString()} ZP converted to ${format(Number(result?.credited) || 0)}`);
+      setZpAmount("");
+      queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet-history"] });
+    } catch (error: any) {
+      toast.error(error?.message || "Could not convert your ZP");
+    } finally {
+      setConverting(false);
+    }
+  };
 
   /* ── Fund link ── */
   const [linkOpen, setLinkOpen] = useState(false);
@@ -391,6 +430,55 @@ function AddMoneyPage() {
               </div>
             </div>
           </div>
+
+          {/* ── Third way in: points you already have ── */}
+          {zpBalance >= ZP_PER_NAIRA && (
+            <div className="mt-7 border-t hairline pt-6">
+              <div className="flex items-start gap-3">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
+                  <Coins className="h-[18px] w-[18px]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-[14.5px] font-semibold tracking-tight">Top up with your ZP</h2>
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+                    {ZP_PER_NAIRA * 100} ZP is worth {format(100)}. Convert what you need to cover a
+                    payment — converted points can be spent anywhere on Zero Club, but are not
+                    withdrawable to a bank.
+                  </p>
+
+                  <p className="mt-3 text-[12px] text-muted-foreground">
+                    You have <strong className="font-semibold tabular-nums text-foreground">{zpBalance.toLocaleString()} ZP</strong>
+                    {" "}· worth <strong className="font-semibold tabular-nums text-foreground">{format(Math.floor(zpBalance / ZP_PER_NAIRA))}</strong>
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <input
+                      inputMode="numeric"
+                      value={zpAmount}
+                      onChange={(event) => setZpAmount(event.target.value.replace(/\D/g, ""))}
+                      placeholder="ZP to convert"
+                      disabled={converting}
+                      className="h-11 w-[150px] rounded-lg border border-border bg-background px-3 text-[14px] font-semibold tabular-nums outline-none transition focus:border-primary/50 disabled:opacity-50"
+                    />
+                    <button
+                      onClick={() => setZpAmount(String(Math.floor(zpBalance / ZP_PER_NAIRA) * ZP_PER_NAIRA))}
+                      disabled={converting}
+                      className="h-11 rounded-lg px-3 text-[12px] font-semibold text-muted-foreground ring-1 ring-border tap hover:bg-foreground/[0.04] disabled:opacity-50"
+                    >
+                      Max
+                    </button>
+                    <button
+                      onClick={handleConvertZp}
+                      disabled={converting || zpCredit < 1}
+                      className="flex h-11 items-center gap-2 rounded-lg bg-foreground px-4 text-[13px] font-semibold text-background tap disabled:opacity-40"
+                    >
+                      {converting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Convert{zpCredit >= 1 ? ` to ${format(zpCredit)}` : ""}</>}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         <aside className="space-y-3">

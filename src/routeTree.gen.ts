@@ -57,7 +57,7 @@ import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
 import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
 import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
-import { Route as AppWalletSendRouteImport } from './routes/app.wallet.send'
+import { Route as AppWalletRequestRouteImport } from './routes/app.wallet.request'
 import { Route as AppWalletAddMoneyRouteImport } from './routes/app.wallet.add-money'
 import { Route as AppTutorStudioSettingsRouteImport } from './routes/app.tutor-studio.settings'
 import { Route as AppTutorStudioCreateRouteImport } from './routes/app.tutor-studio.create'
@@ -333,9 +333,9 @@ const AppWalletSettingsRoute = AppWalletSettingsRouteImport.update({
   path: '/wallet/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppWalletSendRoute = AppWalletSendRouteImport.update({
-  id: '/wallet/send',
-  path: '/wallet/send',
+const AppWalletRequestRoute = AppWalletRequestRouteImport.update({
+  id: '/wallet/request',
+  path: '/wallet/request',
   getParentRoute: () => AppRoute,
 } as any)
 const AppWalletAddMoneyRoute = AppWalletAddMoneyRouteImport.update({
@@ -569,7 +569,7 @@ export interface FileRoutesByFullPath {
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
-  '/app/wallet/send': typeof AppWalletSendRoute
+  '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
@@ -647,7 +647,7 @@ export interface FileRoutesByTo {
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
-  '/app/wallet/send': typeof AppWalletSendRoute
+  '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
@@ -732,7 +732,7 @@ export interface FileRoutesById {
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
-  '/app/wallet/send': typeof AppWalletSendRoute
+  '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
@@ -818,7 +818,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
-    | '/app/wallet/send'
+    | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
     | '/product/$id/preview-v3'
@@ -896,7 +896,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
-    | '/app/wallet/send'
+    | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
     | '/product/$id/preview-v3'
@@ -980,7 +980,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
-    | '/app/wallet/send'
+    | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
     | '/product/$id/preview-v3'
@@ -1359,11 +1359,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWalletSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/wallet/send': {
-      id: '/app/wallet/send'
-      path: '/wallet/send'
-      fullPath: '/app/wallet/send'
-      preLoaderRoute: typeof AppWalletSendRouteImport
+    '/app/wallet/request': {
+      id: '/app/wallet/request'
+      path: '/wallet/request'
+      fullPath: '/app/wallet/request'
+      preLoaderRoute: typeof AppWalletRequestRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/wallet/add-money': {
@@ -1728,7 +1728,7 @@ interface AppRouteChildren {
   AppProfileIdRoute: typeof AppProfileIdRoute
   AppProfileEditRoute: typeof AppProfileEditRoute
   AppWalletAddMoneyRoute: typeof AppWalletAddMoneyRoute
-  AppWalletSendRoute: typeof AppWalletSendRoute
+  AppWalletRequestRoute: typeof AppWalletRequestRoute
   AppWalletSettingsRoute: typeof AppWalletSettingsRoute
   AppWalletWithdrawRoute: typeof AppWalletWithdrawRoute
   AppBootcampsIndexRoute: typeof AppBootcampsIndexRoute
@@ -1780,7 +1780,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileIdRoute: AppProfileIdRoute,
   AppProfileEditRoute: AppProfileEditRoute,
   AppWalletAddMoneyRoute: AppWalletAddMoneyRoute,
-  AppWalletSendRoute: AppWalletSendRoute,
+  AppWalletRequestRoute: AppWalletRequestRoute,
   AppWalletSettingsRoute: AppWalletSettingsRoute,
   AppWalletWithdrawRoute: AppWalletWithdrawRoute,
   AppBootcampsIndexRoute: AppBootcampsIndexRoute,

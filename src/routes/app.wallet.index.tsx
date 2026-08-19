@@ -3,19 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { describeVerifyFailure } from "@/lib/paystack";
 import { useUser } from "@/hooks/useUser";
-import { 
-  ArrowUpRight, Store, Send, QrCode, TrendingUp, 
-  History, Star, Users, PenLine, Plus,
-  Wallet as WalletIcon, Search, HelpCircle, BarChart3, Gift,
-  ChevronLeft, Loader2, ArrowRight, ArrowDownLeft, Copy,
-  Bell, EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, Landmark, X
+import {
+  ArrowUpRight, Store, HandCoins, TrendingUp,
+  History, Star, Plus, Gift,
+  Loader2, ArrowDownLeft,
+  EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, Landmark, X
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { getFirstName } from "@/lib/utils";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/wallet/")({
@@ -46,15 +42,6 @@ function WalletPage() {
     await refetch();
     toast.success("Wallet updated!");
   };
-  const [openAction, setOpenAction] = useState<string | null>(null);
-  const [amount, setAmount] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [selectedRecipient, setSelectedRecipient] = useState<any | null>(null);
-  const [transferAmount, setTransferAmount] = useState("");
-  const [sendingFunds, setSendingFunds] = useState(false);
-  const [suggestedRecipients, setSuggestedRecipients] = useState<any[]>([]);
 
   const { currency, setCurrency, details: currentCurrency, fromBaseAmount, format } = useWalletCurrency();
   const [showBalance, setShowBalance] = useState(true);
@@ -170,70 +157,6 @@ function WalletPage() {
   const legacyActivities = (walletHistory?.legacy || []) as any[];
   const activities = legacyActivities;
 
-  useEffect(() => {
-    const fetchNetwork = async () => {
-      try {
-        const [{ data: following, error: err1 }, { data: followers, error: err2 }] = await Promise.all([
-          supabase.from("follows").select("following_id, profiles!follows_following_id_fkey(id, username, full_name, avatar_url, xp, coins)").eq("follower_id", profile?.id),
-          supabase.from("follows").select("follower_id, profiles!follows_follower_id_fkey(id, username, full_name, avatar_url, xp, coins)").eq("following_id", profile?.id)
-        ]);
-        
-        if (err1) console.error("Error fetching following:", err1);
-        if (err2) console.error("Error fetching followers:", err2);
-
-        const networkMap = new Map();
-        following?.forEach((f: any) => {
-          if (f.profiles) networkMap.set(f.profiles.id, f.profiles);
-        });
-        followers?.forEach((f: any) => {
-          if (f.profiles) networkMap.set(f.profiles.id, f.profiles);
-        });
-      
-      let recipients = Array.from(networkMap.values());
-      if (recipients.length === 0) {
-        // Fallback to top users if no network
-        const { data: topUsers } = await supabase
-          .from("profiles")
-          .select("id, username, full_name, avatar_url, xp, coins")
-          .neq("id", profile?.id)
-          .order('xp', { ascending: false })
-          .limit(10);
-        if (topUsers) recipients = topUsers;
-      }
-      
-      setSuggestedRecipients(recipients);
-      } catch (err) {
-        console.error("Error in fetchNetwork:", err);
-      }
-    };
-    if (profile?.id) fetchNetwork();
-  }, [profile?.id]);
-
-  useEffect(() => {
-    if (searchQuery.trim().length <= 1) {
-      setSearchResults([]);
-      return;
-    }
-    const delayDebounce = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("id, username, full_name, avatar_url, xp, coins")
-          .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
-          .neq("id", profile?.id)
-          .limit(5);
-        if (!error && data) {
-          setSearchResults(data);
-        }
-      } catch (err) {
-        console.error("Search error:", err);
-      } finally {
-        setSearching(false);
-      }
-    }, 300); // 300ms debounce
-    return () => clearTimeout(delayDebounce);
-  }, [searchQuery, profile?.id]);
 
   // Robust, fail-safe programmatic referral auto-claim and follow resolver
   useEffect(() => {
@@ -298,100 +221,6 @@ function WalletPage() {
     }
   }, [profile, refetch, refetchActivities]);
 
-  const handleActionChange = (action: string | null) => {
-    setOpenAction(action);
-    setAmount("");
-    setSearchQuery("");
-    setSearchResults([]);
-    setSelectedRecipient(null);
-    setTransferAmount("");
-  };
-
-  const handleSendFunds = async () => {
-    if (!profile || !selectedRecipient) return;
-    const amountVal = parseInt(transferAmount);
-    if (isNaN(amountVal) || amountVal <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-    if (Number(profile.zp || 0) < amountVal) {
-      toast.error("Insufficient ZP balance");
-      return;
-    }
-
-    setSendingFunds(true);
-    try {
-      // Atomic server-side transfer (balance check + both updates in one transaction)
-      const { error: transferErr } = await supabase.rpc("transfer_zp", {
-        recipient: selectedRecipient.id,
-        amount: amountVal,
-      });
-
-      if (transferErr) throw transferErr;
-
-      // 3. Log sender system notification/activity
-      await supabase.from("notifications").insert({
-        recipient_id: profile.id,
-        actor_id: selectedRecipient.id,
-        type: "system",
-        content: `Sent ${amountVal} ZP to ${getFirstName(selectedRecipient)}`,
-      });
-
-      // 4. Log recipient system notification/activity
-      await supabase.from("notifications").insert({
-        recipient_id: selectedRecipient.id,
-        actor_id: profile.id,
-        type: "system",
-        content: `Received ${amountVal} ZP from ${getFirstName(profile)}`,
-      });
-
-      toast.success(`Sent ${amountVal} ZP to ${getFirstName(selectedRecipient)}!`);
-      handleActionChange(null);
-      await refetch();
-      refetchActivities?.();
-    } catch (err: any) {
-      console.error("Transfer failed:", err);
-      toast.error(err.message || "Failed to process transfer. Please try again.");
-    } finally {
-      setSendingFunds(false);
-    }
-  };
-
-  const handleRequestFunds = async () => {
-    if (!profile || !selectedRecipient) return;
-    const amountVal = parseInt(transferAmount);
-    if (isNaN(amountVal) || amountVal <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-
-    setSendingFunds(true);
-    try {
-      // Log recipient system notification/activity
-      await supabase.from("notifications").insert({
-        recipient_id: selectedRecipient.id,
-        actor_id: profile.id,
-        type: "system",
-        content: `Requested ${amountVal} ZP from you.`,
-      });
-
-      toast.success(`Requested ${amountVal} ZP from ${getFirstName(selectedRecipient)}!`);
-      handleActionChange(null);
-    } catch (err: any) {
-      console.error("Request failed:", err);
-      toast.error(err.message || "Failed to process request. Please try again.");
-    } finally {
-      setSendingFunds(false);
-    }
-  };
-
-  const handleCopyDetails = () => {
-    const link = `${window.location.origin}/app/profile/${profile?.id}`;
-    navigator.clipboard.writeText(`My Zero Club Wallet: ${link}`);
-    toast.success("Account details copied!");
-  };
-
-  // ActionContent has been moved to separate premium pages
 
   return (
     <div className="min-h-screen bg-[#f8f7f5] pb-20 text-foreground dark:bg-background">
@@ -507,7 +336,9 @@ function WalletPage() {
             </div>
           </div>
 
-          {/* Action Buttons (Add Money & Send) */}
+          {/* The two things people come to a wallet to do: put money in, take
+              money out. Send used to hold this second slot, which gave the most
+              prominent position on the page to the least-used action. */}
           <div className="flex gap-3 w-full mt-2">
             <Link to="/app/wallet/add-money" className="flex flex-1 flex-row items-center justify-center gap-2.5 rounded-lg bg-card px-2 py-4 ring-1 ring-border transition-all tap hover:ring-foreground/15">
               <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
@@ -516,11 +347,11 @@ function WalletPage() {
               <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Add money</span>
             </Link>
 
-            <Link to="/app/wallet/send" className="flex flex-1 flex-row items-center justify-center gap-2.5 rounded-lg bg-card px-2 py-4 ring-1 ring-border transition-all tap hover:ring-foreground/15">
+            <Link to="/app/wallet/withdraw" className="flex flex-1 flex-row items-center justify-center gap-2.5 rounded-lg bg-card px-2 py-4 ring-1 ring-border transition-all tap hover:ring-foreground/15">
               <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
-                <Send className="h-4 w-4 text-primary -ml-0.5" strokeWidth={2} />
+                <Landmark className="h-4 w-4 text-primary" strokeWidth={2} />
               </div>
-              <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Send</span>
+              <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Withdraw</span>
             </Link>
           </div>
       </section>
@@ -540,7 +371,7 @@ function WalletPage() {
           {[
             { to: "/app/store", label: "Store", Icon: Store },
             { to: "/app/quests", label: "Earn", Icon: TrendingUp },
-            { to: "/app/wallet/withdraw", label: "Withdraw", Icon: Landmark },
+            { to: "/app/wallet/request", label: "Request", Icon: HandCoins },
             { to: "/app/gifts", label: "Gifts", Icon: Gift },
           ].map(({ to, label, Icon }) => (
             <Link

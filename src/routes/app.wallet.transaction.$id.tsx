@@ -22,6 +22,7 @@ const SOURCE_LABELS: Record<string, { label: string; detail: string }> = {
   membership: { label: "Membership", detail: "Zero Club membership" },
   zero_form: { label: "Zero Form", detail: "A bootcamp registration form" },
   transfer: { label: "Transfer", detail: "Sent between Zero Club wallets" },
+  zp: { label: "ZP converted", detail: "Zero Points converted into spendable wallet balance" },
   refund: { label: "Refund", detail: "Money returned to your wallet" },
   withdrawal: { label: "Withdrawal", detail: "Paid out to your bank account" },
 };
