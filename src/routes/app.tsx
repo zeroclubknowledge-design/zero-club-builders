@@ -1261,7 +1261,17 @@ function AppLayout() {
   const isDetail = pathname.includes("/detail") || isPostDetail || isGameDetail;
   const isInstitutionStudio = pathname.startsWith("/app/institution-studio");
   const isAdminStudio = pathname.startsWith("/app/admin");
-  const isWideWorkspace = isInstitutionStudio || isAdminStudio;
+  /*
+   * Tutor Studio is a workspace, not a reading column.
+   *
+   * Everything under /app was being squeezed into the same 920px feed column
+   * with the right-hand rail taking another ~300px, which left the curriculum
+   * builder and the learner table with a few hundred pixels to work in. The
+   * institution and admin studios were already excused from that for exactly
+   * this reason.
+   */
+  const isTutorStudio = pathname.startsWith("/app/tutor-studio");
+  const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio;
   const hideHeader = !isFeed;
 
   /*

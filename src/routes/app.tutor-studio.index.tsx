@@ -642,7 +642,7 @@ function TutorStudioPage() {
         </header>
 
         {/* ── Floating Pill Tabs ────────────────────────── */}
-        <div className="px-5 py-4 max-w-5xl mx-auto w-full">
+        <div className="px-5 py-4 max-w-[1240px] mx-auto w-full">
           <div className="inline-flex items-center bg-foreground/[0.04] p-1 rounded-full overflow-x-auto no-scrollbar max-w-full gap-0.5">
             {[
               { id: "details", label: "Details", icon: Layout },
@@ -670,7 +670,7 @@ function TutorStudioPage() {
         </div>
 
         {/* ── Tab Content ────────────────────────── */}
-        <div className="px-5 max-w-5xl mx-auto w-full">
+        <div className="px-5 max-w-[1240px] mx-auto w-full">
 
           {/* ─── CURRICULUM TAB ─────────────────── */}
           {activeTab === "curriculum" && (
@@ -1099,7 +1099,7 @@ function TutorStudioPage() {
 
           {/* ─── SETTINGS TAB ─────────────────── */}
           {activeTab === "details" && (
-            <div className="space-y-8 max-w-2xl mx-auto pb-10">
+            <div className="space-y-8 max-w-[1100px] pb-10">
               <div className="pb-5 border-b border-border/40">
                 <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Bootcamp Details</h2>
                 <p className="text-xs text-muted-foreground mt-1">Edit the page learners see before enrolling.</p>
