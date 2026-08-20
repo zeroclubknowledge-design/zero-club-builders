@@ -433,6 +433,9 @@ function ClubChat() {
   const [addResults, setAddResults] = useState<any[]>([]);
   const [addSearching, setAddSearching] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
+  /* "Nobody matched" and "the query was refused" are different answers and
+     used to look the same on screen. */
+  const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -445,14 +448,47 @@ function ClubChat() {
     let cancelled = false;
     setAddSearching(true);
     const timer = setTimeout(async () => {
-      const { data } = await supabase
+      /*
+       * Three things were quietly turning a good search into "No one new
+       * found":
+       *
+       *   • a leading @. People type the handle as they see it — @benson —
+       *     and `username ilike '%@benson%'` matches nobody, because the @ is
+       *     not part of the stored username;
+       *   • commas and parentheses, which are the syntax of PostgREST's or()
+       *     filter. One in the query and the whole filter is malformed;
+       *   • the error itself. This read `const { data } =`, so a rejected
+       *     query and a genuine no-match were indistinguishable — both came
+       *     back empty and both said nobody was found.
+       *
+       * The limit is raised too: it used to fetch 8 rows and then remove
+       * current members, so searching a club where the first 8 matches are
+       * already inside returned an empty list.
+       */
+      const term = q.replace(/^@+/, "").replace(/[,()]/g, " ").trim();
+      if (!term) {
+        if (!cancelled) { setAddResults([]); setAddSearching(false); }
+        return;
+      }
+
+      const { data, error } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url")
-        .or(`username.ilike.%${q}%,full_name.ilike.%${q}%`)
-        .limit(8);
+        .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
+        .limit(30);
+
       if (cancelled) return;
+
+      if (error) {
+        setAddError(error.message);
+        setAddResults([]);
+        setAddSearching(false);
+        return;
+      }
+
       const existing = new Set(members.map((m) => m.profile_id));
-      setAddResults((data || []).filter((p: any) => !existing.has(p.id)));
+      setAddError(null);
+      setAddResults((data || []).filter((p: any) => !existing.has(p.id)).slice(0, 12));
       setAddSearching(false);
     }, 250);
     return () => {
@@ -1802,6 +1838,13 @@ function ClubChat() {
                                     </div>
                                   </div>
                                 ))}
+                              </div>
+                            ) : addError ? (
+                              <div className="pt-10 text-center">
+                                <p className="text-sm font-semibold text-destructive">Search could not run</p>
+                                <p className="mx-auto mt-1 max-w-[36ch] text-xs leading-relaxed text-muted-foreground">
+                                  {addError}
+                                </p>
                               </div>
                             ) : addResults.length === 0 ? (
                               <div className="pt-10 text-center">
