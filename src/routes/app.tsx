@@ -1218,30 +1218,39 @@ function AppLayout() {
     const search = new URLSearchParams(location.search);
     const clubId = search.get("club");
     if (clubId) {
-      // Check if already a member
-      supabase
-        .from("club_members")
-        .select("id")
-        .eq("club_id", clubId)
-        .eq("profile_id", session.user.id)
-        .single()
-        .then(({ data: member }) => {
-          if (!member) {
-            // Join the club
-            return supabase.from("club_members").insert({
-              club_id: clubId,
-              profile_id: session.user.id,
-              role: "Member",
-            });
+      const openInvite = async () => {
+        const { data: member } = await supabase
+          .from("club_members")
+          .select("id")
+          .eq("club_id", clubId)
+          .eq("profile_id", session.user.id)
+          .maybeSingle();
+
+        if (!member) {
+          /* An invite link cannot be a way round the fee. join_club charges the
+             wallet where there is something to charge, and simply joins where
+             there is not — the same door everyone else comes through. */
+          const { data, error } = await supabase.rpc("join_club", { p_club_id: clubId });
+          const result = data as any;
+
+          if (error || result?.status === "insufficient_funds") {
+            const fee = Number(result?.fee) || 0;
+            toast.error(
+              fee > 0 ? "This club charges to join" : error?.message || "Could not join that club",
+              { description: fee > 0 ? "Top up your wallet, then open the link again." : undefined },
+            );
+            router.navigate({ to: "/app/clubs" });
+            return;
           }
-        })
-        .then(() => {
-          // Redirect to club chat with rules flag
-          router.navigate({
-            to: "/app/clubs/chat",
-            search: { showRules: "true", clubId: clubId },
-          });
+        }
+
+        router.navigate({
+          to: "/app/clubs/chat",
+          search: { showRules: "true", clubId: clubId },
         });
+      };
+
+      openInvite();
     }
   }, [session, location.search, router]);
 

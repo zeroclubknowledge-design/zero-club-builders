@@ -68,7 +68,7 @@ export const Route = createFileRoute("/app/clubs/")({
 });
 
 function Clubs() {
-  const { details: currencyDetails } = useWalletCurrency();
+  const { details: currencyDetails, format } = useWalletCurrency();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -360,17 +360,31 @@ function Clubs() {
         toast.success("Request sent to club admin!");
         window.location.reload();
       } else {
-        const { error } = await supabase
-          .from('club_members')
-          .insert([{
-            club_id: club.id,
-            profile_id: profile.id,
-            role: 'Member'
-          }]);
-
+        /*
+         * Through the database, not around it.
+         *
+         * This used to insert straight into club_members, which meant a club's
+         * subscription fee was a number on a form and nothing else — anyone
+         * could join a paid club for free, and a hand-written request could
+         * bypass it entirely. join_club charges the wallet and creates the
+         * membership in one transaction, so there is no moment where somebody
+         * is inside without having paid.
+         */
+        const { data, error } = await supabase.rpc('join_club', { p_club_id: club.id });
         if (error) throw error;
-        toast.success(`Joined ${club.name}!`);
-        
+
+        const result = data as any;
+        if (result?.status === 'insufficient_funds') {
+          toast.error(`${format(Number(result.fee) || 0)} is needed to join this club.`, {
+            description: `Add ${format(Number(result.shortfall) || 0)} to your wallet to continue.`,
+            action: { label: "Add money", onClick: () => navigate({ to: "/app/wallet/add-money" }) },
+          });
+          return;
+        }
+
+        const paid = Number(result?.paid) || 0;
+        toast.success(paid > 0 ? `Joined ${club.name} for ${format(paid)}` : `Joined ${club.name}!`);
+
         // Featured Club joining reward
         if (club.name === "Zero K Bootcamp") {
           toast.success("You earned 100 XP for joining the featured Zero K Bootcamp!");
@@ -1209,8 +1223,23 @@ function Clubs() {
 
                 {selectedClub.is_private && <div className="mt-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-3.5"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-[12px] font-semibold text-foreground">Admin approval required</p><p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">Sending a request does not grant access until an administrator approves it.</p></div></div>}
 
+                {/* Say the price before they tap, not after the wallet moves. */}
+                {!selectedClub.is_private && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
+                  <div className="mt-4 flex items-start justify-between gap-3 rounded-lg bg-card p-4">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Membership fee</p>
+                      <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
+                        Charged once from your Zero Club wallet when you join.
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-[17px] font-semibold tabular-nums text-foreground">
+                      {format(Number(selectedClub.subscription_fee))}
+                    </p>
+                  </div>
+                )}
+
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <button 
+                <button
                   onClick={() => setShowJoinModal(false)}
                   className="h-11 rounded-lg border border-border bg-card text-[13px] font-semibold text-foreground hover:bg-muted"
                 >

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2 } from "@/components/icons/solar";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet } from "@/components/icons/solar";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -81,7 +81,10 @@ function ClubChat() {
   const [showSettings, setShowSettings] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
-  const [editClub, setEditClub] = useState({ name: "", description: "", banner_url: "", logo_url: "", rules: "", category: "All" });
+  const [editClub, setEditClub] = useState({
+    name: "", description: "", banner_url: "", logo_url: "", rules: "", category: "All",
+    subscription_fee: 0, access_free: false,
+  });
   const [editRooms, setEditRooms] = useState<{id: string, name: string}[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -218,7 +221,9 @@ function ClubChat() {
           banner_url: targetClub.banner_url || "",
           logo_url: targetClub.logo_url || "",
           rules: targetClub.rules || "Be respectful, help others, and share your work!",
-          category: targetClub.category || "All"
+          category: targetClub.category || "All",
+          subscription_fee: Number(targetClub.subscription_fee) || 0,
+          access_free: Boolean(targetClub.access_free),
         });
         setEditRooms(targetClub.rooms && targetClub.rooms.length > 0 ? targetClub.rooms : defaultRooms);
         
@@ -524,7 +529,19 @@ function ClubChat() {
         rooms: editRooms
       }).eq('id', clubId);
       if (error) throw error;
-      setClub({ ...club, ...editClub, rooms: editRooms });
+
+      /* The fee goes through its own function rather than the update above.
+         It decides who may be charged for entry, so the check that only the
+         owner can change it belongs in the database, not in this handler. */
+      const fee = Math.max(0, Number(editClub.subscription_fee) || 0);
+      const { error: feeError } = await supabase.rpc('set_club_access', {
+        p_club_id: clubId,
+        p_fee: fee,
+        p_free: Boolean(editClub.access_free),
+      });
+      if (feeError) throw feeError;
+
+      setClub({ ...club, ...editClub, subscription_fee: fee, rooms: editRooms });
       toast.success("Club updated! ️");
       setShowSettings(false);
     } catch (err) {
@@ -1300,6 +1317,54 @@ function ClubChat() {
                               className="min-h-[120px] w-full resize-none rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition no-scrollbar focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                             />
                           </div>
+                        </div>
+
+                        {/* ── Access ──────────────────────────────────── */}
+                        <div className="space-y-4 pt-4 border-t border-border/50">
+                          <h3 className="text-[11px] font-bold text-foreground flex items-center gap-2">
+                            <Wallet className="h-3.5 w-3.5 text-primary" /> Membership fee
+                          </h3>
+
+                          <div className="space-y-2">
+                            <label className="ml-1 text-[10px] text-muted-foreground">
+                              What it costs to join ({walletCurrency.symbol})
+                            </label>
+                            <input
+                              inputMode="decimal"
+                              value={editClub.subscription_fee || ""}
+                              onChange={(e) =>
+                                setEditClub({
+                                  ...editClub,
+                                  subscription_fee: Number(e.target.value.replace(/[^\d.]/g, "")) || 0,
+                                })
+                              }
+                              placeholder="0 — anyone can join"
+                              className="w-full rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-semibold tabular-nums text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                            />
+                            <p className="ml-1 text-[10.5px] leading-relaxed text-muted-foreground">
+                              Charged once from the member's Zero Club wallet and paid straight into
+                              yours. Nobody gets in without paying — unless you add them by username,
+                              or open the doors below.
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setEditClub({ ...editClub, access_free: !editClub.access_free })}
+                            className="flex w-full items-center justify-between gap-3 rounded-lg bg-card px-4 py-3.5 text-left"
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-[13px] font-semibold text-foreground">Free access</span>
+                              <span className="mt-0.5 block text-[10.5px] leading-relaxed text-muted-foreground">
+                                {editClub.access_free
+                                  ? "Anyone can join right now. Your fee is saved for when you turn this off."
+                                  : "Let anyone in without paying, without losing the fee you set."}
+                              </span>
+                            </span>
+                            <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.access_free ? "bg-primary" : "bg-accent"}`}>
+                              <span className={`block h-4 w-4 rounded-full bg-background transition-transform ${editClub.access_free ? "translate-x-5" : ""}`} />
+                            </span>
+                          </button>
                         </div>
 
                         <div className="space-y-4 pt-4 border-t border-border/50">
