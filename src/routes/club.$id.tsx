@@ -27,7 +27,9 @@ export const Route = createFileRoute("/club/$id")({
         is_private: boolean;
         name: string;
         description: string | null;
+        logo_url: string | null;
         banner_url: string | null;
+        club_banner_url: string | null;
         member_count: number;
       };
     } catch {
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/club/$id")({
     }
   },
 
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     if (!loaderData?.name) return {};
 
     const title = `${loaderData.name} — a club on Zero Club`;
@@ -45,22 +47,42 @@ export const Route = createFileRoute("/club/$id")({
         loaderData.member_count === 1 ? "" : "s"
       }.`;
 
+    /*
+     * The club's own picture leads.
+     *
+     * A logo is what a club actually chooses to represent itself; a banner is
+     * decoration behind it, and often has the club's name burned into the
+     * artwork at a size that a preview thumbnail crops in half. The banner is
+     * still the fallback for clubs that never set a picture.
+     *
+     * The card type follows the image: a logo is square and belongs in the
+     * small thumbnail layout, while a banner is wide and earns the big one.
+     * Declaring summary_large_image for a square logo gets it letterboxed
+     * inside a wide frame with bars either side.
+     */
+    const logo = loaderData.logo_url || null;
+    const banner = loaderData.club_banner_url || loaderData.banner_url || null;
+    const image = logo || banner;
+
     const meta: Array<Record<string, string>> = [
       { title },
       { name: "description", content: description },
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:type", content: "article" },
+      { property: "og:site_name", content: "Zero Club" },
+      { property: "og:url", content: `https://www.zeroclubs.xyz/club/${params.id}` },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
+      { name: "twitter:card", content: logo ? "summary" : "summary_large_image" },
     ];
 
-    // Only override the site-wide preview image when this club has its own.
-    if (loaderData.banner_url) {
+    if (image) {
       meta.push(
-        { property: "og:image", content: loaderData.banner_url },
-        { name: "twitter:image", content: loaderData.banner_url },
-        { name: "twitter:card", content: "summary_large_image" },
+        { property: "og:image", content: image },
+        { property: "og:image:secure_url", content: image },
+        { property: "og:image:alt", content: `${loaderData.name} on Zero Club` },
+        { name: "twitter:image", content: image },
       );
     }
 
@@ -96,9 +118,10 @@ function ClubLinkPage() {
       </header>
 
       <main className="mx-auto max-w-[520px] px-5 py-16 text-center">
-        {club?.banner_url && (
+        {/* Same order as the preview: the club's picture, then its banner. */}
+        {(club?.logo_url || club?.banner_url) && (
           <img
-            src={club.banner_url}
+            src={club.logo_url || club.banner_url || ""}
             alt=""
             className="mx-auto mb-7 h-24 w-24 rounded-2xl border border-border object-cover"
           />
