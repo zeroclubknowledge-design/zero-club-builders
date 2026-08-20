@@ -1207,9 +1207,12 @@ function Clubs() {
               <div className="relative h-28 overflow-hidden bg-[#171218]">
                 {selectedClub.banner_url && <img src={selectedClub.banner_url} alt="" className="h-full w-full object-cover opacity-55" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#171218] to-transparent" />
+                {/* The club's own picture, not a 48px crop of the middle of
+                    its banner — which is what this was, so the badge and the
+                    strip behind it showed the same image twice. */}
                 <div className="absolute bottom-4 left-5 flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-black/30 backdrop-blur-md">
-                {selectedClub.banner_url ? (
-                  <img src={selectedClub.banner_url} className="h-full w-full object-cover" />
+                {selectedClub.logo_url ? (
+                  <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" />
                 ) : (
                     <Hash className="h-6 w-6 text-white" />
                 )}
