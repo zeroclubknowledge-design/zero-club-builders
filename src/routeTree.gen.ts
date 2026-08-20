@@ -86,6 +86,7 @@ import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
 import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
+import { Route as ApiClubImageIdRouteImport } from './routes/api.club-image.$id'
 import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
 import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
@@ -481,6 +482,11 @@ const ApiGiftImageCodeRoute = ApiGiftImageCodeRouteImport.update({
   path: '/api/gift-image/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiClubImageIdRoute = ApiClubImageIdRouteImport.update({
+  id: '/api/club-image/$id',
+  path: '/api/club-image/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
   id: '/api/gift-card/$code',
   path: '/api/gift-card/$code',
@@ -549,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
+  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -628,6 +635,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
+  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -714,6 +722,7 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
+  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -801,6 +810,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
+    | '/api/club-image/$id'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -880,6 +890,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
+    | '/api/club-image/$id'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -965,6 +976,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
+    | '/api/club-image/$id'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -1031,6 +1043,7 @@ export interface RootRouteChildren {
   ProductIdRoute: typeof ProductIdRouteWithChildren
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
   ApiGiftImageCodeRoute: typeof ApiGiftImageCodeRoute
+  ApiClubImageIdRoute: typeof ApiClubImageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1574,6 +1587,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGiftImageCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/club-image/$id': {
+      id: '/api/club-image/$id'
+      path: '/api/club-image/$id'
+      fullPath: '/api/club-image/$id'
+      preLoaderRoute: typeof ApiClubImageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/gift-card/$code': {
       id: '/api/gift-card/$code'
       path: '/api/gift-card/$code'
@@ -1847,6 +1867,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductIdRoute: ProductIdRouteWithChildren,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
   ApiGiftImageCodeRoute: ApiGiftImageCodeRoute,
+  ApiClubImageIdRoute: ApiClubImageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -48,45 +48,39 @@ export const Route = createFileRoute("/club/$id")({
       }.`;
 
     /*
-     * The club's own picture leads.
+     * The image is drawn by /api/club-image rather than pointed at the club's
+     * logo in storage.
      *
-     * A logo is what a club actually chooses to represent itself; a banner is
-     * decoration behind it, and often has the club's name burned into the
-     * artwork at a size that a preview thumbnail crops in half. The banner is
-     * still the fallback for clubs that never set a picture.
-     *
-     * The card type follows the image: a logo is square and belongs in the
-     * small thumbnail layout, while a banner is wide and earns the big one.
-     * Declaring summary_large_image for a square logo gets it letterboxed
-     * inside a wide frame with bars either side.
+     * Linking the storage URL directly failed silently in three different
+     * ways: the crawler is signed out and the bucket may not serve it, a logo
+     * is square where the preview wants 1200×630, and a club with no picture
+     * has nothing to link at all. All three look the same from outside — no
+     * picture. The endpoint composes a card that always exists, using the
+     * club's own picture when it can genuinely be loaded.
      */
-    const logo = loaderData.logo_url || null;
-    const banner = loaderData.club_banner_url || loaderData.banner_url || null;
-    const image = logo || banner;
+    const image = `https://www.zeroclubs.xyz/api/club-image/${params.id}?v=1`;
 
-    const meta: Array<Record<string, string>> = [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:type", content: "article" },
-      { property: "og:site_name", content: "Zero Club" },
-      { property: "og:url", content: `https://www.zeroclubs.xyz/club/${params.id}` },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-      { name: "twitter:card", content: logo ? "summary" : "summary_large_image" },
-    ];
-
-    if (image) {
-      meta.push(
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:site_name", content: "Zero Club" },
+        { property: "og:url", content: `https://www.zeroclubs.xyz/club/${params.id}` },
         { property: "og:image", content: image },
         { property: "og:image:secure_url", content: image },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: `${loaderData.name} on Zero Club` },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
         { name: "twitter:image", content: image },
-      );
-    }
-
-    return { meta };
+      ],
+    };
   },
 });
 
