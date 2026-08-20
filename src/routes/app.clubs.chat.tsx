@@ -1322,10 +1322,36 @@ function ClubChat() {
                         {/* ── Access ──────────────────────────────────── */}
                         <div className="space-y-4 pt-4 border-t border-border/50">
                           <h3 className="text-[11px] font-bold text-foreground flex items-center gap-2">
-                            <Wallet className="h-3.5 w-3.5 text-primary" /> Membership fee
+                            <Wallet className="h-3.5 w-3.5 text-primary" /> Membership
                           </h3>
 
-                          <div className="space-y-2">
+                          {/* One switch, stated as what it turns ON. "Free
+                              access" as a toggle read backwards: switching it
+                              on sounded like enabling something, when it was
+                              really turning charging off. */}
+                          <button
+                            type="button"
+                            onClick={() => setEditClub({ ...editClub, access_free: !editClub.access_free })}
+                            className="flex w-full items-center justify-between gap-3 rounded-lg bg-card px-4 py-3.5 text-left"
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-[13px] font-semibold text-foreground">
+                                {editClub.access_free ? "Free access" : "Subscription on"}
+                              </span>
+                              <span className="mt-0.5 block text-[10.5px] leading-relaxed text-muted-foreground">
+                                {editClub.access_free
+                                  ? "Anyone can join without paying. Your fee is saved for when you switch it back on."
+                                  : "Members pay to join. Switch off any time to open the doors without losing the fee."}
+                              </span>
+                            </span>
+                            <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.access_free ? "bg-accent" : "bg-primary"}`}>
+                              <span className={`block h-4 w-4 rounded-full bg-background transition-transform ${editClub.access_free ? "" : "translate-x-5"}`} />
+                            </span>
+                          </button>
+
+                          {/* The amount only matters while the subscription is
+                              on, so it steps back when it is not. */}
+                          <div className={`space-y-2 transition-opacity ${editClub.access_free ? "opacity-45" : ""}`}>
                             <label className="ml-1 text-[10px] text-muted-foreground">
                               What it costs to join ({walletCurrency.symbol})
                             </label>
@@ -1338,33 +1364,14 @@ function ClubChat() {
                                   subscription_fee: Number(e.target.value.replace(/[^\d.]/g, "")) || 0,
                                 })
                               }
-                              placeholder="0 — anyone can join"
+                              placeholder="0"
                               className="w-full rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-semibold tabular-nums text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                             />
                             <p className="ml-1 text-[10.5px] leading-relaxed text-muted-foreground">
                               Charged once from the member's Zero Club wallet and paid straight into
-                              yours. Nobody gets in without paying — unless you add them by username,
-                              or open the doors below.
+                              yours. Nobody gets in without paying — unless you add them by username.
                             </p>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={() => setEditClub({ ...editClub, access_free: !editClub.access_free })}
-                            className="flex w-full items-center justify-between gap-3 rounded-lg bg-card px-4 py-3.5 text-left"
-                          >
-                            <span className="min-w-0">
-                              <span className="block text-[13px] font-semibold text-foreground">Free access</span>
-                              <span className="mt-0.5 block text-[10.5px] leading-relaxed text-muted-foreground">
-                                {editClub.access_free
-                                  ? "Anyone can join right now. Your fee is saved for when you turn this off."
-                                  : "Let anyone in without paying, without losing the fee you set."}
-                              </span>
-                            </span>
-                            <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.access_free ? "bg-primary" : "bg-accent"}`}>
-                              <span className={`block h-4 w-4 rounded-full bg-background transition-transform ${editClub.access_free ? "translate-x-5" : ""}`} />
-                            </span>
-                          </button>
                         </div>
 
                         <div className="space-y-4 pt-4 border-t border-border/50">
