@@ -53,8 +53,42 @@ function ClubQuizzesPage() {
   const [saving, setSaving] = useState(false);
   const [takingId, setTakingId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  /*
+   * Who is running this club, worked out here rather than taken from the quiz
+   * list.
+   *
+   * Tying the New button to list_club_quizzes meant that if that function was
+   * missing or refused — the migration not run yet, most likely — the owner
+   * was quietly treated as an ordinary member and the button never appeared.
+   * The club row and the membership row answer the question on their own, and
+   * they are always there.
+   */
+  const { data: access } = useQuery({
+    queryKey: ["club-admin", clubId],
+    queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const me = session.session?.user.id;
+      if (!me) return { isAdmin: false };
+
+      const [{ data: club }, { data: membership }] = await Promise.all([
+        supabase.from("clubs").select("creator_id").eq("id", clubId).maybeSingle(),
+        supabase
+          .from("club_members")
+          .select("role")
+          .eq("club_id", clubId)
+          .eq("profile_id", me)
+          .maybeSingle(),
+      ]);
+
+      return {
+        isAdmin: club?.creator_id === me || membership?.role === "Administrator",
+      };
+    },
+  });
+
+  const { data, isLoading, error } = useQuery({
     queryKey: ["club-quizzes", clubId],
+    retry: false,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("list_club_quizzes", { p_club_id: clubId });
       if (error) throw error;
@@ -62,7 +96,7 @@ function ClubQuizzesPage() {
     },
   });
 
-  const isAdmin = Boolean(data?.is_admin);
+  const isAdmin = Boolean(access?.isAdmin || data?.is_admin);
   const quizzes = data?.quizzes || [];
 
   const saveQuiz = async () => {
@@ -152,6 +186,18 @@ function ClubQuizzesPage() {
         {isLoading ? (
           <div className="grid min-h-40 place-items-center">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : error ? (
+          /* Said out loud rather than shown as an empty list. An empty list
+             means "no quizzes"; this means "we could not ask". */
+          <div className="rounded-2xl bg-card p-8 text-center">
+            <h2 className="text-[15px] font-semibold tracking-tight text-destructive">Quizzes could not load</h2>
+            <p className="mx-auto mt-2 max-w-[44ch] text-[12.5px] leading-relaxed text-muted-foreground">
+              {(error as any)?.message || "Something went wrong."}
+            </p>
+            <p className="mx-auto mt-3 max-w-[44ch] text-[11.5px] leading-relaxed text-muted-foreground">
+              If this mentions a missing function, the club quizzes migration has not been run on the database yet.
+            </p>
           </div>
         ) : quizzes.length === 0 ? (
           <div className="rounded-2xl bg-card p-10 text-center">

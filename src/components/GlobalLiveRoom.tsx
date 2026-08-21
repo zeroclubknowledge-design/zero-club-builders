@@ -949,25 +949,25 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * somebody presents, the stage becomes landscape — and goes back the moment
    * they stop.
    *
-   * The presenter leaves the stage while this is happening: the stage is the
-   * screen now, so they take a tile below with everyone else, and reclaim the
-   * stage when the share ends.
+   * The presenter stays on the stage while this is happening, in a circle over
+   * the corner of their own screen — you want to watch the person and the
+   * thing they are pointing at without choosing between them. The circle only
+   * exists while a screen is being shared; the rest of the time the stage is
+   * already their face at full size and a second copy of it would be absurd.
    */
   const presenting = Boolean(isScreenSharing || remotePresenterUser);
   const selfPresenting = isAdmin && isScreenSharing;
   /* Their camera track still exists while presenting — Agora publishes the
      screen in its place rather than stopping it — so on their own device the
-     tile can be live video. Everyone else only ever received the screen, so
-     for them the presenter is an avatar. */
+     circle is live video. Everyone else only ever received the screen, so for
+     them it carries the presenter's face and name instead. */
   const selfPresenterVideo = selfPresenting && cameraOn && !!localCameraTrack;
 
-  const cameraCount =
-    cameraOnUsers.length + (!isAdmin && selfHasCamera ? 1 : 0) + (selfPresenterVideo ? 1 : 0);
-  const audioCount =
-    audioOnlyUsers.length +
-    (!isAdmin && !selfHasCamera ? 1 : 0) +
-    (selfPresenting && !selfPresenterVideo ? 1 : 0) +
-    (remotePresenterUser ? 1 : 0);
+  /* The tutor is never one of the learners. Counting them here is what made a
+     room with nobody in it report a person: the presenter was being added to
+     the very list that exists to show who is watching them. */
+  const cameraCount = cameraOnUsers.length + (!isAdmin && selfHasCamera ? 1 : 0);
+  const audioCount = audioOnlyUsers.length + (!isAdmin && !selfHasCamera ? 1 : 0);
   const totalCount = remoteUsers.length + 1;
 
   const waitingFaces = presenceUsers.filter((p) => !p.isAdmin).slice(0, 3);
@@ -1258,6 +1258,32 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   Tutor
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* The presenter, in a circle on their own screen.
+              Only while a screen is being shared — otherwise the stage is
+              already their face at full size. It sits above the scrim but
+              clear of the control bar, and ignores taps so it can never
+              swallow a press meant for the video. */}
+          {presenting && (
+            <div className="pointer-events-none absolute bottom-[92px] right-3 z-30 sm:bottom-[100px] sm:right-4">
+              <div className="relative h-20 w-20 overflow-hidden rounded-full bg-[#141117] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9)] ring-2 ring-white/25 sm:h-24 sm:w-24">
+                {selfPresenterVideo ? (
+                  <LocalVideoTrack track={localCameraTrack!} play={true} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Avatar
+                      url={selfPresenting ? profile?.avatar_url : userAvatars[remotePresenterUser!.uid]}
+                      name={selfPresenting ? profile?.username || "You" : userNames[remotePresenterUser!.uid] || "Tutor"}
+                      className="h-full w-full text-xl"
+                    />
+                  </div>
+                )}
+              </div>
+              <span className="mt-1 block truncate text-center text-[10px] font-semibold text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                {selfPresenting ? "You" : userNames[remotePresenterUser!.uid] || tutorName}
+              </span>
             </div>
           )}
 
@@ -1593,12 +1619,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     <p className="text-[12px] text-white/30">No cameras on yet.</p>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
-                      {selfPresenterVideo && (
-                        <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
-                          <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
-                          <TilePill name="You · presenting" muted={!micOn} tutor />
-                        </div>
-                      )}
                       {!isAdmin && selfHasCamera && (
                         <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
                           <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
@@ -1633,29 +1653,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     <p className="text-[12px] text-white/30">Everyone else has their camera on.</p>
                   ) : (
                     <div className="space-y-1.5">
-                      {selfPresenting && !selfPresenterVideo && (
-                        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 ring-1 ring-white/[0.06]">
-                          <div className="flex min-w-0 items-center gap-2.5">
-                            <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-8 h-8" />
-                            <span className="truncate text-[13px] font-medium tracking-tight text-white/90">You · presenting</span>
-                          </div>
-                          <MicDot on={micOn} />
-                        </div>
-                      )}
-                      {remotePresenterUser && (
-                        /* Their published video is the screen on the stage, so
-                           showing it again here would be the same picture
-                           twice. The tile says who is presenting instead. */
-                        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 ring-1 ring-[#cc208f]/30">
-                          <div className="flex min-w-0 items-center gap-2.5">
-                            <Avatar url={userAvatars[remotePresenterUser.uid]} name={userNames[remotePresenterUser.uid] || "Builder"} className="w-8 h-8" />
-                            <span className="truncate text-[13px] font-medium tracking-tight text-white/90">
-                              {userNames[remotePresenterUser.uid] || "Builder"} · presenting
-                            </span>
-                          </div>
-                          <MicDot on={remotePresenterUser.hasAudio} />
-                        </div>
-                      )}
                       {!isAdmin && !selfHasCamera && (
                         <div className="flex items-center justify-between rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
                           <div className="flex items-center gap-2.5 min-w-0">
