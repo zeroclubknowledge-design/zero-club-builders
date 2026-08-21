@@ -12,7 +12,7 @@ import { copyToClipboard } from "@/lib/share";
 
 import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
-import { LiveSessionProvider } from "@/contexts/LiveSessionContext";
+import { LiveSessionProvider, useLiveSession } from "@/contexts/LiveSessionContext";
 import { isChunkLoadError, isStaleShellError, recoverFromChunkError } from "@/lib/chunk-recovery";
 
 const GlobalLiveRoom = lazy(() => 
@@ -30,9 +30,14 @@ const GlobalLiveRoom = lazy(() =>
 );
 
 function ClientOnlyGlobalLiveRoom() {
+  const { isActive } = useLiveSession();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+  // The Agora/live-room bundle is one of the largest parts of the app. Loading
+  // it on every page made normal navigation and button taps compete with video
+  // code parsing, especially on mobile. Only download it when a live session
+  // has actually been started.
+  if (!mounted || !isActive) return null;
   return (
     <Suspense fallback={null}>
       <GlobalLiveRoom />

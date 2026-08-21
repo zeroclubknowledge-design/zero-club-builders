@@ -561,27 +561,50 @@ function ChatViewPage() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setCurrentUserId(session?.user.id || null);
     });
+  }, []);
 
-    // Real-time subscription
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const mergeIncomingMessage = (newMessage: any) => {
+      if (newMessage.sender_id !== id || newMessage.receiver_id !== currentUserId) return;
+      if ((newMessage.content || '').startsWith('CLUB_REQUEST:') || newMessage.content === 'DISMISSED_CLUB_REQUEST') return;
+      setMessages((previous) => previous.some((message) => message.id === newMessage.id)
+        ? previous
+        : [...previous, newMessage]);
+      queryClient.setQueryData<any[]>(["messages", id], (previous = []) =>
+        previous.some((message) => message.id === newMessage.id) ? previous : [...previous, newMessage]
+      );
+    };
+
+    // Listen only for messages delivered to this user. The old unfiltered
+    // subscription received every message sent anywhere in the app.
     const channel = supabase
-      .channel(`chat-${id}`)
+      .channel(`chat-${currentUserId}-${id}`)
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'messages',
+          filter: `receiver_id=eq.${currentUserId}`,
+        },
+        (payload) => mergeIncomingMessage(payload.new)
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${currentUserId}`,
         },
         (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newMsg = payload.new;
-            if ((newMsg.sender_id === id || newMsg.receiver_id === id) && !(newMsg.content || '').startsWith('CLUB_REQUEST:') && newMsg.content !== 'DISMISSED_CLUB_REQUEST') {
-              setMessages(prev => [...prev, newMsg]);
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedMsg = payload.new;
-            setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
-          }
+          const updatedMessage = payload.new;
+          if (updatedMessage.sender_id !== id) return;
+          setMessages((previous) => previous.map((message) =>
+            message.id === updatedMessage.id ? { ...message, ...updatedMessage } : message
+          ));
         }
       )
       .subscribe();
@@ -589,25 +612,26 @@ function ChatViewPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [currentUserId, id, queryClient]);
 
   useEffect(() => {
     if (!id) return;
     
-    const markMessagesAsRead = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    const unreadMessageIds = messages
+      .filter((message) => message.sender_id === id && message.receiver_id === currentUserId && !message.is_read)
+      .map((message) => message.id)
+      .filter((messageId) => !String(messageId).startsWith('pending-'));
+    if (!currentUserId || unreadMessageIds.length === 0) return;
 
+    const markMessagesAsRead = async () => {
       await supabase
         .from('messages')
         .update({ is_read: true })
-        .eq('sender_id', id)
-        .eq('receiver_id', session.user.id)
-        .eq('is_read', false);
+        .in('id', unreadMessageIds);
     };
 
     markMessagesAsRead();
-  }, [id, messages]);
+  }, [currentUserId, id, messages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -674,7 +698,9 @@ function ChatViewPage() {
 
   const handleSendMessage = async () => {
     if ((!input.trim() && mediaFiles.length === 0) || sending) return;
-    
+
+    let pendingMessageId: string | null = null;
+    const originalInput = input;
     setSending(true);
     try {
       if (editingId) {
@@ -701,7 +727,34 @@ function ChatViewPage() {
             text += `\n\n$$MEDIA$$${uploadedUrls.join(',')}`;
           }
         }
-        await sendMessageAction({ receiverId: id, content: text.trim(), reply_to_id: replyingTo?.id });
+        const content = text.trim();
+        const replyToId = replyingTo?.id;
+        const pendingId = `pending-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        pendingMessageId = pendingId;
+        const optimisticMessage = {
+          id: pendingId,
+          sender_id: currentUserId,
+          receiver_id: id,
+          content,
+          reply_to_id: replyToId,
+          created_at: new Date().toISOString(),
+          is_read: false,
+          pending: true,
+        };
+
+        // Show text immediately while the database request completes.
+        setMessages((previous) => [...previous, optimisticMessage]);
+        setInput("");
+        const savedMessage = await sendMessageAction({ receiverId: id, content, reply_to_id: replyToId });
+        setMessages((previous) => {
+          const withoutPending = previous.filter((message) => message.id !== pendingId);
+          return withoutPending.some((message) => message.id === savedMessage.id)
+            ? withoutPending
+            : [...withoutPending, savedMessage];
+        });
+        queryClient.setQueryData<any[]>(["messages", id], (previous = []) =>
+          previous.some((message) => message.id === savedMessage.id) ? previous : [...previous, savedMessage]
+        );
         setReplyingTo(null);
         setMediaFiles([]);
         setMediaPreviews([]);
@@ -709,9 +762,12 @@ function ChatViewPage() {
       setInput("");
       const textareas = document.querySelectorAll('textarea');
       textareas.forEach(t => { t.style.height = 'auto'; });
-      queryClient.invalidateQueries({ queryKey: ["messages", id] });
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
     } catch (err: any) {
+      if (pendingMessageId) {
+        setMessages((previous) => previous.filter((message) => message.id !== pendingMessageId));
+        setInput((current) => current || originalInput);
+      }
       toast.error(err.message || "Failed to process message");
     } finally {
       setSending(false);

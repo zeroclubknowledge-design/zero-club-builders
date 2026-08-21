@@ -7,14 +7,13 @@ import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
   MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2, Lock,
-  Expand, Shrink, GraduationCap, Radio, Loader2, Smile,
+  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply,
 } from "@/components/icons/solar";
 
 /** One tap, no search field — the six that actually get used in a class. */
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
-import { LinkifiedText } from "@/components/LinkifiedText";
 
 import AgoraRTC, {
   AgoraRTCProvider,
@@ -32,6 +31,40 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 
 const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
+
+/**
+ * Live-chat text, with tags picked out in the brand pink.
+ *
+ * The ordinary mention renderer matches @word and turns it into a profile
+ * link. Neither half fits here: the picker inserts display names, so "@Benson
+ * Nebo" would light up only the first word, and the link would point at a
+ * username that does not exist. So the names of the people actually in the
+ * room are matched first — longest first, or "@Ben" would win inside "@Ben
+ * Nebo" — and anything else beginning with @ is still highlighted, just not
+ * linked.
+ */
+function LiveMessageText({ text, names }: { text: string; names: string[] }) {
+  const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const ordered = [...new Set(names.filter(Boolean))].sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(
+    `(@(?:${[...ordered.map(escape), "[A-Za-z0-9_.-]+"].join("|")}))`,
+    "g",
+  );
+
+  return (
+    <>
+      {text.split(pattern).map((part, index) =>
+        part.startsWith("@") ? (
+          <span key={index} className="font-semibold text-[#f06ac3]">
+            {part}
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
 
 interface ChatMessage {
   id: string;
@@ -52,6 +85,36 @@ interface PresenceUser {
   name: string;
   avatar: string;
   isAdmin: boolean;
+}
+
+const MAX_LIVE_CHAT_MESSAGES = 200;
+
+const appendLiveMessage = (messages: ChatMessage[], message: ChatMessage) => {
+  if (messages.some((item) => item.id === message.id)) return messages;
+  return [...messages, message].slice(-MAX_LIVE_CHAT_MESSAGES);
+};
+
+/** Keep the ticking clock isolated so it does not redraw every video tile. */
+function SessionElapsed() {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const start = Date.now();
+    const intervalId = setInterval(
+      () => setElapsed(Math.floor((Date.now() - start) / 1000)),
+      1000,
+    );
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const hours = Math.floor(elapsed / 3600);
+  const minutes = Math.floor((elapsed % 3600) / 60);
+  const seconds = elapsed % 60;
+  const label = hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    : `${minutes}:${String(seconds).padStart(2, "0")}`;
+
+  return <span className="text-white/50 tabular-nums font-medium">{label}</span>;
 }
 
 /**
@@ -243,22 +306,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [isLeaving, setIsLeaving] = useState(false);
   const leaveStartedRef = useRef(false);
 
-  /* ── Session timer ── */
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const start = Date.now();
-    const id = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const formatElapsed = (s: number) => {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    return h > 0
-      ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`
-      : `${m}:${String(sec).padStart(2, "0")}`;
-  };
-
   /* ── Sync mic state to global context for mini player ── */
   useEffect(() => {
     liveSession.setMicState(micOn);
@@ -272,6 +319,12 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* The word being typed after an @, or null when the picker is closed. */
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const chatInputRef = useRef<HTMLInputElement | null>(null);
+  /* Swipe-to-reply. The offset is per message and lives in state so the row
+     follows the finger; the start point is a ref because it changes on every
+     touchmove and re-rendering for it would fight the drag. */
+  const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatChannelRef = useRef<any>(null);
@@ -407,7 +460,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       config: { broadcast: { self: false } },
     });
     ch.on("broadcast", { event: "chat" }, ({ payload }: any) => {
-      setChatMessages((prev) => [...prev, payload as ChatMessage]);
+      setChatMessages((prev) => appendLiveMessage(prev, payload as ChatMessage));
       if (!chatVisibleRef.current) setUnreadCount((c) => c + 1);
     });
     ch.on("broadcast", { event: "reaction" }, ({ payload }: any) => {
@@ -678,7 +731,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           }
         : undefined,
     };
-    setChatMessages((prev) => [...prev, msg]);
+    setChatMessages((prev) => appendLiveMessage(prev, msg));
     chatChannelRef.current.send({ type: "broadcast", event: "chat", payload: msg });
     setChatInput("");
     setReplyingTo(null);
@@ -784,8 +837,35 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const cameraOnUsers = audienceRemote.filter((u) => u.hasVideo);
   const audioOnlyUsers = audienceRemote.filter((u) => !u.hasVideo);
   const selfHasCamera = cameraOn && !isScreenSharing && !!localCameraTrack;
-  const cameraCount = cameraOnUsers.length + (!isAdmin && selfHasCamera ? 1 : 0);
-  const audioCount = audioOnlyUsers.length + (!isAdmin && !selfHasCamera ? 1 : 0);
+
+  /*
+   * A shared screen is a different shape from a face.
+   *
+   * The stage is 4:3 because that is a sensible frame for a person. A slide
+   * deck or an editor is 16:9, and forcing one into the other either crops the
+   * edges off or leaves thick black bars down both sides. So the moment
+   * somebody presents, the stage becomes landscape — and goes back the moment
+   * they stop.
+   *
+   * The presenter leaves the stage while this is happening: the stage is the
+   * screen now, so they take a tile below with everyone else, and reclaim the
+   * stage when the share ends.
+   */
+  const presenting = Boolean(isScreenSharing || remotePresenterUser);
+  const selfPresenting = isAdmin && isScreenSharing;
+  /* Their camera track still exists while presenting — Agora publishes the
+     screen in its place rather than stopping it — so on their own device the
+     tile can be live video. Everyone else only ever received the screen, so
+     for them the presenter is an avatar. */
+  const selfPresenterVideo = selfPresenting && cameraOn && !!localCameraTrack;
+
+  const cameraCount =
+    cameraOnUsers.length + (!isAdmin && selfHasCamera ? 1 : 0) + (selfPresenterVideo ? 1 : 0);
+  const audioCount =
+    audioOnlyUsers.length +
+    (!isAdmin && !selfHasCamera ? 1 : 0) +
+    (selfPresenting && !selfPresenterVideo ? 1 : 0) +
+    (remotePresenterUser ? 1 : 0);
   const totalCount = remoteUsers.length + 1;
 
   const waitingFaces = presenceUsers.filter((p) => !p.isAdmin).slice(0, 3);
@@ -972,7 +1052,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                 LIVE
               </span>
-              <span className="text-white/50 tabular-nums font-medium">{formatElapsed(elapsed)}</span>
+              <SessionElapsed />
               <span className="flex items-center gap-1 text-white/50 font-medium">
                 <Users className="w-3 h-3" />
                 <span className="tabular-nums">{totalCount}</span>
@@ -998,7 +1078,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       {/* ═══ STAGE + PANEL ═══ */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0 gap-2 px-2.5 md:px-4 pb-2">
         {/* ── STAGE ── */}
-        <div className={`relative overflow-hidden rounded-lg bg-black ring-1 ring-white/[0.08] min-h-0 ${theater ? "flex-1" : "shrink-0 aspect-[4/3] md:aspect-auto md:flex-1"}`}>
+        <div className={`relative overflow-hidden rounded-lg bg-black ring-1 ring-white/[0.08] min-h-0 transition-[aspect-ratio] duration-300 ${theater ? "flex-1" : presenting ? "shrink-0 aspect-video md:aspect-auto md:flex-1" : "shrink-0 aspect-[4/3] md:aspect-auto md:flex-1"}`}>
           {renderStage()}
 
           {/* Reactions float up the stage. pointer-events-none so they can
@@ -1125,7 +1205,48 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     chatMessages.map((msg: any) => {
                       const isMe = msg.sender_id === (profile?.userId || profile?.id);
                       return (
-                        <div key={msg.id} id={`zc-live-msg-${msg.id}`} className="group flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div
+                          key={msg.id}
+                          id={`zc-live-msg-${msg.id}`}
+                          onTouchStart={(event) => {
+                            const touch = event.touches[0];
+                            swipeStart.current = { x: touch.clientX, y: touch.clientY };
+                          }}
+                          onTouchMove={(event) => {
+                            const start = swipeStart.current;
+                            if (!start) return;
+                            const touch = event.touches[0];
+                            const dx = touch.clientX - start.x;
+                            const dy = touch.clientY - start.y;
+                            // Sideways only: a diagonal drag is someone
+                            // scrolling the thread, and hijacking it would make
+                            // the list feel stuck.
+                            if (Math.abs(dy) > Math.abs(dx)) return;
+                            const pulled = Math.max(0, Math.min(72, dx));
+                            setSwipedId(msg.id);
+                            setSwipeOffset(pulled);
+                          }}
+                          onTouchEnd={() => {
+                            if (swipeOffset > 44) {
+                              setReplyingTo(msg);
+                              chatInputRef.current?.focus();
+                              if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+                            }
+                            swipeStart.current = null;
+                            setSwipedId(null);
+                            setSwipeOffset(0);
+                          }}
+                          style={swipedId === msg.id ? { transform: `translateX(${swipeOffset}px)` } : undefined}
+                          className={`group relative flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200 ${swipedId === msg.id ? "" : "transition-transform"}`}
+                        >
+                          {swipedId === msg.id && swipeOffset > 8 && (
+                            <span
+                              className="pointer-events-none absolute -left-9 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-[#cc208f] text-white"
+                              style={{ opacity: Math.min(1, swipeOffset / 44) }}
+                            >
+                              <Reply className="h-3.5 w-3.5" />
+                            </span>
+                          )}
                           <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-white/[0.08] flex items-center justify-center mt-0.5 ring-1 ring-white/10">
                             {msg.sender_avatar ? (
                               <img src={msg.sender_avatar} alt="" className="w-full h-full object-cover" />
@@ -1164,7 +1285,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                             )}
                             <div className={`mt-1 rounded-lg rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
                               <div className="break-words text-[13px] leading-relaxed text-white/85">
-                                <LinkifiedText text={msg.content} linkColor="font-semibold text-[#f28fd0] underline underline-offset-2 hover:text-white" />
+                                <LiveMessageText
+                                  text={msg.content}
+                                  names={presenceUsers.map((person) => person.name)}
+                                />
                               </div>
                             </div>
                           </div>
@@ -1255,6 +1379,12 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     <p className="text-[12px] text-white/30">No cameras on yet.</p>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
+                      {selfPresenterVideo && (
+                        <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
+                          <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
+                          <TilePill name="You · presenting" muted={!micOn} tutor />
+                        </div>
+                      )}
                       {!isAdmin && selfHasCamera && (
                         <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
                           <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
@@ -1289,6 +1419,29 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     <p className="text-[12px] text-white/30">Everyone else has their camera on.</p>
                   ) : (
                     <div className="space-y-1.5">
+                      {selfPresenting && !selfPresenterVideo && (
+                        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 ring-1 ring-white/[0.06]">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-8 h-8" />
+                            <span className="truncate text-[13px] font-medium tracking-tight text-white/90">You · presenting</span>
+                          </div>
+                          <MicDot on={micOn} />
+                        </div>
+                      )}
+                      {remotePresenterUser && (
+                        /* Their published video is the screen on the stage, so
+                           showing it again here would be the same picture
+                           twice. The tile says who is presenting instead. */
+                        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 ring-1 ring-[#cc208f]/30">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <Avatar url={userAvatars[remotePresenterUser.uid]} name={userNames[remotePresenterUser.uid] || "Builder"} className="w-8 h-8" />
+                            <span className="truncate text-[13px] font-medium tracking-tight text-white/90">
+                              {userNames[remotePresenterUser.uid] || "Builder"} · presenting
+                            </span>
+                          </div>
+                          <MicDot on={remotePresenterUser.hasAudio} />
+                        </div>
+                      )}
                       {!isAdmin && !selfHasCamera && (
                         <div className="flex items-center justify-between rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
                           <div className="flex items-center gap-2.5 min-w-0">
