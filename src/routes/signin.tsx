@@ -5,6 +5,8 @@ import { IconClubs, IconNotes, IconWallet } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
+import { startGoogleAuthentication } from "@/lib/googleAuth";
 
 export const Route = createFileRoute("/signin")({
   component: SignInPage,
@@ -34,6 +36,7 @@ function SignInPage() {
   const { ref, club } = useSearch({ from: "/signin" });
   const [email, setEmail] = useState(() => localStorage.getItem("signin_email") || "");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [step, setStep] = useState<"email" | "code">(() => (localStorage.getItem("signin_step") as "email" | "code") || "email");
   const [code, setCode] = useState("");
 
@@ -116,6 +119,22 @@ function SignInPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const search = new URLSearchParams();
+      if (club) search.set("club", club);
+      if (ref) search.set("ref", ref);
+      const query = search.toString();
+      const destination = `/app${query ? `?${query}` : ""}`;
+      const error = await startGoogleAuthentication({ destination });
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || "Google sign-in could not be started");
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen overflow-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417] dark:text-white">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
@@ -165,6 +184,14 @@ function SignInPage() {
                   <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">We will send a short confirmation code.</p>
                 </div>
 
+                <GoogleAuthButton label="Continue with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignIn} />
+
+                <div className="flex items-center gap-3" aria-hidden="true">
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                </div>
+
                 <label className="block space-y-2">
                   <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
                   <span className="relative block">
@@ -181,7 +208,7 @@ function SignInPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || googleLoading}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Send code <ArrowRight className="h-4 w-4" /></>}

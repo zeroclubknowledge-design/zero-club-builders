@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { getCachedSession } from "@/lib/auth";
+import { completePendingGoogleSignup } from "@/lib/googleAuth";
 
 type ProfileUpdate = Record<string, unknown>;
 type ProfileUpdateListener = (profile: ProfileUpdate) => void;
@@ -85,6 +86,15 @@ export function useUser() {
       if (!session) {
         console.log("[useUser] No session found, returning null");
         return null;
+      }
+
+      // Google creates the auth identity before returning to the app. Apply
+      // the account type selected on signup before the profile is read so the
+      // first screen already has the correct Learner/Tutor/Institution role.
+      try {
+        await completePendingGoogleSignup(session.user);
+      } catch (error) {
+        console.error("[useUser] Could not apply Google signup preferences:", error);
       }
 
       console.log("[useUser] Fetching profile for user:", session.user.id);

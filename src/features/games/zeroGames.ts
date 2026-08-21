@@ -100,19 +100,69 @@ export const ZERO_GAME_OFFERS = [
 ] as const;
 
 const WORD_BANK: Record<string, string[]> = {
-  "Web Developer": ["HTML", "CSS", "JAVASCRIPT", "REACT", "NODEJS", "FRONTEND", "BACKEND", "API", "BROWSER", "WEBPACK", "COMPONENT", "ROUTER"],
-  "Software Engineer": ["ALGORITHM", "DEBUG", "REFACTOR", "FUNCTION", "OBJECT", "TESTING", "VERSION", "REPOSITORY", "COMMIT", "REVIEW", "PATTERN", "SYSTEM"],
-  "Data Scientist": ["PYTHON", "PANDAS", "MODEL", "DATASET", "ANALYSIS", "BIAS", "VARIANCE", "MATRIX", "FEATURE", "CLUSTER", "REGRESSION", "METRIC"],
-  "Product Manager": ["ROADMAP", "SPRINT", "AGILE", "SCRUM", "METRICS", "BACKLOG", "VISION", "RESEARCH", "LAUNCH", "OUTCOME", "PRIORITY", "DISCOVERY"],
-  "UI/UX Designer": ["WIREFRAME", "PROTOTYPE", "PERSONA", "USABILITY", "LAYOUT", "JOURNEY", "RESEARCH", "ACCESSIBLE", "INTERFACE", "FLOW", "DESIGN", "INSIGHT"],
-  "Graphic Designer": ["TYPOGRAPHY", "MOCKUP", "KERNING", "VECTOR", "CONTRAST", "CANVAS", "BEZIER", "OPACITY", "PALETTE", "LAYER", "POSTER", "BRAND"],
-  "Digital Marketer": ["CAMPAIGN", "AUDIENCE", "CONVERSION", "FUNNEL", "CONTENT", "CHANNEL", "INSIGHT", "TARGET", "KEYWORD", "TRAFFIC", "GROWTH", "REACH"],
-  "Content Writer": ["HEADLINE", "DRAFT", "EDIT", "RESEARCH", "NARRATIVE", "OUTLINE", "VOICE", "ARTICLE", "READER", "CLARITY", "STORY", "PUBLISH"],
-  "Cloud Architect": ["SERVER", "STORAGE", "NETWORK", "REGION", "SCALING", "SECURITY", "BACKUP", "INSTANCE", "DATABASE", "LATENCY", "CLUSTER", "DEPLOY"],
-  "DevOps Engineer": ["PIPELINE", "DOCKER", "DEPLOY", "MONITOR", "AUTOMATE", "CONTAINER", "ROLLBACK", "RELEASE", "SCRIPT", "UPTIME", "LOGGING", "BUILD"],
-  "Cybersecurity Analyst": ["FIREWALL", "THREAT", "MALWARE", "PHISHING", "ENCRYPT", "AUDIT", "ACCESS", "IDENTITY", "BREACH", "PATCH", "RISK", "SECURE"],
-  "AI Researcher": ["NEURAL", "MODEL", "TRAINING", "TOKEN", "PROMPT", "DATASET", "INFERENCE", "AGENT", "VECTOR", "EVALUATE", "WEIGHTS", "ALIGNMENT"],
+  "Web Developer": [
+    "HTML", "CSS", "JAVASCRIPT", "REACT", "NODEJS", "FRONTEND", "BACKEND", "API", "BROWSER", "WEBPACK", "COMPONENT", "ROUTER",
+    "TYPESCRIPT", "RESPONSIVE", "SEMANTIC", "DOM", "FETCH", "PROMISE", "HOOKS", "STATE", "PROPS", "MODULE", "BUNDLE", "CACHE",
+    "COOKIE", "SESSION", "ENDPOINT", "RENDER", "DEPLOY", "GIT", "ACCESSIBLE", "GRID", "FLEXBOX", "SERVER", "CLIENT", "WEBSOCKET",
+  ],
+  "Software Engineer": [
+    "ALGORITHM", "DEBUG", "REFACTOR", "FUNCTION", "OBJECT", "TESTING", "VERSION", "REPOSITORY", "COMMIT", "REVIEW", "PATTERN", "SYSTEM",
+    "ABSTRACTION", "INTERFACE", "ITERATION", "RECURSION", "COMPILER", "RUNTIME", "THREAD", "PROCESS", "MEMORY", "QUEUE", "STACK", "GRAPH",
+    "BRANCH", "MERGE", "RELEASE", "MODULE", "PACKAGE", "DEPENDENCY", "PROTOCOL", "SCALABLE", "RELIABLE", "LATENCY", "DATABASE", "ARCHITECTURE",
+  ],
+  "Data Scientist": [
+    "PYTHON", "PANDAS", "MODEL", "DATASET", "ANALYSIS", "BIAS", "VARIANCE", "MATRIX", "FEATURE", "CLUSTER", "REGRESSION", "METRIC",
+    "NUMPY", "SAMPLE", "MEDIAN", "MEAN", "OUTLIER", "CLEANING", "LABEL", "TARGET", "TRAINING", "VALIDATION", "PREDICT", "CORRELATION",
+    "DASHBOARD", "QUERY", "TABLE", "VECTOR", "NOTEBOOK", "PIPELINE", "FORECAST", "PROBABILITY", "STATISTICS", "HYPOTHESIS", "INSIGHT", "VISUALIZE",
+  ],
+  "Product Manager": [
+    "ROADMAP", "SPRINT", "AGILE", "SCRUM", "METRICS", "BACKLOG", "VISION", "RESEARCH", "LAUNCH", "OUTCOME", "PRIORITY", "DISCOVERY",
+    "STRATEGY", "PERSONA", "JOURNEY", "FEEDBACK", "PROBLEM", "SOLUTION", "SCOPE", "MILESTONE", "RELEASE", "ADOPTION", "RETENTION", "CHURN",
+    "STAKEHOLDER", "INTERVIEW", "PROTOTYPE", "EXPERIMENT", "ASSUMPTION", "IMPACT", "EFFORT", "PLANNING", "DELIVERY", "ITERATION", "VALUE", "MARKET",
+  ],
+  "UI/UX Designer": [
+    "WIREFRAME", "PROTOTYPE", "PERSONA", "USABILITY", "LAYOUT", "JOURNEY", "RESEARCH", "ACCESSIBLE", "INTERFACE", "FLOW", "DESIGN", "INSIGHT",
+    "EMPATHY", "AFFORDANCE", "HIERARCHY", "CONTRAST", "SPACING", "TYPOGRAPHY", "COMPONENT", "VARIANT", "TOKEN", "GRID", "MOTION", "FEEDBACK",
+    "HEURISTIC", "INTERVIEW", "SURVEY", "SCENARIO", "WORKFLOW", "NAVIGATION", "INCLUSIVE", "CONSISTENCY", "ITERATION", "SITEMAP", "FINDABILITY", "IDEATION",
+  ],
+  "Graphic Designer": [
+    "TYPOGRAPHY", "MOCKUP", "KERNING", "VECTOR", "CONTRAST", "CANVAS", "BEZIER", "OPACITY", "PALETTE", "LAYER", "POSTER", "BRAND",
+    "RASTER", "GRADIENT", "TEXTURE", "COMPOSITION", "ALIGNMENT", "BALANCE", "HIERARCHY", "WHITESPACE", "SATURATION", "HUE", "MASK", "CROP",
+    "BLEED", "MARGIN", "SYMBOL", "LOGO", "ICON", "SKETCH", "ILLUSTRATE", "TYPEFACE", "LIGATURE", "PANTONE", "EXPORT", "RESOLUTION",
+  ],
+  "Digital Marketer": [
+    "CAMPAIGN", "AUDIENCE", "CONVERSION", "FUNNEL", "CONTENT", "CHANNEL", "INSIGHT", "TARGET", "KEYWORD", "TRAFFIC", "GROWTH", "REACH",
+    "ENGAGEMENT", "LANDING", "ANALYTICS", "SEGMENT", "PERSONA", "LEAD", "ATTRIBUTION", "RETARGET", "ORGANIC", "PAID", "SEARCH", "SOCIAL",
+    "EMAIL", "COPY", "BRAND", "IMPRESSION", "CLICK", "BUDGET", "BID", "ROAS", "REVENUE", "RETENTION", "AWARENESS", "OPTIMIZE",
+  ],
+  "Content Writer": [
+    "HEADLINE", "DRAFT", "EDIT", "RESEARCH", "NARRATIVE", "OUTLINE", "VOICE", "ARTICLE", "READER", "CLARITY", "STORY", "PUBLISH",
+    "ANGLE", "HOOK", "TONE", "CONTEXT", "THESIS", "PARAGRAPH", "CAPTION", "SCRIPT", "INTERVIEW", "SOURCE", "QUOTE", "FACTCHECK",
+    "REVISION", "GRAMMAR", "STYLE", "PACING", "METAPHOR", "KEYWORD", "BRIEF", "AUDIENCE", "EDITORIAL", "NEWSLETTER", "PROOFREAD", "STRUCTURE",
+  ],
+  "Cloud Architect": [
+    "SERVER", "STORAGE", "NETWORK", "REGION", "SCALING", "SECURITY", "BACKUP", "INSTANCE", "DATABASE", "LATENCY", "CLUSTER", "DEPLOY",
+    "VIRTUAL", "SUBNET", "GATEWAY", "FIREWALL", "BALANCER", "CONTAINER", "SERVERLESS", "FUNCTION", "REPLICA", "FAILOVER", "UPTIME", "MONITOR",
+    "ENCRYPT", "IDENTITY", "POLICY", "BILLING", "CAPACITY", "RESILIENCE", "RECOVERY", "ENDPOINT", "ROUTING", "CACHE", "QUEUE", "ARCHIVE",
+  ],
+  "DevOps Engineer": [
+    "PIPELINE", "DOCKER", "DEPLOY", "MONITOR", "AUTOMATE", "CONTAINER", "ROLLBACK", "RELEASE", "SCRIPT", "UPTIME", "LOGGING", "BUILD",
+    "KUBERNETES", "CLUSTER", "RUNNER", "ARTIFACT", "REGISTRY", "MANIFEST", "HELM", "TERRAFORM", "ANSIBLE", "SECRETS", "ALERT", "METRICS",
+    "TRACING", "PROVISION", "SCALING", "BRANCH", "MERGE", "STAGING", "PRODUCTION", "INCIDENT", "RECOVERY", "VERSION", "PACKAGE", "WORKFLOW",
+  ],
+  "Cybersecurity Analyst": [
+    "FIREWALL", "THREAT", "MALWARE", "PHISHING", "ENCRYPT", "AUDIT", "ACCESS", "IDENTITY", "BREACH", "PATCH", "RISK", "SECURE",
+    "FORENSICS", "EXPLOIT", "VULNERABLE", "AUTHENTICATE", "PASSWORD", "TOKEN", "CERTIFICATE", "PROTOCOL", "NETWORK", "PAYLOAD", "SANDBOX", "INCIDENT",
+    "RESPONSE", "BACKUP", "ZEROTRUST", "MONITOR", "DETECT", "PREVENT", "POLICY", "PRIVACY", "COMPLIANCE", "HARDEN", "SCAN", "SIEM",
+  ],
+  "AI Researcher": [
+    "NEURAL", "MODEL", "TRAINING", "TOKEN", "PROMPT", "DATASET", "INFERENCE", "AGENT", "VECTOR", "EVALUATE", "WEIGHTS", "ALIGNMENT",
+    "TRANSFORMER", "ATTENTION", "EMBEDDING", "ENCODER", "DECODER", "TENSOR", "GRADIENT", "LOSS", "EPOCH", "BATCH", "OPTIMIZER", "BENCHMARK",
+    "REWARD", "POLICY", "REASONING", "MULTIMODAL", "ROBOTICS", "CLASSIFY", "PREDICT", "RETRIEVAL", "CONTEXT", "FINETUNE", "SAMPLING", "RESEARCH",
+  ],
 };
+
+const recentWordSets = new Map<string, Set<string>>();
 
 const DIRECTIONS = [
   [0, 1], [1, 0], [1, 1], [1, -1],
@@ -138,9 +188,14 @@ const WORDS_DIFFICULTY_CONFIG: Record<ZeroGameDifficulty, { size: number; count:
 export function generateWordsPuzzle(profession: string, difficulty: ZeroGameDifficulty = "medium", requestedSize?: number) {
   const config = WORDS_DIFFICULTY_CONFIG[difficulty] || WORDS_DIFFICULTY_CONFIG.medium;
   const size = requestedSize || config.size;
-  const words = shuffle(WORD_BANK[profession] || WORD_BANK["Software Engineer"])
-    .filter((word) => word.length <= size)
-    .slice(0, config.count);
+  const historyKey = `${profession}:${difficulty}:${size}`;
+  const previousWords = recentWordSets.get(historyKey) || new Set<string>();
+  const eligibleWords = shuffle(WORD_BANK[profession] || WORD_BANK["Software Engineer"])
+    .filter((word) => word.length <= size);
+  const freshWords = eligibleWords.filter((word) => !previousWords.has(word));
+  const repeatedWords = eligibleWords.filter((word) => previousWords.has(word));
+  const words = [...freshWords, ...repeatedWords].slice(0, config.count);
+  recentWordSets.set(historyKey, new Set(words));
   const grid = Array<string | null>(size * size).fill(null);
   const placed: string[] = [];
   const placements: Array<{ word: string; path: number[] }> = [];

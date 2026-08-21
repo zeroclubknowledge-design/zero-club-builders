@@ -786,6 +786,13 @@ const applyAppDocumentTheme = (mode: AppThemeMode, theme: AppDarkTheme) => {
 function AppLayout() {
   const location = useLocation();
   const { pathname } = location;
+  // A published note is a public reading page even though its original URL
+  // lives below /app. Keeping this exception also preserves every note link
+  // that people have already shared.
+  const isGuestReadableNote =
+    /^\/app\/notes\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i.test(
+      pathname,
+    );
   const navigate = useNavigate();
   const [visible, setVisible] = useState(true);
   const [session, setSession] = useState<any>(getInitialSession);
@@ -1175,7 +1182,7 @@ function AppLayout() {
         setSession(session);
         setLoading(false);
 
-        if (!session) {
+        if (!session && !isGuestReadableNote) {
           const search = new URLSearchParams(window.location.search);
           router.navigate({
             to: "/signup",
@@ -1198,7 +1205,7 @@ function AppLayout() {
       if (!mounted) return;
       setSession(session);
       setLoading(false);
-      if (event === "SIGNED_OUT") {
+      if (event === "SIGNED_OUT" && !isGuestReadableNote) {
         const search = new URLSearchParams(window.location.search);
         router.navigate({
           to: "/signup",
@@ -1215,7 +1222,7 @@ function AppLayout() {
       clearTimeout(timeout);
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, [router, isGuestReadableNote]);
 
   // 2. Handle Club Invites from URL
   useEffect(() => {
@@ -1359,7 +1366,7 @@ function AppLayout() {
   }
 
   if (!session) {
-    return null;
+    return isGuestReadableNote ? <Outlet /> : null;
   }
 
   return (

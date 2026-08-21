@@ -5,6 +5,8 @@ import { IconClubs, IconInstitution, IconPresentation, IconProfile } from "@/com
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
+import { startGoogleAuthentication } from "@/lib/googleAuth";
 
 export const Route = createFileRoute("/signup")({
   component: SignUpPage,
@@ -44,6 +46,7 @@ function SignUpPage() {
   const [step, setStep] = useState<"info" | "code">(() => (localStorage.getItem("signup_step") as "info" | "code") || "info");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
   const [accountType, setAccountType] = useState<"Learner" | "Tutor" | "Institution">(() => (localStorage.getItem("signup_account_type") as "Learner" | "Tutor" | "Institution") || "Learner");
 
@@ -193,6 +196,47 @@ function SignUpPage() {
       toast.error(`Invalid code: ${err.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    if (!agreedToTerms) {
+      toast.error("Please agree to the Terms of Service and Privacy Policy.");
+      return;
+    }
+
+    setGoogleLoading(true);
+    try {
+      if (referralCode) {
+        const { data: existingRef } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("referral_code", referralCode)
+          .maybeSingle();
+
+        if (!existingRef) {
+          toast.error("That referral code is invalid.");
+          setGoogleLoading(false);
+          return;
+        }
+      }
+
+      const search = new URLSearchParams();
+      if (club) search.set("club", club);
+      if (ref) search.set("ref", ref);
+      const query = search.toString();
+      const destination = `/app${query ? `?${query}` : ""}`;
+      const error = await startGoogleAuthentication({
+        destination,
+        signupContext: {
+          accountType,
+          referralCode: referralCode || undefined,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || "Google signup could not be started");
+      setGoogleLoading(false);
     }
   };
 
@@ -372,9 +416,17 @@ function SignUpPage() {
                   </span>
                 </label>
 
+                <GoogleAuthButton label="Sign up with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignUp} />
+
+                <div className="flex items-center gap-3" aria-hidden="true">
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                </div>
+
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || googleLoading}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Continue <ArrowRight className="h-4 w-4" /></>}

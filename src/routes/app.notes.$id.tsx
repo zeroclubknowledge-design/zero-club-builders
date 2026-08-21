@@ -16,6 +16,7 @@ export const Route = createFileRoute('/app/notes/$id')({
       .from('notes')
       .select('*, profiles(username, full_name, avatar_url)')
       .eq('id', id)
+      .eq('is_published', true)
       .maybeSingle();
 
     if (error) console.error("Error loading note:", error);
@@ -70,6 +71,7 @@ function NoteReaderPage() {
         .from('notes')
         .select('*, profiles(username, full_name, avatar_url)')
         .eq('id', id)
+        .eq('is_published', true)
         .single();
 
       if (error) throw error;
@@ -131,17 +133,25 @@ function NoteReaderPage() {
   });
 
   const handleLike = () => {
+    if (!profile?.id) {
+      toast("Sign in to like this note");
+      return;
+    }
     setIsLiked(!isLiked);
     toast.success(isLiked ? "Removed from liked notes" : "Added to your liked notes!");
   };
 
   const handleBookmark = () => {
+    if (!profile?.id) {
+      toast("Sign in to save this note");
+      return;
+    }
     setIsBookmarked(!isBookmarked);
     toast.success(isBookmarked ? "Removed from bookmarks" : "Saved to bookmarks!");
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const url = `${window.location.origin}/app/notes/${note?.id || id}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -195,7 +205,7 @@ function NoteReaderPage() {
         <h2 className="text-3xl font-black tracking-tight mb-3">Story not found</h2>
         <p className="text-muted-foreground/70 mb-8 max-w-[250px] leading-relaxed">The article you are looking for has been removed or is unavailable.</p>
         <button 
-          onClick={() => navigate({ to: '/app/notes' })}
+          onClick={() => navigate({ to: profile?.id ? '/app/notes' : '/' })}
           className="bg-foreground text-background px-8 py-3.5 rounded-full font-bold shadow-lg hover:bg-foreground/90 transition-colors"
         >
           Return Home
@@ -265,7 +275,8 @@ function NoteReaderPage() {
       <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 w-full max-w-[920px] items-center gap-3 px-4 sm:px-6">
         <button 
-          onClick={() => navigate({ to: '/app/notes' })}
+          onClick={() => navigate({ to: profile?.id ? '/app/notes' : '/' })}
+          aria-label={profile?.id ? "Back to ZeroNotes" : "Back to Zero Club"}
           className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -320,7 +331,7 @@ function NoteReaderPage() {
                   </span>
                   {/* Never on your own notes — subscribing to yourself is
                       meaningless, and the database rejects it too. */}
-                  {profile?.id !== note.author_id && (
+                  {profile?.id && profile.id !== note.author_id && (
                     <button
                       onClick={handleSubscribe}
                       disabled={subscribeMutation.isPending}
@@ -374,9 +385,27 @@ function NoteReaderPage() {
             </button>
           </div>
 
-          {/* Comments: Inline CommentDrawer at the bottom */}
+          {/* Guests can read the complete note without an account. Account
+              actions remain optional and are offered only after the article. */}
           <div className="mt-auto pb-24">
-            <CommentDrawer post={note} type="note" inline={true} />
+            {profile?.id ? (
+              <CommentDrawer post={note} type="note" inline={true} />
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-5 text-center sm:p-7">
+                <p className="text-base font-semibold text-foreground">Enjoyed this ZeroNote?</p>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                  Reading is open to everyone. Sign in only if you want to save, react, comment, or publish your own note.
+                </p>
+                <div className="mt-5 flex flex-wrap justify-center gap-3">
+                  <Link to="/signin" search={{ ref: "", club: "" }} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+                    Sign in
+                  </Link>
+                  <Link to="/signup" search={{ ref: "", club: "" }} className="rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground">
+                    Create account
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </article>
       </div>
