@@ -117,6 +117,24 @@ const TipTapBlock = ({
 
 function NotesCreatePage() {
   const navigate = useNavigate();
+
+  /* The header steps aside while you read down the page and comes back the
+     moment you head up. The threshold keeps a stray pixel of movement from
+     flipping it, and it only ever hides once you are past its own height —
+     otherwise it would vanish at the very top, where it is not in the way. */
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const lastScrollTop = useRef(0);
+  const [headerHidden, setHeaderHidden] = useState(false);
+
+  const handleScroll = () => {
+    const element = scrollRef.current;
+    if (!element) return;
+    const current = element.scrollTop;
+    const delta = current - lastScrollTop.current;
+    if (Math.abs(delta) < 8) return;
+    setHeaderHidden(delta > 0 && current > 72);
+    lastScrollTop.current = current;
+  };
   const { data: profile } = useUser();
   const keyboardInset = useKeyboardInset();
 
@@ -540,10 +558,19 @@ function NotesCreatePage() {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
+    /* h-full only fills the parent, and the parent here is as tall as its
+       content — so below the last block the page simply stopped and whatever
+       is behind the app showed through as a band of a different colour. The
+       viewport unit fills the screen; the safe-area subtraction accounts for
+       the padding the app shell already adds above this page. */
+    <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top))] w-full flex-col overflow-hidden bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
       
       {/* Minimal Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+      <header
+        className={`sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)] transition-transform duration-300 ease-out ${
+          headerHidden ? "-translate-y-full" : "translate-y-0"
+        }`}
+      >
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center gap-3 px-4 sm:px-6">
         <button 
           onClick={() => navigate({ to: '/app/notes' })}
@@ -597,7 +624,7 @@ function NotesCreatePage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-56">
+      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto no-scrollbar pb-56">
         
         {/* Cover Image Area */}
         <div className="mx-auto max-w-[920px] px-4 pt-5 sm:px-6 sm:pt-7">
