@@ -1265,7 +1265,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <button
             onClick={() => setTheater((t) => !t)}
             title={theater ? "Show panel" : "Expand stage"}
-            className="absolute bottom-[84px] left-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap"
+            className="absolute bottom-2.5 left-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap md:bottom-[84px]"
           >
             {theater ? <Shrink className="w-4 h-4" /> : <Expand className="w-4 h-4" />}
           </button>
@@ -1279,7 +1279,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               below the stage, which cost a row of height on a phone and left
               the tutor's controls further from the picture they apply to. The
               scrim keeps white icons legible over a bright frame. */}
-          <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-10">
+          <div className="absolute inset-x-0 bottom-0 z-30 hidden bg-gradient-to-t from-black/75 via-black/35 to-transparent px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-10 md:block">
             {/* Quick reactions. A short fixed row rather than a full picker: in a
                 live class you want one tap, not a search field. */}
             {showReactionTray && (
@@ -1691,6 +1691,101 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             )}
           </div>
         )}
+      </div>
+
+      {/* Mobile keeps the familiar dedicated taskbar below the classroom.
+          Desktop uses the floating controls on the host video above. */}
+      <div className="relative z-20 shrink-0 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1 md:hidden">
+        {showReactionTray && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setShowReactionTray(false)} />
+            <div className="absolute bottom-full left-1/2 z-20 mb-2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#1a1a20] px-2 py-1.5 ring-1 ring-white/12 shadow-lift animate-in fade-in slide-in-from-bottom-2 duration-200">
+              {QUICK_REACTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => sendReaction(emoji)}
+                  aria-label={`React with ${emoji}`}
+                  className="grid h-10 w-10 place-items-center rounded-full text-[22px] leading-none transition hover:bg-white/10 active:scale-90"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
+          <button
+            onClick={() => setMicOn((previous) => !previous)}
+            disabled={isLeaving}
+            title={micOn ? "Mute microphone" : "Unmute microphone"}
+            aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
+            aria-pressed={!micOn}
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${micOn ? "bg-white/[0.1] text-white" : "bg-red-500 text-white"}`}
+          >
+            {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+          </button>
+
+          <button
+            onClick={() => setCameraOn((previous) => !previous)}
+            disabled={isLeaving}
+            title={cameraOn ? "Turn off camera" : "Turn on camera"}
+            aria-label={cameraOn ? "Turn off camera" : "Turn on camera"}
+            aria-pressed={!cameraOn}
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${cameraOn ? "bg-white/[0.1] text-white" : "bg-red-500 text-white"}`}
+          >
+            {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+          </button>
+
+          <button
+            onClick={() => setShowReactionTray((previous) => !previous)}
+            disabled={isLeaving}
+            title="Send a reaction"
+            aria-label="Send a reaction"
+            aria-expanded={showReactionTray}
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${showReactionTray ? "bg-white text-black" : "bg-white/[0.1] text-white"}`}
+          >
+            <Smile className="h-5 w-5" />
+          </button>
+
+          {isAdmin ? (
+            <button
+              onClick={toggleScreenShare}
+              disabled={isLeaving}
+              title={isScreenSharing ? "Stop presenting" : "Present your screen"}
+              aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
+              aria-pressed={isScreenSharing}
+              className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white"}`}
+            >
+              {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
+            </button>
+          ) : (
+            <button
+              onClick={toggleScreenShare}
+              disabled={isLeaving}
+              title="Only the tutor can present"
+              aria-label="Only the tutor can present"
+              className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50"
+            >
+              <MonitorUp className="h-5 w-5" />
+              <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
+                <Lock className="h-2 w-2 text-white/60" />
+              </span>
+            </button>
+          )}
+
+          <div className="h-6 w-px shrink-0 bg-white/10" />
+
+          <button
+            onClick={handleLeave}
+            disabled={isLeaving}
+            title="Leave the live room"
+            aria-label="Leave the live room"
+            className="grid h-12 w-[68px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 disabled:cursor-wait disabled:opacity-70"
+          >
+            {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneOff className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
     </div>
