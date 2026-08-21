@@ -130,8 +130,32 @@ export function GlobalLiveRoom() {
   const [isFetchingToken, setIsFetchingToken] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (isActive && !client) {
-      setClient(AgoraRTC.createClient({ mode: "rtc", codec: "vp8" }));
+      const rtcClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+
+      // Every publisher makes a tiny companion stream available. Receivers
+      // can then keep only the stage in full quality instead of downloading
+      // every moving camera at full bitrate.
+      rtcClient.setLowStreamParameter({
+        width: 160,
+        height: 120,
+        framerate: 12,
+        bitrate: 70,
+      });
+
+      Promise.all([
+        rtcClient.setRemoteDefaultVideoStreamType(1),
+        rtcClient.enableDualStream(),
+      ])
+        .catch((error) => {
+          // A browser without simulcast support can still join normally.
+          console.warn("Adaptive live video is unavailable on this device", error);
+        })
+        .finally(() => {
+          if (!cancelled) setClient(rtcClient);
+        });
     }
     // A client that has already left cannot be reused. Dropping it here means
     // the next session builds a fresh one, rather than silently failing to
@@ -139,6 +163,10 @@ export function GlobalLiveRoom() {
     if (!isActive && client) {
       setClient(null);
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [isActive, client]);
 
   useEffect(() => {
@@ -348,9 +376,42 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * legibility genuinely matters.
    */
   const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, {
-    encoderConfig: "480p_1",
+    encoderConfig: {
+      width: 640,
+      height: 480,
+      frameRate: 24,
+      bitrateMin: 300,
+      bitrateMax: 700,
+    },
     optimizationMode: "motion",
   });
+
+  useEffect(() => {
+    if (!localCameraTrack) return;
+
+    // A learner who has minimized the room is no longer presenting a large
+    // local preview. Reducing only that learner's outgoing camera frees CPU
+    // for club chat while their small participant tile remains clear enough.
+    // Tutors keep the premium stage profile even while they navigate.
+    const backgroundLearner = isMinimized && !isAdmin;
+    void localCameraTrack.setEncoderConfiguration(
+      backgroundLearner
+        ? {
+            width: 320,
+            height: 240,
+            frameRate: 15,
+            bitrateMin: 120,
+            bitrateMax: 250,
+          }
+        : {
+            width: 640,
+            height: 480,
+            frameRate: 24,
+            bitrateMin: 300,
+            bitrateMax: 700,
+          },
+    ).catch(console.warn);
+  }, [isAdmin, isMinimized, localCameraTrack]);
 
   /*
    * setMuted, not setEnabled.
@@ -397,7 +458,12 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    */
   const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
   useEffect(() => {
-    if (!client) return;
+    // The mini player does not display speaker rings. Leaving this listener
+    // active made the entire live component redraw repeatedly behind club chat.
+    if (!client || isMinimized) {
+      setActiveSpeaker(null);
+      return;
+    }
     client.enableAudioVolumeIndicator();
     const onVolume = (volumes: { uid: any; level: number }[]) => {
       const loudest = volumes.reduce(
@@ -409,7 +475,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     };
     client.on("volume-indicator", onVolume);
     return () => { client.off("volume-indicator", onVolume); };
-  }, [client]);
+  }, [client, isMinimized]);
 
   const remoteUsers = useRemoteUsers();
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
@@ -693,7 +759,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         };
       } else {
         const track = await AgoraRTC.createScreenVideoTrack({
-          encoderConfig: "1080p_1",
+          encoderConfig: {
+            width: 1280,
+            height: 720,
+            frameRate: 15,
+            bitrateMin: 400,
+            bitrateMax: 1200,
+          },
           optimizationMode: "detail",
         });
         video = Array.isArray(track) ? track[0] : track;
@@ -839,6 +911,36 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const selfHasCamera = cameraOn && !isScreenSharing && !!localCameraTrack;
 
   /*
+   * Adaptive receiving:
+   * - the tutor/presenter on the full stage stays high quality;
+   * - audience tiles use the low stream;
+   * - everything uses the low stream while minimized;
+   * - on a genuinely poor connection, preserve audio instead of buffering.
+   */
+  const appliedStreamPolicy = useRef<Map<string, number>>(new Map());
+  useEffect(() => {
+    if (!client) return;
+
+    const connectedIds = new Set(remoteUsers.map((user) => String(user.uid)));
+    for (const cachedId of appliedStreamPolicy.current.keys()) {
+      if (!connectedIds.has(cachedId)) appliedStreamPolicy.current.delete(cachedId);
+    }
+
+    remoteUsers.forEach((user) => {
+      const userId = String(user.uid);
+      const isStageVideo = stageUid != null && userId === String(stageUid);
+      const streamType = !isMinimized && isStageVideo ? 0 : 1;
+      if (appliedStreamPolicy.current.get(userId) === streamType) return;
+
+      appliedStreamPolicy.current.set(userId, streamType);
+      void Promise.allSettled([
+        client.setRemoteVideoStreamType(user.uid, streamType),
+        client.setStreamFallbackOption(user.uid, 2),
+      ]);
+    });
+  }, [client, isMinimized, remoteUsers, stageUid]);
+
+  /*
    * A shared screen is a different shape from a face.
    *
    * The stage is 4:3 because that is a sensible frame for a person. A slide
@@ -954,6 +1056,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   /* ══════════ MINI PLAYER ══════════ */
   if (isMinimized) {
+    const miniRemoteUser = !isAdmin ? (remotePresenterUser || remoteTutor) : undefined;
+    const miniRemoteTrack = miniRemoteUser ? findVideo(miniRemoteUser.uid) : undefined;
+
     return (
       <div
         onMouseDown={onDragStart}
@@ -965,12 +1070,24 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         className="fixed z-[9999] select-none cursor-grab active:cursor-grabbing"
         style={{ right: `${position.x}px`, bottom: `${position.y}px` }}
       >
+        {/* Audio must keep playing after the full classroom UI is removed. */}
+        <div className="hidden">
+          {audioTracks.map((track) => (
+            <RemoteAudioTrack key={String(track.getUserId())} track={track} play={true} />
+          ))}
+        </div>
         <div className="w-[152px] rounded-lg overflow-hidden shadow-lift ring-1 ring-white/15 bg-[#141117] animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
           <div
             className="relative aspect-[4/3] bg-[#0A0A0C] flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={handleRestore}
           >
-            {isScreenSharing && screenTrack ? (
+            {miniRemoteTrack ? (
+              <RemoteVideoTrack
+                track={miniRemoteTrack}
+                play={true}
+                className={`w-full h-full pointer-events-none ${remotePresenterUser ? "object-contain bg-black" : "object-cover"}`}
+              />
+            ) : isScreenSharing && screenTrack ? (
               <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain bg-black pointer-events-none" />
             ) : cameraOn && localCameraTrack ? (
               <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover pointer-events-none" />
@@ -1148,17 +1265,114 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <button
             onClick={() => setTheater((t) => !t)}
             title={theater ? "Show panel" : "Expand stage"}
-            className="absolute bottom-2.5 left-2.5 z-10 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap"
+            className="absolute bottom-[84px] left-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap"
           >
             {theater ? <Shrink className="w-4 h-4" /> : <Expand className="w-4 h-4" />}
           </button>
 
-          {/* Self preview PiP for the tutor while presenting */}
-          {isAdmin && isScreenSharing && cameraOn && localCameraTrack && (
-            <div className="absolute bottom-2.5 right-2.5 z-10 w-24 aspect-video rounded-lg overflow-hidden ring-1 ring-white/20 shadow-lift">
-              <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />
+          {/* ═══ CONTROL BAR ═══ */}
+          {/* Icon only. The shapes are universal, and dropping the labels buys
+              enough room for proper 48px targets — the old buttons were 36px tall
+              with text competing for the same space. aria-label and title carry
+              the meaning for anyone who needs it. */}
+          {/* On the video, not under it. The bar used to sit on its own strip
+              below the stage, which cost a row of height on a phone and left
+              the tutor's controls further from the picture they apply to. The
+              scrim keeps white icons legible over a bright frame. */}
+          <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-10">
+            {/* Quick reactions. A short fixed row rather than a full picker: in a
+                live class you want one tap, not a search field. */}
+            {showReactionTray && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowReactionTray(false)} />
+                <div className="absolute bottom-full left-1/2 z-20 mb-2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#1a1a20] px-2 py-1.5 ring-1 ring-white/12 shadow-lift animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  {QUICK_REACTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => sendReaction(emoji)}
+                      aria-label={`React with ${emoji}`}
+                      className="grid h-10 w-10 place-items-center rounded-full text-[22px] leading-none transition hover:bg-white/10 active:scale-90"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
+              <button
+                onClick={() => setMicOn((p) => !p)}
+                disabled={isLeaving}
+                title={micOn ? "Mute microphone" : "Unmute microphone"}
+                aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
+                aria-pressed={!micOn}
+                className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${micOn ? "bg-white/[0.1] text-white hover:bg-white/[0.16]" : "bg-red-500 text-white"}`}
+              >
+                {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+              </button>
+
+              <button
+                onClick={() => setCameraOn((p) => !p)}
+                disabled={isLeaving}
+                title={cameraOn ? "Turn off camera" : "Turn on camera"}
+                aria-label={cameraOn ? "Turn off camera" : "Turn on camera"}
+                aria-pressed={!cameraOn}
+                className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${cameraOn ? "bg-white/[0.1] text-white hover:bg-white/[0.16]" : "bg-red-500 text-white"}`}
+              >
+                {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+              </button>
+
+              <button
+                onClick={() => setShowReactionTray((p) => !p)}
+                disabled={isLeaving}
+                title="Send a reaction"
+                aria-label="Send a reaction"
+                aria-expanded={showReactionTray}
+                className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${showReactionTray ? "bg-white text-black" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
+              >
+                <Smile className="h-5 w-5" />
+              </button>
+
+              {isAdmin ? (
+                <button
+                  onClick={toggleScreenShare}
+                  disabled={isLeaving}
+                  title={isScreenSharing ? "Stop presenting" : "Present your screen"}
+                  aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
+                  aria-pressed={isScreenSharing}
+                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
+                >
+                  {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
+                </button>
+              ) : (
+                <button
+                  onClick={toggleScreenShare}
+                  disabled={isLeaving}
+                  title="Only the tutor can present"
+                  aria-label="Only the tutor can present"
+                  className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50"
+                >
+                  <MonitorUp className="h-5 w-5" />
+                  <span className="absolute -top-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
+                    <Lock className="h-2 w-2 text-white/60" />
+                  </span>
+                </button>
+              )}
+
+              <div className="h-6 w-px shrink-0 bg-white/10" />
+
+              <button
+                onClick={handleLeave}
+                disabled={isLeaving}
+                title="Leave the live room"
+                aria-label="Leave the live room"
+                className="grid h-12 w-[68px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
+              >
+                {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneOff className="h-5 w-5" />}
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
         {/* ── PANEL: Chat / Learners ── */}
@@ -1479,105 +1693,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         )}
       </div>
 
-      {/* ═══ CONTROL BAR ═══ */}
-      {/* Icon only. The shapes are universal, and dropping the labels buys
-          enough room for proper 48px targets — the old buttons were 36px tall
-          with text competing for the same space. aria-label and title carry
-          the meaning for anyone who needs it. */}
-      <div className="relative z-20 shrink-0 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1">
-        {/* Quick reactions. A short fixed row rather than a full picker: in a
-            live class you want one tap, not a search field. */}
-        {showReactionTray && (
-          <>
-            <div className="fixed inset-0 z-10" onClick={() => setShowReactionTray(false)} />
-            <div className="absolute bottom-full left-1/2 z-20 mb-2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-[#1a1a20] px-2 py-1.5 ring-1 ring-white/12 shadow-lift animate-in fade-in slide-in-from-bottom-2 duration-200">
-              {QUICK_REACTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => sendReaction(emoji)}
-                  aria-label={`React with ${emoji}`}
-                  className="grid h-10 w-10 place-items-center rounded-full text-[22px] leading-none transition hover:bg-white/10 active:scale-90"
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
-          <button
-            onClick={() => setMicOn((p) => !p)}
-            disabled={isLeaving}
-            title={micOn ? "Mute microphone" : "Unmute microphone"}
-            aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
-            aria-pressed={!micOn}
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${micOn ? "bg-white/[0.1] text-white hover:bg-white/[0.16]" : "bg-red-500 text-white"}`}
-          >
-            {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-          </button>
-
-          <button
-            onClick={() => setCameraOn((p) => !p)}
-            disabled={isLeaving}
-            title={cameraOn ? "Turn off camera" : "Turn on camera"}
-            aria-label={cameraOn ? "Turn off camera" : "Turn on camera"}
-            aria-pressed={!cameraOn}
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${cameraOn ? "bg-white/[0.1] text-white hover:bg-white/[0.16]" : "bg-red-500 text-white"}`}
-          >
-            {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-          </button>
-
-          <button
-            onClick={() => setShowReactionTray((p) => !p)}
-            disabled={isLeaving}
-            title="Send a reaction"
-            aria-label="Send a reaction"
-            aria-expanded={showReactionTray}
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${showReactionTray ? "bg-white text-black" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
-          >
-            <Smile className="h-5 w-5" />
-          </button>
-
-          {isAdmin ? (
-            <button
-              onClick={toggleScreenShare}
-              disabled={isLeaving}
-              title={isScreenSharing ? "Stop presenting" : "Present your screen"}
-              aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
-              aria-pressed={isScreenSharing}
-              className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
-            >
-              {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
-            </button>
-          ) : (
-            <button
-              onClick={toggleScreenShare}
-              disabled={isLeaving}
-              title="Only the tutor can present"
-              aria-label="Only the tutor can present"
-              className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50"
-            >
-              <MonitorUp className="h-5 w-5" />
-              <span className="absolute -top-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
-                <Lock className="h-2 w-2 text-white/60" />
-              </span>
-            </button>
-          )}
-
-          <div className="h-6 w-px shrink-0 bg-white/10" />
-
-          <button
-            onClick={handleLeave}
-            disabled={isLeaving}
-            title="Leave the live room"
-            aria-label="Leave the live room"
-            className="grid h-12 w-[68px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
-          >
-            {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneOff className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
