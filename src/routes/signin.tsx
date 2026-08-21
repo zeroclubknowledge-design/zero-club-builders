@@ -73,8 +73,35 @@ function SignInPage() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) throw error;
+      /*
+       * Sign in, never sign up.
+       *
+       * signInWithOtp creates an account for an unknown address by default, so
+       * this page was a second, silent registration route: type any email,
+       * receive a code, and you were in — with no username, no profile, and no
+       * agreement to anything. shouldCreateUser turns that off, and it is
+       * enforced by the auth server rather than by a check here that a crafted
+       * request could skip.
+       */
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      });
+
+      if (error) {
+        // Supabase words this as "Signups not allowed for otp", which reads as
+        // a fault on our side rather than "we do not know this address".
+        const unknown =
+          /signups? not allowed|user not found|not found/i.test(error.message || "");
+        if (unknown) {
+          toast.error("No Zero Club account uses that email", {
+            description: "Check the address, or create an account first.",
+          });
+          return;
+        }
+        throw error;
+      }
+
       setStep("code");
       toast.success("Confirmation code sent. Check your email.");
     } catch (err: any) {

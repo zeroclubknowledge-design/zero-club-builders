@@ -56,6 +56,127 @@ function LiveClubCard({ club, currentUserId, onOpen }: { club: any; currentUserI
 }
 
 /**
+ * Who is building the most in public.
+ *
+ * Ranked on posts published, because that is the one signal the platform has
+ * that is entirely within a person's control — you cannot be given a post the
+ * way you can be given likes or a follow. It is a first cut: when shipped work
+ * and referrals are worth ranking on, the ordering changes here and the rest
+ * of the screen does not.
+ *
+ * Counted client-side over the recent window rather than through a database
+ * function, so that this can ship without another migration to run. If the
+ * board ever needs to cover every post ever written, it wants a view with an
+ * index behind it, not a bigger limit.
+ */
+function Leaderboard({ currentUserId }: { currentUserId?: string }) {
+  const { data: leaders = [], isLoading } = useQuery({
+    queryKey: ["leaderboard-posts"],
+    staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      const { data: posts } = await supabase
+        .from("posts")
+        .select("author_id")
+        .order("created_at", { ascending: false })
+        .limit(3000);
+
+      const tally = new Map<string, number>();
+      for (const post of posts || []) {
+        if (!post.author_id) continue;
+        tally.set(post.author_id, (tally.get(post.author_id) || 0) + 1);
+      }
+
+      const ranked = [...tally.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 50);
+      if (ranked.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url, xp")
+        .in("id", ranked.map(([id]) => id));
+
+      const byId = new Map((profiles || []).map((person: any) => [person.id, person]));
+      return ranked
+        .map(([id, posts]) => ({ ...(byId.get(id) || {}), id, posts }))
+        .filter((person: any) => person.username);
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="grid min-h-40 place-items-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const medal = ["text-[#e2b53f]", "text-[#b4b8bf]", "text-[#c98b5a]"];
+
+  return (
+    <div className="space-y-4 p-3 sm:p-5">
+      <div className="px-1">
+        <h2 className="text-[16px] font-semibold tracking-tight">Leaderboard</h2>
+        <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+          Ranked by what you publish. Post more, climb higher.
+        </p>
+      </div>
+
+      {leaders.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-border px-4 py-12 text-center text-[12.5px] text-muted-foreground">
+          Nobody has posted yet. Be the first.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {leaders.map((person: any, index: number) => {
+            const isMe = person.id === currentUserId;
+            return (
+              <Link
+                key={person.id}
+                to="/app/profile/$id"
+                params={{ id: person.username || person.id }}
+                className={`flex min-w-0 items-center gap-3 rounded-2xl p-3.5 transition hover:opacity-90 ${
+                  isMe ? "bg-primary/[0.07] ring-1 ring-primary/20" : "bg-card"
+                }`}
+              >
+                {/* The number carries the rank; a medal colour marks the top
+                    three without needing a separate podium block. */}
+                <span className={`w-6 shrink-0 text-center text-[15px] font-semibold tabular-nums ${index < 3 ? medal[index] : "text-muted-foreground"}`}>
+                  {index + 1}
+                </span>
+
+                <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
+                  {person.avatar_url ? (
+                    <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    (person.full_name || person.username || "?")[0].toUpperCase()
+                  )}
+                </span>
+
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[14px] font-semibold tracking-tight">
+                    {person.full_name || person.username}
+                    {isMe && <span className="ml-1.5 text-[11px] font-medium text-muted-foreground">you</span>}
+                  </span>
+                  <span className="block truncate text-[11.5px] text-muted-foreground">@{person.username}</span>
+                </span>
+
+                <span className="shrink-0 text-right">
+                  <span className="block text-[15px] font-semibold tabular-nums">{person.posts}</span>
+                  <span className="block text-[10.5px] text-muted-foreground">
+                    {person.posts === 1 ? "post" : "posts"}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * Every institution on Zero Club, and nothing else.
  *
  * This tab used to be "Academy" and showed the ordinary feed, which meant it
@@ -301,7 +422,7 @@ function Feed() {
           {!showSearch ? (
             <>
               <div className="no-scrollbar flex min-w-0 flex-1 gap-5 overflow-x-auto">
-                {["Discover", "Following", "Live", "News", "Institution"].map((tab) => (
+                {["Discover", "Following", "Live", "Leaderboard", "Institution"].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -478,7 +599,9 @@ function Feed() {
           </div>
         ) : (
           <>
-            {activeTab === 'Institution' ? (
+            {activeTab === 'Leaderboard' ? (
+              <Leaderboard currentUserId={currentUser?.id} />
+            ) : activeTab === 'Institution' ? (
               <InstitutionDirectory />
             ) : activeTab === 'Live' ? (
               <div className="space-y-5 p-3 sm:p-5">
