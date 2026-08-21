@@ -135,6 +135,31 @@ self.addEventListener("push", (event) => {
     if (event.data) payload.body = event.data.text();
   }
 
+  /* The count on the launcher icon.
+   *
+   * setAppBadge was only ever called from the page, so the number appeared
+   * while the app was open — exactly when nobody needs it — and never while it
+   * was closed, which is the whole point. The service worker is the only thing
+   * running at that moment, so it has to set it.
+   *
+   * The number comes from the notifications the worker is already holding
+   * rather than from a counter of its own: a service worker is killed between
+   * pushes, so anything it counts in memory resets, and anything it stores has
+   * to be reconciled with what the person has already seen. Outstanding
+   * notifications are that state, kept for us by the system. */
+  const updateBadge = async () => {
+    if (!self.navigator || !("setAppBadge" in self.navigator)) return;
+    try {
+      const outstanding = await self.registration.getNotifications();
+      const count = outstanding.length;
+      if (count > 0) await self.navigator.setAppBadge(count);
+      else await self.navigator.clearAppBadge();
+    } catch {
+      /* Unsupported or denied — the notification itself still lands, and on
+         Android that alone puts a dot on the icon. */
+    }
+  };
+
   event.waitUntil(
     self.registration.showNotification(payload.title || "Zero Club", {
       body: payload.body,
@@ -148,13 +173,23 @@ self.addEventListener("push", (event) => {
       actions: [
         { action: "open", title: payload.type === "game_buzz" ? "Join game" : "Open app" },
       ],
-    }),
+    }).then(updateBadge),
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = event.notification.data?.url || "/app";
+
+  // Opening one notification clears that one from the count, not all of them.
+  if (self.navigator && "setAppBadge" in self.navigator) {
+    event.waitUntil(
+      self.registration
+        .getNotifications()
+        .then((rest) => (rest.length > 0 ? self.navigator.setAppBadge(rest.length) : self.navigator.clearAppBadge()))
+        .catch(() => {}),
+    );
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

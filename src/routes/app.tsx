@@ -1280,7 +1280,11 @@ function AppLayout() {
    * this reason.
    */
   const isTutorStudio = pathname.startsWith("/app/tutor-studio");
-  const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio;
+  // My Store is a seller's dashboard, laid out as a 360px sidebar next to a
+  // product grid. In the reading column that left the grid about 430px wide,
+  // which is narrower than one product card wants.
+  const isMyStore = pathname.startsWith("/app/my-store");
+  const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio || isMyStore;
   const hideHeader = !isFeed;
 
   /*

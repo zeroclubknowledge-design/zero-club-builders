@@ -14,6 +14,16 @@ import { supabase } from "@/lib/supabase";
    Each pattern below therefore captures the character before the thing it
    cares about and puts it back, which works identically on every browser. */
 
+/*
+ * Mentions are pink, and not with the link colour.
+ *
+ * They used to share `linkColor`, which resolves to --primary — ink on the
+ * light theme and white on the dark ones. So a tagged person read as ordinary
+ * bold text. The brand hex is used rather than a token because this is the one
+ * colour that should not change with the theme: a mention is a mention.
+ */
+const MENTION_CLASS = "text-[#cc208f] font-semibold hover:opacity-80";
+
 /** A mention that is not part of an email address or already inside a tag.
  *  Group 1 is the preceding character (kept), group 2 is the @username. */
 const MENTION_PATTERN = /(^|[^"'a-zA-Z0-9._%+-])(@[a-zA-Z0-9_-]+)(?![a-zA-Z0-9_-])/g;
@@ -147,7 +157,7 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
         e.stopPropagation();
         router.navigate({ to: '/app/profile/$id', params: { id: username } });
         return;
-      } else if (target.textContent?.startsWith('@') && (target.classList.contains('text-primary') || target.tagName === 'STRONG' || target.tagName === 'SPAN')) {
+      } else if (target.textContent?.startsWith('@') && (target.dataset.mention || target.tagName === 'STRONG' || target.tagName === 'SPAN')) {
         e.preventDefault();
         e.stopPropagation();
         router.navigate({ to: '/app/profile/$id', params: { id: target.textContent.substring(1) } });
@@ -180,7 +190,7 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
         (_match, before: string, mention: string) => {
           const username = mention.substring(1);
           const displayName = profileMap[username.toLowerCase()] || mention;
-          return `${before}<strong class="${linkColor} cursor-pointer" data-username="${username}">${displayName}</strong>`;
+          return `${before}<strong class="${MENTION_CLASS} cursor-pointer" data-username="${username}">${displayName}</strong>`;
         },
       ),
     );
@@ -250,7 +260,7 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
                 key={i} 
                 to="/app/profile/$id" 
                 params={{ id: username }} 
-                className={`${linkColor} font-bold`}
+                className={MENTION_CLASS}
                 onClick={(e) => e.stopPropagation()}
               >
                 {displayName}

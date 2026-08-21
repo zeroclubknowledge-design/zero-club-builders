@@ -301,7 +301,10 @@ function MyStorePage() {
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            /* Two columns once there is room. A single stack of full-width rows
+               across a 1200px workspace leaves a product name floating alone
+               with half a metre of empty space beside it. */
+            <div className="space-y-3 xl:grid xl:grid-cols-2 xl:gap-3 xl:space-y-0">
               {products.map((item: any) => {
                 const sale = effectivePrice(item.price, item.discount_percent || 0);
                 return (

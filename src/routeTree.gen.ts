@@ -74,6 +74,7 @@ import { Route as AppPostIdRouteImport } from './routes/app.post.$id'
 import { Route as AppNotesCreateRouteImport } from './routes/app.notes.create'
 import { Route as AppNotesIdRouteImport } from './routes/app.notes.$id'
 import { Route as AppLiveClassIdRouteImport } from './routes/app.live.$classId'
+import { Route as AppInstitutionControlRouteImport } from './routes/app.institution.control'
 import { Route as AppInstitutionIdRouteImport } from './routes/app.institution.$id'
 import { Route as AppGiftsUnclaimedRouteImport } from './routes/app.gifts.unclaimed'
 import { Route as AppGiftsCodeRouteImport } from './routes/app.gifts.$code'
@@ -86,12 +87,13 @@ import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
 import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
-import { Route as ApiClubImageIdRouteImport } from './routes/api.club-image.$id'
 import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
+import { Route as ApiClubImageIdRouteImport } from './routes/api.club-image.$id'
 import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
 import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
+import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
@@ -422,6 +424,11 @@ const AppLiveClassIdRoute = AppLiveClassIdRouteImport.update({
   path: '/live/$classId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInstitutionControlRoute = AppInstitutionControlRouteImport.update({
+  id: '/institution/control',
+  path: '/institution/control',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInstitutionIdRoute = AppInstitutionIdRouteImport.update({
   id: '/institution/$id',
   path: '/institution/$id',
@@ -482,14 +489,14 @@ const ApiGiftImageCodeRoute = ApiGiftImageCodeRouteImport.update({
   path: '/api/gift-image/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiClubImageIdRoute = ApiClubImageIdRouteImport.update({
-  id: '/api/club-image/$id',
-  path: '/api/club-image/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
   id: '/api/gift-card/$code',
   path: '/api/gift-card/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiClubImageIdRoute = ApiClubImageIdRouteImport.update({
+  id: '/api/club-image/$id',
+  path: '/api/club-image/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
@@ -511,6 +518,11 @@ const AppProfileIdNetworkRoute = AppProfileIdNetworkRouteImport.update({
 const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
   id: '/notes_/$id/edit',
   path: '/notes/$id/edit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClubsQuizzesClubIdRoute = AppClubsQuizzesClubIdRouteImport.update({
+  id: '/clubs/quizzes/$clubId',
+  path: '/clubs/quizzes/$clubId',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
@@ -553,9 +565,9 @@ export interface FileRoutesByFullPath {
   '/gift/$code': typeof GiftCodeRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
+  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
-  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -567,6 +579,7 @@ export interface FileRoutesByFullPath {
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/institution/$id': typeof AppInstitutionIdRoute
+  '/app/institution/control': typeof AppInstitutionControlRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
@@ -600,6 +613,7 @@ export interface FileRoutesByFullPath {
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
+  '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -633,9 +647,9 @@ export interface FileRoutesByTo {
   '/gift/$code': typeof GiftCodeRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
+  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
-  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -647,6 +661,7 @@ export interface FileRoutesByTo {
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/institution/$id': typeof AppInstitutionIdRoute
+  '/app/institution/control': typeof AppInstitutionControlRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
@@ -680,6 +695,7 @@ export interface FileRoutesByTo {
   '/app/tutor-studio': typeof AppTutorStudioIndexRoute
   '/app/wallet': typeof AppWalletIndexRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
+  '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -720,9 +736,9 @@ export interface FileRoutesById {
   '/gift/$code': typeof GiftCodeRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
+  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
-  '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -734,6 +750,7 @@ export interface FileRoutesById {
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/institution/$id': typeof AppInstitutionIdRoute
+  '/app/institution/control': typeof AppInstitutionControlRoute
   '/app/live/$classId': typeof AppLiveClassIdRoute
   '/app/notes/$id': typeof AppNotesIdRoute
   '/app/notes/create': typeof AppNotesCreateRoute
@@ -767,6 +784,7 @@ export interface FileRoutesById {
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/app/bootcamps_/$id/edit': typeof AppBootcampsIdEditRoute
+  '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/notes_/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -808,9 +826,9 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/product/$id'
     | '/app/'
+    | '/api/club-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
-    | '/api/club-image/$id'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -822,6 +840,7 @@ export interface FileRouteTypes {
     | '/app/gifts/$code'
     | '/app/gifts/unclaimed'
     | '/app/institution/$id'
+    | '/app/institution/control'
     | '/app/live/$classId'
     | '/app/notes/$id'
     | '/app/notes/create'
@@ -855,6 +874,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/app/bootcamps/$id/edit'
+    | '/app/clubs/quizzes/$clubId'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
@@ -888,9 +908,9 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/product/$id'
     | '/app'
+    | '/api/club-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
-    | '/api/club-image/$id'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -902,6 +922,7 @@ export interface FileRouteTypes {
     | '/app/gifts/$code'
     | '/app/gifts/unclaimed'
     | '/app/institution/$id'
+    | '/app/institution/control'
     | '/app/live/$classId'
     | '/app/notes/$id'
     | '/app/notes/create'
@@ -935,6 +956,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio'
     | '/app/wallet'
     | '/app/bootcamps/$id/edit'
+    | '/app/clubs/quizzes/$clubId'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
@@ -974,9 +996,9 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/product/$id'
     | '/app/'
+    | '/api/club-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
-    | '/api/club-image/$id'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -988,6 +1010,7 @@ export interface FileRouteTypes {
     | '/app/gifts/$code'
     | '/app/gifts/unclaimed'
     | '/app/institution/$id'
+    | '/app/institution/control'
     | '/app/live/$classId'
     | '/app/notes/$id'
     | '/app/notes/create'
@@ -1021,6 +1044,7 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/app/bootcamps_/$id/edit'
+    | '/app/clubs/quizzes/$clubId'
     | '/app/notes_/$id/edit'
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
@@ -1041,9 +1065,9 @@ export interface RootRouteChildren {
   FundSlugRoute: typeof FundSlugRoute
   GiftCodeRoute: typeof GiftCodeRoute
   ProductIdRoute: typeof ProductIdRouteWithChildren
+  ApiClubImageIdRoute: typeof ApiClubImageIdRoute
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
   ApiGiftImageCodeRoute: typeof ApiGiftImageCodeRoute
-  ApiClubImageIdRoute: typeof ApiClubImageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1503,6 +1527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLiveClassIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/institution/control': {
+      id: '/app/institution/control'
+      path: '/institution/control'
+      fullPath: '/app/institution/control'
+      preLoaderRoute: typeof AppInstitutionControlRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/institution/$id': {
       id: '/app/institution/$id'
       path: '/institution/$id'
@@ -1587,18 +1618,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGiftImageCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/club-image/$id': {
-      id: '/api/club-image/$id'
-      path: '/api/club-image/$id'
-      fullPath: '/api/club-image/$id'
-      preLoaderRoute: typeof ApiClubImageIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/gift-card/$code': {
       id: '/api/gift-card/$code'
       path: '/api/gift-card/$code'
       fullPath: '/api/gift-card/$code'
       preLoaderRoute: typeof ApiGiftCardCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/club-image/$id': {
+      id: '/api/club-image/$id'
+      path: '/api/club-image/$id'
+      fullPath: '/api/club-image/$id'
+      preLoaderRoute: typeof ApiClubImageIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/wallet/transaction/$id': {
@@ -1627,6 +1658,13 @@ declare module '@tanstack/react-router' {
       path: '/notes/$id/edit'
       fullPath: '/app/notes/$id/edit'
       preLoaderRoute: typeof AppNotesIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clubs/quizzes/$clubId': {
+      id: '/app/clubs/quizzes/$clubId'
+      path: '/clubs/quizzes/$clubId'
+      fullPath: '/app/clubs/quizzes/$clubId'
+      preLoaderRoute: typeof AppClubsQuizzesClubIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bootcamps_/$id/edit': {
@@ -1763,6 +1801,7 @@ interface AppRouteChildren {
   AppGiftsCodeRoute: typeof AppGiftsCodeRoute
   AppGiftsUnclaimedRoute: typeof AppGiftsUnclaimedRoute
   AppInstitutionIdRoute: typeof AppInstitutionIdRoute
+  AppInstitutionControlRoute: typeof AppInstitutionControlRoute
   AppLiveClassIdRoute: typeof AppLiveClassIdRoute
   AppPostIdRoute: typeof AppPostIdRoute
   AppProfileIdRoute: typeof AppProfileIdRoute
@@ -1779,6 +1818,7 @@ interface AppRouteChildren {
   AppProfileIndexRoute: typeof AppProfileIndexRoute
   AppWalletIndexRoute: typeof AppWalletIndexRoute
   AppBootcampsIdEditRoute: typeof AppBootcampsIdEditRoute
+  AppClubsQuizzesClubIdRoute: typeof AppClubsQuizzesClubIdRoute
   AppNotesIdEditRoute: typeof AppNotesIdEditRoute
   AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
   AppWalletTransactionIdRoute: typeof AppWalletTransactionIdRoute
@@ -1816,6 +1856,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGiftsCodeRoute: AppGiftsCodeRoute,
   AppGiftsUnclaimedRoute: AppGiftsUnclaimedRoute,
   AppInstitutionIdRoute: AppInstitutionIdRoute,
+  AppInstitutionControlRoute: AppInstitutionControlRoute,
   AppLiveClassIdRoute: AppLiveClassIdRoute,
   AppPostIdRoute: AppPostIdRoute,
   AppProfileIdRoute: AppProfileIdRoute,
@@ -1832,6 +1873,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileIndexRoute: AppProfileIndexRoute,
   AppWalletIndexRoute: AppWalletIndexRoute,
   AppBootcampsIdEditRoute: AppBootcampsIdEditRoute,
+  AppClubsQuizzesClubIdRoute: AppClubsQuizzesClubIdRoute,
   AppNotesIdEditRoute: AppNotesIdEditRoute,
   AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
   AppWalletTransactionIdRoute: AppWalletTransactionIdRoute,
@@ -1865,9 +1907,9 @@ const rootRouteChildren: RootRouteChildren = {
   FundSlugRoute: FundSlugRoute,
   GiftCodeRoute: GiftCodeRoute,
   ProductIdRoute: ProductIdRouteWithChildren,
+  ApiClubImageIdRoute: ApiClubImageIdRoute,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
   ApiGiftImageCodeRoute: ApiGiftImageCodeRoute,
-  ApiClubImageIdRoute: ApiClubImageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

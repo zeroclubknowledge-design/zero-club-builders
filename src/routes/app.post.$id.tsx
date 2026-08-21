@@ -31,6 +31,13 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
+// Query data is undefined while replies are loading. A fallback created inline
+// (`data: postComments = []`) is a different array on every render; because the
+// reply-sync effect depends on it and writes another array to state, slower
+// clients can enter an update loop before the request finishes (React #185).
+const EMPTY_POST_COMMENTS: any[] = [];
+const EMPTY_COMMENT_LIKES: string[] = [];
+
 const findCachedPost = (queryClient: QueryClient, id: string) => {
   const feedPosts = queryClient.getQueryData<any[]>(['feed_posts']) || [];
   const profilePostQueries = queryClient.getQueriesData<any[]>({ queryKey: ['profilePosts'] });
@@ -52,7 +59,7 @@ const createPostDetailShell = (post: any) => ({
   isLiked: Boolean(post.isLiked),
   isFollowing: false,
   hasReposted: Boolean(post.hasReposted),
-  commentLikes: [] as string[],
+  commentLikes: EMPTY_COMMENT_LIKES,
 });
 
 const fetchPostDetailRecord = async (id: string) => {
@@ -179,7 +186,7 @@ function PostDetail() {
   });
 
   const {
-    data: postComments = [],
+    data: loadedPostComments,
     isLoading: commentsLoading,
     isError: commentsError,
     refetch: refetchComments,
@@ -190,6 +197,7 @@ function PostDetail() {
     staleTime: 10_000,
     retry: 2,
   });
+  const postComments = loadedPostComments ?? EMPTY_POST_COMMENTS;
 
   const post = data?.post;
   const [comments, setComments] = useState<any[]>([]);
@@ -280,12 +288,15 @@ function PostDetail() {
   }, [data]);
 
   useEffect(() => {
-    const likedIds = new Set(data?.commentLikes || []);
-    setComments(postComments.map((comment: any) => ({
-      ...comment,
-      isLiked: likedIds.has(comment.id),
-      likes_count: comment.likes_count || 0,
-    })));
+    const likedIds = new Set(data?.commentLikes ?? EMPTY_COMMENT_LIKES);
+    setComments((current) => {
+      if (postComments.length === 0 && current.length === 0) return current;
+      return postComments.map((comment: any) => ({
+        ...comment,
+        isLiked: likedIds.has(comment.id),
+        likes_count: comment.likes_count || 0,
+      }));
+    });
   }, [postComments, data?.commentLikes]);
 
   useEffect(() => {

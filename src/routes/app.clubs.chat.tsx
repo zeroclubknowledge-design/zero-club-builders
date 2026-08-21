@@ -991,7 +991,16 @@ function ClubChat() {
           </div>
         </div>
         <div className={`flex items-center gap-2 ${!isScrolled ? "pointer-events-auto" : ""}`}>
-          <button 
+          {/* Assessments live with the cohort that sits them, so the way in is
+              here rather than somewhere else in the app. */}
+          <button
+            onClick={() => navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } })}
+            aria-label="Club quizzes"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95"
+          >
+            <ClipboardCheck className="h-4 w-4" />
+          </button>
+          <button
             onClick={() => setShowMembers(true)}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95"
           >

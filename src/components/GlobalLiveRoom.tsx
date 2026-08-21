@@ -40,6 +40,11 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   sender_id?: string;
+  /* A copy of what is being answered rather than a pointer to it. Live chat is
+     broadcast and kept in memory, so somebody who joined thirty seconds ago
+     does not have the original message to look up — carrying the quote means
+     the reply still makes sense to them. */
+  reply_to?: { id: string; sender_name: string; content: string };
 }
 
 interface PresenceUser {
@@ -263,6 +268,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [activeTab, setActiveTab] = useState<"chat" | "learners">("chat");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  /* The word being typed after an @, or null when the picker is closed. */
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const chatInputRef = useRef<HTMLInputElement | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatChannelRef = useRef<any>(null);
@@ -661,10 +670,50 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       content: chatInput.trim(),
       timestamp: new Date().toISOString(),
       sender_id: profile?.userId || profile?.id,
+      reply_to: replyingTo
+        ? {
+            id: replyingTo.id,
+            sender_name: replyingTo.sender_name,
+            content: replyingTo.content.slice(0, 140),
+          }
+        : undefined,
     };
     setChatMessages((prev) => [...prev, msg]);
     chatChannelRef.current.send({ type: "broadcast", event: "chat", payload: msg });
     setChatInput("");
+    setReplyingTo(null);
+    setMentionQuery(null);
+  };
+
+  /* Everybody in the room, deduplicated by name — the picker offers people,
+     not connections, and one person on two devices is still one person. */
+  const mentionCandidates = (() => {
+    if (mentionQuery === null) return [];
+    const term = mentionQuery.toLowerCase();
+    const seen = new Set<string>();
+    return presenceUsers
+      .filter((person) => {
+        const name = (person.name || "").trim();
+        if (!name || seen.has(name.toLowerCase())) return false;
+        seen.add(name.toLowerCase());
+        return term === "" || name.toLowerCase().includes(term);
+      })
+      .slice(0, 5);
+  })();
+
+  /* Watches only the word the caret is sitting in, so an @ earlier in the
+     sentence does not reopen the picker while you type the rest. */
+  const handleChatInputChange = (value: string) => {
+    setChatInput(value);
+    const match = value.match(/(?:^|\s)@([^\s@]*)$/);
+    setMentionQuery(match ? match[1] : null);
+  };
+
+  const applyMention = (name: string) => {
+    const next = chatInput.replace(/(^|\s)@([^\s@]*)$/, (_m, before: string) => `${before}@${name} `);
+    setChatInput(next);
+    setMentionQuery(null);
+    chatInputRef.current?.focus();
   };
 
   const formatTime = (ts: string) => {
@@ -1076,7 +1125,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     chatMessages.map((msg: any) => {
                       const isMe = msg.sender_id === (profile?.userId || profile?.id);
                       return (
-                        <div key={msg.id} className="flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div key={msg.id} id={`zc-live-msg-${msg.id}`} className="group flex gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
                           <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-white/[0.08] flex items-center justify-center mt-0.5 ring-1 ring-white/10">
                             {msg.sender_avatar ? (
                               <img src={msg.sender_avatar} alt="" className="w-full h-full object-cover" />
@@ -1090,7 +1139,29 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                                 {isMe ? "You" : msg.sender_name}
                               </span>
                               <span className="text-[10px] text-white/35 shrink-0 tabular-nums">{formatTime(msg.timestamp)}</span>
+                              <button
+                                onClick={() => { setReplyingTo(msg); chatInputRef.current?.focus(); }}
+                                aria-label={`Reply to ${msg.sender_name}`}
+                                className="ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white/40 transition hover:bg-white/10 hover:text-white/80"
+                              >
+                                Reply
+                              </button>
                             </div>
+
+                            {msg.reply_to && (
+                              /* Tapping the quote jumps to the original when it
+                                 is still on screen; when it is not, the quote
+                                 itself is the answer. */
+                              <button
+                                onClick={() => document.getElementById(`zc-live-msg-${msg.reply_to!.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                                className="mt-1.5 flex w-full items-start gap-2 rounded-lg border-l-2 border-[#cc208f] bg-white/[0.04] px-2.5 py-1.5 text-left"
+                              >
+                                <span className="min-w-0">
+                                  <span className="block text-[10.5px] font-semibold text-[#f28fd0]">{msg.reply_to.sender_name}</span>
+                                  <span className="line-clamp-2 block text-[11px] leading-snug text-white/50">{msg.reply_to.content}</span>
+                                </span>
+                              </button>
+                            )}
                             <div className={`mt-1 rounded-lg rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
                               <div className="break-words text-[13px] leading-relaxed text-white/85">
                                 <LinkifiedText text={msg.content} linkColor="font-semibold text-[#f28fd0] underline underline-offset-2 hover:text-white" />
@@ -1103,13 +1174,59 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   )}
                   <div ref={chatEndRef} />
                 </div>
-                <div className="shrink-0 p-3 border-t border-white/[0.06]">
+                <div className="shrink-0 border-t border-white/[0.06] p-3">
+                  {mentionCandidates.length > 0 && (
+                    <div className="mb-2 overflow-hidden rounded-xl bg-[#1b1620] ring-1 ring-white/10">
+                      {mentionCandidates.map((person) => (
+                        <button
+                          key={person.uid}
+                          onClick={() => applyMention(person.name)}
+                          className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.06]"
+                        >
+                          <span className="grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-[10px] font-semibold text-white/80">
+                            {person.avatar ? <img src={person.avatar} alt="" className="h-full w-full object-cover" /> : person.name[0]?.toUpperCase()}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-[12.5px] text-white/85">{person.name}</span>
+                          {person.isAdmin && <span className="shrink-0 text-[9.5px] font-semibold uppercase tracking-wide text-[#f28fd0]">Host</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {replyingTo && (
+                    <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-[#cc208f] bg-white/[0.05] px-3 py-2">
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[10.5px] font-semibold text-[#f28fd0]">
+                          Replying to {replyingTo.sender_name}
+                        </span>
+                        <span className="line-clamp-1 block text-[11px] text-white/50">{replyingTo.content}</span>
+                      </span>
+                      <button
+                        onClick={() => setReplyingTo(null)}
+                        aria-label="Cancel reply"
+                        className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-white/50 transition hover:bg-white/10 hover:text-white"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-4 py-2.5 focus-within:ring-[#cc208f]/50 transition-all">
                     <input
+                      ref={chatInputRef}
                       value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                      placeholder={isAdmin ? "Message your learners" : "Ask a question"}
+                      onChange={(e) => handleChatInputChange(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") { setMentionQuery(null); setReplyingTo(null); return; }
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          // Enter picks the top name when the picker is open,
+                          // rather than sending "@hal" as literal text.
+                          if (mentionCandidates.length > 0) applyMention(mentionCandidates[0].name);
+                          else sendMessage();
+                        }
+                      }}
+                      placeholder={replyingTo ? `Reply to ${replyingTo.sender_name}` : isAdmin ? "Message your learners" : "Ask a question"}
                       className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none min-w-0"
                     />
                     <button

@@ -445,12 +445,23 @@ function InstitutionHub() {
                     <h1 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[32px]">{profile?.full_name || "Digital Hub"}</h1>
                     <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-white/60">Coordinate tutors, programs, learner participation, and teaching outcomes from one accountable workspace.</p>
                   </div>
-                  <button
-                    onClick={() => { setActiveTab("bootcamps"); setShowCreateBootcamp(true); }}
-                    className="flex h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-[13px] font-semibold text-black hover:bg-white/90"
-                  >
-                    <Plus className="h-4 w-4" /> New bootcamp
-                  </button>
+                  <div className="flex flex-wrap gap-2.5">
+                    {/* The roster and the communities live in the control
+                        panel; this workspace reports on them, that one is
+                        where you act on them. */}
+                    <Link
+                      to="/app/institution/control"
+                      className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/20 px-5 text-[13px] font-semibold text-white transition hover:bg-white/10"
+                    >
+                      <Users className="h-4 w-4" /> Control panel
+                    </Link>
+                    <button
+                      onClick={() => { setActiveTab("bootcamps"); setShowCreateBootcamp(true); }}
+                      className="flex h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-[13px] font-semibold text-black hover:bg-white/90"
+                    >
+                      <Plus className="h-4 w-4" /> New bootcamp
+                    </button>
+                  </div>
                 </div>
               </div>
 
