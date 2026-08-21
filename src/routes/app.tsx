@@ -984,10 +984,15 @@ function AppLayout() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         pmSub = supabase
-          .channel("badge_pms")
+          .channel(`badge_pms_${session.user.id}`)
           .on(
             "postgres_changes",
-            { event: "*", schema: "public", table: "messages" },
+            {
+              event: "*",
+              schema: "public",
+              table: "messages",
+              filter: `receiver_id=eq.${session.user.id}`,
+            },
             async (payload) => {
               const message = payload.new as {
                 receiver_id?: string;
@@ -996,7 +1001,7 @@ function AppLayout() {
               };
               if (
                 message &&
-                (message.receiver_id === session.user.id || message.sender_id === session.user.id)
+                message.receiver_id === session.user.id
               ) {
                 updatePresenceAndBadges();
 

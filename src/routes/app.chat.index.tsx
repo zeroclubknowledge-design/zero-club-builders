@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Search, Edit3, Circle, MoreHorizontal, ChevronLeft, MessageSquare, Users as UsersIcon, ChevronDown, Check, Settings, MessageCircle, User, MessageSquarePlus, BadgeCheck, Headphones, Pin } from "@/components/icons/solar";
 import { getConversations } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -28,10 +28,38 @@ function ChatInboxPage() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ["conversations"],
     queryFn: getConversations,
-    refetchInterval: 5000, 
+    // Realtime below handles normal delivery. This slower fallback only
+    // repairs the list if a phone briefly loses its websocket connection.
+    refetchInterval: 30000,
   });
   const { data: currentUser } = useUser();
   const supportConversation = conversations.find((conversation: any) => conversation.isSupport);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const refreshInbox = () => {
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    };
+
+    const channel = supabase
+      .channel(`inbox-${currentUser.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${currentUser.id}`,
+        },
+        refreshInbox,
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser?.id, queryClient]);
 
   const handleMarkAllAsRead = async () => {
     if (!currentUser) return;
