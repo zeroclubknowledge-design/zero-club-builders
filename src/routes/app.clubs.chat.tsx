@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet } from "@/components/icons/solar";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
@@ -26,11 +26,90 @@ export const Route = createFileRoute("/app/clubs/chat")({
 });
 
 const defaultRooms = [
-  { id: "general", name: "Stream" },
+  { id: "general", name: "Discussion" },
   { id: "assignments", name: "Classwork" },
   { id: "announcements", name: "Announcements" },
   { id: "q-and-a", name: "Q&A" },
 ];
+
+const getClubRooms = (rooms: any) => {
+  const source = Array.isArray(rooms) && rooms.length > 0 ? rooms : defaultRooms;
+  return source.map((room: any) => {
+    const legacyDefault = room?.id === "general" && ["stream", "streaming"].includes(String(room?.name || "").trim().toLowerCase());
+    return legacyDefault ? { ...room, name: "Discussion" } : room;
+  });
+};
+
+/** Keeps draft keystrokes from redrawing the full club and message history. */
+function ClubMessageComposer({
+  placeholder,
+  hasMedia,
+  controls,
+  onSend,
+}: {
+  placeholder: string;
+  hasMedia: boolean;
+  controls: ReactNode;
+  onSend: (text: string) => Promise<boolean>;
+}) {
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const submit = async () => {
+    if ((!draft.trim() && !hasMedia) || sending) return;
+    const text = draft;
+    setDraft("");
+    if (textareaRef.current) textareaRef.current.style.height = "36px";
+    setSending(true);
+    try {
+      const sent = await onSend(text);
+      if (!sent && text.trim()) setDraft((current) => current || text);
+    } catch {
+      if (text.trim()) setDraft((current) => current || text);
+      toast.error("Could not send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-1 items-end gap-1.5 rounded-2xl border border-border bg-card px-3 py-1 transition-colors focus-within:border-primary/50">
+      <textarea
+        ref={textareaRef}
+        value={draft}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          event.target.style.height = "auto";
+          event.target.style.height = `${Math.min(event.target.scrollHeight, 80)}px`;
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+            event.preventDefault();
+            void submit();
+          }
+        }}
+        placeholder={placeholder}
+        className="flex-1 resize-none bg-transparent py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
+        rows={1}
+        style={{ minHeight: "36px", maxHeight: "80px", height: "36px" }}
+      />
+      <div className="flex shrink-0 items-center gap-0.5 pb-1">
+        {controls}
+        <button
+          onClick={() => void submit()}
+          disabled={sending || (!draft.trim() && !hasMedia)}
+          aria-label="Send message"
+          className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
+            draft.trim() || hasMedia ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+          }`}
+        >
+          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
 
@@ -68,7 +147,6 @@ function ClubChat() {
   const { showRules: showRulesParam, clubId } = useSearch({ from: "/app/clubs/chat" });
   const navigate = useNavigate();
   const [activeRoom, setActiveRoom] = useState("general");
-  const [msg, setMsg] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [club, setClub] = useState<any>(null);
@@ -214,6 +292,7 @@ function ClubChat() {
       }
 
       if (targetClub) {
+        targetClub = { ...targetClub, rooms: getClubRooms(targetClub.rooms) };
         setClub(targetClub);
         setEditClub({ 
           name: targetClub.name, 
@@ -225,7 +304,7 @@ function ClubChat() {
           subscription_fee: Number(targetClub.subscription_fee) || 0,
           access_free: Boolean(targetClub.access_free),
         });
-        setEditRooms(targetClub.rooms && targetClub.rooms.length > 0 ? targetClub.rooms : defaultRooms);
+        setEditRooms(targetClub.rooms);
         
         const { data: mems } = await supabase
           .from('club_members')
@@ -239,7 +318,7 @@ function ClubChat() {
 
   useEffect(() => {
     if (!club) return;
-    const fetchedRooms = club.rooms && club.rooms.length > 0 ? club.rooms : defaultRooms;
+    const fetchedRooms = getClubRooms(club.rooms);
     if (!fetchedRooms.find((r: any) => r.id === activeRoom)) {
       setActiveRoom(fetchedRooms[0]?.id || "general");
       return;
@@ -651,7 +730,7 @@ function ClubChat() {
 
   const handleSendMessage = async (overrideText?: string | any, overrideReplyToId?: string | null) => {
     const actualOverride = typeof overrideText === 'string' ? overrideText : undefined;
-    const textToSend = actualOverride || msg;
+    const textToSend = actualOverride ?? "";
     if ((!textToSend.trim() && mediaFiles.length === 0) || !club || !currentUser) return false;
     
     let text = textToSend;
@@ -685,14 +764,8 @@ function ClubChat() {
       toast.error("Only club admins can create assignments.");
       return false;
     }
-    setMsg("");
     setMediaFiles([]);
     setMediaPreviews([]);
-    // Reset auto-growing textarea heights in the DOM
-    const textareas = document.querySelectorAll('textarea');
-    textareas.forEach(t => {
-      t.style.height = 'auto';
-    });
     setReplyingTo(null);
 
     // Optimistic Update
@@ -725,7 +798,6 @@ function ClubChat() {
     if (error) {
       toast.error("Failed to send message");
       setMessages(prev => prev.filter(m => m.id !== tempId));
-      setMsg(text);
       return false;
     } else {
       // Replace optimistic message with real data from server
@@ -2417,66 +2489,43 @@ function ClubChat() {
             )}
           </div>
 
-          <div className="flex-1 flex items-end gap-1.5 rounded-2xl border border-border bg-card px-3 py-1 focus-within:border-primary/50 transition-colors">
-          <textarea 
-            value={msg}
-            onChange={(e) => {
-              setMsg(e.target.value);
-              const target = e.target;
-              target.style.height = 'auto';
-              target.style.height = `${Math.min(target.scrollHeight, 80)}px`;
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            placeholder={activeRoom === 'general' ? "Write a message..." : `Post in ${activeRoom}...`}
-            className="flex-1 resize-none bg-transparent py-2 text-sm outline-none text-foreground placeholder:text-muted-foreground no-scrollbar"
-            rows={1}
-            style={{ minHeight: '36px', maxHeight: '80px', height: '36px' }}
+          <ClubMessageComposer
+            placeholder={activeRoom === "general" ? "Write a message..." : `Post in ${activeRoom}...`}
+            hasMedia={mediaFiles.length > 0}
+            onSend={(text) => handleSendMessage(text)}
+            controls={
+              <>
+                <input
+                  type="file"
+                  ref={mediaInputRef}
+                  onChange={handleChatMediaUpload}
+                  className="hidden"
+                  multiple
+                  accept="image/*"
+                />
+                <input type="file" ref={videoInputRef} onChange={handleChatMediaUpload} className="hidden" multiple accept="video/*" />
+                <input type="file" ref={documentInputRef} onChange={handleChatMediaUpload} className="hidden" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*" />
+                <button
+                  onClick={toggleVoiceRecording}
+                  title={isRecording ? "Stop recording" : "Record voice note"}
+                  className={`relative inline-flex h-8 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? "min-w-12 bg-red-500 px-2 text-white" : "w-8 text-muted-foreground hover:text-foreground"}`}
+                >
+                  {isRecording ? <><Square className="h-3.5 w-3.5 fill-current" /><span className="ml-1 text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-4 w-4" />}
+                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button title="Add attachment" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"><Paperclip className="h-4 w-4" /></button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" side="top" className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl">
+                    <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => documentInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
+                    {isAdmin && activeRoom === "general" && <DropdownMenuItem onSelect={() => setShowGiveaway(true)} className="gap-2.5"><Gift className="h-4 w-4 fill-current" /> Give Away</DropdownMenuItem>}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            }
           />
-          <div className="flex items-center gap-0.5 pb-1 shrink-0">
-            <input 
-              type="file" 
-              ref={mediaInputRef} 
-              onChange={handleChatMediaUpload} 
-              className="hidden" 
-              multiple 
-              accept="image/*"
-            />
-            <input type="file" ref={videoInputRef} onChange={handleChatMediaUpload} className="hidden" multiple accept="video/*" />
-            <input type="file" ref={documentInputRef} onChange={handleChatMediaUpload} className="hidden" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*" />
-            <button
-              onClick={toggleVoiceRecording}
-              title={isRecording ? 'Stop recording' : 'Record voice note'}
-              className={`relative inline-flex h-8 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? 'min-w-12 bg-red-500 px-2 text-white' : 'w-8 text-muted-foreground hover:text-foreground'}`}
-            >
-              {isRecording ? <><Square className="h-3.5 w-3.5 fill-current" /><span className="ml-1 text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')}</span></> : <Mic className="h-4 w-4" />}
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button title="Add attachment" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"><Paperclip className="h-4 w-4" /></button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl">
-                <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => documentInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
-                {isAdmin && activeRoom === 'general' && <DropdownMenuItem onSelect={() => setShowGiveaway(true)} className="gap-2.5"><Gift className="h-4 w-4 fill-current" /> Give Away</DropdownMenuItem>}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <button 
-              onClick={handleSendMessage}
-              disabled={!msg.trim() && mediaFiles.length === 0}
-              className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
-                msg.trim() || mediaFiles.length > 0 ?'bg-primary text-primary-foreground' : 'text-muted-foreground'
-              }`}
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
         </div>
       </div>
       )}
