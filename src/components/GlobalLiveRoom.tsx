@@ -7,7 +7,7 @@ import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
   MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2, Lock,
-  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply,
+  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings,
 } from "@/components/icons/solar";
 
 /** One tap, no search field — the six that actually get used in a class. */
@@ -330,6 +330,21 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [cameraOn, setCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenTrack, setScreenTrack] = useState<any>(null);
+
+  /* ── Settings ──
+     Real device switching, not a list that only looks like one. The browser
+     hides device labels until a permission has been granted, which is why the
+     list is read after joining rather than on mount: before that every camera
+     is called "camera" and choosing between them is guesswork. */
+  const [showSettings, setShowSettings] = useState(false);
+  const [devices, setDevices] = useState<{ cameras: any[]; mics: any[]; speakers: any[] }>({
+    cameras: [], mics: [], speakers: [],
+  });
+  const [selectedCamera, setSelectedCamera] = useState<string>("");
+  const [selectedMic, setSelectedMic] = useState<string>("");
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string>("");
+  const [selfVolume, setSelfVolume] = useState(0);
+  const [mirrorSelf, setMirrorSelf] = useState(true);
   const [theater, setTheater] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const leaveStartedRef = useRef(false);
@@ -472,6 +487,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       );
       // A floor, so room noise does not make the ring flicker between people.
       setActiveSpeaker(loudest && loudest.level > 12 ? String(loudest.uid) : null);
+
+      // Agora reports the local user as uid 0. Levels arrive 0–100; the meter
+      // wants 0–1.
+      const mine = volumes.find((entry) => String(entry.uid) === "0");
+      setSelfVolume(mine ? mine.level / 100 : 0);
     };
     client.on("volume-indicator", onVolume);
     return () => { client.off("volume-indicator", onVolume); };
@@ -786,6 +806,76 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   };
 
+  useEffect(() => {
+    if (!showSettings) return;
+    let cancelled = false;
+
+    const read = async () => {
+      try {
+        const [cameras, mics, speakers] = await Promise.all([
+          AgoraRTC.getCameras().catch(() => []),
+          AgoraRTC.getMicrophones().catch(() => []),
+          AgoraRTC.getPlaybackDevices?.().catch(() => []) ?? Promise.resolve([]),
+        ]);
+        if (cancelled) return;
+        setDevices({ cameras, mics, speakers });
+        // Show what is actually in use, rather than defaulting the pickers to
+        // the first entry and implying a device that is not running.
+        setSelectedCamera((current) => current || (localCameraTrack as any)?.getMediaStreamTrack?.()?.getSettings?.()?.deviceId || cameras[0]?.deviceId || "");
+        setSelectedMic((current) => current || (localMicrophoneTrack as any)?.getMediaStreamTrack?.()?.getSettings?.()?.deviceId || mics[0]?.deviceId || "");
+        setSelectedSpeaker((current) => current || speakers[0]?.deviceId || "");
+      } catch {
+        /* Enumeration is best effort; the panel still shows the toggles. */
+      }
+    };
+
+    read();
+    // A headset plugged in while the panel is open should appear in the list.
+    AgoraRTC.onCameraChanged = read;
+    AgoraRTC.onMicrophoneChanged = read;
+    AgoraRTC.onPlaybackDeviceChanged = read;
+
+    return () => {
+      cancelled = true;
+      AgoraRTC.onCameraChanged = undefined as any;
+      AgoraRTC.onMicrophoneChanged = undefined as any;
+      AgoraRTC.onPlaybackDeviceChanged = undefined as any;
+    };
+  }, [showSettings, localCameraTrack, localMicrophoneTrack]);
+
+  const switchCamera = async (deviceId: string) => {
+    setSelectedCamera(deviceId);
+    try {
+      await (localCameraTrack as any)?.setDevice?.(deviceId);
+    } catch (error) {
+      console.error("Camera switch failed:", error);
+      toast.error("Could not switch to that camera");
+    }
+  };
+
+  const switchMic = async (deviceId: string) => {
+    setSelectedMic(deviceId);
+    try {
+      await (localMicrophoneTrack as any)?.setDevice?.(deviceId);
+    } catch (error) {
+      console.error("Microphone switch failed:", error);
+      toast.error("Could not switch to that microphone");
+    }
+  };
+
+  /* Output routing is a property of the audio elements, so it is applied to
+     the remote tracks rather than to anything of ours. Unsupported on Firefox
+     and on iOS, where the system decides — hence the guard. */
+  const switchSpeaker = async (deviceId: string) => {
+    setSelectedSpeaker(deviceId);
+    try {
+      await Promise.all(audioTracks.map((track: any) => track.setPlaybackDevice?.(deviceId)));
+    } catch (error) {
+      console.error("Speaker switch failed:", error);
+      toast.error("This browser will not let a page choose the speaker");
+    }
+  };
+
   const sendMessage = () => {
     if (!chatInput.trim() || !chatChannelRef.current) return;
     const msg: ChatMessage = {
@@ -969,6 +1059,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const cameraCount = cameraOnUsers.length + (!isAdmin && selfHasCamera ? 1 : 0);
   const audioCount = audioOnlyUsers.length + (!isAdmin && !selfHasCamera ? 1 : 0);
   const totalCount = remoteUsers.length + 1;
+  /* Everyone in the room minus the person teaching. The tab was showing
+     totalCount, so a tutor with one learner read "Learners · 2" while the pill
+     beside it said "Teaching 1 learner" — the same room, two numbers. */
+  const learnerCount = Math.max(0, totalCount - (isAdmin ? 1 : 0) - (adminUids.size > 0 && !isAdmin ? 1 : 0));
 
   const waitingFaces = presenceUsers.filter((p) => !p.isAdmin).slice(0, 3);
   const waitingExtra = Math.max(0, presenceUsers.filter((p) => !p.isAdmin).length - 3);
@@ -1183,6 +1277,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             <span className="font-semibold text-[10.5px] text-white/90">Live now</span>
           </div>
           <button
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+            aria-label="Settings"
+            className="h-9 w-9 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center text-white/80 hover:bg-white/[0.12] transition tap"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+          <button
             onClick={handleShare}
             title="Copy invite link"
             className="h-9 w-9 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center text-white/80 hover:bg-white/[0.12] transition tap"
@@ -1192,7 +1294,123 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         </div>
       </header>
 
-      {/* ═══ STAGE + PANEL ═══ */}
+
+      {/* ═══ SETTINGS ═══ */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[10000] flex items-end justify-center sm:items-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
+
+          <div className="relative flex max-h-[86dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-[#141117] ring-1 ring-white/10 sm:max-w-[460px] sm:rounded-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-5 py-4">
+              <h2 className="text-[16px] font-semibold tracking-tight text-white">Settings</h2>
+              <button
+                onClick={() => setShowSettings(false)}
+                aria-label="Close settings"
+                className="grid h-8 w-8 place-items-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5 no-scrollbar">
+              {/* A preview, because the only way to know you picked the right
+                  camera is to see what it sees. */}
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black ring-1 ring-white/[0.08]">
+                {cameraOn && localCameraTrack ? (
+                  <LocalVideoTrack
+                    track={localCameraTrack}
+                    play={true}
+                    className={`h-full w-full object-cover ${mirrorSelf ? "-scale-x-100" : ""}`}
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-white/40">
+                    <VideoOff className="h-6 w-6" />
+                    <span className="text-[12px]">Camera is off</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Camera</label>
+                <select
+                  value={selectedCamera}
+                  onChange={(event) => switchCamera(event.target.value)}
+                  disabled={devices.cameras.length === 0}
+                  className="w-full rounded-lg bg-white/[0.06] px-3.5 py-3 text-[13.5px] text-white outline-none ring-1 ring-white/10 disabled:opacity-50"
+                >
+                  {devices.cameras.length === 0 && <option>No camera found</option>}
+                  {devices.cameras.map((device: any) => (
+                    <option key={device.deviceId} value={device.deviceId} className="bg-[#141117]">
+                      {device.label || "Camera"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Microphone</label>
+                <select
+                  value={selectedMic}
+                  onChange={(event) => switchMic(event.target.value)}
+                  disabled={devices.mics.length === 0}
+                  className="w-full rounded-lg bg-white/[0.06] px-3.5 py-3 text-[13.5px] text-white outline-none ring-1 ring-white/10 disabled:opacity-50"
+                >
+                  {devices.mics.length === 0 && <option>No microphone found</option>}
+                  {devices.mics.map((device: any) => (
+                    <option key={device.deviceId} value={device.deviceId} className="bg-[#141117]">
+                      {device.label || "Microphone"}
+                    </option>
+                  ))}
+                </select>
+                {/* A live level meter, so a dead microphone is obvious here
+                    rather than three minutes into the lesson. */}
+                <div className="mt-2 flex items-center gap-2">
+                  <Mic className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-emerald-400 transition-[width] duration-100"
+                      style={{ width: `${Math.min(100, Math.round(selfVolume * 100))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {devices.speakers.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Speaker</label>
+                  <select
+                    value={selectedSpeaker}
+                    onChange={(event) => switchSpeaker(event.target.value)}
+                    className="w-full rounded-lg bg-white/[0.06] px-3.5 py-3 text-[13.5px] text-white outline-none ring-1 ring-white/10"
+                  >
+                    {devices.speakers.map((device: any) => (
+                      <option key={device.deviceId} value={device.deviceId} className="bg-[#141117]">
+                        {device.label || "Speaker"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <button
+                onClick={() => setMirrorSelf((value) => !value)}
+                className="flex w-full items-center justify-between rounded-lg bg-white/[0.04] px-4 py-3.5 text-left ring-1 ring-white/[0.06]"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[13.5px] font-semibold text-white">Mirror my video</span>
+                  <span className="mt-0.5 block text-[11px] text-white/45">
+                    Only changes your preview. Learners always see you the right way round.
+                  </span>
+                </span>
+                <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${mirrorSelf ? "bg-[#cc208f]" : "bg-white/15"}`}>
+                  <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${mirrorSelf ? "translate-x-5" : ""}`} />
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+\n      {/* ═══ STAGE + PANEL ═══ */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0 gap-2 px-2.5 md:px-4 pb-2">
         {/* ── STAGE ── */}
         <div className={`relative overflow-hidden rounded-lg bg-black ring-1 ring-white/[0.08] min-h-0 transition-[aspect-ratio] duration-300 ${theater ? "flex-1" : presenting ? "shrink-0 aspect-video md:aspect-auto md:flex-1" : "shrink-0 aspect-[4/3] md:aspect-auto md:flex-1"}`}>
@@ -1267,7 +1485,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               clear of the control bar, and ignores taps so it can never
               swallow a press meant for the video. */}
           {presenting && (
-            <div className="pointer-events-none absolute bottom-[92px] right-3 z-30 sm:bottom-[100px] sm:right-4">
+            <div className="pointer-events-none absolute bottom-3 left-3 z-30 sm:bottom-4 sm:left-4">
               <div className="relative h-20 w-20 overflow-hidden rounded-full bg-[#141117] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9)] ring-2 ring-white/25 sm:h-24 sm:w-24">
                 {selfPresenterVideo ? (
                   <LocalVideoTrack track={localCameraTrack!} play={true} className="h-full w-full object-cover" />
@@ -1291,7 +1509,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <button
             onClick={() => setTheater((t) => !t)}
             title={theater ? "Show panel" : "Expand stage"}
-            className="absolute bottom-2.5 left-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap md:bottom-[84px]"
+            className="absolute bottom-2.5 right-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap md:bottom-[84px]"
           >
             {theater ? <Shrink className="w-4 h-4" /> : <Expand className="w-4 h-4" />}
           </button>
@@ -1424,7 +1642,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 className={`relative flex-1 flex items-center justify-center gap-2 py-3 text-[13px] font-semibold tracking-tight transition-colors ${activeTab === "learners" ? "text-white" : "text-white/45 hover:text-white/70"}`}
               >
                 <Users className="w-3.5 h-3.5" />
-                Learners · <span className="tabular-nums">{totalCount}</span>
+                Learners · <span className="tabular-nums">{learnerCount}</span>
                 {activeTab === "learners" && <span className="absolute bottom-0 inset-x-6 h-[2px] rounded-t-full bg-[#cc208f]" />}
               </button>
             </div>

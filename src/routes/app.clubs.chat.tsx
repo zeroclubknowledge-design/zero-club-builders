@@ -1071,8 +1071,12 @@ function ClubChat() {
           <button
             onClick={() => {
               if (!isAdmin && liveAdminsCount === 0) return;
-              setShowScheduleForm(false);
-              setShowLiveMenu(true);
+              /* Straight into the room. This opened the live *menu*, which put
+                 a screen of choices between the button and the thing it is
+                 named after — and for a learner joining a session already in
+                 progress there was only ever one choice on it. Scheduling
+                 still lives on the Go Live button further down the club. */
+              navigate({ to: "/app/live/$classId", params: { classId: club?.id || clubId || "unknown" } });
             }}
             disabled={!isAdmin && liveAdminsCount === 0}
             title={isAdmin ? "Go live" : liveAdminsCount > 0 ? "Join the live session" : "Nobody is live right now"}
