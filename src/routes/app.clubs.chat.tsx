@@ -1063,14 +1063,32 @@ function ClubChat() {
           </div>
         </div>
         <div className={`flex items-center gap-2 ${!isScrolled ? "pointer-events-auto" : ""}`}>
-          {/* Assessments live with the cohort that sits them, so the way in is
-              here rather than somewhere else in the app. */}
+          {/* Live is the one thing here that is time-sensitive: a session is
+              happening now or it is not. That belongs in the header where it is
+              always visible, rather than two taps inside a menu. Assessments
+              moved the other way — they are a place you go, so they sit with
+              the other sections. */}
           <button
-            onClick={() => navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } })}
-            aria-label="Club quizzes"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95"
+            onClick={() => {
+              if (!isAdmin && liveAdminsCount === 0) return;
+              setShowScheduleForm(false);
+              setShowLiveMenu(true);
+            }}
+            disabled={!isAdmin && liveAdminsCount === 0}
+            title={isAdmin ? "Go live" : liveAdminsCount > 0 ? "Join the live session" : "Nobody is live right now"}
+            aria-label={isAdmin ? "Go live" : liveAdminsCount > 0 ? "Join the live session" : "Nobody is live right now"}
+            className={`relative flex h-9 w-9 items-center justify-center rounded-full border shadow-sm transition active:scale-95 ${
+              liveAdminsCount > 0
+                ? "border-red-500/40 bg-red-500 text-white hover:bg-red-600"
+                : isAdmin
+                  ? "border-foreground/10 bg-foreground text-background hover:opacity-90"
+                  : "border-border bg-card text-muted-foreground"
+            }`}
           >
-            <ClipboardCheck className="h-4 w-4" />
+            <Video className="h-4 w-4" />
+            {liveAdminsCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-red-400 ring-2 ring-background" />
+            )}
           </button>
           <button
             onClick={() => setShowMembers(true)}
@@ -2179,54 +2197,25 @@ function ClubChat() {
                         {activeRoom === r.id && <Check className="w-4 h-4 text-primary" />}
                       </button>
                     ))}
+                    {/* Set apart from the rooms above, because it opens a page
+                        rather than switching the channel you are reading. */}
+                    <button
+                      onClick={() => {
+                        setShowRoomSwitcher(false);
+                        navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } });
+                      }}
+                      className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/40 bg-card p-4 transition hover:bg-accent/40 active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-8 w-8 place-items-center rounded-xl bg-muted text-muted-foreground">
+                          <ClipboardCheck className="h-4 w-4" />
+                        </div>
+                        <span className="text-sm font-bold text-foreground">Quizzes &amp; assessments</span>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </button>
                   </div>
 
-                  {/* Go Live / Join Live actions */}
-                  <div className="mt-8 pt-6 border-t border-border/50">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Live Session</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {isAdmin ? "Start a live broadcast" : (liveAdminsCount > 0 ? "An admin is live now" : "No active broadcast")}
-                        </p>
-                      </div>
-                      
-                      {isAdmin ? (
-                        <button 
-                          onClick={() => {
-                            setShowRoomSwitcher(false);
-                            setShowScheduleForm(false);
-                            setShowLiveMenu(true);
-                          }} 
-                          className="flex items-center gap-1.5 h-9 px-4 rounded-xl transition active:scale-95 shadow-sm border bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20"
-                        >
-                          <Video className="h-4 w-4" />
-                          <span className="text-sm font-bold mt-0.5">Go Live</span>
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => {
-                            if (liveAdminsCount > 0) {
-                              setShowRoomSwitcher(false);
-                              setShowScheduleForm(false);
-                              setShowLiveMenu(true);
-                            }
-                          }} 
-                          disabled={liveAdminsCount === 0}
-                          className={`flex items-center gap-1.5 h-9 px-4 rounded-xl transition active:scale-95 shadow-sm border ${
-                            liveAdminsCount > 0 
-                              ? "bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20 animate-pulse" 
-                              : "bg-accent border-border/50 text-muted-foreground cursor-not-allowed"
-                          }`}
-                        >
-                          <Video className="h-4 w-4" />
-                          <span className="text-sm font-bold mt-0.5">
-                            {liveAdminsCount > 0 ? "Join Live" : "Offline"}
-                          </span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </DrawerContent>
             </Drawer>
