@@ -76,6 +76,9 @@ function Clubs() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedClub, setSelectedClub] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [clubSearch, setClubSearch] = useState("");
+  const [showClubFilters, setShowClubFilters] = useState(false);
+  const [clubScope, setClubScope] = useState<"all" | "discover" | "mine" | "boot">("all");
   const [newClub, setNewClub] = useState({ name: "", description: "", category: "Study Group", price: 0 });
   const [isPaid, setIsPaid] = useState(false);
   const [clubDraftReady, setClubDraftReady] = useState(false);
@@ -482,6 +485,19 @@ function Clubs() {
     ? "Permanent Clubs"
     : `${clubCapacity.permanent_club_limit} allowed on plan`;
 
+  const normalizedClubSearch = clubSearch.trim().toLocaleLowerCase();
+  const matchesClubName = (club: any) =>
+    !normalizedClubSearch || String(club?.name || "").toLocaleLowerCase().includes(normalizedClubSearch);
+  const filteredDiscover = discover.filter((club: any) =>
+    matchesClubName(club) &&
+    (activeCategory === "All" || String(club.category || "").toLocaleLowerCase().includes(activeCategory.toLocaleLowerCase()))
+  );
+  const filteredMyClubs = myClubs.filter(matchesClubName);
+  const filteredBootClubs = bootClubs.filter(matchesClubName);
+  const visibleClubsTab = clubScope === "mine" ? "mine" : clubScope === "boot" ? "boot" : clubsTab;
+  const showDiscoverSection = clubScope === "all" || clubScope === "discover";
+  const showJoinedSections = clubScope === "all" || clubScope === "mine" || clubScope === "boot";
+
   const handleCreateClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!clubCapacity.can_create) {
@@ -627,17 +643,67 @@ function Clubs() {
           <div className="relative flex-1 group">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 group-focus-within:text-foreground transition-colors duration-300" />
             <input 
-              placeholder="Search clubs, builders, bootcamps..." 
+              value={clubSearch}
+              onChange={(event) => setClubSearch(event.target.value)}
+              placeholder="Search clubs by name"
+              aria-label="Search clubs by name"
               className="w-full rounded-lg border border-border/60 bg-card px-5 py-3.5 pl-12 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/50 focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
             />
           </div>
-          <button className="grid h-[50px] w-[50px] shrink-0 place-items-center rounded-lg border border-border/60 bg-card text-muted-foreground transition hover:border-border hover:bg-accent/50 hover:text-foreground active:scale-95">
+          <button
+            type="button"
+            onClick={() => setShowClubFilters((current) => !current)}
+            aria-label="Filter clubs"
+            aria-expanded={showClubFilters}
+            className={`relative grid h-[50px] w-[50px] shrink-0 place-items-center rounded-lg border bg-card transition hover:border-border hover:bg-accent/50 active:scale-95 ${
+              showClubFilters || clubScope !== "all" ? "border-primary/40 text-primary" : "border-border/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
             <SlidersHorizontal className="h-4 w-4" />
+            {clubScope !== "all" && <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />}
           </button>
         </div>
 
+        {showClubFilters && (
+          <div className="mb-5 rounded-lg border border-border/60 bg-card p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Show clubs from</p>
+              {(clubScope !== "all" || clubSearch) && (
+                <button
+                  type="button"
+                  onClick={() => { setClubScope("all"); setClubSearch(""); setActiveCategory("All"); }}
+                  className="text-[11px] font-semibold text-primary hover:underline"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                { id: "all", label: "All clubs" },
+                { id: "discover", label: "Discover" },
+                { id: "mine", label: "My Clubs" },
+                { id: "boot", label: "Boot Clubs" },
+              ].map((option) => (
+                <button
+                  type="button"
+                  key={option.id}
+                  onClick={() => setClubScope(option.id as "all" | "discover" | "mine" | "boot")}
+                  className={`rounded-full border px-3 py-2 text-[11px] font-semibold transition ${
+                    clubScope === option.id
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Category Tabs */}
-        <div className="flex gap-6 overflow-x-auto no-scrollbar border-b border-border/20 px-1 mb-6">
+        {showDiscoverSection && <div className="flex gap-6 overflow-x-auto no-scrollbar border-b border-border/20 px-1 mb-6">
           {["All", "Tech", "AI", "Design", "Startup", "Writing", "Marketing", "Campus"].map((cat) => {
             const active = activeCategory === cat;
             return (
@@ -657,10 +723,10 @@ function Clubs() {
               </button>
             );
           })}
-        </div>
+        </div>}
 
         {/* Discover / Featured Clubs */}
-        <div className="mb-8">
+        {showDiscoverSection && <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
               Discover
@@ -674,10 +740,7 @@ function Clubs() {
           </div>
           
           <div className={showAllDiscover ? "grid grid-cols-1 gap-3 pb-4 min-[430px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-4" : "no-scrollbar -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 xl:grid-cols-4"}>
-            {discover
-              .filter((d: any) => activeCategory === "All" || (d.category && d.category.includes(activeCategory)))
-              .length > 0 ? discover
-              .filter((d: any) => activeCategory === "All" || (d.category && d.category.includes(activeCategory)))
+            {filteredDiscover.length > 0 ? filteredDiscover
               .sort((a: any, b: any) => a.name === "Zero K Bootcamp" ? -1 : b.name === "Zero K Bootcamp" ? 1 : 0)
               .slice(0, showAllDiscover ? 50 : 6)
               .map((d: any, i: number) => {
@@ -766,45 +829,45 @@ function Clubs() {
               );
             }) : (
               <div className="w-full rounded-lg border border-dashed border-border/50 bg-card/50 py-8 text-center text-xs font-medium text-muted-foreground/60">
-                No clubs to discover right now.
+                {clubSearch ? `No club name matches “${clubSearch.trim()}”.` : "No clubs to discover right now."}
               </div>
             )}
           </div>
-        </div>
+        </div>}
 
         {/* My Clubs and Boot Clubs are two tabs over one list, rather than two
             stacked sections. Side by side they fit a phone without pushing the
             bootcamp clubs far below the fold, and the single list underneath
             keeps every card at the same full width. */}
-        <div className="mb-4 min-w-0">
+        {showJoinedSections && <div className="mb-4 min-w-0">
           <div className="mb-4 flex items-center gap-5 border-b border-border/30">
             <button
               onClick={() => setClubsTab("mine")}
               className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
-                clubsTab === "mine" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                visibleClubsTab === "mine" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               My Clubs
               <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-foreground/10 px-1.5 text-[10px] font-bold text-muted-foreground">
-                {myClubs.length}
+                {filteredMyClubs.length}
               </span>
-              {clubsTab === "mine" && (
+              {visibleClubsTab === "mine" && (
                 <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
               )}
             </button>
 
-            {bootClubs.length > 0 && (
+            {(bootClubs.length > 0 || clubScope === "boot") && (
               <button
                 onClick={() => setClubsTab("boot")}
                 className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
-                  clubsTab === "boot" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  visibleClubsTab === "boot" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Boot Clubs
                 <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">
-                  {bootClubs.length}
+                  {filteredBootClubs.length}
                 </span>
-                {clubsTab === "boot" && (
+                {visibleClubsTab === "boot" && (
                   <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
                 )}
               </button>
@@ -812,11 +875,11 @@ function Clubs() {
           </div>
 
           {/* My Clubs */}
-          <section className={clubsTab === "mine" ? "" : "hidden"}>
+          <section className={visibleClubsTab === "mine" ? "" : "hidden"}>
           {/* min-w-0 on the grid stops a long club name from widening the
               track and pushing every card past the edge of a phone screen. */}
           <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
-            {myClubs.length > 0 ? myClubs.map((c: any) => (
+            {filteredMyClubs.length > 0 ? filteredMyClubs.map((c: any) => (
               <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block min-w-0 transition-all duration-300 active:scale-[0.98]">
                 <article className="flex w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/30">
                   <div className="relative shrink-0">
@@ -854,14 +917,18 @@ function Clubs() {
               </Link>
             )) : (
               <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center md:col-span-2">
-                <p className="text-xs text-muted-foreground/60 font-medium mb-4">You haven't joined any clubs yet.</p>
-                <button onClick={handleCreateClick} className="rounded-full bg-[#171218] px-5 py-2.5 text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 active:scale-95 hover:opacity-90">
-                  Create a Club
-                </button>
+                <p className="text-xs text-muted-foreground/60 font-medium mb-4">
+                  {clubSearch ? `No joined club name matches “${clubSearch.trim()}”.` : "You haven't joined any clubs yet."}
+                </p>
+                {!clubSearch && (
+                  <button onClick={handleCreateClick} className="rounded-full bg-[#171218] px-5 py-2.5 text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 active:scale-95 hover:opacity-90">
+                    Create a Club
+                  </button>
+                )}
               </div>
             )}
             
-            {myClubs.length > 0 && (
+            {filteredMyClubs.length > 0 && (
               <button className="group flex w-full min-w-0 items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card md:col-span-2">
                 <div className="flex items-center gap-2.5 text-xs font-bold text-foreground">
                   <div className="grid h-7 w-7 place-items-center rounded-xl bg-accent/30">
@@ -877,10 +944,10 @@ function Clubs() {
 
           {/* Bootcamp Clubs: temporary clubs attached to bootcamps. Hidden
               entirely when there are none. */}
-          {bootClubs.length > 0 && (
-            <section className={clubsTab === "boot" ? "" : "hidden"}>
+          {(bootClubs.length > 0 || clubScope === "boot") && (
+            <section className={visibleClubsTab === "boot" ? "" : "hidden"}>
               <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
-                {bootClubs.map((c: any) => {
+                {filteredBootClubs.length > 0 ? filteredBootClubs.map((c: any) => {
                   const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
                   const ended = endsAt ? endsAt < new Date() : false;
 
@@ -920,11 +987,15 @@ function Clubs() {
                       <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/30" />
                     </button>
                   );
-                })}
+                }) : (
+                  <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center text-xs font-medium text-muted-foreground/60 md:col-span-2">
+                    {clubSearch ? `No Boot Club name matches “${clubSearch.trim()}”.` : "No Boot Clubs are available yet."}
+                  </div>
+                )}
               </div>
             </section>
           )}
-        </div>
+        </div>}
       </div>
 
       {/* Create Club Drawer */}
