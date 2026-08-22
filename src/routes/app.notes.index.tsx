@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { deleteNoteAction } from '@/api';
+import { zeroNoteUrl } from '@/lib/share';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/app/notes/')({
@@ -74,9 +75,7 @@ function NotesIndexPage() {
 
   const handleShare = async (e: React.MouseEvent, note: any) => {
     e.preventDefault();
-    const url = note.slug
-      ? `${window.location.origin}/notes/${note.slug}`
-      : `${window.location.origin}/app/notes/${note.id}`;
+    const url = zeroNoteUrl(note);
     if (navigator.share) {
       try {
         await navigator.share({

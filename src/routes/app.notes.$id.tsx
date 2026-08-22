@@ -9,6 +9,7 @@ import { LinkifiedText } from '@/components/LinkifiedText';
 import { CommentDrawer } from '@/components/CommentDrawer';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { deleteNoteAction } from '@/api';
+import { zeroNotePreviewImageUrl, zeroNoteUrl } from '@/lib/share';
 
 export function buildNoteHead(note: any) {
   if (!note) return {};
@@ -21,7 +22,9 @@ export function buildNoteHead(note: any) {
     description = stripped.substring(0, 160) + (stripped.length > 160 ? '...' : '');
   }
 
-  const image = note.cover_url || "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4215c30d-ff7b-4508-a899-c922d00e5475/id-preview-fa4e9537--ee5d9983-4748-4793-a658-4041e1470658.lovable.app-1778475055046.png";
+  const image = note.cover_url && note.slug
+    ? zeroNotePreviewImageUrl(note.slug)
+    : note.cover_url || "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4215c30d-ff7b-4508-a899-c922d00e5475/id-preview-fa4e9537--ee5d9983-4748-4793-a658-4041e1470658.lovable.app-1778475055046.png";
   const canonicalUrl = note.slug ? `https://www.zeroclubs.xyz/notes/${note.slug}` : null;
 
   return {
@@ -31,6 +34,11 @@ export function buildNoteHead(note: any) {
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:image", content: image },
+      { property: "og:image:secure_url", content: image },
+      { property: "og:image:type", content: "image/jpeg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: `${title} cover` },
       { property: "og:type", content: "article" },
       ...(canonicalUrl ? [{ property: "og:url", content: canonicalUrl }] : []),
       { name: "twitter:card", content: note.cover_url ? "summary_large_image" : "summary" },
@@ -186,9 +194,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
   };
 
   const handleShare = async () => {
-    const url = note?.slug
-      ? `${window.location.origin}/notes/${note.slug}`
-      : `${window.location.origin}/app/notes/${note?.id || id}`;
+    const url = zeroNoteUrl({ id: note?.id || id, slug: note?.slug });
     if (navigator.share) {
       try {
         await navigator.share({

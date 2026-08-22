@@ -4,6 +4,7 @@ import { toast } from "sonner";
 // cache link previews very aggressively, so a versioned URL makes them fetch
 // the corrected card instead of keeping an older image-less result.
 export const PRODUCT_PREVIEW_VERSION = "3";
+export const NOTE_PREVIEW_VERSION = "1";
 
 /**
  * Sharing helpers, kept in one place so the store page and the seller's own
@@ -37,7 +38,7 @@ export function storeProductUrl(productId: string): string {
  * 1200x630 social-card canvas, converts it to JPEG, and caches the result.
  * The original URL remains untouched everywhere inside the store.
  */
-export function socialProductImageUrl(coverUrl: string): string {
+export function socialPreviewImageUrl(coverUrl: string): string {
   const source = coverUrl.trim();
   if (!source || !/^https:\/\//i.test(source)) return source;
   if (source.startsWith("https://images.weserv.nl/")) return source;
@@ -51,6 +52,23 @@ export function socialProductImageUrl(coverUrl: string): string {
     q: "80",
   });
   return `https://images.weserv.nl/?${params.toString()}`;
+}
+
+// Kept for existing store callers; notes use the generic name above because
+// the same crawler-friendly image treatment applies to every shared cover.
+export const socialProductImageUrl = socialPreviewImageUrl;
+
+/** A fresh, cache-busted public link for sharing a ZeroNote. */
+export function zeroNoteUrl(note: { id: string; slug?: string | null }): string {
+  const path = note.slug
+    ? `/notes/${encodeURIComponent(note.slug)}`
+    : `/app/notes/${encodeURIComponent(note.id)}`;
+  return `${appOrigin()}${path}?preview=${NOTE_PREVIEW_VERSION}`;
+}
+
+/** Same-origin image endpoint used by link-preview crawlers. */
+export function zeroNotePreviewImageUrl(slug: string): string {
+  return `${appOrigin()}/notes/${encodeURIComponent(slug)}/preview-v${NOTE_PREVIEW_VERSION}`;
 }
 
 // WhatsApp, Telegram and X cache a preview against the exact URL and will

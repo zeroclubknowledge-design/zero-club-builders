@@ -56,6 +56,7 @@ import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
+import { Route as NotesSlugPreviewV1RouteImport } from './routes/notes.$slug.preview-v1'
 import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
 import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
 import { Route as AppWalletRequestRouteImport } from './routes/app.wallet.request'
@@ -333,6 +334,11 @@ const ProductIdPreviewV3Route = ProductIdPreviewV3RouteImport.update({
   path: '/preview-v3',
   getParentRoute: () => ProductIdRoute,
 } as any)
+const NotesSlugPreviewV1Route = NotesSlugPreviewV1RouteImport.update({
+  id: '/preview-v1',
+  path: '/preview-v1',
+  getParentRoute: () => NotesSlugRoute,
+} as any)
 const AppWalletWithdrawRoute = AppWalletWithdrawRouteImport.update({
   id: '/wallet/withdraw',
   path: '/wallet/withdraw',
@@ -569,7 +575,7 @@ export interface FileRoutesByFullPath {
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
   '/gift/$code': typeof GiftCodeRoute
-  '/notes/$slug': typeof NotesSlugRoute
+  '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -606,6 +612,7 @@ export interface FileRoutesByFullPath {
   '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/notes/$slug/preview-v1': typeof NotesSlugPreviewV1Route
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin/': typeof AppAdminIndexRoute
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
@@ -652,7 +659,7 @@ export interface FileRoutesByTo {
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
   '/gift/$code': typeof GiftCodeRoute
-  '/notes/$slug': typeof NotesSlugRoute
+  '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -689,6 +696,7 @@ export interface FileRoutesByTo {
   '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/notes/$slug/preview-v1': typeof NotesSlugPreviewV1Route
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin': typeof AppAdminIndexRoute
   '/app/bootcamps': typeof AppBootcampsIndexRoute
@@ -742,7 +750,7 @@ export interface FileRoutesById {
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
   '/gift/$code': typeof GiftCodeRoute
-  '/notes/$slug': typeof NotesSlugRoute
+  '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -779,6 +787,7 @@ export interface FileRoutesById {
   '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/notes/$slug/preview-v1': typeof NotesSlugPreviewV1Route
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin/': typeof AppAdminIndexRoute
   '/app/bootcamps/': typeof AppBootcampsIndexRoute
@@ -870,6 +879,7 @@ export interface FileRouteTypes {
     | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/notes/$slug/preview-v1'
     | '/product/$id/preview-v3'
     | '/app/admin/'
     | '/app/bootcamps/'
@@ -953,6 +963,7 @@ export interface FileRouteTypes {
     | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/notes/$slug/preview-v1'
     | '/product/$id/preview-v3'
     | '/app/admin'
     | '/app/bootcamps'
@@ -1042,6 +1053,7 @@ export interface FileRouteTypes {
     | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/notes/$slug/preview-v1'
     | '/product/$id/preview-v3'
     | '/app/admin/'
     | '/app/bootcamps/'
@@ -1076,7 +1088,7 @@ export interface RootRouteChildren {
   FormSlugRoute: typeof FormSlugRoute
   FundSlugRoute: typeof FundSlugRoute
   GiftCodeRoute: typeof GiftCodeRoute
-  NotesSlugRoute: typeof NotesSlugRoute
+  NotesSlugRoute: typeof NotesSlugRouteWithChildren
   ProductIdRoute: typeof ProductIdRouteWithChildren
   ApiClubImageIdRoute: typeof ApiClubImageIdRoute
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
@@ -1413,6 +1425,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/product/$id/preview-v3'
       preLoaderRoute: typeof ProductIdPreviewV3RouteImport
       parentRoute: typeof ProductIdRoute
+    }
+    '/notes/$slug/preview-v1': {
+      id: '/notes/$slug/preview-v1'
+      path: '/preview-v1'
+      fullPath: '/notes/$slug/preview-v1'
+      preLoaderRoute: typeof NotesSlugPreviewV1RouteImport
+      parentRoute: typeof NotesSlugRoute
     }
     '/app/wallet/withdraw': {
       id: '/app/wallet/withdraw'
@@ -1901,6 +1920,18 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface NotesSlugRouteChildren {
+  NotesSlugPreviewV1Route: typeof NotesSlugPreviewV1Route
+}
+
+const NotesSlugRouteChildren: NotesSlugRouteChildren = {
+  NotesSlugPreviewV1Route: NotesSlugPreviewV1Route,
+}
+
+const NotesSlugRouteWithChildren = NotesSlugRoute._addFileChildren(
+  NotesSlugRouteChildren,
+)
+
 interface ProductIdRouteChildren {
   ProductIdPreviewV3Route: typeof ProductIdPreviewV3Route
 }
@@ -1926,7 +1957,7 @@ const rootRouteChildren: RootRouteChildren = {
   FormSlugRoute: FormSlugRoute,
   FundSlugRoute: FundSlugRoute,
   GiftCodeRoute: GiftCodeRoute,
-  NotesSlugRoute: NotesSlugRoute,
+  NotesSlugRoute: NotesSlugRouteWithChildren,
   ProductIdRoute: ProductIdRouteWithChildren,
   ApiClubImageIdRoute: ApiClubImageIdRoute,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
