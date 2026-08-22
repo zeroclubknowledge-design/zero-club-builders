@@ -13,6 +13,27 @@ import {
 /** One tap, no search field — the six that actually get used in a class. */
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];
 
+/** A raised hand kept local to the live room so the control has no icon-bundle cost. */
+function QuestionHandIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M8 13V6.25a1.5 1.5 0 0 1 3 0V11" />
+      <path d="M11 10.5V4.75a1.5 1.5 0 0 1 3 0V11" />
+      <path d="M14 10.5V6.25a1.5 1.5 0 0 1 3 0V12" />
+      <path d="M17 11V8.75a1.5 1.5 0 0 1 3 0V14c0 4.4-2.65 7-7 7h-1.25c-2.2 0-3.85-.85-5-2.55l-3.1-4.55a1.7 1.7 0 0 1 2.7-2.05L8 14" />
+    </svg>
+  );
+}
+
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 
 import AgoraRTC, {
@@ -300,7 +321,12 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const liveSession = useLiveSession();
   const { isMinimized } = liveSession;
   const [isAdmin, setIsAdmin] = useState(false);
+  const isAdminRef = useRef(false);
   const [clubName, setClubName] = useState<string>("");
+
+  useEffect(() => {
+    isAdminRef.current = isAdmin;
+  }, [isAdmin]);
 
   useEffect(() => {
     async function checkAdmin() {
@@ -529,6 +555,84 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   };
 
   const [showReactionTray, setShowReactionTray] = useState(false);
+  const [questionRaised, setQuestionRaised] = useState(false);
+  const [incomingQuestion, setIncomingQuestion] = useState<{ id: string; name: string } | null>(null);
+  const lastQuestionSentAtRef = useRef(0);
+  const lastQuestionBySenderRef = useRef<Map<string, number>>(new Map());
+  const questionRaisedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const incomingQuestionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const speakQuestionAlert = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const alert = new SpeechSynthesisUtterance("Question");
+    alert.rate = 0.92;
+    alert.pitch = 1.05;
+    alert.volume = 1;
+    window.speechSynthesis.speak(alert);
+  };
+
+  const notifyTutorOfQuestion = (payload: any) => {
+    if (!isAdminRef.current) return;
+
+    const name = String(payload?.name || "A learner");
+    const senderKey = String(payload?.senderId || name);
+    const now = Date.now();
+    const previousAlert = lastQuestionBySenderRef.current.get(senderKey) || 0;
+    if (now - previousAlert < 5000) return;
+
+    lastQuestionBySenderRef.current.set(senderKey, now);
+    const id = String(payload?.id || `${senderKey}-${now}`);
+    setIncomingQuestion({ id, name });
+    speakQuestionAlert();
+    toast.info(`${name} has a question`, { duration: 6000 });
+
+    if (incomingQuestionTimerRef.current) clearTimeout(incomingQuestionTimerRef.current);
+    incomingQuestionTimerRef.current = setTimeout(() => setIncomingQuestion(null), 6000);
+  };
+
+  const sendQuestionAlert = async () => {
+    const now = Date.now();
+    if (now - lastQuestionSentAtRef.current < 5000) {
+      toast.info("Your question alert has already been sent.");
+      return;
+    }
+    if (!chatChannelRef.current) {
+      toast.error("The live room is still connecting. Please try again.");
+      return;
+    }
+
+    lastQuestionSentAtRef.current = now;
+    setQuestionRaised(true);
+    if (questionRaisedTimerRef.current) clearTimeout(questionRaisedTimerRef.current);
+    questionRaisedTimerRef.current = setTimeout(() => setQuestionRaised(false), 3000);
+
+    const status = await chatChannelRef.current.send({
+      type: "broadcast",
+      event: "question",
+      payload: {
+        id: `${profile?.id || client?.uid || "learner"}-${now}`,
+        senderId: profile?.id || client?.uid,
+        name: profile?.full_name || profile?.username || "A learner",
+        at: now,
+      },
+    });
+
+    if (status !== "ok") {
+      lastQuestionSentAtRef.current = 0;
+      setQuestionRaised(false);
+      toast.error("The question alert did not send. Please try again.");
+      return;
+    }
+
+    toast.success("Question sent to your tutor.");
+  };
+
+  useEffect(() => {
+    return () => {
+      if (questionRaisedTimerRef.current) clearTimeout(questionRaisedTimerRef.current);
+      if (incomingQuestionTimerRef.current) clearTimeout(incomingQuestionTimerRef.current);
+    };
+  }, []);
 
   const sendReaction = (emoji: string) => {
     pushReaction(emoji, "You");
@@ -551,6 +655,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     });
     ch.on("broadcast", { event: "reaction" }, ({ payload }: any) => {
       if (payload?.emoji) pushReaction(payload.emoji, payload.name);
+    });
+    ch.on("broadcast", { event: "question" }, ({ payload }: any) => {
+      notifyTutorOfQuestion(payload);
     });
     ch.on("broadcast", { event: "presenting" }, ({ payload }: any) => {
       if (payload?.presenting && payload?.uid != null) {
@@ -1294,6 +1401,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         </div>
       </header>
 
+      {isAdmin && incomingQuestion && (
+        <div
+          key={incomingQuestion.id}
+          role="status"
+          aria-live="assertive"
+          className="pointer-events-none absolute left-1/2 top-[calc(4.25rem+env(safe-area-inset-top))] z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2.5 rounded-full bg-[#cc208f] px-4 py-2.5 text-white shadow-[0_12px_40px_rgba(204,32,143,0.38)] ring-1 ring-white/25 animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          <QuestionHandIcon className="h-5 w-5 shrink-0" />
+          <span className="truncate text-[13px] font-semibold">{incomingQuestion.name} has a question</span>
+        </div>
+      )}
+
 
       {/* ═══ SETTINGS ═══ */}
       {showSettings && (
@@ -1545,6 +1664,17 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             )}
 
             <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
+              <button
+                onClick={sendQuestionAlert}
+                disabled={isLeaving}
+                title="Ask a question"
+                aria-label="Ask a question"
+                aria-pressed={questionRaised}
+                className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_22px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
+              >
+                <QuestionHandIcon className="h-5 w-5" />
+              </button>
+
               <button
                 onClick={() => setMicOn((p) => !p)}
                 disabled={isLeaving}
@@ -1929,14 +2059,25 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           </>
         )}
 
-        <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-2 rounded-full bg-white/[0.06] px-3 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[430px] items-center justify-center gap-1 rounded-full bg-white/[0.06] px-1.5 py-2 ring-1 ring-white/10 shadow-lift backdrop-blur-xl min-[360px]:gap-1.5 min-[360px]:px-2">
+          <button
+            onClick={sendQuestionAlert}
+            disabled={isLeaving}
+            title="Ask a question"
+            aria-label="Ask a question"
+            aria-pressed={questionRaised}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_20px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white"}`}
+          >
+            <QuestionHandIcon className="h-[18px] w-[18px] min-[360px]:h-5 min-[360px]:w-5" />
+          </button>
+
           <button
             onClick={() => setMicOn((previous) => !previous)}
             disabled={isLeaving}
             title={micOn ? "Mute microphone" : "Unmute microphone"}
             aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
             aria-pressed={!micOn}
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${micOn ? "bg-white/[0.1] text-white" : "bg-red-500 text-white"}`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${micOn ? "bg-white/[0.1] text-white" : "bg-red-500 text-white"}`}
           >
             {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
           </button>
@@ -1947,7 +2088,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             title={cameraOn ? "Turn off camera" : "Turn on camera"}
             aria-label={cameraOn ? "Turn off camera" : "Turn on camera"}
             aria-pressed={!cameraOn}
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${cameraOn ? "bg-white/[0.1] text-white" : "bg-red-500 text-white"}`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${cameraOn ? "bg-white/[0.1] text-white" : "bg-red-500 text-white"}`}
           >
             {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
           </button>
@@ -1958,7 +2099,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             title="Send a reaction"
             aria-label="Send a reaction"
             aria-expanded={showReactionTray}
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${showReactionTray ? "bg-white text-black" : "bg-white/[0.1] text-white"}`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${showReactionTray ? "bg-white text-black" : "bg-white/[0.1] text-white"}`}
           >
             <Smile className="h-5 w-5" />
           </button>
@@ -1970,7 +2111,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               title={isScreenSharing ? "Stop presenting" : "Present your screen"}
               aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
               aria-pressed={isScreenSharing}
-              className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white"}`}
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white"}`}
             >
               {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
             </button>
@@ -1980,7 +2121,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               disabled={isLeaving}
               title="Only the tutor can present"
               aria-label="Only the tutor can present"
-              className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50"
+              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11"
             >
               <MonitorUp className="h-5 w-5" />
               <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
@@ -1996,7 +2137,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             disabled={isLeaving}
             title="Leave the live room"
             aria-label="Leave the live room"
-            className="grid h-12 w-[68px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 disabled:cursor-wait disabled:opacity-70"
+            className="grid h-10 w-[54px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 disabled:cursor-wait disabled:opacity-70 min-[360px]:h-11 min-[360px]:w-[60px]"
           >
             {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneOff className="h-5 w-5" />}
           </button>
