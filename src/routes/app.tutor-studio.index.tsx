@@ -21,6 +21,7 @@ import { uploadFile } from "@/lib/storage";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
@@ -36,7 +37,7 @@ function TutorStudioPage() {
   const queryClient = useQueryClient();
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const initialView = Route.useSearch().view === "zero-forms" ? "zero-forms" : "dashboard";
-  const [view, setView] = useState<"dashboard" | "editor" | "zero-forms">(initialView);
+  const [view, setView] = useState<"dashboard" | "editor" | "zero-forms" | "operations">(initialView);
   const [activeTab, setActiveTab] = useState<"details" | "curriculum" | "learners" | "club">("details");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
@@ -609,6 +610,34 @@ function TutorStudioPage() {
         </header>
         <main className="mx-auto w-full max-w-[1080px] px-4 py-6 sm:px-6">
           <ZeroFormWorkspace ownerLabel="Tutor Studio" />
+        </main>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // TEACHING OPERATIONS VIEW
+  // ═══════════════════════════════════════════════════════════════
+  if (view === "operations") {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="sticky top-0 z-40 border-b hairline bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+          <div className="mx-auto flex max-w-[1240px] items-center gap-3 px-4 py-3.5 md:px-7">
+            <button onClick={() => setView("dashboard")} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground hover:bg-muted">
+              <ChevronLeft className="h-[18px] w-[18px]" />
+            </button>
+            <div>
+              <p className="text-[10px] font-medium uppercase text-muted-foreground">Tutor Studio</p>
+              <h1 className="text-[19px] font-semibold tracking-tight">Teaching operations</h1>
+            </div>
+          </div>
+        </header>
+        <main className="mx-auto w-full max-w-[1240px] px-4 py-6 md:px-7 md:py-8">
+          {profile?.id ? (
+            <LearningOperationsPanel mode="tutor" profileId={profile.id} bootcamps={bootcamps} />
+          ) : (
+            <div className="flex min-h-[280px] items-center justify-center"><div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]"><div className="h-full w-1/3 animate-progress rounded-full bg-primary" /></div></div>
+          )}
         </main>
       </div>
     );
@@ -1564,6 +1593,23 @@ function TutorStudioPage() {
             <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
               Collect learners and early-bird payments before your bootcamp starts.
             </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+        </button>
+
+        <button
+          onClick={() => setView("operations")}
+          className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/35 hover:shadow-soft sm:p-5"
+        >
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary sm:h-12 sm:w-12">
+            <UsersRound className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-[15px] font-semibold tracking-tight">Teaching operations</h3>
+              <span className="rounded-full bg-primary/[0.09] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-primary">Admin panel</span>
+            </div>
+            <p className="mt-1 text-[12px] leading-5 text-muted-foreground">Manage cohorts, learner progress, schedules, announcements, and assessments.</p>
           </div>
           <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
         </button>

@@ -26,6 +26,7 @@ import { Route as ClubIdRouteImport } from './routes/club.$id'
 import { Route as AppZerohubRouteImport } from './routes/app.zerohub'
 import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
 import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
+import { Route as AppTasksRouteImport } from './routes/app.tasks'
 import { Route as AppStoreRouteImport } from './routes/app.store'
 import { Route as AppShipRouteImport } from './routes/app.ship'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
@@ -84,7 +85,6 @@ import { Route as AppGamesSoloRouteImport } from './routes/app.games.solo'
 import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
 import { Route as AppGamesIdRouteImport } from './routes/app.games.$id'
 import { Route as AppClubsChatRouteImport } from './routes/app.clubs.chat'
-import { Route as AppTasksRouteImport } from './routes/app.tasks'
 import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
 import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
@@ -182,6 +182,11 @@ const AppZeroAiRoute = AppZeroAiRouteImport.update({
 const AppTutorStudioRoute = AppTutorStudioRouteImport.update({
   id: '/tutor-studio',
   path: '/tutor-studio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTasksRoute = AppTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
   getParentRoute: () => AppRoute,
 } as any)
 const AppStoreRoute = AppStoreRouteImport.update({
@@ -477,11 +482,6 @@ const AppClubsChatRoute = AppClubsChatRouteImport.update({
   path: '/clubs/chat',
   getParentRoute: () => AppRoute,
 } as any)
-const AppTasksRoute = AppTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppChatSettingsRoute = AppChatSettingsRouteImport.update({
   id: '/chat/settings',
   path: '/chat/settings',
@@ -573,6 +573,7 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
+  '/app/tasks': typeof AppTasksRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
@@ -592,7 +593,6 @@ export interface FileRoutesByFullPath {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
-  '/app/tasks': typeof AppTasksRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/solo': typeof AppGamesSoloRoute
@@ -659,6 +659,7 @@ export interface FileRoutesByTo {
   '/app/quests': typeof AppQuestsRoute
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
+  '/app/tasks': typeof AppTasksRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/club/$id': typeof ClubIdRoute
@@ -677,7 +678,6 @@ export interface FileRoutesByTo {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
-  '/app/tasks': typeof AppTasksRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/solo': typeof AppGamesSoloRoute
@@ -750,6 +750,7 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
+  '/app/tasks': typeof AppTasksRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
@@ -769,7 +770,6 @@ export interface FileRoutesById {
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
-  '/app/tasks': typeof AppTasksRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/solo': typeof AppGamesSoloRoute
@@ -843,6 +843,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/ship'
     | '/app/store'
+    | '/app/tasks'
     | '/app/tutor-studio'
     | '/app/zero-ai'
     | '/app/zerohub'
@@ -862,7 +863,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/settings'
     | '/app/clubs/chat'
-    | '/app/tasks'
     | '/app/games/$id'
     | '/app/games/create'
     | '/app/games/solo'
@@ -929,6 +929,7 @@ export interface FileRouteTypes {
     | '/app/quests'
     | '/app/ship'
     | '/app/store'
+    | '/app/tasks'
     | '/app/zero-ai'
     | '/app/zerohub'
     | '/club/$id'
@@ -947,7 +948,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/settings'
     | '/app/clubs/chat'
-    | '/app/tasks'
     | '/app/games/$id'
     | '/app/games/create'
     | '/app/games/solo'
@@ -1019,6 +1019,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/ship'
     | '/app/store'
+    | '/app/tasks'
     | '/app/tutor-studio'
     | '/app/zero-ai'
     | '/app/zerohub'
@@ -1038,7 +1039,6 @@ export interface FileRouteTypes {
     | '/app/chat/new'
     | '/app/chat/settings'
     | '/app/clubs/chat'
-    | '/app/tasks'
     | '/app/games/$id'
     | '/app/games/create'
     | '/app/games/solo'
@@ -1226,6 +1226,13 @@ declare module '@tanstack/react-router' {
       path: '/tutor-studio'
       fullPath: '/app/tutor-studio'
       preLoaderRoute: typeof AppTutorStudioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tasks': {
+      id: '/app/tasks'
+      path: '/tasks'
+      fullPath: '/app/tasks'
+      preLoaderRoute: typeof AppTasksRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/store': {
@@ -1634,13 +1641,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClubsChatRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/tasks': {
-      id: '/app/tasks'
-      path: '/tasks'
-      fullPath: '/app/tasks'
-      preLoaderRoute: typeof AppTasksRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/chat/settings': {
       id: '/app/chat/settings'
       path: '/chat/settings'
@@ -1844,6 +1844,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppShipRoute: typeof AppShipRoute
   AppStoreRoute: typeof AppStoreRoute
+  AppTasksRoute: typeof AppTasksRoute
   AppTutorStudioRoute: typeof AppTutorStudioRouteWithChildren
   AppZeroAiRoute: typeof AppZeroAiRoute
   AppZerohubRoute: typeof AppZerohubRoute
@@ -1853,7 +1854,6 @@ interface AppRouteChildren {
   AppChatNewRoute: typeof AppChatNewRoute
   AppChatSettingsRoute: typeof AppChatSettingsRoute
   AppClubsChatRoute: typeof AppClubsChatRoute
-  AppTasksRoute: typeof AppTasksRoute
   AppGamesIdRoute: typeof AppGamesIdRoute
   AppGamesCreateRoute: typeof AppGamesCreateRoute
   AppGamesSoloRoute: typeof AppGamesSoloRoute
@@ -1900,6 +1900,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppShipRoute: AppShipRoute,
   AppStoreRoute: AppStoreRoute,
+  AppTasksRoute: AppTasksRoute,
   AppTutorStudioRoute: AppTutorStudioRouteWithChildren,
   AppZeroAiRoute: AppZeroAiRoute,
   AppZerohubRoute: AppZerohubRoute,
@@ -1909,7 +1910,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppChatNewRoute: AppChatNewRoute,
   AppChatSettingsRoute: AppChatSettingsRoute,
   AppClubsChatRoute: AppClubsChatRoute,
-  AppTasksRoute: AppTasksRoute,
   AppGamesIdRoute: AppGamesIdRoute,
   AppGamesCreateRoute: AppGamesCreateRoute,
   AppGamesSoloRoute: AppGamesSoloRoute,

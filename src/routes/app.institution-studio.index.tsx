@@ -7,6 +7,7 @@ import { uploadFile } from "@/lib/storage";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
 import {
   Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2,
   BarChart3, Settings, Search, ChevronRight, Loader2,
@@ -48,7 +49,7 @@ function InstitutionHub() {
   const queryClient = useQueryClient();
   const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "zero-forms" | "analytics" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "operations" | "zero-forms" | "analytics" | "settings">("overview");
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -391,6 +392,7 @@ function InstitutionHub() {
     { key: "overview", label: "Overview", Icon: Activity },
     { key: "tutors", label: "Tutors", Icon: Users },
     { key: "bootcamps", label: "Bootcamps", Icon: LayoutGrid },
+    { key: "operations", label: "Operations", Icon: Calendar },
     { key: "analytics", label: "Analytics", Icon: BarChart3 },
     { key: "settings", label: "Settings", Icon: Settings },
   ] as const;
@@ -413,12 +415,12 @@ function InstitutionHub() {
 
       {/* ═══ MOBILE TAB BAR ═══ */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden hairline">
-        <div className="flex items-center justify-around">
+        <div className="flex items-center justify-start gap-1 overflow-x-auto no-scrollbar">
           {sidebarItems.map(({ key, label, Icon }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition-colors ${
+              className={`flex shrink-0 flex-col items-center gap-0.5 py-2.5 px-3 transition-colors ${
                 activeTab === key ? "text-primary" : "text-muted-foreground"
               }`}
             >
@@ -474,7 +476,7 @@ function InstitutionHub() {
               </div>
 
               {/* Quick Actions */}
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <button
                   onClick={() => setActiveTab("tutors")}
                   className="group flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/25 tap"
@@ -499,6 +501,20 @@ function InstitutionHub() {
                   <div className="text-left">
                     <p className="text-[14px] font-semibold tracking-tight">View bootcamps</p>
                     <p className="text-[11.5px] text-muted-foreground mt-0.5">Create and assign tutors</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
+                </button>
+
+                <button
+                  onClick={() => setActiveTab("operations")}
+                  className="group flex items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/25 tap"
+                >
+                  <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[14px] font-semibold tracking-tight">Learning operations</p>
+                    <p className="text-[11.5px] text-muted-foreground mt-0.5">Cohorts, learners and schedules</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -686,6 +702,17 @@ function InstitutionHub() {
           )}
 
           {/* ────────────────── BOOTCAMPS TAB ────────────────── */}
+          {activeTab === "operations" && profile?.id && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <LearningOperationsPanel
+                mode="institution"
+                profileId={profile.id}
+                bootcamps={allBootcamps}
+                tutors={tutors}
+              />
+            </div>
+          )}
+
           {activeTab === "zero-forms" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <ZeroFormWorkspace ownerLabel="Digital Hub" />

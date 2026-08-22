@@ -28,6 +28,7 @@ import {
   LogOut,
   ShieldCheck,
   ClipboardList,
+  Calendar,
   Lock,
   X,
 } from "@/components/icons/solar";
@@ -88,7 +89,7 @@ const tabs = [
  * the sidebar on mobile so the same link never appears in two places at once.
  */
 const MENU_ITEMS = [
-  { to: "/app/tasks", label: "Tasks", note: "What you owe yourself", Icon: IconBookmark },
+  { to: "/app/tasks", label: "Tasks", note: "Earn XP from Zero Club quests", Icon: IconRocket },
   { to: "/app/wallet", label: "Wallet", note: "Balance, top-ups, payouts", Icon: IconWallet },
   { to: "/app/quests", label: "Opportunities", note: "Gigs, briefs and open calls", Icon: IconRocket },
   { to: "/app/store", label: "Zero Store", note: "Buy from builders", Icon: IconStore },
@@ -132,6 +133,7 @@ const INSTITUTION_SIDEBAR_TABS = [
   { key: "overview", label: "Overview", Icon: Activity },
   { key: "tutors", label: "Tutors", Icon: Users },
   { key: "bootcamps", label: "Bootcamps", Icon: LayoutGrid },
+  { key: "operations", label: "Operations", Icon: Calendar },
   { key: "zero-forms", label: "Zero Forms", Icon: ClipboardList },
   { key: "analytics", label: "Analytics", Icon: BarChart3 },
   { key: "settings", label: "Settings", Icon: Settings },
