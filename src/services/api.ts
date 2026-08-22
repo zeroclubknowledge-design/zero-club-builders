@@ -395,9 +395,9 @@ export const enrollUserAction = createServerFn({ method: 'POST' }).inputValidato
 export const getBootcampLearners = async (bootcampId: string) => {
   const { data, error } = await supabase
     .from('enrollments')
-    .select('created_at, profiles(*)')
+    .select('enrolled_at, profiles(*)')
     .eq('bootcamp_id', bootcampId)
-    .order('created_at', { ascending: false });
+    .order('enrolled_at', { ascending: false });
   
   if (error) {
     console.error("Error fetching learners:", error);

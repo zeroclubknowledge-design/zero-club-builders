@@ -121,9 +121,9 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
     queryFn: async () => {
       const { data, error } = await supabase
         .from("enrollments")
-        .select("profile_id, created_at, profiles(id, username, full_name, avatar_url)")
+        .select("profile_id, enrolled_at, profiles(id, username, full_name, avatar_url)")
         .eq("bootcamp_id", selectedCohort.bootcamp_id)
-        .order("created_at", { ascending: false });
+        .order("enrolled_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },

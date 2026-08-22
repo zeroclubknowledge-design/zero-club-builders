@@ -244,7 +244,7 @@ where not exists (
 -- Existing learners belong to the first cohort so the new dashboard is useful
 -- immediately instead of showing an empty roster after deployment.
 insert into public.learning_cohort_members (cohort_id, profile_id, joined_at)
-select cohort.id, enrollment.profile_id, coalesce(enrollment.created_at, now())
+select cohort.id, enrollment.profile_id, coalesce(enrollment.enrolled_at, now())
 from public.enrollments enrollment
 join lateral (
   select item.id
