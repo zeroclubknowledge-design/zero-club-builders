@@ -17,7 +17,7 @@ import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 
 /**
- * Tasks — the quests Zero Club sets, and the XP for finishing them.
+ * Tasks — the quests Zero Club sets, and the ZP for finishing them.
  *
  * The whole mechanism already existed in the database: admins write quests in
  * the admin dashboard, `getQuests` works out how far each person has got, and
@@ -73,7 +73,7 @@ function TasksPage() {
     setClaiming(quest.id);
     try {
       const result = await claimQuestRewardAction({ data: quest.id });
-      toast.success(`+${result.reward || quest.reward_xp} XP`, { description: quest.title });
+      toast.success(`+${result.reward || quest.reward_xp} ZP`, { description: quest.title });
       queryClient.invalidateQueries({ queryKey: ["xp-quests"] });
       queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
     } catch (error: any) {
@@ -109,7 +109,7 @@ function TasksPage() {
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-[14.5px] font-semibold leading-snug tracking-tight">{quest.title}</h3>
               <span className="shrink-0 rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-foreground">
-                +{quest.reward_xp} XP
+                +{quest.reward_xp} ZP
               </span>
             </div>
             <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{quest.description}</p>
@@ -136,7 +136,7 @@ function TasksPage() {
                 disabled={claiming === quest.id}
                 className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-foreground text-[13px] font-semibold text-background transition active:scale-[0.98] disabled:opacity-60"
               >
-                {claiming === quest.id ? <Loader2 className="h-4 w-4 animate-spin" /> : `Claim ${quest.reward_xp} XP`}
+                {claiming === quest.id ? <Loader2 className="h-4 w-4 animate-spin" /> : `Claim ${quest.reward_xp} ZP`}
               </button>
             )}
           </div>
@@ -169,13 +169,16 @@ function TasksPage() {
           <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
 
           <div className="relative">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">Your XP</p>
+            {/* ZP, not XP. XP is the record of what someone has done and is
+                deliberately not spendable; ZP is the balance quests pay into,
+                which is why it is the number worth showing here. */}
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">Your ZP</p>
             <h2 className="mt-2 text-[34px] font-semibold leading-none tracking-tight tabular-nums">
-              {Number(profile?.xp || 0).toLocaleString()}
+              {Number(profile?.zp || 0).toLocaleString()}
             </h2>
             <p className="mt-3 text-[12.5px] leading-relaxed text-white/55">
               {claimable > 0
-                ? `${claimable} XP waiting to be claimed.`
+                ? `${claimable} ZP waiting to be claimed.`
                 : active.length > 0
                   ? "Finish a task below to earn more."
                   : "Nothing outstanding right now."}

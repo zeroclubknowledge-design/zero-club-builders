@@ -473,7 +473,7 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
     const target = Number(form.criteriaCount);
     if (form.title.trim().length < 3) { toast.error("Give the Quest a clear title"); return; }
     if (form.description.trim().length < 10) { toast.error("Add a useful Quest description"); return; }
-    if (!Number.isInteger(reward) || reward < 1 || reward > 10_000) { toast.error("XP reward must be between 1 and 10,000"); return; }
+    if (!Number.isInteger(reward) || reward < 1 || reward > 10_000) { toast.error("ZP reward must be between 1 and 10,000"); return; }
     if (!Number.isInteger(target) || target < 1 || target > 10_000) { toast.error("Target must be between 1 and 10,000"); return; }
 
     const args = {
@@ -495,7 +495,7 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
 
   return (
     <div>
-      <SectionHeading eyebrow="Experience operations" title="Quests" detail="Create and manage the verified activities that award XP across Zero Club." />
+      <SectionHeading eyebrow="Rewards operations" title="Quests" detail="Create and manage the verified activities that award XP across Zero Club." />
 
       <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
         <section className="h-fit rounded-lg border border-border bg-card p-5 xl:sticky xl:top-[77px]">
@@ -514,7 +514,7 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
             <div><p className={label}>Completion requirement</p><select value={form.criteriaType} onChange={(event) => set("criteriaType", event.target.value)} className={`${field} mt-1.5`}>{QUEST_REQUIREMENTS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
             <div className="grid grid-cols-2 gap-3">
               <div><p className={label}>Target</p><input type="number" min="1" max="10000" value={form.criteriaCount} onChange={(event) => set("criteriaCount", event.target.value)} className={`${field} mt-1.5`} /></div>
-              <div><p className={label}>XP reward</p><input type="number" min="1" max="10000" value={form.rewardXp} onChange={(event) => set("rewardXp", event.target.value)} className={`${field} mt-1.5`} /></div>
+              <div><p className={label}>ZP reward</p><input type="number" min="1" max="10000" value={form.rewardXp} onChange={(event) => set("rewardXp", event.target.value)} className={`${field} mt-1.5`} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><p className={label}>Icon</p><select value={form.iconName} onChange={(event) => set("iconName", event.target.value)} className={`${field} mt-1.5`}>{QUEST_ICONS.map((icon) => <option key={icon}>{icon}</option>)}</select></div>
