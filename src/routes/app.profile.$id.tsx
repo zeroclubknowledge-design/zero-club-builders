@@ -14,7 +14,7 @@ import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { getFirstName } from "@/lib/utils";
+import { getFirstName, displayName } from "@/lib/utils";
 import { IconMessages } from "@/components/icons/nav";
 import { useFollow } from "@/hooks/useFollow";
 import { ProfileExperience } from "@/components/ProfileExperience";
@@ -84,7 +84,7 @@ export const Route = createFileRoute("/app/profile/$id")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:image", content: image },
-        { property: "og:image:alt", content: `${profile?.full_name || profile?.username || "Builder"} on Zero Club` },
+        { property: "og:image:alt", content: `${displayName(profile)} on Zero Club` },
         { property: "og:type", content: "profile" },
         // summary_large_image when there is a real photo to show, so it is not
         // reduced to a thumbnail in the preview card.
@@ -312,7 +312,7 @@ function ProfileDetail() {
       if (error) throw error;
       const subscribed = Boolean((data as any)?.subscribed);
       setPostAlertsOn(subscribed);
-      toast.success(subscribed ? `You will be told when ${displayName} posts` : "Post notifications off");
+      toast.success(subscribed ? `You will be told when ${shownName} posts` : "Post notifications off");
     } catch (error: any) {
       setPostAlertsOn(!optimistic);
       toast.error(error?.message || "Could not change that");
@@ -444,7 +444,7 @@ function ProfileDetail() {
   const canMessageProfile = Boolean(currentUser?.id && profile?.id && !isOwnProfile);
   const initials = (profile?.full_name || profile?.username || 'U').substring(0, 1).toUpperCase();
   const tier = (profile?.tier || "Basic").charAt(0).toUpperCase() + (profile?.tier || "Basic").slice(1);
-  const displayName = profile?.full_name || profile?.account_name || profile?.username || "Builder";
+  const shownName = displayName(profile);
   const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
 
   return (
@@ -483,7 +483,7 @@ function ProfileDetail() {
                   scrolled ?"opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}>
                   <h1 className={`font-display max-w-[12rem] truncate text-sm font-semibold leading-tight ${profile?.banner_url ? 'text-white' : 'text-foreground'}`}>
-                    {displayName}
+                    {shownName}
                   </h1>
                   <p className={`text-[10px] ${profile?.banner_url ? 'text-white/70' : 'text-muted-foreground'}`}>
                     {posts.length} {posts.length === 1 ? "Post" : "Posts"}
@@ -625,7 +625,7 @@ function ProfileDetail() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
                   <h2 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
-                    {displayName}
+                    {shownName}
                   </h2>
                   {profile?.tier === 'Premium' && <BadgeCheck className="h-[18px] w-[18px] fill-primary text-background shrink-0" />}
                   {profile?.tier === 'Premium+' && <BadgeCheck className="h-[18px] w-[18px] fill-[#ffcf00] text-black shrink-0" />}

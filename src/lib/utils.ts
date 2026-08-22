@@ -61,12 +61,47 @@ export function formatPercent(value: unknown): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
+/**
+ * What to call somebody when the app is not sure who they are.
+ *
+ * "Builder" was written in a dozen places as the last resort, which meant that
+ * a name the app had simply not loaded yet came out looking like a real one —
+ * whole rooms of people apparently called Builder. A placeholder that reads
+ * like a name is worse than an obvious one: nobody can tell the difference
+ * between "we don't know" and "that is their name".
+ *
+ * The chain below tries every field a name could actually live in, then the
+ * handle, and only then admits it does not know. Whitespace-only values count
+ * as missing — a full_name of " " used to win over a perfectly good username.
+ */
+const firstFilled = (...values: unknown[]): string => {
+  for (const value of values) {
+    const text = typeof value === "string" ? value.trim() : "";
+    if (text) return text;
+  }
+  return "";
+};
+
+export function displayName(profile: any, fallback = "Zero Club member"): string {
+  if (!profile) return fallback;
+  return (
+    firstFilled(profile.full_name, profile.account_name, profile.name, profile.username) || fallback
+  );
+}
+
+/** The @handle, when there is one. Never invented. */
+export function profileHandle(profile: any): string {
+  const username = firstFilled(profile?.username);
+  return username ? `@${username}` : "";
+}
+
 export function getFirstName(profile: any): string {
-  if (!profile) return "User";
-  if (profile.full_name) {
-    const names = profile.full_name.trim().split(/\s+/);
+  if (!profile) return "there";
+  const full = firstFilled(profile.full_name, profile.account_name, profile.name);
+  if (full) {
+    const names = full.split(/\s+/);
     if (names.length > 1) return `${names[0]}...`;
     return names[0];
   }
-  return profile.username || "User";
+  return firstFilled(profile.username) || "there";
 }

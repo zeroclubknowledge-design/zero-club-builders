@@ -697,32 +697,94 @@ export const sendMessageAction = async ({ receiverId, content, reply_to_id }: { 
 };
 
 // Fetch messages for a conversation
-export const getMessages = async (otherUserId: string) => {
+/**
+ * The recent end of a conversation, not all of it.
+ *
+ * This used to fetch every message two people had ever exchanged, oldest
+ * first, before the chat could render anything. A long-running conversation
+ * therefore got slower to open the more it was used — the exact opposite of
+ * what should happen, and the reason chats felt like they hung on open.
+ *
+ * Now it asks for the newest slice and flips it, because what people look at
+ * when a chat opens is the bottom of it. Older messages are still there; they
+ * are fetched when somebody actually scrolls back for them.
+ */
+export const MESSAGE_PAGE_SIZE = 60;
+
+export const getMessages = async (otherUserId: string, limit = MESSAGE_PAGE_SIZE, before?: string) => {
   const { data: { session } } = await getCachedSession();
   const user = session?.user;
   if (!user) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('messages')
     .select('*, profiles:sender_id(username, avatar_url, full_name)')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
     .not('content', 'like', 'CLUB_REQUEST:%')
     .not('content', 'eq', 'DISMISSED_CLUB_REQUEST')
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  // Paging by timestamp rather than offset: new messages arriving mid-scroll
+  // shift every offset by one and make a page repeat itself.
+  if (before) query = query.lt('created_at', before);
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching messages:", error);
     return [];
   }
-  
-  return (data || []).filter(m => !m.content?.startsWith('CLUB_REQUEST:') && m.content !== 'DISMISSED_CLUB_REQUEST');
+
+  return (data || [])
+    .filter(m => !m.content?.startsWith('CLUB_REQUEST:') && m.content !== 'DISMISSED_CLUB_REQUEST')
+    .reverse();
 };
 
 // Fetch all conversations for current user
+const presenceStatus = (updatedAt: string | null | undefined) => {
+  const lastSeen = updatedAt ? new Date(updatedAt).getTime() : 0;
+  const diffMins = (Date.now() - lastSeen) / (1000 * 60);
+  if (diffMins < 5) return 'online';
+  if (diffMins < 15) return 'away';
+  return 'offline';
+};
+
 export const getConversations = async () => {
   const { data: { session } } = await getCachedSession();
   const user = session?.user;
   if (!user) return [];
+
+  /*
+   * One row per conversation, decided in the database.
+   *
+   * The fallback below still works, so an app running against a database that
+   * has not had the migration applied yet keeps functioning — just slowly. It
+   * is not dead code; it is the older path, kept until every environment has
+   * the function.
+   */
+  const viaRpc = await supabase.rpc('conversation_list', { p_limit: 60 });
+
+  if (!viaRpc.error && Array.isArray(viaRpc.data)) {
+    const rows = viaRpc.data as any[];
+    const conversations = rows.map((row) => ({
+      id: row.other_id,
+      user: {
+        id: row.other_id,
+        username: row.username,
+        full_name: row.full_name,
+        avatar_url: row.avatar_url,
+        updated_at: row.other_updated_at,
+      },
+      lastMessage: row.last_message,
+      lastSenderId: row.last_sender_id,
+      time: new Date(row.last_created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      unread: Number(row.unread_count) > 0,
+      status: presenceStatus(row.other_updated_at),
+    }));
+
+    return withSupportConversation(conversations, user.id);
+  }
 
   const { data, error } = await supabase
     .from('messages')
@@ -777,16 +839,18 @@ export const getConversations = async () => {
     }
   });
 
-  const conversations = Array.from(conversationsMap.values());
+  return withSupportConversation(Array.from(conversationsMap.values()), user.id);
+};
 
-  // The protected is_admin flag is the source of truth for the official
-  // support identity. This makes support available before a member has ever
-  // sent a message, without creating millions of placeholder message rows.
+// The protected is_admin flag is the source of truth for the official support
+// identity. This makes support available before a member has ever sent a
+// message, without creating millions of placeholder message rows.
+const withSupportConversation = async (conversations: any[], userId: string) => {
   const { data: supportProfile } = await supabase
     .from("profiles")
     .select("id, username, full_name, avatar_url, updated_at, is_admin")
     .eq("is_admin", true)
-    .neq("id", user.id)
+    .neq("id", userId)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();

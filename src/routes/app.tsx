@@ -63,7 +63,7 @@ import { getCachedSession } from "@/lib/auth";
 import { NOIR_THEME, getNoirAccess, startNoirTrial } from "@/lib/noirTheme";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
-import { getFirstName } from "@/lib/utils";
+import { getFirstName, displayName } from "@/lib/utils";
 import { directMessagePreview } from "@/lib/directMessage";
 import { IncomingNotificationCard } from "@/components/IncomingNotificationCard";
 
@@ -221,7 +221,7 @@ function SidebarContent({
               className="truncate font-display text-[15px] font-semibold tracking-tight group-hover:text-primary transition-colors"
               style={{ display: profile?.username ? "block" : "none" }}
             >
-              {profile?.full_name || profile?.username || "Builder"}
+              {displayName(profile)}
             </h2>
             <div className="mt-0.5 flex min-w-0 items-center gap-2">
               <p className="truncate text-[12px] text-muted-foreground">
@@ -272,7 +272,7 @@ function SidebarContent({
                     </div>
                     <div className="flex flex-col">
                       <span className="font-bold text-sm">
-                        {profile?.full_name || profile?.username || "Zero Builder"}
+                        {displayName(profile)}
                       </span>
                       <span className="text-xs text-muted-foreground">{getFirstName(profile)}</span>
                     </div>
@@ -306,7 +306,7 @@ function SidebarContent({
                       </div>
                       <div className="flex flex-col">
                         <span className="font-bold text-sm">
-                          {acc.full_name || acc.username || "Zero Builder"}
+                          {displayName(acc)}
                         </span>
                         <span className="text-xs text-muted-foreground">{getFirstName(acc)}</span>
                       </div>
@@ -885,110 +885,137 @@ function AppLayout() {
 
   useEffect(() => {
     let unreadBadgeCount = 0;
+    let cancelled = false;
+
+    /*
+     * The badge poll used to be the most expensive thing the app did.
+     *
+     * Every thirty seconds, on every screen, it made six requests and three
+     * writes: touch the profile row, rewrite two sets of already-handled club
+     * requests, then count messages, clubs, club messages and notifications
+     * one at a time. None of it is what the person is waiting for, but all of
+     * it competes with what they are — which is why the app felt heavy while
+     * doing apparently nothing.
+     *
+     * Now it is a single call, it stops while the app is in the background,
+     * and the self-heal below runs once rather than twice a minute.
+     */
+    const healOldClubRequests = async (userId: string) => {
+      // Once per session. These rows do not change on their own, so repeating
+      // the repair every cycle could only ever find nothing.
+      const healKey = `zc-healed-club-requests:${userId}`;
+      try {
+        if (sessionStorage.getItem(healKey)) return;
+        sessionStorage.setItem(healKey, "1");
+      } catch {
+        // Private mode. Healing twice is harmless; failing here is not.
+      }
+
+      try {
+        await supabase
+          .from("messages")
+          .update({ is_read: true })
+          .eq("receiver_id", userId)
+          .eq("is_read", false)
+          .or("content.like.CLUB_REQUEST:%accepted,content.like.CLUB_REQUEST:%declined");
+      } catch (e) {
+        console.error("Database self-heal error:", e);
+      }
+    };
+
+    const countTheSlowWay = async (userId: string) => {
+      const [pm, notif] = await Promise.all([
+        supabase
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .eq("receiver_id", userId)
+          .eq("is_read", false)
+          .not("content", "like", "CLUB_REQUEST:%"),
+        supabase
+          .from("notifications")
+          .select("*", { count: "exact", head: true })
+          .eq("recipient_id", userId)
+          .eq("is_read", false),
+      ]);
+
+      void supabase.from("profiles").update({ updated_at: new Date().toISOString() }).eq("id", userId);
+
+      return {
+        messages: pm.count || 0,
+        notifications: notif.count || 0,
+        club_messages: 0,
+      };
+    };
 
     const updatePresenceAndBadges = async () => {
+      // Nothing to show a badge to while the app is not on screen, and a
+      // request made here is one the next screen has to queue behind.
+      if (typeof document !== "undefined" && document.hidden) return;
+
       const {
         data: { session },
       } = await getCachedSession();
-      if (session) {
-        // 1. Update presence
-        await supabase
-          .from("profiles")
-          .update({ updated_at: new Date().toISOString() })
-          .eq("id", session.user.id);
+      if (!session || cancelled) return;
 
-        // Self-heal: Mark any already accepted/declined club requests as read in the DB
-        try {
-          await supabase
-            .from("messages")
-            .update({ is_read: true })
-            .eq("receiver_id", session.user.id)
-            .eq("is_read", false)
-            .like("content", "CLUB_REQUEST:%accepted");
+      void healOldClubRequests(session.user.id);
 
-          await supabase
-            .from("messages")
-            .update({ is_read: true })
-            .eq("receiver_id", session.user.id)
-            .eq("is_read", false)
-            .like("content", "CLUB_REQUEST:%declined");
-        } catch (e) {
-          console.error("Database self-heal error:", e);
-        }
+      let summary: { messages: number; notifications: number; club_messages: number };
 
-        // 2. Get unread private messages
-        const { count: pmCount } = await supabase
-          .from("messages")
-          .select("*", { count: "exact", head: true })
-          .eq("receiver_id", session.user.id)
-          .eq("is_read", false)
-          .not("content", "like", "CLUB_REQUEST:%");
+      const { data, error } = await supabase.rpc("unread_summary");
+      if (!error && data) {
+        const row = data as any;
+        summary = {
+          messages: Number(row.messages) || 0,
+          notifications: Number(row.notifications) || 0,
+          club_messages: Number(row.club_messages) || 0,
+        };
+      } else {
+        // Older database, no function yet. Slower, but still correct.
+        summary = await countTheSlowWay(session.user.id);
+      }
 
-        let totalUnread = pmCount || 0;
+      if (cancelled) return;
 
-        // 3. Get unread club messages
-        try {
-          // Get joined clubs
-          const { data: joinedClubs } = await supabase
-            .from("club_members")
-            .select("club_id")
-            .eq("profile_id", session.user.id);
+      setUnreadMessagesCount(summary.messages);
+      setUnreadNotificationsCount(summary.notifications);
 
-          if (joinedClubs && joinedClubs.length > 0) {
-            const clubIds = joinedClubs.map((c) => c.club_id);
-            // Get messages in last 24h
-            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const { data: recentClubMsgs } = await supabase
-              .from("club_messages")
-              .select("club_id, created_at, profile_id")
-              .in("club_id", clubIds)
-              .gte("created_at", yesterday);
+      const totalUnread = summary.messages + summary.notifications + summary.club_messages;
 
-            if (recentClubMsgs) {
-              const unreadClubCount = recentClubMsgs.filter((msg) => {
-                if (msg.profile_id === session.user.id) return false;
-                const lastReadStr =
-                  typeof window !== "undefined"
-                    ? localStorage.getItem(`last_club_read_${msg.club_id}`)
-                    : null;
-                const lastRead = lastReadStr ? new Date(lastReadStr).getTime() : 0;
-                return new Date(msg.created_at).getTime() > lastRead;
-              }).length;
-              totalUnread += unreadClubCount;
-            }
-          }
-        } catch (e) {
-          console.error("Error fetching club unread", e);
-        }
-
-        setUnreadMessagesCount(pmCount || 0);
-
-        // 4. Get unread notifications
-        try {
-          const { count: notifCount } = await supabase
-            .from("notifications")
-            .select("*", { count: "exact", head: true })
-            .eq("recipient_id", session.user.id)
-            .eq("is_read", false);
-          setUnreadNotificationsCount(notifCount || 0);
-          totalUnread += notifCount || 0;
-        } catch (e) {
-          console.error("Error fetching notifications unread", e);
-        }
-
-        // 5. Update App Badge
-        if (typeof navigator !== "undefined" && "setAppBadge" in navigator) {
-          if (totalUnread > 0) {
-            (navigator as any).setAppBadge(totalUnread).catch(console.error);
-          } else {
-            (navigator as any).clearAppBadge().catch(console.error);
-          }
+      if (typeof navigator !== "undefined" && "setAppBadge" in navigator) {
+        if (totalUnread > 0) {
+          (navigator as any).setAppBadge(totalUnread).catch(console.error);
+        } else {
+          (navigator as any).clearAppBadge().catch(console.error);
         }
       }
     };
 
+    /*
+     * Realtime can fire faster than the badge is worth recalculating — the
+     * club listener below hears every club message on the platform, not only
+     * the ones in this person's clubs. Coalescing a burst into one refresh
+     * keeps a busy evening from turning into a request per message.
+     */
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const refreshBadgesSoon = () => {
+      if (refreshTimer) return;
+      refreshTimer = setTimeout(() => {
+        refreshTimer = null;
+        void updatePresenceAndBadges();
+      }, 1500);
+    };
+
     updatePresenceAndBadges();
-    const interval = setInterval(updatePresenceAndBadges, 30000); // Check every 30 seconds
+    const interval = setInterval(updatePresenceAndBadges, 45000);
+
+    // Coming back to the app should feel current straight away, rather than
+    // waiting out whatever is left of the cycle.
+    const onVisible = () => {
+      if (typeof document !== "undefined" && !document.hidden) void updatePresenceAndBadges();
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisible);
+    }
 
     // Subscribe to realtime messages to instantly trigger badge update
     let pmSub: any, clubSub: any;
@@ -1014,7 +1041,7 @@ function AppLayout() {
                 message &&
                 message.receiver_id === session.user.id
               ) {
-                updatePresenceAndBadges();
+                refreshBadgesSoon();
 
                 // Trigger a high-fidelity toast notification for new incoming unseen DMs
                 if (
@@ -1109,7 +1136,7 @@ function AppLayout() {
             "postgres_changes",
             { event: "INSERT", schema: "public", table: "club_messages" },
             (payload) => {
-              if (payload.new.profile_id !== session.user.id) updatePresenceAndBadges();
+              if (payload.new.profile_id !== session.user.id) refreshBadgesSoon();
             },
           )
           .subscribe();
@@ -1117,7 +1144,12 @@ function AppLayout() {
     });
 
     return () => {
+      cancelled = true;
       clearInterval(interval);
+      if (refreshTimer) clearTimeout(refreshTimer);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisible);
+      }
       if (pmSub) supabase.removeChannel(pmSub);
       if (clubSub) supabase.removeChannel(clubSub);
     };

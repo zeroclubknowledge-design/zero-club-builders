@@ -76,6 +76,10 @@ function Clubs() {
   const [showCreate, setShowCreate] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedClub, setSelectedClub] = useState<any>(null);
+
+  /* Private clubs have always been by request. Public ones can now ask for the
+     same, without having to hide themselves to get it. */
+  const joinNeedsApproval = Boolean(selectedClub?.is_private || selectedClub?.requires_approval);
   const [activeCategory, setActiveCategory] = useState("All");
   const [clubSearch, setClubSearch] = useState("");
   const [showClubFilters, setShowClubFilters] = useState(false);
@@ -351,51 +355,51 @@ function Clubs() {
     setJoiningClubId(club.id);
 
     try {
-      if (club.is_private) {
-        const { error } = await supabase
-          .from('messages')
-          .insert([{
-            sender_id: profile.id,
-            receiver_id: club.creator_id,
-            content: `CLUB_REQUEST:${club.id}:${club.name}:pending`
-          }]);
+      /*
+       * Through the database, not around it.
+       *
+       * This used to insert straight into club_members, which meant a club's
+       * subscription fee was a number on a form and nothing else — anyone
+       * could join a paid club for free, and a hand-written request could
+       * bypass it entirely. join_club charges the wallet and creates the
+       * membership in one transaction, so there is no moment where somebody
+       * is inside without having paid.
+       *
+       * The request path goes through it too. Whether a club wants approval is
+       * the club's own setting, and the client asking "is this private?" was a
+       * second copy of that rule that could disagree with the first — a public
+       * club that had turned approval on was letting people walk in.
+       */
+      const { data, error } = await supabase.rpc('join_club', { p_club_id: club.id });
+      if (error) throw error;
 
-        if (error) throw error;
-        toast.success("Request sent to club admin!");
+      const result = data as any;
+
+      if (result?.status === 'requested') {
+        toast.success("Request sent to the club admin", {
+          description: "You will hear back as soon as they decide.",
+        });
         window.location.reload();
-      } else {
-        /*
-         * Through the database, not around it.
-         *
-         * This used to insert straight into club_members, which meant a club's
-         * subscription fee was a number on a form and nothing else — anyone
-         * could join a paid club for free, and a hand-written request could
-         * bypass it entirely. join_club charges the wallet and creates the
-         * membership in one transaction, so there is no moment where somebody
-         * is inside without having paid.
-         */
-        const { data, error } = await supabase.rpc('join_club', { p_club_id: club.id });
-        if (error) throw error;
-
-        const result = data as any;
-        if (result?.status === 'insufficient_funds') {
-          toast.error(`${format(Number(result.fee) || 0)} is needed to join this club.`, {
-            description: `Add ${format(Number(result.shortfall) || 0)} to your wallet to continue.`,
-            action: { label: "Add money", onClick: () => navigate({ to: "/app/wallet/add-money" }) },
-          });
-          return;
-        }
-
-        const paid = Number(result?.paid) || 0;
-        toast.success(paid > 0 ? `Joined ${club.name} for ${format(paid)}` : `Joined ${club.name}!`);
-
-        // Featured Club joining reward
-        if (club.name === "Zero K Bootcamp") {
-          toast.success("You earned 100 XP for joining the featured Zero K Bootcamp!");
-        }
-        
-        window.location.reload();
+        return;
       }
+
+      if (result?.status === 'insufficient_funds') {
+        toast.error(`${format(Number(result.fee) || 0)} is needed to join this club.`, {
+          description: `Add ${format(Number(result.shortfall) || 0)} to your wallet to continue.`,
+          action: { label: "Add money", onClick: () => navigate({ to: "/app/wallet/add-money" }) },
+        });
+        return;
+      }
+
+      const paid = Number(result?.paid) || 0;
+      toast.success(paid > 0 ? `Joined ${club.name} for ${format(paid)}` : `Joined ${club.name}!`);
+
+      // Featured Club joining reward
+      if (club.name === "Zero K Bootcamp") {
+        toast.success("You earned 100 XP for joining the featured Zero K Bootcamp!");
+      }
+
+      window.location.reload();
     } catch (err: any) {
       toast.error(err.message || "Failed to process club join");
     } finally {
@@ -1291,15 +1295,18 @@ function Clubs() {
                 </div>
               </div>
               <div className="p-5 sm:p-6">
-                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase text-primary">{selectedClub.is_private ? <Lock className="h-3.5 w-3.5 fill-current" /> : <Users className="h-3.5 w-3.5 fill-current" />}{selectedClub.is_private ? "Private community" : "Open community"}</div>
-                <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-foreground">{selectedClub.is_private ? "Request to join" : "Join club"}</h2>
+                {/* Two separate facts. Whether the club can be found, and
+                    whether you can walk in — a public club may still want to
+                    be asked, so the copy is driven by admission, not privacy. */}
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase text-primary">{selectedClub.is_private ? <Lock className="h-3.5 w-3.5 fill-current" /> : <Users className="h-3.5 w-3.5 fill-current" />}{selectedClub.is_private ? "Private community" : joinNeedsApproval ? "Public · approval needed" : "Open community"}</div>
+                <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-foreground">{joinNeedsApproval ? "Request to join" : "Join club"}</h2>
                 <p className="mt-1 text-[14px] font-medium text-foreground">{selectedClub.name}</p>
-                <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{selectedClub.is_private ? "Your profile and public proof will be shared with the club administrators. You will be notified as soon as they decide." : "Join the conversation, participate in club work, and connect with members immediately."}</p>
+                <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{joinNeedsApproval ? "Your profile and public proof will be shared with the club administrators. You will be notified as soon as they decide." : "Join the conversation, participate in club work, and connect with members immediately."}</p>
 
-                {selectedClub.is_private && <div className="mt-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-3.5"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-[12px] font-semibold text-foreground">Admin approval required</p><p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">Sending a request does not grant access until an administrator approves it.</p></div></div>}
+                {joinNeedsApproval && <div className="mt-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-3.5"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-[12px] font-semibold text-foreground">Admin approval required</p><p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">Sending a request does not grant access until an administrator approves it.</p></div></div>}
 
                 {/* Say the price before they tap, not after the wallet moves. */}
-                {!selectedClub.is_private && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
+                {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
                   <div className="mt-4 flex items-start justify-between gap-3 rounded-lg bg-card p-4">
                     <div className="min-w-0">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Membership fee</p>
@@ -1313,7 +1320,7 @@ function Clubs() {
                   </div>
                 )}
 
-                {!selectedClub.is_private && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
+                {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
                   <div className="mt-2.5">
                     <RequestFundsButton
                       amount={Number(selectedClub.subscription_fee)}
@@ -1338,7 +1345,7 @@ function Clubs() {
                   disabled={joiningClubId === selectedClub.id}
                   className="h-11 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
                 >
-                  {joiningClubId === selectedClub.id ? "Sending..." : selectedClub.is_private ? "Send request" : "Join now"}
+                  {joiningClubId === selectedClub.id ? "Sending..." : joinNeedsApproval ? "Send request" : "Join now"}
                 </button>
               </div>
               </div>

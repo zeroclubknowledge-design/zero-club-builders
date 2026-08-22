@@ -15,7 +15,7 @@ import { PostCard } from "@/components/PostCard";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { useUser } from "@/hooks/useUser";
-import { getFirstName } from "@/lib/utils";
+import { getFirstName, displayName } from "@/lib/utils";
 import { ProfileExperience } from "@/components/ProfileExperience";
 
 export const Route = createFileRoute("/app/profile/")({
@@ -169,7 +169,7 @@ function Profile() {
 
   const tier = (profile?.tier || "Basic").charAt(0).toUpperCase() + (profile?.tier || "Basic").slice(1);
   const initials = (profile?.full_name || profile?.username || 'U').substring(0, 1).toUpperCase();
-  const displayName = profile?.full_name || profile?.account_name || profile?.username || "Builder";
+  const shownName = displayName(profile);
   const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
 
   const handleShare = async () => {
@@ -241,7 +241,7 @@ function Profile() {
                   scrolled ?"opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}>
                   <h1 className="font-display max-w-[12rem] truncate text-sm font-bold leading-tight text-foreground">
-                    {displayName}
+                    {shownName}
                   </h1>
                   <p className="text-[10px] text-muted-foreground">
                     {userPosts.length} {userPosts.length === 1 ? "Post" : "Posts"}
@@ -333,7 +333,7 @@ function Profile() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
                   <h2 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
-                    {displayName}
+                    {shownName}
                   </h2>
                   {profile?.tier === 'Premium' && (
                     <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-primary shrink-0">

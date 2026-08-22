@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet } from "@/components/icons/solar";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/solar";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
@@ -241,7 +241,7 @@ function ClubChat() {
   const [replyingTo, setReplyingTo] = useState<any>(null);
   const [editClub, setEditClub] = useState({
     name: "", description: "", banner_url: "", logo_url: "", rules: "", category: "All",
-    subscription_fee: 0, access_free: false,
+    subscription_fee: 0, access_free: false, is_private: false, requires_approval: false,
   });
   const [editRooms, setEditRooms] = useState<{id: string, name: string}[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -383,6 +383,8 @@ function ClubChat() {
           category: targetClub.category || "All",
           subscription_fee: Number(targetClub.subscription_fee) || 0,
           access_free: Boolean(targetClub.access_free),
+          is_private: Boolean(targetClub.is_private),
+          requires_approval: Boolean(targetClub.requires_approval),
         });
         setEditRooms(targetClub.rooms);
         
@@ -735,6 +737,14 @@ function ClubChat() {
         p_free: Boolean(editClub.access_free),
       });
       if (feeError) throw feeError;
+
+      /* Same reasoning as the fee: who is allowed in is the database's rule to
+         keep, so it is set through a function that checks the owner. */
+      const { error: admissionError } = await supabase.rpc('set_club_admission', {
+        p_club_id: clubId,
+        p_requires_approval: Boolean(editClub.requires_approval),
+      });
+      if (admissionError) throw admissionError;
 
       setClub({ ...club, ...editClub, subscription_fee: fee, rooms: editRooms });
       toast.success("Club updated! ️");
@@ -1539,6 +1549,45 @@ function ClubChat() {
                         </div>
 
                         {/* ── Access ──────────────────────────────────── */}
+                        <div className="space-y-4 pt-4 border-t border-border/50">
+                          <h3 className="text-[11px] font-bold text-foreground flex items-center gap-2">
+                            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Who gets in
+                          </h3>
+
+                          {/* Being findable and being open are different
+                              things. A private club is by request either way,
+                              so the switch is only offered where it changes
+                              something. */}
+                          {editClub.is_private ? (
+                            <p className="rounded-lg bg-card px-4 py-3.5 text-[11px] leading-relaxed text-muted-foreground">
+                              This club is private, so every join is a request you approve. Make it
+                              public if you want people to find it on their own.
+                            </p>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditClub({ ...editClub, requires_approval: !editClub.requires_approval })
+                              }
+                              className="flex w-full items-center justify-between gap-3 rounded-lg bg-card px-4 py-3.5 text-left"
+                            >
+                              <span className="min-w-0">
+                                <span className="block text-[13px] font-semibold text-foreground">
+                                  {editClub.requires_approval ? "Approve each member" : "Open to everyone"}
+                                </span>
+                                <span className="mt-0.5 block text-[10.5px] leading-relaxed text-muted-foreground">
+                                  {editClub.requires_approval
+                                    ? "People send a request and wait for you. The club stays public and findable."
+                                    : "Anyone who finds the club can join straight away."}
+                                </span>
+                              </span>
+                              <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.requires_approval ? "bg-primary" : "bg-accent"}`}>
+                                <span className={`block h-4 w-4 rounded-full bg-background transition-transform ${editClub.requires_approval ? "translate-x-5" : ""}`} />
+                              </span>
+                            </button>
+                          )}
+                        </div>
+
                         <div className="space-y-4 pt-4 border-t border-border/50">
                           <h3 className="text-[11px] font-bold text-foreground flex items-center gap-2">
                             <Wallet className="h-3.5 w-3.5 text-primary" /> Membership

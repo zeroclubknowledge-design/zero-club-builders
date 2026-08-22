@@ -6,7 +6,7 @@ import { useUser } from "@/hooks/useUser";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
-  MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2, Lock,
+  MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2,
   Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings,
 } from "@/components/icons/solar";
 
@@ -35,6 +35,8 @@ function QuestionHandIcon({ className = "" }: { className?: string }) {
 }
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
+
+import { displayName } from "@/lib/utils";
 
 import AgoraRTC, {
   AgoraRTCProvider,
@@ -703,6 +705,29 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     ch.on("broadcast", { event: "question" }, ({ payload }: any) => {
       notifyTutorOfQuestion(payload);
     });
+    /*
+     * A host asking someone to stop.
+     *
+     * The instruction is carried out by the person's own device rather than
+     * enforced remotely, because that is the only place a microphone can
+     * actually be switched off — nothing a host clicks can reach into someone
+     * else's hardware. It is addressed by profile id, so it lands on the right
+     * person whichever device they joined from, and it says who did it: being
+     * muted with no explanation is worse than the noise.
+     */
+    ch.on("broadcast", { event: "moderate" }, ({ payload }: any) => {
+      const me = profile?.userId || profile?.id;
+      if (!me || String(payload?.target) !== String(me)) return;
+
+      if (payload?.action === "mute") {
+        setMicOn(false);
+        toast(`${payload?.by || "The host"} muted you`, { description: "You can unmute yourself again." });
+      }
+      if (payload?.action === "camera-off") {
+        setCameraOn(false);
+        toast(`${payload?.by || "The host"} turned your camera off`, { description: "You can turn it back on." });
+      }
+    });
     ch.on("broadcast", { event: "presenting" }, ({ payload }: any) => {
       if (payload?.presenting && payload?.uid != null) {
         setRemotePresenter({ uid: String(payload.uid), at: Date.now() });
@@ -714,7 +739,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
     chatChannelRef.current = ch;
     return () => { supabase.removeChannel(ch); };
-  }, [channel]);
+  }, [channel, profile?.userId, profile?.id]);
 
   /* Presenter heartbeat while sharing; stale-expiry for remote presenter */
   useEffect(() => {
@@ -749,10 +774,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [userAvatars, setUserAvatars] = useState<Record<string, string>>({});
   const [adminUids, setAdminUids] = useState<Set<string>>(new Set());
   const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
+  const [userProfileIds, setUserProfileIds] = useState<Record<string, string>>({});
 
   const presencePayload = profile?.id && client?.uid ? {
     agora_uid: client.uid,
-    name: profile?.username || "Unknown",
+    // The Agora uid is a connection; this is the person. A host muting someone
+    // needs to address the person, or the instruction misses when they rejoin.
+    profile_id: profile.userId || profile.id,
+    name: displayName(profile, ""),
     avatar_url: profile?.avatar_url || "",
     isAdmin: isAdmin
   } : undefined;
@@ -772,6 +801,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     const newNames: Record<string, string> = {};
     const newAvatars: Record<string, string> = {};
     const newAdminUids = new Set<string>();
+    const newProfileIds: Record<string, string> = {};
     const people: PresenceUser[] = [];
     let adminCount = 0;
 
@@ -779,6 +809,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       users.forEach((u) => {
         if (u.agora_uid && u.name) newNames[u.agora_uid] = u.name;
         if (u.agora_uid && u.avatar_url) newAvatars[u.agora_uid] = u.avatar_url;
+        if (u.agora_uid != null && u.profile_id) newProfileIds[String(u.agora_uid)] = String(u.profile_id);
         if (u.isAdmin) {
           adminCount++;
           if (u.agora_uid != null) newAdminUids.add(String(u.agora_uid));
@@ -786,7 +817,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         if (u.agora_uid != null) {
           people.push({
             uid: String(u.agora_uid),
-            name: u.name || "Builder",
+            name: (u.name || "").trim() || "Joining\u2026",
             avatar: u.avatar_url || "",
             isAdmin: !!u.isAdmin,
           });
@@ -796,6 +827,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
     setUserNames(newNames);
     setUserAvatars(newAvatars);
+    setUserProfileIds(newProfileIds);
     setAdminUids(newAdminUids);
     setPresenceUsers(people);
 
@@ -891,14 +923,15 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     typeof (navigator.mediaDevices as any).getDisplayMedia === "function";
 
   const toggleScreenShare = async () => {
-    if (!isAdmin) {
-      toast.error("Only the tutor and club admins can present.");
-      return;
-    }
     if (isScreenSharing) {
       if (screenTrack) screenTrack.close();
       setScreenTrack(null);
       setIsScreenSharing(false);
+      return;
+    }
+    if (remotePresenter) {
+      const presenterName = userNames[remotePresenter.uid] || "Someone else";
+      toast.info(`${presenterName} is presenting. You can share when they finish.`);
       return;
     }
     if (!screenShareSupported) {
@@ -1027,6 +1060,88 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   };
 
+  /*
+   * Staying audible with the app in the background.
+   *
+   * Android is free to freeze a backgrounded page, and a frozen page stops
+   * feeding the microphone — you are still "unmuted" as far as the UI is
+   * concerned while everyone else hears silence. Two things push back:
+   *
+   *   • a wake lock, which asks the system to keep this page running while a
+   *     call is up;
+   *   • re-asserting the mute state on the way back, because a track that was
+   *     suspended can return muted regardless of what the button says.
+   */
+  useEffect(() => {
+    if (isLeaving) return;
+    let lock: any = null;
+    let released = false;
+
+    const acquire = async () => {
+      try {
+        lock = await (navigator as any).wakeLock?.request?.("screen");
+      } catch {
+        /* Denied or unsupported. The call still works; the screen may sleep. */
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      // Back in the foreground: reacquire the lock and make the microphone
+      // agree with the button again.
+      void acquire();
+      localMicrophoneTrack?.setMuted(!micOn).catch(console.error);
+    };
+
+    void acquire();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      released = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+      try { lock?.release?.(); } catch { /* already gone */ }
+      void released;
+    };
+  }, [isLeaving, localMicrophoneTrack, micOn]);
+
+  /*
+   * Chat that survives a refresh.
+   *
+   * Messages are broadcast over a realtime channel and held in memory, so a
+   * reload emptied the thread — the questions asked five minutes ago were
+   * simply gone, for the one person who reloaded. Keeping a copy per channel
+   * means the thread comes back.
+   *
+   * sessionStorage, not localStorage: it belongs to this tab and this session,
+   * which is the right lifetime for a class that has ended.
+   */
+  const chatCacheKey = liveSession.channelId ? `zc-live-chat:${liveSession.channelId}` : null;
+
+  useEffect(() => {
+    if (!chatCacheKey) return;
+    try {
+      const saved = sessionStorage.getItem(chatCacheKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as ChatMessage[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setChatMessages((current) => (current.length > 0 ? current : parsed));
+        }
+      }
+    } catch {
+      /* Malformed or unavailable — start with an empty thread. */
+    }
+  }, [chatCacheKey]);
+
+  useEffect(() => {
+    if (!chatCacheKey) return;
+    try {
+      // A cap, because a long class should not fill the tab's storage quota.
+      sessionStorage.setItem(chatCacheKey, JSON.stringify(chatMessages.slice(-200)));
+    } catch {
+      /* Quota or private mode. Not worth interrupting a call over. */
+    }
+  }, [chatCacheKey, chatMessages]);
+
   const sendMessage = () => {
     if (!chatInput.trim() || !chatChannelRef.current) return;
     const msg: ChatMessage = {
@@ -1080,6 +1195,23 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     setChatInput(next);
     setMentionQuery(null);
     chatInputRef.current?.focus();
+  };
+
+  /* Sent to everyone; only the addressed device acts on it. Agora's uid is not
+     the profile id, so the participant map is used to translate. */
+  const moderateParticipant = (uid: string, action: "mute" | "camera-off") => {
+    if (!isAdmin || !chatChannelRef.current) return;
+    const target = userProfileIds[uid];
+    if (!target) {
+      toast.error("Cannot identify that participant yet");
+      return;
+    }
+    chatChannelRef.current.send({
+      type: "broadcast",
+      event: "moderate",
+      payload: { target, action, by: profile?.full_name || profile?.username || "The host" },
+    });
+    toast.success(action === "mute" ? "Asked them to mute" : "Asked them to turn the camera off");
   };
 
   const formatTime = (ts: string) => {
@@ -1137,6 +1269,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     : remoteTutor
       ? (userNames[remoteTutor.uid] || "Your tutor")
       : (presenceUsers.find((p) => p.isAdmin)?.name || "your tutor");
+  const remoteStageUser = remotePresenterUser || (!isAdmin ? remoteTutor : undefined);
+  const remoteStageName = remotePresenterUser
+    ? (userNames[remotePresenterUser.uid] || "Presenter")
+    : tutorName;
+  const remoteStageIsTutor = !!remoteStageUser && adminUids.has(String(remoteStageUser.uid));
 
   const findVideo = (uid: any) => videoTracks.find((t) => t.getUserId() === uid);
 
@@ -1144,8 +1281,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const isSelfSpeaking =
     micOn && (activeSpeaker === "0" || (client?.uid != null && activeSpeaker === String(client.uid)));
 
-  // Learners = everyone who isn't on stage
-  const stageUid = isAdmin ? null : (remotePresenterUser?.uid ?? remoteTutor?.uid ?? null);
+  // Everyone who is not currently on the stage remains in the learner panel.
+  // A learner presenting their screen is the stage user just like a tutor is.
+  const stageUid = remotePresenterUser?.uid ?? (!isAdmin ? remoteTutor?.uid ?? null : null);
   const audienceRemote = remoteUsers.filter((u) => u.uid !== stageUid);
   const cameraOnUsers = audienceRemote.filter((u) => u.hasVideo);
   const audioOnlyUsers = audienceRemote.filter((u) => !u.hasVideo);
@@ -1197,7 +1335,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * already their face at full size and a second copy of it would be absurd.
    */
   const presenting = Boolean(isScreenSharing || remotePresenterUser);
-  const selfPresenting = isAdmin && isScreenSharing;
+  const selfPresenting = isScreenSharing;
   /* Their camera track still exists while presenting — Agora publishes the
      screen in its place rather than stopping it — so on their own device the
      circle is live video. Everyone else only ever received the screen, so for
@@ -1217,11 +1355,21 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const waitingExtra = Math.max(0, presenceUsers.filter((p) => !p.isAdmin).length - 3);
 
   const renderStage = () => {
-    // Tutor sees their own output — exactly what learners see
+    // A local share wins on the presenter's own device, regardless of role.
+    if (isScreenSharing && screenTrack) {
+      return <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain" />;
+    }
+
+    // A remote share wins for tutors and learners alike.
+    if (remotePresenterUser) {
+      const track = findVideo(remotePresenterUser.uid);
+      return track
+        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full object-contain" />
+        : null;
+    }
+
+    // Without a shared screen, the tutor sees their own teaching output.
     if (isAdmin) {
-      if (isScreenSharing && screenTrack) {
-        return <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain" />;
-      }
       if (cameraOn && localCameraTrack) {
         return <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover" />;
       }
@@ -1236,13 +1384,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       );
     }
 
-    // Learner: presenter's screen wins the stage
-    if (remotePresenterUser) {
-      const track = findVideo(remotePresenterUser.uid);
-      return track
-        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full object-contain" />
-        : null;
-    }
     // Then the tutor's camera
     if (remoteTutor && remoteTutor.hasVideo) {
       const track = findVideo(remoteTutor.uid);
@@ -1293,16 +1434,36 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     );
   };
 
-  const stageIsLive = isAdmin
-    ? (isScreenSharing || cameraOn)
-    : !!(remotePresenterUser || remoteTutor);
+  const stageIsLive = isScreenSharing || !!remotePresenterUser || (isAdmin ? cameraOn : !!remoteTutor);
 
   /* ══════════ MINI PLAYER ══════════ */
+  /*
+   * Everyone else's audio, mounted once.
+   *
+   * Minimising swaps the whole classroom for the mini player, and each layout
+   * used to render its own copy of these elements. React sees two different
+   * subtrees, so the audio elements were destroyed and recreated on every
+   * switch — and a freshly created <audio> that calls play() outside a user
+   * gesture is silently blocked on mobile. That is why minimising went quiet.
+   *
+   * Given the same key and the same position in both returns, the elements
+   * survive the switch and keep playing.
+   */
+  const audioSink = (
+    <div className="hidden" key="zc-live-audio-sink">
+      {audioTracks.map((track) => (
+        <RemoteAudioTrack key={String(track.getUserId())} track={track} play={true} />
+      ))}
+    </div>
+  );
+
   if (isMinimized) {
-    const miniRemoteUser = !isAdmin ? (remotePresenterUser || remoteTutor) : undefined;
+    const miniRemoteUser = remotePresenterUser || (!isAdmin ? remoteTutor : undefined);
     const miniRemoteTrack = miniRemoteUser ? findVideo(miniRemoteUser.uid) : undefined;
 
     return (
+      <>
+      {audioSink}
       <div
         onMouseDown={onDragStart}
         onMouseMove={onDragMove}
@@ -1313,25 +1474,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         className="fixed z-[9999] select-none cursor-grab active:cursor-grabbing"
         style={{ right: `${position.x}px`, bottom: `${position.y}px` }}
       >
-        {/* Audio must keep playing after the full classroom UI is removed. */}
-        <div className="hidden">
-          {audioTracks.map((track) => (
-            <RemoteAudioTrack key={String(track.getUserId())} track={track} play={true} />
-          ))}
-        </div>
         <div className="w-[152px] rounded-lg overflow-hidden shadow-lift ring-1 ring-white/15 bg-[#141117] animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
           <div
             className="relative aspect-[4/3] bg-[#0A0A0C] flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={handleRestore}
           >
-            {miniRemoteTrack ? (
+            {isScreenSharing && screenTrack ? (
+              <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain bg-black pointer-events-none" />
+            ) : miniRemoteTrack ? (
               <RemoteVideoTrack
                 track={miniRemoteTrack}
                 play={true}
                 className={`w-full h-full pointer-events-none ${remotePresenterUser ? "object-contain bg-black" : "object-cover"}`}
               />
-            ) : isScreenSharing && screenTrack ? (
-              <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain bg-black pointer-events-none" />
             ) : cameraOn && localCameraTrack ? (
               <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover pointer-events-none" />
             ) : (
@@ -1380,18 +1535,15 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   /* ══════════ FULL SCREEN CLASSROOM ══════════ */
   return (
+    <>
+    {audioSink}
     <div className="fixed inset-0 h-[100dvh] bg-[#0A0A0C] text-white flex flex-col z-[9999] overflow-hidden">
-      {/* Hidden: play every remote audio stream regardless of layout */}
-      <div className="hidden">
-        {audioTracks.map((t) => (
-          <RemoteAudioTrack key={String(t.getUserId())} track={t} play={true} />
-        ))}
-      </div>
 
       {/* ═══ HEADER ═══ */}
       <header className="shrink-0 flex items-center justify-between px-3 md:px-5 pb-2.5 pt-[calc(0.5rem+env(safe-area-inset-top))] md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))] z-20">
@@ -1623,18 +1775,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             </div>
           )}
 
-          {/* Tutor nameplate (learner view, when live) */}
-          {!isAdmin && stageIsLive && (
+          {/* Identify whichever remote participant owns the stage. */}
+          {remoteStageUser && !selfPresenting && (
             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3.5 pb-3 pt-10 z-10 pointer-events-none">
               <div className="flex items-center gap-2">
                 <Avatar
-                  url={remotePresenterUser ? userAvatars[remotePresenterUser.uid] : remoteTutor ? userAvatars[remoteTutor.uid] : undefined}
-                  name={tutorName}
+                  url={userAvatars[remoteStageUser.uid]}
+                  name={remoteStageName}
                   className="w-6 h-6"
                 />
-                <span className="text-[13px] font-semibold tracking-tight text-white">{tutorName}</span>
+                <span className="text-[13px] font-semibold tracking-tight text-white">{remoteStageName}</span>
                 <span className="text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
-                  Tutor
+                  {remoteStageIsTutor ? "Tutor" : "Presenting"}
                 </span>
               </div>
             </div>
@@ -1654,7 +1806,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   <div className="flex h-full w-full items-center justify-center">
                     <Avatar
                       url={selfPresenting ? profile?.avatar_url : userAvatars[remotePresenterUser!.uid]}
-                      name={selfPresenting ? profile?.username || "You" : userNames[remotePresenterUser!.uid] || "Tutor"}
+                      name={selfPresenting ? profile?.username || "You" : userNames[remotePresenterUser!.uid] || "Presenter"}
                       className="h-full w-full text-xl"
                     />
                   </div>
@@ -1750,31 +1902,16 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 <Smile className="h-5 w-5" />
               </button>
 
-              {isAdmin ? (
-                <button
-                  onClick={toggleScreenShare}
-                  disabled={isLeaving}
-                  title={isScreenSharing ? "Stop presenting" : "Present your screen"}
-                  aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
-                  aria-pressed={isScreenSharing}
-                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
-                >
-                  {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
-                </button>
-              ) : (
-                <button
-                  onClick={toggleScreenShare}
-                  disabled={isLeaving}
-                  title="Only the tutor can present"
-                  aria-label="Only the tutor can present"
-                  className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50"
-                >
-                  <MonitorUp className="h-5 w-5" />
-                  <span className="absolute -top-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
-                    <Lock className="h-2 w-2 text-white/60" />
-                  </span>
-                </button>
-              )}
+              <button
+                onClick={toggleScreenShare}
+                disabled={isLeaving}
+                title={isScreenSharing ? "Stop presenting" : "Present your screen"}
+                aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
+                aria-pressed={isScreenSharing}
+                className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
+              >
+                {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
+              </button>
 
               <div className="h-6 w-px shrink-0 bg-white/10" />
 
@@ -2015,10 +2152,32 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                           <RemoteVideoTrack track={findVideo(user.uid)!} play={true} className="w-full h-full object-cover" />
                         )}
                         <TilePill
-                          name={userNames[user.uid] || "Builder"}
+                          name={userNames[user.uid] || "Joining\u2026"}
                           muted={!user.hasAudio}
                           tutor={adminUids.has(String(user.uid))}
                         />
+                        {/* A host can ask; the learner's own device is what
+                            actually stops the mic or the camera. */}
+                        {isAdmin && !adminUids.has(String(user.uid)) && (
+                          <div className="absolute right-1.5 top-1.5 flex gap-1">
+                            <button
+                              onClick={() => moderateParticipant(String(user.uid), "mute")}
+                              title="Mute them"
+                              aria-label={`Mute ${userNames[user.uid] || "this learner"}`}
+                              className="grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white/80 backdrop-blur-sm transition hover:bg-red-500 hover:text-white"
+                            >
+                              <MicOff className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => moderateParticipant(String(user.uid), "camera-off")}
+                              title="Turn their camera off"
+                              aria-label="Turn their camera off"
+                              className="grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white/80 backdrop-blur-sm transition hover:bg-red-500 hover:text-white"
+                            >
+                              <VideoOff className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -2043,7 +2202,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Avatar url={userAvatars[user.uid]} name={userNames[user.uid] || "B"} className="w-8 h-8" />
                           <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">
-                            {userNames[user.uid] || "Builder"}
+                            {userNames[user.uid] || "Joining\u2026"}
                           </span>
                           {adminUids.has(String(user.uid)) && (
                             <span className="shrink-0 text-[8px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
@@ -2051,7 +2210,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                             </span>
                           )}
                         </div>
-                        <MicDot on={!!user.hasAudio} />
+                        <div className="flex shrink-0 items-center gap-2">
+                          {isAdmin && !adminUids.has(String(user.uid)) && user.hasAudio && (
+                            <button
+                              onClick={() => moderateParticipant(String(user.uid), "mute")}
+                              title="Mute them"
+                              aria-label={`Mute ${userNames[user.uid] || "this learner"}`}
+                              className="grid h-7 w-7 place-items-center rounded-full bg-white/[0.06] text-white/60 transition hover:bg-red-500 hover:text-white"
+                            >
+                              <MicOff className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          <MicDot on={!!user.hasAudio} />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -2128,31 +2299,16 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             <Smile className="h-5 w-5" />
           </button>
 
-          {isAdmin ? (
-            <button
-              onClick={toggleScreenShare}
-              disabled={isLeaving}
-              title={isScreenSharing ? "Stop presenting" : "Present your screen"}
-              aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
-              aria-pressed={isScreenSharing}
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white"}`}
-            >
-              {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
-            </button>
-          ) : (
-            <button
-              onClick={toggleScreenShare}
-              disabled={isLeaving}
-              title="Only the tutor can present"
-              aria-label="Only the tutor can present"
-              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/[0.05] text-white/40 tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11"
-            >
-              <MonitorUp className="h-5 w-5" />
-              <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#0A0A0C] ring-1 ring-white/15">
-                <Lock className="h-2 w-2 text-white/60" />
-              </span>
-            </button>
-          )}
+          <button
+            onClick={toggleScreenShare}
+            disabled={isLeaving}
+            title={isScreenSharing ? "Stop presenting" : "Present your screen"}
+            aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
+            aria-pressed={isScreenSharing}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white"}`}
+          >
+            {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
+          </button>
 
           <div className="h-6 w-px shrink-0 bg-white/10" />
 
@@ -2169,5 +2325,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       </div>
 
     </div>
+    </>
   );
 }

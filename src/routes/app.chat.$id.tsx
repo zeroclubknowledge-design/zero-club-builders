@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/solar";
 import { useState, useRef, useEffect } from "react";
-import { getMessages, sendMessageAction, editMessageAction } from "@/api";
+import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { useUser } from "@/hooks/useUser";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { supabase } from "@/lib/supabase";
@@ -510,6 +510,44 @@ function ChatViewPage() {
   const [reporting, setReporting] = useState(false);
   const [viewportHeight, setViewportHeight] = useState("100dvh");
   const [viewportTop, setViewportTop] = useState("0px");
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [reachedStart, setReachedStart] = useState(false);
+
+  /*
+   * The rest of the conversation, when it is asked for.
+   *
+   * Opening a chat now loads the recent end only, so history has to be
+   * reachable. Scroll position is measured before the prepend and restored
+   * after it — otherwise adding messages above the viewport throws the reader
+   * up the page, which feels like the app losing their place.
+   */
+  const loadOlderMessages = async () => {
+    if (loadingOlder || reachedStart || messages.length === 0) return;
+    setLoadingOlder(true);
+    const container = scrollRef.current;
+    const previousHeight = container?.scrollHeight ?? 0;
+    const previousTop = container?.scrollTop ?? 0;
+
+    try {
+      const older = await getMessages(id, MESSAGE_PAGE_SIZE, messages[0]?.created_at);
+      if (older.length < MESSAGE_PAGE_SIZE) setReachedStart(true);
+      if (older.length > 0) {
+        const known = new Set(messages.map((m: any) => m.id));
+        const fresh = older.filter((m: any) => !known.has(m.id));
+        if (fresh.length > 0) {
+          setMessages((current) => [...fresh, ...current]);
+          requestAnimationFrame(() => {
+            if (!container) return;
+            container.scrollTop = previousTop + (container.scrollHeight - previousHeight);
+          });
+        }
+      }
+    } catch {
+      toast.error("Could not load older messages");
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
 
   const toggleVoiceRecording = async () => {
     if (isRecording) {
@@ -561,6 +599,7 @@ function ChatViewPage() {
       ? initialMessages.filter((message: any) => new Date(message.created_at).getTime() > new Date(clearedAt).getTime())
       : initialMessages;
     setMessages(visibleMessages);
+    setReachedStart(visibleMessages.length < MESSAGE_PAGE_SIZE);
   }, [initialMessages, id]);
 
   useEffect(() => {
@@ -1016,6 +1055,21 @@ function ChatViewPage() {
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar"
       >
+        {!reachedStart && (
+          <div className="flex justify-center pb-2">
+            <button
+              onClick={loadOlderMessages}
+              disabled={loadingOlder}
+              className="rounded-full bg-card px-4 py-2 text-[11.5px] font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+            >
+              {loadingOlder ? "Loading..." : "Load earlier messages"}
+            </button>
+          </div>
+        )}
+
+        {/* This block marks the beginning of the conversation, so it only
+            belongs at the top once there is nothing older left to fetch. */}
+        {reachedStart && (
         <div className="flex flex-col items-center py-6 text-center">
           <Link to="/app/profile/$id" params={{ id }} className="h-20 w-20 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xl mb-3 transition active:scale-95">
             {otherUser?.avatar_url ? (
@@ -1032,6 +1086,7 @@ function ChatViewPage() {
             <p className="text-xs text-muted-foreground">@{otherUser.username}</p>
           )}
         </div>
+        )}
 
         {messages.map((m: any) => (
           <DMMessageBubble 

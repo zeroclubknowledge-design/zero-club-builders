@@ -21,6 +21,7 @@ import {
 import { useMemo, useState, type ElementType } from "react";
 import { IconClubs, IconLearn, IconMetrics, IconProfile } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
+import { displayName } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/metrics")({
   component: MetricsPage,
@@ -330,7 +331,7 @@ function MetricsPage() {
     );
   }
 
-  const profileName = data?.profile?.full_name || data?.profile?.username || "Builder";
+  const profileName = displayName(data?.profile, "you");
   // The header is just "Metrics" now, so the per-role subtitle that used to sit
   // under it is gone with it. The eyebrow and title still lead the page body.
   const roleView = insights.isInstitution
