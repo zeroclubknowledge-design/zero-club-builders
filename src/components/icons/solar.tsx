@@ -35,7 +35,7 @@ export type ZeroIconProps = React.SVGProps<SVGSVGElement> & {
 export type LucideIcon = React.FC<ZeroIconProps>;
 
 function make(body: string, stroked = false): LucideIcon {
-  return function ZeroIcon({ size, strokeWidth, absoluteStrokeWidth, ...rest }: ZeroIconProps) {
+  return function ZeroIcon({ size, strokeWidth, absoluteStrokeWidth, className, ...rest }: ZeroIconProps) {
     return (
       <svg
         viewBox="0 0 24 24"
@@ -47,6 +47,10 @@ function make(body: string, stroked = false): LucideIcon {
         strokeLinecap={stroked ? "round" : undefined}
         strokeLinejoin={stroked ? "round" : undefined}
         aria-hidden="true"
+        /* zc-icon is the handle the stylesheet uses to lift the duotone
+           backing layer. Pulled out of the rest props rather than spread over,
+           so a caller's own classes are kept rather than replaced. */
+        className={className ? `zc-icon ${className}` : "zc-icon"}
         {...rest}
         dangerouslySetInnerHTML={{ __html: body }}
       />

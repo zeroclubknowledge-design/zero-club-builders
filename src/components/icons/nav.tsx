@@ -23,7 +23,7 @@ function make(idle: string, solid: string) {
     return (
       <svg
         viewBox="0 0 24 24"
-        className={className}
+        className={className ? `zc-icon ${className}` : "zc-icon"}
         fill={active ? "currentColor" : "none"}
         aria-hidden="true"
         dangerouslySetInnerHTML={{ __html: active ? solid : idle }}

@@ -187,7 +187,9 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
       const { data, error } = await supabase
         .from("club_quizzes")
         .select("id, title, is_published, opens_at, closes_at, club_quiz_attempts(count)")
-        .eq("club_id", clubQuery.data.id)
+        // `enabled` above already guarantees this, but the type does not know
+        // that — the query only runs once the club has resolved.
+        .eq("club_id", clubQuery.data!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];

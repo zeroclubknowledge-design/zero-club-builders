@@ -569,3 +569,36 @@ body::-webkit-scrollbar { display: none; }
 :is(div, section, article, aside, li, a, button, label)[class*="ring-border"]:not([class*=":ring-border"]):not([class*="rounded-full"]):not([class*="bg-"]) {
   background-color: var(--card);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Icon legibility.
+
+   Solar's duotone icons are two shapes: a solid one and a backing shape at
+   50% opacity. At 24px on a bright surface that backing layer is close to
+   invisible, so a wallet reads as half a wallet — which is what people meant
+   by "the icons are not clear". Half the drawing was simply too faint.
+
+   Lifting it is a better answer than changing the icon colour, because it
+   only strengthens the part that was weak: the solid layer keeps carrying the
+   silhouette and nothing gets heavier than it was drawn to be.
+
+   The light theme needs more lift than the dark one. Dark ink at 50% on cream
+   loses far more contrast than white at 50% on near-black, where the eye is
+   already working with a smaller range.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.zc-icon [opacity="0.5"],
+.zc-icon [opacity=".5"] {
+  opacity: 0.78;
+}
+
+.dark .zc-icon [opacity="0.5"],
+.dark .zc-icon [opacity=".5"] {
+  opacity: 0.66;
+}
+
+/* The nav icons are line drawings at 1.5px, which is a hairline on a phone at
+   20px. Just enough weight to hold together without reading as bold. */
+.zc-icon [stroke-width="1.5"] {
+  stroke-width: 1.75;
+}

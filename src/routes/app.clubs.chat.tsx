@@ -46,20 +46,68 @@ function ClubMessageComposer({
   hasMedia,
   controls,
   onSend,
+  members = [],
 }: {
   placeholder: string;
   hasMedia: boolean;
   controls: ReactNode;
   onSend: (text: string) => Promise<boolean>;
+  members?: any[];
 }) {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  /*
+   * Tagging someone in the room.
+   *
+   * The picker inserts the *username*, not the display name, because the
+   * renderer turns @username into a link to that profile — a display name with
+   * a space in it would highlight only its first word and point at a handle
+   * that does not exist.
+   *
+   * Only people in this club are offered. A club chat is a room, and the names
+   * that should come to hand are the names of people in it.
+   */
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+
+  const mentionMatches = (() => {
+    if (mentionQuery === null) return [];
+    const term = mentionQuery.toLowerCase();
+    const seen = new Set<string>();
+    return members
+      .map((member: any) => member.profiles || member)
+      .filter((person: any) => {
+        const username = String(person?.username || "").toLowerCase();
+        if (!username || seen.has(username)) return false;
+        seen.add(username);
+        if (term === "") return true;
+        return (
+          username.includes(term) ||
+          String(person.full_name || "").toLowerCase().includes(term)
+        );
+      })
+      .slice(0, 6);
+  })();
+
+  // Only the word the caret is sitting in, so an @ earlier in the sentence
+  // does not reopen the list while the rest is typed.
+  const readMentionQuery = (value: string) => {
+    const match = value.match(/(?:^|\s)@([^\s@]*)$/);
+    setMentionQuery(match ? match[1] : null);
+  };
+
+  const applyMention = (username: string) => {
+    setDraft((current) => current.replace(/(^|\s)@([^\s@]*)$/, (_m, before: string) => `${before}@${username} `));
+    setMentionQuery(null);
+    textareaRef.current?.focus();
+  };
+
   const submit = async () => {
     if ((!draft.trim() && !hasMedia) || sending) return;
     const text = draft;
     setDraft("");
+    setMentionQuery(null);
     if (textareaRef.current) textareaRef.current.style.height = "36px";
     setSending(true);
     try {
@@ -74,16 +122,48 @@ function ClubMessageComposer({
   };
 
   return (
-    <div className="flex flex-1 items-end gap-1.5 rounded-2xl border border-border bg-card px-3 py-1 transition-colors focus-within:border-primary/50">
+    <div className="relative flex flex-1 items-end gap-1.5 rounded-2xl border border-border bg-card px-3 py-1 transition-colors focus-within:border-primary/50">
+      {mentionMatches.length > 0 && (
+        <div className="absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-xl bg-card shadow-[0_18px_44px_-20px_rgba(0,0,0,0.45)] ring-1 ring-border">
+          {mentionMatches.map((person: any) => (
+            <button
+              key={person.id || person.username}
+              type="button"
+              onMouseDown={(event) => { event.preventDefault(); applyMention(person.username); }}
+              className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-accent/50"
+            >
+              <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                {person.avatar_url
+                  ? <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                  : (person.full_name || person.username || "?")[0].toUpperCase()}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] font-semibold tracking-tight text-foreground">
+                  {person.full_name || person.username}
+                </span>
+                <span className="block truncate text-[11px] text-muted-foreground">@{person.username}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       <textarea
         ref={textareaRef}
         value={draft}
         onChange={(event) => {
           setDraft(event.target.value);
+          readMentionQuery(event.target.value);
           event.target.style.height = "auto";
           event.target.style.height = `${Math.min(event.target.scrollHeight, 80)}px`;
         }}
         onKeyDown={(event) => {
+          if (event.key === "Escape") { setMentionQuery(null); return; }
+          if (event.key === "Enter" && mentionMatches.length > 0 && !event.shiftKey) {
+            // Finish the tag rather than sending "@ben" as literal text.
+            event.preventDefault();
+            applyMention(mentionMatches[0].username);
+            return;
+          }
           if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
             event.preventDefault();
             void submit();
@@ -2485,6 +2565,7 @@ function ClubChat() {
           <ClubMessageComposer
             placeholder={activeRoom === "general" ? "Write a message..." : `Post in ${activeRoom}...`}
             hasMedia={mediaFiles.length > 0}
+            members={members}
             onSend={(text) => handleSendMessage(text)}
             controls={
               <>
