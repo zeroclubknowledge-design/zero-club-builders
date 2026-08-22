@@ -2281,20 +2281,18 @@ function ClubChat() {
                         {activeRoom === r.id && <Check className="w-4 h-4 text-primary" />}
                       </button>
                     ))}
-                    {/* Set apart from the rooms above, because it opens a page
-                        rather than switching the channel you are reading. */}
                     <button
                       onClick={() => {
                         setShowRoomSwitcher(false);
                         navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } });
                       }}
-                      className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/40 bg-card p-4 transition hover:bg-accent/40 active:scale-[0.98]"
+                      className="flex w-full items-center justify-between rounded-lg border border-border/40 bg-card p-4 transition hover:bg-accent/40 active:scale-[0.98]"
                     >
                       <div className="flex items-center gap-3">
                         <div className="grid h-8 w-8 place-items-center rounded-xl bg-muted text-muted-foreground">
                           <ClipboardCheck className="h-4 w-4" />
                         </div>
-                        <span className="text-sm font-bold text-foreground">Quizzes &amp; assessments</span>
+                        <span className="text-sm font-bold text-foreground">Quiz</span>
                       </div>
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </button>
@@ -2377,12 +2375,12 @@ function ClubChat() {
         </div>
 
         {/* Tab Navigation - Sticky Header */}
-        <div className="sticky top-0 z-30 pt-1 mt-1 shrink-0 flex gap-2 border-b border-border bg-background/95 backdrop-blur-xl overflow-x-auto no-scrollbar px-2 shadow-sm">
+        <div className="sticky top-0 z-30 mt-1 flex shrink-0 gap-0.5 overflow-x-auto border-b border-border bg-background/95 px-1 pt-1 shadow-sm backdrop-blur-xl no-scrollbar sm:gap-2 sm:px-2">
           {(club?.rooms?.length > 0 ? club.rooms : defaultRooms).map((room: any) => (
             <button
               key={room.id}
               onClick={() => setActiveRoom(room.id)}
-              className={`flex-none px-4 py-3 text-xs sm:text-sm font-semibold text-center transition-all border-b-[3px] whitespace-nowrap ${
+              className={`flex-none whitespace-nowrap border-b-[3px] px-2 py-3 text-center text-[10.5px] font-semibold transition-all min-[390px]:text-xs sm:px-4 sm:text-sm ${
                 activeRoom === room.id 
                   ?"border-primary text-foreground font-bold" 
                   : "border-transparent text-muted-foreground hover:text-foreground/80"
@@ -2391,6 +2389,12 @@ function ClubChat() {
               {room.name}
             </button>
           ))}
+          <button
+            onClick={() => navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } })}
+            className="flex-none whitespace-nowrap border-b-[3px] border-transparent px-2 py-3 text-center text-[10.5px] font-semibold text-muted-foreground transition-all hover:text-foreground/80 min-[390px]:text-xs sm:px-4 sm:text-sm"
+          >
+            Quiz
+          </button>
         </div>
 
       {/* Pinned Rules */}
