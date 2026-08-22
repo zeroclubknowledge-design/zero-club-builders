@@ -282,6 +282,45 @@ function ProfileDetail() {
   // so following here updates the button everywhere in the app.
   const { isFollowing, toggleFollow } = useFollow(profile?.id);
 
+  /* Whether this person's posts should interrupt me. Read through a function
+     rather than by selecting the row, because the subscription table is
+     readable only by its owner — deliberately, so subscribing to someone does
+     not hand them a list of who is watching. */
+  const [postAlertsOn, setPostAlertsOn] = useState(false);
+  const [alertsPending, setAlertsPending] = useState(false);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    let cancelled = false;
+    (async () => {
+      // Not migrated yet? The bell simply reads as off rather than throwing.
+      const { data } = await supabase.rpc("is_subscribed_to_posts", { p_author_id: profile.id });
+      if (!cancelled) setPostAlertsOn(Boolean(data));
+    })();
+    return () => { cancelled = true; };
+  }, [profile?.id]);
+
+  const togglePostAlerts = async () => {
+    if (!profile?.id) return;
+    setAlertsPending(true);
+    // Flipped straight away, then corrected if the server disagrees. A bell
+    // that waits on the network before changing feels broken.
+    const optimistic = !postAlertsOn;
+    setPostAlertsOn(optimistic);
+    try {
+      const { data, error } = await supabase.rpc("toggle_post_notifications", { p_author_id: profile.id });
+      if (error) throw error;
+      const subscribed = Boolean((data as any)?.subscribed);
+      setPostAlertsOn(subscribed);
+      toast.success(subscribed ? `You will be told when ${displayName} posts` : "Post notifications off");
+    } catch (error: any) {
+      setPostAlertsOn(!optimistic);
+      toast.error(error?.message || "Could not change that");
+    } finally {
+      setAlertsPending(false);
+    }
+  };
+
   useEffect(() => {
     // Check local storage for notification preference
     const notified = localStorage.getItem(`notify_${profile.id}`) === 'true';
@@ -546,6 +585,26 @@ function ProfileDetail() {
                    Edit profile
                  </Link>
                ) : canMessageProfile ? (
+                 <>
+                 {/* Following says "put this in my feed"; the bell says
+                     "interrupt me". Two different appetites, so two controls —
+                     you can follow quietly, or be told without following. */}
+                 <button
+                   onClick={togglePostAlerts}
+                   disabled={alertsPending}
+                   aria-pressed={postAlertsOn}
+                   title={postAlertsOn ? "Stop notifying me about their posts" : "Notify me when they post"}
+                   aria-label={postAlertsOn ? "Stop notifying me about their posts" : "Notify me when they post"}
+                   className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg transition active:scale-95 disabled:opacity-50 ${
+                     postAlertsOn
+                       ? "bg-[#cc208f] text-white"
+                       : "border border-border bg-card text-foreground hover:bg-accent"
+                   }`}
+                 >
+                   {alertsPending
+                     ? <Loader2 className="h-4 w-4 animate-spin" />
+                     : postAlertsOn ? <BellRing className="h-[18px] w-[18px]" /> : <Bell className="h-[18px] w-[18px]" />}
+                 </button>
                  <button
                    onClick={handleFollow}
                    disabled={followLoading}
@@ -558,6 +617,7 @@ function ProfileDetail() {
                    {followLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                    {isFollowing ? "Following" : (isFollowingMe ? "Follow back" : "Follow")}
                  </button>
+                 </>
                ) : null}
             </div>
 

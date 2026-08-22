@@ -86,9 +86,11 @@ function Leaderboard({ currentUserId }: { currentUserId?: string }) {
         tally.set(post.author_id, (tally.get(post.author_id) || 0) + 1);
       }
 
+      // Fifteen. A leaderboard is meant to be read, and past the first screen
+      // nobody is checking their position — they are scrolling past strangers.
       const ranked = [...tally.entries()]
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 50);
+        .slice(0, 15);
       if (ranked.length === 0) return [];
 
       const { data: profiles } = await supabase
@@ -161,12 +163,6 @@ function Leaderboard({ currentUserId }: { currentUserId?: string }) {
                   <span className="block truncate text-[11.5px] text-muted-foreground">@{person.username}</span>
                 </span>
 
-                <span className="shrink-0 text-right">
-                  <span className="block text-[15px] font-semibold tabular-nums">{person.posts}</span>
-                  <span className="block text-[10.5px] text-muted-foreground">
-                    {person.posts === 1 ? "post" : "posts"}
-                  </span>
-                </span>
               </Link>
             );
           })}

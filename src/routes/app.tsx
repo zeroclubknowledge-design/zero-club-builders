@@ -88,6 +88,8 @@ const tabs = [
  * the sidebar on mobile so the same link never appears in two places at once.
  */
 const MENU_ITEMS = [
+  { to: "/app/tasks", label: "Tasks", note: "What you owe yourself", Icon: IconBookmark },
+  { to: "/app/wallet", label: "Wallet", note: "Balance, top-ups, payouts", Icon: IconWallet },
   { to: "/app/quests", label: "Opportunities", note: "Gigs, briefs and open calls", Icon: IconRocket },
   { to: "/app/store", label: "Zero Store", note: "Buy from builders", Icon: IconStore },
   { to: "/app/zerohub", label: "ZeroHub", note: "Explore the network", Icon: IconCompass },
