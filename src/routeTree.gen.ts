@@ -17,6 +17,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
+import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as GiftCodeRouteImport } from './routes/gift.$code'
 import { Route as FundSlugRouteImport } from './routes/fund.$slug'
 import { Route as FormSlugRouteImport } from './routes/form.$slug'
@@ -134,6 +135,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const ProductIdRoute = ProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesSlugRoute = NotesSlugRouteImport.update({
+  id: '/notes/$slug',
+  path: '/notes/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiftCodeRoute = GiftCodeRouteImport.update({
@@ -563,6 +569,7 @@ export interface FileRoutesByFullPath {
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
   '/gift/$code': typeof GiftCodeRoute
+  '/notes/$slug': typeof NotesSlugRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -645,6 +652,7 @@ export interface FileRoutesByTo {
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
   '/gift/$code': typeof GiftCodeRoute
+  '/notes/$slug': typeof NotesSlugRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -734,6 +742,7 @@ export interface FileRoutesById {
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
   '/gift/$code': typeof GiftCodeRoute
+  '/notes/$slug': typeof NotesSlugRoute
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -824,6 +833,7 @@ export interface FileRouteTypes {
     | '/form/$slug'
     | '/fund/$slug'
     | '/gift/$code'
+    | '/notes/$slug'
     | '/product/$id'
     | '/app/'
     | '/api/club-image/$id'
@@ -906,6 +916,7 @@ export interface FileRouteTypes {
     | '/form/$slug'
     | '/fund/$slug'
     | '/gift/$code'
+    | '/notes/$slug'
     | '/product/$id'
     | '/app'
     | '/api/club-image/$id'
@@ -994,6 +1005,7 @@ export interface FileRouteTypes {
     | '/form/$slug'
     | '/fund/$slug'
     | '/gift/$code'
+    | '/notes/$slug'
     | '/product/$id'
     | '/app/'
     | '/api/club-image/$id'
@@ -1064,6 +1076,7 @@ export interface RootRouteChildren {
   FormSlugRoute: typeof FormSlugRoute
   FundSlugRoute: typeof FundSlugRoute
   GiftCodeRoute: typeof GiftCodeRoute
+  NotesSlugRoute: typeof NotesSlugRoute
   ProductIdRoute: typeof ProductIdRouteWithChildren
   ApiClubImageIdRoute: typeof ApiClubImageIdRoute
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
@@ -1126,6 +1139,13 @@ declare module '@tanstack/react-router' {
       path: '/product/$id'
       fullPath: '/product/$id'
       preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/$slug': {
+      id: '/notes/$slug'
+      path: '/notes/$slug'
+      fullPath: '/notes/$slug'
+      preLoaderRoute: typeof NotesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gift/$code': {
@@ -1906,6 +1926,7 @@ const rootRouteChildren: RootRouteChildren = {
   FormSlugRoute: FormSlugRoute,
   FundSlugRoute: FundSlugRoute,
   GiftCodeRoute: GiftCodeRoute,
+  NotesSlugRoute: NotesSlugRoute,
   ProductIdRoute: ProductIdRouteWithChildren,
   ApiClubImageIdRoute: ApiClubImageIdRoute,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,

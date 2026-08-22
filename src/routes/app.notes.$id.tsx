@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Share2, Bookmark, ThumbsUp, Mic, Edit3, Trash2, Bell, Check } from "@/components/icons/solar";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';
 import { formatDistanceToNow } from 'date-fns';
@@ -9,6 +9,38 @@ import { LinkifiedText } from '@/components/LinkifiedText';
 import { CommentDrawer } from '@/components/CommentDrawer';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { deleteNoteAction } from '@/api';
+
+export function buildNoteHead(note: any) {
+  if (!note) return {};
+
+  const title = note.title || "Note on Zero Club";
+  const firstTextBlock = note.blocks?.find((block: any) => block.type === 'text' && block.content && block.content !== '<p></p>');
+  let description = "Read this note on Zero Club";
+  if (firstTextBlock) {
+    const stripped = firstTextBlock.content.replace(/(<([^>]+)>)/gi, "");
+    description = stripped.substring(0, 160) + (stripped.length > 160 ? '...' : '');
+  }
+
+  const image = note.cover_url || "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4215c30d-ff7b-4508-a899-c922d00e5475/id-preview-fa4e9537--ee5d9983-4748-4793-a658-4041e1470658.lovable.app-1778475055046.png";
+  const canonicalUrl = note.slug ? `https://www.zeroclubs.xyz/notes/${note.slug}` : null;
+
+  return {
+    meta: [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:image", content: image },
+      { property: "og:type", content: "article" },
+      ...(canonicalUrl ? [{ property: "og:url", content: canonicalUrl }] : []),
+      { name: "twitter:card", content: note.cover_url ? "summary_large_image" : "summary" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+      { name: "twitter:image", content: image },
+    ],
+    links: canonicalUrl ? [{ rel: "canonical", href: canonicalUrl }] : [],
+  };
+}
 
 export const Route = createFileRoute('/app/notes/$id')({
   loader: async ({ params: { id } }) => {
@@ -21,49 +53,32 @@ export const Route = createFileRoute('/app/notes/$id')({
 
     if (error) console.error("Error loading note:", error);
 
-    return { note };
-  },
-  head: ({ loaderData }) => {
-    const note = loaderData?.note;
-    if (!note) return {};
-
-    const title = note.title || "Note on Zero Club";
-    
-    // Extract first text block for description
-    const firstTextBlock = note.blocks?.find((b: any) => b.type === 'text' && b.content && b.content !== '<p></p>');
-    let description = "Read this note on Zero Club";
-    if (firstTextBlock) {
-      const stripped = firstTextBlock.content.replace(/(<([^>]+)>)/gi, "");
-      description = stripped.substring(0, 160) + (stripped.length > 160 ? '...' : '');
+    // Old UUID links remain valid, but immediately settle on the readable,
+    // canonical public URL once this note has a slug.
+    if (note?.slug) {
+      throw redirect({ to: "/notes/$slug", params: { slug: note.slug }, replace: true });
     }
 
-    const image = note.cover_url || "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4215c30d-ff7b-4508-a899-c922d00e5475/id-preview-fa4e9537--ee5d9983-4748-4793-a658-4041e1470658.lovable.app-1778475055046.png";
-
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: image },
-        { property: "og:type", content: "article" },
-        // Use summary if there is no specific cover_url, else summary_large_image
-        { name: "twitter:card", content: note.cover_url ? "summary_large_image" : "summary" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: image },
-      ]
-    };
+    return { note };
   },
-  component: NoteReaderPage,
+  head: ({ loaderData }) => buildNoteHead(loaderData?.note),
+  component: NoteReaderRoutePage,
 });
 
-function NoteReaderPage() {
+function NoteReaderRoutePage() {
   const { id } = Route.useParams();
+  const { note } = Route.useLoaderData();
+  return <NoteReaderPage noteId={id} initialNote={note} />;
+}
+
+export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initialNote?: any }) {
+  const id = noteId;
   const navigate = useNavigate();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const lastScrollTop = useRef(0);
+  const [headerHidden, setHeaderHidden] = useState(false);
   const { data: profile } = useUser();
   const queryClient = useQueryClient();
-  const { note: loaderNote } = Route.useLoaderData();
   const { data: note, isLoading: loading } = useQuery({
     queryKey: ['note', id],
     queryFn: async () => {
@@ -77,12 +92,32 @@ function NoteReaderPage() {
       if (error) throw error;
       return data;
     },
-    initialData: () => loaderNote || undefined
+    initialData: () => initialNote || undefined,
+    enabled: Boolean(id),
   });
 
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const handleReaderScroll = () => {
+    const element = scrollRef.current;
+    if (!element) return;
+
+    const current = element.scrollTop;
+    const delta = current - lastScrollTop.current;
+    if (current <= 16) {
+      setHeaderHidden(false);
+      lastScrollTop.current = current;
+      return;
+    }
+    if (Math.abs(delta) < 8) return;
+
+    // A finger swipe upward moves the article down and hides the header;
+    // reversing direction brings the controls back immediately.
+    setHeaderHidden(delta > 0 && current > 72);
+    lastScrollTop.current = current;
+  };
   /*
    * Subscribing, not following.
    *
@@ -151,7 +186,9 @@ function NoteReaderPage() {
   };
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/app/notes/${note?.id || id}`;
+    const url = note?.slug
+      ? `${window.location.origin}/notes/${note.slug}`
+      : `${window.location.origin}/app/notes/${note?.id || id}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -270,9 +307,13 @@ function NoteReaderPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-y-auto bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
+    <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
       
-      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+      <header
+        className={`absolute inset-x-0 top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)] shadow-sm transition-transform duration-300 ease-out ${
+          headerHidden ? "-translate-y-full" : "translate-y-0"
+        }`}
+      >
         <div className="mx-auto flex h-16 w-full max-w-[920px] items-center gap-3 px-4 sm:px-6">
         <button 
           onClick={() => navigate({ to: profile?.id ? '/app/notes' : '/' })}
@@ -294,7 +335,11 @@ function NoteReaderPage() {
         </div>
       </header>
 
-      <div className="w-full flex-1 flex flex-col">
+      <div
+        ref={scrollRef}
+        onScroll={handleReaderScroll}
+        className="flex h-full w-full flex-1 flex-col overflow-y-auto pt-[calc(4rem+env(safe-area-inset-top))]"
+      >
         
         {/* Cover Image */}
         {note.cover_url && (

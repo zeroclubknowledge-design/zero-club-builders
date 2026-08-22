@@ -145,7 +145,8 @@ function NotesEditPage() {
   useEffect(() => {
     if (noteData && profile && noteData.author_id && noteData.author_id !== profile.id) {
       toast.error("You can only edit your own notes.");
-      navigate({ to: '/app/notes/$id', params: { id: noteId } });
+      if (noteData.slug) navigate({ to: '/notes/$slug', params: { slug: noteData.slug } });
+      else navigate({ to: '/app/notes/$id', params: { id: noteId } });
     }
   }, [noteData, profile, noteId, navigate]);
 
@@ -517,7 +518,8 @@ function NotesEditPage() {
       await queryClient.invalidateQueries({ queryKey: ['notes'] });
 
       toast.success("Note updated successfully!");
-      navigate({ to: '/app/notes/$id', params: { id: noteId } });
+      if (updatedNote.slug) navigate({ to: '/notes/$slug', params: { slug: updatedNote.slug } });
+      else navigate({ to: '/app/notes/$id', params: { id: noteId } });
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Failed to publish note');
@@ -532,7 +534,7 @@ function NotesEditPage() {
       {/* Minimal Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center gap-3 px-4 sm:px-6">
-        <button onClick={() => navigate({ to: '/app/notes/$id', params: { id: noteId } })} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95">
+        <button onClick={() => noteData?.slug ? navigate({ to: '/notes/$slug', params: { slug: noteData.slug } }) : navigate({ to: '/app/notes/$id', params: { id: noteId } })} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95">
           <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
         </button>
         <div className="min-w-0 flex-1">

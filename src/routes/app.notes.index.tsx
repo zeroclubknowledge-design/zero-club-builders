@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Search, Plus, Edit3, Image as ImageIcon, MoreVertical, Trash2, Share2, X } from "@/components/icons/solar";
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/hooks/useUser';
 import { formatDistanceToNow } from 'date-fns';
@@ -12,6 +12,13 @@ import { toast } from 'sonner';
 export const Route = createFileRoute('/app/notes/')({
   component: NotesIndexPage,
 });
+
+function NoteDetailsLink({ note, className, children }: { note: any; className: string; children: ReactNode }) {
+  if (note.slug) {
+    return <Link to="/notes/$slug" params={{ slug: note.slug }} className={className}>{children}</Link>;
+  }
+  return <Link to="/app/notes/$id" params={{ id: note.id }} className={className}>{children}</Link>;
+}
 
 function NotesIndexPage() {
   const navigate = useNavigate();
@@ -65,13 +72,15 @@ function NotesIndexPage() {
     setNoteToDelete(null);
   };
 
-  const handleShare = async (e: React.MouseEvent, noteId: string, title?: string) => {
+  const handleShare = async (e: React.MouseEvent, note: any) => {
     e.preventDefault();
-    const url = `${window.location.origin}/app/notes/${noteId}`;
+    const url = note.slug
+      ? `${window.location.origin}/notes/${note.slug}`
+      : `${window.location.origin}/app/notes/${note.id}`;
     if (navigator.share) {
       try {
         await navigator.share({
-          title: title || 'ZeroNotes',
+          title: note.title || 'ZeroNotes',
           text: 'Check out this note on Zero Club!',
           url: url,
         });
@@ -182,7 +191,7 @@ function NotesIndexPage() {
           <>
             {/* Editorial Hero Note */}
             {featuredNote && (
-              <Link to="/app/notes/$id" params={{ id: featuredNote.id }} className="block group">
+              <NoteDetailsLink note={featuredNote} className="block group">
                 <article className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-black shadow-[0_1px_2px_rgba(0,0,0,0.05),0_18px_40px_-20px_rgba(0,0,0,0.35)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_2px_6px_rgba(0,0,0,0.06),0_26px_54px_-22px_rgba(0,0,0,0.45)] sm:aspect-[2/1] md:aspect-[24/9]">
                   {featuredNote.cover_url ? (
                     <img 
@@ -223,7 +232,7 @@ function NotesIndexPage() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
-                                onClick={(e) => handleShare(e, featuredNote.id, featuredNote.title)}
+                                onClick={(e) => handleShare(e, featuredNote)}
                               >
                                 <Share2 className="h-4 w-4" />
                                 <span className="font-medium">Share Note</span>
@@ -241,7 +250,7 @@ function NotesIndexPage() {
                       ) : (
                         <div onClick={(e) => e.preventDefault()} className="pointer-events-auto">
                           <button 
-                            onClick={(e) => handleShare(e, featuredNote.id, featuredNote.title)}
+                            onClick={(e) => handleShare(e, featuredNote)}
                             className="h-8 w-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition"
                           >
                             <Share2 className="h-4 w-4" />
@@ -281,7 +290,7 @@ function NotesIndexPage() {
                     </div>
                   </div>
                 </article>
-              </Link>
+              </NoteDetailsLink>
             )}
 
             {/* List Notes (Magazine Grid) */}
@@ -295,7 +304,7 @@ function NotesIndexPage() {
                 
                 <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-5">
                   {recentNotes.map((note) => (
-                    <Link key={note.id} to="/app/notes/$id" params={{ id: note.id }} className="group block relative">
+                    <NoteDetailsLink key={note.id} note={note} className="group block relative">
                       {/* Mobile: Horizontal, Desktop: Vertical */}
                       <article className="flex flex-row overflow-hidden rounded-lg border border-border/60 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04),0_10px_26px_-14px_rgba(0,0,0,0.16)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-border group-hover:shadow-[0_2px_5px_rgba(0,0,0,0.05),0_18px_40px_-16px_rgba(0,0,0,0.24)]">
                         {/* Cover Image */}
@@ -338,7 +347,7 @@ function NotesIndexPage() {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="flex items-center gap-3 py-2.5 cursor-pointer text-foreground focus:text-foreground"
-                                    onClick={(e) => handleShare(e, note.id, note.title)}
+                                    onClick={(e) => handleShare(e, note)}
                                   >
                                     <Share2 className="h-4 w-4" />
                                     <span className="font-medium">Share Note</span>
@@ -356,7 +365,7 @@ function NotesIndexPage() {
                           ) : (
                             <div className="absolute top-2 right-2 md:top-4 md:right-4" onClick={(e) => e.preventDefault()}>
                               <button 
-                                onClick={(e) => handleShare(e, note.id, note.title)}
+                                onClick={(e) => handleShare(e, note)}
                                 className="h-8 w-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition"
                               >
                                 <Share2 className="h-4 w-4" />
@@ -393,7 +402,7 @@ function NotesIndexPage() {
                           </div>
                         </div>
                       </article>
-                    </Link>
+                    </NoteDetailsLink>
                   ))}
                 </div>
               </div>
