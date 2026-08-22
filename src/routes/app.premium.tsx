@@ -20,6 +20,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { toast } from "sonner";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
 import { formatNaira, resolvePlanKey } from "@/features/membership/plans";
@@ -582,6 +583,19 @@ function MembershipPage() {
                 <>Subscribe &amp; Pay</>
               )}
             </button>
+
+            {/* Membership is the payment people most often come back to later
+                because they were short on the day. */}
+            {!selectedIsCurrent && !selectedIsInstitution && (selectedPlan?.priceValue || 0) > 0 && (
+              <div className="mt-3">
+                <RequestFundsButton
+                  amount={selectedPlan!.priceValue as number}
+                  purpose={`Zero Club ${selectedPlan?.name} membership`}
+                  label="Ask someone to cover this"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/20 text-[13px] font-semibold text-white transition hover:bg-white/10 active:scale-[0.99]"
+                />
+              </div>
+            )}
 
             <p className="mt-3 text-center text-[11.5px] text-white/45">
               {selectedIsInstitution

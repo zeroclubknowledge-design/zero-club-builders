@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
+import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { openPaystackCheckout, buildReference, paystackPublicKey, paystackKeyProblem, describeVerifyFailure } from "@/lib/paystack";
 import { fundLinkUrl, copyToClipboard, shareOrCopy } from "@/lib/share";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
@@ -401,6 +402,17 @@ function AddMoneyPage() {
               : status === "paying" ? (<><Loader2 className="h-4 w-4 animate-spin" />Waiting for Paystack</>)
               : (<>{numericAmount > 0 ? `Pay ${format(numericAmount)} with Paystack` : "Pay with Paystack"}<ArrowRight className="h-4 w-4" /></>)}
           </button>
+
+          {/* The amount typed above, asked for rather than paid. */}
+          {numericAmount > 0 && (
+            <div className="mt-2.5">
+              <RequestFundsButton
+                amount={numericAmount}
+                purpose="Top up my Zero Club wallet"
+                label={`Ask someone for ${format(numericAmount)}`}
+              />
+            </div>
+          )}
 
           {paystackKeyProblem() && (
             <p className="mt-3 rounded-lg bg-amber-500/[0.08] px-3 py-2.5 text-[11px] leading-relaxed text-amber-700 ring-1 ring-amber-500/20">

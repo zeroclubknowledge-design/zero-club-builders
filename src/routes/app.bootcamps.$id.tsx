@@ -4,6 +4,7 @@ import {
   Bookmark,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   FileText,
   Layers3,
@@ -19,6 +20,7 @@ import {
 } from "@/components/icons/solar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/lib/supabase";
+import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -94,17 +96,32 @@ function BootcampDetail() {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [applyZeroGift, setApplyZeroGift] = useState(false);
+  const [viewerChecked, setViewerChecked] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   useEffect(() => {
-    if (bootcamp?.id) checkEnrollment();
+    if (bootcamp?.id) void checkEnrollment();
   }, [bootcamp?.id, club?.id]);
 
-  async function checkEnrollment() {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+  useEffect(() => {
+    setDescriptionExpanded(false);
+  }, [id]);
 
-    if (session) {
+  async function checkEnrollment() {
+    setViewerChecked(false);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setCurrentUser(null);
+        setIsEnrolled(false);
+        setIsWishlisted(false);
+        setIsClubAdmin(false);
+        return;
+      }
+
       const { data: prof } = await supabase
         .from("profiles")
         .select("*")
@@ -117,8 +134,8 @@ function BootcampDetail() {
         .select("*")
         .eq("profile_id", session.user.id)
         .eq("bootcamp_id", bootcamp.id)
-        .single();
-      setIsEnrolled(!!data);
+        .maybeSingle();
+      setIsEnrolled(Boolean(data));
 
       const { data: wishlist } = await supabase
         .from("bootcamp_wishlists")
@@ -128,16 +145,21 @@ function BootcampDetail() {
         .maybeSingle();
       setIsWishlisted(Boolean(wishlist));
 
-      if (club?.id) {
-        const { data: membership } = await supabase
-          .from("club_members")
-          .select("role")
-          .eq("club_id", club.id)
-          .eq("profile_id", session.user.id)
-          .eq("role", "Administrator")
-          .maybeSingle();
-        setIsClubAdmin(Boolean(membership));
+      if (!club?.id) {
+        setIsClubAdmin(false);
+        return;
       }
+
+      const { data: membership } = await supabase
+        .from("club_members")
+        .select("role")
+        .eq("club_id", club.id)
+        .eq("profile_id", session.user.id)
+        .eq("role", "Administrator")
+        .maybeSingle();
+      setIsClubAdmin(Boolean(membership));
+    } finally {
+      setViewerChecked(true);
     }
   }
 
@@ -292,6 +314,9 @@ function BootcampDetail() {
   const couponPrice = appliedCoupon ? Math.round(finalPrice * (1 - couponDiscountPct / 100)) : finalPrice;
   const formatPrice = (value: number) => format(value);
   const canManageBootcamp = currentUser?.id === bootcamp.creator_id || currentUser?.id === bootcamp.assigned_tutor_id || isClubAdmin;
+  const showLearnerActions = viewerChecked && !canManageBootcamp;
+  const descriptionText = String(bootcamp.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const descriptionCanExpand = descriptionText.length > 180 || /<(ul|ol|h2|h3|blockquote)\b/i.test(String(bootcamp.description || ""));
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -312,18 +337,40 @@ function BootcampDetail() {
         </Link>
       </div>
 
-      <div className="relative z-20 -mt-12 px-5 flex-1 flex flex-col">
+      <div className="relative z-20 flex flex-1 flex-col px-5 pt-5">
         <div className="space-y-3">
           <div className="inline-flex rounded-full border border-primary/20 bg-primary/15 px-2.5 py-1 text-[10px] font-bold uppercase text-primary">
             {bootcamp.category}
           </div>
           <h1 className="font-display text-2xl font-bold leading-tight">{bootcamp.title}</h1>
-          <div className="text-sm leading-relaxed text-muted-foreground">
-            {/* Formatted descriptions render with their headings and bullets;
-                plain older ones keep their line breaks and clickable links. */}
-            {looksFormatted(bootcamp.description)
-              ? <RichText content={bootcamp.description} />
-              : <LinkifiedText text={bootcamp.description || ""} />}
+          <div>
+            <div className="relative">
+              <div
+                id="bootcamp-description"
+                className={`text-sm leading-relaxed text-muted-foreground ${descriptionCanExpand && !descriptionExpanded ? "max-h-28 overflow-hidden" : ""}`}
+              >
+                {/* Formatted descriptions render with their headings and bullets;
+                    plain older ones keep their line breaks and clickable links. */}
+                {looksFormatted(bootcamp.description)
+                  ? <RichText content={bootcamp.description} />
+                  : <LinkifiedText text={bootcamp.description || ""} />}
+              </div>
+              {descriptionCanExpand && !descriptionExpanded && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent" />
+              )}
+            </div>
+            {descriptionCanExpand && (
+              <button
+                type="button"
+                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+                aria-expanded={descriptionExpanded}
+                aria-controls="bootcamp-description"
+                className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-primary transition hover:opacity-80"
+              >
+                {descriptionExpanded ? "Show less" : "Read full description"}
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${descriptionExpanded ? "rotate-180" : ""}`} />
+              </button>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
@@ -468,16 +515,29 @@ function BootcampDetail() {
                 <Pencil className="h-4 w-4" /> Edit bootcamp
               </Link>
             )}
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Ready to join?</p>
-                <h2 className="mt-1 text-xl font-black text-foreground">Enroll in this bootcamp</h2>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Get the curriculum, live class access, ZeroNotes, XP rewards, and the cohort club.
-                </p>
+            {viewerChecked ? (
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
+                    {canManageBootcamp ? "Your bootcamp" : "Ready to join?"}
+                  </p>
+                  <h2 className="mt-1 text-xl font-black text-foreground">
+                    {canManageBootcamp ? "Manage this bootcamp" : "Enroll in this bootcamp"}
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {canManageBootcamp
+                      ? "Edit the programme, start a live class, share access, or open its club."
+                      : "Get the curriculum, live class access, ZeroNotes, XP rewards, and the cohort club."}
+                  </p>
+                </div>
+                <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
               </div>
-              <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
-            </div>
+            ) : (
+              <div className="space-y-2" aria-label="Checking bootcamp access">
+                <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
+                <div className="h-6 w-56 max-w-full animate-pulse rounded-md bg-muted" />
+              </div>
+            )}
 
             <div className="flex flex-wrap items-end gap-2">
               <span className="font-display text-3xl font-black text-foreground">{formatPrice(couponPrice)}</span>
@@ -500,7 +560,7 @@ function BootcampDetail() {
               )}
             </div>
 
-            {!isEnrolled && basePrice > 0 && (
+            {showLearnerActions && !isEnrolled && basePrice > 0 && (
               <div className="border-t border-border/50 pt-5">
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-sm font-black text-foreground">Apply Coupon</p>
@@ -537,7 +597,7 @@ function BootcampDetail() {
               </div>
             )}
 
-            {!isEnrolled && couponPrice > 0 && (
+            {showLearnerActions && !isEnrolled && couponPrice > 0 && (
               <ZeroGiftPaymentOption
                 service="bootcamps"
                 amount={couponPrice}
@@ -547,45 +607,59 @@ function BootcampDetail() {
               />
             )}
 
-            {isEnrolled ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3.5 text-sm font-bold text-success">
-                  <CheckCircle2 className="h-5 w-5" />
-                  You are enrolled
-                </div>
-                <Link
-                  to="/app/live/$classId"
-                  params={{ classId: bootcamp.id }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"
-                >
-                  <Video className="h-5 w-5" />
-                  Join Live Class
-                </Link>
-                {club && (
+            {showLearnerActions && (
+              isEnrolled ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3.5 text-sm font-bold text-success">
+                    <CheckCircle2 className="h-5 w-5" />
+                    You are enrolled
+                  </div>
                   <Link
-                    to="/app/clubs/chat"
-                    search={{ clubId: club.id, showRules: "false" }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"
+                    to="/app/live/$classId"
+                    params={{ classId: bootcamp.id }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"
                   >
-                    <Users className="h-5 w-5" />
-                    Enter Club
+                    <Video className="h-5 w-5" />
+                    Join Live Class
                   </Link>
-                )}
+                  {club && (
+                    <Link
+                      to="/app/clubs/chat"
+                      search={{ clubId: club.id, showRules: "false" }}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"
+                    >
+                      <Users className="h-5 w-5" />
+                      Enter Club
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={handleEnroll}
+                  disabled={loading}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-[0_10px_28px_-12px_rgba(204,32,143,0.75)] transition hover:brightness-95 active:scale-[0.98] disabled:opacity-70"
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Enroll Now
+                </button>
+              )
+            )}
+
+            {/* Short of the fee? Ask for it from here rather than leaving,
+                finding the wallet and typing the amount out again. */}
+            {showLearnerActions && !isEnrolled && couponPrice > 0 && (
+              <div className="mt-2.5">
+                <RequestFundsButton
+                  amount={couponPrice}
+                  purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`}
+                  label="Ask someone to sponsor this"
+                />
               </div>
-            ) : (
-              <button
-                onClick={handleEnroll}
-                disabled={loading}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-[0_10px_28px_-12px_rgba(204,32,143,0.75)] transition hover:brightness-95 active:scale-[0.98] disabled:opacity-70"
-              >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                Enroll Now
-              </button>
             )}
 
             {canManageBootcamp && <BootcampShareAction bootcamp={bootcamp} />}
 
-            {(!isEnrolled && canManageBootcamp) && (
+            {canManageBootcamp && (
               <div className="mt-3 space-y-3">
                 <Link
                   to="/app/live/$classId"
@@ -608,24 +682,26 @@ function BootcampDetail() {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={handleWishlist}
-              disabled={wishlistLoading}
-              aria-pressed={isWishlisted}
-              className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                isWishlisted
-                  ? "border-primary/30 bg-primary/[0.08] text-primary"
-                  : "border-border text-foreground active:bg-accent/30"
-              }`}
-            >
-              {wishlistLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current" : ""}`} />
-              )}
-              {isWishlisted ? "Saved to Wishlist" : "Add to Wishlist"}
-            </button>
+            {showLearnerActions && (
+              <button
+                type="button"
+                onClick={handleWishlist}
+                disabled={wishlistLoading}
+                aria-pressed={isWishlisted}
+                className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isWishlisted
+                    ? "border-primary/30 bg-primary/[0.08] text-primary"
+                    : "border-border text-foreground active:bg-accent/30"
+                }`}
+              >
+                {wishlistLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current" : ""}`} />
+                )}
+                {isWishlisted ? "Saved to Wishlist" : "Add to Wishlist"}
+              </button>
+            )}
           </div>
         </footer>
       </div>

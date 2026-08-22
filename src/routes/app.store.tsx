@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
+import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { formatPercent } from "@/lib/utils";
 import { copyToClipboard, shareOrCopy, storeProductUrl } from "@/lib/share";
@@ -579,6 +580,18 @@ function StorePage() {
                       {purchasingId === selected.id && <Loader2 className="h-4 w-4 animate-spin" />}
                       Buy now
                     </button>
+                  )}
+
+                  {/* Offered whether or not they can afford it: somebody buying
+                      a resource for a group asks for the money the same way. */}
+                  {!isOwn && isCoins && payable > 0 && (
+                    <div className="mt-2.5">
+                      <RequestFundsButton
+                        amount={payable}
+                        purpose={`${selected.name} on Zero Store`}
+                        label="Ask someone to cover this"
+                      />
+                    </div>
                   )}
                 </div>
               </>

@@ -505,12 +505,26 @@ export const getFollowers = async () => {
   }
   return data?.map(f => f.profiles) || [];
 };
+/*
+ * The day a quest belongs to, as the database sees it.
+ *
+ * claim_daily_xp_quest keys a daily claim by the Africa/Lagos date. Working the
+ * date out from the browser's own clock instead meant that for anyone outside
+ * that zone — or anyone near midnight inside it — the key the page looked for
+ * never matched the key the database had written, so a claimed quest came back
+ * looking claimable after every refresh.
+ *
+ * en-CA is used only because it formats as YYYY-MM-DD, which is the shape the
+ * source key uses.
+ */
 const getLocalDateString = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos' }).format(new Date());
+  } catch {
+    // Very old engines without time zone support: better a local date than none.
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
 };
 
 export const getQuests = async () => {
@@ -584,12 +598,25 @@ export const getQuests = async () => {
   }
 
   const dateStr = getLocalDateString();
-  const { data: claimedQuestEvents } = await supabase
-    .from('xp_events')
-    .select('source_key')
-    .eq('profile_id', session.user.id)
-    .eq('event_type', 'daily_quest');
-  const claimedQuestKeys = new Set((claimedQuestEvents || []).map((event) => event.source_key));
+
+  /* Claims live in zp_events now that quests pay ZP, but anything claimed
+     before that change is still recorded in xp_events. Both are read, or a
+     quest somebody finished last week would offer itself again. */
+  const [{ data: zpClaims }, { data: xpClaims }] = await Promise.all([
+    supabase
+      .from('zp_events')
+      .select('source_key')
+      .eq('profile_id', session.user.id)
+      .eq('event_type', 'daily_quest'),
+    supabase
+      .from('xp_events')
+      .select('source_key')
+      .eq('profile_id', session.user.id)
+      .eq('event_type', 'daily_quest'),
+  ]);
+  const claimedQuestKeys = new Set(
+    [...(zpClaims || []), ...(xpClaims || [])].map((event: any) => event.source_key),
+  );
 
   return quests.map((q: any) => {
     let progress = 0;
@@ -604,9 +631,16 @@ export const getQuests = async () => {
     if (q.criteria_type === 'ship') progress = shipsCount.count || 0;
     if (q.criteria_type === 'profile') progress = profileResult.data?.bio?.trim() ? 1 : 0;
 
+    /* The database writes `slug:date` for a daily quest and plain `slug` for a
+       one-off. The quest's `id` here is already the slug — it is remapped
+       above — and `database_id` holds the uuid, which older rows may have used
+       instead. All four shapes are checked so a claim recorded by any version
+       of this code is still recognised. */
     const claimKey = `quest_claimed_${session.user.id}_${q.id}_${dateStr}`;
     const isClaimed = claimedQuestKeys.has(`${q.id}:${dateStr}`)
       || claimedQuestKeys.has(q.id)
+      || (q.slug && (claimedQuestKeys.has(`${q.slug}:${dateStr}`) || claimedQuestKeys.has(q.slug)))
+      || (q.database_id && claimedQuestKeys.has(String(q.database_id)))
       || (typeof window !== 'undefined' && localStorage.getItem(claimKey) === 'true');
 
     return {

@@ -2,6 +2,7 @@ import { useLoaderData, createFileRoute, Link, useNavigate, redirect } from "@ta
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award, GraduationCap } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
+import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -1309,6 +1310,16 @@ function Clubs() {
                     <p className="shrink-0 text-[17px] font-semibold tabular-nums text-foreground">
                       {format(Number(selectedClub.subscription_fee))}
                     </p>
+                  </div>
+                )}
+
+                {!selectedClub.is_private && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
+                  <div className="mt-2.5">
+                    <RequestFundsButton
+                      amount={Number(selectedClub.subscription_fee)}
+                      purpose={`Membership of ${selectedClub.name} on Zero Club`}
+                      label="Ask someone to cover this"
+                    />
                   </div>
                 )}
 
