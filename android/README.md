@@ -138,9 +138,13 @@ or filenames changed, so the web manifest and the Android app stay in agreement.
 
 ## Troubleshooting
 
-**The app shows a browser URL bar.** Digital Asset Links are not verifying.
-Run `node scripts/write-assetlinks.mjs --check`. The usual cause is Play App
-Signing — see above. Verify independently with Google's checker:
+**The app shows a browser URL bar.** Current builds use an app-like WebView
+fallback, so this usually means an older APK is installed or a link opened
+`zeroclubs.xyz` instead of the verified `www.zeroclubs.xyz` app origin. Digital
+Asset Links should still be verified for the normal TWA path: run
+`node scripts/write-assetlinks.mjs --check`. For a Play build, make sure the
+Play App Signing fingerprint is included as described above. Verify independently
+with Google's checker:
 
 ```
 https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://www.zeroclubs.xyz&relation=delegate_permission/common.handle_all_urls

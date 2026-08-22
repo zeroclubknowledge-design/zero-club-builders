@@ -75,7 +75,7 @@ export const Route = createFileRoute("/app/profile/$id")({
        not resolve relative paths against the page they are reading. */
     const image = profile?.avatar_url?.startsWith("http")
       ? profile.avatar_url
-      : "https://zeroclubs.xyz/logo.png";
+      : "https://www.zeroclubs.xyz/logo.png";
 
     return {
       meta: [

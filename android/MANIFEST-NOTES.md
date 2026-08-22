@@ -18,8 +18,8 @@ generated `android/app/` tree — is the thing to edit.
 | `iconUrl` | `/icons/icon-512.png` | Bubblewrap derives the legacy launcher icon and the splash image from this. |
 | `maskableIconUrl` | `/icons/icon-maskable-512.png` | Becomes the Android adaptive icon foreground. Must be opaque with artwork inside the central 80% safe circle — a transparent edge-to-edge logo gets its extremities cropped by round/squircle masks. |
 | `monochromeIconUrl` | `/icons/icon-monochrome-512.png` | Alpha silhouette used by Android 13+ themed icons. |
-| `fallbackType` | `customtabs` | If the device's browser cannot host a Trusted Web Activity, fall back to a Custom Tab rather than a WebView. WebView fallback loses the shared cookie jar, so users would appear logged out. |
-| `additionalTrustedOrigins` | `zeroclubs.xyz` | The apex, kept trusted so existing `zeroclubs.xyz` links still open in the app. Note it does **not** currently serve `assetlinks.json`, so links to it will show a URL bar until the apex either serves that file or redirects to `www`. Harmless either way — it only affects apex links, not the app itself. |
+| `fallbackType` | `webview` | If Trusted Web Activity verification is unavailable, preserve an app-like full-screen shell instead of exposing Chrome's URL/share/menu bar. The verified `www` origin still uses TWA normally; only the fallback changes. A device entering fallback may need one sign-in because WebView and Chrome do not share storage. |
+| `additionalTrustedOrigins` | `[]` | Only `www.zeroclubs.xyz` is the Zero Club app origin. The apex currently resolves to a different GoDaddy site and cannot be trusted or kept inside the Android shell. |
 | `minSdkVersion` | `21` | Android 5.0. Below this there is no Custom Tabs / TWA support worth targeting. |
 | `signingKey` | `./android.keystore`, alias `zeroclub-upload` | Path is relative to `android/`. The keystore itself is gitignored; see `README.md`. |
 | `appVersion` / `appVersionCode` | injected | Do not hand-edit. `scripts/build-android.mjs` overwrites both from `version.json` on every build. |

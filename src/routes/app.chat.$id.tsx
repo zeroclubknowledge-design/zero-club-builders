@@ -23,6 +23,11 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { directMessagePreview, parseFundLinkMessage } from "@/lib/directMessage";
 
+// A stable loading fallback. Creating [] inside the useQuery destructure gives
+// the message-sync effect a new dependency on every render and can trigger
+// React's maximum-update-depth failure while a slow connection is still loading.
+const EMPTY_DIRECT_MESSAGES: any[] = [];
+
 export const Route = createFileRoute("/app/chat/$id")({
   component: ChatViewPage,
 });
@@ -476,11 +481,12 @@ function ChatViewPage() {
     }
   });
 
-  const { data: initialMessages = [], isLoading: messagesLoading } = useQuery({
+  const { data: loadedMessages, isLoading: messagesLoading } = useQuery({
     queryKey: ["messages", id],
     queryFn: () => getMessages(id),
     staleTime: 0,
   });
+  const initialMessages = loadedMessages ?? EMPTY_DIRECT_MESSAGES;
 
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");

@@ -33,6 +33,19 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "zeroclubs.xyz"
+        }
+      ],
+      "destination": "https://www.zeroclubs.xyz/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/_next/(.*)",

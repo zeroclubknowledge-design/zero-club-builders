@@ -4,11 +4,9 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { copyToClipboard } from "@/lib/share";
 
 import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
@@ -58,70 +56,104 @@ function NotFoundComponent() {
   );
 }
 
+const isNetworkFailure = (error: unknown) => {
+  const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error || "");
+  return /failed to fetch|networkerror|network request failed|load failed|fetch failed|internet disconnected|err_internet|timeout|timed out/i.test(message);
+};
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
+  const [online, setOnline] = useState(() => typeof navigator === "undefined" || navigator.onLine);
+  const [retrying, setRetrying] = useState(false);
+  const needsRefresh = isChunkLoadError(error) || isStaleShellError(error);
+  const connectionProblem = !online || isNetworkFailure(error);
 
-  /*
-   * Which page broke.
-   *
-   * A minified React error on its own ("Minified React error #185") is not
-   * diagnosable — it says what went wrong but not where, and the person
-   * reporting it has usually moved on by the time anyone asks. The path and
-   * stack are already here; showing them costs nothing and turns a screenshot
-   * into something that can be fixed.
-   */
-  const path = useRouterState({ select: (state) => state.location.pathname });
-
-  const copyDetails = () => {
-    const details = [
-      `Page: ${path}`,
-      `Error: ${error.name}: ${error.message}`,
-      error.stack ? `\n${error.stack.slice(0, 900)}` : "",
-    ].join("\n");
-    copyToClipboard(details, "Error details copied");
-  };
-
-  const handleHardReload = () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        for (let registration of registrations) {
-          registration.unregister();
-        }
-        window.location.reload();
-      });
-    } else {
-      window.location.reload();
+  const retry = async () => {
+    if (!online) return;
+    setRetrying(true);
+    try {
+      await router.invalidate();
+    } catch (retryError) {
+      console.warn("Page retry did not complete", retryError);
+    } finally {
+      reset();
+      setRetrying(false);
     }
   };
 
   useEffect(() => {
+    console.error("Zero Club page error", {
+      path: typeof window === "undefined" ? "unknown" : window.location.pathname,
+      error,
+    });
+
     // Guarded, so a chunk that stays missing shows this screen rather than
-    // reloading forever. The button below is still an unconditional hard
-    // reload, because a person pressing it cannot become a loop.
+    // reloading forever. A manual reload remains available below.
     if ((isChunkLoadError(error) || isStaleShellError(error)) && !recoverFromChunkError()) {
-      console.warn("Chunk error recovery already attempted; showing the error screen.");
+      console.warn("Automatic app update recovery already attempted.");
     }
   }, [error]);
 
+  useEffect(() => {
+    const handleOffline = () => setOnline(false);
+    const handleOnline = () => {
+      setOnline(true);
+      setRetrying(true);
+      void router.invalidate()
+        .catch((retryError) => console.warn("Reconnect retry did not complete", retryError))
+        .finally(() => {
+          reset();
+          setRetrying(false);
+        });
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [reset, router]);
+
+  const title = connectionProblem
+    ? "You're offline"
+    : needsRefresh
+      ? "Zero Club is updating"
+      : "This page couldn't open";
+  const description = connectionProblem
+    ? "Check your connection. We’ll reconnect this page as soon as you’re back online."
+    : needsRefresh
+      ? "A newer version is ready. Reload once to continue with the latest app."
+      : "Your other pages are still safe. Try opening this page again or return to your feed.";
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
-      <div className="max-w-sm text-center">
-        <h1 className="text-2xl font-semibold">Something broke</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-        <p className="mt-3 break-all rounded-lg border border-border bg-card px-3 py-2 font-mono text-[11px] text-muted-foreground">
-          {path}
-        </p>
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <button onClick={() => { router.invalidate(); reset(); }} className="rounded-full bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
-            Try again
-          </button>
-          <button onClick={copyDetails} className="text-xs text-muted-foreground hover:text-foreground underline">
-            Copy error details
-          </button>
-          <button onClick={handleHardReload} className="text-xs text-muted-foreground hover:text-foreground underline">
-            Clear cache and reload
-          </button>
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-5 py-10 text-foreground">
+      <div className="w-full max-w-sm overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_24px_80px_-36px_rgba(0,0,0,0.45)]">
+        <div className="flex flex-col items-center px-7 pb-8 pt-9 text-center">
+          <div className="relative grid h-16 w-16 place-items-center rounded-[22px] bg-primary/10 ring-1 ring-primary/15">
+            <img src="/icons/icon-192.png" alt="" className="h-11 w-11 rounded-[15px]" />
+            <span className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full ring-4 ring-card ${connectionProblem ? "bg-amber-500" : "bg-primary"}`} />
+          </div>
+          <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Zero Club</p>
+          <h1 className="mt-2 text-[22px] font-semibold tracking-tight">{title}</h1>
+          <p className="mt-2 text-[13px] leading-5 text-muted-foreground">{description}</p>
+
+          <div className="mt-7 grid w-full gap-2.5">
+            <button
+              type="button"
+              onClick={needsRefresh ? () => window.location.reload() : retry}
+              disabled={retrying || (connectionProblem && !online)}
+              className="flex h-11 w-full items-center justify-center rounded-xl bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-glow transition active:scale-[0.98] disabled:opacity-55"
+            >
+              {retrying ? "Reconnecting…" : !online ? "Waiting for connection…" : needsRefresh ? "Reload Zero Club" : "Try again"}
+            </button>
+            <Link
+              to="/app"
+              className="flex h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 text-[13px] font-semibold text-foreground transition hover:bg-accent active:scale-[0.98]"
+            >
+              Return to feed
+            </Link>
+          </div>
         </div>
       </div>
     </div>
