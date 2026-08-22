@@ -52,6 +52,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 
 const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
+const QUESTION_REMINDER_MS = 5 * 60 * 1000;
 
 /**
  * Live-chat text, with tags picked out in the brand pink.
@@ -147,8 +148,11 @@ function SessionElapsed() {
 export function GlobalLiveRoom() {
   const { isActive, channelId } = useLiveSession();
   const [client, setClient] = useState<any>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [tokenSession, setTokenSession] = useState<{ channelId: string; value: string } | null>(null);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [tokenRequestVersion, setTokenRequestVersion] = useState(0);
   const [isFetchingToken, setIsFetchingToken] = useState(false);
+  const token = tokenSession?.channelId === channelId ? tokenSession.value : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -191,13 +195,16 @@ export function GlobalLiveRoom() {
   }, [isActive, client]);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchToken() {
       if (!isActive || !channelId) return;
       setIsFetchingToken(true);
+      setTokenError(null);
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData?.session) {
-          toast.error("You must be logged in to join a live class");
+          if (!cancelled) setTokenError("Sign in again, then reopen this live class.");
           return;
         }
         const { data, error } = await supabase.functions.invoke("agora-token", {
@@ -205,29 +212,35 @@ export function GlobalLiveRoom() {
         });
         if (error || !data?.token) {
           console.error("Token fetch error:", error, data);
-          toast.error("Failed to authenticate with live server.");
+          if (!cancelled) setTokenError("We couldn't connect to the live classroom. Check your connection and try again.");
           return;
         }
-        setToken(data.token);
+        if (!cancelled) setTokenSession({ channelId, value: data.token });
       } catch (err) {
         console.error(err);
-        toast.error("Error connecting to live server");
+        if (!cancelled) setTokenError("We couldn't connect to the live classroom. Check your connection and try again.");
       } finally {
-        setIsFetchingToken(false);
+        if (!cancelled) setIsFetchingToken(false);
       }
     }
 
     if (isActive && channelId) {
-      fetchToken();
+      void fetchToken();
     } else {
-      setToken(null);
+      setTokenSession(null);
+      setTokenError(null);
+      setIsFetchingToken(false);
     }
-  }, [isActive, channelId]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isActive, channelId, tokenRequestVersion]);
 
   if (!isActive || !channelId) return null;
 
   /* ── Loading State ── */
-  if (isFetchingToken) {
+  if (isFetchingToken || (!token && !tokenError)) {
     return (
       <div className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center">
         <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[100px]" />
@@ -244,7 +257,7 @@ export function GlobalLiveRoom() {
   }
 
   /* ── Error State ── */
-  if (!token && !isFetchingToken) {
+  if (!token && tokenError) {
     return (
       <div className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center p-6">
         <div className="bg-[#141117] p-8 rounded-[28px] ring-1 ring-white/[0.06] max-w-md w-full text-center shadow-lift">
@@ -252,15 +265,24 @@ export function GlobalLiveRoom() {
             <PhoneOff className="w-6 h-6" strokeWidth={1.75} />
           </div>
           <h2 className="text-[21px] font-semibold text-white tracking-tight mb-2">Connection failed</h2>
-          <p className="text-white/50 mb-8 text-[13.5px] leading-relaxed">
-            We couldn't generate a secure access token for this session.
-          </p>
-          <button
-            onClick={() => window.history.back()}
-            className="w-full py-3.5 bg-white text-black text-[14px] font-semibold tracking-tight rounded-full tap hover:opacity-90"
-          >
-            Go back
-          </button>
+          <p className="text-white/50 mb-8 text-[13.5px] leading-relaxed">{tokenError}</p>
+          <div className="grid gap-2.5">
+            <button
+              onClick={() => {
+                setTokenError(null);
+                setTokenRequestVersion((version) => version + 1);
+              }}
+              className="w-full py-3.5 bg-[#cc208f] text-white text-[14px] font-semibold tracking-tight rounded-full tap hover:opacity-90"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => window.history.back()}
+              className="w-full py-3.5 bg-white/[0.06] text-white text-[14px] font-semibold tracking-tight rounded-full tap ring-1 ring-white/10 hover:bg-white/[0.1]"
+            >
+              Go back
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -557,9 +579,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [showReactionTray, setShowReactionTray] = useState(false);
   const [questionRaised, setQuestionRaised] = useState(false);
   const [incomingQuestion, setIncomingQuestion] = useState<{ id: string; name: string } | null>(null);
-  const lastQuestionSentAtRef = useRef(0);
   const lastQuestionBySenderRef = useRef<Map<string, number>>(new Map());
-  const questionRaisedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const questionReminderIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const questionAlertSendingRef = useRef(false);
   const incomingQuestionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const speakQuestionAlert = () => {
@@ -590,21 +612,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     incomingQuestionTimerRef.current = setTimeout(() => setIncomingQuestion(null), 6000);
   };
 
-  const sendQuestionAlert = async () => {
+  const broadcastQuestionAlert = async () => {
     const now = Date.now();
-    if (now - lastQuestionSentAtRef.current < 5000) {
-      toast.info("Your question alert has already been sent.");
-      return;
-    }
-    if (!chatChannelRef.current) {
-      toast.error("The live room is still connecting. Please try again.");
-      return;
-    }
-
-    lastQuestionSentAtRef.current = now;
-    setQuestionRaised(true);
-    if (questionRaisedTimerRef.current) clearTimeout(questionRaisedTimerRef.current);
-    questionRaisedTimerRef.current = setTimeout(() => setQuestionRaised(false), 3000);
+    if (!chatChannelRef.current) return false;
 
     const status = await chatChannelRef.current.send({
       type: "broadcast",
@@ -617,19 +627,53 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       },
     });
 
-    if (status !== "ok") {
-      lastQuestionSentAtRef.current = 0;
+    return status === "ok";
+  };
+
+  const sendQuestionAlert = async () => {
+    if (questionRaised) {
       setQuestionRaised(false);
+      if (questionReminderIntervalRef.current) {
+        clearInterval(questionReminderIntervalRef.current);
+        questionReminderIntervalRef.current = null;
+      }
+      toast.info("Your question hand is lowered.");
+      return;
+    }
+
+    if (questionAlertSendingRef.current) return;
+    if (!chatChannelRef.current) {
+      toast.error("The live room is still connecting. Please try again.");
+      return;
+    }
+
+    questionAlertSendingRef.current = true;
+    const sent = await broadcastQuestionAlert().catch((error) => {
+      console.warn("Question alert did not send", error);
+      return false;
+    });
+    questionAlertSendingRef.current = false;
+
+    if (!sent) {
       toast.error("The question alert did not send. Please try again.");
       return;
     }
 
-    toast.success("Question sent to your tutor.");
+    setQuestionRaised(true);
+    if (questionReminderIntervalRef.current) clearInterval(questionReminderIntervalRef.current);
+    questionReminderIntervalRef.current = setInterval(() => {
+      void broadcastQuestionAlert()
+        .then((reminderSent) => {
+          if (!reminderSent) console.warn("Question reminder did not send");
+        })
+        .catch((error) => console.warn("Question reminder did not send", error));
+    }, QUESTION_REMINDER_MS);
+    toast.success("Question sent. Your hand will stay raised until you lower it.");
   };
 
   useEffect(() => {
     return () => {
-      if (questionRaisedTimerRef.current) clearTimeout(questionRaisedTimerRef.current);
+      if (questionReminderIntervalRef.current) clearInterval(questionReminderIntervalRef.current);
       if (incomingQuestionTimerRef.current) clearTimeout(incomingQuestionTimerRef.current);
     };
   }, []);
@@ -1163,8 +1207,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* The tutor is never one of the learners. Counting them here is what made a
      room with nobody in it report a person: the presenter was being added to
      the very list that exists to show who is watching them. */
-  const cameraCount = cameraOnUsers.length + (!isAdmin && selfHasCamera ? 1 : 0);
-  const audioCount = audioOnlyUsers.length + (!isAdmin && !selfHasCamera ? 1 : 0);
   const totalCount = remoteUsers.length + 1;
   /* Everyone in the room minus the person teaching. The tab was showing
      totalCount, so a tutor with one learner read "Learners · 2" while the pill
@@ -1529,7 +1571,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           </div>
         </div>
       )}
-\n      {/* ═══ STAGE + PANEL ═══ */}
+      {/* ═══ STAGE + PANEL ═══ */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0 gap-2 px-2.5 md:px-4 pb-2">
         {/* ── STAGE ── */}
         <div className={`relative overflow-hidden rounded-lg bg-black ring-1 ring-white/[0.08] min-h-0 transition-[aspect-ratio] duration-300 ${theater ? "flex-1" : presenting ? "shrink-0 aspect-video md:aspect-auto md:flex-1" : "shrink-0 aspect-[4/3] md:aspect-auto md:flex-1"}`}>
@@ -1667,8 +1709,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               <button
                 onClick={sendQuestionAlert}
                 disabled={isLeaving}
-                title="Ask a question"
-                aria-label="Ask a question"
+                title={questionRaised ? "Lower your hand" : "Ask a question"}
+                aria-label={questionRaised ? "Lower your hand" : "Ask a question"}
                 aria-pressed={questionRaised}
                 className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_22px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
               >
@@ -1955,83 +1997,65 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
             {/* ── Learners tab ── */}
             {activeTab === "learners" && (
-              <div className="flex-1 overflow-y-auto p-4 space-y-5 no-scrollbar">
-                {/* Camera on — Meet-style tiles: name pill bottom-left, mic
-                    state on the pill itself, and a ring on whoever is talking
-                    so you can see who has the floor without reading names. */}
-                <div>
-                  <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-white/40 mb-2.5">
-                    <Video className="w-3 h-3" /> Camera on ({cameraCount})
-                  </p>
-                  {cameraCount === 0 ? (
-                    <p className="text-[12px] text-white/30">No cameras on yet.</p>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      {!isAdmin && selfHasCamera && (
-                        <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
-                          <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
-                          <TilePill name="You" muted={!micOn} />
-                        </div>
-                      )}
-                      {cameraOnUsers.map((user) => (
-                        <div
-                          key={user.uid}
-                          className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}
-                        >
-                          {findVideo(user.uid) && (
-                            <RemoteVideoTrack track={findVideo(user.uid)!} play={true} className="w-full h-full object-cover" />
-                          )}
-                          <TilePill
-                            name={userNames[user.uid] || "Builder"}
-                            muted={!user.hasAudio}
-                            tutor={adminUids.has(String(user.uid))}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
+                {((!isAdmin && selfHasCamera) || cameraOnUsers.length > 0) && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {!isAdmin && selfHasCamera && (
+                      <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
+                        <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
+                        <TilePill name="You" muted={!micOn} />
+                      </div>
+                    )}
+                    {cameraOnUsers.map((user) => (
+                      <div
+                        key={user.uid}
+                        className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}
+                      >
+                        {findVideo(user.uid) && (
+                          <RemoteVideoTrack track={findVideo(user.uid)!} play={true} className="w-full h-full object-cover" />
+                        )}
+                        <TilePill
+                          name={userNames[user.uid] || "Builder"}
+                          muted={!user.hasAudio}
+                          tutor={adminUids.has(String(user.uid))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                {/* Audio only */}
-                <div>
-                  <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-white/40 mb-2.5">
-                    <Mic className="w-3 h-3" /> Audio only ({audioCount})
-                  </p>
-                  {audioCount === 0 ? (
-                    <p className="text-[12px] text-white/30">Everyone else has their camera on.</p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {!isAdmin && !selfHasCamera && (
-                        <div className="flex items-center justify-between rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-8 h-8" />
-                            <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">You</span>
-                          </div>
-                          <MicDot on={micOn} />
+                {((!isAdmin && !selfHasCamera) || audioOnlyUsers.length > 0) && (
+                  <div className={`space-y-1.5 ${((!isAdmin && selfHasCamera) || cameraOnUsers.length > 0) ? "mt-3" : ""}`}>
+                    {!isAdmin && !selfHasCamera && (
+                      <div className="flex items-center justify-between rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] px-3 py-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-8 h-8" />
+                          <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">You</span>
                         </div>
-                      )}
-                      {audioOnlyUsers.map((user) => (
-                        <div
-                          key={user.uid}
-                          className={`flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <Avatar url={userAvatars[user.uid]} name={userNames[user.uid] || "B"} className="w-8 h-8" />
-                            <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">
-                              {userNames[user.uid] || "Builder"}
+                        <MicDot on={micOn} />
+                      </div>
+                    )}
+                    {audioOnlyUsers.map((user) => (
+                      <div
+                        key={user.uid}
+                        className={`flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar url={userAvatars[user.uid]} name={userNames[user.uid] || "B"} className="w-8 h-8" />
+                          <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">
+                            {userNames[user.uid] || "Builder"}
+                          </span>
+                          {adminUids.has(String(user.uid)) && (
+                            <span className="shrink-0 text-[8px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
+                              Tutor
                             </span>
-                            {adminUids.has(String(user.uid)) && (
-                              <span className="shrink-0 text-[8px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
-                                Tutor
-                              </span>
-                            )}
-                          </div>
-                          <MicDot on={!!user.hasAudio} />
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <MicDot on={!!user.hasAudio} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -2063,8 +2087,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <button
             onClick={sendQuestionAlert}
             disabled={isLeaving}
-            title="Ask a question"
-            aria-label="Ask a question"
+            title={questionRaised ? "Lower your hand" : "Ask a question"}
+            aria-label={questionRaised ? "Lower your hand" : "Ask a question"}
             aria-pressed={questionRaised}
             className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_20px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white"}`}
           >
