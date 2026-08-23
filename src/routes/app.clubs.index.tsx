@@ -1,9 +1,10 @@
 import { useLoaderData, createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award, GraduationCap } from "@/components/icons/solar";
+import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { ClubCard } from "@/components/ClubCard";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
@@ -70,6 +71,15 @@ export const Route = createFileRoute("/app/clubs/")({
 
 function Clubs() {
   const { details: currencyDetails, format } = useWalletCurrency();
+
+  /* What it costs to get in, in one short phrase. A club with free access set
+     is free whatever fee is stored against it, so the flag wins over the
+     number — the same order the join function applies them in. */
+  const clubPriceLabel = (club: any) => {
+    const fee = Number(club?.subscription_fee) || 0;
+    if (club?.access_free || fee <= 0) return "Free";
+    return `${format(fee)}/month`;
+  };
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -707,6 +717,145 @@ function Clubs() {
           </div>
         )}
 
+        {/* Your own clubs come first.
+
+            Somebody opening this page is far more often returning to a
+            club they are already in than looking for a new one, and
+            Discover was making them scroll past a shelf of strangers to
+            reach it. Browsing is the rarer errand, so it goes below. */}
+        {/* My Clubs and Boot Clubs are two tabs over one list, rather than two
+            stacked sections. Side by side they fit a phone without pushing the
+            bootcamp clubs far below the fold, and the single list underneath
+            keeps every card at the same full width. */}
+        {showJoinedSections && <div className="mb-4 min-w-0">
+          <div className="mb-4 flex items-center gap-5 border-b border-border/30">
+            <button
+              onClick={() => setClubsTab("mine")}
+              className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
+                visibleClubsTab === "mine" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              My Clubs
+              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-foreground/10 px-1.5 text-[10px] font-bold text-muted-foreground">
+                {filteredMyClubs.length}
+              </span>
+              {visibleClubsTab === "mine" && (
+                <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
+              )}
+            </button>
+
+            {(bootClubs.length > 0 || clubScope === "boot") && (
+              <button
+                onClick={() => setClubsTab("boot")}
+                className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
+                  visibleClubsTab === "boot" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Boot Clubs
+                <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">
+                  {filteredBootClubs.length}
+                </span>
+                {visibleClubsTab === "boot" && (
+                  <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* My Clubs */}
+          <section className={visibleClubsTab === "mine" ? "" : "hidden"}>
+          {/* min-w-0 on the grid stops a long club name from widening the
+              track and pushing every card past the edge of a phone screen. */}
+          <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
+            {filteredMyClubs.length > 0 ? filteredMyClubs.map((c: any) => (
+              <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block min-w-0 transition active:scale-[0.98]">
+                <ClubCard
+                  club={c}
+                  nameSuffix={<CheckCircle2 className="h-3.5 w-3.5 shrink-0 fill-primary/20 text-primary" />}
+                  meta={
+                    <span className="flex items-center gap-1.5">
+                      <span>{c.members_count || 1} Members</span>
+                      {(c.online_count || 0) > 0 && (
+                        <>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="flex items-center gap-1.5 text-success">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+                            {c.online_count} online
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  }
+                />
+              </Link>
+            )) : (
+              <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center md:col-span-2">
+                <p className="text-xs text-muted-foreground/60 font-medium mb-4">
+                  {clubSearch ? `No joined club name matches “${clubSearch.trim()}”.` : "You haven't joined any clubs yet."}
+                </p>
+                {!clubSearch && (
+                  <button onClick={handleCreateClick} className="rounded-full bg-[#171218] px-5 py-2.5 text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 active:scale-95 hover:opacity-90">
+                    Create a Club
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {filteredMyClubs.length > 0 && (
+              <button className="group flex w-full min-w-0 items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card md:col-span-2">
+                <div className="flex items-center gap-2.5 text-xs font-bold text-foreground">
+                  <div className="grid h-7 w-7 place-items-center rounded-xl bg-accent/30">
+                    <LayoutGrid className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  View all joined clubs
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-foreground transition-all duration-300 group-hover:translate-x-0.5" />
+              </button>
+            )}
+          </div>
+          </section>
+
+          {/* Bootcamp Clubs: temporary clubs attached to bootcamps. Hidden
+              entirely when there are none. */}
+          {(bootClubs.length > 0 || clubScope === "boot") && (
+            <section className={visibleClubsTab === "boot" ? "" : "hidden"}>
+              <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
+                {filteredBootClubs.length > 0 ? filteredBootClubs.map((c: any) => {
+                  const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
+                  const ended = endsAt ? endsAt < new Date() : false;
+
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => navigate({ to: "/app/clubs/chat", search: { clubId: c.id } as any })}
+                      className="block w-full min-w-0 text-left transition active:scale-[0.98]"
+                    >
+                      <ClubCard
+                        club={c}
+                        badge={ended ? "Ended" : "Bootcamp"}
+                        badgeClassName={ended ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"}
+                        meta={
+                          <span className="flex items-center gap-1.5">
+                            <span>{c.members_count || 0} Members</span>
+                            <span className="text-muted-foreground">·</span>
+                            <span className="font-medium text-muted-foreground">
+                              {ended ? "Read-only archive" : endsAt ? `Ends ${endsAt.toLocaleDateString()}` : "Runs with the bootcamp"}
+                            </span>
+                          </span>
+                        }
+                      />
+                    </button>
+                  );
+                }) : (
+                  <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center text-xs font-medium text-muted-foreground/60 md:col-span-2">
+                    {clubSearch ? `No Boot Club name matches “${clubSearch.trim()}”.` : "No Boot Clubs are available yet."}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+        </div>}
+
         {/* Category Tabs */}
         {showDiscoverSection && <div className="flex gap-6 overflow-x-auto no-scrollbar border-b border-border/20 px-1 mb-6">
           {["All", "Tech", "AI", "Design", "Startup", "Writing", "Marketing", "Campus"].map((cat) => {
@@ -756,74 +905,43 @@ function Clubs() {
               const isAlreadyJoined = myClubs.some((mc: any) => mc?.id === d.id);
 
               return (
-                <article 
-                  key={d.id} 
-                  className={`relative ${showAllDiscover ? 'w-full' : 'w-[210px] sm:w-[220px] md:w-full'} flex h-[236px] shrink-0 snap-center flex-col items-center overflow-hidden rounded-lg border p-4 text-center shadow-[0_10px_26px_-22px_rgba(23,18,24,0.45)] transition md:h-[240px] ${
-                    isFeatured 
-                      ? 'border-amber-500/50 bg-card'
-                      : 'border-border bg-card'
-                  } hover:border-primary/40 active:scale-[0.97]`}
+                <article
+                  key={d.id}
+                  className={`relative ${showAllDiscover ? 'w-full' : 'w-[260px] sm:w-[280px] md:w-full'} min-w-0 shrink-0 snap-center transition active:scale-[0.98]`}
                 >
-                  <div className="pointer-events-none absolute inset-0 bg-primary/[0.025]" />
-                  
-                  <div className="w-full flex items-start justify-between z-10 mb-3">
-                    <span className={`rounded-full ${tagClass} px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.1em]`}>
-                      {isAlreadyJoined ? "MEMBER" : (isFeatured ? "FEATURED 🎁" : (i % 2 === 0 ? "LIVE" : "HOT"))}
-                    </span>
-                    {d.is_private && (
-                      <span className="grid h-5 w-5 place-items-center rounded-full bg-muted/50 text-muted-foreground backdrop-blur-md border border-border/30">
-                        <Lock className="h-2.5 w-2.5" />
+                  <ClubCard
+                    club={d}
+                    badge={isAlreadyJoined ? "Member" : (isFeatured ? "Featured" : (i % 2 === 0 ? "Live" : "Hot"))}
+                    badgeClassName={tagClass}
+                    meta={
+                      <span className="flex items-center gap-1.5">
+                        <span>{d.members_count || 0} Members</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span>{clubPriceLabel(d)}</span>
                       </span>
-                    )}
-                  </div>
-                  
-                  <div className="relative z-10 mb-2.5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-accent/30 shadow-sm">
-                    {d.logo_url || d.banner_url ? (
-                      <img src={d.logo_url || d.banner_url} alt={`${d.name} logo`} className="h-full w-full object-cover" />
-                    ) : (
-                      <Hash className="h-6 w-6 text-muted-foreground" />
-                    )}
-                  </div>
-                  
-                  <h3 className="z-10 mb-0.5 w-full line-clamp-1 text-[14px] font-bold tracking-tight text-foreground">{d.name}</h3>
-                  <p className="z-10 mb-auto w-full line-clamp-2 text-[10px] font-medium leading-4 text-muted-foreground">{d.description || "Level up your skills"}</p>
-                  
-                  <div className="flex items-center gap-1 mb-3 z-10 mt-2">
-                    <div className="flex -space-x-1.5">
-                      <div className="h-4 w-4 rounded-full bg-blue-500 border-2 border-card" />
-                      <div className="h-4 w-4 rounded-full bg-purple-500 border-2 border-card" />
-                      <div className="h-4 w-4 rounded-full bg-emerald-500 border-2 border-card" />
-                    </div>
-                    <span className="ml-1 text-[9px] font-medium text-muted-foreground">{d.members_count || 0} members</span>
-                  </div>
-                  
-                  <div className="w-full flex items-center justify-between text-[9px] font-bold z-10 pt-2 border-t border-border/20">
-                    <div className="flex items-center gap-1.5 text-success">
-                      <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                      <span className="font-semibold">{d.online_count || 0} Online</span>
-                    </div>
-                    <span className="text-primary bg-primary/10 px-2 py-0.5 rounded-full text-[8px] font-bold border border-primary/20">2X XP</span>
-                  </div>
+                    }
+                    className={isFeatured ? "border-amber-500/50" : ""}
+                  />
 
                   {(() => {
                     const isRequested = requestedClubIds.includes(d.id);
                     return isAlreadyJoined ? (
-                      <Link 
-                        to="/app/clubs/chat" 
+                      <Link
+                        to="/app/clubs/chat"
                         search={{ clubId: d.id }}
-                        className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer"
+                        className="absolute inset-0 z-20 h-full w-full opacity-0"
                         title="Enter Club"
                       >
                         Enter
                       </Link>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedClub(d);
                           setShowJoinModal(true);
                         }}
                         disabled={joiningClubId === d.id || isRequested}
-                        className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer"
+                        className="absolute inset-0 z-20 h-full w-full opacity-0"
                         title={isRequested ? "Requested" : "Join Club"}
                       >
                         Join
@@ -840,167 +958,6 @@ function Clubs() {
           </div>
         </div>}
 
-        {/* My Clubs and Boot Clubs are two tabs over one list, rather than two
-            stacked sections. Side by side they fit a phone without pushing the
-            bootcamp clubs far below the fold, and the single list underneath
-            keeps every card at the same full width. */}
-        {showJoinedSections && <div className="mb-4 min-w-0">
-          <div className="mb-4 flex items-center gap-5 border-b border-border/30">
-            <button
-              onClick={() => setClubsTab("mine")}
-              className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
-                visibleClubsTab === "mine" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              My Clubs
-              <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-foreground/10 px-1.5 text-[10px] font-bold text-muted-foreground">
-                {filteredMyClubs.length}
-              </span>
-              {visibleClubsTab === "mine" && (
-                <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
-              )}
-            </button>
-
-            {(bootClubs.length > 0 || clubScope === "boot") && (
-              <button
-                onClick={() => setClubsTab("boot")}
-                className={`relative -mb-px flex items-center gap-2 pb-2.5 text-[15px] font-semibold tracking-tight transition ${
-                  visibleClubsTab === "boot" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Boot Clubs
-                <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">
-                  {filteredBootClubs.length}
-                </span>
-                {visibleClubsTab === "boot" && (
-                  <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-t-full bg-foreground" />
-                )}
-              </button>
-            )}
-          </div>
-
-          {/* My Clubs */}
-          <section className={visibleClubsTab === "mine" ? "" : "hidden"}>
-          {/* min-w-0 on the grid stops a long club name from widening the
-              track and pushing every card past the edge of a phone screen. */}
-          <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
-            {filteredMyClubs.length > 0 ? filteredMyClubs.map((c: any) => (
-              <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block min-w-0 transition-all duration-300 active:scale-[0.98]">
-                <article className="flex w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/30">
-                  <div className="relative shrink-0">
-                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20">
-                      {c.logo_url || c.banner_url ? (
-                        <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <Hash className="h-6 w-6 text-primary/70" />
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="min-w-0 flex-1 py-0.5">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <h4 className="truncate text-sm font-bold text-foreground tracking-tight">{c.name}</h4>
-                      <CheckCircle2 className="h-3.5 w-3.5 text-primary fill-primary/20 shrink-0" />
-                    </div>
-                    <p className="truncate text-[11px] text-muted-foreground/60 font-medium mb-1.5">{c.description || "Welcome to the club!"}</p>
-                    <div className="flex items-center gap-3 text-[10px]">
-                      <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
-                        <Users className="h-3 w-3" />
-                        {c.members_count || 1} members
-                      </span>
-                      {(c.online_count || 0) > 0 && (
-                        <span className="flex items-center gap-1 text-success font-semibold">
-                          <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                          {c.online_count} online
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/30 shrink-0" />
-                </article>
-              </Link>
-            )) : (
-              <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center md:col-span-2">
-                <p className="text-xs text-muted-foreground/60 font-medium mb-4">
-                  {clubSearch ? `No joined club name matches “${clubSearch.trim()}”.` : "You haven't joined any clubs yet."}
-                </p>
-                {!clubSearch && (
-                  <button onClick={handleCreateClick} className="rounded-full bg-[#171218] px-5 py-2.5 text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 active:scale-95 hover:opacity-90">
-                    Create a Club
-                  </button>
-                )}
-              </div>
-            )}
-            
-            {filteredMyClubs.length > 0 && (
-              <button className="group flex w-full min-w-0 items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4 transition hover:border-border hover:bg-card md:col-span-2">
-                <div className="flex items-center gap-2.5 text-xs font-bold text-foreground">
-                  <div className="grid h-7 w-7 place-items-center rounded-xl bg-accent/30">
-                    <LayoutGrid className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  View all joined clubs
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-foreground transition-all duration-300 group-hover:translate-x-0.5" />
-              </button>
-            )}
-          </div>
-          </section>
-
-          {/* Bootcamp Clubs: temporary clubs attached to bootcamps. Hidden
-              entirely when there are none. */}
-          {(bootClubs.length > 0 || clubScope === "boot") && (
-            <section className={visibleClubsTab === "boot" ? "" : "hidden"}>
-              <div className="grid min-w-0 gap-3 md:grid-cols-2 md:gap-4">
-                {filteredBootClubs.length > 0 ? filteredBootClubs.map((c: any) => {
-                  const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
-                  const ended = endsAt ? endsAt < new Date() : false;
-
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => navigate({ to: "/app/clubs/chat", search: { clubId: c.id } as any })}
-                      className="flex w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-lg border border-border/60 bg-card p-3.5 text-left transition hover:border-primary/30"
-                    >
-                      {/* The club's own logo, matching how My Clubs cards
-                          render. The graduation icon is only a fallback for a
-                          club that has not been given one. */}
-                      <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/20 text-primary">
-                        {c.logo_url || c.banner_url ? (
-                          <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <GraduationCap className="h-6 w-6" />
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1 py-0.5">
-                        <span className="mb-0.5 flex items-center gap-1.5">
-                          <span className="truncate text-sm font-bold tracking-tight text-foreground">{c.name}</span>
-                          {ended && (
-                            <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                              Ended
-                            </span>
-                          )}
-                        </span>
-                        <span className="mb-1.5 block truncate text-[11px] font-medium text-muted-foreground/60">
-                          {ended ? "Read-only archive" : endsAt ? `Ends ${endsAt.toLocaleDateString()}` : "Runs with the bootcamp"}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
-                          <Users className="h-3 w-3" />
-                          {c.members_count || 0} members
-                        </span>
-                      </span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/30" />
-                    </button>
-                  );
-                }) : (
-                  <div className="rounded-lg border border-dashed border-border/50 bg-card/50 px-4 py-10 text-center text-xs font-medium text-muted-foreground/60 md:col-span-2">
-                    {clubSearch ? `No Boot Club name matches “${clubSearch.trim()}”.` : "No Boot Clubs are available yet."}
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
-        </div>}
       </div>
 
       {/* Create Club Drawer */}
