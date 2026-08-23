@@ -11,16 +11,17 @@ import type { ReactNode } from "react";
  *
  * The problem with floating it is what happens behind. Messages scrolled up
  * past a transparent composer and stayed visible under it, half-legible, all
- * the way off the bottom edge. So the strip is opaque enough to stop them:
+ * the way off the bottom edge.
  *
- *   - `blurClassName` covers the full width from the top of the pill down past
- *     the safe area, blurring and tinting whatever passes behind it.
- *   - a short gradient sits above that, so content fades out as it arrives
- *     instead of meeting a hard horizontal line.
+ * The fix belongs below the composer, not above it. Content stays completely
+ * sharp as it scrolls down towards the composer and passes its top edge — a
+ * blur placed above would hide a message while it is still perfectly readable,
+ * which is a worse bug than the one being fixed. Only once content carries on
+ * past the composer, into the strip it rests on, does it go soft.
  *
- * There is deliberately no border and no solid bar. The edge of the effect is
- * the fade itself, which is what makes it read as an overlay rather than a
- * footer.
+ * There is deliberately no border and no solid bar: the pill and the blur
+ * under it are the whole effect, which is what makes it read as an overlay
+ * rather than a footer.
  */
 
 type ComposerOverlayProps = {
@@ -49,24 +50,24 @@ export function ComposerOverlay({
       // only the pill inside is interactive.
       style={{ pointerEvents: "none" }}
     >
-      {/* The fade. Tall enough to be a transition rather than a smudge, and it
-          ends on the same 90% the strip below starts at, so the two meet
-          without a seam. */}
+      {/* The composer, sharp and opaque, sitting on top of the strip below. */}
+      <div
+        className={`relative z-10 mx-auto w-full px-2.5 sm:px-4 ${maxWidthClassName}`}
+        style={{ pointerEvents: "auto" }}
+      >
+        {children}
+      </div>
+
+      {/* The blur, underneath the composer rather than above it.
+          A message scrolling down stays perfectly readable right up to the top
+          edge of the composer — nothing is hidden before its time. It is only
+          once it carries on past that edge, into the strip the composer sits
+          on, that it goes soft, so the thread never trails off legibly into
+          the bottom of the screen. */}
       <div
         aria-hidden
-        className="h-10 bg-gradient-to-t from-background/90 via-background/70 to-transparent backdrop-blur-sm"
+        className="-mt-3 h-[max(1.25rem,calc(env(safe-area-inset-bottom)+0.625rem))] bg-background/85 backdrop-blur-2xl"
       />
-
-      {/* The blur. Content that reaches this is no longer readable, which is
-          the whole point — it stops the thread trailing off under the pill. */}
-      <div className="bg-background/90 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur-2xl">
-        <div
-          className={`mx-auto w-full px-2.5 sm:px-4 ${maxWidthClassName}`}
-          style={{ pointerEvents: "auto" }}
-        >
-          {children}
-        </div>
-      </div>
     </div>
   );
 }
