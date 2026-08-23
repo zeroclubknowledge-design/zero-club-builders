@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/solar";
 import { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
+import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { useUser } from "@/hooks/useUser";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { supabase } from "@/lib/supabase";
@@ -1053,7 +1054,7 @@ function ChatViewPage() {
 
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar"
+        className="flex-1 overflow-y-auto p-4 pb-28 space-y-6 no-scrollbar"
       >
         {!reachedStart && (
           <div className="flex justify-center pb-2">
@@ -1105,9 +1106,13 @@ function ChatViewPage() {
         ))}
       </div>
 
-      {/* Blurred, so messages passing behind the composer are obscured rather
-          than sliding visibly under it. */}
-      <footer className="border-t border-border/40 bg-background/80 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl">
+      {/* An overlay, not a footer. The thread keeps the full height and the
+          composer rests on top of it.
+
+          Absolute rather than fixed: this page is itself a fixed panel whose
+          height follows visualViewport, so a fixed child would ignore both the
+          desktop sidebar offset and the shrinking the keyboard causes. */}
+      <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
         {editingId && (
           <div className="flex items-center justify-between mb-2 px-3 py-1.5 bg-primary/10 rounded-xl text-xs font-bold text-primary">
             <span className="flex items-center gap-1.5"><Pencil className="h-3.5 w-3.5" /> Editing message</span>
@@ -1221,7 +1226,7 @@ function ChatViewPage() {
               </button>
             </div>
         </div>
-      </footer>
+      </ComposerOverlay>
     </div>
   );
 }

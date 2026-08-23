@@ -18,6 +18,7 @@ import { getFirstName } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserMinus } from "@/components/icons/solar";
 import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
+import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { fetchPostComments } from "@/features/comments/api";
 
 interface CommentDrawerProps {
@@ -547,7 +548,9 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
         </DrawerHeader>
       )}
 
-      <div className={`flex flex-col flex-1 ${inline ?'w-full' : 'min-h-0'}`}>
+      {/* Positioned, so the composer overlay below anchors to this panel
+          rather than to whichever ancestor happens to be positioned. */}
+      <div className={`relative flex flex-col flex-1 ${inline ?'w-full' : 'min-h-0'}`}>
           <div ref={scrollRef} vaul-scrollable="" className={`${inline ?'space-y-4 py-5' : 'no-scrollbar flex-1 space-y-4 overflow-y-auto px-3 pb-32 pt-4 sm:px-5'}`}>
             {commentsLoading && threadedComments.length === 0 ? (
               <div className="space-y-5 py-1" aria-label="Loading comments">
@@ -786,28 +789,18 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
             )}
           </div>
 
-          {/* The composer floats over the thread, so without this the comments
-              kept scrolling visibly past it and out of the bottom of the
-              screen. The bar spans the full width and blurs whatever passes
-              behind it, with a fade at its top edge so content dissolves into
-              it rather than being cut off by a hard line. */}
-          <div className={`${inline ? 'fixed bottom-0 left-1/2 z-50 w-full max-w-[760px] -translate-x-1/2' : 'pointer-events-none absolute inset-x-0 bottom-0 z-20'}`}>
-            <div className="pointer-events-none h-8 bg-gradient-to-t from-background/95 to-transparent" />
-            <div className="border-t border-border/40 bg-background/80 px-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl sm:px-4">
-            <div className="pointer-events-auto">
-              <CommentComposer
-                value={newComment}
-                onChange={setNewComment}
-                onSubmit={handleSubmit}
-                loading={loading}
-                currentUser={currentUser}
-                replyLabel={replyTo ? getFirstName(replyTo.profiles) : null}
-                onCancelReply={() => setReplyTo(null)}
-                placeholder={replyTo ? "Post your reply" : "Post your thoughts"}
-              />
-            </div>
-            </div>
-          </div>
+          <ComposerOverlay position={inline ? "fixed" : "absolute"}>
+            <CommentComposer
+              value={newComment}
+              onChange={setNewComment}
+              onSubmit={handleSubmit}
+              loading={loading}
+              currentUser={currentUser}
+              replyLabel={replyTo ? getFirstName(replyTo.profiles) : null}
+              onCancelReply={() => setReplyTo(null)}
+              placeholder={replyTo ? "Post your reply" : "Post your thoughts"}
+            />
+          </ComposerOverlay>
         {inline && <div className="h-28 shrink-0" /> /* Padding for the floating composer */}
       </div>
     </>

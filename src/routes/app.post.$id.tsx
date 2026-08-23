@@ -22,6 +22,7 @@ import { LinkifiedText } from "@/components/LinkifiedText";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { getFirstName } from "@/lib/utils";
 import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
+import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { fetchPostComments } from "@/features/comments/api";
 import {
   Carousel,
@@ -728,6 +729,11 @@ function PostDetail() {
             <h1 className="text-[17px] font-semibold tracking-tight">Post</h1>
           </div>
           <div className="flex items-center gap-2">
+          {/* The brand mark, where a reader's eye already goes on a detail
+              page. It is a link home rather than decoration. */}
+          <Link to="/app" aria-label="Zero Club home" className="grid h-9 w-9 shrink-0 place-items-center rounded-full transition active:scale-95 hover:bg-accent/50">
+            <img src="/logo.png" alt="Zero Club" className="h-6 w-6 object-contain" />
+          </Link>
           {post?.is_verified_build && (
             <div className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-success ring-1 ring-success/20">
               <ShieldCheck className="h-2.5 w-2.5" /> Proof
@@ -798,7 +804,9 @@ function PostDetail() {
         </div>
       </header>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto">
+      {/* Room at the bottom for the floating composer, so the last reply can
+          be scrolled clear of it rather than ending underneath. */}
+      <div className="no-scrollbar flex-1 overflow-y-auto pb-28">
         {!post ? (
           <div className="flex flex-col items-center justify-center py-20">
             {isError ? (
@@ -1239,22 +1247,21 @@ function PostDetail() {
         )}
       </div>
 
-      {/* Floating Comment Composer */}
+      {/* The composer floats over the replies. Absolute rather than fixed, so
+          it stays inside this page's column and off the desktop sidebar. */}
       {post && (
-        <div className="pointer-events-none fixed inset-x-2 bottom-3 z-[60] pb-[env(safe-area-inset-bottom)] sm:inset-x-4 md:absolute md:inset-x-6">
-          <div className="pointer-events-auto mx-auto w-full max-w-[830px]">
-            <CommentComposer
-              value={commentText}
-              onChange={setCommentText}
-              onSubmit={handleComment}
-              loading={commentLoading}
-              currentUser={currentUser}
-              replyLabel={replyTo ? getFirstName(replyTo.profiles) : null}
-              onCancelReply={() => setReplyTo(null)}
-              placeholder="Post your reply"
-            />
-          </div>
-        </div>
+        <ComposerOverlay position="absolute" maxWidthClassName="max-w-[860px]">
+          <CommentComposer
+            value={commentText}
+            onChange={setCommentText}
+            onSubmit={handleComment}
+            loading={commentLoading}
+            currentUser={currentUser}
+            replyLabel={replyTo ? getFirstName(replyTo.profiles) : null}
+            onCancelReply={() => setReplyTo(null)}
+            placeholder="Post your reply"
+          />
+        </ComposerOverlay>
       )}
 
 

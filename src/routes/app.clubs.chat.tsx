@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/solar";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
@@ -1224,7 +1225,7 @@ function ClubChat() {
       </div>
 
       {/* Main scrolling container */}
-      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col relative" ref={scrollRef} onScroll={handleScroll}>
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col relative pb-24" ref={scrollRef} onScroll={handleScroll}>
         
         {/* Profile-Style Header (Scrolls) */}
         <div className="w-full shrink-0 z-10 bg-background pb-1">
@@ -2565,10 +2566,12 @@ function ClubChat() {
       )}
       </div>
 
-      {/* Input. Blurred, so messages passing behind the composer are obscured
-          rather than sliding visibly under it. */}
+      {/* An overlay, not a footer. Absolute rather than fixed: this page is a
+          fixed panel whose height follows visualViewport, so a fixed child
+          would ignore both the desktop sidebar offset and the shrinking the
+          keyboard causes. */}
       {!['assignments', 'announcements', 'q-and-a'].includes(activeRoom) && (
-      <div className="z-10 w-full shrink-0 border-t border-border/40 bg-background/80 px-3 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl">
+      <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
         {replyingTo && (
           <div className="mb-2 flex items-center justify-between rounded-lg bg-accent/10 p-2 border-l-3 border-primary">
             <div className="min-w-0 flex-1">
@@ -2657,7 +2660,7 @@ function ClubChat() {
               </>
             }
           />
-      </div>
+      </ComposerOverlay>
       )}
     </div>
   );
