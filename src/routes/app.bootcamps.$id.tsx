@@ -323,7 +323,6 @@ function BootcampDetail() {
   const canManageBootcamp = viewerIds.includes(String(bootcamp.creator_id || "").toLowerCase())
     || viewerIds.includes(String(bootcamp.assigned_tutor_id || "").toLowerCase())
     || isClubAdmin;
-  const showLearnerActions = viewerChecked && !canManageBootcamp;
   const descriptionText = String(bootcamp.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const descriptionCanExpand = descriptionText.length > 180 || /<(ul|ol|h2|h3|blockquote)\b/i.test(String(bootcamp.description || ""));
 
@@ -513,205 +512,153 @@ function BootcampDetail() {
         </section>
 
         <footer className="mt-auto -mx-5 border-t border-border bg-card/60 px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-8">
-          <div className="space-y-5">
-            {canManageBootcamp && (
-              <Link
-                to="/app/bootcamps/$id/edit"
-                params={{ id: bootcamp.id }}
-                search={{ source: currentUser?.account_type === "Institution" ? "institution" : "tutor" }}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/[0.06] text-[13px] font-semibold text-primary transition hover:bg-primary/[0.1]"
-              >
-                <Pencil className="h-4 w-4" /> Edit bootcamp
-              </Link>
-            )}
-            {viewerChecked ? (
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
-                    {canManageBootcamp ? "Your bootcamp" : "Ready to join?"}
-                  </p>
-                  <h2 className="mt-1 text-xl font-black text-foreground">
-                    {canManageBootcamp ? "Manage this bootcamp" : "Enroll in this bootcamp"}
-                  </h2>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {canManageBootcamp
-                      ? "Edit the programme, start a live class, share access, or open its club."
-                      : "Get the curriculum, live class access, ZeroNotes, XP rewards, and the cohort club."}
-                  </p>
-                </div>
-                <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
-              </div>
-            ) : (
-              <div className="space-y-2" aria-label="Checking bootcamp access">
-                <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
-                <div className="h-6 w-56 max-w-full animate-pulse rounded-md bg-muted" />
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-end gap-2">
-              <span className="font-display text-3xl font-black text-foreground">{formatPrice(couponPrice)}</span>
-              {(discountPct > 0 || appliedCoupon) && (
-                <>
-                  <span className="pb-1 text-sm font-bold text-muted-foreground/60 line-through">
-                    {formatPrice(appliedCoupon ? finalPrice : basePrice)}
-                  </span>
-                  {discountPct > 0 && (
-                    <span className="mb-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary">
-                      {discountPct * 100}% {tier} OFF
-                    </span>
-                  )}
-                  {appliedCoupon && (
-                    <span className="mb-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-500">
-                      {couponDiscountPct}% COUPON OFF
-                    </span>
-                  )}
-                </>
-              )}
+          {!viewerChecked ? (
+            <div className="space-y-3" aria-label="Checking bootcamp access">
+              <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
+              <div className="h-7 w-56 max-w-full animate-pulse rounded-md bg-muted" />
+              <div className="h-20 w-full animate-pulse rounded-xl bg-muted" />
             </div>
-
-            {showLearnerActions && !isEnrolled && basePrice > 0 && (
-              <div className="border-t border-border/50 pt-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm font-black text-foreground">Apply Coupon</p>
-                  {couponMessage && (
-                    <span className={`text-[11px] font-bold ${appliedCoupon ? "text-emerald-500" : "text-muted-foreground"}`}>
-                      {couponMessage}
+          ) : canManageBootcamp ? (
+            <div className="overflow-hidden rounded-2xl border border-primary/20 bg-background shadow-[0_18px_50px_-32px_rgba(204,32,143,0.65)]">
+              <div className="bg-gradient-to-br from-primary/[0.16] via-primary/[0.06] to-transparent p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-primary">
+                      <ShieldCheck className="h-3.5 w-3.5" /> Instructor view
                     </span>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    value={couponInput}
-                    onChange={(e) => {
-                      setCouponInput(e.target.value.toUpperCase());
-                      setCouponMessage("");
-                      setAppliedCoupon(false);
-                    }}
-                    placeholder="Enter Coupon"
-                    className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold tracking-wide text-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
-                  />
-                  <button
-                    onClick={handleApplyCoupon}
-                    className="rounded-xl border border-primary/50 px-5 py-3 text-sm font-black text-primary transition active:scale-[0.98]"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {appliedCoupon && (
-                  <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm">
-                    <span className="font-bold text-foreground">{couponInput}</span>
-                    <span className="font-bold text-emerald-500">Applied!</span>
+                    <h2 className="mt-3 text-xl font-black tracking-tight text-foreground">You’re teaching this bootcamp</h2>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                      Manage the programme, teach your live class, and guide learners from here.
+                    </p>
                   </div>
-                )}
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                </div>
+
+                <div className="mt-5 grid grid-cols-3 divide-x divide-border/70 rounded-xl border border-border/70 bg-card/80 py-3 text-center backdrop-blur-sm">
+                  <div className="px-2">
+                    <p className="text-sm font-black text-foreground">{modules.length}</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">Sections</p>
+                  </div>
+                  <div className="px-2">
+                    <p className="text-sm font-black text-foreground">{totalLessons}</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">Lessons</p>
+                  </div>
+                  <div className="px-2">
+                    <p className="truncate text-sm font-black text-foreground">{formatPrice(basePrice)}</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">Listed price</p>
+                  </div>
+                </div>
               </div>
-            )}
 
-            {showLearnerActions && !isEnrolled && couponPrice > 0 && (
-              <ZeroGiftPaymentOption
-                service="bootcamps"
-                amount={couponPrice}
-                applied={applyZeroGift}
-                onAppliedChange={setApplyZeroGift}
-                formatAmount={formatPrice}
-              />
-            )}
-
-            {showLearnerActions && (
-              isEnrolled ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3.5 text-sm font-bold text-success">
-                    <CheckCircle2 className="h-5 w-5" />
-                    You are enrolled
-                  </div>
+              <div className="space-y-3 p-4">
+                <Link
+                  to="/app/bootcamps/$id/edit"
+                  params={{ id: bootcamp.id }}
+                  search={{ source: currentUser?.account_type === "Institution" ? "institution" : "tutor" }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:brightness-95 active:scale-[0.98]"
+                >
+                  <Pencil className="h-4 w-4" /> Edit bootcamp
+                </Link>
+                <div className={`grid gap-3 ${club ? "grid-cols-2" : "grid-cols-1"}`}>
                   <Link
                     to="/app/live/$classId"
                     params={{ classId: bootcamp.id }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-3 text-xs font-bold text-red-500 transition active:scale-[0.98]"
                   >
-                    <Video className="h-5 w-5" />
-                    Join Live Class
+                    <Video className="h-4 w-4" /> Start live class
                   </Link>
                   {club && (
                     <Link
                       to="/app/clubs/chat"
                       search={{ clubId: club.id, showRules: "false" }}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"
+                      className="flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/[0.07] px-3 py-3 text-xs font-bold text-primary transition active:scale-[0.98]"
                     >
-                      <Users className="h-5 w-5" />
-                      Enter Club
+                      <Users className="h-4 w-4" /> Manage club
                     </Link>
                   )}
                 </div>
-              ) : (
-                <button
-                  onClick={handleEnroll}
-                  disabled={loading}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-[0_10px_28px_-12px_rgba(204,32,143,0.75)] transition hover:brightness-95 active:scale-[0.98] disabled:opacity-70"
-                >
-                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Enroll Now
-                </button>
-              )
-            )}
-
-            {/* Short of the fee? Ask for it from here rather than leaving,
-                finding the wallet and typing the amount out again. */}
-            {showLearnerActions && !isEnrolled && couponPrice > 0 && (
-              <div className="mt-2.5">
-                <RequestFundsButton
-                  amount={couponPrice}
-                  purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`}
-                  label="Ask someone to sponsor this"
-                />
+                <BootcampShareAction bootcamp={bootcamp} />
               </div>
-            )}
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Ready to join?</p>
+                  <h2 className="mt-1 text-xl font-black text-foreground">Enroll in this bootcamp</h2>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Get the curriculum, live class access, ZeroNotes, XP rewards, and the cohort club.
+                  </p>
+                </div>
+                <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
+              </div>
 
-            {canManageBootcamp && <BootcampShareAction bootcamp={bootcamp} />}
-
-            {canManageBootcamp && (
-              <div className="mt-3 space-y-3">
-                <Link
-                  to="/app/live/$classId"
-                  params={{ classId: bootcamp.id }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"
-                >
-                  <Video className="h-5 w-5" />
-                  Go Live (Tutor)
-                </Link>
-                {club && (
-                  <Link
-                    to="/app/clubs/chat"
-                    search={{ clubId: club.id, showRules: "false" }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"
-                  >
-                    <Users className="h-5 w-5" />
-                    Enter Club (Admin)
-                  </Link>
+              <div className="flex flex-wrap items-end gap-2">
+                <span className="font-display text-3xl font-black text-foreground">{formatPrice(couponPrice)}</span>
+                {(discountPct > 0 || appliedCoupon) && (
+                  <>
+                    <span className="pb-1 text-sm font-bold text-muted-foreground/60 line-through">{formatPrice(appliedCoupon ? finalPrice : basePrice)}</span>
+                    {discountPct > 0 && <span className="mb-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary">{discountPct * 100}% {tier} OFF</span>}
+                    {appliedCoupon && <span className="mb-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-500">{couponDiscountPct}% COUPON OFF</span>}
+                  </>
                 )}
               </div>
-            )}
 
-            {showLearnerActions && (
+              {!isEnrolled && basePrice > 0 && (
+                <div className="border-t border-border/50 pt-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-black text-foreground">Apply Coupon</p>
+                    {couponMessage && <span className={`text-[11px] font-bold ${appliedCoupon ? "text-emerald-500" : "text-muted-foreground"}`}>{couponMessage}</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={couponInput}
+                      onChange={(event) => {
+                        setCouponInput(event.target.value.toUpperCase());
+                        setCouponMessage("");
+                        setAppliedCoupon(false);
+                      }}
+                      placeholder="Enter Coupon"
+                      className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold tracking-wide text-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                    />
+                    <button onClick={handleApplyCoupon} className="rounded-xl border border-primary/50 px-5 py-3 text-sm font-black text-primary transition active:scale-[0.98]">Apply</button>
+                  </div>
+                  {appliedCoupon && <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm"><span className="font-bold text-foreground">{couponInput}</span><span className="font-bold text-emerald-500">Applied!</span></div>}
+                </div>
+              )}
+
+              {!isEnrolled && couponPrice > 0 && (
+                <ZeroGiftPaymentOption service="bootcamps" amount={couponPrice} applied={applyZeroGift} onAppliedChange={setApplyZeroGift} formatAmount={formatPrice} />
+              )}
+
+              {isEnrolled ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3.5 text-sm font-bold text-success"><CheckCircle2 className="h-5 w-5" />You are enrolled</div>
+                  <Link to="/app/live/$classId" params={{ classId: bootcamp.id }} className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"><Video className="h-5 w-5" />Join Live Class</Link>
+                  {club && <Link to="/app/clubs/chat" search={{ clubId: club.id, showRules: "false" }} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"><Users className="h-5 w-5" />Enter Club</Link>}
+                </div>
+              ) : (
+                <button onClick={handleEnroll} disabled={loading} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-[0_10px_28px_-12px_rgba(204,32,143,0.75)] transition hover:brightness-95 active:scale-[0.98] disabled:opacity-70">
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />} Enroll Now
+                </button>
+              )}
+
+              {!isEnrolled && couponPrice > 0 && <div className="mt-2.5"><RequestFundsButton amount={couponPrice} purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`} label="Ask someone to sponsor this" /></div>}
+
               <button
                 type="button"
                 onClick={handleWishlist}
                 disabled={wishlistLoading}
                 aria-pressed={isWishlisted}
-                className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                  isWishlisted
-                    ? "border-primary/30 bg-primary/[0.08] text-primary"
-                    : "border-border text-foreground active:bg-accent/30"
-                }`}
+                className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${isWishlisted ? "border-primary/30 bg-primary/[0.08] text-primary" : "border-border text-foreground active:bg-accent/30"}`}
               >
-                {wishlistLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current" : ""}`} />
-                )}
+                {wishlistLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current" : ""}`} />}
                 {isWishlisted ? "Saved to Wishlist" : "Add to Wishlist"}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </footer>
       </div>
     </div>
