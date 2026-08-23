@@ -24,7 +24,20 @@
  */
 
 const MARKER = "zc_chunk_reload_at";
+const ATTEMPTS = "zc_chunk_reload_attempts";
 const COOLDOWN_MS = 60_000;
+/**
+ * Three, because each attempt is a different remedy rather than the same one
+ * repeated: clear the caches, then retire the service worker, then bypass it
+ * entirely. Trying the same thing twice would just be a loop with extra steps.
+ */
+const MAX_ATTEMPTS = 3;
+
+/** True while a recovery reload has been started and the page is on its way out. */
+export function isRecovering(): boolean {
+  if (typeof window === "undefined") return false;
+  return Boolean((window as any).__zcRecovering);
+}
 
 /** Both the Vite and browser wordings for the same underlying failure. */
 export function isChunkLoadError(value: unknown): boolean {
@@ -71,29 +84,121 @@ export function recoverFromChunkError(): boolean {
   return reloadOnce();
 }
 
+/**
+ * Why one reload was not enough.
+ *
+ * Clearing the caches and reloading looks like it should be sufficient, and it
+ * was not, for two reasons that compound each other:
+ *
+ *   1. The old service worker is still the one controlling the page. Deletes
+ *      from `caches` do not retire it — it activates on the next cold start —
+ *      so it simply repopulates its precache from the manifest it was built
+ *      with, the one naming the chunks that no longer exist.
+ *
+ *   2. Navigations are served NetworkFirst with a four second timeout. On a
+ *      slow connection that timeout wins and the reload is answered with the
+ *      *cached* HTML, which references the old chunk names all over again.
+ *
+ * So the reload lands right back on the error, inside the cooldown, and the
+ * person is shown an update screen asking them to do the thing that just
+ * failed twice. Each attempt below therefore does something the previous one
+ * did not.
+ */
 function reloadOnce(): boolean {
+  let attempt = 1;
+
   try {
     const last = Number(sessionStorage.getItem(MARKER) || 0);
-    if (Date.now() - last < COOLDOWN_MS) return false;
+    const previous = Number(sessionStorage.getItem(ATTEMPTS) || 0);
+
+    // A fresh error long after the last one starts the sequence again; the
+    // deploy that caused it is over and this is a new problem.
+    attempt = Date.now() - last < COOLDOWN_MS ? previous + 1 : 1;
+    if (attempt > MAX_ATTEMPTS) return false;
+
     sessionStorage.setItem(MARKER, String(Date.now()));
+    sessionStorage.setItem(ATTEMPTS, String(attempt));
   } catch {
     // Private mode with storage disabled. Reloading blind risks a loop, so
     // leave it to the error screen's manual retry.
     return false;
   }
 
-  // Drop the service worker's precache first, or the reload can be served the
-  // very manifest that points at the missing files.
-  if ("serviceWorker" in navigator) {
-    caches
-      ?.keys()
-      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
-      .catch(() => undefined)
-      .finally(() => window.location.reload());
-  } else {
-    window.location.reload();
-  }
+  (window as any).__zcRecovering = true;
+
+  void (async () => {
+    try {
+      // Always: drop every cache, including the stale page HTML.
+      if (typeof caches !== "undefined") {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      }
+    } catch {
+      // Storage refused. The steps below still stand a chance.
+    }
+
+    try {
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+
+        if (attempt === 1) {
+          // Politely: ask the waiting worker to take over now instead of at
+          // the next cold start, so the reload is served the new manifest.
+          for (const registration of registrations) {
+            registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+            await registration.update().catch(() => undefined);
+          }
+        } else {
+          // Firmly: remove it. An unregistered worker cannot answer the next
+          // navigation from a cache built against the previous deploy.
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+      }
+    } catch {
+      // Nothing more to do here; the reload below is still worth making.
+    }
+
+    reloadNow(attempt);
+  })();
+
   return true;
+}
+
+/**
+ * The last attempt goes to the network with a parameter the cache has never
+ * seen, which no cached entry can match. It is dropped from the address bar
+ * immediately afterwards so nobody ends up sharing a link with it attached.
+ */
+function reloadNow(attempt: number) {
+  if (attempt < MAX_ATTEMPTS) {
+    window.location.reload();
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("_zc", String(Date.now()));
+  window.location.replace(url.toString());
+}
+
+/*
+ * Note there is deliberately no "clear the counter on a successful load".
+ * The load that follows a recovery reload *is* successful — the error comes a
+ * moment later, when the router reaches for the chunk. Resetting on load would
+ * put the attempt count back to one every time and turn the escalation into an
+ * endless loop of the first remedy. The cooldown does the resetting instead: a
+ * new error a minute later is a new problem and starts from the top.
+ */
+
+/** Removes the cache-busting parameter so it never gets copied or shared. */
+function tidyRecoveryParam() {
+  try {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("_zc")) return;
+    url.searchParams.delete("_zc");
+    window.history.replaceState({}, "", url.toString());
+  } catch {
+    // Cosmetic only.
+  }
 }
 
 /** Call once on the client. Safe to call more than once. */
@@ -101,6 +206,8 @@ export function installChunkRecovery() {
   if (typeof window === "undefined") return;
   if ((window as any).__zcChunkRecovery) return;
   (window as any).__zcChunkRecovery = true;
+
+  tidyRecoveryParam();
 
   // Vite's own signal for a failed module preload — fires before the import
   // rejects, so this is the earliest and cleanest place to catch it.

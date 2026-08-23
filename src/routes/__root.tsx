@@ -11,7 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { LiveSessionProvider, useLiveSession } from "@/contexts/LiveSessionContext";
-import { isChunkLoadError, isStaleShellError, recoverFromChunkError } from "@/lib/chunk-recovery";
+import { isChunkLoadError, isRecovering, isStaleShellError, recoverFromChunkError } from "@/lib/chunk-recovery";
 
 const GlobalLiveRoom = lazy(() => 
   import("@/components/GlobalLiveRoom")
@@ -68,6 +68,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const needsRefresh = isChunkLoadError(error) || isStaleShellError(error);
   const connectionProblem = !online || isNetworkFailure(error);
 
+  /*
+   * An update is the app's problem, not the person's.
+   *
+   * A stale chunk is fixed by a reload, and the app can do that itself. Showing
+   * a card headed "Zero Club is updating" with a Reload button asked people to
+   * perform a mechanical step on the app's behalf, and it appeared at the worst
+   * possible moment — mid-tap, on the way to somewhere they wanted to be.
+   *
+   * So while recovery is running, this renders nothing at all. The reload is
+   * already on its way and the screen would be gone before it could be read.
+   */
+  const [recovering, setRecovering] = useState(() => needsRefresh && isRecovering());
+
   const retry = async () => {
     if (!online) return;
     setRetrying(true);
@@ -87,10 +100,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       error,
     });
 
-    // Guarded, so a chunk that stays missing shows this screen rather than
-    // reloading forever. A manual reload remains available below.
-    if ((isChunkLoadError(error) || isStaleShellError(error)) && !recoverFromChunkError()) {
-      console.warn("Automatic app update recovery already attempted.");
+    // Guarded, so a build that stays broken eventually shows this screen
+    // rather than reloading forever. A manual reload remains available below.
+    if (isChunkLoadError(error) || isStaleShellError(error)) {
+      if (recoverFromChunkError()) {
+        setRecovering(true);
+      } else {
+        console.warn("Automatic app update recovery is exhausted.");
+        setRecovering(false);
+      }
     }
   }, [error]);
 
@@ -115,15 +133,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     };
   }, [reset, router]);
 
+  // Blank rather than a spinner: the page is milliseconds from being replaced,
+  // and a flash of loading UI reads as a second thing going wrong.
+  if (recovering) return null;
+
   const title = connectionProblem
     ? "You're offline"
     : needsRefresh
-      ? "Zero Club is updating"
+      ? "This page needs a reload"
       : "This page couldn't open";
   const description = connectionProblem
     ? "Check your connection. We’ll reconnect this page as soon as you’re back online."
     : needsRefresh
-      ? "A newer version is ready. Reload once to continue with the latest app."
+      ? "We tried to update in the background and it did not take. One reload should sort it."
       : "Your other pages are still safe. Try opening this page again or return to your feed.";
 
   return (
@@ -257,15 +279,21 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
+    let stopUpdateChecks: (() => void) | undefined;
+
     if ('serviceWorker' in navigator) {
       // Registered as a classic script: module service workers are still
       // unsupported in Firefox, and the worker needs no module features.
       // Registration is deferred until the page is idle so it never competes
       // with the first render.
+      let registration: ServiceWorkerRegistration | undefined;
+
       const registerServiceWorker = () => {
-        navigator.serviceWorker.register('/sw.js').catch((error) => {
-          console.warn('Service worker registration failed:', error);
-        });
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => { registration = reg; })
+          .catch((error) => {
+            console.warn('Service worker registration failed:', error);
+          });
       };
 
       if (document.readyState === 'complete') {
@@ -273,10 +301,33 @@ function RootComponent() {
       } else {
         window.addEventListener('load', registerServiceWorker, { once: true });
       }
+
+      /*
+       * Look for a new worker when the app comes back to the foreground.
+       *
+       * A worker only notices a deploy when something asks it to check, and
+       * nothing did — so a phone left open for days kept serving a manifest
+       * that named chunks the server had already replaced, and the person met
+       * an update error the moment they opened a page they had not visited.
+       *
+       * This only checks. It does not activate anything or reload the page,
+       * because doing that mid-session swaps the assets out from under code
+       * that is already running. Returning to the app is simply the natural
+       * moment to find out that an update exists.
+       */
+      const checkForUpdate = () => {
+        if (document.hidden) return;
+        registration?.update().catch(() => undefined);
+      };
+
+      document.addEventListener('visibilitychange', checkForUpdate);
+      stopUpdateChecks = () => document.removeEventListener('visibilitychange', checkForUpdate);
     }
-    
+
     // Initialize multi-account session sync
     setupMultiAccountSync();
+
+    return () => stopUpdateChecks?.();
   }, []);
 
   return (
