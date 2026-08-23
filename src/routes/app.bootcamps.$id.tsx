@@ -88,6 +88,7 @@ function BootcampDetail() {
 
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(false);
@@ -116,11 +117,14 @@ function BootcampDetail() {
 
       if (!session) {
         setCurrentUser(null);
+        setViewerId(null);
         setIsEnrolled(false);
         setIsWishlisted(false);
         setIsClubAdmin(false);
         return;
       }
+
+      setViewerId(session.user.id);
 
       const { data: prof } = await supabase
         .from("profiles")
@@ -313,7 +317,12 @@ function BootcampDetail() {
   const couponDiscountPct = Math.min(100, Math.max(0, Number(bootcamp.coupon_discount_percent) || 0));
   const couponPrice = appliedCoupon ? Math.round(finalPrice * (1 - couponDiscountPct / 100)) : finalPrice;
   const formatPrice = (value: number) => format(value);
-  const canManageBootcamp = currentUser?.id === bootcamp.creator_id || currentUser?.id === bootcamp.assigned_tutor_id || isClubAdmin;
+  const viewerIds = [viewerId, currentUser?.id, currentUser?.userId, currentUser?.user_id]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+  const canManageBootcamp = viewerIds.includes(String(bootcamp.creator_id || "").toLowerCase())
+    || viewerIds.includes(String(bootcamp.assigned_tutor_id || "").toLowerCase())
+    || isClubAdmin;
   const showLearnerActions = viewerChecked && !canManageBootcamp;
   const descriptionText = String(bootcamp.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const descriptionCanExpand = descriptionText.length > 180 || /<(ul|ol|h2|h3|blockquote)\b/i.test(String(bootcamp.description || ""));
