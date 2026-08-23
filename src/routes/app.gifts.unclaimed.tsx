@@ -129,6 +129,7 @@ function UnclaimedGiftsPage() {
                           url={giftUrl(card.code)}
                           title="A Zero Card for you"
                           text={`You received a ${format(Number(card.amount))} Zero Card — ${label}.`}
+                          wrapperClassName="w-full"
                           className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
                         />
                       </div>

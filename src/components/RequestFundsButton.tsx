@@ -108,23 +108,28 @@ export function RequestFundsButton({
                 your wallet, and you come back here to finish paying.
               </p>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              {/* Sharing is the point of this drawer; copying is the fallback
+                  for when the share sheet is not what somebody wants. Sitting
+                  them side by side made the primary action the narrower of the
+                  two, so each gets its own line and its full width. */}
+              <div className="mt-5 space-y-2.5">
                 <ShareMenu
                   url={shareUrl}
                   title="Help me with this on Zero Club"
                   text={requested > 0 ? `${purpose} — ${format(requested)}` : purpose}
                   label="Share"
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-foreground text-[13px] font-semibold text-background transition active:scale-95"
+                  wrapperClassName="w-full"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-5 text-[13.5px] font-semibold text-background transition active:scale-[0.99]"
                 />
                 <button
                   onClick={() => copyToClipboard(shareUrl, "Request link copied")}
-                  className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-border px-4 text-[13px] font-semibold text-foreground transition hover:bg-accent active:scale-95"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border px-5 text-[13.5px] font-semibold text-foreground transition hover:bg-accent active:scale-[0.99]"
                 >
-                  <Copy className="h-3.5 w-3.5" /> Copy
+                  <Copy className="h-4 w-4" /> Copy link
                 </button>
               </div>
 
-              <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+              <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
                 <Check className="h-3 w-3" /> Also saved under Wallet · Request
               </p>
             </>

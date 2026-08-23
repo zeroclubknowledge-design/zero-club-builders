@@ -22,10 +22,28 @@ type ShareMenuProps = {
   text: string;
   title?: string;
   className?: string;
+  /**
+   * Styles for the positioning wrapper rather than the button.
+   *
+   * The menu has to be anchored to something, so the button is wrapped in a
+   * relative div — which means the wrapper, not the button, is what a parent
+   * flex row actually lays out. Passing `flex-1` or `w-full` in `className`
+   * therefore did nothing: the button stretched inside a wrapper that was
+   * still only as wide as its text, and the share button came out squeezed
+   * next to whatever sat beside it. Width belongs here.
+   */
+  wrapperClassName?: string;
   label?: string;
 };
 
-export function ShareMenu({ url, text, title, className, label = "Share" }: ShareMenuProps) {
+export function ShareMenu({
+  url,
+  text,
+  title,
+  className,
+  wrapperClassName,
+  label = "Share",
+}: ShareMenuProps) {
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
 
@@ -90,7 +108,7 @@ export function ShareMenu({ url, text, title, className, label = "Share" }: Shar
   };
 
   return (
-    <div ref={wrapper} className="relative">
+    <div ref={wrapper} className={wrapperClassName ? `relative ${wrapperClassName}` : "relative"}>
       <button
         type="button"
         onClick={openSystemSheet}
