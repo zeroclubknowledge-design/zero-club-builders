@@ -786,7 +786,14 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
             )}
           </div>
 
-          <div className={`${inline ?'fixed bottom-3 left-1/2 z-50 w-[calc(100%-20px)] max-w-[740px] -translate-x-1/2 pb-[env(safe-area-inset-bottom)]' : 'pointer-events-none absolute inset-x-2 bottom-2 z-20 pb-[env(safe-area-inset-bottom)] sm:inset-x-4 sm:bottom-4'}`}>
+          {/* The composer floats over the thread, so without this the comments
+              kept scrolling visibly past it and out of the bottom of the
+              screen. The bar spans the full width and blurs whatever passes
+              behind it, with a fade at its top edge so content dissolves into
+              it rather than being cut off by a hard line. */}
+          <div className={`${inline ? 'fixed bottom-0 left-1/2 z-50 w-full max-w-[760px] -translate-x-1/2' : 'pointer-events-none absolute inset-x-0 bottom-0 z-20'}`}>
+            <div className="pointer-events-none h-8 bg-gradient-to-t from-background/95 to-transparent" />
+            <div className="border-t border-border/40 bg-background/80 px-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl sm:px-4">
             <div className="pointer-events-auto">
               <CommentComposer
                 value={newComment}
@@ -798,6 +805,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                 onCancelReply={() => setReplyTo(null)}
                 placeholder={replyTo ? "Post your reply" : "Post your thoughts"}
               />
+            </div>
             </div>
           </div>
         {inline && <div className="h-28 shrink-0" /> /* Padding for the floating composer */}

@@ -133,8 +133,19 @@ export function CommentComposer({
 
   const name = currentUser?.full_name || currentUser?.username || "U";
 
+  /*
+   * One box, not two.
+   *
+   * This used to be a card containing a separate rounded input, so the avatar
+   * sat outside the thing you typed into and the composer read as two stacked
+   * containers with a border between them. There is only one action here, so
+   * there is only one container: the avatar, the text and the buttons share it,
+   * and the whole thing takes the focus ring together.
+   */
+  const hasContent = Boolean(value.trim()) || files.length > 0;
+
   return (
-    <div className="rounded-lg border border-border/80 bg-background/95 p-2.5 shadow-[0_16px_45px_-18px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+    <div className="rounded-2xl border border-border/80 bg-background/95 px-2.5 py-2 shadow-[0_16px_45px_-18px_rgba(0,0,0,0.55)] backdrop-blur-xl transition focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/25">
       {replyLabel && (
         <div className="mb-2 flex items-center justify-between rounded-md bg-primary/[0.07] px-3 py-2 text-[11px] font-medium text-primary">
           <span className="truncate">Replying to {replyLabel}</span>
@@ -163,53 +174,51 @@ export function CommentComposer({
         </div>
       )}
 
-      <div className="flex items-end gap-2">
-        <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+      <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
+      <input ref={videoRef} type="file" accept="video/*" multiple className="hidden" onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
+
+      <div className="flex items-end gap-1.5">
+        <div className="mb-0.5 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
           {currentUser?.avatar_url ? <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" /> : name.slice(0, 1).toUpperCase()}
         </div>
 
-        <div className="flex min-h-10 min-w-0 flex-1 items-end rounded-lg bg-muted/70 px-2 focus-within:ring-1 focus-within:ring-primary/35">
-          <textarea
-            data-comment-composer=""
-            value={value}
-            onChange={(event) => {
-              onChange(event.target.value);
-              event.target.style.height = "auto";
-              event.target.style.height = `${Math.min(event.target.scrollHeight, 96)}px`;
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
-                event.preventDefault();
-                void submit();
-              }
-            }}
-            placeholder={placeholder}
-            rows={1}
-            className="max-h-24 min-h-10 min-w-0 flex-1 resize-none bg-transparent px-2 py-2.5 text-[13px] leading-5 outline-none no-scrollbar placeholder:text-muted-foreground"
-          />
+        <textarea
+          data-comment-composer=""
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value);
+            event.target.style.height = "auto";
+            event.target.style.height = `${Math.min(event.target.scrollHeight, 96)}px`;
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+              event.preventDefault();
+              void submit();
+            }
+          }}
+          placeholder={placeholder}
+          rows={1}
+          className="max-h-24 min-h-9 min-w-0 flex-1 resize-none self-center bg-transparent px-1.5 py-2 text-[13px] leading-5 outline-none no-scrollbar placeholder:text-muted-foreground"
+        />
 
-          <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
-          <input ref={videoRef} type="file" accept="video/*" multiple className="hidden" onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
-
-          <div className="flex shrink-0 items-center pb-1">
-            <button type="button" onClick={toggleRecording} title={isRecording ? "Stop recording" : "Record voice note"} className={`grid h-8 place-items-center rounded-full transition ${isRecording ? "min-w-14 grid-cols-[auto_auto] gap-1 bg-red-500 px-2 text-white" : "w-8 text-muted-foreground hover:text-foreground"}`}>
-              {isRecording ? <><Square className="h-3 w-3 fill-current" /><span className="text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-4 w-4" />}
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button type="button" title="Add media" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground">
-                  <Paperclip className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="w-40">
-                <DropdownMenuItem onSelect={() => galleryRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Gallery</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => videoRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <button type="button" onClick={() => void submit()} disabled={loading || (!value.trim() && files.length === 0)} aria-label="Post comment" className={`grid h-8 w-8 place-items-center rounded-full transition ${value.trim() || files.length > 0 ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </button>
-          </div>
+        <div className="mb-0.5 flex shrink-0 items-center">
+          <button type="button" onClick={toggleRecording} title={isRecording ? "Stop recording" : "Record voice note"} className={`grid h-8 place-items-center rounded-full transition ${isRecording ? "min-w-14 grid-cols-[auto_auto] gap-1 bg-red-500 px-2 text-white" : "w-8 text-muted-foreground hover:text-foreground"}`}>
+            {isRecording ? <><Square className="h-3 w-3 fill-current" /><span className="text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-4 w-4" />}
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" title="Add media" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground">
+                <Paperclip className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-40">
+              <DropdownMenuItem onSelect={() => galleryRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Gallery</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => videoRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <button type="button" onClick={() => void submit()} disabled={loading || !hasContent} aria-label="Post comment" className={`ml-0.5 grid h-8 w-8 place-items-center rounded-full transition ${hasContent ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </button>
         </div>
       </div>
     </div>

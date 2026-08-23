@@ -47,12 +47,15 @@ function ClubMessageComposer({
   controls,
   onSend,
   members = [],
+  avatar,
 }: {
   placeholder: string;
   hasMedia: boolean;
   controls: ReactNode;
   onSend: (text: string) => Promise<boolean>;
   members?: any[];
+  /** Rendered inside the composer, not beside it. */
+  avatar?: ReactNode;
 }) {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -122,7 +125,7 @@ function ClubMessageComposer({
   };
 
   return (
-    <div className="relative flex flex-1 items-end gap-1.5 rounded-2xl border border-border bg-card px-3 py-1 transition-colors focus-within:border-primary/50">
+    <div className="relative flex w-full items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50">
       {mentionMatches.length > 0 && (
         <div className="absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-xl bg-card shadow-[0_18px_44px_-20px_rgba(0,0,0,0.45)] ring-1 ring-border">
           {mentionMatches.map((person: any) => (
@@ -147,6 +150,7 @@ function ClubMessageComposer({
           ))}
         </div>
       )}
+      {avatar}
       <textarea
         ref={textareaRef}
         value={draft}
@@ -174,7 +178,7 @@ function ClubMessageComposer({
         rows={1}
         style={{ minHeight: "36px", maxHeight: "80px", height: "36px" }}
       />
-      <div className="flex shrink-0 items-center gap-0.5 pb-1">
+      <div className="mb-0.5 flex shrink-0 items-center gap-0.5">
         {controls}
         <button
           onClick={() => void submit()}
@@ -2561,9 +2565,10 @@ function ClubChat() {
       )}
       </div>
 
-      {/* Input */}
+      {/* Input. Blurred, so messages passing behind the composer are obscured
+          rather than sliding visibly under it. */}
       {!['assignments', 'announcements', 'q-and-a'].includes(activeRoom) && (
-      <div className="z-10 w-full shrink-0 border-t border-border bg-background px-3 py-2.5">
+      <div className="z-10 w-full shrink-0 border-t border-border/40 bg-background/80 px-3 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl">
         {replyingTo && (
           <div className="mb-2 flex items-center justify-between rounded-lg bg-accent/10 p-2 border-l-3 border-primary">
             <div className="min-w-0 flex-1">
@@ -2605,21 +2610,20 @@ function ClubChat() {
           </div>
         )}
         
-        <div className="flex items-end gap-2">
-          {/* Current User Avatar */}
-          <div className="h-9 w-9 shrink-0 rounded-full bg-accent/30 border border-border/50 overflow-hidden flex items-center justify-center font-bold text-xs text-muted-foreground mb-0.5">
-            {currentUserProfile?.avatar_url ? (
-              <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" />
-            ) : (
-              (currentUserProfile?.full_name || currentUserProfile?.username || 'U').substring(0, 1).toUpperCase()
-            )}
-          </div>
-
-          <ClubMessageComposer
+        <ClubMessageComposer
             placeholder={activeRoom === "general" ? "Write a message..." : `Post in ${activeRoom}...`}
             hasMedia={mediaFiles.length > 0}
             members={members}
             onSend={(text) => handleSendMessage(text)}
+            avatar={
+              <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
+                {currentUserProfile?.avatar_url ? (
+                  <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" />
+                ) : (
+                  (currentUserProfile?.full_name || currentUserProfile?.username || 'U').substring(0, 1).toUpperCase()
+                )}
+              </div>
+            }
             controls={
               <>
                 <input
@@ -2653,7 +2657,6 @@ function ClubChat() {
               </>
             }
           />
-        </div>
       </div>
       )}
     </div>

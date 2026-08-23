@@ -1105,7 +1105,9 @@ function ChatViewPage() {
         ))}
       </div>
 
-      <footer className="px-4 py-3 bg-background border-t border-border/50">
+      {/* Blurred, so messages passing behind the composer are obscured rather
+          than sliding visibly under it. */}
+      <footer className="border-t border-border/40 bg-background/80 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl">
         {editingId && (
           <div className="flex items-center justify-between mb-2 px-3 py-1.5 bg-primary/10 rounded-xl text-xs font-bold text-primary">
             <span className="flex items-center gap-1.5"><Pencil className="h-3.5 w-3.5" /> Editing message</span>
@@ -1150,8 +1152,10 @@ function ChatViewPage() {
           </div>
         )}
         
-        <div className="flex items-end gap-2">
-          <div className="h-9 w-9 shrink-0 rounded-full bg-accent/30 border border-border/50 overflow-hidden flex items-center justify-center font-bold text-xs text-muted-foreground mb-0.5">
+        {/* One container. The avatar used to sit outside the input, which read
+            as two boxes side by side for what is a single action. */}
+        <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50">
+          <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
             {currentUserProfile?.avatar_url ? (
               <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" />
             ) : (
@@ -1159,7 +1163,6 @@ function ChatViewPage() {
             )}
           </div>
 
-          <div className="flex-1 flex items-end gap-1.5 rounded-2xl border border-border bg-card px-3 py-1 focus-within:border-primary/50 transition-colors">
             <textarea 
               value={input}
               onChange={(e) => {
@@ -1217,7 +1220,6 @@ function ChatViewPage() {
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />)}
               </button>
             </div>
-          </div>
         </div>
       </footer>
     </div>
