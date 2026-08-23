@@ -56,6 +56,48 @@ import AgoraRTC, {
 const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
 const QUESTION_REMINDER_MS = 5 * 60 * 1000;
 
+type CameraQuality = "480p" | "720p" | "1080p" | "1440p" | "2160p";
+
+const CAMERA_QUALITY_OPTIONS: Array<{
+  value: CameraQuality;
+  label: string;
+  note: string;
+  width: number;
+  height: number;
+  frameRate: number;
+  bitrateMin: number;
+  bitrateMax: number;
+}> = [
+  { value: "480p", label: "Standard (480p)", note: "Uses less data", width: 640, height: 480, frameRate: 24, bitrateMin: 350, bitrateMax: 900 },
+  { value: "720p", label: "HD (720p)", note: "Recommended", width: 1280, height: 720, frameRate: 30, bitrateMin: 800, bitrateMax: 1800 },
+  { value: "1080p", label: "Full HD (1080p)", note: "Sharper video", width: 1920, height: 1080, frameRate: 30, bitrateMin: 1500, bitrateMax: 3200 },
+  { value: "1440p", label: "2K (1440p)", note: "Fast connection", width: 2560, height: 1440, frameRate: 30, bitrateMin: 2500, bitrateMax: 5200 },
+  { value: "2160p", label: "4K (2160p)", note: "Studio connection", width: 3840, height: 2160, frameRate: 30, bitrateMin: 4000, bitrateMax: 8500 },
+];
+
+const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality";
+const DEFAULT_CAMERA_QUALITY: CameraQuality = "720p";
+
+const cameraProfile = (quality: CameraQuality) =>
+  CAMERA_QUALITY_OPTIONS.find((option) => option.value === quality) || CAMERA_QUALITY_OPTIONS[1];
+
+async function applyCameraProfile(track: any, quality: CameraQuality) {
+  const profile = cameraProfile(quality);
+  const mediaTrack = track?.getMediaStreamTrack?.();
+  await mediaTrack?.applyConstraints?.({
+    width: { ideal: profile.width },
+    height: { ideal: profile.height },
+    frameRate: { ideal: profile.frameRate, max: profile.frameRate },
+  });
+  await track?.setEncoderConfiguration?.({
+    width: profile.width,
+    height: profile.height,
+    frameRate: profile.frameRate,
+    bitrateMin: profile.bitrateMin,
+    bitrateMax: profile.bitrateMax,
+  });
+}
+
 /**
  * Live-chat text, with tags picked out in the brand pink.
  *
@@ -395,6 +437,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [selectedSpeaker, setSelectedSpeaker] = useState<string>("");
   const [selfVolume, setSelfVolume] = useState(0);
   const [mirrorSelf, setMirrorSelf] = useState(true);
+  const [cameraQuality, setCameraQuality] = useState<CameraQuality>(DEFAULT_CAMERA_QUALITY);
+  const [cameraResolution, setCameraResolution] = useState("");
   const [theater, setTheater] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const leaveStartedRef = useRef(false);
@@ -430,26 +474,28 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   useJoin({ appid: APP_ID, channel, token }, true);
   const client = useRTCClient();
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
-  /*
-   * 480p, not 720p.
-   *
-   * These tiles are a few hundred pixels wide on a phone, so 720p was spending
-   * roughly three times the bitrate to fill them. On a mobile network that
-   * surplus is what turns into freezing and lag, and "motion" tells the
-   * encoder to protect frame rate over sharpness — the right trade for faces
-   * talking. Screen sharing keeps its own high-detail config, where text
-   * legibility genuinely matters.
-   */
+  /* Start in HD. Higher modes are available in Camera settings and are applied
+     to both capture and encoding so they improve the source rather than merely
+     upscaling a low-resolution camera frame. */
   const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, {
     encoderConfig: {
-      width: 640,
-      height: 480,
-      frameRate: 24,
-      bitrateMin: 300,
-      bitrateMax: 700,
+      width: 1280,
+      height: 720,
+      frameRate: 30,
+      bitrateMin: 800,
+      bitrateMax: 1800,
     },
     optimizationMode: "motion",
   });
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(CAMERA_QUALITY_STORAGE_KEY) as CameraQuality | null;
+      if (saved && CAMERA_QUALITY_OPTIONS.some((option) => option.value === saved)) setCameraQuality(saved);
+    } catch {
+      /* Storage can be unavailable in private browsing; HD remains the default. */
+    }
+  }, []);
 
   useEffect(() => {
     if (!localCameraTrack) return;
@@ -459,24 +505,54 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     // for club chat while their small participant tile remains clear enough.
     // Tutors keep the premium stage profile even while they navigate.
     const backgroundLearner = isMinimized && !isAdmin;
-    void localCameraTrack.setEncoderConfiguration(
-      backgroundLearner
-        ? {
-            width: 320,
-            height: 240,
-            frameRate: 15,
-            bitrateMin: 120,
-            bitrateMax: 250,
-          }
-        : {
-            width: 640,
-            height: 480,
-            frameRate: 24,
-            bitrateMin: 300,
-            bitrateMax: 700,
-          },
-    ).catch(console.warn);
-  }, [isAdmin, isMinimized, localCameraTrack]);
+    const update = async () => {
+      if (backgroundLearner) {
+        const mediaTrack = (localCameraTrack as any).getMediaStreamTrack?.();
+        await mediaTrack?.applyConstraints?.({
+          width: { ideal: 320 },
+          height: { ideal: 240 },
+          frameRate: { ideal: 15, max: 15 },
+        });
+        await localCameraTrack.setEncoderConfiguration({
+          width: 320,
+          height: 240,
+          frameRate: 15,
+          bitrateMin: 120,
+          bitrateMax: 250,
+        });
+        return;
+      }
+
+      await applyCameraProfile(localCameraTrack, cameraQuality);
+      const settings = (localCameraTrack as any).getMediaStreamTrack?.()?.getSettings?.();
+      if (settings?.width && settings?.height) setCameraResolution(`${settings.width} × ${settings.height}`);
+    };
+
+    void update().catch((error) => {
+      console.warn("Could not apply camera quality", error);
+      if (cameraQuality !== DEFAULT_CAMERA_QUALITY) {
+        setCameraQuality(DEFAULT_CAMERA_QUALITY);
+        toast.error("That quality is not available on this camera. Switched back to HD.");
+      }
+    });
+  }, [cameraQuality, isAdmin, isMinimized, localCameraTrack]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CAMERA_QUALITY_STORAGE_KEY, cameraQuality);
+    } catch {
+      /* The setting still works for this call when storage is unavailable. */
+    }
+  }, [cameraQuality]);
+
+  const cameraMediaTrack = (localCameraTrack as any)?.getMediaStreamTrack?.();
+  const cameraCapabilities = cameraMediaTrack?.getCapabilities?.();
+  const supportsCameraQuality = (quality: CameraQuality) => {
+    const profile = cameraProfile(quality);
+    const maxWidth = Number(cameraCapabilities?.width?.max || Number.POSITIVE_INFINITY);
+    const maxHeight = Number(cameraCapabilities?.height?.max || Number.POSITIVE_INFINITY);
+    return profile.width <= maxWidth && profile.height <= maxHeight;
+  };
 
   /*
    * setMuted, not setEnabled.
@@ -1031,6 +1107,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     setSelectedCamera(deviceId);
     try {
       await (localCameraTrack as any)?.setDevice?.(deviceId);
+      await applyCameraProfile(localCameraTrack, cameraQuality);
+      const settings = (localCameraTrack as any)?.getMediaStreamTrack?.()?.getSettings?.();
+      if (settings?.width && settings?.height) setCameraResolution(`${settings.width} × ${settings.height}`);
     } catch (error) {
       console.error("Camera switch failed:", error);
       toast.error("Could not switch to that camera");
@@ -1658,6 +1737,30 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Video quality</label>
+                  {cameraResolution && <span className="text-[10.5px] font-medium tabular-nums text-white/45">Active {cameraResolution}</span>}
+                </div>
+                <select
+                  value={cameraQuality}
+                  onChange={(event) => setCameraQuality(event.target.value as CameraQuality)}
+                  className="w-full rounded-lg bg-white/[0.06] px-3.5 py-3 text-[13.5px] text-white outline-none ring-1 ring-white/10"
+                >
+                  {CAMERA_QUALITY_OPTIONS.map((option) => {
+                    const supported = supportsCameraQuality(option.value);
+                    return (
+                      <option key={option.value} value={option.value} disabled={!supported} className="bg-[#141117]">
+                        {option.label} · {supported ? option.note : "Camera not supported"}
+                      </option>
+                    );
+                  })}
+                </select>
+                <p className="text-[10.5px] leading-relaxed text-white/40">
+                  2K and 4K require a compatible camera and a very stable connection. HD is recommended for most live classes.
+                </p>
               </div>
 
               <div className="space-y-2">
