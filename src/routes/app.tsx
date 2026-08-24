@@ -63,6 +63,7 @@ import { getCachedSession } from "@/lib/auth";
 import { NOIR_THEME, getNoirAccess, startNoirTrial } from "@/lib/noirTheme";
 import { useUser } from "@/hooks/useUser";
 import { useTrackNavigationDepth } from "@/hooks/useGoBack";
+import { isGuestReadablePath } from "@/lib/guestAccess";
 import { toast } from "sonner";
 import { getFirstName, displayName } from "@/lib/utils";
 import { directMessagePreview } from "@/lib/directMessage";
@@ -794,13 +795,12 @@ const applyAppDocumentTheme = (mode: AppThemeMode, theme: AppDarkTheme) => {
 function AppLayout() {
   const location = useLocation();
   const { pathname } = location;
-  // A published note is a public reading page even though its original URL
-  // lives below /app. Keeping this exception also preserves every note link
-  // that people have already shared.
-  const isGuestReadableNote =
-    /^\/app\/notes\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i.test(
-      pathname,
-    );
+  /* Shared links open for the people they were shared with.
+     This used to be one hardcoded regex for published notes, so a post, a
+     project, a profile and a product all bounced a first-time visitor to a
+     signup form before they saw what they had been sent. The list lives in
+     one place now, so a new shareable page cannot quietly miss out. */
+  const isGuestReadable = isGuestReadablePath(pathname);
   const navigate = useNavigate();
 
   // Counts in-app navigations so every back button can tell the difference
@@ -1226,7 +1226,7 @@ function AppLayout() {
         setSession(session);
         setLoading(false);
 
-        if (!session && !isGuestReadableNote) {
+        if (!session && !isGuestReadable) {
           const search = new URLSearchParams(window.location.search);
           router.navigate({
             to: "/signup",
@@ -1249,7 +1249,7 @@ function AppLayout() {
       if (!mounted) return;
       setSession(session);
       setLoading(false);
-      if (event === "SIGNED_OUT" && !isGuestReadableNote) {
+      if (event === "SIGNED_OUT" && !isGuestReadable) {
         const search = new URLSearchParams(window.location.search);
         router.navigate({
           to: "/signup",
@@ -1266,7 +1266,7 @@ function AppLayout() {
       clearTimeout(timeout);
       subscription.unsubscribe();
     };
-  }, [router, isGuestReadableNote]);
+  }, [router, isGuestReadable]);
 
   // 2. Handle Club Invites from URL
   useEffect(() => {
@@ -1410,7 +1410,7 @@ function AppLayout() {
   }
 
   if (!session) {
-    return isGuestReadableNote ? <Outlet /> : null;
+    return isGuestReadable ? <Outlet /> : null;
   }
 
   return (
