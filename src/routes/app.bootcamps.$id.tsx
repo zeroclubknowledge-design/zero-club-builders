@@ -29,6 +29,7 @@ import { LinkifiedText } from "@/components/LinkifiedText";
 import { RichText } from "@/components/RichText";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 import { useQueryClient } from "@tanstack/react-query";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/bootcamps/$id")({
   component: BootcampDetail,
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/app/bootcamps/$id")({
 
 function BootcampDetail() {
   const queryClient = useQueryClient();
+  const goBack = useGoBack("/app/bootcamps");
   const { format } = useWalletCurrency();
   const { id } = Route.useParams();
 
@@ -337,12 +339,11 @@ function BootcampDetail() {
             <div className="h-full w-full bg-gradient-primary" style={{ background: "linear-gradient(135deg,#cc208f,#a78bfa)" }} />
           )}
         </div>
-        <Link
-          to="/app/bootcamps"
+        <button type="button" onClick={goBack}
           className="absolute left-4 top-4 z-20 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
         >
           <ChevronLeft className="h-5 w-5" />
-        </Link>
+        </button>
       </div>
 
       <div className="relative z-20 flex flex-1 flex-col px-5 pt-5">

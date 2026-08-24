@@ -11,6 +11,7 @@ import { CommentDrawer } from "@/components/CommentDrawer";
 import { format, subDays, isSameDay } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/zerohub")({
   component: ZeroHubPage,
@@ -29,6 +30,7 @@ const licenseLabel: Record<string, string> = {
 
 function ZeroHubPage() {
   const navigate = useNavigate();
+  const goBack = useGoBack("/app");
   const queryClient = useQueryClient();
   const { data: currentUser } = useUser();
   const [view, setView] = useState<'mine' | 'explore'>('mine');
@@ -126,7 +128,7 @@ function ZeroHubPage() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-3 px-4 py-3.5 md:px-6">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate({ to: "/app" })} className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card tap hover:bg-foreground/[0.04]">
+            <button onClick={goBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card tap hover:bg-foreground/[0.04]">
               <ChevronLeft className="h-[18px] w-[18px]" />
             </button>
             <div>

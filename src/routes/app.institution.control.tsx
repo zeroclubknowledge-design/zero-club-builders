@@ -12,6 +12,7 @@ import {
 } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
+import { useGoBack } from "@/hooks/useGoBack";
 
 /**
  * The institution's control panel.
@@ -42,6 +43,7 @@ function Summary({ icon: Icon, label, value }: { icon: any; label: string; value
 
 function InstitutionControlPanel() {
   const navigate = useNavigate();
+  const goBack = useGoBack("/app/institution-studio");
   const { data: profile } = useUser();
   const [tab, setTab] = useState<"learners" | "communities">("learners");
   const [query, setQuery] = useState("");
@@ -141,7 +143,7 @@ function InstitutionControlPanel() {
       <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-8">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate({ to: "/app/institution-studio" })}
+            onClick={goBack}
             aria-label="Back to the studio"
             className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"
           >

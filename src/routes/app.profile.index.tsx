@@ -17,6 +17,7 @@ import { CommentDrawer } from "@/components/CommentDrawer";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName, displayName } from "@/lib/utils";
 import { ProfileExperience } from "@/components/ProfileExperience";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/profile/")({
   component: Profile,
@@ -31,6 +32,7 @@ const isVideoUrl = (url: string) => {
 
 function Profile() {
   const navigate = useNavigate();
+  const goBack = useGoBack("/app");
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<typeof tabs[number]>("Posts");
   const [searchQuery, setSearchQuery] = useState("");
@@ -230,7 +232,7 @@ function Profile() {
         <div className="relative z-20 flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
             <button 
-                  onClick={() => navigate({ to: '/app' })}
+                  onClick={goBack}
                   className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card text-foreground transition hover:bg-accent/60 active:scale-95"
                 >
                   <ChevronLeft className="h-[18px] w-[18px]" />

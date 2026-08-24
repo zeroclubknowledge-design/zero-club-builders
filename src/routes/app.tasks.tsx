@@ -15,6 +15,7 @@ import {
 import { getQuests, claimQuestRewardAction } from "@/services/api";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
+import { useGoBack } from "@/hooks/useGoBack";
 
 /**
  * Tasks — the quests Zero Club sets, and the ZP for finishing them.
@@ -45,6 +46,7 @@ const QUEST_ICONS: Record<string, typeof Rocket> = {
 
 function TasksPage() {
   const queryClient = useQueryClient();
+  const goBack = useGoBack("/app");
   const { data: profile } = useUser();
   const [claiming, setClaiming] = useState<string | null>(null);
 
@@ -149,13 +151,12 @@ function TasksPage() {
     <div className="min-h-screen overflow-x-hidden bg-background pb-28 text-foreground">
       <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[720px] items-center gap-3">
-          <Link
-            to="/app"
+          <button type="button" onClick={goBack}
             aria-label="Back"
             className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"
           >
             <ChevronLeft className="h-5 w-5" />
-          </Link>
+          </button>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Club</p>
             <h1 className="truncate text-[18px] font-semibold tracking-tight">Tasks</h1>

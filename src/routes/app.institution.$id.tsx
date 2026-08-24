@@ -13,6 +13,7 @@ import {
 } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { useGoBack } from "@/hooks/useGoBack";
 
 /**
  * An institution's public page.
@@ -41,6 +42,7 @@ function Stat({ value, label }: { value: string | number; label: string }) {
 function InstitutionPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack("/app");
   const { format } = useWalletCurrency();
 
   const { data, isLoading } = useQuery({
@@ -125,7 +127,7 @@ function InstitutionPage() {
       <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[900px] items-center gap-3">
           <button
-            onClick={() => navigate({ to: "/app" })}
+            onClick={goBack}
             aria-label="Back"
             className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"
           >

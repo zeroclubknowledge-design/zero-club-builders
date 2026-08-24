@@ -12,6 +12,7 @@ import { bookmarkPostAction, unbookmarkPostAction, likePostAction, unlikePostAct
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";
 import { useFollow } from "@/hooks/useFollow";
+import { useGoBack } from "@/hooks/useGoBack";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -703,9 +704,10 @@ function PostDetail() {
     }
   };
 
-  const handleBack = () => {
-    router.navigate({ to: "/app" });
-  };
+  /* Back to wherever this was opened from — ZeroHub, a profile, the feed —
+     rather than always the feed. The feed is only the fallback for a link
+     opened cold, where there genuinely is no previous page. */
+  const handleBack = useGoBack("/app");
 
   const initials = (post?.profiles?.full_name || post?.profiles?.username || 'U').substring(0, 1).toUpperCase();
 

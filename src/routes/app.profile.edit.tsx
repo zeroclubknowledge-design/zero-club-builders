@@ -8,6 +8,7 @@ import { ImageCropper } from "@/components/ImageCropper";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useUser } from "@/hooks/useUser";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/profile/edit")({
   component: EditProfile,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/app/profile/edit")({
 function EditProfile() {
   const { data: profile, isLoading: isProfileLoading } = useUser();
   const navigate = useNavigate();
+  const goBack = useGoBack("/app/profile");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
@@ -176,7 +178,7 @@ function EditProfile() {
       <header className="sticky top-0 z-50 flex items-center justify-between bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md border-b border-border/50">
         <div className="flex items-center gap-6">
           <button 
-            onClick={() => navigate({ to: "/app/profile" })} 
+            onClick={goBack} 
             className="grid h-8 w-8 place-items-center rounded-full transition active:bg-accent/50"
             disabled={loading}
           >

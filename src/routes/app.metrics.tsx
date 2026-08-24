@@ -22,6 +22,7 @@ import { useMemo, useState, type ElementType } from "react";
 import { IconClubs, IconLearn, IconMetrics, IconProfile } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import { displayName } from "@/lib/utils";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/metrics")({
   component: MetricsPage,
@@ -193,6 +194,7 @@ function MetricCard({
 }
 
 function MetricsPage() {
+  const goBack = useGoBack("/app");
   const [period, setPeriod] = useState<Period>(30);
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ["metrics"],
@@ -383,9 +385,9 @@ function MetricsPage() {
       <header className="sticky top-0 z-30 border-b hairline bg-background/88 backdrop-blur-xl">
         <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-6xl items-end justify-between gap-3 px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-7">
           <div className="flex items-center gap-3">
-            <Link to="/app" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground tap" aria-label="Back to feed">
+            <button type="button" onClick={goBack} className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground tap" aria-label="Back to feed">
               <ChevronLeft className="h-[19px] w-[19px]" />
-            </Link>
+            </button>
             <h1 className="font-display text-[19px] font-semibold tracking-tight text-foreground">Metrics</h1>
           </div>
           <span className="flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground ring-1 ring-border">

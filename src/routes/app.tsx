@@ -62,6 +62,7 @@ import {
 import { getCachedSession } from "@/lib/auth";
 import { NOIR_THEME, getNoirAccess, startNoirTrial } from "@/lib/noirTheme";
 import { useUser } from "@/hooks/useUser";
+import { useTrackNavigationDepth } from "@/hooks/useGoBack";
 import { toast } from "sonner";
 import { getFirstName, displayName } from "@/lib/utils";
 import { directMessagePreview } from "@/lib/directMessage";
@@ -801,6 +802,10 @@ function AppLayout() {
       pathname,
     );
   const navigate = useNavigate();
+
+  // Counts in-app navigations so every back button can tell the difference
+  // between "there is a page behind this one" and "this link was opened cold".
+  useTrackNavigationDepth();
   const [visible, setVisible] = useState(true);
   const [session, setSession] = useState<any>(getInitialSession);
   const [loading, setLoading] = useState(!getInitialSession());

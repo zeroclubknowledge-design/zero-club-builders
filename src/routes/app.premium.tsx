@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
 import { formatNaira, resolvePlanKey } from "@/features/membership/plans";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
@@ -255,6 +256,7 @@ function AnimatedBrandMark() {
 
 function MembershipPage() {
   const queryClient = useQueryClient();
+  const goBack = useGoBack("/app");
   const [audience, setAudience] = useState<Audience>("Learner");
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [showInstitutionForm, setShowInstitutionForm] = useState(false);
@@ -416,9 +418,9 @@ function MembershipPage() {
       <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[680px] items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
-            <Link to="/app" aria-label="Back" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
+            <button type="button" onClick={goBack} aria-label="Back" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
               <ChevronLeft className="h-5 w-5" />
-            </Link>
+            </button>
             <div className="min-w-0">
               <p className="text-[11px] font-medium uppercase text-muted-foreground">Zero Club</p>
               <h1 className="truncate text-[19px] font-semibold tracking-tight">Go PRO</h1>

@@ -31,6 +31,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/quests")({
   component: GigMarketplace,
@@ -100,6 +101,7 @@ function relativeDate(value: string) {
 
 function GigMarketplace() {
   const queryClient = useQueryClient();
+  const goBack = useGoBack("/app");
   const { details: currency, format, toBaseAmount } = useWalletCurrency();
   const [activeTab, setActiveTab] = useState<MarketplaceTab>("browse");
   const [search, setSearch] = useState("");
@@ -266,9 +268,9 @@ function GigMarketplace() {
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
-            <Link to="/app" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
+            <button type="button" onClick={goBack} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
               <ChevronLeft className="h-[18px] w-[18px]" />
-            </Link>
+            </button>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Opportunities</p>
               <h1 className="truncate font-display text-[18px] font-semibold tracking-tight md:text-[20px]">Gig marketplace</h1>

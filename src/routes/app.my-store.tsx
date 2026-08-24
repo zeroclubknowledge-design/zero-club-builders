@@ -18,6 +18,7 @@ import {
   DrawerContent,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/my-store")({
   component: MyStorePage,
@@ -57,6 +58,7 @@ function MyStorePage() {
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const formatPrice = (n: number, type: string) => type === "Coins" ? format(n) : `${n.toLocaleString()} ZP`;
   const queryClient = useQueryClient();
+  const goBack = useGoBack("/app");
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["my-store-items", profile?.id],
@@ -221,12 +223,11 @@ function MyStorePage() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-3.5 md:px-6">
           <div className="flex items-center gap-3">
-            <Link
-              to="/app"
+            <button type="button" onClick={goBack}
               className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card tap hover:bg-foreground/[0.04]"
             >
               <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
-            </Link>
+            </button>
             <div>
               <h1 className="text-[17px] font-semibold tracking-tight text-foreground">My Store</h1>
               <p className="text-[11px] text-muted-foreground">Your digital products on Zero Store</p>

@@ -17,6 +17,7 @@ import EmojiPicker from 'emoji-picker-react';
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { useGoBack } from "@/hooks/useGoBack";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string } => {
@@ -232,6 +233,7 @@ const isUserOnline = (profile: any) => {
 function ClubChat() {
   const { showRules: showRulesParam, clubId } = useSearch({ from: "/app/clubs/chat" });
   const navigate = useNavigate();
+  const goBack = useGoBack("/app/clubs");
   const [activeRoom, setActiveRoom] = useState("general");
   const [messages, setMessages] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -1151,9 +1153,9 @@ function ClubChat() {
         isScrolled ? "bg-background/80 backdrop-blur-md border-b border-border/40 shadow-sm" : "bg-gradient-to-b from-black/60 to-transparent pointer-events-none"
       }`}>
         <div className={`flex items-center gap-3 ${!isScrolled ? "pointer-events-auto" : ""}`}>
-          <Link to="/app/clubs" className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-90">
+          <button type="button" onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-90">
             <ChevronLeft className="h-5 w-5" />
-          </Link>
+          </button>
           <div className={`flex items-center gap-2 transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0'}`}>
             {club?.logo_url ? (
               <img src={club.logo_url} className="h-7 w-7 rounded-full object-cover border border-border/50" loading="lazy" decoding="async" />
