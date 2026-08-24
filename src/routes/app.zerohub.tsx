@@ -7,6 +7,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { PostCard } from "@/components/PostCard";
+import { CommentDrawer } from "@/components/CommentDrawer";
 import { format, subDays, isSameDay } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ function ZeroHubPage() {
   const { data: currentUser } = useUser();
   const [view, setView] = useState<'mine' | 'explore'>('mine');
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [commentingPost, setCommentingPost] = useState<any>(null);
   const [acquiringId, setAcquiringId] = useState<string | null>(null);
 
   const { data: ships = [], isLoading } = useQuery({
@@ -209,7 +211,11 @@ function ZeroHubPage() {
                     </div>
 
                     {latest.release_notes && <div className="border-b border-border/60 bg-primary/[0.035] px-4 py-2.5 text-[12px] text-muted-foreground"><span className="font-semibold text-foreground">What changed:</span> {latest.release_notes}</div>}
-                    <PostCard post={latest} currentUser={currentUser} />
+                    {/* The comment button on a card did nothing here, because
+                        nothing was listening to it. The drawer it opens is the
+                        same one the feed uses, so replies can be edited and
+                        deleted from ZeroHub exactly as they can anywhere else. */}
+                    <PostCard post={latest} currentUser={currentUser} onCommentClick={setCommentingPost} />
 
                     <button onClick={() => setExpandedProject(isExpanded ? null : rootId)} className="flex w-full items-center justify-between border-t border-border/60 px-4 py-3 text-left text-[12px] font-semibold hover:bg-accent/40">
                       <span className="flex items-center gap-2"><GitBranch className="h-4 w-4 text-muted-foreground" /> {releases.length} {releases.length === 1 ? 'version' : 'versions'}</span>
@@ -239,6 +245,12 @@ function ZeroHubPage() {
           )}
         </section>
       </main>
+
+      <CommentDrawer
+        post={commentingPost}
+        isOpen={Boolean(commentingPost)}
+        onClose={() => setCommentingPost(null)}
+      />
     </div>
   );
 }

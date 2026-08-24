@@ -187,7 +187,11 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
     return content
       .replace(/## 🚀 /g, '**Project:** ')
       .replace(/### 🔗 Project Links/g, '**Project Links:**\n')
-      .replace(/### 🤖 AI Prompts Used/g, '**AI Prompts Used:**\n');
+      .replace(/### 🤖 AI Prompts Used/g, '**AI Prompts Used:**\n')
+      // Ships stored before the rename keep saying "Skills Used". Rewriting on
+      // the way out means every ship reads the same without touching a single
+      // stored row.
+      .replace(/\*\*Skills Used:\*\*/g, '**Tools Used:**');
   };
   const displayContent = post.is_build_post ? cleanLegacyShipContent(post.content) : post.content;
   const quotedDisplayContent = post.quoted_posts?.is_build_post ? cleanLegacyShipContent(post.quoted_posts.content) : post.quoted_posts?.content;

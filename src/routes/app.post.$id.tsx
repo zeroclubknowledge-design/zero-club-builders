@@ -23,6 +23,7 @@ import { ImageLightbox } from "@/components/ImageLightbox";
 import { getFirstName } from "@/lib/utils";
 import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
+import { JoinToInteract } from "@/components/JoinToInteract";
 import { fetchPostComments } from "@/features/comments/api";
 import {
   Carousel,
@@ -63,12 +64,42 @@ const createPostDetailShell = (post: any) => ({
   commentLikes: EMPTY_COMMENT_LIKES,
 });
 
+/**
+ * The same post, read by somebody with no account.
+ *
+ * Row-level security hides posts from strangers, which is right for the table
+ * and wrong for a link that was deliberately shared in public. This asks the
+ * database for the read-only view instead, which returns the post, its author
+ * and its counts — and nothing that belongs to a member.
+ */
+const fetchPublicPostRecord = async (id: string) => {
+  const { data, error } = await supabase.rpc('get_post_public', { p_post_id: id });
+  if (error) return null;
+
+  const payload = data as any;
+  if (!payload?.found) return null;
+
+  return {
+    ...payload.post,
+    profiles: payload.author || null,
+    bootcamps: null,
+    isPublicView: true,
+  };
+};
+
 const fetchPostDetailRecord = async (id: string) => {
   const { data: post, error: postError } = await supabase
     .from('posts')
     .select('*')
     .eq('id', id)
     .maybeSingle();
+
+  // Signed out, or hidden by row-level security. Either way the public reader
+  // is the right next thing to try rather than an empty page.
+  if (postError || !post) {
+    const publicPost = await fetchPublicPostRecord(id);
+    if (publicPost) return publicPost;
+  }
 
   if (postError) throw postError;
   if (!post) return null;
@@ -103,7 +134,9 @@ export const Route = createFileRoute("/app/post/$id")({
     if (!post) return {};
 
     const authorName = post.profiles?.full_name || post.profiles?.username || "Zero Club Builder";
-    const title = `${authorName}'s Post on Zero Club`;
+    // The shared link says what it is too, so a project does not arrive in
+    // somebody's timeline announced as a post.
+    const title = `${authorName}'s ${post.is_build_post ? "Project" : "Post"} on Zero Club`;
     
     let description = post.content || "Check out this post on Zero Club";
     const stripped = description.replace(/(<([^>]+)>)/gi, "");
@@ -193,7 +226,16 @@ function PostDetail() {
     refetch: refetchComments,
   } = useQuery({
     queryKey: ['post-comments', id],
-    queryFn: () => fetchPostComments(id),
+    queryFn: async () => {
+      try {
+        return await fetchPostComments(id);
+      } catch {
+        // Same reasoning as the post itself: a stranger should still see the
+        // discussion, they just cannot add to it.
+        const { data } = await supabase.rpc('get_post_comments_public', { p_post_id: id });
+        return (data as any[]) || [];
+      }
+    },
     enabled: Boolean(id),
     staleTime: 10_000,
     retry: 2,
@@ -228,7 +270,11 @@ function PostDetail() {
     return content
       .replace(/## 🚀 /g, '**Project:** ')
       .replace(/### 🔗 Project Links/g, '**Project Links:**\n')
-      .replace(/### 🤖 AI Prompts Used/g, '**AI Prompts Used:**\n');
+      .replace(/### 🤖 AI Prompts Used/g, '**AI Prompts Used:**\n')
+      // Ships stored before the rename keep saying "Skills Used". Rewriting on
+      // the way out means every ship reads the same without touching a single
+      // stored row.
+      .replace(/\*\*Skills Used:\*\*/g, '**Tools Used:**');
   };
   const displayContent = post?.is_build_post ? cleanLegacyShipContent(post.content) : post?.content;
 
@@ -726,7 +772,9 @@ function PostDetail() {
             <button onClick={handleBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60">
               <ChevronLeft className="h-6 w-6" />
             </button>
-            <h1 className="text-[17px] font-semibold tracking-tight">Post</h1>
+            {/* A shipped build is a project, and calling its page "Post"
+                made the header disagree with everything under it. */}
+            <h1 className="text-[17px] font-semibold tracking-tight">{post?.is_build_post ? "Project" : "Post"}</h1>
           </div>
           <div className="flex items-center gap-2">
           {/* The brand mark, where a reader's eye already goes on a detail
@@ -1249,7 +1297,12 @@ function PostDetail() {
 
       {/* The composer floats over the replies. Absolute rather than fixed, so
           it stays inside this page's column and off the desktop sidebar. */}
-      {post && (
+      {/* A stranger gets the way in where a member gets the reply box. The
+          composer would only fail on submit, which is a worse way to learn
+          that an account is needed. */}
+      {post && !currentUser && <JoinToInteract what="reply" />}
+
+      {post && currentUser && (
         <ComposerOverlay position="absolute" maxWidthClassName="max-w-[860px]">
           <CommentComposer
             value={commentText}

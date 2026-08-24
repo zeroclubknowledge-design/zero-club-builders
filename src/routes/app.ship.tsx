@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { uploadMedia } from "@/lib/storage";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
+import { CollaboratorPicker, type Collaborator } from "@/components/CollaboratorPicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 
@@ -44,7 +45,12 @@ function ShipPage() {
   const [previews, setPreviews] = useState<string[]>([]);
   
   const [links, setLinks] = useState([{ title: "Live URL", url: "" }]);
-  const [skills, setSkills] = useState("");
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+
+  /* "Tools", not "Skills". What a reader wants from a shipped project is what
+     it was built with, which is a fact about the work; a skill is a claim
+     about the person, and the two were being collected in one box. */
+  const [tools, setTools] = useState("");
   
   const [usedAi, setUsedAi] = useState(false);
   const [prompts, setPrompts] = useState("");
@@ -100,7 +106,8 @@ function ShipPage() {
         let parsedProject = "";
         let parsedCategory = "Web App";
         let parsedDescription = [];
-        let parsedSkills = "";
+        let parsedTools = "";
+        let parsedCollaboratorHandles: string[] = [];
         let parsedLinks = [];
         let parsedPrompts = "";
         let parsedUsedAi = false;
@@ -117,8 +124,24 @@ function ShipPage() {
             parsedCategory = line.replace('**Category:**', '').trim();
             continue;
           }
-          if (line.startsWith('**Skills Used:**')) {
-            parsedSkills = line.replace('**Skills Used:**', '').replace(/#/g, '').replace(/\s+/g, ', ').trim();
+          /* Ships written before the rename still say "Skills Used:", and
+             they are not going to be rewritten in the database. Both markers
+             parse into the same field. */
+          if (line.startsWith('**Tools Used:**') || line.startsWith('**Skills Used:**')) {
+            parsedTools = line
+              .replace('**Tools Used:**', '')
+              .replace('**Skills Used:**', '')
+              .replace(/#/g, '')
+              .replace(/\s+/g, ', ')
+              .trim();
+            continue;
+          }
+          if (line.startsWith('**Collaborators:**')) {
+            parsedCollaboratorHandles = line
+              .replace('**Collaborators:**', '')
+              .split(/[\s,]+/)
+              .map((handle: string) => handle.replace(/^@/, '').trim())
+              .filter(Boolean);
             continue;
           }
           if (line.startsWith('**Project Links:**')) {
@@ -153,7 +176,18 @@ function ShipPage() {
         setProjectName(parsedProject);
         setCategory(parsedCategory);
         setDescription(parsedDescription.join('\n').trim());
-        setSkills(parsedSkills);
+        setTools(parsedTools);
+
+        /* Re-resolved from handles rather than trusted from the markdown: an
+           account can be renamed or deleted between versions, and a credit
+           pointing at nobody is worse than no credit. */
+        if (parsedCollaboratorHandles.length > 0) {
+          const { data: people } = await supabase
+            .from('profiles')
+            .select('id, username, full_name, avatar_url')
+            .in('username', parsedCollaboratorHandles);
+          setCollaborators((people || []) as Collaborator[]);
+        }
         if (parsedLinks.length > 0) setLinks(parsedLinks);
         setUsedAi(parsedUsedAi);
         setPrompts(parsedPrompts.trim());
@@ -205,8 +239,12 @@ function ShipPage() {
       md += `${description}\n\n`;
     }
     
-    if (skills) {
-      md += `**Skills Used:** ${skills.split(',').map(s => "#" + s.trim().replace(/\s+/g, '')).join(' ')}\n\n`;
+    if (collaborators.length > 0) {
+      md += `**Collaborators:** ${collaborators.map((person) => '@' + person.username).join(' ')}\n\n`;
+    }
+
+    if (tools) {
+      md += `**Tools Used:** ${tools.split(',').map(s => "#" + s.trim().replace(/\s+/g, '')).join(' ')}\n\n`;
     }
     
     const validLinks = links.filter(l => l.url);
@@ -527,19 +565,34 @@ function ShipPage() {
           </div>
 
           <div className="pt-2 border-t border-border/40">
-            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Skills Used</label>
+            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Tools Used</label>
             <div className="relative mt-2">
               <Code className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input 
                 type="text"
                 placeholder="React, Next.js, Figma, Tailwind (comma separated)"
-                value={skills}
-                onChange={(e) => setSkills(e.target.value)}
+                value={tools}
+                onChange={(e) => setTools(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background px-4 py-3.5 pl-11 text-sm outline-none transition-colors focus:border-primary"
               />
             </div>
           </div>
           
+          <div className="pt-2 border-t border-border/40">
+            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Collaborators</label>
+            <p className="ml-1 mt-1 text-[11px] text-muted-foreground">
+              Credit the people who built this with you. They have to be on Zero Club, so the
+              credit links to a real profile.
+            </p>
+            <div className="mt-2">
+              <CollaboratorPicker
+                value={collaborators}
+                onChange={setCollaborators}
+                excludeId={profile?.id}
+              />
+            </div>
+          </div>
+
           <div className="pt-2 border-t border-border/40">
             <div className="flex items-center justify-between">
               <div>
