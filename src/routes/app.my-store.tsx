@@ -13,6 +13,7 @@ import { clampPercent, formatPercent } from "@/lib/utils";
 import { shareOrCopy, storeProductUrl } from "@/lib/share";
 import { IconStore } from "@/components/icons/nav";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { STORE_CATEGORIES, CATEGORY_BY_ID, categoryIdFor, typeLabelFor } from "@/features/store/catalogue";
 import {
   Drawer,
   DrawerContent,
@@ -24,12 +25,15 @@ export const Route = createFileRoute("/app/my-store")({
   component: MyStorePage,
 });
 
-const CATEGORIES = ["Template", "E-book", "Design kit", "Code", "Course asset", "Audio", "Other"];
+
 
 interface ProductForm {
   name: string;
   description: string;
+  /** The broad group, e.g. "templates". */
   category: string;
+  /** The specific thing, e.g. "Prompt pack". Optional; falls back to the group. */
+  productType: string;
   price: string;
   priceType: "Coins" | "ZP";
   discountPercent: string;
@@ -41,7 +45,8 @@ interface ProductForm {
 const EMPTY_FORM: ProductForm = {
   name: "",
   description: "",
-  category: "Template",
+  category: "templates",
+  productType: "",
   price: "",
   priceType: "Coins",
   discountPercent: "0",
@@ -99,7 +104,8 @@ function MyStorePage() {
     setForm({
       name: item.name || "",
       description: item.description || "",
-      category: item.category || "Template",
+      category: categoryIdFor(item.category),
+      productType: item.product_type || "",
       price: String(item.price_type === "Coins" ? fromBaseAmount(item.price ?? 0) : item.price ?? ""),
       priceType: item.price_type === "ZP" ? "ZP" : "Coins",
       // Round-trip through clampPercent so "66.6700" from Postgres becomes
@@ -163,6 +169,7 @@ function MyStorePage() {
         name: form.name.trim(),
         description: form.description.trim(),
         category: form.category,
+        product_type: form.productType || null,
         price: numericPrice,
         price_type: form.priceType,
         cover_url: coverUrl,
@@ -292,7 +299,7 @@ function MyStorePage() {
               </div>
               <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">Nothing for sale yet</h3>
               <p className="text-[13.5px] text-muted-foreground max-w-[280px] mb-7 leading-relaxed">
-                Upload a template, e-book, design kit, or any digital file — set your price and start earning.
+                Templates, prompt packs, AI tool access, ebooks, code, design assets — set a price and start earning.
               </p>
               <button
                 onClick={openCreate}
@@ -309,22 +316,28 @@ function MyStorePage() {
               {products.map((item: any) => {
                 const sale = effectivePrice(item.price, item.discount_percent || 0);
                 return (
-                  <div key={item.id} className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
-                    {/* Identity row: thumbnail, name, actions. Nothing numeric
-                        lives here, so a long product name can use the full
-                        width without crowding the price. */}
+                  <div key={item.id} className="overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)]">
+                    {/* The cover leads, as it does on the storefront, so a
+                        seller sees their listing the way a buyer will rather
+                        than as a filing-cabinet row. */}
+                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-primary/15 via-accent/20 to-background">
+                      {item.cover_url ? (
+                        <img src={item.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : (
+                        <span className="grid h-full w-full place-items-center text-primary/40">
+                          <Gift className="h-8 w-8" strokeWidth={1.75} />
+                        </span>
+                      )}
+                      <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.08em] text-foreground backdrop-blur-sm">
+                        {typeLabelFor(item.category, item.product_type)}
+                      </span>
+                    </div>
+
                     <div className="flex items-center gap-3.5 p-4">
-                      <div className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
-                        {item.cover_url ? (
-                          <img src={item.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
-                        ) : (
-                          <Gift className="h-6 w-6" strokeWidth={1.75} />
-                        )}
-                      </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate text-[15px] font-semibold tracking-tight text-foreground">{item.name}</h3>
-                        <p className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                          {item.category || "Product"}
+                        <p className="mt-0.5 line-clamp-1 text-[11.5px] text-muted-foreground">
+                          {item.description}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5">
@@ -337,7 +350,7 @@ function MyStorePage() {
                           })}
                           title="Share product link"
                           aria-label={`Share ${item.name}`}
-                          className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-primary hover:bg-primary/5 tap"
+                          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.04] text-muted-foreground hover:bg-primary/10 hover:text-primary tap"
                         >
                           <Share2 className="h-[15px] w-[15px]" />
                         </button>
@@ -345,7 +358,7 @@ function MyStorePage() {
                           onClick={() => openEdit(item)}
                           title="Edit product"
                           aria-label={`Edit ${item.name}`}
-                          className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] tap"
+                          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.04] text-muted-foreground hover:text-foreground tap"
                         >
                           <Edit3 className="h-[15px] w-[15px]" />
                         </button>
@@ -353,7 +366,7 @@ function MyStorePage() {
                           onClick={() => setDeleting(item)}
                           title="Delete product"
                           aria-label={`Delete ${item.name}`}
-                          className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-muted-foreground hover:text-destructive hover:bg-destructive/5 tap"
+                          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.04] text-muted-foreground hover:bg-destructive/10 hover:text-destructive tap"
                         >
                           <Trash2 className="h-[15px] w-[15px]" />
                         </button>
@@ -364,7 +377,7 @@ function MyStorePage() {
                         numbers sit in one baseline group on the left and the
                         badges wrap to their own line on a narrow screen, so
                         they can never end up touching. */}
-                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t hairline bg-foreground/[0.015] px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 bg-foreground/[0.02] px-4 py-3">
                       <div className="flex items-baseline gap-2.5">
                         <span className="text-[16px] font-semibold tracking-tight text-foreground tabular-nums">
                           {formatPrice(sale, item.price_type)}
@@ -492,20 +505,49 @@ function MyStorePage() {
             </div>
 
             {/* Category + currency */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label className={labelClass}>Category</label>
-                <div className="relative">
-                  <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className={`${inputClass} appearance-none pr-10 cursor-pointer`}
-                  >
-                    {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                </div>
+            {/* Group first, then the specific type as chips.
+                A single flat dropdown of forty options is slower to use than
+                nine plus a handful, and it produced listings labelled
+                "Template" that could have said "Prompt pack". */}
+            <div className="space-y-2">
+              <label className={labelClass}>What is it?</label>
+              <div className="relative">
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value, productType: "" })}
+                  className={`${inputClass} appearance-none pr-10 cursor-pointer`}
+                >
+                  {STORE_CATEGORIES.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               </div>
+
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {(CATEGORY_BY_ID.get(form.category)?.types || []).map((type) => {
+                  const active = form.productType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setForm({ ...form, productType: active ? "" : type })}
+                      className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${
+                        active
+                          ? "bg-foreground text-background"
+                          : "bg-background text-muted-foreground ring-1 ring-border hover:text-foreground"
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* No longer sharing a row with the category dropdown, so it takes
+                the full width rather than leaving half the row empty. */}
+            <div className="grid grid-cols-1 gap-3">
               <div className="space-y-2">
                 <label className={labelClass}>Charge in</label>
                 <div className="flex rounded-lg bg-background p-1 ring-1 ring-border">

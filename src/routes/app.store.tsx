@@ -4,6 +4,8 @@ import {
   TicketPercent, Check, ShieldCheck, Tag, Share2, Copy,
 } from "@/components/icons/solar";
 import { useState, useEffect, useMemo, useRef } from "react";
+import { STORE_CATEGORIES, categoryIdFor, categoryLabelFor } from "@/features/store/catalogue";
+import { ProductCard } from "@/features/store/ProductCard";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
@@ -84,15 +86,30 @@ function StorePage() {
     fetchItems();
   }, []);
 
-  const categories = useMemo(() => ["All", ...Array.from(new Set(storeItems.map((item) => item.category).filter(Boolean)))], [storeItems]);
+  /* Browse by group rather than by whatever text sellers happened to type.
+     A row built from distinct stored values grew a new tab every time somebody
+     wrote "Templates" instead of "Template", and the shop looked disorganised
+     because it was. Empty groups are left out: a tab that leads to nothing is
+     worse than no tab. */
+  const categories = useMemo(() => {
+    const stocked = new Set(storeItems.map((item) => categoryIdFor(item.category)));
+    return [
+      { id: "All", short: "All" },
+      ...STORE_CATEGORIES.filter((entry) => stocked.has(entry.id)).map((entry) => ({
+        id: entry.id,
+        short: entry.short,
+      })),
+    ];
+  }, [storeItems]);
 
   const filteredItems = storeItems.filter((item) => {
-    if (activeCategory !== "All" && item.category !== activeCategory) return false;
+    if (activeCategory !== "All" && categoryIdFor(item.category) !== activeCategory) return false;
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
     // Every field is optional in the database, so coerce before lowercasing —
     // one product with a null description used to throw and blank the page.
-    const haystack = [item.name, item.description, item.category]
+    // The group name is searchable too, so "templates" finds a prompt pack.
+    const haystack = [item.name, item.description, item.product_type, categoryLabelFor(item.category)]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
@@ -263,8 +280,40 @@ function StorePage() {
 
         <section className="mt-5 space-y-3">
           <div className="relative"><Search className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" /><input type="text" placeholder="Search tools, digital products, and perks" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-12 w-full rounded-lg border border-border bg-card pl-11 pr-4 text-[14px] outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10" /></div>
-          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">{categories.map((category) => <button key={String(category)} onClick={() => setActiveCategory(String(category))} className={`h-9 shrink-0 rounded-lg border px-3.5 text-[11.5px] font-semibold ${activeCategory === category ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>{String(category)}</button>)}</div>
+          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">{categories.map((category) => <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`h-9 shrink-0 rounded-lg px-3.5 text-[11.5px] font-semibold shadow-[var(--shadow-card)] transition ${activeCategory === category.id ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>{category.short}</button>)}</div>
         </section>
+
+        {/* Browse by category.
+            Only while nothing is filtered — once somebody has chosen a group
+            or typed a search, this is a wall between them and the answer.
+            Counts are shown because an empty aisle is worth knowing about
+            before you walk down it. */}
+        {activeCategory === "All" && !searchQuery.trim() && storeItems.length > 0 && (
+          <section className="mt-6">
+            <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Browse the market
+            </h2>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+              {STORE_CATEGORIES.map((entry) => {
+                const count = storeItems.filter((item) => categoryIdFor(item.category) === entry.id).length;
+                return (
+                  <button
+                    key={entry.id}
+                    onClick={() => setActiveCategory(entry.id)}
+                    disabled={count === 0}
+                    className="flex min-w-0 flex-col rounded-xl bg-card p-3.5 text-left shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)] disabled:opacity-45 disabled:shadow-none"
+                  >
+                    <span className="truncate text-[13px] font-semibold tracking-tight text-foreground">{entry.label}</span>
+                    <span className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">{entry.blurb}</span>
+                    <span className="mt-2 text-[10.5px] font-semibold tabular-nums text-primary">
+                      {count === 0 ? "Nothing yet" : `${count} ${count === 1 ? "listing" : "listings"}`}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Catalog */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -279,100 +328,42 @@ function StorePage() {
               <p className="text-xs text-muted-foreground mt-1">Try a different search term or list a new product.</p>
             </div>
           ) : (
-            filteredItems.map(item => {
+            filteredItems.map((item) => {
+              const effective = item.discount_percent > 0
+                ? Math.round(item.price * (100 - item.discount_percent) / 100)
+                : item.price;
+              const fmt = (n: number) =>
+                item.price_type === "Coins"
+                  ? `${currentCurrency.symbol}${(n / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+                  : n.toLocaleString();
+              const mine = item.seller_id === profile?.id;
+
               return (
-                <div
+                <ProductCard
                   key={item.id}
-                  role="button"
-                  tabIndex={0}
+                  item={item}
                   onClick={() => openItem(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      openItem(item);
-                    }
-                  }}
-                  className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-lg border border-border bg-card text-left transition-all tap hover:border-primary/30 hover:shadow-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                >
-                  <div className="p-5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                        {item.category || "Product"}
-                      </span>
-                      {item.badge && (
-                        <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[9.5px] font-medium text-primary">
-                          {item.badge}
-                        </span>
+                  price={
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[15px] font-semibold tabular-nums tracking-tight text-foreground">{fmt(effective)}</span>
+                      {item.discount_percent > 0 && (
+                        <span className="text-[11px] tabular-nums text-muted-foreground line-through">{fmt(item.price)}</span>
+                      )}
+                      {item.price_type !== "Coins" && (
+                        <span className="text-[10px] font-semibold text-primary">{item.price_type}</span>
                       )}
                     </div>
-
-                    <div className="mt-4 flex gap-3.5">
-                      <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/10 text-primary">
-                        {item.cover_url ? (
-                          <img src={item.cover_url} alt={item.name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
-                        ) : (
-                          <Gift className="h-[20px] w-[20px]" strokeWidth={1.75} />
-                        )}
-                      </div>
-                      <div className="text-left min-w-0">
-                        <h3 className="text-[15px] font-semibold tracking-tight text-foreground">
-                          {item.name}
-                        </h3>
-                        <p className="mt-1 text-[12.5px] text-muted-foreground leading-relaxed line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t hairline px-5 py-3.5 flex items-center justify-between gap-4">
-                    <div className="text-left">
-                      <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                        {item.discount_percent > 0 ? `Price · ${formatPercent(item.discount_percent)}% off` : "Price"}
-                      </p>
-                      <div className="flex items-baseline gap-1.5 mt-0.5">
-                        {(() => {
-                          const effective = item.discount_percent > 0
-                            ? Math.round(item.price * (100 - item.discount_percent) / 100)
-                            : item.price;
-                          const fmt = (n: number) =>
-                            item.price_type === "Coins"
-                              ? `${currentCurrency.symbol}${(n / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-                              : n.toLocaleString();
-                          return (
-                            <>
-                              <span className="text-[15px] font-semibold tracking-tight text-foreground tabular-nums">{fmt(effective)}</span>
-                              {item.discount_percent > 0 && (
-                                <span className="text-[11px] text-muted-foreground line-through tabular-nums">{fmt(item.price)}</span>
-                              )}
-                              {item.price_type !== "Coins" && (
-                                <span className="text-[10px] font-semibold text-primary">{item.price_type}</span>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        // The whole card opens the product now, so the button
-                        // must not also trigger it.
-                        e.stopPropagation();
-                        if (item.seller_id === profile?.id) return;
-                        openItem(item);
-                      }}
-                      disabled={item.seller_id === profile?.id}
-                      className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-[12px] font-semibold text-primary-foreground tap hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  }
+                  action={
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-[11.5px] font-semibold ${
+                        mine ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
+                      }`}
                     >
-                      {item.seller_id === profile?.id ? (
-                        "Your Item"
-                      ) : (
-                        <>View <ArrowUpRight className="h-3 w-3" /></>
-                      )}
-                    </button>
-                  </div>
-                </div>
+                      {mine ? "Yours" : <>View <ArrowUpRight className="h-3 w-3" /></>}
+                    </span>
+                  }
+                />
               );
             })
           )}
