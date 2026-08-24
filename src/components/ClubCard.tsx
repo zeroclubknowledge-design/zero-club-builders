@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Hash, Lock } from "@/components/icons/solar";
+import { toPlainText } from "@/lib/contentPreview";
 
 /**
  * A club, presented the way a club actually gets chosen.
@@ -91,7 +92,10 @@ export function ClubCard({
         </div>
 
         <p className="mt-2.5 line-clamp-2 text-[12.5px] leading-[1.5] text-muted-foreground">
-          {club?.description || "A place to learn and build together."}
+          {/* Descriptions are written in the rich text editor and stored as
+              HTML, so the raw value starts "<p><strong>WHAT YOU'LL LEARN".
+              A card is plain text, so it gets plain text. */}
+          {toPlainText(club?.description) || "A place to learn and build together."}
         </p>
 
         {/* mt-auto so the meta line sits on the bottom edge whatever length the

@@ -216,7 +216,7 @@ function MyStorePage() {
   const labelClass = "text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1";
 
   return (
-    <div className="min-h-screen bg-[#f8f7f5] pb-20 dark:bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-3.5 md:px-6">

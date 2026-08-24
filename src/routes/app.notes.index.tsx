@@ -93,7 +93,7 @@ function NotesIndexPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
+    <div className="relative flex min-h-screen w-full flex-col bg-background selection:bg-foreground selection:text-background">
       {/* Sticky Header and Tabs */}
       <div className="sticky top-0 z-50 flex flex-col border-b border-border/60 bg-background">
         {/* Editorial Header */}

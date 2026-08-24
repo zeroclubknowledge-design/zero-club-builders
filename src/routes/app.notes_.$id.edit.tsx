@@ -529,7 +529,7 @@ function NotesEditPage() {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background selection:bg-foreground selection:text-background">
       
       {/* Minimal Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">

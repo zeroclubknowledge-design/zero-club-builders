@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ArrowRight, Users } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
+import { toPlainText } from "@/lib/contentPreview";
 
 /**
  * Public landing page for a shared club link.
@@ -99,7 +100,7 @@ function ClubLinkPage() {
   }, [target]);
 
   return (
-    <div className="min-h-screen bg-[#f8f7f5] text-foreground dark:bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[62px] max-w-[720px] items-center px-5">
           <Link to="/" className="flex items-center gap-2.5">
@@ -129,7 +130,7 @@ function ClubLinkPage() {
         </h1>
 
         {club?.description && (
-          <p className="mt-3 text-[14px] leading-7 text-muted-foreground">{club.description}</p>
+          <p className="mt-3 text-[14px] leading-7 text-muted-foreground">{toPlainText(club.description)}</p>
         )}
 
         {typeof club?.member_count === "number" && (

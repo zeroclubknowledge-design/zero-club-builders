@@ -407,7 +407,7 @@ function Feed() {
   }, [filteredPosts, currentUser]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background md:pb-12">
+    <div className="flex min-h-screen flex-col bg-background pb-20 md:pb-12">
       {/* Top Header Tabs */}
       {/* Pinned a pixel under the app header rather than exactly at its edge.
           The header sits above this one, so the overlap is invisible — and it

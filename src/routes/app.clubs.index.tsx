@@ -576,7 +576,7 @@ function Clubs() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background">
+    <div className="flex min-h-screen flex-col bg-background pb-20">
       {/* Frosted Glass Header */}
       <div className="fixed left-1/2 top-0 z-40 w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background px-5 pb-3 pt-[calc(1.5rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-none md:translate-x-0 md:px-8 md:pt-5 lg:px-10">
         <div className="mx-auto w-full max-w-[1200px]">

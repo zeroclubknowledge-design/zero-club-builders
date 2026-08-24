@@ -313,7 +313,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
   };
 
   return (
-    <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
+    <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-background selection:bg-foreground selection:text-background">
       
       <header
         className={`absolute inset-x-0 top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)] shadow-sm transition-transform duration-300 ease-out ${

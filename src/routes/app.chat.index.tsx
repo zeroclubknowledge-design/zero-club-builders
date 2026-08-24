@@ -113,7 +113,7 @@ function ChatInboxPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-[#f8f7f5] pb-20 dark:bg-background">
+    <div className="relative flex min-h-screen flex-col bg-background pb-20">
       {/* Premium Frosted Glass Header */}
       <header className={`fixed left-1/2 top-0 z-20 w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background px-5 pb-3 pt-[calc(1.5rem+env(safe-area-inset-top))] transition-all duration-300 md:sticky md:left-0 md:max-w-full md:translate-x-0 md:px-8 md:pt-6`}>
         <div className="flex items-center justify-between">

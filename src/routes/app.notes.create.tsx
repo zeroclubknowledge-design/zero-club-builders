@@ -563,7 +563,7 @@ function NotesCreatePage() {
        is behind the app showed through as a band of a different colour. The
        viewport unit fills the screen; the safe-area subtraction accounts for
        the padding the app shell already adds above this page. */
-    <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top))] w-full flex-col overflow-hidden bg-[#f8f7f5] selection:bg-foreground selection:text-background dark:bg-background">
+    <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top))] w-full flex-col overflow-hidden bg-background selection:bg-foreground selection:text-background">
       
       {/* Minimal Header */}
       <header

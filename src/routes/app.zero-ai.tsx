@@ -42,7 +42,7 @@ function ZeroAIPage() {
   const { format } = useWalletCurrency();
 
   return (
-    <div className="min-h-screen bg-[#f8f7f5] text-foreground dark:bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex min-h-[68px] w-full max-w-[1080px] items-center justify-between gap-4 px-5 md:px-8">
           <div className="flex min-w-0 items-center gap-3">

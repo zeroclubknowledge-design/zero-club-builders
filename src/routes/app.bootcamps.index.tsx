@@ -68,7 +68,7 @@ function Bootcamps() {
   const institutionCount = bootcamps.filter((camp: any) => camp.profiles?.account_type === 'Institution').length;
 
   return (
-    <div className="min-h-screen bg-[#f8f7f5] pb-24 dark:bg-background md:pb-12">
+    <div className="min-h-screen bg-background pb-24 md:pb-12">
       <header className="sticky top-0 z-40 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-4 py-3.5 md:px-7">
           <div>

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ImageResponse } from "@vercel/og";
 import { supabase } from "@/lib/supabase";
+import { toPlainText } from "@/lib/contentPreview";
 
 /**
  * A club's link preview, drawn server-side.
@@ -48,7 +49,9 @@ async function renderClubCard(rawId: string) {
   }
 
   const name = club?.name || "A club on Zero Club";
-  const description = String(club?.description || "").trim();
+  // Same reason as the card: this is drawn as text into an image, and tags
+  // would be painted literally onto the link preview.
+  const description = toPlainText(club?.description);
   const members = Number(club?.member_count) || 0;
   const picture = await usableImage(club?.logo_url || club?.banner_url);
   const initial = (name[0] || "Z").toUpperCase();

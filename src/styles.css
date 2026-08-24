@@ -53,7 +53,17 @@
 
   /* Zero Club Theme */
   color-scheme: light;
-  --background: oklch(96.5% 0.008 75);
+  /* The page colour, and the only definition of it.
+   *
+   * Pages hardcoded `bg-[#f8f7f5]` while this token said oklch(96.5% 0.008 75)
+   * — 1.1% darker and three times as saturated. Anything painted with
+   * `bg-background` over one of those pages therefore showed as a faint band,
+   * which is exactly what the composer overlay on the post page was: not a
+   * layout bug, two colours both claiming to be the background.
+   *
+   * This is #f8f7f5 expressed in oklch, so the token and the pages finally
+   * agree and the band has nowhere to come from. */
+  --background: oklch(97.6% 0.003 85);
   --foreground: oklch(18% 0.005 260);
   --card: oklch(100% 0 0);
   --card-foreground: oklch(18% 0.005 260);
@@ -87,9 +97,10 @@
   --hairline: oklch(18% 0.005 260 / 0.06);
   /* The page colour sitting behind a video. A playing video is handed to a
      hardware overlay plane that ignores every CSS clip, so rounded corners
-     have to be painted ON TOP in the surrounding colour. This is that colour;
-     the public Zero Form page sits on #f8f7f5 rather than --background. */
-  --zc-media-surface: #f8f7f5;
+     have to be painted ON TOP in the surrounding colour.
+     It follows --background, as the dark theme already did; it only held its
+     own hex while pages disagreed with the token about the page colour. */
+  --zc-media-surface: var(--background);
   --input: oklch(18% 0.005 260 / 0.07);
   --ring: oklch(58% 0.22 350 / 0.55);
 

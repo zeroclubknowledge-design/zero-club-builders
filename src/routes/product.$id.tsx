@@ -134,7 +134,7 @@ function ProductLinkPage() {
     product?.price_type === "Coins" ? format(amount) : `${amount.toLocaleString()} ZP`;
 
   return (
-    <div className="min-h-screen bg-[#f8f7f5] text-foreground dark:bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[62px] max-w-[720px] items-center px-5">
           <Link to="/" className="flex items-center gap-2.5">
