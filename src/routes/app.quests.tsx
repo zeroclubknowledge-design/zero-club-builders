@@ -427,7 +427,7 @@ function GigRow({ gig, format, viewerId, onOpen }: { gig: Gig; format: (value: n
     <button onClick={onOpen} className="group w-full p-4 text-left transition hover:bg-foreground/[0.025] sm:p-5">
       <div className="flex items-start gap-3.5">
         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
-          {gig.client?.avatar_url ? <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center bg-primary/10 text-[13px] font-semibold text-primary">{clientName.charAt(0).toUpperCase()}</div>}
+          {gig.client?.avatar_url ? <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center bg-primary/10 text-[13px] font-semibold text-primary">{clientName.charAt(0).toUpperCase()}</div>}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
@@ -472,7 +472,7 @@ function GigDetail({ gig, viewerId, format, onApply }: { gig: Gig; viewerId: str
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 md:px-6">
         <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3.5">
           <div className="h-11 w-11 overflow-hidden rounded-lg bg-muted">
-            {gig.client?.avatar_url ? <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center bg-primary/10 font-semibold text-primary">{clientName.charAt(0).toUpperCase()}</div>}
+            {gig.client?.avatar_url ? <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center bg-primary/10 font-semibold text-primary">{clientName.charAt(0).toUpperCase()}</div>}
           </div>
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 truncate text-[13px] font-semibold">{clientName}{gig.client?.account_type === "Institution" && <BadgeCheck className="h-4 w-4 fill-primary text-primary-foreground" />}</p>

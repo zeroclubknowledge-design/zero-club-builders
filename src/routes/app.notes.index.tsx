@@ -196,7 +196,7 @@ function NotesIndexPage() {
                     <img 
                       src={featuredNote.cover_url} 
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)]" 
-                    />
+                    loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-black opacity-80" />
                   )}
@@ -269,7 +269,7 @@ function NotesIndexPage() {
                     <div className="flex items-center gap-4 mt-auto">
                       <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-white/20 overflow-hidden border-2 border-white/30 backdrop-blur-sm">
                         {featuredNote.profiles?.avatar_url ? (
-                          <img src={featuredNote.profiles.avatar_url} className="w-full h-full object-cover" />
+                          <img src={featuredNote.profiles.avatar_url} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[14px] font-bold">
                             {featuredNote.profiles?.username?.[0]?.toUpperCase()}
@@ -312,7 +312,7 @@ function NotesIndexPage() {
                             <img 
                               src={note.cover_url} 
                               className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105" 
-                            />
+                            loading="lazy" decoding="async" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <ImageIcon className="h-6 w-6 md:h-10 md:w-10 text-muted-foreground/30" strokeWidth={1.5} />
@@ -384,7 +384,7 @@ function NotesIndexPage() {
                           <div className="flex items-center gap-2.5 mt-auto min-w-0">
                             <div className="h-6 w-6 md:h-8 md:w-8 rounded-full overflow-hidden bg-muted border border-border/40 shrink-0">
                               {note.profiles?.avatar_url ? (
-                                <img src={note.profiles.avatar_url} className="w-full h-full object-cover" />
+                                <img src={note.profiles.avatar_url} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                               ) : (
                                 <div className="w-full h-full bg-foreground text-background flex items-center justify-center font-bold text-[9px] md:text-[11px]">
                                   {note.profiles?.username?.[0]?.toUpperCase()}

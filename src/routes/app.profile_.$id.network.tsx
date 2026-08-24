@@ -165,7 +165,7 @@ function ProfileNetwork() {
                 <Link key={user.id} to="/app/profile/$id" params={{ id: user.username || user.id }} className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/20 hover:bg-accent/20 active:scale-[0.98]">
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-accent border border-border/20 flex items-center justify-center font-bold text-muted-foreground text-xs">
                     {user.avatar_url ? (
-                      <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
+                      <img src={user.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       user.username?.charAt(0).toUpperCase() || "U"
                     )}
@@ -207,7 +207,7 @@ function ProfileNetwork() {
                     <div className="shrink-0">
                       <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/30">
                         {c.logo_url || c.banner_url ? (
-                          <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" />
+                          <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <Hash className="h-5 w-5 text-primary" />
                         )}

@@ -112,7 +112,7 @@ const zeroClubFeatures = [
   {
     title: "Zero AI",
     copy: "Get help to think through lessons, ideas, projects, and your next practical move.",
-    icon: <img src="/logo.png" alt="" className="h-[22px] w-[22px] object-contain" />,
+    icon: <img decoding="async" src="/logo.png" alt="" className="h-[22px] w-[22px] object-contain" />,
   },
   {
     title: "Creator wallet",
@@ -189,7 +189,7 @@ const footerGroups = [
 function BrandMark({ light = false }: { light?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2" aria-label="Zero Club home">
-      <img src="/logo.png" alt="" className="h-8 w-8 object-contain" />
+      <img decoding="async" src="/logo.png" alt="" className="h-8 w-8 object-contain" />
       <span className={`font-display text-[19px] font-semibold tracking-tight ${light ? "text-white" : "text-[#171717] dark:text-white"}`}>
         Zero <span className="text-[#cc208f]">Club</span>
       </span>
@@ -793,7 +793,7 @@ function ClubsSection() {
     <section id="clubs" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
         <div className="order-2 lg:order-1">
-          <img
+          <img decoding="async"
             src="/landing-communities-purpose.png"
             alt="Zero Club private clubs"
             className="h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
@@ -891,7 +891,7 @@ function WalletSection() {
 
             <div className="relative z-10 flex flex-1 flex-col">
               <div className="mb-5 flex items-center gap-2">
-                <img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" />
+                <img decoding="async" src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" />
                 <span className="text-[11.5px] font-semibold tracking-tight text-white/85">Zero Wallet</span>
               </div>
 
@@ -1178,7 +1178,7 @@ function FinalCta({ referralCode }: ReferralProps) {
           <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
           <div className="relative">
-            <img src="/logo.png" alt="Zero Club" className="mx-auto h-10 w-10 object-contain" />
+            <img decoding="async" src="/logo.png" alt="Zero Club" className="mx-auto h-10 w-10 object-contain" />
             <h2 className="mx-auto mt-4 max-w-[680px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] text-white md:text-[52px]">
               Built for the next generation of builders.
             </h2>

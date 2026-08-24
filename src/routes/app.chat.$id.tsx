@@ -3,6 +3,7 @@ import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, C
 import { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
+import { compressImage } from "@/lib/imageCompression";
 import { useUser } from "@/hooks/useUser";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { supabase } from "@/lib/supabase";
@@ -190,7 +191,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
         {!isMe && (
           <Link to="/app/profile/$id" params={{ id: m.sender_id }} className="h-8 w-8 shrink-0 rounded-full bg-accent/30 border border-border overflow-hidden flex items-center justify-center text-xs font-bold text-muted-foreground self-end mb-1 transition hover:opacity-80">
             {otherUser?.avatar_url ? (
-              <img src={otherUser.avatar_url} className="h-full w-full object-cover" />
+              <img src={otherUser.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()
             )}
@@ -376,7 +377,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                           ) : media.type === 'file' ? (
                             <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 text-left"><FileText className="h-6 w-6 shrink-0" /><span className="min-w-0 flex-1 truncate text-[11px] font-semibold">{media.name}</span><Download className="h-4 w-4 shrink-0" /></a>
                           ) : (
-                            <img src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
+                            <img loading="lazy" decoding="async" src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
                           )}
                         </div>
                       );
@@ -758,14 +759,19 @@ function ChatViewPage() {
         if (mediaFiles.length > 0) {
           toast.loading("Uploading media...", { id: "upload" });
           const uploadedUrls: string[] = [];
-          for (const file of mediaFiles) {
+          for (const original of mediaFiles) {
+            // Shrunk before it is sent, not after. Everyone in the thread pays
+            // the download cost of whatever gets stored here.
+            const file = await compressImage(original);
             const fileExt = file.name.split('.').pop();
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `${currentUserId}/${fileName}`;
-            const { error: uploadError } = await supabase.storage.from('post-media').upload(filePath, file);
+            const { error: uploadError } = await supabase.storage
+              .from('post-media')
+              .upload(filePath, file, { cacheControl: '31536000', contentType: file.type || undefined });
             if (!uploadError) {
               const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(filePath);
-              uploadedUrls.push(encodeChatMedia(getChatMediaType(file), publicUrl, file.name));
+              uploadedUrls.push(encodeChatMedia(getChatMediaType(file), publicUrl, original.name));
             }
           }
           toast.dismiss("upload");
@@ -948,7 +954,7 @@ function ChatViewPage() {
           <div className="flex items-center gap-3">
             <Link to="/app/profile/$id" params={{ id }} aria-label={`Open ${otherUserDisplayName || 'user'} profile`} className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground transition active:scale-95">
               {otherUser?.avatar_url ? (
-                <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
+                <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()
               )}
@@ -1032,7 +1038,7 @@ function ChatViewPage() {
           <div className="overflow-y-auto no-scrollbar p-5">
             <div className="flex flex-col items-center text-center">
               <Link to="/app/profile/$id" params={{ id }} onClick={() => setInfoOpen(false)} className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground transition active:scale-95">
-                {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()}
+                {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()}
               </Link>
               <h3 className="mt-3 text-[16px] font-semibold tracking-tight">{otherUser?.full_name || otherUser?.username}</h3>
               <p className="mt-0.5 text-[12px] text-muted-foreground">@{otherUser?.username}</p>
@@ -1074,7 +1080,7 @@ function ChatViewPage() {
         <div className="flex flex-col items-center py-6 text-center">
           <Link to="/app/profile/$id" params={{ id }} className="h-20 w-20 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xl mb-3 transition active:scale-95">
             {otherUser?.avatar_url ? (
-              <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
+              <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()
             )}
@@ -1142,7 +1148,7 @@ function ChatViewPage() {
                 ) : mediaFiles[idx]?.type.startsWith('video/') ? (
                   <video src={preview} className="h-full w-full object-cover" />
                 ) : mediaFiles[idx]?.type.startsWith('image/') ? (
-                  <img src={preview} className="h-full w-full object-cover" />
+                  <img src={preview} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <div className="flex h-10 items-center gap-2 px-1"><FileText className="h-5 w-5 shrink-0 text-primary" /><span className="max-w-[130px] truncate text-[11px] font-medium">{mediaFiles[idx]?.name}</span></div>
                 )}
@@ -1162,7 +1168,7 @@ function ChatViewPage() {
         <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50">
           <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
             {currentUserProfile?.avatar_url ? (
-              <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" />
+              <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               (currentUserProfile?.full_name || currentUserProfile?.username || 'U').substring(0, 1).toUpperCase()
             )}

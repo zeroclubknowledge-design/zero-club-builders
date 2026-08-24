@@ -188,7 +188,7 @@ function SignInPage() {
         <section className="mx-auto w-full max-w-[460px]">
           <div className="mb-8 text-center lg:text-left">
             <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0">
-              <img src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
+              <img decoding="async" src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
               <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
             </Link>
             <p className="mx-auto mb-4 flex w-fit max-w-full items-center justify-center gap-2 rounded-full border border-[#cc208f]/18 bg-[#cc208f]/8 px-3 py-1.5 text-center text-[12px] font-medium leading-5 text-[#9d176d] lg:mx-0">
@@ -290,7 +290,7 @@ function SignInPage() {
               <div className="mb-16 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/12">
-                    <img src="/logo.png" alt="" className="h-7 w-auto object-contain" />
+                    <img decoding="async" src="/logo.png" alt="" className="h-7 w-auto object-contain" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-white">Zero Club</p>

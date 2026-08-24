@@ -56,7 +56,7 @@ import AgoraRTC, {
 const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
 const QUESTION_REMINDER_MS = 5 * 60 * 1000;
 
-type CameraQuality = "480p" | "720p" | "1080p" | "1440p" | "2160p";
+type CameraQuality = "480p" | "540p" | "720p" | "1080p" | "1440p" | "2160p";
 
 const CAMERA_QUALITY_OPTIONS: Array<{
   value: CameraQuality;
@@ -68,18 +68,34 @@ const CAMERA_QUALITY_OPTIONS: Array<{
   bitrateMin: number;
   bitrateMax: number;
 }> = [
-  { value: "480p", label: "Standard (480p)", note: "Uses less data", width: 640, height: 480, frameRate: 24, bitrateMin: 350, bitrateMax: 900 },
-  { value: "720p", label: "HD (720p)", note: "Recommended", width: 1280, height: 720, frameRate: 30, bitrateMin: 800, bitrateMax: 1800 },
+  { value: "480p", label: "Standard (480p)", note: "Uses least data", width: 640, height: 480, frameRate: 24, bitrateMin: 250, bitrateMax: 600 },
+  { value: "540p", label: "Smooth (540p)", note: "Recommended", width: 960, height: 540, frameRate: 24, bitrateMin: 350, bitrateMax: 900 },
+  { value: "720p", label: "HD (720p)", note: "Needs a strong connection", width: 1280, height: 720, frameRate: 30, bitrateMin: 800, bitrateMax: 1800 },
   { value: "1080p", label: "Full HD (1080p)", note: "Sharper video", width: 1920, height: 1080, frameRate: 30, bitrateMin: 1500, bitrateMax: 3200 },
   { value: "1440p", label: "2K (1440p)", note: "Fast connection", width: 2560, height: 1440, frameRate: 30, bitrateMin: 2500, bitrateMax: 5200 },
   { value: "2160p", label: "4K (2160p)", note: "Studio connection", width: 3840, height: 2160, frameRate: 30, bitrateMin: 4000, bitrateMax: 8500 },
 ];
 
 const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality";
-const DEFAULT_CAMERA_QUALITY: CameraQuality = "720p";
+/*
+ * 540p, not 720p.
+ *
+ * Everyone published HD at up to 1.8 Mbps, which meant a room of six had each
+ * phone sending 1.8 up and pulling five streams down. On a mid-range Android
+ * over mobile data that is not a quality setting, it is a stutter — and the
+ * first thing to suffer is the audio nobody can afford to lose.
+ *
+ * 540p at 24fps is indistinguishable in a participant tile the size of a
+ * thumbnail, and the people who genuinely want HD can still choose it in
+ * Camera settings.
+ */
+const DEFAULT_CAMERA_QUALITY: CameraQuality = "540p";
 
 const cameraProfile = (quality: CameraQuality) =>
-  CAMERA_QUALITY_OPTIONS.find((option) => option.value === quality) || CAMERA_QUALITY_OPTIONS[1];
+  CAMERA_QUALITY_OPTIONS.find((option) => option.value === quality) ||
+  // By name rather than by index: inserting a rung used to silently change
+  // which profile an unknown value fell back to.
+  CAMERA_QUALITY_OPTIONS.find((option) => option.value === DEFAULT_CAMERA_QUALITY)!;
 
 async function applyCameraProfile(track: any, quality: CameraQuality) {
   const profile = cameraProfile(quality);
@@ -345,7 +361,7 @@ export function GlobalLiveRoom() {
 const Avatar = ({ url, name, className = "" }: { url?: string | null; name: string; className?: string }) => (
   <div className={`rounded-full bg-white/[0.08] ring-1 ring-white/10 flex items-center justify-center overflow-hidden ${className}`}>
     {url ? (
-      <img src={url} alt="" className="w-full h-full object-cover" />
+      <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
     ) : (
       <span className="font-semibold text-white/80" style={{ fontSize: "0.9em" }}>
         {(name || "U")[0].toUpperCase()}
@@ -474,16 +490,16 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   useJoin({ appid: APP_ID, channel, token }, true);
   const client = useRTCClient();
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
-  /* Start in HD. Higher modes are available in Camera settings and are applied
+  /* Start smooth. Higher modes are available in Camera settings and are applied
      to both capture and encoding so they improve the source rather than merely
      upscaling a low-resolution camera frame. */
   const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, {
     encoderConfig: {
-      width: 1280,
-      height: 720,
-      frameRate: 30,
-      bitrateMin: 800,
-      bitrateMax: 1800,
+      width: 960,
+      height: 540,
+      frameRate: 24,
+      bitrateMin: 350,
+      bitrateMax: 900,
     },
     optimizationMode: "motion",
   });
@@ -1571,7 +1587,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             ) : (
               <div className="w-14 h-14 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center overflow-hidden">
                 {liveSession.userAvatar ? (
-                  <img src={liveSession.userAvatar} alt="" className="w-full h-full object-cover pointer-events-none" />
+                  <img src={liveSession.userAvatar} alt="" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
                 ) : (
                   <span className="text-xl font-semibold text-white/80">{initial}</span>
                 )}
@@ -2119,7 +2135,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                           )}
                           <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-white/[0.08] flex items-center justify-center mt-0.5 ring-1 ring-white/10">
                             {msg.sender_avatar ? (
-                              <img src={msg.sender_avatar} alt="" className="w-full h-full object-cover" />
+                              <img src={msg.sender_avatar} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                             ) : (
                               <span className="text-[10px] font-semibold text-white/80">{msg.sender_name[0]?.toUpperCase()}</span>
                             )}
@@ -2178,7 +2194,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                           className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.06]"
                         >
                           <span className="grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-[10px] font-semibold text-white/80">
-                            {person.avatar ? <img src={person.avatar} alt="" className="h-full w-full object-cover" /> : person.name[0]?.toUpperCase()}
+                            {person.avatar ? <img src={person.avatar} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : person.name[0]?.toUpperCase()}
                           </span>
                           <span className="min-w-0 flex-1 truncate text-[12.5px] text-white/85">{person.name}</span>
                           {person.isAdmin && <span className="shrink-0 text-[9.5px] font-semibold uppercase tracking-wide text-[#f28fd0]">Host</span>}

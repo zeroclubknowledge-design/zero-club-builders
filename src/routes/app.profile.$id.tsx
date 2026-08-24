@@ -459,7 +459,7 @@ function ProfileDetail() {
       }`}>
         {profile?.banner_url && (
           <div className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${scrolled || searchOpen ? 'opacity-100' : 'opacity-0'}`} aria-hidden="true">
-            <img src={profile.banner_url} alt="" className="h-full w-full scale-110 object-cover blur-md" />
+            <img src={profile.banner_url} alt="" className="h-full w-full scale-110 object-cover blur-md" loading="lazy" decoding="async" />
             <div className="absolute inset-0 bg-black/45" />
           </div>
         )}
@@ -552,10 +552,10 @@ function ProfileDetail() {
                 src={profile.banner_url} 
                 alt="Banner" 
                 className="h-full w-full object-cover object-center"
-              />
+              loading="lazy" decoding="async" />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[#211d21]">
-                <img src="/logo.png" alt="" className="h-20 w-20 object-contain opacity-35" />
+                <img src="/logo.png" alt="" className="h-20 w-20 object-contain opacity-35" loading="lazy" decoding="async" />
               </div>
             )}
           </div>
@@ -569,7 +569,7 @@ function ProfileDetail() {
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" />
+                  <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" loading="lazy" decoding="async" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary sm:text-3xl">
                     {initials}
@@ -788,7 +788,7 @@ function ProfileDetail() {
                           </div>
                         </>
                       ) : (
-                        <img src={url} alt="Post media" className="w-full h-full object-cover" />
+                        <img src={url} alt="Post media" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                       )}
                     </Link>
                   );
@@ -864,7 +864,7 @@ function ProfileDetail() {
           >
             <X className="w-6 h-6" />
           </button>
-          <img 
+          <img loading="lazy" decoding="async" 
             src={profile.avatar_url} 
             className="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl" 
             alt="Full Avatar" 

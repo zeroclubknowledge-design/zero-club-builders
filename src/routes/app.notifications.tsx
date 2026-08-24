@@ -320,7 +320,7 @@ function NotificationsPage() {
                         className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-card bg-muted text-xs font-bold text-muted-foreground shadow-sm transition active:opacity-70 sm:h-12 sm:w-12"
                       >
                         {actor.avatar_url ? (
-                          <img src={actor.avatar_url} className="h-full w-full rounded-full object-cover" />
+                          <img src={actor.avatar_url} className="h-full w-full rounded-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           (actor.username || "U").substring(0, 1).toUpperCase()
                         )}
@@ -334,7 +334,7 @@ function NotificationsPage() {
                       className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-card bg-muted text-sm font-bold text-muted-foreground shadow-sm transition active:opacity-70 sm:h-12 sm:w-12"
                     >
                       {(isActorMe && n.type === 'mention' ? n.recipient?.avatar_url : n.actor?.avatar_url) ? (
-                        <img src={isActorMe && n.type === 'mention' ? n.recipient.avatar_url : n.actor.avatar_url} className="h-full w-full rounded-full object-cover" />
+                        <img src={isActorMe && n.type === 'mention' ? n.recipient.avatar_url : n.actor.avatar_url} className="h-full w-full rounded-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         ((isActorMe && n.type === 'mention' ? n.recipient?.username : n.actor?.username) || "U").substring(0, 1).toUpperCase()
                       )}

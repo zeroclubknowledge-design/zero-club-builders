@@ -19,7 +19,7 @@ function BootcampCover({ bootcamp, className = '' }: { bootcamp: any; className?
   return (
     <div className={`relative overflow-hidden bg-[#171318] ${className}`}>
       {bootcamp.banner_url ? (
-        <img src={bootcamp.banner_url} alt={`${bootcamp.title} bootcamp`} className="h-full w-full object-cover" />
+        <img src={bootcamp.banner_url} alt={`${bootcamp.title} bootcamp`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
       ) : (
         <div className="grid h-full w-full place-items-center bg-primary/[0.08]">
           <BookOpen className="h-9 w-9 text-primary/60" />
@@ -159,7 +159,7 @@ function Bootcamps() {
                         <h4 className="mt-2 line-clamp-2 text-[16px] font-semibold leading-snug tracking-tight group-hover:text-primary">{camp.title}</h4>
                         <p className="mt-1.5 line-clamp-2 text-[11.5px] leading-relaxed text-muted-foreground">{richTextToPlain(camp.description) || 'Structured lessons, feedback, and practical work.'}</p>
                         <div className="mt-4 flex items-center gap-2.5 border-t border-border/60 pt-3">
-                          <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">{camp.profiles?.avatar_url ? <img src={camp.profiles.avatar_url} alt="" className="h-full w-full object-cover" /> : (camp.profiles?.full_name || camp.profiles?.username || 'T').substring(0, 1).toUpperCase()}</div>
+                          <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">{camp.profiles?.avatar_url ? <img src={camp.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : (camp.profiles?.full_name || camp.profiles?.username || 'T').substring(0, 1).toUpperCase()}</div>
                           <span className="min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground">{camp.profiles?.full_name || camp.profiles?.username}</span>
                           <span className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground"><Users className="h-3 w-3" /> {relationCount(camp.enrollments)}</span>
                           <span className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground"><BookOpen className="h-3 w-3" /> {relationCount(camp.modules)}</span>
@@ -234,7 +234,7 @@ function UpcomingRegistrations() {
               className="flex w-full min-w-0 items-start gap-3 overflow-hidden rounded-lg border border-border bg-card p-3 transition hover:border-primary/30"
             >
               <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
-                {registration.banner_url && <img src={registration.banner_url} alt="" className="h-full w-full object-cover" />}
+                {registration.banner_url && <img src={registration.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
               </div>
               <div className="min-w-0 flex-1">
                 {/* Two lines rather than one truncated line: bootcamp names are

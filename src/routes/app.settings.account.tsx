@@ -273,7 +273,7 @@ function AccountSettings() {
                         >
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/50 bg-accent flex items-center justify-center text-muted-foreground font-bold text-sm">
                             {account.avatar_url ? (
-                              <img src={account.avatar_url} className="h-full w-full object-cover" />
+                              <img src={account.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                             ) : (
                               (account.full_name || account.username || "U").charAt(0).toUpperCase()
                             )}

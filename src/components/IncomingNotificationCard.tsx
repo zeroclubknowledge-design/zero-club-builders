@@ -255,7 +255,7 @@ export function IncomingNotificationCard({
                   src={active.actor.avatar_url}
                   alt=""
                   className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
-                />
+                loading="lazy" decoding="async" />
               ) : (
                 <div className="grid h-10 w-10 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background">
                   {initials || "ZC"}

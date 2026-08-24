@@ -83,7 +83,7 @@ async function renderClubCard(rawId: string) {
               width={132}
               height={132}
               style={{ width: "132px", height: "132px", borderRadius: "28px", objectFit: "cover" }}
-            />
+            loading="lazy" decoding="async" />
           ) : (
             <div
               style={{

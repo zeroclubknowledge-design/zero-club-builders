@@ -30,7 +30,7 @@ function LiveClubCard({ club, currentUserId, onOpen }: { club: any; currentUserI
   return (
     <article className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="relative h-24 bg-[#171318]">
-        {club.banner_url && <img src={club.banner_url} alt="" className="h-full w-full object-cover opacity-65" />}
+        {club.banner_url && <img src={club.banner_url} alt="" className="h-full w-full object-cover opacity-65" loading="lazy" decoding="async" />}
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
           <span className={`h-1.5 w-1.5 rounded-full ${liveHosts > 0 ? 'bg-red-500 animate-pulse' : 'bg-white/40'}`} />
@@ -149,7 +149,7 @@ function Leaderboard({ currentUserId }: { currentUserId?: string }) {
 
                 <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
                   {person.avatar_url ? (
-                    <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                    <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     (person.full_name || person.username || "?")[0].toUpperCase()
                   )}
@@ -249,13 +249,13 @@ function InstitutionDirectory() {
             >
               <div className="relative h-20 bg-gradient-to-br from-[#241a2b] via-[#17131b] to-[#0e0c10]">
                 {institution.banner_url && (
-                  <img src={institution.banner_url} alt="" className="h-full w-full object-cover opacity-70" />
+                  <img src={institution.banner_url} alt="" className="h-full w-full object-cover opacity-70" loading="lazy" decoding="async" />
                 )}
               </div>
               <div className="flex min-w-0 items-start gap-3 p-4">
                 <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-card text-muted-foreground ring-1 ring-border">
                   {institution.avatar_url ? (
-                    <img src={institution.avatar_url} alt="" className="h-full w-full object-cover" />
+                    <img src={institution.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <Building2 className="h-6 w-6" />
                   )}
@@ -496,7 +496,7 @@ function Feed() {
                     >
                       <div className="h-16 w-16 rounded-2xl overflow-hidden ring-1 ring-border group-active:scale-95 transition-transform">
                         {profile.avatar_url ? (
-                          <img src={profile.avatar_url} alt={profile.username} className="h-full w-full object-cover" />
+                          <img src={profile.avatar_url} alt={profile.username} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-xl font-semibold text-white">
                             {profile.username?.substring(0,1).toUpperCase()}
@@ -528,7 +528,7 @@ function Feed() {
                       <article className="flex gap-4 overflow-hidden rounded-lg bg-card p-3 ring-1 ring-border transition-colors hover:ring-foreground/15">
                         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted ring-1 ring-border">
                           {camp.banner_url ? (
-                            <img src={camp.banner_url} alt="" className="h-full w-full object-cover" />
+                            <img src={camp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                           ) : (
                             <div className="h-full w-full bg-gradient-to-br from-primary/15 to-purple-500/10 flex items-center justify-center">
                               <Rocket className="h-6 w-6 text-primary/50" />
@@ -662,7 +662,7 @@ function Feed() {
             <div className="m-3 hidden items-center gap-3.5 rounded-lg border border-border bg-card px-4 py-3 md:flex">
               <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-border shrink-0">
                 {currentUser?.avatar_url ? (
-                  <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" />
+                  <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-[12px] font-semibold text-white uppercase">
                     {currentUser?.username?.substring(0, 1) || "U"}
@@ -819,7 +819,7 @@ function Feed() {
             ) : hostClubs.length > 0 ? hostClubs.map((club: any) => (
               <button key={club.id} onClick={() => openLiveRoom(club.id)} className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left hover:bg-accent/40">
                 <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-[#171318]">
-                  {club.banner_url ? <img src={club.banner_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center"><Radio className="h-5 w-5 text-primary" /></div>}
+                  {club.banner_url ? <img src={club.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center"><Radio className="h-5 w-5 text-primary" /></div>}
                 </div>
                 <div className="min-w-0 flex-1"><p className="truncate text-[13.5px] font-semibold">{club.name}</p><p className="mt-0.5 text-[11px] text-muted-foreground">Start an instant session</p></div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />

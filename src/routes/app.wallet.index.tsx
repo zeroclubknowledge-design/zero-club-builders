@@ -229,7 +229,7 @@ function WalletPage() {
         <div className="flex items-center gap-3">
           <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-border/30 shadow-sm shrink-0 transition-all duration-300 active:scale-95 hover:ring-primary/40 hover:shadow-md cursor-pointer">
             {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+              <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               <div className="h-full w-full bg-gradient-primary flex items-center justify-center font-bold text-white uppercase text-lg">
                 {profile?.username?.substring(0, 1) || "U"}
@@ -247,21 +247,21 @@ function WalletPage() {
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-2.5 text-[11px] font-bold text-foreground outline-none transition active:scale-95 hover:bg-accent/70">
-              <img src={currentCurrency.iconUrl} alt={currency} className="w-3.5 h-3.5 rounded-full object-cover shadow-sm ring-1 ring-border/50" />
+              <img src={currentCurrency.iconUrl} alt={currency} className="w-3.5 h-3.5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
               <span>{currency}</span>
               <ChevronDown className="h-3 w-3 opacity-50" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 rounded-lg border-border/60 bg-background p-2 shadow-xl">
               <DropdownMenuItem onClick={() => setCurrency("NGN")} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold cursor-pointer transition-colors ${currency ==="NGN" ? "bg-primary/10 text-primary" : "hover:bg-accent/60"}`}>
-                <img src="https://flagcdn.com/ng.svg" alt="NGN" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" />
+                <img src="https://flagcdn.com/ng.svg" alt="NGN" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
                 <span>Naira (NGN)</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setCurrency("USD")} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold cursor-pointer transition-colors ${currency ==="USD" ? "bg-primary/10 text-primary" : "hover:bg-accent/60"}`}>
-                <img src="https://flagcdn.com/us.svg" alt="USD" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" />
+                <img src="https://flagcdn.com/us.svg" alt="USD" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
                 <span>Dollar (USD)</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setCurrency("GHS")} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold cursor-pointer transition-colors ${currency ==="GHS" ? "bg-primary/10 text-primary" : "hover:bg-accent/60"}`}>
-                <img src="https://flagcdn.com/gh.svg" alt="GHS" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" />
+                <img src="https://flagcdn.com/gh.svg" alt="GHS" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
                 <span>Cedi (GHS)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -299,7 +299,7 @@ function WalletPage() {
               {/* Brand line, as on the gift card. It gives the extra height
                   something to hold rather than just more empty space. */}
               <div className="mb-5 flex items-center gap-2">
-                <img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" />
+                <img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" loading="lazy" decoding="async" />
                 <span className="text-[11.5px] font-semibold tracking-tight text-white/85">Zero Wallet</span>
               </div>
 
@@ -522,7 +522,7 @@ function WalletPage() {
                   <div className="flex items-center gap-4 md:gap-3 min-w-0">
                     <div className="h-12 w-12 md:h-10 md:w-10 rounded-full overflow-hidden bg-secondary border border-border/40 shrink-0">
                       {activity.actor?.avatar_url ? (
-                        <img src={activity.actor.avatar_url} className="h-full w-full object-cover" />
+                        <img src={activity.actor.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center text-muted-foreground font-bold">
                           {activity.actor?.username?.[0]?.toUpperCase()}

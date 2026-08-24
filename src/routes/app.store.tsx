@@ -309,7 +309,7 @@ function StorePage() {
                     <div className="mt-4 flex gap-3.5">
                       <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/10 text-primary">
                         {item.cover_url ? (
-                          <img src={item.cover_url} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+                          <img src={item.cover_url} alt={item.name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <Gift className="h-[20px] w-[20px]" strokeWidth={1.75} />
                         )}
@@ -407,7 +407,7 @@ function StorePage() {
                   {/* Cover */}
                   <div className="relative aspect-[16/9] w-full overflow-hidden bg-primary/10">
                     {selected.cover_url ? (
-                      <img src={selected.cover_url} alt="" className="h-full w-full object-cover" />
+                      <img src={selected.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="grid h-full w-full place-items-center text-primary">
                         <Gift className="h-10 w-10" strokeWidth={1.5} />
@@ -455,7 +455,7 @@ function StorePage() {
                       <div className="flex items-center gap-2.5">
                         <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
                           {seller.avatar_url
-                            ? <img src={seller.avatar_url} alt="" className="h-full w-full object-cover" />
+                            ? <img src={seller.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                             : (seller.full_name || seller.username || "?").charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">

@@ -198,7 +198,7 @@ function EditProfile() {
         {/* Banner Edit */}
         <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full bg-black overflow-hidden flex items-center justify-center">
           {banner ? (
-            <img src={banner} className="h-full w-full object-cover" alt="Banner" />
+            <img src={banner} className="h-full w-full object-cover" alt="Banner" loading="lazy" decoding="async" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
           )}
@@ -233,7 +233,7 @@ function EditProfile() {
           <div className="absolute -top-[55px] left-6 z-20">
             <div className="relative h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-background bg-zinc-900 shadow-xl flex items-center justify-center">
               {avatar ? (
-                <img src={avatar} alt="Avatar" className="h-full w-full object-cover" />
+                <img src={avatar} alt="Avatar" className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 <span className="text-4xl font-display font-black text-[#FF1E3F]">
                   {(profile?.full_name || profile?.username || 'A').charAt(0).toUpperCase()}

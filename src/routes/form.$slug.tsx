@@ -574,7 +574,7 @@ function ZeroFormPublicPage() {
               src={flyer}
               alt={`${bootcamp?.title} flyer`}
               className="block w-full rounded-2xl object-contain"
-            />
+            loading="lazy" decoding="async" />
           </div>
         ) : null}
 
@@ -589,7 +589,7 @@ function ZeroFormPublicPage() {
           {owner && (
             <span className="flex items-center gap-2">
               {owner.avatar_url
-                ? <img src={owner.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+                ? <img src={owner.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" loading="lazy" decoding="async" />
                 : <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">{(owner.full_name || owner.username || "Z").charAt(0).toUpperCase()}</span>}
               {owner.full_name || owner.username}
               {owner.account_type === "Institution" && <BadgeCheck className="h-3.5 w-3.5 text-primary" />}
@@ -1087,7 +1087,7 @@ function Shell({ children }: { children: React.ReactNode }) {
               </button>
             )}
             <Link to="/" className="flex min-w-0 items-center gap-2.5">
-              <img src="/logo.png" alt="" className="h-7 w-7 shrink-0 object-contain" />
+              <img src="/logo.png" alt="" className="h-7 w-7 shrink-0 object-contain" loading="lazy" decoding="async" />
               <span className="truncate font-display text-[16px] font-semibold tracking-tight">Zero <span className="text-primary">Club</span></span>
             </Link>
           </div>
@@ -1097,7 +1097,7 @@ function Shell({ children }: { children: React.ReactNode }) {
               full version turns to mush at 26px. The SVG stays crisp on every
               screen; the PNG covers the rare browser that refuses SVG here. */}
           <span className="flex items-center gap-2">
-            <img
+            <img loading="lazy" decoding="async"
               src="/brand/zero-form/zero-form-icon-compact.svg"
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/brand/zero-form/zero-form-icon-compact-128.png"; }}
               alt=""

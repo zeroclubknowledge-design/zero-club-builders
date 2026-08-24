@@ -156,7 +156,7 @@ function InstitutionPage() {
             <div className="flex items-start gap-4">
               <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/15 sm:h-20 sm:w-20">
                 {institution.avatar_url ? (
-                  <img src={institution.avatar_url} alt="" className="h-full w-full object-cover" />
+                  <img src={institution.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <Building2 className="h-8 w-8 text-white/70" />
                 )}
@@ -221,7 +221,7 @@ function InstitutionPage() {
                 >
                   <div className="relative h-32 bg-foreground/[0.04]">
                     {bootcamp.banner_url && (
-                      <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" />
+                      <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     )}
                   </div>
                   <div className="p-4">
@@ -257,7 +257,7 @@ function InstitutionPage() {
                 >
                   <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground ring-1 ring-border">
                     {tutor.avatar_url ? (
-                      <img src={tutor.avatar_url} alt="" className="h-full w-full object-cover" />
+                      <img src={tutor.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       (tutor.username || "T")[0].toUpperCase()
                     )}
@@ -289,7 +289,7 @@ function InstitutionPage() {
                 >
                   <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary/[0.08] text-primary ring-1 ring-primary/15">
                     {club.banner_url ? (
-                      <img src={club.banner_url} alt="" className="h-full w-full object-cover" />
+                      <img src={club.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <Users className="h-5 w-5" />
                     )}

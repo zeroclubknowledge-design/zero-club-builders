@@ -561,7 +561,7 @@ function NotesEditPage() {
           <div className="group relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-dashed border-border bg-card transition-colors hover:border-primary/50 hover:bg-muted/30 md:aspect-[21/9]">
             {coverPreview ? (
               <>
-                <img src={coverPreview} className="w-full h-full object-cover" />
+                <img src={coverPreview} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[2px]">
                   <label className="relative cursor-pointer overflow-hidden rounded-lg border border-white/30 bg-black/60 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-black/75">
                     <span className="pointer-events-none drop-shadow-md">Change Cover</span>
@@ -634,7 +634,7 @@ function NotesEditPage() {
                               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors border-b border-border/30 last:border-0"
                             >
                                <div className="h-8 w-8 rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-[10px] shrink-0">
-                                {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" /> : prof.username[0].toUpperCase()}
+                                {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : prof.username[0].toUpperCase()}
                                </div>
                                <div className="text-left">
                                  <p className="text-sm font-bold text-foreground">{prof.full_name || prof.username}</p>
@@ -661,7 +661,7 @@ function NotesEditPage() {
                     <div className="group relative my-6 w-full overflow-hidden rounded-lg border border-border bg-muted/20">
                       {block.preview ? (
                         <div className="relative">
-                          <img src={block.preview} className="w-full h-auto object-cover" />
+                          <img src={block.preview} className="w-full h-auto object-cover" loading="lazy" decoding="async" />
                           <div className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-inset ring-black/10" />
                         </div>
                       ) : (

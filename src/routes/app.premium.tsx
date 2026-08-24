@@ -248,7 +248,7 @@ function AnimatedBrandMark() {
         src="/logo.png"
         alt="Zero Club"
         className="zc-pro-float relative h-[54px] w-[54px] object-contain drop-shadow-[0_12px_30px_rgba(204,32,143,0.55)]"
-      />
+      loading="lazy" decoding="async" />
     </div>
   );
 }

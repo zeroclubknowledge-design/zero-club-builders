@@ -210,7 +210,7 @@ function FundLinkPage() {
       <header className="border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[62px] max-w-[720px] items-center px-5">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" loading="lazy" decoding="async" />
             <span className="font-display text-[16px] font-semibold tracking-tight">
               Zero <span className="text-primary">Club</span>
             </span>
@@ -245,7 +245,7 @@ function FundLinkPage() {
             <div className="text-center">
               <div className="mx-auto grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-primary/10 text-[24px] font-semibold text-primary">
                 {link.owner_avatar ? (
-                  <img src={link.owner_avatar} alt="" className="h-full w-full object-cover" />
+                  <img src={link.owner_avatar} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   (link.owner_name || "?").charAt(0).toUpperCase()
                 )}

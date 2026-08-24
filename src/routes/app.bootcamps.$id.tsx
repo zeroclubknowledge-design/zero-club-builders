@@ -332,7 +332,7 @@ function BootcampDetail() {
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-background to-transparent" />
         <div className="h-full w-full overflow-hidden bg-muted">
           {bootcamp.banner_url ? (
-            <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" />
+            <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
           ) : (
             <div className="h-full w-full bg-gradient-primary" style={{ background: "linear-gradient(135deg,#cc208f,#a78bfa)" }} />
           )}

@@ -153,7 +153,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="w-full max-w-sm overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_24px_80px_-36px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col items-center px-7 pb-8 pt-9 text-center">
           <div className="relative grid h-16 w-16 place-items-center rounded-[22px] bg-primary/10 ring-1 ring-primary/15">
-            <img src="/icons/icon-192.png" alt="" className="h-11 w-11 rounded-[15px]" />
+            <img src="/icons/icon-192.png" alt="" className="h-11 w-11 rounded-[15px]" loading="lazy" decoding="async" />
             <span className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full ring-4 ring-card ${connectionProblem ? "bg-amber-500" : "bg-primary"}`} />
           </div>
           <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Zero Club</p>

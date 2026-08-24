@@ -103,7 +103,7 @@ function ClubLinkPage() {
       <header className="border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[62px] max-w-[720px] items-center px-5">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" loading="lazy" decoding="async" />
             <span className="font-display text-[16px] font-semibold tracking-tight">
               Zero <span className="text-primary">Club</span>
             </span>
@@ -118,7 +118,7 @@ function ClubLinkPage() {
             src={club.logo_url || club.banner_url || ""}
             alt=""
             className="mx-auto mb-7 h-24 w-24 rounded-2xl border border-border object-cover"
-          />
+          loading="lazy" decoding="async" />
         )}
 
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">

@@ -50,7 +50,7 @@ export function GiftCardVisual({
       <div className="absolute -bottom-12 right-16 h-24 w-24 rotate-12 border-[14px] border-current opacity-[0.06]" />
       <div className="relative flex h-full flex-col justify-between">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-2"><img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7" /><span className="truncate text-[11px] font-semibold sm:text-[13px]">Zero Card</span></div>
+          <div className="flex min-w-0 items-center gap-2"><img decoding="async" src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7" /><span className="truncate text-[11px] font-semibold sm:text-[13px]">Zero Card</span></div>
           <div className={`grid h-8 w-8 place-items-center rounded-lg ${template.accent}`}><Gift className="h-4 w-4 fill-current" /></div>
         </div>
         <div>

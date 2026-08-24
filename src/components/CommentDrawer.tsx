@@ -599,7 +599,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                         className="z-10 flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-muted text-[10px] font-semibold text-muted-foreground transition active:opacity-70"
                       >
                         {comment.profiles?.avatar_url ? (
-                          <img src={comment.profiles.avatar_url} className="h-full w-full object-cover" />
+                          <img src={comment.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center font-bold text-[10px] text-muted-foreground">
                             {comment.profiles?.username?.substring(0,1).toUpperCase()}

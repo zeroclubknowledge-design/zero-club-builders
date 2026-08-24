@@ -277,7 +277,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
       case 'image':
         return (
           <div className="my-8 overflow-hidden rounded-lg border border-border bg-muted">
-            <img src={block.content} className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-500" />
+            <img src={block.content} className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-500" loading="lazy" decoding="async" />
           </div>
         );
       case 'video':
@@ -351,7 +351,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
         {note.cover_url && (
           <div className="mx-auto w-full max-w-[1100px] px-4 pt-5 sm:px-6 sm:pt-7">
             <div className="aspect-[16/9] overflow-hidden rounded-lg border border-border bg-muted md:aspect-[21/9]">
-              <img src={note.cover_url} className="h-full w-full object-cover" />
+              <img src={note.cover_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             </div>
           </div>
         )}
@@ -368,7 +368,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
             <div className="flex items-center gap-3.5">
               <div className="h-10 w-10 md:h-12 md:w-12 rounded-full overflow-hidden bg-muted border border-primary/20 shadow-sm shrink-0">
                 {note.profiles?.avatar_url ? (
-                  <img src={note.profiles.avatar_url} className="w-full h-full object-cover" />
+                  <img src={note.profiles.avatar_url} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-full h-full bg-foreground text-background flex items-center justify-center font-bold text-lg">
                     {note.profiles?.username?.[0]?.toUpperCase()}

@@ -66,7 +66,7 @@ function NewMessagePage() {
             ) : filteredFollowers.length > 0 ? filteredFollowers.map((follower: any) => (
               <button key={follower.id} onClick={() => navigate({ to: "/app/chat/$id", params: { id: follower.id } })} className="group flex w-full items-center gap-3 border-b border-border p-3.5 text-left last:border-b-0 hover:bg-muted/50">
                 <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
-                  {follower.avatar_url ? <img src={follower.avatar_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center bg-primary/10 text-sm font-semibold text-primary">{(follower.full_name || follower.username || 'U').substring(0, 1).toUpperCase()}</div>}
+                  {follower.avatar_url ? <img src={follower.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full place-items-center bg-primary/10 text-sm font-semibold text-primary">{(follower.full_name || follower.username || 'U').substring(0, 1).toUpperCase()}</div>}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5"><span className="truncate text-[14px] font-semibold text-foreground">{follower.full_name || follower.username}</span>{follower.verified && <Check className="h-3.5 w-3.5 fill-primary text-primary" />}</div>

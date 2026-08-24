@@ -478,7 +478,7 @@ function LobbyRow({ Icon, label, value }: any) {
 
 function Avatar({ profile, size, ring = false }: { profile?: any; size: "xs" | "sm" | "md" | "lg"; ring?: boolean }) {
   const classes = { xs: "h-7 w-7 text-[9px]", sm: "h-9 w-9 text-[10px]", md: "h-10 w-10 text-[11px]", lg: "h-12 w-12 text-[13px]" }[size];
-  return profile?.avatar_url ? <img src={profile.avatar_url} alt="" className={`${classes} shrink-0 rounded-full object-cover ${ring ? "ring-2 ring-[#171217]" : "ring-1 ring-border"}`} /> : <span className={`${classes} grid shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground ${ring ? "ring-2 ring-[#171217]" : ""}`}>{profileName(profile).charAt(0).toUpperCase()}</span>;
+  return profile?.avatar_url ? <img src={profile.avatar_url} alt="" className={`${classes} shrink-0 rounded-full object-cover ${ring ? "ring-2 ring-[#171217]" : "ring-1 ring-border"}`} loading="lazy" decoding="async" /> : <span className={`${classes} grid shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground ${ring ? "ring-2 ring-[#171217]" : ""}`}>{profileName(profile).charAt(0).toUpperCase()}</span>;
 }
 
 function ActionOverlay({ onClose, isHost, working, onFeed, onCopy, onCancel }: any) {

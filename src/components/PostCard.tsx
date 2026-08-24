@@ -427,7 +427,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
             <div className="relative shrink-0">
               <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-semibold text-muted-foreground text-xs ring-1 ring-border">
                 {post.profiles?.avatar_url ? (
-                  <img src={post.profiles.avatar_url} alt={post.profiles.username} className="h-full w-full object-cover" />
+                  <img src={post.profiles.avatar_url} alt={post.profiles.username} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   (post.profiles?.full_name || post.profiles?.username || 'U').substring(0, 1).toUpperCase()
                 )}
@@ -595,7 +595,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-5 w-5 rounded-full overflow-hidden bg-muted flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
                     {post.quoted_posts.profiles?.avatar_url ? (
-                      <img src={post.quoted_posts.profiles.avatar_url} className="h-full w-full object-cover" />
+                      <img src={post.quoted_posts.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       (post.quoted_posts.profiles?.username || 'U')[0].toUpperCase()
                     )}

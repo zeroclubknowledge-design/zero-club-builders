@@ -138,7 +138,7 @@ function ProductLinkPage() {
       <header className="border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[62px] max-w-[720px] items-center px-5">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" loading="lazy" decoding="async" />
             <span className="font-display text-[16px] font-semibold tracking-tight">
               Zero <span className="text-primary">Club</span>
             </span>
@@ -149,7 +149,7 @@ function ProductLinkPage() {
       <main className="mx-auto max-w-[520px] px-5 py-14 text-center">
         <div className="mx-auto mb-7 grid h-28 w-28 place-items-center overflow-hidden rounded-2xl border border-border bg-primary/10 text-primary">
           {product?.cover_url ? (
-            <img src={product.cover_url} alt="" className="h-full w-full object-cover" />
+            <img src={product.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
           ) : (
             <Gift className="h-9 w-9" strokeWidth={1.5} />
           )}

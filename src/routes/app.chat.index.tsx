@@ -121,7 +121,7 @@ function ChatInboxPage() {
             {/* User Avatar */}
             <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-border/30 shadow-sm shrink-0 transition-all duration-300 active:scale-95 hover:ring-primary/40 hover:shadow-md cursor-pointer">
               {currentUser?.avatar_url ? (
-                <img src={currentUser.avatar_url} className="h-full w-full object-cover" />
+                <img src={currentUser.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 <div className="h-full w-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[11px] font-semibold text-white">
                   {currentUser?.username?.[0].toUpperCase() || "U"}
@@ -202,7 +202,7 @@ function ChatInboxPage() {
             <div className="relative shrink-0">
               <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-primary/10 text-primary ring-2 ring-primary/15 shadow-sm transition group-active:scale-95">
                 {supportConversation.user?.avatar_url ? (
-                  <img src={supportConversation.user.avatar_url} alt="Zero Club Support" className="h-full w-full object-cover" />
+                  <img src={supportConversation.user.avatar_url} alt="Zero Club Support" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <Headphones className="h-5 w-5" />
                 )}
@@ -245,7 +245,7 @@ function ChatInboxPage() {
             <div className="relative shrink-0" onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate({ to: '/app/profile/$id', params: { id: chat.user?.id } }); }}>
               <div className="h-12 w-12 rounded-full bg-muted overflow-hidden ring-2 ring-background shadow-sm group-active:scale-95 transition-all duration-200 cursor-pointer hover:shadow-md">
                 {chat.user?.avatar_url ? (
-                  <img src={chat.user.avatar_url} alt="" className="h-full w-full object-cover" />
+                  <img src={chat.user.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <div className="h-full w-full bg-gradient-to-br from-muted-foreground/20 to-accent flex items-center justify-center font-semibold text-muted-foreground text-lg">
                     {(chat.user?.full_name || chat.user?.username || 'U').substring(0, 1).toUpperCase()}

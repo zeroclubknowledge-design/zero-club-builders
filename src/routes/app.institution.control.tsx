@@ -210,7 +210,7 @@ function InstitutionControlPanel() {
                     >
                       <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
                         {learner.avatar_url ? (
-                          <img src={learner.avatar_url} alt="" className="h-full w-full object-cover" />
+                          <img src={learner.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           (learner.full_name || learner.username || "?")[0].toUpperCase()
                         )}

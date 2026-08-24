@@ -583,7 +583,7 @@ function Clubs() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Zero Club" className="h-6 w-auto object-contain" />
+                <img src="/logo.png" alt="Zero Club" className="h-6 w-auto object-contain" loading="lazy" decoding="async" />
                 <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Clubs</h1>
               </div>
               <p className="text-[10px] font-medium text-muted-foreground/70 mt-0.5 whitespace-nowrap">Learn, Ship, Network & <span className="text-primary font-bold">Earn</span></p>
@@ -1138,7 +1138,7 @@ function Clubs() {
                           <div className="flex items-center gap-3 w-full">
                             <div className="h-10 w-10 rounded-full bg-accent/30 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-border/30">
                               {sender.avatar_url ? (
-                                <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
+                                <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                               ) : (
                                 (sender.full_name || sender.username || 'U').substring(0, 1).toUpperCase()
                               )}
@@ -1238,14 +1238,14 @@ function Clubs() {
           {selectedClub && (
             <div>
               <div className="relative h-28 overflow-hidden bg-[#171218]">
-                {selectedClub.banner_url && <img src={selectedClub.banner_url} alt="" className="h-full w-full object-cover opacity-55" />}
+                {selectedClub.banner_url && <img src={selectedClub.banner_url} alt="" className="h-full w-full object-cover opacity-55" loading="lazy" decoding="async" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#171218] to-transparent" />
                 {/* The club's own picture, not a 48px crop of the middle of
                     its banner — which is what this was, so the badge and the
                     strip behind it showed the same image twice. */}
                 <div className="absolute bottom-4 left-5 flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-black/30 backdrop-blur-md">
                 {selectedClub.logo_url ? (
-                  <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" />
+                  <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                     <Hash className="h-6 w-6 text-white" />
                 )}

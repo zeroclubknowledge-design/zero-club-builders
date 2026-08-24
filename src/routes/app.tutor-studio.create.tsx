@@ -592,7 +592,7 @@ export function BootcampForm({
                       src={banner}
                       className="absolute inset-0 h-full w-full object-cover"
                       alt="Banner Preview"
-                    />
+                    loading="lazy" decoding="async" />
                   ) : (
                     <>
                       <div className="h-12 w-12 rounded-full ring-1 ring-border bg-card flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">

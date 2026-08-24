@@ -315,7 +315,7 @@ function MyStorePage() {
                     <div className="flex items-center gap-3.5 p-4">
                       <div className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
                         {item.cover_url ? (
-                          <img src={item.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                          <img src={item.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <Gift className="h-6 w-6" strokeWidth={1.75} />
                         )}
@@ -422,7 +422,7 @@ function MyStorePage() {
               >
                 {coverPreview ? (
                   <>
-                    <img src={coverPreview} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={coverPreview} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
                     <span className="relative z-10 rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity">
                       Change cover
                     </span>

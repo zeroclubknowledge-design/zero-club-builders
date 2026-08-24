@@ -51,7 +51,7 @@ export function ImageLightbox({ mediaUrls, initialIndex, isOpen, onClose }: Imag
                       src={url} 
                       alt={`Media ${i + 1}`} 
                       className="max-h-[85dvh] max-w-[100vw] object-contain rounded-md select-none pointer-events-none" 
-                    />
+                    loading="lazy" decoding="async" />
                   )}
                   {mediaUrls.length > 1 && (
                     <div className="absolute bottom-6 text-white/50 text-sm font-medium tracking-widest">

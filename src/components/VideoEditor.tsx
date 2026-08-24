@@ -420,7 +420,7 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
                       src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=200&auto=format&fit=crop" 
                       className="w-full h-full object-cover" 
                       alt="" 
-                    />
+                    loading="lazy" decoding="async" />
                   </div>
                   <span className="text-[10px]">{filter.name}</span>
                 </button>

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { decodeChatMedia, encodeChatMedia, getChatMediaType, useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { supabase } from "@/lib/supabase";
+import { compressImage } from "@/lib/imageCompression";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { toast } from "sonner";
 
@@ -26,16 +27,19 @@ export async function buildCommentContent(text: string, files: File[], userId: s
   if (files.length === 0) return text.trim();
 
   const uploaded: string[] = [];
-  for (const file of files) {
+  for (const original of files) {
+    const file = await compressImage(original);
     const extension = file.name.split(".").pop() || (file.type.startsWith("audio/") ? "webm" : "bin");
     const path = `${userId}/comments/${crypto.randomUUID()}.${extension}`;
     const { error } = await supabase.storage.from("post-media").upload(path, file, {
       contentType: file.type,
       upsert: false,
+      // The file at this path can never change, so it never needs rechecking.
+      cacheControl: "31536000",
     });
     if (error) throw error;
     const { data } = supabase.storage.from("post-media").getPublicUrl(path);
-    uploaded.push(encodeChatMedia(getChatMediaType(file), data.publicUrl, file.name));
+    uploaded.push(encodeChatMedia(getChatMediaType(file), data.publicUrl, original.name));
   }
 
   return `${text.trim()}${text.trim() ? "\n\n" : ""}$$MEDIA$$${uploaded.join(",")}`;
@@ -54,7 +58,7 @@ export function CommentContent({ content }: { content?: string | null }) {
         <div className={`grid gap-1.5 overflow-hidden rounded-lg ${media.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
           {media.map((item, index) => {
             if (item.type === "image") {
-              return <img key={`${item.url}-${index}`} src={item.url} alt={item.name} className="max-h-72 w-full rounded-lg border border-border/60 bg-muted object-cover" />;
+              return <img key={`${item.url}-${index}`} src={item.url} alt={item.name} className="max-h-72 w-full rounded-lg border border-border/60 bg-muted object-cover" loading="lazy" decoding="async" />;
             }
             if (item.type === "video") {
               return <video key={`${item.url}-${index}`} src={item.url} controls playsInline className="max-h-72 w-full rounded-lg border border-border/60 bg-black object-contain" />;
@@ -160,7 +164,7 @@ export function CommentComposer({
           {files.map((file, index) => (
             <div key={`${file.name}-${index}`} className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
               {file.type.startsWith("image/") ? (
-                <img src={previews[index]} alt="" className="h-full w-full object-cover" />
+                <img src={previews[index]} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : file.type.startsWith("video/") ? (
                 <video src={previews[index]} className="h-full w-full object-cover" muted />
               ) : (
@@ -179,7 +183,7 @@ export function CommentComposer({
 
       <div className="flex items-end gap-1.5">
         <div className="mb-0.5 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
-          {currentUser?.avatar_url ? <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" /> : name.slice(0, 1).toUpperCase()}
+          {currentUser?.avatar_url ? <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : name.slice(0, 1).toUpperCase()}
         </div>
 
         <textarea

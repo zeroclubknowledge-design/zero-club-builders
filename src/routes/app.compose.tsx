@@ -463,7 +463,7 @@ function ComposePage() {
                      {isVideo ? (
                        <video src={src} className="w-full h-auto max-h-[600px] object-contain" muted playsInline controls />
                      ) : (
-                       <img src={src} className="w-full h-auto max-h-[600px] object-contain" alt="" />
+                       <img src={src} className="w-full h-auto max-h-[600px] object-contain" alt="" loading="lazy" decoding="async" />
                      )}
                      
                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -509,7 +509,7 @@ function ComposePage() {
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors border-b border-border/30 last:border-0"
                 >
                   <div className="h-8 w-8 rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-[10px]">
-                    {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" /> : prof.username[0].toUpperCase()}
+                    {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : prof.username[0].toUpperCase()}
                   </div>
                   <div className="text-left">
                     <p className="text-sm font-semibold tracking-tight text-foreground">{prof.full_name || prof.username}</p>
@@ -546,7 +546,7 @@ function ComposePage() {
             <button onClick={() => setQuotedPost(null)} className="absolute top-3 right-3 p-1 rounded-full bg-accent text-foreground transition hover:bg-muted"><X className="h-4 w-4" /></button>
             <div className="flex items-center gap-2 mb-2">
               <div className="h-6 w-6 rounded-full overflow-hidden bg-muted">
-                {quotedPost.profiles?.avatar_url && <img src={quotedPost.profiles.avatar_url} className="h-full w-full object-cover" />}
+                {quotedPost.profiles?.avatar_url && <img src={quotedPost.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />}
               </div>
               <span className="text-sm font-semibold tracking-tight">{quotedPost.profiles?.full_name || quotedPost.profiles?.username}</span>
               <span className="text-xs text-muted-foreground">{getFirstName(quotedPost.profiles)}</span>

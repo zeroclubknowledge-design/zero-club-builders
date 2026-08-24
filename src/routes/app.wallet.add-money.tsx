@@ -611,7 +611,7 @@ function AddMoneyPage() {
                       >
                         <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground">
                           {person.avatar_url ? (
-                            <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                            <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                           ) : (
                             (person.full_name || person.username || "?").charAt(0).toUpperCase()
                           )}

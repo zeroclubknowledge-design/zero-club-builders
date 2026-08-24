@@ -20,7 +20,7 @@ export function PublicHeader({ section }: { section?: string }) {
         <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-4 md:px-7">
           <div className="flex min-w-0 items-center gap-4">
             <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="Zero Club home">
-              <img src="/logo.png" alt="" className="h-8 w-8 object-contain" />
+              <img src="/logo.png" alt="" className="h-8 w-8 object-contain" loading="lazy" decoding="async" />
               <span className="hidden font-display text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white sm:block">
                 Zero <span className="text-[#cc208f]">Club</span>
               </span>

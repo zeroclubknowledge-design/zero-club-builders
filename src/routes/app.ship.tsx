@@ -440,7 +440,7 @@ function ShipPage() {
                   {isVideo ? (
                     <video src={src} className="w-full h-full object-cover" />
                   ) : (
-                    <img src={src} className="w-full h-full object-cover" />
+                    <img src={src} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   )}
                   <button 
                     onClick={() => {

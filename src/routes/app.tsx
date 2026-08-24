@@ -189,7 +189,7 @@ function SidebarContent({
     >
       <div className="mb-4 flex h-11 shrink-0 items-center justify-between border-b border-border/60 px-1 pb-3">
         <Link to="/app" className="flex items-center gap-2.5" aria-label="Zero Club feed">
-          <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+          <img src="/logo.png" alt="" className="h-7 w-7 object-contain" loading="lazy" decoding="async" />
           <span className="font-display text-[17px] font-semibold tracking-tight text-foreground">
             Zero <span className="text-primary">Club</span>
           </span>
@@ -206,7 +206,7 @@ function SidebarContent({
               src={profile.avatar_url}
               alt={profile.username}
               className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
-            />
+            loading="lazy" decoding="async" />
           ) : (
             <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-semibold text-primary-foreground">
               {profile?.username?.substring(0, 1).toUpperCase() || "U"}
@@ -263,7 +263,7 @@ function SidebarContent({
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
                       {profile?.avatar_url ? (
-                        <img src={profile.avatar_url} className="h-full w-full object-cover" />
+                        <img src={profile.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center font-bold text-muted-foreground">
                           {profile?.username?.charAt(0).toUpperCase() || "U"}
@@ -297,7 +297,7 @@ function SidebarContent({
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
                         {acc.avatar_url ? (
-                          <img src={acc.avatar_url} className="h-full w-full object-cover" />
+                          <img src={acc.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center font-bold text-muted-foreground">
                             {acc.username?.charAt(0).toUpperCase() || "U"}
@@ -654,7 +654,7 @@ function DesktopWorkspaceRail({
             </p>
             <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-foreground">{isAdmin ? "Zero Club Admin" : role}</h2>
           </div>
-          <img src="/logo.png" alt="" className="h-10 w-10 object-contain" />
+          <img src="/logo.png" alt="" className="h-10 w-10 object-contain" loading="lazy" decoding="async" />
         </div>
         <p className="mt-4 text-sm leading-6 text-muted-foreground">
           Zero Club connects learning, proof, reputation, and earning into one operating workspace.
@@ -1106,7 +1106,7 @@ function AppLayout() {
                           src={avatarUrl}
                           alt={senderName}
                           className="h-8 w-8 rounded-full object-cover shrink-0"
-                        />
+                        loading="lazy" decoding="async" />
                       ) : (
                         <div className="h-8 w-8 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
                           {senderName.substring(0, 1)}
@@ -1393,7 +1393,7 @@ function AppLayout() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
-        <img src="/logo.png" alt="Zero Club" className="h-10 w-auto opacity-90" />
+        <img src="/logo.png" alt="Zero Club" className="h-10 w-auto opacity-90" loading="lazy" decoding="async" />
         <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
           <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
         </div>
@@ -1441,7 +1441,7 @@ function AppLayout() {
                     src={profile.avatar_url}
                     alt={profile.username}
                     className="h-full w-full object-cover"
-                  />
+                  loading="lazy" decoding="async" />
                 ) : (
                   <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-[10px] font-semibold text-white uppercase">
                     {profile?.username?.substring(0, 1) || "U"}
@@ -1453,7 +1453,7 @@ function AppLayout() {
             <div className="flex flex-1 items-center justify-center gap-2.5 md:justify-start">
               {isFeed ? (
                 <>
-                  <img src="/logo.png" alt="Zero Club" className="h-8 w-auto object-contain" />
+                  <img src="/logo.png" alt="Zero Club" className="h-8 w-auto object-contain" loading="lazy" decoding="async" />
                   <span className="hidden font-display text-[17px] font-semibold tracking-tight md:inline">Feed</span>
                 </>
               ) : (

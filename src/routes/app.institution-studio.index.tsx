@@ -554,7 +554,7 @@ function InstitutionHub() {
                       >
                         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                           {b.banner_url ? (
-                            <img src={b.banner_url} className="h-full w-full object-cover" />
+                            <img src={b.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center bg-primary/5">
                               <GraduationCap className="h-5 w-5 text-primary/40" />
@@ -575,7 +575,7 @@ function InstitutionHub() {
                         {b.profiles && (
                           <div className="flex items-center gap-2 shrink-0">
                             {b.profiles.avatar_url ? (
-                              <img src={b.profiles.avatar_url} className="h-7 w-7 rounded-full object-cover ring-1 ring-border" />
+                              <img src={b.profiles.avatar_url} className="h-7 w-7 rounded-full object-cover ring-1 ring-border" loading="lazy" decoding="async" />
                             ) : (
                               <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
                                 {(b.profiles.username || "U")[0].toUpperCase()}
@@ -649,7 +649,7 @@ function InstitutionHub() {
                       <div key={t.id} className="rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/25">
                         <div className="flex items-center gap-4">
                           {t.tutor?.avatar_url ? (
-                            <img src={t.tutor.avatar_url} className="h-12 w-12 rounded-xl object-cover ring-1 ring-border" />
+                            <img src={t.tutor.avatar_url} className="h-12 w-12 rounded-xl object-cover ring-1 ring-border" loading="lazy" decoding="async" />
                           ) : (
                             <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
                               {(t.tutor?.username || "T")[0].toUpperCase()}
@@ -850,7 +850,7 @@ function InstitutionHub() {
                         {/* Banner */}
                         <div className="relative aspect-[16/9] overflow-hidden bg-muted">
                           {b.banner_url ? (
-                            <img src={b.banner_url} alt={b.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                            <img src={b.banner_url} alt={b.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async" />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                               <GraduationCap className="h-10 w-10 text-primary/30" />
@@ -889,7 +889,7 @@ function InstitutionHub() {
                             {assignedTutor ? (
                               <div className="flex items-center gap-2">
                                 {assignedTutor.tutor?.avatar_url ? (
-                                  <img src={assignedTutor.tutor.avatar_url} className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                                  <img src={assignedTutor.tutor.avatar_url} className="h-6 w-6 rounded-full object-cover ring-1 ring-border" loading="lazy" decoding="async" />
                                 ) : (
                                   <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold">
                                     {(assignedTutor.tutor?.username || "T")[0].toUpperCase()}
@@ -902,7 +902,7 @@ function InstitutionHub() {
                             ) : b.profiles && b.creator_id !== profile?.id ? (
                               <div className="flex items-center gap-2">
                                 {b.profiles.avatar_url ? (
-                                  <img src={b.profiles.avatar_url} className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                                  <img src={b.profiles.avatar_url} className="h-6 w-6 rounded-full object-cover ring-1 ring-border" loading="lazy" decoding="async" />
                                 ) : (
                                   <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold">
                                     {(b.profiles.username || "T")[0].toUpperCase()}
@@ -1014,7 +1014,7 @@ function InstitutionHub() {
                         <span className="text-[13px] font-bold tabular-nums text-muted-foreground w-6 text-center">{i + 1}</span>
                         <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted shrink-0">
                           {b.banner_url ? (
-                            <img src={b.banner_url} className="h-full w-full object-cover" />
+                            <img src={b.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center bg-primary/5">
                               <GraduationCap className="h-4 w-4 text-primary/40" />
@@ -1048,7 +1048,7 @@ function InstitutionHub() {
                       <div key={t.id} className="flex items-center gap-4 px-5 py-4 hover:bg-foreground/[0.02] transition-colors">
                         <span className="text-[13px] font-bold tabular-nums text-muted-foreground w-6 text-center">{i + 1}</span>
                         {t.tutor?.avatar_url ? (
-                          <img src={t.tutor.avatar_url} className="h-10 w-10 rounded-xl object-cover ring-1 ring-border" />
+                          <img src={t.tutor.avatar_url} className="h-10 w-10 rounded-xl object-cover ring-1 ring-border" loading="lazy" decoding="async" />
                         ) : (
                           <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                             {(t.tutor?.username || "T")[0].toUpperCase()}
@@ -1145,7 +1145,7 @@ function InstitutionHub() {
                       <div className="flex items-center gap-4">
                         <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-primary/10">
                           {profile?.avatar_url ? (
-                            <img src={profile.avatar_url} className="h-full w-full object-cover" />
+                            <img src={profile.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                           ) : (
                             <Building2 className="h-7 w-7 text-primary" />
                           )}
@@ -1260,7 +1260,7 @@ function InstitutionHub() {
                       }`}
                     >
                       {t.tutor?.avatar_url ? (
-                        <img src={t.tutor.avatar_url} className="h-11 w-11 rounded-xl object-cover ring-1 ring-border" />
+                        <img src={t.tutor.avatar_url} className="h-11 w-11 rounded-xl object-cover ring-1 ring-border" loading="lazy" decoding="async" />
                       ) : (
                         <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
                           {(t.tutor?.username || "T")[0].toUpperCase()}

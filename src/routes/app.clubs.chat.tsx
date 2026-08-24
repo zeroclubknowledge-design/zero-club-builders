@@ -2,6 +2,7 @@ import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-r
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
+import { compressImage } from "@/lib/imageCompression";
 import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/solar";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
@@ -138,7 +139,7 @@ function ClubMessageComposer({
             >
               <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
                 {person.avatar_url
-                  ? <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                  ? <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   : (person.full_name || person.username || "?")[0].toUpperCase()}
               </span>
               <span className="min-w-0 flex-1">
@@ -767,11 +768,14 @@ function ClubChat() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      const image = await compressImage(file);
+      const fileExt = image.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${club.id}/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage.from('post-media').upload(filePath, file);
+
+      const { error: uploadError } = await supabase.storage
+        .from('post-media')
+        .upload(filePath, image, { cacheControl: '31536000', contentType: image.type || undefined });
       if (uploadError) throw uploadError;
       
       const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(filePath);
@@ -833,14 +837,18 @@ function ClubChat() {
     if (mediaFiles.length > 0) {
       toast.loading("Uploading media...", { id: "upload" });
       const uploadedUrls: string[] = [];
-      for (const file of mediaFiles) {
+      for (const original of mediaFiles) {
+        // Shrunk before it is sent. Every member of the club downloads this.
+        const file = await compressImage(original);
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${currentUser.id}/${fileName}`;
-        const { error: uploadError } = await supabase.storage.from('post-media').upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from('post-media')
+          .upload(filePath, file, { cacheControl: '31536000', contentType: file.type || undefined });
         if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(filePath);
-          uploadedUrls.push(encodeChatMedia(getChatMediaType(file), publicUrl, file.name));
+          uploadedUrls.push(encodeChatMedia(getChatMediaType(file), publicUrl, original.name));
         }
       }
       toast.dismiss("upload");
@@ -1148,7 +1156,7 @@ function ClubChat() {
           </Link>
           <div className={`flex items-center gap-2 transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0'}`}>
             {club?.logo_url ? (
-              <img src={club.logo_url} className="h-7 w-7 rounded-full object-cover border border-border/50" />
+              <img src={club.logo_url} className="h-7 w-7 rounded-full object-cover border border-border/50" loading="lazy" decoding="async" />
             ) : (
               <div className="h-7 w-7 rounded-full bg-accent flex items-center justify-center border border-border/50">
                 <Hash className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1234,7 +1242,7 @@ function ClubChat() {
         <div className="relative w-full overflow-hidden bg-accent/20 pb-2">
           <div className="absolute inset-0">
             {club?.banner_url ? (
-              <img src={club.banner_url} className="h-full w-full object-cover" />
+              <img src={club.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               <div className="h-full w-full bg-gradient-to-br from-primary via-purple-600 to-blue-500" />
             )}
@@ -1433,7 +1441,7 @@ function ClubChat() {
                           <div className="group relative h-32 w-full overflow-visible rounded-lg border-2 border-dashed border-border bg-accent/20">
                             <div className="absolute inset-0 overflow-hidden rounded-xl">
                               {editClub.banner_url ? (
-                                <img src={editClub.banner_url} className="h-full w-full object-cover" />
+                                <img src={editClub.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                               ) : (
                                 <div className="flex flex-col items-center justify-center h-full">
                                   <span className="text-xs text-muted-foreground">Club Banner</span>
@@ -1462,7 +1470,7 @@ function ClubChat() {
                               <div className="relative group">
                                 <div className="h-16 w-16 rounded-xl bg-accent/20 border-4 border-background overflow-hidden flex items-center justify-center shadow-lg">
                                   {editClub.logo_url || editClub.banner_url ? (
-                                    <img src={editClub.logo_url || editClub.banner_url} className="h-full w-full object-cover" />
+                                    <img src={editClub.logo_url || editClub.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                   ) : (
                                     <Hash className="h-6 w-6 text-muted-foreground" />
                                   )}
@@ -1861,7 +1869,7 @@ function ClubChat() {
                                         aria-label={`View ${m.profiles?.full_name || m.profiles?.username || 'member'} profile`}
                                       >
                                           {m.profiles?.avatar_url ? (
-                                            <img src={m.profiles.avatar_url} className="h-full w-full object-cover" />
+                                            <img src={m.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                           ) : (
                                             <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                                               {m.profiles?.username?.[0]?.toUpperCase()}
@@ -1937,7 +1945,7 @@ function ClubChat() {
                                 aria-label="View member profile"
                               >
                                 {selectedMember.profiles?.avatar_url ? (
-                                  <img src={selectedMember.profiles.avatar_url} className="h-full w-full object-cover" />
+                                  <img src={selectedMember.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                 ) : (
                                   <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">
                                     {selectedMember.profiles?.username?.[0]?.toUpperCase()}
@@ -2099,7 +2107,7 @@ function ClubChat() {
                                   >
                                     <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
                                       {person.avatar_url ? (
-                                        <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                                        <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                       ) : (
                                         (person.full_name || person.username || "?").charAt(0).toUpperCase()
                                       )}
@@ -2147,7 +2155,7 @@ function ClubChat() {
                                 aria-label="View member profile"
                               >
                                 {squadActionMember.profiles?.avatar_url ? (
-                                  <img src={squadActionMember.profiles.avatar_url} className="h-full w-full object-cover" />
+                                  <img src={squadActionMember.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                 ) : (
                                   <div className="grid h-full w-full place-items-center bg-primary/10 text-sm font-bold text-primary">
                                     {squadActionMember.profiles?.username?.[0]?.toUpperCase()}
@@ -2361,7 +2369,7 @@ function ClubChat() {
           <div className="-mt-10 flex items-end justify-between">
             <div className="grid h-20 w-20 place-items-center border-4 border-background overflow-hidden bg-muted rounded-[28%] transition-all duration-500 shadow-sm">
               {club?.logo_url ? (
-                <img src={club.logo_url} className="h-full w-full object-cover" />
+                <img src={club.logo_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 <Hash className="h-8 w-8 text-muted-foreground" />
               )}
@@ -2598,7 +2606,7 @@ function ClubChat() {
                 ) : mediaFiles[idx]?.type.startsWith('video/') ? (
                   <video src={preview} className="h-full w-full object-cover" />
                 ) : mediaFiles[idx]?.type.startsWith('image/') ? (
-                  <img src={preview} className="h-full w-full object-cover" />
+                  <img src={preview} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <div className="flex h-10 items-center gap-2 px-1"><FileText className="h-5 w-5 shrink-0 text-primary" /><span className="max-w-[130px] truncate text-[11px] font-medium">{mediaFiles[idx]?.name}</span></div>
                 )}
@@ -2621,7 +2629,7 @@ function ClubChat() {
             avatar={
               <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
                 {currentUserProfile?.avatar_url ? (
-                  <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" />
+                  <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   (currentUserProfile?.full_name || currentUserProfile?.username || 'U').substring(0, 1).toUpperCase()
                 )}
@@ -2898,7 +2906,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                         className="flex items-center gap-1.5 font-medium text-foreground transition hover:opacity-70"
                       >
                         <span className="grid h-5 w-5 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[8px]">
-                          {message.profiles?.avatar_url ? <img src={message.profiles.avatar_url} className="h-full w-full object-cover" /> : author.substring(0, 1).toUpperCase()}
+                          {message.profiles?.avatar_url ? <img src={message.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : author.substring(0, 1).toUpperCase()}
                         </span>
                         <span>{author}</span>
                       </Link>
@@ -2952,7 +2960,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                                 className="flex min-w-0 items-center gap-2 text-xs font-semibold text-foreground transition hover:opacity-70"
                               >
                                 <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[9px]">
-                                  {reply.profiles?.avatar_url ? <img src={reply.profiles.avatar_url} className="h-full w-full object-cover" /> : author.substring(0, 1).toUpperCase()}
+                                  {reply.profiles?.avatar_url ? <img src={reply.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : author.substring(0, 1).toUpperCase()}
                                 </span>
                                 <span className="truncate">{author}</span>
                               </Link>
@@ -3230,7 +3238,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             aria-label={`View ${message.profiles?.full_name || message.profiles?.username || 'member'} profile`}
           >
             {message.profiles?.avatar_url ? (
-              <img src={message.profiles.avatar_url} className="h-full w-full object-cover" />
+              <img src={message.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               message.profiles?.username?.[0]?.toUpperCase()
             )}
@@ -3431,7 +3439,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                           ) : media.type === 'file' ? (
                             <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 text-left"><FileText className="h-6 w-6 shrink-0 text-primary" /><span className="min-w-0 flex-1 truncate text-[11px] font-semibold">{media.name}</span><Download className="h-4 w-4 shrink-0 text-muted-foreground" /></a>
                           ) : (
-                            <img src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
+                            <img loading="lazy" decoding="async" src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
                           )}
                         </div>
                       );
@@ -3566,7 +3574,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                         >
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
                             {profile?.avatar_url ? (
-                              <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                              <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                             ) : (
                               <span className="grid h-full w-full place-items-center text-sm font-semibold">{(profile?.full_name || profile?.username || "U")[0].toUpperCase()}</span>
                             )}

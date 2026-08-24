@@ -732,7 +732,7 @@ function PostDetail() {
           {/* The brand mark, where a reader's eye already goes on a detail
               page. It is a link home rather than decoration. */}
           <Link to="/app" aria-label="Zero Club home" className="grid h-9 w-9 shrink-0 place-items-center rounded-full transition active:scale-95 hover:bg-accent/50">
-            <img src="/logo.png" alt="Zero Club" className="h-6 w-6 object-contain" />
+            <img src="/logo.png" alt="Zero Club" className="h-6 w-6 object-contain" loading="lazy" decoding="async" />
           </Link>
           {post?.is_verified_build && (
             <div className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-success ring-1 ring-success/20">
@@ -828,7 +828,7 @@ function PostDetail() {
             <div className="relative">
               <div className="h-12 w-12 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground">
                 {post.profiles?.avatar_url ? (
-                  <img src={post.profiles.avatar_url} alt={post.profiles.username} className="h-full w-full object-cover" />
+                  <img src={post.profiles.avatar_url} alt={post.profiles.username} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   initials
                 )}
@@ -926,14 +926,14 @@ function PostDetail() {
                       </button>
                     </div>
                   ) : (
-                    <img 
+                    <img loading="lazy" decoding="async" 
                       src={url} 
                       alt={`Post media ${i + 1}`} 
                       className={`rounded-lg transition duration-300 group-hover:scale-105 ${
                         post.media_urls.length === 2 
                           ?"w-full h-full object-cover" 
                           : "max-w-full max-h-[600px] w-auto h-auto"
-                      }`} 
+                      }`}
                     />
                   )}
                   {post.media_urls.length > 2 && i === 1 && (
@@ -1104,7 +1104,7 @@ function PostDetail() {
                     className="h-9 w-9 rounded-full bg-muted overflow-hidden flex items-center justify-center text-xs font-bold text-muted-foreground transition active:opacity-70 z-10"
                   >
                     {comment.profiles?.avatar_url ? (
-                      <img src={comment.profiles.avatar_url} alt="" className="h-full w-full object-cover" />
+                      <img src={comment.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       (comment.profiles?.full_name || comment.profiles?.username || 'U').substring(0, 1).toUpperCase()
                     )}

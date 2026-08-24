@@ -878,7 +878,7 @@ function TutorStudioPage() {
                   <div key={learner.profiles?.id} className="flex items-center justify-between p-5 hover:bg-accent/20 transition-colors">
                     <div className="flex items-center gap-4">
                       {learner.profiles?.avatar_url ? (
-                        <img src={learner.profiles.avatar_url} alt={learner.profiles.full_name} className="h-12 w-12 rounded-2xl object-cover border border-border/40" />
+                        <img src={learner.profiles.avatar_url} alt={learner.profiles.full_name} className="h-12 w-12 rounded-2xl object-cover border border-border/40" loading="lazy" decoding="async" />
                       ) : (
                         <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/15 to-blue-500/15 border border-border/40 flex items-center justify-center font-semibold text-sm text-primary">
                           {(learner.profiles?.full_name || learner.profiles?.username || "?")[0].toUpperCase()}
@@ -1034,7 +1034,7 @@ function TutorStudioPage() {
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="h-10 w-10 rounded-full bg-muted overflow-hidden ring-1 ring-border shrink-0 flex items-center justify-center text-[13px] font-semibold text-muted-foreground">
                               {member.profiles?.avatar_url ? (
-                                <img src={member.profiles.avatar_url} className="h-full w-full object-cover" />
+                                <img src={member.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                               ) : (
                                 (member.profiles?.username || "U")[0].toUpperCase()
                               )}
@@ -1163,7 +1163,7 @@ function TutorStudioPage() {
                   <label className="group border-2 border-dashed border-border/50 rounded-3xl h-56 md:h-72 xl:h-80 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
                     {(bannerUrl || bootcampSettings.banner_url) && (
                       <>
-                        <img src={bannerUrl || bootcampSettings.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                        <img src={bannerUrl || bootcampSettings.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
                         <div className="absolute inset-0 bg-black/45 opacity-70 transition-opacity group-hover:opacity-90" />
                       </>
                     )}
@@ -1663,7 +1663,7 @@ function TutorStudioPage() {
                 {/* Thumbnail */}
                 <div className="relative h-36 w-full overflow-hidden bg-muted">
                   {course.banner_url && (
-                    <img src={course.banner_url} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={course.banner_url} alt={course.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
                   )}
                   {course.creator_id !== profile?.id && (
                     <div className="absolute top-3 left-3">
