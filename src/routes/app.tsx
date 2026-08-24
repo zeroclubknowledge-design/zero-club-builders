@@ -89,7 +89,10 @@ const tabs = [
  * the sidebar on mobile so the same link never appears in two places at once.
  */
 const MENU_ITEMS = [
-  { to: "/app/tasks", label: "Tasks", note: "Earn XP from Zero Club quests", Icon: IconRocket },
+  // A shield with a tick, because a Task is something you complete. It also
+  // has to differ from Opportunities below, which had the same rocket and made
+  // two unrelated destinations look like one feature.
+  { to: "/app/tasks", label: "Tasks", note: "Earn ZP from Zero Club quests", Icon: IconShield },
   { to: "/app/wallet", label: "Wallet", note: "Balance, top-ups, payouts", Icon: IconWallet },
   { to: "/app/quests", label: "Opportunities", note: "Gigs, briefs and open calls", Icon: IconRocket },
   { to: "/app/store", label: "Zero Store", note: "Buy from builders", Icon: IconStore },

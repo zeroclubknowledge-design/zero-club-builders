@@ -119,8 +119,12 @@ function Leaderboard({ currentUserId }: { currentUserId?: string }) {
     <div className="space-y-4 p-3 sm:p-5">
       <div className="px-1">
         <h2 className="text-[16px] font-semibold tracking-tight">Leaderboard</h2>
+        {/* Deliberately says nothing about how the rank is calculated.
+            Posting is only what counts today; teaching, shipping and
+            contribution are meant to count too, and a line naming one input
+            reads as a promise that posting is the way to win. */}
         <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-          Ranked by what you publish. Post more, climb higher.
+          The builders showing up for the community this week.
         </p>
       </div>
 
