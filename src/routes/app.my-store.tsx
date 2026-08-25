@@ -14,6 +14,7 @@ import { shareOrCopy, storeProductUrl } from "@/lib/share";
 import { IconStore } from "@/components/icons/nav";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { STORE_CATEGORIES, CATEGORY_BY_ID, categoryIdFor, typeLabelFor } from "@/features/store/catalogue";
+import { MediaCropper } from "@/components/MediaCropper";
 import {
   Drawer,
   DrawerContent,
@@ -123,13 +124,27 @@ function MyStorePage() {
     setEditing(item);
   };
 
+  /* Covers are shown at 16:9 on both the storefront and this page, so the
+     seller chooses what gets kept rather than having the top and bottom
+     trimmed off by object-fit after the fact. */
+  const [cropSource, setCropSource] = useState<string | null>(null);
+
   const handleCoverPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setCoverFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setCoverPreview(ev.target?.result as string);
+    reader.onload = (ev) => setCropSource(ev.target?.result as string);
     reader.readAsDataURL(file);
+    // Cleared so picking the same file twice still opens the editor.
+    e.target.value = "";
+  };
+
+  const applyCover = (blob: Blob) => {
+    const ext = blob.type === "image/webp" ? "webp" : "jpg";
+    const file = new File([blob], `cover-${Date.now()}.${ext}`, { type: blob.type || "image/jpeg" });
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(blob));
+    setCropSource(null);
   };
 
   const enteredPrice = Math.max(0, Number(form.price) || 0);
@@ -702,6 +717,18 @@ function MyStorePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {cropSource && (
+        <MediaCropper
+          src={cropSource}
+          aspect={16 / 9}
+          title="Product cover"
+          onDone={(result) => {
+            if (result.kind === "image") applyCover(result.blob);
+          }}
+          onCancel={() => setCropSource(null)}
+        />
       )}
     </div>
   );

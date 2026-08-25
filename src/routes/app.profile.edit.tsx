@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
-import { ImageCropper } from "@/components/ImageCropper";
+import { MediaCropper } from "@/components/MediaCropper";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useUser } from "@/hooks/useUser";
@@ -138,11 +138,14 @@ function EditProfile() {
 
     try {
       setLoading(true);
-      const fileName = `${type}-${profile.id}-${Date.now()}.jpg`;
+      // Extension follows the blob: the cropper emits WebP where the browser
+      // can write it, and a .jpg holding WebP misleads anything that trusts
+      // the suffix.
+      const ext = croppedBlob.type === 'image/webp' ? 'webp' : 'jpg';
+      const fileName = `${type}-${profile.id}-${Date.now()}.${ext}`;
       const bucket = 'profiles';
-      
-      // Convert Blob to File
-      const file = new File([croppedBlob], fileName, { type: 'image/jpeg' });
+
+      const file = new File([croppedBlob], fileName, { type: croppedBlob.type || 'image/jpeg' });
       const url = await uploadFile(bucket, file, `${profile.id}/${fileName}`);
       
       const { error: updateError } = await supabase
@@ -333,12 +336,18 @@ function EditProfile() {
       </main>
 
       {cropImage && (
-        <ImageCropper 
-          image={cropImage.src} 
-          aspect={cropImage.type === 'avatar' ? 1 : 16/7} 
-          allowRotation={cropImage.type === 'avatar'}
-          onCropComplete={handleCropComplete} 
-          onCancel={() => setCropImage(null)} 
+        <MediaCropper
+          src={cropImage.src}
+          // Both are fixed shapes the layout depends on, so the presets stay
+          // hidden here — offering 9:16 for an avatar would only be a way to
+          // get it wrong.
+          aspect={cropImage.type === 'avatar' ? 1 : 16 / 7}
+          cropShape={cropImage.type === 'avatar' ? 'round' : 'rect'}
+          title={cropImage.type === 'avatar' ? 'Profile photo' : 'Cover photo'}
+          onDone={(result) => {
+            if (result.kind === 'image') handleCropComplete(result.blob);
+          }}
+          onCancel={() => setCropImage(null)}
         />
       )}
     </div>

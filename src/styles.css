@@ -360,6 +360,49 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
 
+  /* The crop editor's sliders.
+     A native range input is styled differently by every browser and none of
+     them match a dark editor, so the track and thumb are drawn here. The thumb
+     is deliberately larger than it looks: 22px of touch target under a 14px
+     dot, because these get dragged with a thumb on a phone. */
+  .zc-crop-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 22px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .zc-crop-range::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .zc-crop-range::-moz-range-track {
+    height: 3px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .zc-crop-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5.5px;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  .zc-crop-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
+  }
+  .zc-crop-range:active::-webkit-slider-thumb { transform: scale(1.25); }
+
   @keyframes progress {
     0% { transform: translateX(-100%); }
     50% { transform: translateX(-30%); }

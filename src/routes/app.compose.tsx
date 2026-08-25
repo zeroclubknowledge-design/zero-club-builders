@@ -6,7 +6,7 @@ import { uploadMedia } from "@/lib/storage";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { useKeyboardInset } from "@/hooks/useKeyboardInset";
-import { ImageCropper } from "@/components/ImageCropper";
+import { MediaCropper } from "@/components/MediaCropper";
 import { VideoEditor } from "@/components/VideoEditor";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -230,7 +230,11 @@ function ComposePage() {
   const handleCropComplete = useCallback((croppedBlob: Blob) => {
     if (croppingInfo === null) return;
     
-    const croppedFile = new File([croppedBlob], `cropped-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    // Name and type follow the blob. The cropper emits WebP where the browser
+    // supports it, and a .jpg holding WebP confuses anything reading the
+    // extension — including our own upload path.
+    const ext = croppedBlob.type === 'image/webp' ? 'webp' : 'jpg';
+    const croppedFile = new File([croppedBlob], `cropped-${Date.now()}.${ext}`, { type: croppedBlob.type || 'image/jpeg' });
     const reader = new FileReader();
     reader.onload = () => {
       const nextImages = [...images];
@@ -646,11 +650,17 @@ function ComposePage() {
       </div>
 
       {croppingInfo !== null && (
-        <ImageCropper 
-          image={previews[croppingInfo] || ""} 
-          aspect={1} 
-          onCropComplete={handleCropComplete} 
-          onCancel={() => setCroppingInfo(null)} 
+        <MediaCropper
+          src={previews[croppingInfo] || ""}
+          // No fixed aspect here. A post image was forced to a square, which
+          // cut the top and bottom off every screenshot and portrait photo
+          // people wanted to share. The presets let them choose, and Original
+          // leaves the picture as they took it.
+          title="Crop photo"
+          onDone={(result) => {
+            if (result.kind === 'image') handleCropComplete(result.blob);
+          }}
+          onCancel={() => setCroppingInfo(null)}
         />
       )}
 

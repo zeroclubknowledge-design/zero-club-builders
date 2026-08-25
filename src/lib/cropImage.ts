@@ -68,9 +68,28 @@ export async function getCroppedImg(
     pixelCrop.height
   );
 
+  /*
+   * WebP where the browser can write it, JPEG where it cannot.
+   *
+   * This used to always emit JPEG at the canvas default quality, which is 0.92
+   * — near-lossless and roughly three times the size of the same picture at a
+   * quality nobody can tell apart on a phone. Every cropped avatar, cover and
+   * post image was paying that, and then being uploaded and downloaded at it.
+   */
+  const type = canEncode("image/webp") ? "image/webp" : "image/jpeg";
+
   return new Promise((resolve) => {
-    croppedCanvas.toBlob((file) => {
-      resolve(file!);
-    }, "image/jpeg");
+    croppedCanvas.toBlob((file) => resolve(file), type, 0.86);
   });
+}
+
+function canEncode(type: string): boolean {
+  try {
+    const probe = document.createElement("canvas");
+    probe.width = 1;
+    probe.height = 1;
+    return probe.toDataURL(type).startsWith(`data:${type}`);
+  } catch {
+    return false;
+  }
 }
