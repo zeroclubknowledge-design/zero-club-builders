@@ -167,7 +167,12 @@ function ComposePage() {
     content: bodyText,
     editorProps: {
       attributes: {
-        class: 'w-full min-h-[320px] sm:min-h-[380px] bg-transparent outline-none resize-none overflow-hidden block text-lg text-foreground prose dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:p-0 prose-h1:text-2xl prose-h1:font-semibold prose-h1:tracking-normal',
+        // 120px, not 380px. This minimum is what pushed an attachment most of
+        // a screen down the page when nothing had been typed yet: the editor
+        // was holding open a blank area the size of a phone, and the media had
+        // to start below it. It still needs enough height to be an obvious
+        // place to tap; the spacer under the previews takes the rest.
+        class: 'w-full min-h-[120px] bg-transparent outline-none resize-none overflow-hidden block text-lg text-foreground prose dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:p-0 prose-h1:text-2xl prose-h1:font-semibold prose-h1:tracking-normal',
         spellcheck: 'false',
       }
     },
@@ -449,7 +454,12 @@ function ComposePage() {
             padding on all four sides made the writing column narrower than it
             needed to be. The caret now sits straight on the background. */}
         <div className="relative flex min-h-[calc(100dvh-10.5rem)] flex-col">
-          <div className="relative min-h-[320px] w-full flex-1 text-lg sm:min-h-[380px]">
+          {/* The writing area grows with what is written, rather than always
+              reserving 380px and pushing the media far down the page. With no
+              text at all, an attachment now sits at the top where it was just
+              added — before, it appeared below most of a blank screen and
+              looked like it had gone somewhere else. */}
+          <div className="relative w-full shrink-0 text-lg">
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
 
@@ -502,6 +512,19 @@ function ComposePage() {
                })}
             </div>
           )}
+
+          {/* Room to keep writing, and a way back to the caret.
+              The editor no longer reserves the height itself, so this takes
+              the leftover space and hands a tap anywhere in it back to the
+              text — otherwise, once something was attached, the empty area
+              below it was dead and there was nowhere to press to resume. */}
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Continue writing"
+            onClick={() => editor?.commands.focus('end')}
+            className="min-h-[140px] w-full flex-1 cursor-text"
+          />
 
           {/* Mention Suggestions */}
       {showMentions && mentionSuggestions.length > 0 && (
