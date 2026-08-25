@@ -8,13 +8,35 @@ interface VideoEditorProps {
   onCancel: () => void;
 }
 
+/*
+ * Grades, not effects.
+ *
+ * The old set was the CSS-filter tutorial list: sepia(100%), grayscale(100%),
+ * hue-rotate(180deg). Each is a single property pushed to its maximum, which
+ * is why they read as novelty — a full hue rotation turns skin green, and
+ * sepia at 100% is a photo booth, not a look.
+ *
+ * These are built the way a colour grade is: a small contrast move, a small
+ * saturation move, and a temperature shift, none of them near their limit. The
+ * point of a filter is that the footage still looks like the room it was shot
+ * in, only better.
+ */
 const FILTERS = [
-  { name: 'Normal', value: 'none' },
-  { name: 'Sepia', value: 'sepia(100%)' },
-  { name: 'B&W', value: 'grayscale(100%)' },
-  { name: 'Vintage', value: 'sepia(50%) hue-rotate(-30deg) saturate(140%) contrast(110%)' },
-  { name: 'Punchy', value: 'contrast(130%) saturate(130%)' },
-  { name: 'Cool', value: 'hue-rotate(180deg) saturate(120%)' }
+  { name: 'Original', value: 'none' },
+  // Slightly brighter, slightly crisper. The one most clips actually want.
+  { name: 'Clean', value: 'contrast(106%) saturate(105%) brightness(103%)' },
+  // Warmth without the orange cast of sepia.
+  { name: 'Warm', value: 'sepia(18%) saturate(118%) contrast(104%) brightness(103%)' },
+  // Cool without rotating hues; a touch of blue via reduced warmth.
+  { name: 'Cool', value: 'saturate(92%) contrast(107%) brightness(102%) hue-rotate(-6deg)' },
+  // Deep and contrasty, for screen recordings and dark rooms.
+  { name: 'Bold', value: 'contrast(122%) saturate(124%) brightness(98%)' },
+  // Lifted blacks and low saturation — the faded film look.
+  { name: 'Faded', value: 'contrast(90%) saturate(82%) brightness(107%) sepia(12%)' },
+  // Monochrome that keeps its midtones instead of crushing to pure grey.
+  { name: 'Mono', value: 'grayscale(100%) contrast(112%) brightness(103%)' },
+  // High-key monochrome, for text-heavy screen captures.
+  { name: 'Ink', value: 'grayscale(100%) contrast(135%) brightness(108%)' },
 ];
 
 const ASPECT_RATIOS = [
@@ -51,6 +73,32 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  // Read inside the render loop, where state would be a stale closure value.
+  const processingRef = useRef(false);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef<'start' | 'end' | null>(null);
+
+  /*
+   * Move one end of the selection, keeping half a second between them so the
+   * clip can never collapse to nothing, and show the frame being chosen —
+   * trimming blind is guesswork.
+   */
+  const scrubTo = useCallback((seconds: number, handle: 'start' | 'end') => {
+    const clamped = Math.max(0, Math.min(duration, seconds));
+    if (handle === 'start') {
+      const next = Math.min(clamped, endTime - 0.5);
+      if (next < 0) return;
+      setStartTime(next);
+      if (videoRef.current) videoRef.current.currentTime = next;
+      setCurrentTime(next);
+      return;
+    }
+    const next = Math.max(clamped, startTime + 0.5);
+    if (next > duration) return;
+    setEndTime(next);
+    if (videoRef.current) videoRef.current.currentTime = next;
+    setCurrentTime(next);
+  }, [duration, startTime, endTime]);
 
   // Load video metadata
   useEffect(() => {
@@ -150,6 +198,7 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
     const video = videoRef.current;
     if (!video || isProcessing) return;
 
+    processingRef.current = true;
     setIsProcessing(true);
     setIsPlaying(false);
     video.pause();
@@ -184,17 +233,41 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
     outCtx.filter = activeFilter.value;
 
     const stream = outCanvas.captureStream(30);
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-      ? 'video/webm;codecs=vp9' 
-      : 'video/webm';
-      
+
+    /*
+     * Carry the sound across.
+     *
+     * A canvas stream is pictures only, and the source video was being muted
+     * on top of that, so every trimmed clip came out silent — you could edit a
+     * video of someone talking and publish it with the talking removed.
+     * captureStream on the source element exposes its audio track, which is
+     * added to the recording alongside the drawn frames.
+     */
+    try {
+      const sourceStream = (video as any).captureStream?.() || (video as any).mozCaptureStream?.();
+      sourceStream?.getAudioTracks?.().forEach((track: MediaStreamTrack) => stream.addTrack(track));
+    } catch {
+      // No audio track available; the clip is silent because the source was.
+    }
+
+    // MP4 first: Safari cannot record WebM at all, and plenty of places cannot
+    // play it back. WebM stays as the fallback for browsers without MP4.
+    const mimeType = [
+      'video/mp4;codecs=avc1',
+      'video/mp4',
+      'video/webm;codecs=vp9,opus',
+      'video/webm',
+    ].find((type) => MediaRecorder.isTypeSupported(type)) || 'video/webm';
+
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2500000 });
     const chunks: Blob[] = [];
 
-    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
     recorder.onstop = () => {
+      video.muted = false;
       const blob = new Blob(chunks, { type: mimeType });
       onSave(blob);
+      processingRef.current = false;
       setIsProcessing(false);
     };
 
@@ -208,27 +281,39 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
       video.addEventListener('seeked', handler);
     });
 
-    recorder.start();
-    video.play();
-    video.muted = true; // Mute during processing if needed
+    recorder.start(250);
+    void video.play();
 
+    /*
+     * Why trimming produced a black clip.
+     *
+     * The loop below used to begin `if (!isProcessing) return`. isProcessing is
+     * state, and setIsProcessing(true) three lines earlier had not applied yet
+     * — a render has to happen first — so the closure captured `false` and the
+     * loop returned before drawing a single frame. The recorder then ran for
+     * the length of the clip over a canvas nothing was painting, and saved
+     * exactly what it was given: nothing.
+     *
+     * A ref holds the current value rather than the value at the time the
+     * closure was made, which is the whole reason refs exist.
+     */
     const renderProcessLoop = () => {
-      if (!isProcessing) return; // aborted
-      
+      if (!processingRef.current) return;
+
       outCtx.drawImage(
         video,
         sx, sy, targetWidth, targetHeight,
-        0, 0, targetWidth, targetHeight
+        0, 0, targetWidth, targetHeight,
       );
 
       if (video.currentTime >= endTime) {
         video.pause();
-        recorder.stop();
+        if (recorder.state !== 'inactive') recorder.stop();
       } else {
         requestAnimationFrame(renderProcessLoop);
       }
     };
-    
+
     renderProcessLoop();
   };
 
@@ -315,17 +400,19 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
                 />
 
                 {/* Precision Handles */}
-                <div 
-                  className="absolute h-full w-4 bg-white rounded-l-md z-20 flex items-center justify-center shadow-lg"
+                {/* The one you are holding grows, so there is no doubt about
+                    which end you are moving. */}
+                <div
+                  className={`absolute z-20 flex h-full items-center justify-center rounded-l-md bg-white shadow-lg transition-[width] ${activeHandle === 'start' ? 'w-5' : 'w-4'}`}
                   style={{ left: `${(startTime / duration) * 100}%`, marginLeft: '-2px' }}
                 >
-                  <div className="w-0.5 h-6 bg-black/50 rounded-full" />
+                  <div className="h-6 w-0.5 rounded-full bg-black/50" />
                 </div>
-                <div 
-                  className="absolute h-full w-4 bg-white rounded-r-md z-20 flex items-center justify-center shadow-lg"
+                <div
+                  className={`absolute z-20 flex h-full items-center justify-center rounded-r-md bg-white shadow-lg transition-[width] ${activeHandle === 'end' ? 'w-5' : 'w-4'}`}
                   style={{ left: `${(endTime / duration) * 100}%`, marginLeft: '-14px' }}
                 >
-                  <div className="w-0.5 h-6 bg-black/50 rounded-full" />
+                  <div className="h-6 w-0.5 rounded-full bg-black/50" />
                 </div>
 
                 {/* Playhead Scrubber */}
@@ -334,46 +421,44 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
                   style={{ left: `${(currentTime / duration) * 100}%` }}
                 />
 
-                {/* Hidden Range Inputs for Interaction */}
-                <input 
-                  type="range"
-                  min={0}
-                  max={duration || 100}
-                  step={0.1}
-                  value={startTime}
-                  onMouseDown={() => setActiveHandle('start')}
-                  onTouchStart={() => setActiveHandle('start')}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    if (val < endTime - 0.5) {
-                      setStartTime(val);
-                      if (videoRef.current) {
-                        videoRef.current.currentTime = val;
-                        setCurrentTime(val);
-                      }
-                    }
+                {/*
+                  One surface, and it grabs the handle you reached for.
+
+                  This was two invisible range inputs, each stretched across the
+                  entire strip and stacked on top of each other. Whichever sat
+                  higher swallowed every touch, so reaching for the left handle
+                  regularly moved the right one — and because a range input
+                  jumps to wherever you press, the handle teleported instead of
+                  dragging. That is the whole of "trim is not working properly".
+
+                  Now the pointer position decides: whichever handle is nearer
+                  the place you pressed is the one that moves, and it moves with
+                  your finger from where it already was.
+                */}
+                <div
+                  ref={stripRef}
+                  onPointerDown={(event) => {
+                    if (!duration) return;
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    const at = ((event.clientX - rect.left) / rect.width) * duration;
+                    const handle = Math.abs(at - startTime) <= Math.abs(at - endTime) ? 'start' : 'end';
+                    setActiveHandle(handle);
+                    draggingRef.current = handle;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    scrubTo(at, handle);
                   }}
-                  className={`absolute inset-0 w-full h-full opacity-0 cursor-ew-resize ${activeHandle ==='start' ? 'z-40' : 'z-30'}`}
-                />
-                <input 
-                  type="range"
-                  min={0}
-                  max={duration || 100}
-                  step={0.1}
-                  value={endTime}
-                  onMouseDown={() => setActiveHandle('end')}
-                  onTouchStart={() => setActiveHandle('end')}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    if (val > startTime + 0.5) {
-                      setEndTime(val);
-                      if (videoRef.current) {
-                        videoRef.current.currentTime = val;
-                        setCurrentTime(val);
-                      }
-                    }
+                  onPointerMove={(event) => {
+                    if (!draggingRef.current || !duration) return;
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    const at = ((event.clientX - rect.left) / rect.width) * duration;
+                    scrubTo(at, draggingRef.current);
                   }}
-                  className={`absolute inset-0 w-full h-full opacity-0 cursor-ew-resize ${activeHandle ==='end' ? 'z-40' : 'z-30'}`}
+                  onPointerUp={(event) => {
+                    draggingRef.current = null;
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }}
+                  onPointerCancel={() => { draggingRef.current = null; }}
+                  className="absolute inset-0 z-40 cursor-ew-resize touch-none"
                 />
               </div>
               <div className="mt-4 text-xs font-bold text-white/50 tracking-wider">
