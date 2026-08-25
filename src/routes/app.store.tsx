@@ -264,56 +264,41 @@ function StorePage() {
       </div>
 
       <div className="mx-auto w-full max-w-[1180px] px-4 py-6 md:px-7 md:py-8">
-        <section className="grid overflow-hidden rounded-lg bg-[#171218] text-white md:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="p-5 sm:p-7">
-            <ShoppingBag className="h-6 w-6 text-[#f06ac3]" />
-            <p className="mt-5 text-[10px] font-semibold uppercase text-white/45">Built by the Zero Club network</p>
-            <h2 className="mt-2 max-w-xl text-[25px] font-semibold tracking-tight sm:text-[31px]">Tools, assets, and perks for people building real work.</h2>
-            <p className="mt-3 max-w-lg text-[13px] leading-relaxed text-white/60">Use your wallet or ZP to access useful products from builders across the Club.</p>
+        {/* On a phone this was a full screen of manifesto — a headline, a
+            subtitle, a second panel and a button — before a single thing you
+            could buy. The pitch is for desktop, where there is room beside the
+            products; the phone gets one line and the sell button, and starts
+            shopping immediately. */}
+        <section className="grid overflow-hidden rounded-xl bg-[#171218] text-white md:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="flex items-center gap-3 p-4 sm:p-7 md:block">
+            <ShoppingBag className="h-6 w-6 shrink-0 text-[#f06ac3]" />
+            <div className="min-w-0 md:mt-5">
+              <p className="hidden text-[10px] font-semibold uppercase text-white/45 md:block">Built by the Zero Club network</p>
+              <h2 className="max-w-xl text-[15px] font-semibold tracking-tight md:mt-2 md:text-[31px]">
+                Tools, assets, and perks for people building real work.
+              </h2>
+              <p className="mt-3 hidden max-w-lg text-[13px] leading-relaxed text-white/60 md:block">Use your wallet or ZP to access useful products from builders across the Club.</p>
+            </div>
           </div>
-          <div className="border-t border-white/10 p-5 md:border-l md:border-t-0">
-            <p className="text-[10px] font-medium uppercase text-white/45">Sell on Zero Store</p>
-            <p className="mt-2 text-[13px] leading-relaxed text-white/65">List templates, digital products, resources, and builder services.</p>
-            <Link to="/app/my-store" className="mt-5 flex h-10 items-center justify-center gap-2 rounded-lg bg-white text-[12px] font-semibold text-black"><PackagePlus className="h-4 w-4" />Manage my store</Link>
+          <div className="border-t border-white/10 px-4 pb-4 md:border-l md:border-t-0 md:p-5">
+            <p className="mt-4 hidden text-[10px] font-medium uppercase text-white/45 md:mt-0 md:block">Sell on Zero Store</p>
+            <p className="mt-2 hidden text-[13px] leading-relaxed text-white/65 md:block">List templates, digital products, resources, and builder services.</p>
+            <Link to="/app/my-store" className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg bg-white text-[12px] font-semibold text-black md:mt-5"><PackagePlus className="h-4 w-4" />Manage my store</Link>
           </div>
         </section>
 
-        <section className="mt-5 space-y-3">
+        <section className="mt-4 space-y-3 md:mt-5">
           <div className="relative"><Search className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" /><input type="text" placeholder="Search tools, digital products, and perks" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-12 w-full rounded-lg border border-border bg-card pl-11 pr-4 text-[14px] outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10" /></div>
           <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">{categories.map((category) => <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`h-9 shrink-0 rounded-lg px-3.5 text-[11.5px] font-semibold shadow-[var(--shadow-card)] transition ${activeCategory === category.id ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>{category.short}</button>)}</div>
         </section>
 
-        {/* Browse by category.
-            Only while nothing is filtered — once somebody has chosen a group
-            or typed a search, this is a wall between them and the answer.
-            Counts are shown because an empty aisle is worth knowing about
-            before you walk down it. */}
-        {activeCategory === "All" && !searchQuery.trim() && storeItems.length > 0 && (
-          <section className="mt-6">
-            <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Browse the market
-            </h2>
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
-              {STORE_CATEGORIES.map((entry) => {
-                const count = storeItems.filter((item) => categoryIdFor(item.category) === entry.id).length;
-                return (
-                  <button
-                    key={entry.id}
-                    onClick={() => setActiveCategory(entry.id)}
-                    disabled={count === 0}
-                    className="flex min-w-0 flex-col rounded-xl bg-card p-3.5 text-left shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)] disabled:opacity-45 disabled:shadow-none"
-                  >
-                    <span className="truncate text-[13px] font-semibold tracking-tight text-foreground">{entry.label}</span>
-                    <span className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">{entry.blurb}</span>
-                    <span className="mt-2 text-[10.5px] font-semibold tabular-nums text-primary">
-                      {count === 0 ? "Nothing yet" : `${count} ${count === 1 ? "listing" : "listings"}`}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
+        {/* There was a grid of all nine categories here, shown before any
+            product. It was designed for a stocked shop and met an empty one:
+            with three listings, seven cards read "Nothing yet" and a customer
+            had to scroll a screen and a half of dead aisles to reach anything
+            they could buy. A shop window shows stock, not a directory of
+            departments — the chip row above already filters, and it only
+            offers groups that actually have something in them. */}
 
         {/* Catalog */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -322,10 +307,25 @@ function StorePage() {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="col-span-full py-16 text-center">
-              <Gift className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
-              <p className="text-sm font-medium text-foreground">No items found</p>
-              <p className="text-xs text-muted-foreground mt-1">Try a different search term or list a new product.</p>
+            /* An early shop is mostly empty, so this is the screen people
+               will actually see. It invites them to fill it rather than
+               reporting a failed query. */
+            <div className="col-span-full rounded-xl bg-card px-6 py-14 text-center shadow-[var(--shadow-card)]">
+              <Gift className="mx-auto mb-3 h-10 w-10 text-primary/30" />
+              <p className="text-[15px] font-semibold tracking-tight text-foreground">
+                {searchQuery.trim() ? "Nothing matches that" : "Nothing here yet"}
+              </p>
+              <p className="mx-auto mt-1.5 max-w-[280px] text-[12.5px] leading-relaxed text-muted-foreground">
+                {searchQuery.trim()
+                  ? "Try another word, or clear the search to see everything on sale."
+                  : "Be the first to sell here — templates, prompt packs, AI tool access, ebooks, anything you have made."}
+              </p>
+              <Link
+                to="/app/my-store"
+                className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition active:scale-[0.98]"
+              >
+                <PackagePlus className="h-4 w-4" /> List a product
+              </Link>
             </div>
           ) : (
             filteredItems.map((item) => {
