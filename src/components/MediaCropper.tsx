@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Cropper from "react-easy-crop";
-import { RotateCw, X, Check, Loader2, Refresh } from "@/components/icons/solar";
+import { RotateCw, X, Check, Loader2, RefreshCw } from "@/components/icons/solar";
 import { getCroppedImg } from "@/lib/cropImage";
 
 /**
@@ -278,7 +278,7 @@ export function MediaCropper({
             disabled={!dirty}
             className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-white/[0.08] text-[12.5px] font-semibold text-white transition hover:bg-white/[0.14] active:scale-[0.98] disabled:opacity-40"
           >
-            <Refresh className="h-4 w-4" /> Reset
+            <RefreshCw className="h-4 w-4" /> Reset
           </button>
         </div>
 
