@@ -264,8 +264,12 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
         const cleanContent = block.content.replace(/<p><\/p>|<p><br><\/p>|<p>&nbsp;<\/p>/g, '').trim();
         if (!cleanContent) return null;
         return (
-          <div className="whitespace-pre-wrap text-[17px] leading-[1.8] text-foreground/90 md:text-lg">
-            <LinkifiedText text={cleanContent} />
+          /* zc-note-prose so a published article gets the same heading sizes,
+             section breaks and highlight treatment it had while being written.
+             Without it the reader rendered the tags with prose defaults, and a
+             writer's H1 and H3 came out nearly the same size. */
+          <div className="zc-note-prose whitespace-pre-wrap text-[17px] leading-[1.8] text-foreground/90 md:text-lg">
+            <LinkifiedText text={cleanContent} className="zc-note-prose" />
           </div>
         );
       case 'heading':

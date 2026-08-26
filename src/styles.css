@@ -360,6 +360,69 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
 
+  /* ZeroNotes article typography.
+   *
+   * Tailwind's prose defaults are tuned for documentation — tight headings,
+   * even spacing, a rule that looks like a table border. An article wants
+   * headings that are obviously ranked, more air above a heading than below
+   * it (so it belongs to what follows, not what precedes), and a section break
+   * that reads as a pause rather than a divider. */
+  .zc-note-prose h1 {
+    font-size: 1.9em;
+    font-weight: 800;
+    letter-spacing: -0.022em;
+    line-height: 1.15;
+    margin: 0.9em 0 0.35em;
+  }
+  .zc-note-prose h2 {
+    font-size: 1.45em;
+    font-weight: 700;
+    letter-spacing: -0.016em;
+    line-height: 1.25;
+    margin: 0.85em 0 0.3em;
+  }
+  .zc-note-prose h3 {
+    font-size: 1.15em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    margin: 0.8em 0 0.25em;
+  }
+  .zc-note-prose h1:first-child,
+  .zc-note-prose h2:first-child,
+  .zc-note-prose h3:first-child { margin-top: 0; }
+
+  /* Three dots, centred — the typographic mark for a scene break. A full-width
+     hairline in the middle of an article reads as the end of the page. */
+  .zc-note-prose hr {
+    border: 0;
+    margin: 2em 0;
+    text-align: center;
+    overflow: visible;
+  }
+  .zc-note-prose hr::after {
+    content: "· · ·";
+    display: inline-block;
+    color: color-mix(in oklab, var(--foreground) 45%, transparent);
+    font-size: 1.1em;
+    letter-spacing: 0.5em;
+    /* The letter-spacing adds a trailing gap, which would sit the dots left
+       of centre without this. */
+    text-indent: 0.5em;
+  }
+
+  /* Highlights need breathing room or the colour clips the letterforms, and a
+     little rounding so a run of highlighted words reads as one band. */
+  .zc-note-prose [style*="background-color"] {
+    padding: 0.08em 0.12em;
+    border-radius: 0.18em;
+    /* Highlight colours are pale by design, so text on them must stay dark
+       even when the reader is in the dark theme. */
+    color: #171218;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
   /* The crop editor's sliders.
      A native range input is styled differently by every browser and none of
      them match a dark editor, so the track and thumb are drawn here. The thumb

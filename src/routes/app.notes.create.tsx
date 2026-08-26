@@ -1,6 +1,7 @@
 import { getFirstName } from "@/lib/utils";
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, Trash2, Heading1, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette, Check } from "@/components/icons/solar";
+import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, Trash2, Heading1, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette, Brush, Check } from "@/components/icons/solar";
+import { Highlighter, NOTE_TEXT_COLORS, NOTE_HIGHLIGHTS } from "@/features/notes/editorMarks";
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { uploadNoteMedia } from '@/lib/storage';
@@ -63,18 +64,35 @@ const TipTapBlock = ({
 }) => {
   const editor = useEditor({
     extensions: [
+      /*
+       * Headings are nodes again.
+       *
+       * `heading: false` disabled the heading node entirely, and "heading" was
+       * instead a property of a whole block, applied as a CSS class on the
+       * editor's root element. That is why selecting one sentence and pressing
+       * H1 turned the entire block into a heading: there was nothing wrapping
+       * the selection to turn, only a class on everything.
+       *
+       * With the real node back, a heading is a node around the paragraph the
+       * cursor sits in — which is also what gives us three levels rather than
+       * one size.
+       */
       StarterKit.configure({
-        heading: false, // We use custom heading block
+        heading: { levels: [1, 2, 3] },
         codeBlock: false,
       }),
       Placeholder.configure({ placeholder: block.type === 'heading' ? 'Heading...' : 'Write your Notes...' }),
       TextStyle,
       Color,
+      Highlighter,
     ],
     content: sanitizeEditableNoteHtml(block.content),
     editorProps: {
       attributes: {
-        class: `w-full bg-transparent outline-none resize-none overflow-hidden block ${block.type === 'heading' ? 'text-3xl font-black tracking-tighter pt-6 pb-2 placeholder:text-muted-foreground/30 font-serif' : 'text-lg md:text-xl min-h-[60px] leading-relaxed font-normal text-foreground/90 font-serif'} prose dark:prose-invert max-w-none`,
+        // zc-note-prose carries the heading sizes, the rule styling and the
+        // highlight padding — see styles.css. Tailwind's prose defaults are
+        // tuned for documentation, not for an article somebody is writing.
+        class: `zc-note-prose w-full bg-transparent outline-none resize-none overflow-hidden block ${block.type === 'heading' ? 'text-3xl font-black tracking-tighter pt-6 pb-2 placeholder:text-muted-foreground/30 font-serif' : 'text-lg md:text-xl min-h-[60px] leading-relaxed font-normal text-foreground/90 font-serif'} prose dark:prose-invert max-w-none`,
         spellcheck: "false",
       },
       handleKeyDown: (view, event) => {
@@ -400,6 +418,30 @@ function NotesCreatePage() {
     if (format === 'bold') editor.chain().focus().toggleBold().run();
     if (format === 'italic') editor.chain().focus().toggleItalic().run();
     if (format === 'bullet') editor.chain().focus().toggleBulletList().run();
+  };
+
+  /* Applies to what is selected, which is the whole point of the fix. The
+     editor is reached the same way the colour picker reaches it. */
+  const applyHeading = (level: 1 | 2 | 3) => {
+    const editor = (window as any).activeTipTapEditor;
+    if (!editor) return;
+    editor.chain().focus().toggleHeading({ level }).run();
+  };
+
+  /* A break between sections, inserted where the cursor is rather than as a
+     whole new block at the end — that was the old divider, and it could only
+     ever be appended. */
+  const insertSectionBreak = () => {
+    const editor = (window as any).activeTipTapEditor;
+    if (!editor) { addBlock('divider'); return; }
+    editor.chain().focus().setHorizontalRule().run();
+  };
+
+  const applyHighlight = (color: string) => {
+    const editor = (window as any).activeTipTapEditor;
+    if (!editor) return;
+    if (!color) editor.chain().focus().unsetHighlight().run();
+    else editor.chain().focus().setHighlight(color).run();
   };
 
   const toggleBlockType = () => {
@@ -885,12 +927,26 @@ function NotesCreatePage() {
               <List className="h-4 w-4" strokeWidth={2} />
             </button>
             <div className="w-px h-5 bg-border mx-1" />
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); toggleBlockType(); }}
+            {/* Three levels, each acting on the selection. One button that
+                flipped a whole block between "heading" and "text" could not
+                express an article's structure, and applied itself to
+                everything you had written in that block. */}
+            {([1, 2, 3] as const).map((level) => (
+              <button
+                key={level}
+                onMouseDown={(e) => { e.preventDefault(); applyHeading(level); }}
+                className="h-9 w-9 flex items-center justify-center rounded-full text-[12px] font-bold tracking-tight text-foreground transition hover:bg-accent active:scale-90"
+                title={`Heading ${level}`}
+              >
+                H{level}
+              </button>
+            ))}
+            <button
+              onMouseDown={(e) => { e.preventDefault(); insertSectionBreak(); }}
               className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
-              title="Toggle Heading/Text"
+              title="Section break"
             >
-              {blocks.find(b => b.id === activeMentionBlockId)?.type === 'heading' ? <Type className="h-4 w-4" /> : <Heading1 className="h-4 w-4" />}
+              <Minus className="h-4 w-4" strokeWidth={2} />
             </button>
             <div className="w-px h-5 bg-border mx-1" />
             <Popover modal={false}>
@@ -898,25 +954,52 @@ function NotesCreatePage() {
                 <button 
                   onMouseDown={(e) => { e.preventDefault(); }}
                   className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
-                  title="Text Color"
+                  title="Colour and highlight"
                 >
                   <Palette className="h-4 w-4" />
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-64 rounded-lg border-border bg-background p-3 shadow-xl" align="center" side="top" sideOffset={10} onOpenAutoFocus={(e) => e.preventDefault()}>
                 <div className="space-y-3">
+                  {/* Ink, then highlighter. The old grid was the Tailwind 500
+                      ramp plus pure white and pure black, which on a page of
+                      serif body text reads as marker pen rather than an
+                      editorial choice. */}
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Text colour</p>
                   <div className="grid grid-cols-5 gap-2">
-                    {['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#ffffff', '#000000'].map(color => (
+                    {NOTE_TEXT_COLORS.map((entry) => (
                       <button
-                        key={color}
+                        key={entry.name}
                         onMouseDown={(e) => {
                           e.preventDefault();
-                          applyColor(color, false);
+                          if (!entry.value) {
+                            const editor = (window as any).activeTipTapEditor;
+                            editor?.chain().focus().unsetColor().run();
+                            return;
+                          }
+                          applyColor(entry.value, false);
                         }}
-                        className="h-8 w-8 rounded-full border border-border/30 hover:scale-110 transition-transform active:scale-95"
-                        style={{ backgroundColor: color }}
-                        title={color}
-                      />
+                        className={`h-8 w-8 rounded-full border border-border/40 transition-transform hover:scale-110 active:scale-95 ${entry.value ? '' : 'grid place-items-center'}`}
+                        style={entry.value ? { backgroundColor: entry.value } : undefined}
+                        title={entry.name}
+                      >
+                        {!entry.value && <Type className="h-3.5 w-3.5 text-muted-foreground" />}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="pt-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Highlight</p>
+                  <div className="grid grid-cols-5 gap-2">
+                    {NOTE_HIGHLIGHTS.map((entry) => (
+                      <button
+                        key={entry.name}
+                        onMouseDown={(e) => { e.preventDefault(); applyHighlight(entry.value); }}
+                        className={`h-8 w-8 rounded-full border border-border/40 transition-transform hover:scale-110 active:scale-95 ${entry.value ? '' : 'grid place-items-center'}`}
+                        style={entry.value ? { backgroundColor: entry.value } : undefined}
+                        title={entry.name}
+                      >
+                        {!entry.value && <X className="h-3 w-3 text-muted-foreground" />}
+                      </button>
                     ))}
                   </div>
                   <div className="flex items-center gap-2 pt-2 border-t border-border/50">
