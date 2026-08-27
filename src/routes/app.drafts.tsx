@@ -2,6 +2,34 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { ArrowLeft, Trash } from "@/components/icons/solar";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { toPlainText } from "@/lib/contentPreview";
+
+
+/**
+ * What to call a draft in the list.
+ *
+ * Two things write drafts: ZeroNotes saves an array of blocks, and the post
+ * composer saves a single bodyText string. Reading only one of them is what
+ * made every post draft render as "Empty draft" — it was not empty, it was
+ * simply not the shape being looked for.
+ */
+const draftTitle = (draft: any): string => {
+  const stored = String(draft?.title || "").trim();
+  if (stored) return stored;
+
+  const body = toPlainText(draft?.bodyText) || String(draft?.blocks?.[0]?.text || "");
+  const firstLine = body.split("\n")[0].trim();
+  if (!firstLine) return "";
+  return firstLine.length > 80 ? `${firstLine.slice(0, 80).trimEnd()}…` : firstLine;
+};
+
+/** The line under the title, minus whatever the title already said. */
+const draftPreview = (draft: any): string => {
+  const body = String(draft?.preview || "") || toPlainText(draft?.bodyText) ||
+    (draft?.blocks || []).map((block: any) => block?.text).filter(Boolean).join(" ");
+  const rest = body.replace(draftTitle(draft).replace(/…$/, ""), "").trim();
+  return rest.slice(0, 220);
+};
 
 export const Route = createFileRoute("/app/drafts")({
   component: DraftsPage,
@@ -73,9 +101,19 @@ function DraftsPage() {
                 className="group flex min-h-[150px] cursor-pointer items-start justify-between rounded-lg border border-border bg-card p-5 transition hover:border-primary/25 hover:bg-accent/20"
               >
                 <div className="flex-1 min-w-0 pr-4">
-                  <p className="text-sm text-foreground line-clamp-3 leading-relaxed">
-                    {draft.blocks?.[0]?.text || <span className="italic text-muted-foreground">Empty draft</span>}
+                  {/* Drafts arrive in two shapes — ZeroNotes writes blocks, the
+                      post composer writes bodyText — and this only ever read
+                      the first, so every post draft claimed to be empty.
+                      draftTitle handles both, and still calls a genuinely
+                      blank draft blank. */}
+                  <p className="line-clamp-2 text-[15px] font-semibold leading-snug tracking-tight text-foreground">
+                    {draftTitle(draft) || <span className="font-normal italic text-muted-foreground">Empty draft</span>}
                   </p>
+                  {draftPreview(draft) && (
+                    <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-relaxed text-muted-foreground">
+                      {draftPreview(draft)}
+                    </p>
+                  )}
                   <p className="mt-4 text-[11px] text-muted-foreground">
                     {new Date(draft.updatedAt).toLocaleString()}
                   </p>

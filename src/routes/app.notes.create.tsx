@@ -666,7 +666,19 @@ function NotesCreatePage() {
         </div>
       </header>
 
-      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto no-scrollbar pb-56">
+      {/* Clearance below the writing, tracking where the toolbar actually is.
+          The padding was a fixed 14rem, but the toolbar lifts itself by the
+          keyboard height so it rides above the keys — so the moment the
+          keyboard opened, the bar sat hundreds of pixels higher than the
+          padding accounted for, and a new line of text carried on behind it.
+          Adding the keyboard inset keeps the gap the same whether the keyboard
+          is open or closed. */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto no-scrollbar"
+        style={{ paddingBottom: `calc(14rem + ${keyboardInset}px)` }}
+      >
         
         {/* Cover Image Area */}
         <div className="mx-auto max-w-[920px] px-4 pt-5 sm:px-6 sm:pt-7">

@@ -26,6 +26,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 
 export const Route = createFileRoute('/app/notes_/$id/edit')({
   component: NotesEditPage,
@@ -123,6 +124,7 @@ function NotesEditPage() {
   const queryClient = useQueryClient();
   const { id: noteId } = Route.useParams();
   const { data: profile } = useUser();
+  const keyboardInset = useKeyboardInset();
   const [title, setTitle] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -577,7 +579,12 @@ function NotesEditPage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-56">
+      {/* Same clearance as the create page: the gap has to grow by the
+          keyboard height, or a new line is written behind the toolbar. */}
+      <div
+        className="flex-1 overflow-y-auto no-scrollbar"
+        style={{ paddingBottom: `calc(14rem + ${keyboardInset}px)` }}
+      >
         
         {/* Cover Image Area */}
         <div className="mx-auto max-w-[920px] px-4 pt-5 sm:px-6 sm:pt-7">
@@ -804,7 +811,10 @@ function NotesEditPage() {
 
       {/* Floating Formatting Toolbar (Appears when typing) */}
       {activeMentionBlockId && (
-        <div className={`formatting-toolbar fixed left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 ${showIdlePublish ? 'bottom-[84px]' : 'bottom-4 sm:bottom-6'}`}>
+        <div
+          className={`formatting-toolbar fixed left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 ${keyboardInset > 0 ? '' : showIdlePublish ? 'bottom-[84px]' : 'bottom-4 sm:bottom-6'}`}
+          style={keyboardInset > 0 ? { bottom: keyboardInset + 8 } : undefined}
+        >
           <div className="flex items-center gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 shadow-xl">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}

@@ -18,6 +18,7 @@ import { Bold, Italic, List } from "@/components/icons/solar";
 import { Mark, mergeAttributes } from '@tiptap/core';
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
+import { toPlainText } from "@/lib/contentPreview";
 
 const MentionMark = Mark.create({
   name: 'mentionMark',
@@ -112,11 +113,21 @@ function ComposePage() {
   }, [editId]);
 
   const saveDraft = () => {
+    /* A draft names itself from its first line.
+       The list was reading draft.blocks[0].text — the shape ZeroNotes saves —
+       while this page has only ever written bodyText, so every post draft
+       matched nothing and rendered as "Empty draft". Storing the title at save
+       time means the list does not have to know how a draft was produced. */
+    const plain = toPlainText(bodyTextRef.current);
+    const firstLine = plain.split("\n")[0].trim();
+
     const newDraft = {
       id: crypto.randomUUID(),
       updatedAt: new Date().toISOString(),
       audience,
       bodyText: bodyTextRef.current,
+      title: firstLine.length > 80 ? `${firstLine.slice(0, 80).trimEnd()}…` : firstLine,
+      preview: plain.slice(0, 220),
     };
     const drafts = JSON.parse(localStorage.getItem('zero_club_drafts') || '[]');
     const newDrafts = [newDraft, ...drafts];
@@ -448,7 +459,14 @@ function ComposePage() {
       </header>
 
       {/* Main Form Area */}
-      <div className="no-scrollbar mx-auto w-full max-w-[860px] flex-1 overflow-y-auto px-4 pb-32 pt-4 sm:px-6 sm:pt-6">
+      {/* The gap above the format bar has to follow the bar. It pins itself to
+          the top of the keyboard while you type, so a fixed 8rem of padding
+          stopped being enough the moment the keyboard opened — the next line
+          of text was written behind the toolbar. */}
+      <div
+        className="no-scrollbar mx-auto w-full max-w-[860px] flex-1 overflow-y-auto px-4 pt-4 sm:px-6 sm:pt-6"
+        style={{ paddingBottom: `calc(8rem + ${toolbarPinned ? keyboardInset : 0}px)` }}
+      >
         {/* No card. Writing a post is the whole purpose of this screen, so the
             bordered panel was drawing a box around the page itself — and the
             padding on all four sides made the writing column narrower than it
