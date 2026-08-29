@@ -9,114 +9,100 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as SigninRouteImport } from './routes/signin'
-import { Route as DocsRouteImport } from './routes/docs'
-import { Route as AppRouteImport } from './routes/app'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as ProductIdRouteImport } from './routes/product.$id'
-import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
-import { Route as GiftCodeRouteImport } from './routes/gift.$code'
-import { Route as FundSlugRouteImport } from './routes/fund.$slug'
-import { Route as FormSlugRouteImport } from './routes/form.$slug'
-import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
-import { Route as ClubIdRouteImport } from './routes/club.$id'
-import { Route as AppZerohubRouteImport } from './routes/app.zerohub'
-import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
-import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
-import { Route as AppTasksRouteImport } from './routes/app.tasks'
-import { Route as AppStoreRouteImport } from './routes/app.store'
-import { Route as AppShipRouteImport } from './routes/app.ship'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppQuestsRouteImport } from './routes/app.quests'
-import { Route as AppPremiumRouteImport } from './routes/app.premium'
-import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
-import { Route as AppNotesRouteImport } from './routes/app.notes'
-import { Route as AppMyStoreRouteImport } from './routes/app.my-store'
-import { Route as AppMetricsRouteImport } from './routes/app.metrics'
-import { Route as AppInstitutionStudioRouteImport } from './routes/app.institution-studio'
-import { Route as AppDraftsRouteImport } from './routes/app.drafts'
-import { Route as AppCreatorRouteImport } from './routes/app.creator'
-import { Route as AppComposeRouteImport } from './routes/app.compose'
-import { Route as AppBoostRouteImport } from './routes/app.boost'
-import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
-import { Route as AppAdminRouteImport } from './routes/app.admin'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as SigninRouteImport } from './routes/signin'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ApiContactRouteImport } from './routes/api.contact'
-import { Route as AppWalletIndexRouteImport } from './routes/app.wallet.index'
-import { Route as AppTutorStudioIndexRouteImport } from './routes/app.tutor-studio.index'
-import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
-import { Route as AppProfileIndexRouteImport } from './routes/app.profile.index'
-import { Route as AppNotesIndexRouteImport } from './routes/app.notes.index'
-import { Route as AppInstitutionStudioIndexRouteImport } from './routes/app.institution-studio.index'
-import { Route as AppGiftsIndexRouteImport } from './routes/app.gifts.index'
-import { Route as AppGamesIndexRouteImport } from './routes/app.games.index'
-import { Route as AppClubsIndexRouteImport } from './routes/app.clubs.index'
-import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
-import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
-import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
-import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
-import { Route as NotesSlugPreviewV1RouteImport } from './routes/notes.$slug.preview-v1'
-import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
-import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
-import { Route as AppWalletRequestRouteImport } from './routes/app.wallet.request'
-import { Route as AppWalletAddMoneyRouteImport } from './routes/app.wallet.add-money'
-import { Route as AppTutorStudioSettingsRouteImport } from './routes/app.tutor-studio.settings'
-import { Route as AppTutorStudioCreateRouteImport } from './routes/app.tutor-studio.create'
-import { Route as AppSettingsSecurityRouteImport } from './routes/app.settings.security'
-import { Route as AppSettingsResourcesRouteImport } from './routes/app.settings.resources'
-import { Route as AppSettingsPrivacyRouteImport } from './routes/app.settings.privacy'
-import { Route as AppSettingsPremiumRouteImport } from './routes/app.settings.premium'
-import { Route as AppSettingsNotificationsRouteImport } from './routes/app.settings.notifications'
-import { Route as AppSettingsAccountRouteImport } from './routes/app.settings.account'
-import { Route as AppSettingsAccessibilityRouteImport } from './routes/app.settings.accessibility'
-import { Route as AppProfileEditRouteImport } from './routes/app.profile.edit'
-import { Route as AppProfileIdRouteImport } from './routes/app.profile.$id'
-import { Route as AppPostIdRouteImport } from './routes/app.post.$id'
-import { Route as AppNotesCreateRouteImport } from './routes/app.notes.create'
-import { Route as AppNotesIdRouteImport } from './routes/app.notes.$id'
-import { Route as AppLiveClassIdRouteImport } from './routes/app.live.$classId'
-import { Route as AppInstitutionControlRouteImport } from './routes/app.institution.control'
-import { Route as AppInstitutionIdRouteImport } from './routes/app.institution.$id'
-import { Route as AppGiftsUnclaimedRouteImport } from './routes/app.gifts.unclaimed'
-import { Route as AppGiftsCodeRouteImport } from './routes/app.gifts.$code'
-import { Route as AppGamesSoloRouteImport } from './routes/app.games.solo'
-import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
-import { Route as AppGamesIdRouteImport } from './routes/app.games.$id'
-import { Route as AppClubsChatRouteImport } from './routes/app.clubs.chat'
-import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
-import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
-import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
-import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
-import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
-import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
+import { Route as ApiOgDefaultRouteImport } from './routes/api.og-default'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppAdminRouteImport } from './routes/app.admin'
+import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
+import { Route as AppBoostRouteImport } from './routes/app.boost'
+import { Route as AppComposeRouteImport } from './routes/app.compose'
+import { Route as AppCreatorRouteImport } from './routes/app.creator'
+import { Route as AppDraftsRouteImport } from './routes/app.drafts'
+import { Route as AppInstitutionStudioRouteImport } from './routes/app.institution-studio'
+import { Route as AppMetricsRouteImport } from './routes/app.metrics'
+import { Route as AppMyStoreRouteImport } from './routes/app.my-store'
+import { Route as AppNotesRouteImport } from './routes/app.notes'
+import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppPremiumRouteImport } from './routes/app.premium'
+import { Route as AppQuestsRouteImport } from './routes/app.quests'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppShipRouteImport } from './routes/app.ship'
+import { Route as AppStoreRouteImport } from './routes/app.store'
+import { Route as AppTasksRouteImport } from './routes/app.tasks'
+import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
+import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
+import { Route as AppZerohubRouteImport } from './routes/app.zerohub'
+import { Route as ClubIdRouteImport } from './routes/club.$id'
+import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
+import { Route as FormSlugRouteImport } from './routes/form.$slug'
+import { Route as FundSlugRouteImport } from './routes/fund.$slug'
+import { Route as GiftCodeRouteImport } from './routes/gift.$code'
+import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
+import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as ApiClubImageIdRouteImport } from './routes/api.club-image.$id'
-import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
-import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
-import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
-import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
-import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
+import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
+import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
+import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
+import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
+import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
+import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
+import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
+import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
+import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
+import { Route as AppClubsIndexRouteImport } from './routes/app.clubs.index'
+import { Route as AppClubsChatRouteImport } from './routes/app.clubs.chat'
+import { Route as AppGamesIndexRouteImport } from './routes/app.games.index'
+import { Route as AppGamesIdRouteImport } from './routes/app.games.$id'
+import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
+import { Route as AppGamesSoloRouteImport } from './routes/app.games.solo'
+import { Route as AppGiftsIndexRouteImport } from './routes/app.gifts.index'
+import { Route as AppGiftsCodeRouteImport } from './routes/app.gifts.$code'
+import { Route as AppGiftsUnclaimedRouteImport } from './routes/app.gifts.unclaimed'
+import { Route as AppInstitutionStudioIndexRouteImport } from './routes/app.institution-studio.index'
+import { Route as AppInstitutionIdRouteImport } from './routes/app.institution.$id'
+import { Route as AppInstitutionControlRouteImport } from './routes/app.institution.control'
+import { Route as AppLiveClassIdRouteImport } from './routes/app.live.$classId'
+import { Route as AppNotesIndexRouteImport } from './routes/app.notes.index'
+import { Route as AppNotesIdRouteImport } from './routes/app.notes.$id'
+import { Route as AppNotesCreateRouteImport } from './routes/app.notes.create'
+import { Route as AppPostIdRouteImport } from './routes/app.post.$id'
+import { Route as AppProfileIndexRouteImport } from './routes/app.profile.index'
+import { Route as AppProfileIdRouteImport } from './routes/app.profile.$id'
+import { Route as AppProfileEditRouteImport } from './routes/app.profile.edit'
+import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
+import { Route as AppSettingsAccessibilityRouteImport } from './routes/app.settings.accessibility'
+import { Route as AppSettingsAccountRouteImport } from './routes/app.settings.account'
+import { Route as AppSettingsNotificationsRouteImport } from './routes/app.settings.notifications'
+import { Route as AppSettingsPremiumRouteImport } from './routes/app.settings.premium'
+import { Route as AppSettingsPrivacyRouteImport } from './routes/app.settings.privacy'
+import { Route as AppSettingsResourcesRouteImport } from './routes/app.settings.resources'
+import { Route as AppSettingsSecurityRouteImport } from './routes/app.settings.security'
+import { Route as AppTutorStudioIndexRouteImport } from './routes/app.tutor-studio.index'
+import { Route as AppTutorStudioCreateRouteImport } from './routes/app.tutor-studio.create'
+import { Route as AppTutorStudioSettingsRouteImport } from './routes/app.tutor-studio.settings'
+import { Route as AppWalletIndexRouteImport } from './routes/app.wallet.index'
+import { Route as AppWalletAddMoneyRouteImport } from './routes/app.wallet.add-money'
+import { Route as AppWalletRequestRouteImport } from './routes/app.wallet.request'
+import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
+import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
+import { Route as NotesSlugPreviewV1RouteImport } from './routes/notes.$slug.preview-v1'
+import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
+import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
+import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
+import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
+import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
+import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SigninRoute = SigninRouteImport.update({
-  id: '/signin',
-  path: '/signin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -124,9 +110,34 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiContactRoute = ApiContactRouteImport.update({
+  id: '/api/contact',
+  path: '/api/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOgDefaultRoute = ApiOgDefaultRouteImport.update({
+  id: '/api/og-default',
+  path: '/api/og-default',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -134,129 +145,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const ProductIdRoute = ProductIdRouteImport.update({
-  id: '/product/$id',
-  path: '/product/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotesSlugRoute = NotesSlugRouteImport.update({
-  id: '/notes/$slug',
-  path: '/notes/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GiftCodeRoute = GiftCodeRouteImport.update({
-  id: '/gift/$code',
-  path: '/gift/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FundSlugRoute = FundSlugRouteImport.update({
-  id: '/fund/$slug',
-  path: '/fund/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FormSlugRoute = FormSlugRouteImport.update({
-  id: '/form/$slug',
-  path: '/form/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExploreSlugRoute = ExploreSlugRouteImport.update({
-  id: '/explore/$slug',
-  path: '/explore/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClubIdRoute = ClubIdRouteImport.update({
-  id: '/club/$id',
-  path: '/club/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppZerohubRoute = AppZerohubRouteImport.update({
-  id: '/zerohub',
-  path: '/zerohub',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppZeroAiRoute = AppZeroAiRouteImport.update({
-  id: '/zero-ai',
-  path: '/zero-ai',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppTutorStudioRoute = AppTutorStudioRouteImport.update({
-  id: '/tutor-studio',
-  path: '/tutor-studio',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppTasksRoute = AppTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppStoreRoute = AppStoreRouteImport.update({
-  id: '/store',
-  path: '/store',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppShipRoute = AppShipRouteImport.update({
-  id: '/ship',
-  path: '/ship',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppQuestsRoute = AppQuestsRouteImport.update({
-  id: '/quests',
-  path: '/quests',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPremiumRoute = AppPremiumRouteImport.update({
-  id: '/premium',
-  path: '/premium',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppNotificationsRoute = AppNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppNotesRoute = AppNotesRouteImport.update({
-  id: '/notes',
-  path: '/notes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMyStoreRoute = AppMyStoreRouteImport.update({
-  id: '/my-store',
-  path: '/my-store',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMetricsRoute = AppMetricsRouteImport.update({
-  id: '/metrics',
-  path: '/metrics',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInstitutionStudioRoute = AppInstitutionStudioRouteImport.update({
-  id: '/institution-studio',
-  path: '/institution-studio',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDraftsRoute = AppDraftsRouteImport.update({
-  id: '/drafts',
-  path: '/drafts',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCreatorRoute = AppCreatorRouteImport.update({
-  id: '/creator',
-  path: '/creator',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppComposeRoute = AppComposeRouteImport.update({
-  id: '/compose',
-  path: '/compose',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBoostRoute = AppBoostRouteImport.update({
-  id: '/boost',
-  path: '/boost',
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBookmarksRoute = AppBookmarksRouteImport.update({
@@ -264,60 +155,159 @@ const AppBookmarksRoute = AppBookmarksRouteImport.update({
   path: '/bookmarks',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminRoute = AppAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AppBoostRoute = AppBoostRouteImport.update({
+  id: '/boost',
+  path: '/boost',
   getParentRoute: () => AppRoute,
 } as any)
-const ApiContactRoute = ApiContactRouteImport.update({
-  id: '/api/contact',
-  path: '/api/contact',
+const AppComposeRoute = AppComposeRouteImport.update({
+  id: '/compose',
+  path: '/compose',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCreatorRoute = AppCreatorRouteImport.update({
+  id: '/creator',
+  path: '/creator',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDraftsRoute = AppDraftsRouteImport.update({
+  id: '/drafts',
+  path: '/drafts',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInstitutionStudioRoute = AppInstitutionStudioRouteImport.update({
+  id: '/institution-studio',
+  path: '/institution-studio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMetricsRoute = AppMetricsRouteImport.update({
+  id: '/metrics',
+  path: '/metrics',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMyStoreRoute = AppMyStoreRouteImport.update({
+  id: '/my-store',
+  path: '/my-store',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotesRoute = AppNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPremiumRoute = AppPremiumRouteImport.update({
+  id: '/premium',
+  path: '/premium',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQuestsRoute = AppQuestsRouteImport.update({
+  id: '/quests',
+  path: '/quests',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppShipRoute = AppShipRouteImport.update({
+  id: '/ship',
+  path: '/ship',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStoreRoute = AppStoreRouteImport.update({
+  id: '/store',
+  path: '/store',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTasksRoute = AppTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTutorStudioRoute = AppTutorStudioRouteImport.update({
+  id: '/tutor-studio',
+  path: '/tutor-studio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppZeroAiRoute = AppZeroAiRouteImport.update({
+  id: '/zero-ai',
+  path: '/zero-ai',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppZerohubRoute = AppZerohubRouteImport.update({
+  id: '/zerohub',
+  path: '/zerohub',
+  getParentRoute: () => AppRoute,
+} as any)
+const ClubIdRoute = ClubIdRouteImport.update({
+  id: '/club/$id',
+  path: '/club/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppWalletIndexRoute = AppWalletIndexRouteImport.update({
-  id: '/wallet/',
-  path: '/wallet/',
-  getParentRoute: () => AppRoute,
+const ExploreSlugRoute = ExploreSlugRouteImport.update({
+  id: '/explore/$slug',
+  path: '/explore/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppTutorStudioIndexRoute = AppTutorStudioIndexRouteImport.update({
+const FormSlugRoute = FormSlugRouteImport.update({
+  id: '/form/$slug',
+  path: '/form/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FundSlugRoute = FundSlugRouteImport.update({
+  id: '/fund/$slug',
+  path: '/fund/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GiftCodeRoute = GiftCodeRouteImport.update({
+  id: '/gift/$code',
+  path: '/gift/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesSlugRoute = NotesSlugRouteImport.update({
+  id: '/notes/$slug',
+  path: '/notes/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductIdRoute = ProductIdRouteImport.update({
+  id: '/product/$id',
+  path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiClubImageIdRoute = ApiClubImageIdRouteImport.update({
+  id: '/api/club-image/$id',
+  path: '/api/club-image/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
+  id: '/api/gift-card/$code',
+  path: '/api/gift-card/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGiftImageCodeRoute = ApiGiftImageCodeRouteImport.update({
+  id: '/api/gift-image/$code',
+  path: '/api/gift-image/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppTutorStudioRoute,
+  getParentRoute: () => AppAdminRoute,
 } as any)
-const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppProfileIndexRoute = AppProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
+const AppBootcampsIndexRoute = AppBootcampsIndexRouteImport.update({
+  id: '/bootcamps/',
+  path: '/bootcamps/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppNotesIndexRoute = AppNotesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppNotesRoute,
-} as any)
-const AppInstitutionStudioIndexRoute =
-  AppInstitutionStudioIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppInstitutionStudioRoute,
-  } as any)
-const AppGiftsIndexRoute = AppGiftsIndexRouteImport.update({
-  id: '/gifts/',
-  path: '/gifts/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGamesIndexRoute = AppGamesIndexRouteImport.update({
-  id: '/games/',
-  path: '/games/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppClubsIndexRoute = AppClubsIndexRouteImport.update({
-  id: '/clubs/',
-  path: '/clubs/',
+const AppBootcampsIdRoute = AppBootcampsIdRouteImport.update({
+  id: '/bootcamps/$id',
+  path: '/bootcamps/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppChatIndexRoute = AppChatIndexRouteImport.update({
@@ -325,85 +315,125 @@ const AppChatIndexRoute = AppChatIndexRouteImport.update({
   path: '/chat/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppBootcampsIndexRoute = AppBootcampsIndexRouteImport.update({
-  id: '/bootcamps/',
-  path: '/bootcamps/',
+const AppChatIdRoute = AppChatIdRouteImport.update({
+  id: '/chat/$id',
+  path: '/chat/$id',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
+const AppChatNewRoute = AppChatNewRouteImport.update({
+  id: '/chat/new',
+  path: '/chat/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChatSettingsRoute = AppChatSettingsRouteImport.update({
+  id: '/chat/settings',
+  path: '/chat/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClubsIndexRoute = AppClubsIndexRouteImport.update({
+  id: '/clubs/',
+  path: '/clubs/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClubsChatRoute = AppClubsChatRouteImport.update({
+  id: '/clubs/chat',
+  path: '/clubs/chat',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesIndexRoute = AppGamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesIdRoute = AppGamesIdRouteImport.update({
+  id: '/games/$id',
+  path: '/games/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesCreateRoute = AppGamesCreateRouteImport.update({
+  id: '/games/create',
+  path: '/games/create',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesSoloRoute = AppGamesSoloRouteImport.update({
+  id: '/games/solo',
+  path: '/games/solo',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGiftsIndexRoute = AppGiftsIndexRouteImport.update({
+  id: '/gifts/',
+  path: '/gifts/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGiftsCodeRoute = AppGiftsCodeRouteImport.update({
+  id: '/gifts/$code',
+  path: '/gifts/$code',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGiftsUnclaimedRoute = AppGiftsUnclaimedRouteImport.update({
+  id: '/gifts/unclaimed',
+  path: '/gifts/unclaimed',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInstitutionStudioIndexRoute =
+  AppInstitutionStudioIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppInstitutionStudioRoute,
+  } as any)
+const AppInstitutionIdRoute = AppInstitutionIdRouteImport.update({
+  id: '/institution/$id',
+  path: '/institution/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInstitutionControlRoute = AppInstitutionControlRouteImport.update({
+  id: '/institution/control',
+  path: '/institution/control',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLiveClassIdRoute = AppLiveClassIdRouteImport.update({
+  id: '/live/$classId',
+  path: '/live/$classId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotesIndexRoute = AppNotesIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppAdminRoute,
+  getParentRoute: () => AppNotesRoute,
 } as any)
-const ProductIdPreviewV3Route = ProductIdPreviewV3RouteImport.update({
-  id: '/preview-v3',
-  path: '/preview-v3',
-  getParentRoute: () => ProductIdRoute,
+const AppNotesIdRoute = AppNotesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppNotesRoute,
 } as any)
-const NotesSlugPreviewV1Route = NotesSlugPreviewV1RouteImport.update({
-  id: '/preview-v1',
-  path: '/preview-v1',
-  getParentRoute: () => NotesSlugRoute,
-} as any)
-const AppWalletWithdrawRoute = AppWalletWithdrawRouteImport.update({
-  id: '/wallet/withdraw',
-  path: '/wallet/withdraw',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppWalletSettingsRoute = AppWalletSettingsRouteImport.update({
-  id: '/wallet/settings',
-  path: '/wallet/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppWalletRequestRoute = AppWalletRequestRouteImport.update({
-  id: '/wallet/request',
-  path: '/wallet/request',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppWalletAddMoneyRoute = AppWalletAddMoneyRouteImport.update({
-  id: '/wallet/add-money',
-  path: '/wallet/add-money',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppTutorStudioSettingsRoute = AppTutorStudioSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppTutorStudioRoute,
-} as any)
-const AppTutorStudioCreateRoute = AppTutorStudioCreateRouteImport.update({
+const AppNotesCreateRoute = AppNotesCreateRouteImport.update({
   id: '/create',
   path: '/create',
-  getParentRoute: () => AppTutorStudioRoute,
+  getParentRoute: () => AppNotesRoute,
 } as any)
-const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
-  getParentRoute: () => AppSettingsRoute,
+const AppPostIdRoute = AppPostIdRouteImport.update({
+  id: '/post/$id',
+  path: '/post/$id',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsResourcesRoute = AppSettingsResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
-  getParentRoute: () => AppSettingsRoute,
+const AppProfileIndexRoute = AppProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => AppSettingsRoute,
+const AppProfileIdRoute = AppProfileIdRouteImport.update({
+  id: '/profile/$id',
+  path: '/profile/$id',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsPremiumRoute = AppSettingsPremiumRouteImport.update({
-  id: '/premium',
-  path: '/premium',
-  getParentRoute: () => AppSettingsRoute,
+const AppProfileEditRoute = AppProfileEditRouteImport.update({
+  id: '/profile/edit',
+  path: '/profile/edit',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsNotificationsRoute =
-  AppSettingsNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AppSettingsRoute,
-  } as any)
-const AppSettingsAccountRoute = AppSettingsAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppSettingsAccessibilityRoute =
@@ -412,114 +442,105 @@ const AppSettingsAccessibilityRoute =
     path: '/accessibility',
     getParentRoute: () => AppSettingsRoute,
   } as any)
-const AppProfileEditRoute = AppProfileEditRouteImport.update({
-  id: '/profile/edit',
-  path: '/profile/edit',
-  getParentRoute: () => AppRoute,
+const AppSettingsAccountRoute = AppSettingsAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppProfileIdRoute = AppProfileIdRouteImport.update({
-  id: '/profile/$id',
-  path: '/profile/$id',
-  getParentRoute: () => AppRoute,
+const AppSettingsNotificationsRoute =
+  AppSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AppSettingsRoute,
+  } as any)
+const AppSettingsPremiumRoute = AppSettingsPremiumRouteImport.update({
+  id: '/premium',
+  path: '/premium',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppPostIdRoute = AppPostIdRouteImport.update({
-  id: '/post/$id',
-  path: '/post/$id',
-  getParentRoute: () => AppRoute,
+const AppSettingsPrivacyRoute = AppSettingsPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppNotesCreateRoute = AppNotesCreateRouteImport.update({
+const AppSettingsResourcesRoute = AppSettingsResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppTutorStudioIndexRoute = AppTutorStudioIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppTutorStudioRoute,
+} as any)
+const AppTutorStudioCreateRoute = AppTutorStudioCreateRouteImport.update({
   id: '/create',
   path: '/create',
-  getParentRoute: () => AppNotesRoute,
+  getParentRoute: () => AppTutorStudioRoute,
 } as any)
-const AppNotesIdRoute = AppNotesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppNotesRoute,
+const AppTutorStudioSettingsRoute = AppTutorStudioSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppTutorStudioRoute,
 } as any)
-const AppLiveClassIdRoute = AppLiveClassIdRouteImport.update({
-  id: '/live/$classId',
-  path: '/live/$classId',
+const AppWalletIndexRoute = AppWalletIndexRouteImport.update({
+  id: '/wallet/',
+  path: '/wallet/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppInstitutionControlRoute = AppInstitutionControlRouteImport.update({
-  id: '/institution/control',
-  path: '/institution/control',
+const AppWalletAddMoneyRoute = AppWalletAddMoneyRouteImport.update({
+  id: '/wallet/add-money',
+  path: '/wallet/add-money',
   getParentRoute: () => AppRoute,
 } as any)
-const AppInstitutionIdRoute = AppInstitutionIdRouteImport.update({
-  id: '/institution/$id',
-  path: '/institution/$id',
+const AppWalletRequestRoute = AppWalletRequestRouteImport.update({
+  id: '/wallet/request',
+  path: '/wallet/request',
   getParentRoute: () => AppRoute,
 } as any)
-const AppGiftsUnclaimedRoute = AppGiftsUnclaimedRouteImport.update({
-  id: '/gifts/unclaimed',
-  path: '/gifts/unclaimed',
+const AppWalletSettingsRoute = AppWalletSettingsRouteImport.update({
+  id: '/wallet/settings',
+  path: '/wallet/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppGiftsCodeRoute = AppGiftsCodeRouteImport.update({
-  id: '/gifts/$code',
-  path: '/gifts/$code',
+const AppWalletWithdrawRoute = AppWalletWithdrawRouteImport.update({
+  id: '/wallet/withdraw',
+  path: '/wallet/withdraw',
   getParentRoute: () => AppRoute,
 } as any)
-const AppGamesSoloRoute = AppGamesSoloRouteImport.update({
-  id: '/games/solo',
-  path: '/games/solo',
+const NotesSlugPreviewV1Route = NotesSlugPreviewV1RouteImport.update({
+  id: '/preview-v1',
+  path: '/preview-v1',
+  getParentRoute: () => NotesSlugRoute,
+} as any)
+const ProductIdPreviewV3Route = ProductIdPreviewV3RouteImport.update({
+  id: '/preview-v3',
+  path: '/preview-v3',
+  getParentRoute: () => ProductIdRoute,
+} as any)
+const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
+  id: '/bootcamps_/$id/edit',
+  path: '/bootcamps/$id/edit',
   getParentRoute: () => AppRoute,
 } as any)
-const AppGamesCreateRoute = AppGamesCreateRouteImport.update({
-  id: '/games/create',
-  path: '/games/create',
+const AppClubsQuizzesClubIdRoute = AppClubsQuizzesClubIdRouteImport.update({
+  id: '/clubs/quizzes/$clubId',
+  path: '/clubs/quizzes/$clubId',
   getParentRoute: () => AppRoute,
 } as any)
-const AppGamesIdRoute = AppGamesIdRouteImport.update({
-  id: '/games/$id',
-  path: '/games/$id',
+const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
+  id: '/notes_/$id/edit',
+  path: '/notes/$id/edit',
   getParentRoute: () => AppRoute,
 } as any)
-const AppClubsChatRoute = AppClubsChatRouteImport.update({
-  id: '/clubs/chat',
-  path: '/clubs/chat',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppChatSettingsRoute = AppChatSettingsRouteImport.update({
-  id: '/chat/settings',
-  path: '/chat/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppChatNewRoute = AppChatNewRouteImport.update({
-  id: '/chat/new',
-  path: '/chat/new',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppChatIdRoute = AppChatIdRouteImport.update({
-  id: '/chat/$id',
-  path: '/chat/$id',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBootcampsIdRoute = AppBootcampsIdRouteImport.update({
-  id: '/bootcamps/$id',
-  path: '/bootcamps/$id',
-  getParentRoute: () => AppRoute,
-} as any)
-const ApiGiftImageCodeRoute = ApiGiftImageCodeRouteImport.update({
-  id: '/api/gift-image/$code',
-  path: '/api/gift-image/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
-  id: '/api/gift-card/$code',
-  path: '/api/gift-card/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiClubImageIdRoute = ApiClubImageIdRouteImport.update({
-  id: '/api/club-image/$id',
-  path: '/api/club-image/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
-  id: '/wallet/transaction/$id',
-  path: '/wallet/transaction/$id',
+const AppProfileIdNetworkRoute = AppProfileIdNetworkRouteImport.update({
+  id: '/profile_/$id/network',
+  path: '/profile/$id/network',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsPremiumFeaturesRoute =
@@ -528,24 +549,9 @@ const AppSettingsPremiumFeaturesRoute =
     path: '/features',
     getParentRoute: () => AppSettingsPremiumRoute,
   } as any)
-const AppProfileIdNetworkRoute = AppProfileIdNetworkRouteImport.update({
-  id: '/profile_/$id/network',
-  path: '/profile/$id/network',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
-  id: '/notes_/$id/edit',
-  path: '/notes/$id/edit',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppClubsQuizzesClubIdRoute = AppClubsQuizzesClubIdRouteImport.update({
-  id: '/clubs/quizzes/$clubId',
-  path: '/clubs/quizzes/$clubId',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
-  id: '/bootcamps_/$id/edit',
-  path: '/bootcamps/$id/edit',
+const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
+  id: '/wallet/transaction/$id',
+  path: '/wallet/transaction/$id',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -557,6 +563,7 @@ export interface FileRoutesByFullPath {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/og-default': typeof ApiOgDefaultRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -647,6 +654,7 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/og-default': typeof ApiOgDefaultRoute
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
@@ -734,6 +742,7 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/og-default': typeof ApiOgDefaultRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -827,6 +836,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/api/contact'
+    | '/api/og-default'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -917,6 +927,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/api/contact'
+    | '/api/og-default'
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
@@ -1003,6 +1014,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/api/contact'
+    | '/api/og-default'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -1095,6 +1107,7 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   ApiContactRoute: typeof ApiContactRoute
+  ApiOgDefaultRoute: typeof ApiOgDefaultRoute
   ClubIdRoute: typeof ClubIdRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
@@ -1109,32 +1122,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signin': {
-      id: '/signin'
-      path: '/signin'
-      fullPath: '/signin'
-      preLoaderRoute: typeof SigninRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -1144,11 +1136,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/contact': {
+      id: '/api/contact'
+      path: '/api/contact'
+      fullPath: '/api/contact'
+      preLoaderRoute: typeof ApiContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/og-default': {
+      id: '/api/og-default'
+      path: '/api/og-default'
+      fullPath: '/api/og-default'
+      preLoaderRoute: typeof ApiOgDefaultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -1158,179 +1185,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/product/$id': {
-      id: '/product/$id'
-      path: '/product/$id'
-      fullPath: '/product/$id'
-      preLoaderRoute: typeof ProductIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notes/$slug': {
-      id: '/notes/$slug'
-      path: '/notes/$slug'
-      fullPath: '/notes/$slug'
-      preLoaderRoute: typeof NotesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gift/$code': {
-      id: '/gift/$code'
-      path: '/gift/$code'
-      fullPath: '/gift/$code'
-      preLoaderRoute: typeof GiftCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fund/$slug': {
-      id: '/fund/$slug'
-      path: '/fund/$slug'
-      fullPath: '/fund/$slug'
-      preLoaderRoute: typeof FundSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/form/$slug': {
-      id: '/form/$slug'
-      path: '/form/$slug'
-      fullPath: '/form/$slug'
-      preLoaderRoute: typeof FormSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/explore/$slug': {
-      id: '/explore/$slug'
-      path: '/explore/$slug'
-      fullPath: '/explore/$slug'
-      preLoaderRoute: typeof ExploreSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/club/$id': {
-      id: '/club/$id'
-      path: '/club/$id'
-      fullPath: '/club/$id'
-      preLoaderRoute: typeof ClubIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/zerohub': {
-      id: '/app/zerohub'
-      path: '/zerohub'
-      fullPath: '/app/zerohub'
-      preLoaderRoute: typeof AppZerohubRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/zero-ai': {
-      id: '/app/zero-ai'
-      path: '/zero-ai'
-      fullPath: '/app/zero-ai'
-      preLoaderRoute: typeof AppZeroAiRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/tutor-studio': {
-      id: '/app/tutor-studio'
-      path: '/tutor-studio'
-      fullPath: '/app/tutor-studio'
-      preLoaderRoute: typeof AppTutorStudioRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/tasks': {
-      id: '/app/tasks'
-      path: '/tasks'
-      fullPath: '/app/tasks'
-      preLoaderRoute: typeof AppTasksRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/store': {
-      id: '/app/store'
-      path: '/store'
-      fullPath: '/app/store'
-      preLoaderRoute: typeof AppStoreRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/ship': {
-      id: '/app/ship'
-      path: '/ship'
-      fullPath: '/app/ship'
-      preLoaderRoute: typeof AppShipRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/quests': {
-      id: '/app/quests'
-      path: '/quests'
-      fullPath: '/app/quests'
-      preLoaderRoute: typeof AppQuestsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/premium': {
-      id: '/app/premium'
-      path: '/premium'
-      fullPath: '/app/premium'
-      preLoaderRoute: typeof AppPremiumRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/notifications': {
-      id: '/app/notifications'
-      path: '/notifications'
-      fullPath: '/app/notifications'
-      preLoaderRoute: typeof AppNotificationsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/notes': {
-      id: '/app/notes'
-      path: '/notes'
-      fullPath: '/app/notes'
-      preLoaderRoute: typeof AppNotesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/my-store': {
-      id: '/app/my-store'
-      path: '/my-store'
-      fullPath: '/app/my-store'
-      preLoaderRoute: typeof AppMyStoreRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/metrics': {
-      id: '/app/metrics'
-      path: '/metrics'
-      fullPath: '/app/metrics'
-      preLoaderRoute: typeof AppMetricsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/institution-studio': {
-      id: '/app/institution-studio'
-      path: '/institution-studio'
-      fullPath: '/app/institution-studio'
-      preLoaderRoute: typeof AppInstitutionStudioRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/drafts': {
-      id: '/app/drafts'
-      path: '/drafts'
-      fullPath: '/app/drafts'
-      preLoaderRoute: typeof AppDraftsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/creator': {
-      id: '/app/creator'
-      path: '/creator'
-      fullPath: '/app/creator'
-      preLoaderRoute: typeof AppCreatorRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/compose': {
-      id: '/app/compose'
-      path: '/compose'
-      fullPath: '/app/compose'
-      preLoaderRoute: typeof AppComposeRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/boost': {
-      id: '/app/boost'
-      path: '/boost'
-      fullPath: '/app/boost'
-      preLoaderRoute: typeof AppBoostRouteImport
+    '/app/admin': {
+      id: '/app/admin'
+      path: '/admin'
+      fullPath: '/app/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bookmarks': {
@@ -1340,347 +1199,179 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBookmarksRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/admin': {
-      id: '/app/admin'
-      path: '/admin'
-      fullPath: '/app/admin'
-      preLoaderRoute: typeof AppAdminRouteImport
+    '/app/boost': {
+      id: '/app/boost'
+      path: '/boost'
+      fullPath: '/app/boost'
+      preLoaderRoute: typeof AppBoostRouteImport
       parentRoute: typeof AppRoute
     }
-    '/api/contact': {
-      id: '/api/contact'
-      path: '/api/contact'
-      fullPath: '/api/contact'
-      preLoaderRoute: typeof ApiContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/wallet/': {
-      id: '/app/wallet/'
-      path: '/wallet'
-      fullPath: '/app/wallet/'
-      preLoaderRoute: typeof AppWalletIndexRouteImport
+    '/app/compose': {
+      id: '/app/compose'
+      path: '/compose'
+      fullPath: '/app/compose'
+      preLoaderRoute: typeof AppComposeRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/tutor-studio/': {
-      id: '/app/tutor-studio/'
-      path: '/'
-      fullPath: '/app/tutor-studio/'
-      preLoaderRoute: typeof AppTutorStudioIndexRouteImport
-      parentRoute: typeof AppTutorStudioRoute
-    }
-    '/app/settings/': {
-      id: '/app/settings/'
-      path: '/'
-      fullPath: '/app/settings/'
-      preLoaderRoute: typeof AppSettingsIndexRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/profile/': {
-      id: '/app/profile/'
-      path: '/profile'
-      fullPath: '/app/profile/'
-      preLoaderRoute: typeof AppProfileIndexRouteImport
+    '/app/creator': {
+      id: '/app/creator'
+      path: '/creator'
+      fullPath: '/app/creator'
+      preLoaderRoute: typeof AppCreatorRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/notes/': {
-      id: '/app/notes/'
-      path: '/'
-      fullPath: '/app/notes/'
-      preLoaderRoute: typeof AppNotesIndexRouteImport
-      parentRoute: typeof AppNotesRoute
-    }
-    '/app/institution-studio/': {
-      id: '/app/institution-studio/'
-      path: '/'
-      fullPath: '/app/institution-studio/'
-      preLoaderRoute: typeof AppInstitutionStudioIndexRouteImport
-      parentRoute: typeof AppInstitutionStudioRoute
-    }
-    '/app/gifts/': {
-      id: '/app/gifts/'
-      path: '/gifts'
-      fullPath: '/app/gifts/'
-      preLoaderRoute: typeof AppGiftsIndexRouteImport
+    '/app/drafts': {
+      id: '/app/drafts'
+      path: '/drafts'
+      fullPath: '/app/drafts'
+      preLoaderRoute: typeof AppDraftsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/games/': {
-      id: '/app/games/'
-      path: '/games'
-      fullPath: '/app/games/'
-      preLoaderRoute: typeof AppGamesIndexRouteImport
+    '/app/institution-studio': {
+      id: '/app/institution-studio'
+      path: '/institution-studio'
+      fullPath: '/app/institution-studio'
+      preLoaderRoute: typeof AppInstitutionStudioRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/clubs/': {
-      id: '/app/clubs/'
-      path: '/clubs'
-      fullPath: '/app/clubs/'
-      preLoaderRoute: typeof AppClubsIndexRouteImport
+    '/app/metrics': {
+      id: '/app/metrics'
+      path: '/metrics'
+      fullPath: '/app/metrics'
+      preLoaderRoute: typeof AppMetricsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/chat/': {
-      id: '/app/chat/'
-      path: '/chat'
-      fullPath: '/app/chat/'
-      preLoaderRoute: typeof AppChatIndexRouteImport
+    '/app/my-store': {
+      id: '/app/my-store'
+      path: '/my-store'
+      fullPath: '/app/my-store'
+      preLoaderRoute: typeof AppMyStoreRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/bootcamps/': {
-      id: '/app/bootcamps/'
-      path: '/bootcamps'
-      fullPath: '/app/bootcamps/'
-      preLoaderRoute: typeof AppBootcampsIndexRouteImport
+    '/app/notes': {
+      id: '/app/notes'
+      path: '/notes'
+      fullPath: '/app/notes'
+      preLoaderRoute: typeof AppNotesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/admin/': {
-      id: '/app/admin/'
-      path: '/'
-      fullPath: '/app/admin/'
-      preLoaderRoute: typeof AppAdminIndexRouteImport
-      parentRoute: typeof AppAdminRoute
-    }
-    '/product/$id/preview-v3': {
-      id: '/product/$id/preview-v3'
-      path: '/preview-v3'
-      fullPath: '/product/$id/preview-v3'
-      preLoaderRoute: typeof ProductIdPreviewV3RouteImport
-      parentRoute: typeof ProductIdRoute
-    }
-    '/notes/$slug/preview-v1': {
-      id: '/notes/$slug/preview-v1'
-      path: '/preview-v1'
-      fullPath: '/notes/$slug/preview-v1'
-      preLoaderRoute: typeof NotesSlugPreviewV1RouteImport
-      parentRoute: typeof NotesSlugRoute
-    }
-    '/app/wallet/withdraw': {
-      id: '/app/wallet/withdraw'
-      path: '/wallet/withdraw'
-      fullPath: '/app/wallet/withdraw'
-      preLoaderRoute: typeof AppWalletWithdrawRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/wallet/settings': {
-      id: '/app/wallet/settings'
-      path: '/wallet/settings'
-      fullPath: '/app/wallet/settings'
-      preLoaderRoute: typeof AppWalletSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/wallet/request': {
-      id: '/app/wallet/request'
-      path: '/wallet/request'
-      fullPath: '/app/wallet/request'
-      preLoaderRoute: typeof AppWalletRequestRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/wallet/add-money': {
-      id: '/app/wallet/add-money'
-      path: '/wallet/add-money'
-      fullPath: '/app/wallet/add-money'
-      preLoaderRoute: typeof AppWalletAddMoneyRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/tutor-studio/settings': {
-      id: '/app/tutor-studio/settings'
-      path: '/settings'
-      fullPath: '/app/tutor-studio/settings'
-      preLoaderRoute: typeof AppTutorStudioSettingsRouteImport
-      parentRoute: typeof AppTutorStudioRoute
-    }
-    '/app/tutor-studio/create': {
-      id: '/app/tutor-studio/create'
-      path: '/create'
-      fullPath: '/app/tutor-studio/create'
-      preLoaderRoute: typeof AppTutorStudioCreateRouteImport
-      parentRoute: typeof AppTutorStudioRoute
-    }
-    '/app/settings/security': {
-      id: '/app/settings/security'
-      path: '/security'
-      fullPath: '/app/settings/security'
-      preLoaderRoute: typeof AppSettingsSecurityRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/resources': {
-      id: '/app/settings/resources'
-      path: '/resources'
-      fullPath: '/app/settings/resources'
-      preLoaderRoute: typeof AppSettingsResourcesRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/privacy': {
-      id: '/app/settings/privacy'
-      path: '/privacy'
-      fullPath: '/app/settings/privacy'
-      preLoaderRoute: typeof AppSettingsPrivacyRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/premium': {
-      id: '/app/settings/premium'
-      path: '/premium'
-      fullPath: '/app/settings/premium'
-      preLoaderRoute: typeof AppSettingsPremiumRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/notifications': {
-      id: '/app/settings/notifications'
+    '/app/notifications': {
+      id: '/app/notifications'
       path: '/notifications'
-      fullPath: '/app/settings/notifications'
-      preLoaderRoute: typeof AppSettingsNotificationsRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/account': {
-      id: '/app/settings/account'
-      path: '/account'
-      fullPath: '/app/settings/account'
-      preLoaderRoute: typeof AppSettingsAccountRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/accessibility': {
-      id: '/app/settings/accessibility'
-      path: '/accessibility'
-      fullPath: '/app/settings/accessibility'
-      preLoaderRoute: typeof AppSettingsAccessibilityRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/profile/edit': {
-      id: '/app/profile/edit'
-      path: '/profile/edit'
-      fullPath: '/app/profile/edit'
-      preLoaderRoute: typeof AppProfileEditRouteImport
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/profile/$id': {
-      id: '/app/profile/$id'
-      path: '/profile/$id'
-      fullPath: '/app/profile/$id'
-      preLoaderRoute: typeof AppProfileIdRouteImport
+    '/app/premium': {
+      id: '/app/premium'
+      path: '/premium'
+      fullPath: '/app/premium'
+      preLoaderRoute: typeof AppPremiumRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/post/$id': {
-      id: '/app/post/$id'
-      path: '/post/$id'
-      fullPath: '/app/post/$id'
-      preLoaderRoute: typeof AppPostIdRouteImport
+    '/app/quests': {
+      id: '/app/quests'
+      path: '/quests'
+      fullPath: '/app/quests'
+      preLoaderRoute: typeof AppQuestsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/notes/create': {
-      id: '/app/notes/create'
-      path: '/create'
-      fullPath: '/app/notes/create'
-      preLoaderRoute: typeof AppNotesCreateRouteImport
-      parentRoute: typeof AppNotesRoute
-    }
-    '/app/notes/$id': {
-      id: '/app/notes/$id'
-      path: '/$id'
-      fullPath: '/app/notes/$id'
-      preLoaderRoute: typeof AppNotesIdRouteImport
-      parentRoute: typeof AppNotesRoute
-    }
-    '/app/live/$classId': {
-      id: '/app/live/$classId'
-      path: '/live/$classId'
-      fullPath: '/app/live/$classId'
-      preLoaderRoute: typeof AppLiveClassIdRouteImport
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/institution/control': {
-      id: '/app/institution/control'
-      path: '/institution/control'
-      fullPath: '/app/institution/control'
-      preLoaderRoute: typeof AppInstitutionControlRouteImport
+    '/app/ship': {
+      id: '/app/ship'
+      path: '/ship'
+      fullPath: '/app/ship'
+      preLoaderRoute: typeof AppShipRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/institution/$id': {
-      id: '/app/institution/$id'
-      path: '/institution/$id'
-      fullPath: '/app/institution/$id'
-      preLoaderRoute: typeof AppInstitutionIdRouteImport
+    '/app/store': {
+      id: '/app/store'
+      path: '/store'
+      fullPath: '/app/store'
+      preLoaderRoute: typeof AppStoreRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/gifts/unclaimed': {
-      id: '/app/gifts/unclaimed'
-      path: '/gifts/unclaimed'
-      fullPath: '/app/gifts/unclaimed'
-      preLoaderRoute: typeof AppGiftsUnclaimedRouteImport
+    '/app/tasks': {
+      id: '/app/tasks'
+      path: '/tasks'
+      fullPath: '/app/tasks'
+      preLoaderRoute: typeof AppTasksRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/gifts/$code': {
-      id: '/app/gifts/$code'
-      path: '/gifts/$code'
-      fullPath: '/app/gifts/$code'
-      preLoaderRoute: typeof AppGiftsCodeRouteImport
+    '/app/tutor-studio': {
+      id: '/app/tutor-studio'
+      path: '/tutor-studio'
+      fullPath: '/app/tutor-studio'
+      preLoaderRoute: typeof AppTutorStudioRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/games/solo': {
-      id: '/app/games/solo'
-      path: '/games/solo'
-      fullPath: '/app/games/solo'
-      preLoaderRoute: typeof AppGamesSoloRouteImport
+    '/app/zero-ai': {
+      id: '/app/zero-ai'
+      path: '/zero-ai'
+      fullPath: '/app/zero-ai'
+      preLoaderRoute: typeof AppZeroAiRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/games/create': {
-      id: '/app/games/create'
-      path: '/games/create'
-      fullPath: '/app/games/create'
-      preLoaderRoute: typeof AppGamesCreateRouteImport
+    '/app/zerohub': {
+      id: '/app/zerohub'
+      path: '/zerohub'
+      fullPath: '/app/zerohub'
+      preLoaderRoute: typeof AppZerohubRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/games/$id': {
-      id: '/app/games/$id'
-      path: '/games/$id'
-      fullPath: '/app/games/$id'
-      preLoaderRoute: typeof AppGamesIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/clubs/chat': {
-      id: '/app/clubs/chat'
-      path: '/clubs/chat'
-      fullPath: '/app/clubs/chat'
-      preLoaderRoute: typeof AppClubsChatRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/chat/settings': {
-      id: '/app/chat/settings'
-      path: '/chat/settings'
-      fullPath: '/app/chat/settings'
-      preLoaderRoute: typeof AppChatSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/chat/new': {
-      id: '/app/chat/new'
-      path: '/chat/new'
-      fullPath: '/app/chat/new'
-      preLoaderRoute: typeof AppChatNewRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/chat/$id': {
-      id: '/app/chat/$id'
-      path: '/chat/$id'
-      fullPath: '/app/chat/$id'
-      preLoaderRoute: typeof AppChatIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/bootcamps/$id': {
-      id: '/app/bootcamps/$id'
-      path: '/bootcamps/$id'
-      fullPath: '/app/bootcamps/$id'
-      preLoaderRoute: typeof AppBootcampsIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/api/gift-image/$code': {
-      id: '/api/gift-image/$code'
-      path: '/api/gift-image/$code'
-      fullPath: '/api/gift-image/$code'
-      preLoaderRoute: typeof ApiGiftImageCodeRouteImport
+    '/club/$id': {
+      id: '/club/$id'
+      path: '/club/$id'
+      fullPath: '/club/$id'
+      preLoaderRoute: typeof ClubIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/gift-card/$code': {
-      id: '/api/gift-card/$code'
-      path: '/api/gift-card/$code'
-      fullPath: '/api/gift-card/$code'
-      preLoaderRoute: typeof ApiGiftCardCodeRouteImport
+    '/explore/$slug': {
+      id: '/explore/$slug'
+      path: '/explore/$slug'
+      fullPath: '/explore/$slug'
+      preLoaderRoute: typeof ExploreSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/form/$slug': {
+      id: '/form/$slug'
+      path: '/form/$slug'
+      fullPath: '/form/$slug'
+      preLoaderRoute: typeof FormSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fund/$slug': {
+      id: '/fund/$slug'
+      path: '/fund/$slug'
+      fullPath: '/fund/$slug'
+      preLoaderRoute: typeof FundSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gift/$code': {
+      id: '/gift/$code'
+      path: '/gift/$code'
+      fullPath: '/gift/$code'
+      preLoaderRoute: typeof GiftCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/$slug': {
+      id: '/notes/$slug'
+      path: '/notes/$slug'
+      fullPath: '/notes/$slug'
+      preLoaderRoute: typeof NotesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/$id': {
+      id: '/product/$id'
+      path: '/product/$id'
+      fullPath: '/product/$id'
+      preLoaderRoute: typeof ProductIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/club-image/$id': {
@@ -1690,32 +1381,340 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiClubImageIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/wallet/transaction/$id': {
-      id: '/app/wallet/transaction/$id'
-      path: '/wallet/transaction/$id'
-      fullPath: '/app/wallet/transaction/$id'
-      preLoaderRoute: typeof AppWalletTransactionIdRouteImport
+    '/api/gift-card/$code': {
+      id: '/api/gift-card/$code'
+      path: '/api/gift-card/$code'
+      fullPath: '/api/gift-card/$code'
+      preLoaderRoute: typeof ApiGiftCardCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gift-image/$code': {
+      id: '/api/gift-image/$code'
+      path: '/api/gift-image/$code'
+      fullPath: '/api/gift-image/$code'
+      preLoaderRoute: typeof ApiGiftImageCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/admin/': {
+      id: '/app/admin/'
+      path: '/'
+      fullPath: '/app/admin/'
+      preLoaderRoute: typeof AppAdminIndexRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/app/bootcamps/': {
+      id: '/app/bootcamps/'
+      path: '/bootcamps'
+      fullPath: '/app/bootcamps/'
+      preLoaderRoute: typeof AppBootcampsIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/settings/premium/features': {
-      id: '/app/settings/premium/features'
-      path: '/features'
-      fullPath: '/app/settings/premium/features'
-      preLoaderRoute: typeof AppSettingsPremiumFeaturesRouteImport
-      parentRoute: typeof AppSettingsPremiumRoute
-    }
-    '/app/profile_/$id/network': {
-      id: '/app/profile_/$id/network'
-      path: '/profile/$id/network'
-      fullPath: '/app/profile/$id/network'
-      preLoaderRoute: typeof AppProfileIdNetworkRouteImport
+    '/app/bootcamps/$id': {
+      id: '/app/bootcamps/$id'
+      path: '/bootcamps/$id'
+      fullPath: '/app/bootcamps/$id'
+      preLoaderRoute: typeof AppBootcampsIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/notes_/$id/edit': {
-      id: '/app/notes_/$id/edit'
-      path: '/notes/$id/edit'
-      fullPath: '/app/notes/$id/edit'
-      preLoaderRoute: typeof AppNotesIdEditRouteImport
+    '/app/chat/': {
+      id: '/app/chat/'
+      path: '/chat'
+      fullPath: '/app/chat/'
+      preLoaderRoute: typeof AppChatIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/chat/$id': {
+      id: '/app/chat/$id'
+      path: '/chat/$id'
+      fullPath: '/app/chat/$id'
+      preLoaderRoute: typeof AppChatIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/chat/new': {
+      id: '/app/chat/new'
+      path: '/chat/new'
+      fullPath: '/app/chat/new'
+      preLoaderRoute: typeof AppChatNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/chat/settings': {
+      id: '/app/chat/settings'
+      path: '/chat/settings'
+      fullPath: '/app/chat/settings'
+      preLoaderRoute: typeof AppChatSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clubs/': {
+      id: '/app/clubs/'
+      path: '/clubs'
+      fullPath: '/app/clubs/'
+      preLoaderRoute: typeof AppClubsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clubs/chat': {
+      id: '/app/clubs/chat'
+      path: '/clubs/chat'
+      fullPath: '/app/clubs/chat'
+      preLoaderRoute: typeof AppClubsChatRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/': {
+      id: '/app/games/'
+      path: '/games'
+      fullPath: '/app/games/'
+      preLoaderRoute: typeof AppGamesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/$id': {
+      id: '/app/games/$id'
+      path: '/games/$id'
+      fullPath: '/app/games/$id'
+      preLoaderRoute: typeof AppGamesIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/create': {
+      id: '/app/games/create'
+      path: '/games/create'
+      fullPath: '/app/games/create'
+      preLoaderRoute: typeof AppGamesCreateRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/solo': {
+      id: '/app/games/solo'
+      path: '/games/solo'
+      fullPath: '/app/games/solo'
+      preLoaderRoute: typeof AppGamesSoloRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/gifts/': {
+      id: '/app/gifts/'
+      path: '/gifts'
+      fullPath: '/app/gifts/'
+      preLoaderRoute: typeof AppGiftsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/gifts/$code': {
+      id: '/app/gifts/$code'
+      path: '/gifts/$code'
+      fullPath: '/app/gifts/$code'
+      preLoaderRoute: typeof AppGiftsCodeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/gifts/unclaimed': {
+      id: '/app/gifts/unclaimed'
+      path: '/gifts/unclaimed'
+      fullPath: '/app/gifts/unclaimed'
+      preLoaderRoute: typeof AppGiftsUnclaimedRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/institution-studio/': {
+      id: '/app/institution-studio/'
+      path: '/'
+      fullPath: '/app/institution-studio/'
+      preLoaderRoute: typeof AppInstitutionStudioIndexRouteImport
+      parentRoute: typeof AppInstitutionStudioRoute
+    }
+    '/app/institution/$id': {
+      id: '/app/institution/$id'
+      path: '/institution/$id'
+      fullPath: '/app/institution/$id'
+      preLoaderRoute: typeof AppInstitutionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/institution/control': {
+      id: '/app/institution/control'
+      path: '/institution/control'
+      fullPath: '/app/institution/control'
+      preLoaderRoute: typeof AppInstitutionControlRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/live/$classId': {
+      id: '/app/live/$classId'
+      path: '/live/$classId'
+      fullPath: '/app/live/$classId'
+      preLoaderRoute: typeof AppLiveClassIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/notes/': {
+      id: '/app/notes/'
+      path: '/'
+      fullPath: '/app/notes/'
+      preLoaderRoute: typeof AppNotesIndexRouteImport
+      parentRoute: typeof AppNotesRoute
+    }
+    '/app/notes/$id': {
+      id: '/app/notes/$id'
+      path: '/$id'
+      fullPath: '/app/notes/$id'
+      preLoaderRoute: typeof AppNotesIdRouteImport
+      parentRoute: typeof AppNotesRoute
+    }
+    '/app/notes/create': {
+      id: '/app/notes/create'
+      path: '/create'
+      fullPath: '/app/notes/create'
+      preLoaderRoute: typeof AppNotesCreateRouteImport
+      parentRoute: typeof AppNotesRoute
+    }
+    '/app/post/$id': {
+      id: '/app/post/$id'
+      path: '/post/$id'
+      fullPath: '/app/post/$id'
+      preLoaderRoute: typeof AppPostIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profile/': {
+      id: '/app/profile/'
+      path: '/profile'
+      fullPath: '/app/profile/'
+      preLoaderRoute: typeof AppProfileIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profile/$id': {
+      id: '/app/profile/$id'
+      path: '/profile/$id'
+      fullPath: '/app/profile/$id'
+      preLoaderRoute: typeof AppProfileIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profile/edit': {
+      id: '/app/profile/edit'
+      path: '/profile/edit'
+      fullPath: '/app/profile/edit'
+      preLoaderRoute: typeof AppProfileEditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings/': {
+      id: '/app/settings/'
+      path: '/'
+      fullPath: '/app/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/accessibility': {
+      id: '/app/settings/accessibility'
+      path: '/accessibility'
+      fullPath: '/app/settings/accessibility'
+      preLoaderRoute: typeof AppSettingsAccessibilityRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/account': {
+      id: '/app/settings/account'
+      path: '/account'
+      fullPath: '/app/settings/account'
+      preLoaderRoute: typeof AppSettingsAccountRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/notifications': {
+      id: '/app/settings/notifications'
+      path: '/notifications'
+      fullPath: '/app/settings/notifications'
+      preLoaderRoute: typeof AppSettingsNotificationsRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/premium': {
+      id: '/app/settings/premium'
+      path: '/premium'
+      fullPath: '/app/settings/premium'
+      preLoaderRoute: typeof AppSettingsPremiumRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/privacy': {
+      id: '/app/settings/privacy'
+      path: '/privacy'
+      fullPath: '/app/settings/privacy'
+      preLoaderRoute: typeof AppSettingsPrivacyRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/resources': {
+      id: '/app/settings/resources'
+      path: '/resources'
+      fullPath: '/app/settings/resources'
+      preLoaderRoute: typeof AppSettingsResourcesRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/security': {
+      id: '/app/settings/security'
+      path: '/security'
+      fullPath: '/app/settings/security'
+      preLoaderRoute: typeof AppSettingsSecurityRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/tutor-studio/': {
+      id: '/app/tutor-studio/'
+      path: '/'
+      fullPath: '/app/tutor-studio/'
+      preLoaderRoute: typeof AppTutorStudioIndexRouteImport
+      parentRoute: typeof AppTutorStudioRoute
+    }
+    '/app/tutor-studio/create': {
+      id: '/app/tutor-studio/create'
+      path: '/create'
+      fullPath: '/app/tutor-studio/create'
+      preLoaderRoute: typeof AppTutorStudioCreateRouteImport
+      parentRoute: typeof AppTutorStudioRoute
+    }
+    '/app/tutor-studio/settings': {
+      id: '/app/tutor-studio/settings'
+      path: '/settings'
+      fullPath: '/app/tutor-studio/settings'
+      preLoaderRoute: typeof AppTutorStudioSettingsRouteImport
+      parentRoute: typeof AppTutorStudioRoute
+    }
+    '/app/wallet/': {
+      id: '/app/wallet/'
+      path: '/wallet'
+      fullPath: '/app/wallet/'
+      preLoaderRoute: typeof AppWalletIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/wallet/add-money': {
+      id: '/app/wallet/add-money'
+      path: '/wallet/add-money'
+      fullPath: '/app/wallet/add-money'
+      preLoaderRoute: typeof AppWalletAddMoneyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/wallet/request': {
+      id: '/app/wallet/request'
+      path: '/wallet/request'
+      fullPath: '/app/wallet/request'
+      preLoaderRoute: typeof AppWalletRequestRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/wallet/settings': {
+      id: '/app/wallet/settings'
+      path: '/wallet/settings'
+      fullPath: '/app/wallet/settings'
+      preLoaderRoute: typeof AppWalletSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/wallet/withdraw': {
+      id: '/app/wallet/withdraw'
+      path: '/wallet/withdraw'
+      fullPath: '/app/wallet/withdraw'
+      preLoaderRoute: typeof AppWalletWithdrawRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/notes/$slug/preview-v1': {
+      id: '/notes/$slug/preview-v1'
+      path: '/preview-v1'
+      fullPath: '/notes/$slug/preview-v1'
+      preLoaderRoute: typeof NotesSlugPreviewV1RouteImport
+      parentRoute: typeof NotesSlugRoute
+    }
+    '/product/$id/preview-v3': {
+      id: '/product/$id/preview-v3'
+      path: '/preview-v3'
+      fullPath: '/product/$id/preview-v3'
+      preLoaderRoute: typeof ProductIdPreviewV3RouteImport
+      parentRoute: typeof ProductIdRoute
+    }
+    '/app/bootcamps_/$id/edit': {
+      id: '/app/bootcamps_/$id/edit'
+      path: '/bootcamps/$id/edit'
+      fullPath: '/app/bootcamps/$id/edit'
+      preLoaderRoute: typeof AppBootcampsIdEditRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/clubs/quizzes/$clubId': {
@@ -1725,11 +1724,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClubsQuizzesClubIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/bootcamps_/$id/edit': {
-      id: '/app/bootcamps_/$id/edit'
-      path: '/bootcamps/$id/edit'
-      fullPath: '/app/bootcamps/$id/edit'
-      preLoaderRoute: typeof AppBootcampsIdEditRouteImport
+    '/app/notes_/$id/edit': {
+      id: '/app/notes_/$id/edit'
+      path: '/notes/$id/edit'
+      fullPath: '/app/notes/$id/edit'
+      preLoaderRoute: typeof AppNotesIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profile_/$id/network': {
+      id: '/app/profile_/$id/network'
+      path: '/profile/$id/network'
+      fullPath: '/app/profile/$id/network'
+      preLoaderRoute: typeof AppProfileIdNetworkRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings/premium/features': {
+      id: '/app/settings/premium/features'
+      path: '/features'
+      fullPath: '/app/settings/premium/features'
+      preLoaderRoute: typeof AppSettingsPremiumFeaturesRouteImport
+      parentRoute: typeof AppSettingsPremiumRoute
+    }
+    '/app/wallet/transaction/$id': {
+      id: '/app/wallet/transaction/$id'
+      path: '/wallet/transaction/$id'
+      fullPath: '/app/wallet/transaction/$id'
+      preLoaderRoute: typeof AppWalletTransactionIdRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -1973,6 +1993,7 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   ApiContactRoute: ApiContactRoute,
+  ApiOgDefaultRoute: ApiOgDefaultRoute,
   ClubIdRoute: ClubIdRoute,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
@@ -1987,13 +2008,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

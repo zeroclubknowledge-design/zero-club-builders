@@ -2,8 +2,53 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
 import { useUser } from "@/hooks/useUser";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/live/$classId")({
+  /*
+   * A meeting link is the most-pasted link in the app, and it had no preview
+   * of its own — so it fell through to the site-wide card and every invitation
+   * arrived announced as "Zero Club, a private club for builders" with no clue
+   * which class it was for.
+   *
+   * classId is the club, so the invitation can say whose room it is. Failing
+   * softly matters here: a preview is never worth blocking the page on, and a
+   * crawler that gets nothing still gets the site default.
+   */
+  loader: async ({ params: { classId } }) => {
+    try {
+      const { data } = await supabase.rpc("get_club_public", { club_id: classId });
+      const club = data as any;
+      return club?.found ? { name: String(club.name || ""), banner: club.banner_url || club.logo_url || null } : null;
+    } catch {
+      return null;
+    }
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData?.name) return {};
+
+    const title = `${loaderData.name} is live on Zero Club`;
+    const description = "Join the room to watch, ask questions and take part.";
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        ...(loaderData.banner
+          ? [
+              { property: "og:image", content: String(loaderData.banner) },
+              { name: "twitter:image", content: String(loaderData.banner) },
+            ]
+          : []),
+      ],
+    };
+  },
   component: LiveClassEntrypoint,
 });
 

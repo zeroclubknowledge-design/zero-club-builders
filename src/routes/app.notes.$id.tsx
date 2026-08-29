@@ -24,7 +24,7 @@ export function buildNoteHead(note: any) {
 
   const image = note.cover_url && note.slug
     ? zeroNotePreviewImageUrl(note.slug)
-    : note.cover_url || "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4215c30d-ff7b-4508-a899-c922d00e5475/id-preview-fa4e9537--ee5d9983-4748-4793-a658-4041e1470658.lovable.app-1778475055046.png";
+    : note.cover_url || "https://www.zeroclubs.xyz/api/og-default";
   const canonicalUrl = note.slug ? `https://www.zeroclubs.xyz/notes/${note.slug}` : null;
 
   return {

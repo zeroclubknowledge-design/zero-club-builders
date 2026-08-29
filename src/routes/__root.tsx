@@ -191,16 +191,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "Zero Club" },
-      { title: "Zero Club — A private club for builders" },
-      { name: "description", content: "Zero Club is a high-signal community for students and builders. Learn digital skills, ship real work, build visible XP, and earn Zero Points." },
-      { property: "og:title", content: "Zero Club — A private club for builders" },
-      { property: "og:description", content: "Zero Club is a high-signal community for students and builders. Learn digital skills, ship real work, build visible XP, and earn Zero Points." },
+      /* The fallback preview for every link that does not draw its own.
+         It said "a private club for builders" and described earning XP, which
+         Zero Club stopped doing — quests pay ZP — and the picture it pointed at
+         was still a lovable.app export on a third-party bucket. */
+      { title: "Zero Club — Build skills. Build proof. Build opportunities." },
+      { name: "description", content: "Learn in live bootcamps, ship work in public, join serious communities — and turn proof of work into reputation and income." },
+      { property: "og:title", content: "Zero Club — Build skills. Build proof. Build opportunities." },
+      { property: "og:description", content: "Learn in live bootcamps, ship work in public, join serious communities — and turn proof of work into reputation and income." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Zero Club — A private club for builders" },
-      { name: "twitter:description", content: "Zero Club is a high-signal community for students and builders. Learn digital skills, ship real work, build visible XP, and earn Zero Points." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4215c30d-ff7b-4508-a899-c922d00e5475/id-preview-fa4e9537--ee5d9983-4748-4793-a658-4041e1470658.lovable.app-1778475055046.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4215c30d-ff7b-4508-a899-c922d00e5475/id-preview-fa4e9537--ee5d9983-4748-4793-a658-4041e1470658.lovable.app-1778475055046.png" },
+      { name: "twitter:title", content: "Zero Club — Build skills. Build proof. Build opportunities." },
+      { name: "twitter:description", content: "Learn in live bootcamps, ship work in public, join serious communities — and turn proof of work into reputation and income." },
+      { property: "og:image", content: "https://www.zeroclubs.xyz/api/og-default" },
+      { name: "twitter:image", content: "https://www.zeroclubs.xyz/api/og-default" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
