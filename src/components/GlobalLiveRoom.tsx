@@ -7,7 +7,7 @@ import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
   MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2,
-  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings,
+  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings, Paperclip,
 } from "@/components/icons/solar";
 
 /** One tap, no search field — the six that actually get used in a class. */
@@ -37,6 +37,9 @@ function QuestionHandIcon({ className = "" }: { className?: string }) {
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 
 import { displayName } from "@/lib/utils";
+import { compressImage } from "@/lib/imageCompression";
+import { encodeChatMedia, getChatMediaType } from "@/hooks/useVoiceRecorder";
+import { CommentContent } from "@/components/CommentComposer";
 
 import AgoraRTC, {
   AgoraRTCProvider,
@@ -1252,13 +1255,53 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   }, [chatCacheKey, chatMessages]);
 
-  const sendMessage = () => {
-    if (!chatInput.trim() || !chatChannelRef.current) return;
+  /*
+   * Attachments in the room.
+   *
+   * A class is where somebody asks "can you see this?" — a screenshot of an
+   * error, the file they are stuck on, a link to their work. Until now the
+   * only answer was to leave the call and use club chat.
+   *
+   * Uploaded to the same bucket and encoded with the same $$MEDIA$$ marker the
+   * rest of the app uses, so a live message renders through the existing
+   * media components rather than a second format nobody else understands.
+   */
+  const chatFileRef = useRef<HTMLInputElement | null>(null);
+  const [chatUploading, setChatUploading] = useState(false);
+
+  const attachToChat = async (files: FileList | null) => {
+    if (!files?.length || !profile?.id) return;
+    setChatUploading(true);
+    try {
+      const encoded: string[] = [];
+      for (const original of Array.from(files).slice(0, 4)) {
+        const file = await compressImage(original);
+        const extension = file.name.split(".").pop() || "bin";
+        const path = `${profile.id}/live/${crypto.randomUUID()}.${extension}`;
+        const { error } = await supabase.storage
+          .from("post-media")
+          .upload(path, file, { cacheControl: "31536000", contentType: file.type || undefined });
+        if (error) throw error;
+        const { data } = supabase.storage.from("post-media").getPublicUrl(path);
+        encoded.push(encodeChatMedia(getChatMediaType(file), data.publicUrl, original.name));
+      }
+      if (encoded.length) sendMessage(`$$MEDIA$$${encoded.join(",")}`);
+    } catch (error: any) {
+      toast.error(error?.message || "Could not send that file");
+    } finally {
+      setChatUploading(false);
+      if (chatFileRef.current) chatFileRef.current.value = "";
+    }
+  };
+
+  const sendMessage = (attachment?: string) => {
+    const body = attachment ? `${chatInput.trim()}${chatInput.trim() ? "\n\n" : ""}${attachment}` : chatInput.trim();
+    if (!body || !chatChannelRef.current) return;
     const msg: ChatMessage = {
       id: Date.now().toString(),
       sender_name: profile?.full_name || profile?.username || "You",
       sender_avatar: profile?.avatar_url,
-      content: chatInput.trim(),
+      content: body,
       timestamp: new Date().toISOString(),
       sender_id: profile?.userId || profile?.id,
       reply_to: replyingTo
@@ -1473,7 +1516,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
      screen in its place rather than stopping it — so on their own device the
      circle is live video. Everyone else only ever received the screen, so for
      them it carries the presenter's face and name instead. */
-  const selfPresenterVideo = selfPresenting && cameraOn && !!localCameraTrack;
 
   /* The tutor is never one of the learners. Counting them here is what made a
      room with nobody in it report a person: the presenter was being added to
@@ -1941,7 +1983,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               already that person with their name on it. Both were rendering
               into the same bottom-left corner — the circle over the strip —
               so the presenter was labelled twice, on top of themselves. */}
-          {remoteStageUser && !selfPresenting && !presenting && (
+          {remoteStageUser && !selfPresenting && (
             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3.5 pb-3 pt-10 z-10 pointer-events-none">
               <div className="flex items-center gap-2">
                 <Avatar
@@ -1957,47 +1999,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             </div>
           )}
 
-          {/* The presenter, in a circle on their own screen.
-              Only while a screen is being shared — otherwise the stage is
-              already their face at full size. It sits above the scrim but
-              clear of the control bar, and ignores taps so it can never
-              swallow a press meant for the video. */}
-          {presenting && (
-            /* Bottom-right, and smaller.
-               A shared screen has its content on the left — a browser sidebar,
-               the start of every line of a slide — and an 96px circle sat
-               directly on it. The right edge is nearly always the emptier
-               side. md:bottom-[84px] clears the desktop control bar, the same
-               offset the theater toggle uses. */
-            <div className="pointer-events-none absolute bottom-3 right-3 z-30 flex flex-col items-center sm:bottom-4 sm:right-4 md:bottom-[84px]">
-              <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[#141117] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9)] ring-2 ring-white/25 sm:h-20 sm:w-20">
-                {selfPresenterVideo ? (
-                  <LocalVideoTrack track={localCameraTrack!} play={true} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <Avatar
-                      url={selfPresenting ? profile?.avatar_url : userAvatars[remotePresenterUser!.uid]}
-                      name={selfPresenting ? profile?.username || "You" : userNames[remotePresenterUser!.uid] || "Presenter"}
-                      className="h-full w-full text-xl"
-                    />
-                  </div>
-                )}
-              </div>
-              {/* A pill rather than text with a drop-shadow: over a bright
-                  slide, a shadow is not enough to keep white legible. */}
-              <span className="mt-1.5 max-w-[92px] truncate rounded-full bg-black/70 px-2 py-0.5 text-center text-[10px] font-semibold text-white backdrop-blur-sm">
-                {selfPresenting ? "You" : userNames[remotePresenterUser!.uid] || tutorName}
-              </span>
-            </div>
-          )}
+          /* No circle over the shared screen.
+             A floating portrait of the presenter sat on the very content they
+             were presenting, and it duplicated the name strip below it — the
+             same person identified twice, overlapping. While a screen is being
+             shared, the screen is what matters; the strip names whose it is,
+             and the Learners tab has everybody's face. */
 
           {/* Theater toggle */}
           <button
             onClick={() => setTheater((t) => !t)}
             title={theater ? "Show panel" : "Expand stage"}
-            /* Moves to the top-right when a presenter circle is occupying the
-               bottom-right, rather than the two sharing a corner. */
-            className={`absolute right-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap ${presenting ? "top-2.5" : "bottom-2.5 md:bottom-[84px]"}`}
+            className="absolute bottom-2.5 right-2.5 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white/85 ring-1 ring-white/15 backdrop-blur-md transition tap hover:bg-black/70 md:bottom-[84px]"
           >
             {theater ? <Shrink className="w-4 h-4" /> : <Expand className="w-4 h-4" />}
           </button>
@@ -2227,10 +2240,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                             )}
                             <div className={`mt-1 rounded-lg rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
                               <div className="break-words text-[13px] leading-relaxed text-white/85">
-                                <LiveMessageText
-                                  text={msg.content}
-                                  names={presenceUsers.map((person) => person.name)}
-                                />
+                                {msg.content.includes("$$MEDIA$$") ? (
+                                  /* CommentContent already knows how to draw
+                                     the $$MEDIA$$ marker — images, video and
+                                     audio players — so a live attachment looks
+                                     the same as one in a post. */
+                                  <CommentContent content={msg.content} />
+                                ) : (
+                                  <LiveMessageText
+                                    text={msg.content}
+                                    names={presenceUsers.map((person) => person.name)}
+                                  />
+                                )}
                               </div>
                             </div>
                           </div>
@@ -2295,8 +2316,28 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                       placeholder={replyingTo ? `Reply to ${replyingTo.sender_name}` : isAdmin ? "Message your learners" : "Ask a question"}
                       className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none min-w-0"
                     />
+                    {/* Attach. Images, video and files all go the same route,
+                        so "can you see this?" can be answered without leaving
+                        the room. */}
+                    <input
+                      ref={chatFileRef}
+                      type="file"
+                      multiple
+                      accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.csv"
+                      className="hidden"
+                      onChange={(e) => void attachToChat(e.target.files)}
+                    />
                     <button
-                      onClick={sendMessage}
+                      onClick={() => chatFileRef.current?.click()}
+                      disabled={chatUploading}
+                      aria-label="Attach a file"
+                      title="Attach a file"
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/60 transition tap hover:bg-white/10 hover:text-white disabled:opacity-40"
+                    >
+                      {chatUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Paperclip className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      onClick={() => sendMessage()}
                       disabled={!chatInput.trim()}
                       className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center hover:opacity-90 transition tap disabled:opacity-25 disabled:cursor-not-allowed shrink-0"
                     >
