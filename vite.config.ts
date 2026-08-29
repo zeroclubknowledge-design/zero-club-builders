@@ -49,9 +49,21 @@ export default defineConfig(({ command }) => {
         theme_color: "#f4f2ef",
         background_color: "#f4f2ef",
         display: "standalone",
-        // Opens in portrait to suit the mobile-first layout, without locking
-        // rotation - live video rooms and games still work in landscape.
-        orientation: "portrait",
+        /*
+         * "any", not "portrait".
+         *
+         * The comment here used to claim portrait did not lock rotation. It
+         * does — for an installed app the manifest orientation is a hard lock
+         * the page cannot override, which is exactly why turning the phone
+         * sideways in a live class did nothing for anyone who had installed
+         * Zero Club, and worked fine for everyone still in a browser tab.
+         *
+         * Rotation is now allowed at the manifest level and managed in the
+         * app: portrait is locked on ordinary screens, and the live room
+         * releases the lock so a class can be watched full-width. See
+         * useOrientationLock.
+         */
+        orientation: "any",
         scope: "/",
         start_url: "/app",
         // Icons are declared at their true pixel sizes. /logo.png is 1250x1250,

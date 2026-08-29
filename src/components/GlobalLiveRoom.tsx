@@ -37,6 +37,7 @@ function QuestionHandIcon({ className = "" }: { className?: string }) {
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 
 import { displayName } from "@/lib/utils";
+import { useOrientationLock } from "@/hooks/useOrientationLock";
 import { compressImage } from "@/lib/imageCompression";
 import { encodeChatMedia, getChatMediaType } from "@/hooks/useVoiceRecorder";
 import { CommentContent } from "@/components/CommentComposer";
@@ -422,6 +423,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const { isMinimized } = liveSession;
   const [isAdmin, setIsAdmin] = useState(false);
   const isAdminRef = useRef(false);
+  /* Free rotation while a class is open, so the phone can be turned sideways
+     and the video fill the screen. The shell puts portrait back on exit. */
+  useOrientationLock("free");
+
   const [clubName, setClubName] = useState<string>("");
 
   useEffect(() => {
@@ -1218,6 +1223,75 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   }, [isLeaving, localMicrophoneTrack, micOn]);
 
   /*
+   * Still hearing the room with the app in the background.
+   *
+   * The effect above keeps the microphone alive so others keep hearing you.
+   * This is the other direction, and it was missing: minimise the app and the
+   * voices stop. Android suspends a backgrounded page's audio unless it has a
+   * reason not to, and Agora plays remote audio through <audio> elements that
+   * get paused along with everything else.
+   *
+   * A media session is that reason. Declaring one tells Android this tab is
+   * playing media — the same signal a music app gives — so the page is kept
+   * running and the audio keeps flowing instead of being frozen. It also puts
+   * the class on the lock screen, which is the correct place for a call.
+   *
+   * The visibility handler is the belt to that braces: anything that did get
+   * paused is told to play again the moment we are back.
+   */
+  useEffect(() => {
+    if (isLeaving) return;
+
+    const resumeRemoteAudio = () => {
+      audioTracks.forEach((track) => {
+        try {
+          if (!track.isPlaying) track.play();
+        } catch {
+          /* A track that has already gone is not worth reporting. */
+        }
+      });
+    };
+
+    const session = (navigator as any).mediaSession;
+    if (session) {
+      try {
+        session.metadata = new (window as any).MediaMetadata({
+          title: clubName || "Live class",
+          artist: "Zero Club",
+          artwork: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+        });
+        session.playbackState = "playing";
+        // Declared so Android shows real controls rather than assuming the
+        // page cannot respond, which is one of the things that gets a tab
+        // frozen in the first place.
+        session.setActionHandler?.("play", resumeRemoteAudio);
+        session.setActionHandler?.("pause", () => {});
+      } catch {
+        /* No media session support; the visibility handler still applies. */
+      }
+    }
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") resumeRemoteAudio();
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      if (session) {
+        try {
+          session.playbackState = "none";
+          session.metadata = null;
+          session.setActionHandler?.("play", null);
+          session.setActionHandler?.("pause", null);
+        } catch {
+          /* Nothing to clear. */
+        }
+      }
+    };
+  }, [isLeaving, audioTracks, clubName]);
+
+  /*
    * Chat that survives a refresh.
    *
    * Messages are broadcast over a realtime channel and held in memory, so a
@@ -1718,7 +1792,12 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   return (
     <>
     {audioSink}
-    <div className="fixed inset-0 h-[100dvh] bg-[#0A0A0C] text-white flex flex-col z-[9999] overflow-hidden">
+    /* select-none on the room, because every label here is a control, not
+       something to copy. A long press was selecting "Your camera is off" and
+       painting it in the selection colour, which looked like a rendering
+       fault. The chat thread opts back in below — a message is worth
+       copying. */
+    <div className="fixed inset-0 z-[9999] flex h-[100dvh] select-none flex-col overflow-hidden bg-[#0A0A0C] text-white">
 
       {/* ═══ HEADER ═══ */}
       <header className="shrink-0 flex items-center justify-between px-3 md:px-5 pb-2.5 pt-[calc(0.5rem+env(safe-area-inset-top))] md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))] z-20">
@@ -1999,12 +2078,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             </div>
           )}
 
-          /* No circle over the shared screen.
-             A floating portrait of the presenter sat on the very content they
-             were presenting, and it duplicated the name strip below it — the
-             same person identified twice, overlapping. While a screen is being
-             shared, the screen is what matters; the strip names whose it is,
-             and the Learners tab has everybody's face. */
+          {/* No circle over the shared screen. A floating portrait of the
+              presenter sat on the very content they were presenting, and it
+              duplicated the name strip below it. While a screen is shared, the
+              screen is what matters; the strip names whose it is, and the
+              Learners tab has everybody's face. */}
 
           {/* Theater toggle */}
           <button
@@ -2239,7 +2317,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                               </button>
                             )}
                             <div className={`mt-1 rounded-lg rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
-                              <div className="break-words text-[13px] leading-relaxed text-white/85">
+                              <div className="select-text break-words text-[13px] leading-relaxed text-white/85">
                                 {msg.content.includes("$$MEDIA$$") ? (
                                   /* CommentContent already knows how to draw
                                      the $$MEDIA$$ marker — images, video and
