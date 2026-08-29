@@ -1920,20 +1920,28 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   </span>
                 </span>
               )}
+              {/* Moved out of the top-right corner, which now belongs to the
+                  one control that lives there. All three are small status
+                  pills and read as a set on one line. */}
+              {isAdmin && (
+                <span className="flex items-center gap-1 rounded-full bg-[#cc208f]/90 px-2 py-0.5 text-white backdrop-blur-md">
+                  <GraduationCap className="h-2.5 w-2.5" />
+                  <span className="text-[8px] font-medium tracking-[0.08em]">
+                    {Math.max(0, totalCount - 1)} {totalCount - 1 === 1 ? "LEARNER" : "LEARNERS"}
+                  </span>
+                </span>
+              )}
             </div>
           )}
 
-          {isAdmin && (
-            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-[#cc208f]/90 backdrop-blur-md px-2 py-1 rounded-full">
-              <GraduationCap className="w-3 h-3 text-white" />
-              <span className="text-[9px] font-medium text-white tracking-[0.06em]">
-                Teaching {Math.max(0, totalCount - 1)} {totalCount - 1 === 1 ? "learner" : "learners"}
-              </span>
-            </div>
-          )}
 
-          {/* Identify whichever remote participant owns the stage. */}
-          {remoteStageUser && !selfPresenting && (
+
+          {/* Identify whichever remote participant owns the stage.
+              Hidden while anyone is presenting, because the circle below is
+              already that person with their name on it. Both were rendering
+              into the same bottom-left corner — the circle over the strip —
+              so the presenter was labelled twice, on top of themselves. */}
+          {remoteStageUser && !selfPresenting && !presenting && (
             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3.5 pb-3 pt-10 z-10 pointer-events-none">
               <div className="flex items-center gap-2">
                 <Avatar
@@ -1955,8 +1963,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               clear of the control bar, and ignores taps so it can never
               swallow a press meant for the video. */}
           {presenting && (
-            <div className="pointer-events-none absolute bottom-3 left-3 z-30 sm:bottom-4 sm:left-4">
-              <div className="relative h-20 w-20 overflow-hidden rounded-full bg-[#141117] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9)] ring-2 ring-white/25 sm:h-24 sm:w-24">
+            /* Bottom-right, and smaller.
+               A shared screen has its content on the left — a browser sidebar,
+               the start of every line of a slide — and an 96px circle sat
+               directly on it. The right edge is nearly always the emptier
+               side. md:bottom-[84px] clears the desktop control bar, the same
+               offset the theater toggle uses. */
+            <div className="pointer-events-none absolute bottom-3 right-3 z-30 flex flex-col items-center sm:bottom-4 sm:right-4 md:bottom-[84px]">
+              <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[#141117] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9)] ring-2 ring-white/25 sm:h-20 sm:w-20">
                 {selfPresenterVideo ? (
                   <LocalVideoTrack track={localCameraTrack!} play={true} className="h-full w-full object-cover" />
                 ) : (
@@ -1969,7 +1983,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   </div>
                 )}
               </div>
-              <span className="mt-1 block truncate text-center text-[10px] font-semibold text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+              {/* A pill rather than text with a drop-shadow: over a bright
+                  slide, a shadow is not enough to keep white legible. */}
+              <span className="mt-1.5 max-w-[92px] truncate rounded-full bg-black/70 px-2 py-0.5 text-center text-[10px] font-semibold text-white backdrop-blur-sm">
                 {selfPresenting ? "You" : userNames[remotePresenterUser!.uid] || tutorName}
               </span>
             </div>
@@ -1979,7 +1995,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <button
             onClick={() => setTheater((t) => !t)}
             title={theater ? "Show panel" : "Expand stage"}
-            className="absolute bottom-2.5 right-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap md:bottom-[84px]"
+            /* Moves to the top-right when a presenter circle is occupying the
+               bottom-right, rather than the two sharing a corner. */
+            className={`absolute right-2.5 z-30 h-9 w-9 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white/85 hover:bg-black/70 transition tap ${presenting ? "top-2.5" : "bottom-2.5 md:bottom-[84px]"}`}
           >
             {theater ? <Shrink className="w-4 h-4" /> : <Expand className="w-4 h-4" />}
           </button>
