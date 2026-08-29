@@ -78,18 +78,20 @@ const CAMERA_QUALITY_OPTIONS: Array<{
 
 const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality";
 /*
- * 540p, not 720p.
+ * HD by default.
  *
- * Everyone published HD at up to 1.8 Mbps, which meant a room of six had each
- * phone sending 1.8 up and pulling five streams down. On a mid-range Android
- * over mobile data that is not a quality setting, it is a stutter — and the
- * first thing to suffer is the audio nobody can afford to lose.
+ * This was dropped to 540p to stop mid-range phones stuttering, and that fixed
+ * the stutter at a cost that turned out to be too high: Zero Club is a
+ * teaching platform, and a tutor sharing work needs to be seen properly. The
+ * stutter is better addressed where it actually comes from — the receive side,
+ * which was pulling every non-presenter at 160x120 — than by degrading what
+ * everybody sends.
  *
- * 540p at 24fps is indistinguishable in a participant tile the size of a
- * thumbnail, and the people who genuinely want HD can still choose it in
- * Camera settings.
+ * Anyone on a weak connection can still pick Standard or Smooth in Camera
+ * settings, and Agora drops the sender's bitrate on its own when the uplink
+ * cannot sustain it.
  */
-const DEFAULT_CAMERA_QUALITY: CameraQuality = "540p";
+const DEFAULT_CAMERA_QUALITY: CameraQuality = "720p";
 
 const cameraProfile = (quality: CameraQuality) =>
   CAMERA_QUALITY_OPTIONS.find((option) => option.value === quality) ||
@@ -223,11 +225,24 @@ export function GlobalLiveRoom() {
       // Every publisher makes a tiny companion stream available. Receivers
       // can then keep only the stage in full quality instead of downloading
       // every moving camera at full bitrate.
+      /*
+       * The low stream is what most people are watched at, so it cannot be a
+       * thumbnail.
+       *
+       * This was 160x120 at 70kbps — genuinely a contact-photo, and every
+       * participant who was not the presenter was being received at it. On a
+       * 150px tile you might get away with it; on anything larger it looks
+       * broken, and it was also what everyone dropped to whenever the room
+       * was minimised.
+       *
+       * 480x270 at 500kbps still costs a fraction of the high stream and
+       * survives being shown at a reasonable size.
+       */
       rtcClient.setLowStreamParameter({
-        width: 160,
-        height: 120,
-        framerate: 12,
-        bitrate: 70,
+        width: 480,
+        height: 270,
+        framerate: 20,
+        bitrate: 500,
       });
 
       Promise.all([
@@ -1402,17 +1417,40 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
     remoteUsers.forEach((user) => {
       const userId = String(user.uid);
+      /*
+       * Who gets the high stream.
+       *
+       * This used to be "the stage user, and nobody else". For a tutor that
+       * meant nobody at all: stageUid is null for an admin unless somebody is
+       * actively screen-sharing, so a tutor watching their class received
+       * every single learner at the low stream. The person who most needs to
+       * see faces clearly was the one guaranteed not to.
+       *
+       * The tutor is also high quality now, as is whoever is speaking, since
+       * that is the tile people are actually looking at. Everyone else stays
+       * low, which is the point of dual stream.
+       */
       const isStageVideo = stageUid != null && userId === String(stageUid);
-      const streamType = !isMinimized && isStageVideo ? 0 : 1;
+      const isTutor = adminUids.has(userId);
+      const isSpeaking = activeSpeaker != null && userId === String(activeSpeaker);
+      const wantsHigh = isStageVideo || isTutor || isSpeaking;
+      const streamType = !isMinimized && wantsHigh ? 0 : 1;
       if (appliedStreamPolicy.current.get(userId) === streamType) return;
 
       appliedStreamPolicy.current.set(userId, streamType);
       void Promise.allSettled([
         client.setRemoteVideoStreamType(user.uid, streamType),
-        client.setStreamFallbackOption(user.uid, 2),
+        /*
+         * 1, not 2. Option 2 is audio-only: at the first sign of congestion it
+         * threw the picture away entirely, which on a teaching call means the
+         * work being demonstrated disappears. Option 1 drops to the low stream
+         * instead and only abandons video if that also cannot be sustained —
+         * degrading rather than surrendering.
+         */
+        client.setStreamFallbackOption(user.uid, 1),
       ]);
     });
-  }, [client, isMinimized, remoteUsers, stageUid]);
+  }, [client, isMinimized, remoteUsers, stageUid, adminUids, activeSpeaker]);
 
   /*
    * A shared screen is a different shape from a face.
