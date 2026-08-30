@@ -233,7 +233,13 @@ function Header({ referralCode }: ReferralProps) {
           : "border-transparent bg-transparent shadow-none"
       }`}
     >
-      <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-[1180px] items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6">
+      {/* Full width, not a centred 1180px column.
+          On a 1366px screen that column left ~93px of dead margin on each
+          side, so the logo floated inward from the left edge and Join floated
+          inward from the right — the header read as a narrow strip laid on the
+          page rather than the top of it. A header belongs to the window; only
+          the reading content below needs a measure. */}
+      <div className="flex h-[calc(4rem+env(safe-area-inset-top))] w-full items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6 lg:px-8">
         <BrandMark />
 
         {/* The same three groups the mobile menu uses, as dropdowns.
@@ -613,7 +619,7 @@ function ProductSection() {
   return (
     <section className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:border-white/10 dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
-      <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:grid-cols-[1fr_0.95fr] lg:gap-12 lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:grid-cols-[1fr_0.95fr] lg:gap-12 lg:py-20">
         <div className="min-w-0">
           <h2 className="max-w-[620px] font-display text-[clamp(24px,4.4vw,38px)] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white">
             Everything you build, in one place.
@@ -637,7 +643,7 @@ function ProductSection() {
 function TopicExplorer() {
   return (
     <section id="people" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
-      <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-20">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Find your people</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
@@ -674,7 +680,7 @@ function TopicExplorer() {
 function LearningSection() {
   return (
     <section id="learning" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
-      <div className="mx-auto max-w-[1180px] px-4 py-12 md:px-6 lg:py-20">
+      <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="max-w-[640px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Learning that compounds</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
@@ -707,7 +713,7 @@ function LearningSection() {
 function ClubsSection() {
   return (
     <section id="clubs" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
-      <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
         <div className="order-2 lg:order-1">
           <img decoding="async"
             src="/landing-communities-purpose.png"
@@ -743,7 +749,7 @@ function ClubsSection() {
 function OpportunitiesSection() {
   return (
     <section id="opportunities" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
-      <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Open doors through proof</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
@@ -776,7 +782,7 @@ function OpportunitiesSection() {
 function WalletSection() {
   return (
     <section id="wallet" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
-      <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Creator economy built in</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
@@ -850,7 +856,7 @@ function WalletSection() {
 function FeaturesSection() {
   return (
     <section id="features" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
-      <div className="mx-auto max-w-[1180px] px-4 py-12 md:px-6 lg:py-20">
+      <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="max-w-[650px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">The Zero Club toolkit</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
@@ -950,7 +956,7 @@ function ContactSection() {
 
   return (
     <section id="contact" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
-      <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:py-20">
         <div className="lg:pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Contact us</p>
           <h2 className="mt-3 max-w-[440px] font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
@@ -1051,7 +1057,7 @@ function FaqSection() {
 
   return (
     <section className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
-      <div className="mx-auto max-w-[1180px] px-4 py-12 md:px-6 lg:py-20">
+      <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="mb-10 text-center md:mb-14">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Questions</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
@@ -1089,7 +1095,7 @@ function FaqSection() {
 function FinalCta({ referralCode }: ReferralProps) {
   return (
     <section className="bg-white dark:bg-[#141118] px-4 py-12 md:px-6 md:py-16">
-      <div className="mx-auto max-w-[1180px]">
+      <div className="mx-auto max-w-[1320px]">
         <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] px-6 py-12 text-center md:px-16 md:py-16">
           <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
@@ -1119,7 +1125,7 @@ function FinalCta({ referralCode }: ReferralProps) {
 function Footer() {
   return (
     <footer className="border-t border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] px-4 py-12 md:px-6">
-      <div className="mx-auto max-w-[1180px]">
+      <div className="mx-auto max-w-[1320px]">
         <div className="mb-10 flex flex-wrap items-center justify-between gap-5">
           <BrandMark />
           <p className="text-[12px] text-[#666a70] dark:text-white/55">The social network for builders.</p>

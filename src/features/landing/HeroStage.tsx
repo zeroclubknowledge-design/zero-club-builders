@@ -43,10 +43,17 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
   const shown = stats || PLACEHOLDER;
 
   return (
-    <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-[#0b0a0d] text-white">
+    /* min-h rather than h: the composition wants one screen, but a short
+       laptop window should scroll rather than crush the stats into the
+       headline. */
+    <section className="relative flex min-h-[88svh] flex-col overflow-hidden bg-[#0b0a0d] text-white md:min-h-[92svh]">
       <BrandField />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[1080px] flex-1 flex-col items-center justify-center px-5 pb-8 pt-[calc(5.5rem+env(safe-area-inset-top))] text-center md:px-8">
+      {/* Tighter. The hero was centring inside a 1080px column with 5.5rem of
+          top padding, which on a laptop left the headline stranded in the
+          middle of a lot of nothing. The measure only has to hold the
+          headline, and the top padding only has to clear the header. */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-1 flex-col items-center justify-center px-4 pb-6 pt-[calc(4.5rem+env(safe-area-inset-top))] text-center md:px-8">
         <ProofRow builders={shown.builders} clubs={shown.clubs} ready={Boolean(stats)} />
 
         {/* The wording is the landing page's own, unchanged. Three lines, so
@@ -54,7 +61,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
             the proof opens — with the third in brand pink. Each is its own
             block and never wraps, which is what keeps the set visually even at
             any width. Only the presentation moved. */}
-        <h1 className="mt-6 font-display text-[clamp(30px,7.6vw,66px)] font-semibold leading-[1.08] tracking-[-0.04em]">
+        <h1 className="mt-5 font-display text-[clamp(30px,7.6vw,66px)] font-semibold leading-[1.08] tracking-[-0.04em]">
           <span className="block whitespace-nowrap animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.12s_both]">
             Build Skills.
           </span>
@@ -66,12 +73,12 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           </span>
         </h1>
 
-        <p className="mt-6 max-w-[min(560px,92%)] text-[clamp(15px,1.7vw,18px)] leading-[1.55] text-white/70 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.28s_both]">
+        <p className="mt-5 max-w-[min(560px,92%)] text-[clamp(15px,1.7vw,18px)] leading-[1.55] text-white/70 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.28s_both]">
           Learn in live bootcamps, ship work in public, join serious communities —
           and turn proof of work into reputation and income.
         </p>
 
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-3 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.4s_both]">
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.4s_both]">
           <Link
             to="/signup"
             search={{ ref: referralCode, club: undefined }}
@@ -90,7 +97,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           </Link>
         </div>
 
-        <p className="mt-5 text-[12.5px] text-white/45">
+        <p className="mt-4 text-[12.5px] text-white/45">
           Free to join · Profiles, clubs, bootcamps, wallet, and XP built in
         </p>
       </div>

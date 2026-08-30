@@ -17,7 +17,11 @@ export function PublicHeader({ section }: { section?: string }) {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-[#171717]/[0.08] dark:border-white/10 bg-[#f7f6f3]/95 dark:bg-[#100e13]/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-4 md:px-7">
+        {/* Full width, matching the landing header. A centred 1240px column
+            pushed the logo in from the left and the Join button in from the
+            right, so the bar read as a strip laid on the page instead of the
+            top of it. */}
+        <div className="flex h-16 w-full items-center justify-between px-4 md:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-4">
             <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="Zero Club home">
               <img src="/logo.png" alt="" className="h-8 w-8 object-contain" loading="lazy" decoding="async" />
