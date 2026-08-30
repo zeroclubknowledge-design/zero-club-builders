@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { HeroStage } from "@/features/landing/HeroStage";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -600,119 +601,34 @@ function AndroidAppDownload() {
   );
 }
 
-function Hero({ referralCode }: ReferralProps) {
+function ProductSection() {
+  /*
+   * What the old hero carried, kept.
+   *
+   * Replacing the hero would otherwise have dropped the product mockup, the
+   * live activity rail and the Android download link — the last of which is a
+   * real install path, not decoration. They move here, directly beneath the
+   * new first screen, where they still do their job.
+   */
   return (
-    <section id="feed" className="relative overflow-hidden border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
+    <section className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:border-white/10 dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
-      <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-10 px-4 pb-14 pt-[calc(6rem+env(safe-area-inset-top))] md:px-6 md:pb-16 md:pt-28 lg:grid-cols-[1fr_0.95fr] lg:gap-12 lg:pb-20 lg:pt-[calc(7.5rem+env(safe-area-inset-top))]">
+      <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:grid-cols-[1fr_0.95fr] lg:gap-12 lg:py-20">
         <div className="min-w-0">
-          {/* Three deliberate lines, so the progression reads as a sequence:
-              skills, then proof, then what the proof opens. `block` rather
-              than <br>, so each line is its own box and the tight leading
-              applies evenly instead of collapsing at the breaks. */}
-          {/* Sized against the viewport rather than at fixed breakpoints.
-              "Build Opportunities." is the longest line by some way, and at a
-              flat 44px it wrapped on a phone and split the phrase in two.
-              clamp() scales all three together so the set stays visually
-              even. The ceiling is 48px, not 64px: from lg the hero splits
-              into two columns and the text side is only ~566px wide, so the
-              old size overflowed on DESKTOP as well as on a phone. And
-              whitespace-nowrap guarantees none of them can ever break, at any
-              width, rather than relying on the maths staying true. */}
-          <h1 className="mt-0 max-w-[620px] font-display text-[clamp(25px,8vw,48px)] font-semibold leading-[1.08] tracking-[-0.035em] text-[#171717] dark:text-white">
-            <span className="block whitespace-nowrap">Build Skills.</span>
-            <span className="block whitespace-nowrap">Build Proof.</span>
-            <span className="block whitespace-nowrap text-[#cc208f]">Build Opportunities.</span>
-          </h1>
-          <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-[#4d4f55] dark:text-white/60 md:text-[19px]">
-            Learn in live bootcamps, ship work in public, join serious communities —
-            and turn proof of work into reputation and income.
+          <h2 className="max-w-[620px] font-display text-[clamp(24px,4.4vw,38px)] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white">
+            Everything you build, in one place.
+          </h2>
+          <p className="mt-5 max-w-[520px] text-[16px] leading-relaxed text-[#4d4f55] dark:text-white/60 md:text-[17px]">
+            Profiles, clubs, live bootcamps, a wallet and a store — so the work, the people
+            and the money all live where the learning happens.
           </p>
-
-          <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link
-              to="/signup"
-              search={{ ref: referralCode, club: undefined }}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[15px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.98]"
-              preload={false}
-            >
-              Start building free <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              to="/signin"
-              search={{ ref: referralCode, club: undefined }}
-              className="inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-semibold tracking-tight text-[#303236] dark:text-white ring-1 ring-[#171717]/15 transition hover:bg-white active:scale-[0.98] dark:text-white dark:ring-white/25 dark:hover:bg-white/10"
-              preload={false}
-            >
-              Sign in
-            </Link>
-          </div>
 
           <AndroidAppDownload />
 
           <ActivityRail />
-
-          <p className="mt-4 text-[12.5px] leading-relaxed text-[#666a70] dark:text-white/55">
-            Free to join · Profiles, clubs, bootcamps, wallet, and XP built in
-          </p>
         </div>
 
         <ProductShowcase />
-      </div>
-
-      {/* Integrated product capability band */}
-      <div className="border-t border-white/[0.08] bg-[#171417] text-white">
-        <div className="mx-auto max-w-[1180px]">
-          <div className="flex min-h-12 items-center justify-between border-b border-white/[0.09] px-4 py-3 md:px-6">
-            <p className="flex items-center gap-2 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#f28fd0]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f]" />
-              The builder system
-            </p>
-            <p className="hidden text-[10px] font-medium tracking-[0.04em] text-white/45 sm:block">
-              Learn. Prove. Earn. Compound.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                title: "Live bootcamps",
-                copy: "Learn directly from builders doing the work.",
-                Icon: IconLearn,
-              },
-              {
-                title: "Proof-of-work profiles",
-                copy: "Let shipped work and progress speak first.",
-                Icon: IconProfile,
-              },
-              {
-                title: "Creator wallet",
-                copy: "Earn and manage value without leaving your network.",
-                Icon: IconWallet,
-              },
-              {
-                title: "XP that compounds",
-                copy: "Turn every contribution into visible experience.",
-                Icon: IconPresentation,
-              },
-            ].map(({ title, copy, Icon }, index) => (
-              <article
-                key={title}
-                className={`min-h-[146px] px-4 py-5 md:min-h-[158px] md:px-6 md:py-6 ${
-                  index % 2 === 0 ? "border-r border-white/[0.09]" : ""
-                } ${index < 2 ? "border-b border-white/[0.09] lg:border-b-0" : ""} ${
-                  index < 3 ? "lg:border-r lg:border-white/[0.09]" : "lg:border-r-0"
-                }`}
-              >
-                <span className="grid h-8 w-8 place-items-center rounded-md bg-white/[0.07] text-[#f28fd0] ring-1 ring-inset ring-white/[0.08]">
-                  <Icon active className="h-[17px] w-[17px]" />
-                </span>
-                <h3 className="mt-4 text-[13.5px] font-semibold tracking-tight text-white md:text-[14px]">{title}</h3>
-                <p className="mt-1.5 max-w-[225px] text-[10.5px] leading-[1.55] text-white/50 md:text-[11px]">{copy}</p>
-              </article>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -1240,7 +1156,11 @@ function Landing() {
     <div className="min-h-screen bg-white dark:bg-[#141118] font-['Montserrat'] text-[#171717] dark:text-white selection:bg-[#cc208f]/20">
       <Header referralCode={ref} />
       <main>
-        <Hero referralCode={ref} />
+        {/* The first screen is its own composition now — one viewport, brand
+            motion behind it, and counts read from the database rather than
+            asserted. Everything below it is unchanged. */}
+        <HeroStage referralCode={ref} />
+        <ProductSection />
         <TopicExplorer />
         <LearningSection />
         <ClubsSection />

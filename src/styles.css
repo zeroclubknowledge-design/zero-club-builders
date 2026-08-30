@@ -360,6 +360,48 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
 
+  /* ── Landing hero motion ────────────────────────────────────────
+     Replaces the video the spec called for. Long, offset durations so
+     the field never visibly loops, and transform-only movement so it
+     runs on the compositor rather than repainting behind the text. */
+  @keyframes zc-drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50%      { transform: translate3d(6%, 4%, 0) scale(1.12); }
+  }
+  @keyframes zc-drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1.06); }
+    50%      { transform: translate3d(-5%, -6%, 0) scale(1); }
+  }
+  @keyframes zc-line {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes zc-rise {
+    from { opacity: 0; transform: translateY(22px) scale(0.98); filter: blur(6px); }
+    to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+
+  /* Fine grain. Gradients this wide band into visible steps on 6-bit
+     panels, which is most budget Android hardware; noise breaks the
+     steps up. An inline SVG so there is no image to request. */
+  .zc-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+
+  /* Motion is decoration here, so it goes entirely rather than being
+     slowed down. The final state is the designed state. */
+  @media (prefers-reduced-motion: reduce) {
+    [class*="zc-drift"],
+    [class*="zc-line"],
+    [class*="zc-rise"] {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+  }
+
   /* ZeroNotes article typography.
    *
    * Tailwind's prose defaults are tuned for documentation — tight headings,
