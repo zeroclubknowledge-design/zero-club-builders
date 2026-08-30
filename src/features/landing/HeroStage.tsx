@@ -8,8 +8,9 @@ import { supabase } from "@/lib/supabase";
  *
  * Built from a spec written for a different product, so what was taken is the
  * composition — one viewport, a moving field behind everything, a proof row,
- * two headline lines, a subhead, one call to action, and a strip of counted
- * numbers along the bottom. What was left behind is everything that was not
+ * the headline, a subhead, one call to action, and a strip of counted numbers
+ * along the bottom. The words are the landing page's own and unchanged; only
+ * the presentation moved. What was left behind is everything that was not
  * true of Zero Club: a hero video on a stranger's CDN, "Trusted by 2000+
  * Enterprises" over Microsoft, Amazon and Google logos, and metrics about
  * inference latency.
@@ -48,22 +49,26 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
       <div className="relative z-10 mx-auto flex w-full max-w-[1080px] flex-1 flex-col items-center justify-center px-5 pb-8 pt-[calc(5.5rem+env(safe-area-inset-top))] text-center md:px-8">
         <ProofRow builders={shown.builders} clubs={shown.clubs} ready={Boolean(stats)} />
 
-        {/* Two lines, each its own block so the tight leading applies evenly.
-            Brand display face and brand pink — the spec's dot-matrix font is
-            not ours, and a landing page is the last place to introduce a
-            typeface the rest of the product never uses. */}
-        <h1 className="mt-6 font-display text-[clamp(34px,8.4vw,78px)] font-semibold leading-[1.06] tracking-[-0.045em]">
-          <span className="block animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.12s_both]">
-            Proof beats
+        {/* The wording is the landing page's own, unchanged. Three lines, so
+            the progression reads as a sequence — skills, then proof, then what
+            the proof opens — with the third in brand pink. Each is its own
+            block and never wraps, which is what keeps the set visually even at
+            any width. Only the presentation moved. */}
+        <h1 className="mt-6 font-display text-[clamp(30px,7.6vw,66px)] font-semibold leading-[1.08] tracking-[-0.04em]">
+          <span className="block whitespace-nowrap animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.12s_both]">
+            Build Skills.
           </span>
-          <span className="block text-[#cc208f] animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.3s_both]">
-            a polished CV.
+          <span className="block whitespace-nowrap animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.24s_both]">
+            Build Proof.
+          </span>
+          <span className="block whitespace-nowrap text-[#cc208f] animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.36s_both]">
+            Build Opportunities.
           </span>
         </h1>
 
         <p className="mt-6 max-w-[min(560px,92%)] text-[clamp(15px,1.7vw,18px)] leading-[1.55] text-white/70 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.28s_both]">
-          Learn in live bootcamps, ship real work in public, and join clubs that take it
-          seriously — then turn what you have built into reputation and income.
+          Learn in live bootcamps, ship work in public, join serious communities —
+          and turn proof of work into reputation and income.
         </p>
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.4s_both]">
@@ -86,7 +91,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
         </div>
 
         <p className="mt-5 text-[12.5px] text-white/45">
-          Free to join · Clubs, bootcamps, wallet and ZP built in
+          Free to join · Profiles, clubs, bootcamps, wallet, and XP built in
         </p>
       </div>
 
