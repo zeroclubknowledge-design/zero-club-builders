@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Check, Copy, ExternalLink, Share2, Star } from "lucide-react";
+import { ArrowLeft, Check, Copy, ExternalLink, Pencil, Share2, Star } from "lucide-react";
 import { getMvp, getMvpOverview, listCampaignsForMvp } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { externalUrl, isUuid, readableError } from "@/lib/links";
 import type { Campaign, Mvp, MvpOverview } from "@/types";
 import {
   Card, EmptyState, ErrorState, SeatMeter, Skeleton, StatusBadge, ZpBadge,
@@ -29,7 +30,13 @@ export function ProductPage() {
   const load = () => {
     setError(null);
     setMvp(undefined);
-    getMvp(id).then(setMvp).catch((e) => setError(e.message || "Could not load this product."));
+
+    /* A link that is not a product id at all — an old URL, or a relative href
+       that resolved into this route. Answering it here means a clear "not
+       found" instead of the database complaining about uuid syntax. */
+    if (!isUuid(id)) { setMvp(null); return; }
+
+    getMvp(id).then(setMvp).catch((e) => setError(readableError(e.message) || "Could not load this product."));
     getMvpOverview(id).then(setOverview).catch(() => setOverview(null));
     listCampaignsForMvp(id).then(setCampaigns).catch(() => setCampaigns([]));
   };
@@ -59,13 +66,24 @@ export function ProductPage() {
 
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (mvp === undefined) return <Skeleton className="h-[560px] rounded-[18px]" />;
-  if (mvp === null) return <ErrorState message="This product could not be found." />;
+  if (mvp === null) {
+    return (
+      <EmptyState
+        title="Product not found"
+        body="This link doesn't point at a product on ZeroStart. It may have been taken down, or the link may be out of date."
+        action={<Link to="/" className="rounded-full bg-accent px-5 py-2.5 text-[13px] font-semibold text-accent-ink">Back to the board</Link>}
+      />
+    );
+  }
 
-  const link = mvp.zerohub_url || mvp.website_url;
+  const isOwn = mvp.builder_id === session?.user?.id;
+  const link = externalUrl(mvp.zerohub_url) || externalUrl(mvp.website_url);
   const media = mvp.media_urls ?? [];
   const live = (campaigns || []).filter((c) => c.status === "live");
+  // The owner sees everything, including drafts and paused ones. Those are
+  // precisely the campaigns they need to get back into.
+  const listed = isOwn ? (campaigns || []) : live;
   const best = live.reduce((n, c) => Math.max(n, c.zp_reward), 0);
-  const isOwn = mvp.builder_id === session?.user?.id;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -224,7 +242,7 @@ export function ProductPage() {
 
       {!campaigns && <Skeleton className="h-[120px] rounded-[18px]" />}
 
-      {campaigns && live.length === 0 && (
+      {campaigns && listed.length === 0 && (
         <EmptyState
           title="No open campaigns"
           body={isOwn
@@ -242,30 +260,53 @@ export function ProductPage() {
         />
       )}
 
-      {live.length > 0 && (
+      {listed.length > 0 && (
         <div className="space-y-3">
-          {live.map((c) => (
-            <Link key={c.id} to="/campaign/$id" params={{ id: c.id }} className="block">
-              <Card hover className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="truncate text-[14.5px] font-semibold text-ink">{c.name}</h3>
-                    {c.objective && (
-                      <p className="mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-ink-muted">
-                        {c.objective}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <ZpBadge amount={c.zp_reward} />
-                    <StatusBadge status={c.status} />
-                  </div>
+          {listed.map((c) => (
+            <Card key={c.id} className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Link
+                    to="/campaign/$id"
+                    params={{ id: c.id }}
+                    className="block truncate text-[14.5px] font-semibold text-ink hover:text-accent"
+                  >
+                    {c.name}
+                  </Link>
+                  {c.objective && (
+                    <p className="mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-ink-muted">
+                      {c.objective}
+                    </p>
+                  )}
                 </div>
-                <div className="mt-4 max-w-[260px]">
-                  <SeatMeter taken={c.seats_taken ?? 0} limit={c.tester_limit} />
+                <div className="flex shrink-0 items-center gap-2">
+                  <ZpBadge amount={c.zp_reward} />
+                  <StatusBadge status={c.status} />
                 </div>
-              </Card>
-            </Link>
+              </div>
+              <div className="mt-4 max-w-[260px]">
+                <SeatMeter taken={c.seats_taken ?? 0} limit={c.tester_limit} />
+              </div>
+
+              {isOwn && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link
+                    to="/build/campaign/$id/edit"
+                    params={{ id: c.id }}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-4 text-[12.5px] font-semibold text-accent-ink transition hover:opacity-90"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit campaign
+                  </Link>
+                  <Link
+                    to="/build/campaign/$id"
+                    params={{ id: c.id }}
+                    className="inline-flex h-9 items-center rounded-full bg-ink/[0.06] px-4 text-[12.5px] font-semibold text-ink-muted transition hover:text-ink"
+                  >
+                    Submissions
+                  </Link>
+                </div>
+              )}
+            </Card>
           ))}
         </div>
       )}

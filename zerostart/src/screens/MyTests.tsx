@@ -4,6 +4,7 @@ import { getTesterStats, myParticipations } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { testerLevel, type Participation, type TesterStats } from "@/types";
 import { Card, EmptyState, ErrorState, Skeleton, StatusBadge, ZpBadge } from "@/components/ui/primitives";
+import { readableError } from "@/lib/links";
 
 /** The tester's side: what's in progress, what's waiting, what paid. */
 export function MyTests() {
@@ -19,7 +20,7 @@ export function MyTests() {
     setRows(null);
     Promise.all([myParticipations(uid), getTesterStats(uid)])
       .then(([p, s]) => { setRows(p); setStats(s); })
-      .catch((e) => setError(e.message || "Could not load your tests."));
+      .catch((e) => setError(readableError(e.message) || "Could not load your tests."));
   };
 
   useEffect(load, [session?.user?.id]);

@@ -6,6 +6,7 @@ import {
 } from "@/lib/api";
 import type { ActivityItem, BoardStats, Campaign, LeaderboardRow } from "@/types";
 import { Card, EmptyState, ErrorState, Skeleton, ZpBadge } from "@/components/ui/primitives";
+import { readableError } from "@/lib/links";
 import { StatsPill } from "@/features/board/StatsPill";
 import { ListingHero } from "@/features/board/ListingHero";
 import { ActivityFeed } from "@/features/board/ActivityFeed";
@@ -38,7 +39,7 @@ export function Discover() {
 
     listLiveCampaigns()
       .then(setCampaigns)
-      .catch((e) => setError(e.message || "Could not load the board."));
+      .catch((e) => setError(readableError(e.message) || "Could not load the board."));
 
     /* The side panels load independently and never block the board. If the
        leaderboard is slow or the function has not been created yet, the

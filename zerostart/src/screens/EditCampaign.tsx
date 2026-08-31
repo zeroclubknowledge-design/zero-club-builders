@@ -6,6 +6,7 @@ import { getCampaign } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { Campaign, CampaignStatus } from "@/types";
 import { Card, ErrorState, Skeleton, StatusBadge } from "@/components/ui/primitives";
+import { readableError } from "@/lib/links";
 import {
   CampaignForm, type CampaignDraft, draftFromCampaign, filledTasks, isValid,
 } from "@/features/campaign/CampaignForm";
@@ -57,7 +58,7 @@ export function EditCampaign() {
     setError(null);
     const { error: e } = await supabase.from("zs_campaigns").update({ status }).eq("id", id);
     setSaving(false);
-    if (e) { setError(e.message); return; }
+    if (e) { setError(readableError(e.message)); return; }
     load();
   };
 

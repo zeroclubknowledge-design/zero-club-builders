@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Check, ExternalLink, Inbox, Pencil } from "lucide-react";
 import { getCampaign, joinCampaign } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { externalUrl, readableError } from "@/lib/links";
 import type { Campaign } from "@/types";
 import { Card, ErrorState, SeatMeter, Skeleton, StatusBadge, ZpBadge } from "@/components/ui/primitives";
 
@@ -28,7 +29,7 @@ export function CampaignDetail() {
   const load = () => {
     setError(null);
     setCampaign(undefined);
-    getCampaign(id).then(setCampaign).catch((e) => setError(e.message || "Could not load this campaign."));
+    getCampaign(id).then(setCampaign).catch((e) => setError(readableError(e.message) || "Could not load this campaign."));
   };
 
   useEffect(load, [id]);
@@ -61,7 +62,7 @@ export function CampaignDetail() {
   const taken = campaign.seats_taken ?? 0;
   const full = taken >= campaign.tester_limit;
   const isOwn = mvp?.builder_id === session?.user?.id;
-  const link = mvp?.zerohub_url || mvp?.website_url;
+  const link = externalUrl(mvp?.zerohub_url) || externalUrl(mvp?.website_url);
   const media = mvp?.media_urls ?? [];
 
   return (

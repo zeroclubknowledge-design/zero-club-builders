@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Check, ExternalLink, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { submitTest } from "@/lib/api";
+import { externalUrl, readableError } from "@/lib/links";
 import { clearSticky, useStickyState } from "@/lib/useStickyState";
 import type { Campaign, Participation } from "@/types";
 import { Card, ErrorState, Skeleton } from "@/components/ui/primitives";
@@ -61,7 +62,7 @@ export function TestFlow() {
       .eq("id", participationId)
       .maybeSingle()
       .then(({ data, error: e }) => {
-        if (e) { setError(e.message); return; }
+        if (e) { setError(readableError(e.message)); return; }
         const row = data as unknown as Participation | null;
         setParticipation(row);
         const c = (row?.campaign as Campaign) || null;
@@ -121,7 +122,7 @@ export function TestFlow() {
   if (!participation || !campaign) return <ErrorState message="This test could not be found." />;
 
   const mvp = campaign.mvp;
-  const link = mvp?.zerohub_url || mvp?.website_url;
+  const link = externalUrl(mvp?.zerohub_url) || externalUrl(mvp?.website_url);
   const tasks = campaign.tasks || [];
   const requiredLeft = tasks.filter((t) => t.required && !done.has(t.id)).length;
   const alreadySubmitted = participation.status !== "started";

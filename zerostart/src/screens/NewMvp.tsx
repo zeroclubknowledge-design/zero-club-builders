@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES } from "@/types";
 import { Card } from "@/components/ui/primitives";
+import { externalUrl, readableError } from "@/lib/links";
 import { MediaPicker } from "@/components/MediaPicker";
 
 /** A URL-safe slug, made unique by a short suffix rather than by a round trip
@@ -41,7 +42,7 @@ export function NewMvp() {
 
   // Mirrors the database's own constraints, so the form refuses what the
   // database would refuse — but the database stays the one that decides.
-  const hasLink = Boolean(zerohubUrl.trim() || websiteUrl.trim());
+  const hasLink = Boolean(externalUrl(zerohubUrl) || externalUrl(websiteUrl));
   const valid =
     name.trim().length >= 2 &&
     shortDescription.trim().length >= 10 &&
@@ -62,8 +63,11 @@ export function NewMvp() {
         short_description: shortDescription.trim(),
         full_description: fullDescription.trim() || null,
         category,
-        zerohub_url: zerohubUrl.trim() || null,
-        website_url: websiteUrl.trim() || null,
+        // Stored with a scheme. "zeroclubs.xyz" in an href is a relative
+        // path, not a website — normalising here keeps the bad value out of
+        // the database rather than only patching it at render time.
+        zerohub_url: externalUrl(zerohubUrl),
+        website_url: externalUrl(websiteUrl),
         media_urls: media,
         // The first image doubles as the logo, so cards and lists have
         // something to show without asking for the same picture twice.
@@ -74,7 +78,7 @@ export function NewMvp() {
       .single();
 
     setSaving(false);
-    if (e) { setError(e.message); return; }
+    if (e) { setError(readableError(e.message)); return; }
     if (data) navigate({ to: "/build" });
   };
 

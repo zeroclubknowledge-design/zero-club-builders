@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { displayUrl, externalUrl } from "@/lib/links";
 import type { Mvp } from "@/types";
 import { Card, EmptyState, ErrorState, Skeleton, StatusBadge } from "@/components/ui/primitives";
 
@@ -86,14 +87,14 @@ export function AdminReview() {
 
                   <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">{mvp.short_description}</p>
 
-                  {(mvp.zerohub_url || mvp.website_url) && (
+                  {(externalUrl(mvp.zerohub_url) || externalUrl(mvp.website_url)) && (
                     <a
-                      href={mvp.zerohub_url || mvp.website_url!}
+                      href={externalUrl(mvp.zerohub_url) || externalUrl(mvp.website_url) || "#"}
                       target="_blank"
                       rel="noreferrer noopener"
                       className="mt-2 inline-block break-all text-[12.5px] font-semibold text-accent"
                     >
-                      {mvp.zerohub_url || mvp.website_url}
+                      {displayUrl(mvp.zerohub_url) || displayUrl(mvp.website_url)}
                     </a>
                   )}
 

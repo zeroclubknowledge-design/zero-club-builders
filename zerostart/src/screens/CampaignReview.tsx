@@ -4,6 +4,7 @@ import { ArrowLeft, Pencil, Star } from "lucide-react";
 import { getCampaign, reviewSubmission, submissionsForCampaign } from "@/lib/api";
 import type { Campaign, Participation } from "@/types";
 import { Card, EmptyState, ErrorState, SeatMeter, Skeleton, StatusBadge, ZpBadge } from "@/components/ui/primitives";
+import { readableError } from "@/lib/links";
 
 /** What went wrong, in words a builder can act on. */
 const REFUSAL: Record<string, string> = {
@@ -25,7 +26,7 @@ export function CampaignReview() {
     setError(null);
     Promise.all([getCampaign(id), submissionsForCampaign(id)])
       .then(([c, p]) => { setCampaign(c); setRows(p); })
-      .catch((e) => setError(e.message || "Could not load this campaign."));
+      .catch((e) => setError(readableError(e.message) || "Could not load this campaign."));
   };
 
   useEffect(load, [id]);

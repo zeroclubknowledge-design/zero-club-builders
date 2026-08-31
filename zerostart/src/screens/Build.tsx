@@ -2,22 +2,35 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pencil, Plus } from "lucide-react";
 import { myMvps } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import type { Mvp } from "@/types";
 import { Card, EmptyState, ErrorState, Skeleton, StatusBadge } from "@/components/ui/primitives";
+import { readableError } from "@/lib/links";
 
 /** What the builder has listed, and where each thing is stuck. */
 export function Build() {
   const { session, loading: authLoading } = useAuth();
   const [mvps, setMvps] = useState<Mvp[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState<string | null>(null);
+
+  /* A draft can be published from here. Otherwise the only route out of draft
+     was to create the listing again. */
+  const publish = async (mvpId: string) => {
+    setPublishing(mvpId);
+    const { error: e } = await supabase.from("zs_mvps").update({ status: "live" }).eq("id", mvpId);
+    setPublishing(null);
+    if (e) { setError(readableError(e.message)); return; }
+    load();
+  };
 
   const load = () => {
     const uid = session?.user?.id;
     if (!uid) return;
     setError(null);
     setMvps(null);
-    myMvps(uid).then(setMvps).catch((e) => setError(e.message || "Could not load your MVPs."));
+    myMvps(uid).then(setMvps).catch((e) => setError(readableError(e.message) || "Could not load your MVPs."));
   };
 
   useEffect(load, [session?.user?.id]);
@@ -97,9 +110,18 @@ export function Build() {
                 {/* The one thing a builder actually needs to know: what happens
                     next, and whether it's on them. */}
                 {mvp.status === "draft" && (
-                  <p className="mt-4 text-[12.5px] leading-relaxed text-ink-muted">
-                    Still a draft — nobody can see it yet.
-                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <p className="text-[12.5px] leading-relaxed text-ink-muted">
+                      Still a draft — nobody can see it yet.
+                    </p>
+                    <button
+                      onClick={() => publish(mvp.id)}
+                      disabled={publishing === mvp.id}
+                      className="h-9 shrink-0 rounded-full bg-accent px-4 text-[12.5px] font-semibold text-accent-ink transition hover:opacity-90 disabled:opacity-40"
+                    >
+                      {publishing === mvp.id ? "Publishing…" : "Publish it"}
+                    </button>
+                  </div>
                 )}
                 {mvp.status === "rejected" && (
                   <p className="mt-4 rounded-xl bg-bad/10 px-4 py-3 text-[12.5px] leading-relaxed text-bad">
@@ -108,7 +130,17 @@ export function Build() {
                   </p>
                 )}
 
-                {(mvp.status === "live" || mvp.status === "approved" || mvp.status === "completed") && (
+                {/*
+                  Always shown, whatever the product's status.
+                  
+                  This was gated on the MVP being live, which quietly hid a
+                  builder's own campaigns — and every Edit button on them —
+                  the moment the product was a draft. Nothing about a draft
+                  product makes its campaigns none of the builder's business.
+                  Status belongs on the "New campaign" button, which genuinely
+                  needs the product to be live, not on the whole section.
+                */}
+                {(
                   <div className="mt-4 border-t border-line pt-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-[12px] font-semibold uppercase tracking-wider text-ink-faint">
@@ -116,13 +148,19 @@ export function Build() {
                           ? "No campaigns yet"
                           : `${mvp.campaigns!.length} campaign${mvp.campaigns!.length === 1 ? "" : "s"}`}
                       </p>
-                      <Link
-                        to="/build/$mvpId/campaign"
-                        params={{ mvpId: mvp.id }}
-                        className="rounded-full bg-ink/[0.06] px-3.5 py-2 text-[12px] font-semibold text-ink transition hover:bg-ink/10"
-                      >
-                        New campaign
-                      </Link>
+                      {mvp.status === "live" || mvp.status === "approved" || mvp.status === "completed" ? (
+                        <Link
+                          to="/build/$mvpId/campaign"
+                          params={{ mvpId: mvp.id }}
+                          className="rounded-full bg-ink/[0.06] px-3.5 py-2 text-[12px] font-semibold text-ink transition hover:bg-ink/10"
+                        >
+                          New campaign
+                        </Link>
+                      ) : (
+                        <span className="text-[11.5px] text-ink-faint">
+                          Publish the product to open a campaign
+                        </span>
+                      )}
                     </div>
 
                     {mvp.campaigns && mvp.campaigns.length > 0 && (
