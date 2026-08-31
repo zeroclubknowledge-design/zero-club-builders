@@ -155,7 +155,7 @@ export function CampaignDetail() {
           <button
             onClick={start}
             disabled={joining || full || isOwn || campaign.status !== "live"}
-            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
+            className="zs-glow mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
           >
             {isOwn ? "Your own campaign"
               : full ? "All seats taken"

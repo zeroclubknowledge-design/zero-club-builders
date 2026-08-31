@@ -216,7 +216,7 @@ export function TestFlow() {
           <button
             onClick={submit}
             disabled={!canSubmit}
-            className="mt-6 h-12 w-full rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="zs-glow mt-6 h-12 w-full rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {submitting ? "Submitting…" : "Submit for review"}
           </button>

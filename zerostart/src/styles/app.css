@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 /*
- * ZeroStart's own identity.
+ * ZeroStart wears the Zero Club brand.
  *
- * Related to Zero Club — same family, same care — but not a copy. Zero Club is
- * warm off-white with pink; ZeroStart is dark-first with an electric violet,
- * because the two products are used in different moods. Zero Club is where you
- * learn; ZeroStart is where you ship something and wait to find out if it
- * works.
+ * One ecosystem, one colour: #cc208f is Zero Club's accent, and using it here
+ * means somebody arriving from zeroclubs.xyz recognises where they are before
+ * they read a word. The distinction between the two products is carried by the
+ * surface instead — ZeroStart is dark-first, because it is where you ship
+ * something and wait to find out whether it works.
  */
 @theme {
-  --color-bg: #08070b;
-  --color-surface: #101018;
-  --color-surface-2: #16161f;
+  --color-bg: #0a070c;
+  --color-surface: #141017;
+  --color-surface-2: #1a151d;
   --color-line: #ffffff14;
 
   --color-ink: #f4f4f7;
   --color-ink-muted: #a0a0b0;
   --color-ink-faint: #6c6c7d;
 
-  /* Electric violet. Distinct from Zero Club's #cc208f while clearly a sibling. */
-  --color-accent: #7c5cff;
-  --color-accent-soft: #7c5cff26;
+  /* The Zero Club brand colour, exactly as Zero Club defines it. */
+  --color-accent: #cc208f;
+  --color-accent-soft: #cc208f26;
   --color-accent-ink: #ffffff;
+  --color-accent-glow: #cc208f8c;
 
   /* Semantic, used consistently: approved, pending, rejected. */
   --color-ok: #34d399;
@@ -78,4 +79,13 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.03em; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/*
+ * The brand glow, borrowed from Zero Club's dark theme, where the accent stops
+ * being a flat fill and starts looking lit. Used on the one primary action per
+ * screen — spread across every button it stops meaning anything.
+ */
+.zs-glow {
+  box-shadow: 0 10px 34px -14px var(--color-accent-glow);
 }

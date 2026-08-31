@@ -187,7 +187,7 @@ function SubmissionCard({ participation, reward, onDone }: {
             <button
               onClick={() => decide(true)}
               disabled={busy}
-              className="h-11 flex-1 rounded-full bg-accent text-[13.5px] font-semibold text-accent-ink transition hover:opacity-90 disabled:opacity-40"
+              className="zs-glow h-11 flex-1 rounded-full bg-accent text-[13.5px] font-semibold text-accent-ink transition hover:opacity-90 disabled:opacity-40"
             >
               {busy ? "Working…" : `Approve · pay ${reward} ZP`}
             </button>

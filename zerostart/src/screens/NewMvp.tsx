@@ -119,7 +119,7 @@ export function NewMvp() {
           <button
             onClick={() => save(true)}
             disabled={!valid || saving}
-            className="h-12 flex-1 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="zs-glow h-12 flex-1 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving ? "Saving…" : "Submit for review"}
           </button>
