@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { config } from "@/lib/config";
 import { useAuth } from "@/lib/auth";
+import { useStickyState } from "@/lib/useStickyState";
 import { Card } from "@/components/ui/primitives";
 
 /**
@@ -23,8 +24,18 @@ export function SignIn() {
   const navigate = useNavigate();
   const { session } = useAuth();
 
-  const [step, setStep] = useState<"email" | "code">("email");
-  const [email, setEmail] = useState("");
+  /*
+   * Step and email survive a reload, because getting the code means leaving
+   * this tab — and on a phone the browser routinely discards the page while
+   * you are in your mail app. Without this, coming back with the code in hand
+   * lands you on a blank email form with nowhere to type it.
+   *
+   * The code itself is deliberately *not* stored. It is a live credential, it
+   * is about to be typed anyway, and there is no version of this where writing
+   * it to disk is the right trade.
+   */
+  const [step, setStep, clearStep] = useStickyState<"email" | "code">("zs_signin_step", "email");
+  const [email, setEmail, clearEmail] = useStickyState("zs_signin_email", "");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +100,8 @@ export function SignIn() {
       if (e) { setError(`That code didn't work. ${e.message}`); return; }
       if (!data.session) { setError("Verified, but no session came back. Try again."); return; }
 
+      clearStep();
+      clearEmail();
       navigate({ to: "/" });
     } finally {
       setBusy(false);
@@ -143,7 +156,7 @@ export function SignIn() {
         ) : (
           <>
             <button
-              onClick={() => { setStep("email"); setCode(""); setError(null); }}
+              onClick={() => { setStep("email"); setCode(""); setError(null); clearStep(); }}
               className="mb-5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-muted transition hover:text-ink"
             >
               <ArrowLeft className="h-4 w-4" /> Back

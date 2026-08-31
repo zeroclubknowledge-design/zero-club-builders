@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Check, ExternalLink, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { submitTest } from "@/lib/api";
+import { clearSticky, useStickyState } from "@/lib/useStickyState";
 import type { Campaign, Participation } from "@/types";
 import { Card, ErrorState, Skeleton } from "@/components/ui/primitives";
 
@@ -31,11 +32,24 @@ export function TestFlow() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Set<string>>(new Set());
 
-  const [rating, setRating] = useState(0);
-  const [liked, setLiked] = useState("");
-  const [confusing, setConfusing] = useState("");
-  const [suggestions, setSuggestions] = useState("");
-  const [additional, setAdditional] = useState("");
+  /*
+   * The written feedback survives a reload.
+   *
+   * This screen tells the tester to open the product, which means leaving the
+   * tab — and on a phone that routinely gets the page discarded. Losing a
+   * paragraph of considered feedback because we asked someone to go and look
+   * at something is the single most annoying thing this app could do to the
+   * people it depends on.
+   *
+   * Keyed per participation, so two tests in progress cannot overwrite each
+   * other's notes.
+   */
+  const draftKey = `zs_draft_${participationId}`;
+  const [rating, setRating] = useStickyState(`${draftKey}_rating`, 0);
+  const [liked, setLiked] = useStickyState(`${draftKey}_liked`, "");
+  const [confusing, setConfusing] = useStickyState(`${draftKey}_confusing`, "");
+  const [suggestions, setSuggestions] = useStickyState(`${draftKey}_suggestions`, "");
+  const [additional, setAdditional] = useStickyState(`${draftKey}_additional`, "");
   const [submitting, setSubmitting] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
 
@@ -92,6 +106,8 @@ export function TestFlow() {
         setRefusal(REFUSAL[result.reason || ""] || "Could not submit this test.");
         return;
       }
+      ["rating", "liked", "confusing", "suggestions", "additional"]
+        .forEach((field) => clearSticky(`${draftKey}_${field}`));
       navigate({ to: "/tests" });
     } catch (e) {
       setRefusal((e as Error).message);
