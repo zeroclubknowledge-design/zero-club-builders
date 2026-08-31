@@ -43,9 +43,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-[13px] font-bold text-accent-ink">
-              Z
-            </span>
+            {/* The real Zero mark, not a letter in a box. It is transparent and
+                already the brand pink, so it needs no plate behind it — a tinted
+                square would only mute it against the dark header. */}
+            <img
+              src="/logo.png"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 object-contain"
+            />
             <span className="font-display text-[17px] font-bold text-ink">ZeroStart</span>
           </Link>
 
