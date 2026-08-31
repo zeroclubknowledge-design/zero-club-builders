@@ -62,6 +62,7 @@ export function CampaignDetail() {
   const full = taken >= campaign.tester_limit;
   const isOwn = mvp?.builder_id === session?.user?.id;
   const link = mvp?.zerohub_url || mvp?.website_url;
+  const media = mvp?.media_urls ?? [];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -94,6 +95,35 @@ export function CampaignDetail() {
             <p className="mt-3 whitespace-pre-wrap text-[13.5px] leading-relaxed text-ink-muted">
               {mvp.full_description}
             </p>
+          )}
+
+          {/* A horizontal strip rather than a grid: the order the builder chose
+              is meaningful, and a strip keeps the first one prominent instead of
+              flattening all six into equal thumbnails. */}
+          {media.length > 0 && (
+            <div className="no-scrollbar -mx-6 mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 sm:-mx-8 sm:px-8">
+              {media.map((url) =>
+                /\.(mp4|webm|mov)(\?|$)/i.test(url) ? (
+                  <video
+                    key={url}
+                    src={url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="aspect-[16/10] w-[85%] shrink-0 snap-start rounded-xl bg-black object-cover sm:w-[60%]"
+                  />
+                ) : (
+                  <img
+                    key={url}
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[16/10] w-[85%] shrink-0 snap-start rounded-xl bg-white/[0.04] object-cover sm:w-[60%]"
+                  />
+                )
+              )}
+            </div>
           )}
 
           {link && (

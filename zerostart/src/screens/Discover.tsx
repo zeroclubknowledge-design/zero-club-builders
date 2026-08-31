@@ -102,10 +102,23 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   const mvp = campaign.mvp;
   const taken = campaign.seats_taken ?? 0;
   const full = taken >= campaign.tester_limit;
+  // Videos need a poster frame to be worth showing at card size, so the cover
+  // falls back to the logo rather than rendering a black rectangle.
+  const firstImage = mvp?.media_urls?.find((u) => !/\.(mp4|webm|mov)(\?|$)/i.test(u));
+  const cover = firstImage || mvp?.logo_url || null;
 
   return (
     <Link to="/campaign/$id" params={{ id: campaign.id }} className="block">
-      <Card hover className="flex h-full flex-col p-5">
+      <Card hover className="flex h-full flex-col overflow-hidden">
+        {/* The cover, when there is one. A tester scanning this page looks at
+            the picture before the words, so a card with a screenshot is worth
+            far more than one without. */}
+        {cover && (
+          <div className="aspect-[16/9] w-full overflow-hidden bg-white/[0.04]">
+            <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+          </div>
+        )}
+        <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start gap-3">
           {mvp?.logo_url ? (
             <img src={mvp.logo_url} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
@@ -133,6 +146,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
           <p className="mt-3 text-[12px] font-semibold text-accent">
             {full ? "View campaign" : "Start testing →"}
           </p>
+        </div>
         </div>
       </Card>
     </Link>

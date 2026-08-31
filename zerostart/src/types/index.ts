@@ -36,6 +36,9 @@ export interface Mvp {
   website_url: string | null;
   status: MvpStatus;
   is_featured: boolean;
+  review_note: string | null;
+  /** Screenshots and clips, in display order. The first is the cover. */
+  media_urls: string[];
   created_at: string;
   /** Joined, not stored. */
   builder?: Profile | null;

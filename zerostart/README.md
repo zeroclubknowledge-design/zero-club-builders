@@ -136,23 +136,47 @@ already excludes `node_modules` and `dist` at any depth.
 
 ## Status
 
-**Done — the core loop runs end to end:**
+**The core loop runs end to end:**
 
-list an MVP → admin approves it → builder opens a campaign → tester discovers
-it → takes a seat → completes tasks → submits feedback → builder approves →
-ZP paid once.
+list an MVP (live immediately) → builder opens a campaign → tester discovers it
+→ takes a seat → completes tasks → submits feedback → builder approves → ZP
+paid once.
 
 | | |
 |---|---|
 | Schema + RLS | `20260901000000_zerostart_core.sql` |
 | Join / submit / review | `20260901001000_zerostart_flow.sql` |
-| Admin listing review | `20260901002000_zerostart_admin_review.sql` |
-| Service layer | `src/lib/api.ts` — every query, one file |
-| Screens | discover, campaign, test, my tests, build, new MVP, new campaign, review, admin |
+| Admin functions | `20260901002000_zerostart_admin_review.sql` |
+| Open listing + media | `20260901003000_zerostart_open_listing.sql` |
+| Everything joined, to paste into Supabase | `supabase/RUN_THIS_IN_SUPABASE.sql` |
 
-Verified with `tsc --noEmit` (clean) and a production `vite build` (clean).
+### Why listings are not approved first
 
-**Not built yet, in rough order of how much they'd add:** screenshot upload on
-feedback, the bug-report form (the table and its policies exist, nothing writes
-to it yet), tester leaderboards, notifications, and campaign editing after
-creation.
+A builder who has just shipped something wants testers today, and a queue only
+one person can clear stalls the moment they are busy. Nothing was being bought
+by the delay: the decision that moves ZP is the builder approving a submission,
+and that still has a human on it.
+
+So moderation is reactive. `zs_take_down_mvp` removes a listing and cancels its
+live campaigns in the same step — leaving those recruiting would let testers
+keep joining work on a product that had just been pulled, and they would rightly
+expect to be paid for it. `zs_restore_mvp` undoes it, so a takedown is not a
+one-way door.
+
+A builder can set their own listing to `draft`, `live`, `paused` or `completed`,
+but not `rejected`. Letting them clear their own takedown would make the
+takedown pointless.
+
+### Media
+
+`zs_mvps.media_urls` holds screenshots and clips in display order; the first is
+the cover. Files live in the public `zerostart-media` bucket under
+`<builder_id>/<uuid>.<ext>`, and the storage policies key off that first folder
+segment, so nobody can write into anyone else's folder.
+
+Photos are compressed in the browser before upload, reusing Zero Club's
+approach. Video is not — re-encoding client-side is slow and lossy — so the
+50MB limit is enforced and the person is told plainly when a file is too big.
+
+**Not built yet:** the bug-report form (table and policies exist, nothing writes
+to it), tester leaderboards, notifications, and campaign editing after creation.

@@ -90,18 +90,19 @@ export function Build() {
 
                 {/* The one thing a builder actually needs to know: what happens
                     next, and whether it's on them. */}
-                {mvp.status === "pending_review" && (
-                  <p className="mt-4 rounded-xl bg-warn/10 px-4 py-3 text-[12.5px] leading-relaxed text-warn">
-                    Waiting on a ZeroStart admin. Once approved you can open a campaign and start recruiting.
-                  </p>
-                )}
                 {mvp.status === "draft" && (
                   <p className="mt-4 text-[12.5px] leading-relaxed text-ink-muted">
-                    Still a draft — submit it for review when you're ready.
+                    Still a draft — nobody can see it yet.
+                  </p>
+                )}
+                {mvp.status === "rejected" && (
+                  <p className="mt-4 rounded-xl bg-bad/10 px-4 py-3 text-[12.5px] leading-relaxed text-bad">
+                    This listing was taken down.
+                    {mvp.review_note ? ` ${mvp.review_note}` : " Get in touch if you think that was a mistake."}
                   </p>
                 )}
 
-                {(mvp.status === "approved" || mvp.status === "live" || mvp.status === "completed") && (
+                {(mvp.status === "live" || mvp.status === "approved" || mvp.status === "completed") && (
                   <div className="mt-4 border-t border-line pt-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-[12px] font-semibold uppercase tracking-wider text-ink-faint">

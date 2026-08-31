@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES } from "@/types";
 import { Card } from "@/components/ui/primitives";
+import { MediaPicker } from "@/components/MediaPicker";
 
 /** A URL-safe slug, made unique by a short suffix rather than by a round trip
     to check — the column is unique, so a collision would be an error either
@@ -24,7 +25,7 @@ export function NewMvp() {
   const [category, setCategory] = useState<string>("Other");
   const [zerohubUrl, setZerohubUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
+  const [media, setMedia] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +38,7 @@ export function NewMvp() {
     shortDescription.trim().length <= 200 &&
     hasLink;
 
-  const save = async (submitForReview: boolean) => {
+  const save = async (publish: boolean) => {
     if (!session) { navigate({ to: "/signin" }); return; }
     setSaving(true);
     setError(null);
@@ -53,8 +54,11 @@ export function NewMvp() {
         category,
         zerohub_url: zerohubUrl.trim() || null,
         website_url: websiteUrl.trim() || null,
-        logo_url: logoUrl.trim() || null,
-        status: submitForReview ? "pending_review" : "draft",
+        media_urls: media,
+        // The first image doubles as the logo, so cards and lists have
+        // something to show without asking for the same picture twice.
+        logo_url: media[0] ?? null,
+        status: publish ? "live" : "draft",
       })
       .select("id")
       .single();
@@ -74,7 +78,7 @@ export function NewMvp() {
         <h1 className="text-[22px] font-bold text-ink">List your MVP</h1>
         <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">
           Testers see this before they decide to spend their time on you. Be concrete about
-          what it does.
+          what it does, and show them a picture.
         </p>
 
         <Text label="Name" value={name} onChange={setName} placeholder="What it's called" />
@@ -109,7 +113,7 @@ export function NewMvp() {
           placeholder="https://www.zeroclubs.xyz/app/zerohub?product=…" />
         <Text label="Or a direct link" value={websiteUrl} onChange={setWebsiteUrl}
           placeholder="https://" hint="One of the two links is required — testers need somewhere to go." />
-        <Text label="Logo URL" value={logoUrl} onChange={setLogoUrl} placeholder="Optional" />
+        <MediaPicker value={media} onChange={setMedia} builderId={session?.user?.id} />
 
         {error && (
           <p className="mt-5 rounded-xl bg-bad/12 px-4 py-3 text-[13px] font-medium text-bad">{error}</p>
@@ -127,7 +131,7 @@ export function NewMvp() {
             disabled={!valid || saving}
             className="zs-glow h-12 w-full shrink-0 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-1"
           >
-            {saving ? "Saving…" : "Submit for review"}
+            {saving ? "Publishing…" : "Publish it"}
           </button>
           <button
             onClick={() => save(false)}
@@ -139,8 +143,8 @@ export function NewMvp() {
         </div>
 
         <p className="mt-3 text-[12px] leading-relaxed text-ink-faint">
-          A ZeroStart admin checks every listing before it goes live. Once approved, you can
-          open a campaign and start recruiting testers.
+          Your listing goes live straight away. Open a campaign next to say what you want
+          tested and how much ZP a tester earns.
         </p>
       </Card>
     </div>
