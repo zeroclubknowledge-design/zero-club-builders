@@ -115,18 +115,24 @@ export function NewMvp() {
           <p className="mt-5 rounded-xl bg-bad/12 px-4 py-3 text-[13px] font-medium text-bad">{error}</p>
         )}
 
+        {/* Both buttons are w-full on phones and sm:flex-1 side by side, so they
+            are always the same size. A bare `flex-1` here was the bug: on a
+            phone this container is flex-col, so flex-1 applies to the vertical
+            axis and its flex-basis:0% squashed the button's height, overriding
+            h-12. The draft button had no flex-1 and so kept its full height —
+            which is exactly the mismatch that showed up. */}
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
           <button
             onClick={() => save(true)}
             disabled={!valid || saving}
-            className="zs-glow h-12 flex-1 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="zs-glow h-12 w-full shrink-0 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-1"
           >
             {saving ? "Saving…" : "Submit for review"}
           </button>
           <button
             onClick={() => save(false)}
             disabled={!valid || saving}
-            className="h-12 rounded-full bg-white/8 px-6 text-[14px] font-semibold text-ink transition hover:bg-white/12 disabled:opacity-40 sm:flex-none"
+            className="h-12 w-full shrink-0 rounded-full bg-white/8 text-[14px] font-semibold text-ink transition hover:bg-white/12 disabled:opacity-40 sm:flex-1"
           >
             Save as draft
           </button>

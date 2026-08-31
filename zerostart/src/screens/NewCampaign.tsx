@@ -203,14 +203,14 @@ export function NewCampaign() {
           <button
             onClick={() => create(true)}
             disabled={!valid || saving}
-            className="zs-glow h-12 flex-1 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="zs-glow h-12 w-full shrink-0 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-1"
           >
             {saving ? "Creating…" : "Create and go live"}
           </button>
           <button
             onClick={() => create(false)}
             disabled={!valid || saving}
-            className="h-12 rounded-full bg-white/8 px-6 text-[14px] font-semibold text-ink transition hover:bg-white/12 disabled:opacity-40"
+            className="h-12 w-full shrink-0 rounded-full bg-white/8 text-[14px] font-semibold text-ink transition hover:bg-white/12 disabled:opacity-40 sm:flex-1"
           >
             Save as draft
           </button>
