@@ -360,6 +360,56 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
 
+  /* A dark surface that reads as a physical object.
+   *
+   * The showcase cards were a flat fill with a 1px ring, which is why they
+   * looked like rectangles rather than screens. Three things do the work here,
+   * and it is the combination that sells it: a hairline of light along the top
+   * edge only — where a real bevel would catch it — a soft inner glow so the
+   * middle is not dead flat, and two shadows rather than one, a tight contact
+   * shadow plus a wide ambient one. */
+  .zc-surface {
+    position: relative;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.28),
+      0 18px 40px -18px rgb(0 0 0 / 0.55),
+      0 42px 90px -40px rgb(0 0 0 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+  .zc-surface::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    /* The catch of light across the top third. Very low opacity: at anything
+       stronger it stops looking like a surface and starts looking like a
+       gradient someone applied. */
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, transparent 42%);
+  }
+
+  /* The same idea on a light card, where the light comes from above and the
+     edge that catches it is the top one.
+     The dark rule lives here rather than as a `dark:` variant in the markup,
+     because Tailwind variants only compose with Tailwind utilities —
+     `dark:zc-surface` silently does nothing. */
+  .zc-surface-light {
+    box-shadow:
+      0 1px 2px rgb(23 23 23 / 0.06),
+      0 14px 32px -14px rgb(23 23 23 / 0.16),
+      0 32px 70px -34px rgb(23 23 23 / 0.18),
+      inset 0 1px 0 rgb(255 255 255 / 0.9);
+  }
+  .dark .zc-surface-light {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.28),
+      0 18px 40px -18px rgb(0 0 0 / 0.55),
+      0 42px 90px -40px rgb(0 0 0 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
   /* ── Landing hero motion ────────────────────────────────────────
      Replaces the video the spec called for. Long, offset durations so
      the field never visibly loops, and transform-only movement so it

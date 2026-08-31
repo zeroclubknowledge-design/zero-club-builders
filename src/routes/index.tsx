@@ -394,10 +394,11 @@ function ProductShowcase() {
   return (
     <div className="relative mx-auto w-[calc(100vw-20px)] max-w-[380px] min-w-0 justify-self-center pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
       {/* Glow */}
-      <div className="pointer-events-none absolute -top-16 -right-10 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[90px]" />
+      <div className="pointer-events-none absolute -top-20 -right-14 h-80 w-80 rounded-full bg-[#cc208f]/25 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-16 -left-12 h-64 w-64 rounded-full bg-[#7a3cc8]/20 blur-[90px]" />
 
       {/* Main: a shipped-work post inside the dark app frame */}
-      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-4 text-white shadow-[0_24px_70px_-24px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.06] sm:p-6">
+      <div className="zc-surface relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#241c29] via-[#161219] to-[#0d0b10] p-4 text-white sm:rounded-[26px] sm:p-6">
         <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[#cc208f]/15 blur-[80px]" />
 
         {/* Post header */}
@@ -426,11 +427,26 @@ function ProductShowcase() {
         </p>
 
         {/* Mock media */}
-        <div className="relative mt-4 h-28 overflow-hidden rounded-lg bg-gradient-to-br from-[#cc208f]/25 via-[#1d1a20] to-[#141117] ring-1 ring-white/[0.08] sm:h-36">
-          <div className="absolute inset-x-5 top-5 h-2.5 w-24 rounded-full bg-white/15" />
-          <div className="absolute inset-x-5 top-11 h-2 w-40 rounded-full bg-white/[0.08]" />
-          <div className="absolute inset-x-5 top-16 h-2 w-32 rounded-full bg-white/[0.08]" />
-          <div className="absolute left-5 bottom-5 h-7 w-20 rounded-full bg-[#cc208f]" />
+        {/* The attached work, as a little browser rather than four grey bars.
+            A window chrome and an address line read instantly as "a page they
+            built"; abstract pills read as a loading state that never
+            finished. */}
+        <div className="zc-surface relative mt-4 overflow-hidden rounded-[14px] bg-gradient-to-br from-[#2a1f2e] via-[#1a161d] to-[#121016]">
+          <div className="flex items-center gap-1.5 border-b border-white/[0.07] px-3 py-2">
+            <span className="h-2 w-2 rounded-full bg-white/20" />
+            <span className="h-2 w-2 rounded-full bg-white/15" />
+            <span className="h-2 w-2 rounded-full bg-white/10" />
+            <span className="ml-2 h-4 flex-1 rounded-full bg-white/[0.06]" />
+          </div>
+          <div className="relative h-24 px-4 pt-4 sm:h-32">
+            <div className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-[#cc208f]/30 blur-[34px]" />
+            <div className="relative h-2.5 w-28 rounded-full bg-white/25" />
+            <div className="relative mt-2.5 h-2 w-44 rounded-full bg-white/[0.10]" />
+            <div className="relative mt-1.5 h-2 w-36 rounded-full bg-white/[0.08]" />
+            <div className="relative mt-3.5 inline-flex h-7 items-center rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0479f] px-4 text-[9px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(204,32,143,0.9)]">
+              View project
+            </div>
+          </div>
         </div>
 
         {/* Post actions */}
@@ -450,7 +466,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: live class pill */}
-      <div className="zc-showcase-float absolute -top-3 left-0 flex max-w-full items-center gap-2 overflow-hidden rounded-lg bg-white dark:bg-gradient-to-br dark:from-[#201924] dark:via-[#151218] dark:to-[#0e0c10] p-2 pr-3 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.3)] ring-1 ring-[#171717]/[0.06] dark:ring-white/10 sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:p-3 sm:pr-4">
+      <div className="zc-showcase-float zc-surface-light absolute -top-3 left-0 flex max-w-full items-center gap-2 overflow-hidden rounded-[16px] bg-white/95 p-2 pr-3.5 backdrop-blur-xl dark:bg-gradient-to-br dark:from-[#241c29] dark:via-[#161219] dark:to-[#0d0b10] sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:rounded-[18px] sm:p-3 sm:pr-4">
         <span className="pointer-events-none absolute -right-6 -top-8 hidden h-20 w-20 rounded-full bg-[#cc208f]/25 blur-[30px] dark:block" />
         <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500/10">
           <Radio className="h-4 w-4 text-red-500" />
@@ -463,7 +479,7 @@ function ProductShowcase() {
       </div>
 
       {/* Floating: wallet mini-card */}
-      <div className="zc-showcase-float-delayed absolute bottom-0 right-0 w-[124px] overflow-hidden rounded-lg bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-3 shadow-[0_16px_44px_-14px_rgba(0,0,0,0.45)] ring-1 ring-white/[0.08] sm:-bottom-6 sm:-right-6 sm:w-44 sm:p-4">
+      <div className="zc-showcase-float-delayed zc-surface absolute bottom-0 right-0 w-[130px] overflow-hidden rounded-[16px] bg-gradient-to-br from-[#241c29] via-[#161219] to-[#0d0b10] p-3 sm:-bottom-6 sm:-right-6 sm:w-44 sm:rounded-[18px] sm:p-4">
         <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
         <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">Creator wallet</p>
         <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-white tabular-nums sm:text-[20px]">₦248,500</p>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
@@ -25,20 +26,26 @@ type Stats = { builders: number; clubs: number; bootcamps: number; projects: num
 const PLACEHOLDER: Stats = { builders: 0, clubs: 0, bootcamps: 0, projects: 0 };
 
 export function HeroStage({ referralCode }: { referralCode?: string }) {
-  const [stats, setStats] = useState<Stats | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const { data } = await supabase.rpc("get_landing_stats");
-        if (!cancelled && data) setStats(data as Stats);
-      } catch {
-        /* The page reads perfectly well without them. */
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
+  /*
+   * Counted live, and kept current.
+   *
+   * A one-shot fetch would have frozen these at whatever they were when the
+   * tab opened. They refresh on an interval and whenever the tab is focused
+   * again, so a page left open on a second monitor is not quietly showing
+   * yesterday's numbers — and a new signup appears without a reload.
+   */
+  const { data: stats } = useQuery({
+    queryKey: ["landing-stats"],
+    queryFn: async (): Promise<Stats> => {
+      const { data, error } = await supabase.rpc("get_landing_stats");
+      if (error) throw error;
+      return data as Stats;
+    },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+    retry: 1,
+  });
 
   const shown = stats || PLACEHOLDER;
 
@@ -54,14 +61,24 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           middle of a lot of nothing. The measure only has to hold the
           headline, and the top padding only has to clear the header. */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-1 flex-col items-center justify-center px-4 pb-6 pt-[calc(4.5rem+env(safe-area-inset-top))] text-center md:px-8">
-        <ProofRow builders={shown.builders} clubs={shown.clubs} ready={Boolean(stats)} />
+        {/* Only once there is something true to say. There is no placeholder
+            line: a sentence written to fill the gap is a sentence nobody asked
+            for on the front door. */}
+        {stats && shown.builders > 0 && (
+          <ProofRow builders={shown.builders} clubs={shown.clubs} />
+        )}
 
         {/* The wording is the landing page's own, unchanged. Three lines, so
             the progression reads as a sequence — skills, then proof, then what
             the proof opens — with the third in brand pink. Each is its own
             block and never wraps, which is what keeps the set visually even at
             any width. Only the presentation moved. */}
-        <h1 className="mt-5 font-display text-[clamp(30px,7.6vw,66px)] font-semibold leading-[1.08] tracking-[-0.04em]">
+        {/* Bigger on both frames. The old ceiling was 66px on a screen this
+            wide and the floor 30px on a phone, which made the one thing the
+            page is actually saying the least prominent thing on it. The floor
+            rises with the viewport rather than by breakpoint, so the three
+            lines stay proportional at every width. */}
+        <h1 className="mt-5 font-display text-[clamp(40px,9.2vw,92px)] font-semibold leading-[1.04] tracking-[-0.045em]">
           <span className="block whitespace-nowrap animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.12s_both]">
             Build Skills.
           </span>
@@ -102,7 +119,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
         </p>
       </div>
 
-      <StatsStrip stats={shown} ready={Boolean(stats)} />
+      <StatsStrip stats={shown} />
     </section>
   );
 }
@@ -133,8 +150,8 @@ function BrandField() {
   );
 }
 
-/** Real counts, or a neutral line until they arrive. */
-function ProofRow({ builders, clubs, ready }: { builders: number; clubs: number; ready: boolean }) {
+/** Real counts. Rendered only when there are some. */
+function ProofRow({ builders, clubs }: { builders: number; clubs: number }) {
   return (
     <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-1.5 pr-4 backdrop-blur-md animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.05s_both]">
       <span className="flex -space-x-2">
@@ -149,16 +166,14 @@ function ProofRow({ builders, clubs, ready }: { builders: number; clubs: number;
         ))}
       </span>
       <span className="text-[12.5px] font-medium text-white/75">
-        {ready && builders > 0
-          ? `${builders.toLocaleString()} builders across ${clubs.toLocaleString()} ${clubs === 1 ? "club" : "clubs"}`
-          : "Built in public, by people doing the work"}
+        {builders.toLocaleString()} builders across {clubs.toLocaleString()} {clubs === 1 ? "club" : "clubs"}
       </span>
     </div>
   );
 }
 
 /** The four numbers, counted up once they are real. */
-function StatsStrip({ stats, ready }: { stats: Stats; ready: boolean }) {
+function StatsStrip({ stats }: { stats: Stats }) {
   const items = [
     { value: stats.builders, label: "Builders" },
     { value: stats.clubs, label: "Clubs" },
@@ -175,7 +190,12 @@ function StatsStrip({ stats, ready }: { stats: Stats; ready: boolean }) {
           style={{ animationDelay: `${0.5 + index * 0.08}s` }}
         >
           <p className="font-display text-[clamp(20px,2.4vw,28px)] font-semibold tabular-nums tracking-[-0.03em] text-white">
-            {ready ? <CountUp to={item.value} delay={480 + index * 90} /> : "—"}
+            {/* Always the number. A dash while loading meant the strip spent
+                its first second saying nothing, and 0 is a true answer that
+                becomes 1 the moment somebody joins. CountUp re-runs when the
+                value changes, so a refresh animates to the new figure rather
+                than snapping. */}
+            <CountUp to={item.value} delay={480 + index * 90} />
           </p>
           <p className="mt-1 text-[clamp(11px,1.2vw,12.5px)] text-white/45">{item.label}</p>
         </div>
@@ -188,27 +208,38 @@ function StatsStrip({ stats, ready }: { stats: Stats; ready: boolean }) {
 function CountUp({ to, delay }: { to: number; delay: number }) {
   const [value, setValue] = useState(0);
   const frame = useRef<number>(0);
+  // Where this run starts from. First paint counts up from zero; a later
+  // refresh counts from what is already on screen, so 41 becoming 42 is a
+  // small move rather than a full recount.
+  const fromRef = useRef(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    if (reduced || to <= 0) {
+    const from = fromRef.current;
+
+    if (reduced || to === from) {
       setValue(to);
+      fromRef.current = to;
       return;
     }
 
-    const duration = 1500;
+    // A first count deserves the full run; a later nudge should be quick.
+    const duration = from === 0 ? 1500 : 600;
+    const wait = from === 0 ? delay : 0;
     let start = 0;
+
     const timer = setTimeout(() => {
       const step = (now: number) => {
         if (!start) start = now;
         const progress = Math.min(1, (now - start) / duration);
         // easeOutCubic: fast enough to feel responsive, settles rather than stops.
-        setValue(Math.round(to * (1 - Math.pow(1 - progress, 3))));
+        setValue(Math.round(from + (to - from) * (1 - Math.pow(1 - progress, 3))));
         if (progress < 1) frame.current = requestAnimationFrame(step);
+        else fromRef.current = to;
       };
       frame.current = requestAnimationFrame(step);
-    }, delay);
+    }, wait);
 
     return () => {
       clearTimeout(timer);
