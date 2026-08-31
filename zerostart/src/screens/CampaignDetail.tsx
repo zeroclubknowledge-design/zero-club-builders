@@ -119,7 +119,7 @@ export function CampaignDetail() {
                     alt=""
                     loading="lazy"
                     decoding="async"
-                    className="aspect-[16/10] w-[85%] shrink-0 snap-start rounded-xl bg-white/[0.04] object-cover sm:w-[60%]"
+                    className="aspect-[16/10] w-[85%] shrink-0 snap-start rounded-xl bg-ink/[0.04] object-cover sm:w-[60%]"
                   />
                 )
               )}
@@ -131,7 +131,7 @@ export function CampaignDetail() {
               href={link}
               target="_blank"
               rel="noreferrer noopener"
-              className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/6 px-4 py-2 text-[13px] font-semibold text-ink transition hover:bg-white/10"
+              className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-ink/[0.05] px-4 py-2 text-[13px] font-semibold text-ink transition hover:bg-ink/10"
             >
               Open the product <ExternalLink className="h-3.5 w-3.5" />
             </a>
@@ -163,7 +163,7 @@ export function CampaignDetail() {
               <ol className="mt-3 space-y-2.5">
                 {campaign.tasks.map((task, i) => (
                   <li key={task.id} className="flex gap-3">
-                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/8 text-[11px] font-bold text-ink-muted">
+                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ink/[0.06] text-[11px] font-bold text-ink-muted">
                       {i + 1}
                     </span>
                     <div className="min-w-0">

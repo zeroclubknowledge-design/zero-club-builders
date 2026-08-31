@@ -136,3 +136,35 @@ export function testerLevel(stats?: Pick<TesterStats, "tests_approved" | "tests_
   if (approved >= 5) return "Verified Tester";
   return "Beginner Tester";
 }
+
+/* ── The board ─────────────────────────────────────────────────────────── */
+
+export interface BoardStats {
+  live_campaigns: number;
+  open_seats: number;
+  testers: number;
+  tests_approved: number;
+  zp_paid: number;
+}
+
+export interface ActivityItem {
+  id: string;
+  kind: "joined" | "approved";
+  happened_at: string;
+  tester_name: string;
+  tester_avatar: string | null;
+  mvp_name: string;
+  mvp_logo: string | null;
+  campaign_id: string;
+  zp: number;
+}
+
+export interface LeaderboardRow {
+  profile_id: string;
+  display_name: string;
+  username: string | null;
+  avatar_url: string | null;
+  tests_approved: number;
+  total_zp_earned: number;
+  level: TesterLevel;
+}

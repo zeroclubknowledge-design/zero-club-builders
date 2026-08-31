@@ -148,6 +148,7 @@ paid once.
 | Join / submit / review | `20260901001000_zerostart_flow.sql` |
 | Admin functions | `20260901002000_zerostart_admin_review.sql` |
 | Open listing + media | `20260901003000_zerostart_open_listing.sql` |
+| Board stats, activity, leaderboard | `20260901004000_zerostart_board.sql` |
 | Everything joined, to paste into Supabase | `supabase/RUN_THIS_IN_SUPABASE.sql` |
 
 ### Why listings are not approved first
@@ -177,6 +178,26 @@ segment, so nobody can write into anyone else's folder.
 Photos are compressed in the browser before upload, reusing Zero Club's
 approach. Video is not — re-encoding client-side is slow and lossy — so the
 50MB limit is enforced and the person is told plainly when a file is too big.
+
+### The board
+
+Discover is a ranked list, not a grid. Rank gives a reason to read the top of
+the page and a reason to keep scrolling, and it lets one row carry the reward,
+the seats and the action without them competing for the same corner of a tile.
+Campaigns sort featured-first, then by ZP — the honest answer to "why read this
+one first", since that is the number the tester is deciding on.
+
+The stats pill, activity feed and leaderboard each load independently of the
+campaigns and never block them; if one of those functions is missing the board
+still appears, because the campaigns are why anyone came.
+
+`zs_board_stats`, `zs_recent_activity` and `zs_leaderboard` are SECURITY
+DEFINER because the honest policies hide what they need — a participation is
+readable only by its tester and the campaign's builder. Rather than widen that
+policy and expose everyone's submissions, each function returns exactly the
+aggregate the board shows. Feedback text, bug reports and review notes are
+never exposed, and the feed announces joins and approvals only: a submission is
+private between tester and builder until the builder has acted on it.
 
 **Not built yet:** the bug-report form (table and policies exist, nothing writes
 to it), tester leaderboards, notifications, and campaign editing after creation.

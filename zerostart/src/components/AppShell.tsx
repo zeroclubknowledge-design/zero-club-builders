@@ -63,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 to={item.to}
                 className={`rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
                   isActive(item.to, item.exact)
-                    ? "bg-white/8 text-ink"
+                    ? "bg-ink/[0.06] text-ink"
                     : "text-ink-muted hover:text-ink"
                 }`}
               >
@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 to="/admin"
                 className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition ${
-                  isActive("/admin", false) ? "bg-white/8 text-ink" : "text-ink-muted hover:text-ink"
+                  isActive("/admin", false) ? "bg-ink/[0.06] text-ink" : "text-ink-muted hover:text-ink"
                 }`}
               >
                 <ShieldCheck className="h-3.5 w-3.5" /> Review
@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {session ? (
               <button
                 onClick={signOut}
-                className="flex items-center gap-2 rounded-full bg-white/6 px-3 py-1.5 text-[12px] font-semibold text-ink-muted transition hover:text-ink"
+                className="flex items-center gap-2 rounded-full bg-ink/[0.05] px-3 py-1.5 text-[12px] font-semibold text-ink-muted transition hover:text-ink"
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />

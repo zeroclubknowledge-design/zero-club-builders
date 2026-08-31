@@ -1,5 +1,7 @@
 import { supabase } from "./supabase";
-import type { Campaign, Mvp, Participation, TesterStats } from "@/types";
+import type {
+  ActivityItem, BoardStats, Campaign, LeaderboardRow, Mvp, Participation, TesterStats,
+} from "@/types";
 
 /**
  * Every database call ZeroStart makes.
@@ -213,4 +215,25 @@ export async function getZpBalance(profileId: string) {
     .maybeSingle();
   if (error) throw error;
   return Number((data as { zp?: number } | null)?.zp ?? 0);
+}
+
+/* ── The board ─────────────────────────────────────────────────────────── */
+
+/** The counts in the pill. One round trip, not five. */
+export async function getBoardStats() {
+  const { data, error } = await supabase.rpc("zs_board_stats");
+  if (error) throw error;
+  return data as BoardStats;
+}
+
+export async function getRecentActivity(limit = 8) {
+  const { data, error } = await supabase.rpc("zs_recent_activity", { p_limit: limit });
+  if (error) throw error;
+  return (data || []) as ActivityItem[];
+}
+
+export async function getLeaderboard(limit = 10) {
+  const { data, error } = await supabase.rpc("zs_leaderboard", { p_limit: limit });
+  if (error) throw error;
+  return (data || []) as LeaderboardRow[];
 }

@@ -113,7 +113,7 @@ export function Build() {
                       <Link
                         to="/build/$mvpId/campaign"
                         params={{ mvpId: mvp.id }}
-                        className="rounded-full bg-white/8 px-3.5 py-2 text-[12px] font-semibold text-ink transition hover:bg-white/12"
+                        className="rounded-full bg-ink/[0.06] px-3.5 py-2 text-[12px] font-semibold text-ink transition hover:bg-ink/10"
                       >
                         New campaign
                       </Link>
@@ -126,7 +126,7 @@ export function Build() {
                             key={c.id}
                             to="/build/campaign/$id"
                             params={{ id: c.id }}
-                            className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.03] px-3.5 py-2.5 transition hover:bg-white/[0.06]"
+                            className="flex items-center justify-between gap-3 rounded-xl bg-ink/[0.03] px-3.5 py-2.5 transition hover:bg-ink/[0.05]"
                           >
                             <span className="min-w-0 truncate text-[13px] font-medium text-ink">{c.name}</span>
                             <span className="flex shrink-0 items-center gap-2">

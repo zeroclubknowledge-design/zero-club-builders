@@ -53,8 +53,21 @@ const testsRoute = createRoute({
 const buildRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/build", component: Build,
 });
+/*
+ * The only route that takes search params. The hero on the board carries what
+ * someone already typed into this form so they never type it twice, and
+ * validateSearch is what makes those params typed rather than a bag of
+ * strings — a link with the wrong key fails to compile instead of silently
+ * arriving empty.
+ */
 const newMvpRoute = createRoute({
-  getParentRoute: () => rootRoute, path: "/build/new", component: NewMvp,
+  getParentRoute: () => rootRoute,
+  path: "/build/new",
+  component: NewMvp,
+  validateSearch: (search: Record<string, unknown>): { url?: string; category?: string } => ({
+    url: typeof search.url === "string" ? search.url : undefined,
+    category: typeof search.category === "string" ? search.category : undefined,
+  }),
 });
 const newCampaignRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/build/$mvpId/campaign", component: NewCampaign,

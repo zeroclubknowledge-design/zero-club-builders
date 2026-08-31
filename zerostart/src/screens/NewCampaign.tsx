@@ -148,7 +148,7 @@ export function NewCampaign() {
 
           <div className="mt-4 space-y-3">
             {tasks.map((task, i) => (
-              <div key={task.key} className="rounded-xl bg-white/[0.03] p-3.5">
+              <div key={task.key} className="rounded-xl bg-ink/[0.03] p-3.5">
                 <div className="flex items-center gap-2">
                   <GripVertical className="h-4 w-4 shrink-0 text-ink-faint" />
                   <span className="text-[11px] font-bold text-ink-faint">{i + 1}</span>
@@ -189,7 +189,7 @@ export function NewCampaign() {
 
           <button
             onClick={() => setTasks((p) => [...p, blankTask()])}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/6 px-3.5 py-2 text-[12.5px] font-semibold text-ink-muted transition hover:text-ink"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-ink/[0.05] px-3.5 py-2 text-[12.5px] font-semibold text-ink-muted transition hover:text-ink"
           >
             <Plus className="h-3.5 w-3.5" /> Add task
           </button>
@@ -210,7 +210,7 @@ export function NewCampaign() {
           <button
             onClick={() => create(false)}
             disabled={!valid || saving}
-            className="h-12 w-full shrink-0 rounded-full bg-white/8 text-[14px] font-semibold text-ink transition hover:bg-white/12 disabled:opacity-40 sm:flex-1"
+            className="h-12 w-full shrink-0 rounded-full bg-ink/[0.06] text-[14px] font-semibold text-ink transition hover:bg-ink/10 disabled:opacity-40 sm:flex-1"
           >
             Save as draft
           </button>

@@ -131,7 +131,7 @@ function SubmissionCard({ participation, reward, onDone }: {
         {tester?.avatar_url ? (
           <img src={tester.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
         ) : (
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-white/8 text-[12px] font-bold text-ink-muted">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-ink/[0.06] text-[12px] font-bold text-ink-muted">
             {(tester?.full_name || tester?.username || "?").charAt(0).toUpperCase()}
           </span>
         )}
@@ -146,7 +146,7 @@ function SubmissionCard({ participation, reward, onDone }: {
             {[1, 2, 3, 4, 5].map((n) => (
               <Star
                 key={n}
-                className={`h-3.5 w-3.5 ${n <= feedback.overall_rating ? "fill-accent text-accent" : "text-white/15"}`}
+                className={`h-3.5 w-3.5 ${n <= feedback.overall_rating ? "fill-accent text-accent" : "text-ink/12"}`}
               />
             ))}
           </span>
@@ -166,7 +166,7 @@ function SubmissionCard({ participation, reward, onDone }: {
       )}
 
       {participation.review_note && !pending && (
-        <p className="mt-4 rounded-xl bg-white/[0.04] px-4 py-3 text-[12.5px] leading-relaxed text-ink-muted">
+        <p className="mt-4 rounded-xl bg-ink/[0.04] px-4 py-3 text-[12.5px] leading-relaxed text-ink-muted">
           Your note: {participation.review_note}
         </p>
       )}
@@ -194,7 +194,7 @@ function SubmissionCard({ participation, reward, onDone }: {
             <button
               onClick={() => decide(false)}
               disabled={busy}
-              className="h-11 rounded-full bg-white/8 px-5 text-[13.5px] font-semibold text-ink-muted transition hover:text-bad disabled:opacity-40"
+              className="h-11 rounded-full bg-ink/[0.06] px-5 text-[13.5px] font-semibold text-ink-muted transition hover:text-bad disabled:opacity-40"
             >
               Reject
             </button>

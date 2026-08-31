@@ -3,38 +3,41 @@
 /*
  * ZeroStart wears the Zero Club brand.
  *
- * One ecosystem, one colour: #cc208f is Zero Club's accent, and using it here
- * means somebody arriving from zeroclubs.xyz recognises where they are before
- * they read a word. The distinction between the two products is carried by the
- * surface instead — ZeroStart is dark-first, because it is where you ship
- * something and wait to find out whether it works.
+ * One ecosystem, one colour and one surface: #cc208f on Zero Club's warm
+ * off-white. Somebody arriving from zeroclubs.xyz should recognise where they
+ * are before they read a word, and a dark app hanging off a light one broke
+ * that on the very first frame.
+ *
+ * The background is #f8f7f5 — the same value Zero Club uses, not an
+ * approximation. Two near-identical off-whites across two products is the kind
+ * of difference nobody can name but everybody notices.
  */
 @theme {
-  --color-bg: #0a070c;
-  --color-surface: #141017;
-  --color-surface-2: #1a151d;
-  --color-line: #ffffff14;
+  --color-bg: #f8f7f5;
+  --color-surface: #ffffff;
+  --color-surface-2: #fbfaf9;
+  --color-line: #2e2e3814;
 
-  --color-ink: #f4f4f7;
-  --color-ink-muted: #a0a0b0;
-  --color-ink-faint: #6c6c7d;
+  --color-ink: #1a1a20;
+  --color-ink-muted: #5c5c68;
+  --color-ink-faint: #8b8b96;
 
   /* The Zero Club brand colour, exactly as Zero Club defines it. */
   --color-accent: #cc208f;
-  --color-accent-soft: #cc208f26;
+  --color-accent-soft: #cc208f14;
   --color-accent-ink: #ffffff;
-  --color-accent-glow: #cc208f8c;
+  --color-accent-glow: #cc208f4d;
 
   /* Semantic, used consistently: approved, pending, rejected. */
-  --color-ok: #34d399;
-  --color-warn: #fbbf24;
-  --color-bad: #f87171;
+  --color-ok: #15803d;
+  --color-warn: #b45309;
+  --color-bad: #b42318;
 
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-sans: "Montserrat", system-ui, sans-serif;
 }
 
-html { background: var(--color-bg); color-scheme: dark; }
+html { background: var(--color-bg); color-scheme: light; }
 
 body {
   margin: 0;
@@ -49,43 +52,54 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.03em; }
 /*
  * The surface treatment, defined once.
  *
- * A dark card needs three things to read as an object rather than a rectangle:
- * a hairline of light on the top edge where a bevel would catch it, a contact
- * shadow, and a wider ambient one. Zero Club learned this the hard way; there
- * is no reason for ZeroStart to learn it again.
+ * On dark, a card needs a lit top edge to read as an object. On light the
+ * opposite is true: the page is brighter than nothing, so a card separates by
+ * being *whiter* than the page and casting a soft shadow beneath it. The old
+ * inset highlight would be invisible here, and the heavy black shadow would
+ * look like dirt.
  */
 .zs-card {
   background: var(--color-surface);
   border-radius: 18px;
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.3),
-    0 16px 36px -18px rgb(0 0 0 / 0.6),
-    inset 0 1px 0 rgb(255 255 255 / 0.06),
-    inset 0 0 0 1px rgb(255 255 255 / 0.045);
+    0 1px 2px rgb(26 26 32 / 0.04),
+    0 8px 24px -12px rgb(26 26 32 / 0.10),
+    inset 0 0 0 1px rgb(26 26 32 / 0.05);
 }
 
 .zs-card-hover { transition: transform .25s, box-shadow .25s; }
 .zs-card-hover:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.3),
-    0 24px 50px -20px rgb(0 0 0 / 0.7),
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
-    inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    0 1px 2px rgb(26 26 32 / 0.04),
+    0 16px 34px -14px rgb(26 26 32 / 0.16),
+    inset 0 0 0 1px rgb(26 26 32 / 0.08);
+}
+
+/* A flat bordered surface for rows inside a card, where a second shadow would
+   just muddy the one the card is already casting. */
+.zs-inset {
+  background: var(--color-surface-2);
+  box-shadow: inset 0 0 0 1px rgb(26 26 32 / 0.05);
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
+/*
+ * The brand glow, on the one primary action per screen. Spread across every
+ * button it stops meaning anything.
+ */
+.zs-glow { box-shadow: 0 8px 22px -10px var(--color-accent-glow); }
+
+/* The live dot on the stats pill. Slow enough to read as a heartbeat rather
+   than a notification demanding attention. */
+@keyframes zs-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .45; transform: scale(.82); }
+}
+.zs-live-dot { animation: zs-pulse 2.4s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-}
-
-/*
- * The brand glow, borrowed from Zero Club's dark theme, where the accent stops
- * being a flat fill and starts looking lit. Used on the one primary action per
- * screen — spread across every button it stops meaning anything.
- */
-.zs-glow {
-  box-shadow: 0 10px 34px -14px var(--color-accent-glow);
 }

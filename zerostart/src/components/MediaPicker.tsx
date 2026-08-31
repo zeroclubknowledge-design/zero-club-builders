@@ -117,7 +117,7 @@ export function MediaPicker({ value, onChange, builderId }: MediaPickerProps) {
 
       <div className="mt-3 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
         {value.map((url, i) => (
-          <div key={url} className="group relative aspect-square overflow-hidden rounded-xl bg-white/[0.04]">
+          <div key={url} className="group relative aspect-square overflow-hidden rounded-xl bg-ink/[0.04]">
             {isVideo(url) ? (
               <>
                 <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
@@ -151,7 +151,7 @@ export function MediaPicker({ value, onChange, builderId }: MediaPickerProps) {
             type="button"
             onClick={pick}
             disabled={busy}
-            className="grid aspect-square place-items-center rounded-xl border border-dashed border-white/15 bg-white/[0.02] text-ink-faint transition hover:border-accent/50 hover:text-accent disabled:opacity-50"
+            className="grid aspect-square place-items-center rounded-xl border border-dashed border-ink/15 bg-ink/[0.02] text-ink-faint transition hover:border-accent/50 hover:text-accent disabled:opacity-50"
           >
             {busy ? (
               <span className="flex flex-col items-center gap-1.5">

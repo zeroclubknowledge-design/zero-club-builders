@@ -171,12 +171,12 @@ export function TestFlow() {
                   onClick={() => !alreadySubmitted && toggleTask(task.id)}
                   disabled={alreadySubmitted}
                   className={`flex w-full gap-3 rounded-xl p-3 text-left transition ${
-                    alreadySubmitted ? "cursor-default" : "hover:bg-white/[0.04]"
+                    alreadySubmitted ? "cursor-default" : "hover:bg-ink/[0.04]"
                   }`}
                 >
                   <span
                     className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
-                      checked ? "border-accent bg-accent text-accent-ink" : "border-white/20"
+                      checked ? "border-accent bg-accent text-accent-ink" : "border-ink/25"
                     }`}
                   >
                     {checked && <Check className="h-3 w-3" strokeWidth={3} />}
@@ -209,7 +209,7 @@ export function TestFlow() {
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setRating(n)} aria-label={`${n} out of 5`} className="p-1">
                   <Star
-                    className={`h-7 w-7 transition ${n <= rating ? "fill-accent text-accent" : "text-white/20"}`}
+                    className={`h-7 w-7 transition ${n <= rating ? "fill-accent text-accent" : "text-ink/15"}`}
                   />
                 </button>
               ))}

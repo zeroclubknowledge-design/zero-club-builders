@@ -107,7 +107,7 @@ export function AdminReview() {
                       <button
                         onClick={() => act(mvp, false)}
                         disabled={busyId === mvp.id}
-                        className="h-10 rounded-full bg-white/8 px-5 text-[13px] font-semibold text-ink transition hover:bg-white/12 disabled:opacity-40"
+                        className="h-10 rounded-full bg-ink/[0.06] px-5 text-[13px] font-semibold text-ink transition hover:bg-ink/10 disabled:opacity-40"
                       >
                         Restore
                       </button>
@@ -123,7 +123,7 @@ export function AdminReview() {
                       <button
                         onClick={() => act(mvp, true)}
                         disabled={busyId === mvp.id}
-                        className="h-10 w-full shrink-0 rounded-full bg-white/8 px-5 text-[13px] font-semibold text-ink-muted transition hover:text-bad disabled:opacity-40 sm:w-auto"
+                        className="h-10 w-full shrink-0 rounded-full bg-ink/[0.06] px-5 text-[13px] font-semibold text-ink-muted transition hover:text-bad disabled:opacity-40 sm:w-auto"
                       >
                         Take down
                       </button>

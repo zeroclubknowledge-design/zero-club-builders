@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -19,12 +19,22 @@ export function NewMvp() {
   const navigate = useNavigate();
   const { session } = useAuth();
 
+  // Whatever was typed into the hero on the board. Prefilled rather than
+  // re-asked: making someone retype the URL they just entered is the fastest
+  // way to lose them on the second screen.
+  const search = useSearch({ from: "/build/new" });
+
   const [name, setName] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [fullDescription, setFullDescription] = useState("");
-  const [category, setCategory] = useState<string>("Other");
-  const [zerohubUrl, setZerohubUrl] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [category, setCategory] = useState<string>(search.category || "Other");
+  const [zerohubUrl, setZerohubUrl] = useState(
+    search.url && /zeroclubs\.xyz/i.test(search.url) ? search.url : ""
+  );
+  const [websiteUrl, setWebsiteUrl] = useState(
+    // A Zerohub link belongs in its own field; anything else is a direct link.
+    search.url && !/zeroclubs\.xyz/i.test(search.url) ? search.url : ""
+  );
   const [media, setMedia] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +146,7 @@ export function NewMvp() {
           <button
             onClick={() => save(false)}
             disabled={!valid || saving}
-            className="h-12 w-full shrink-0 rounded-full bg-white/8 text-[14px] font-semibold text-ink transition hover:bg-white/12 disabled:opacity-40 sm:flex-1"
+            className="h-12 w-full shrink-0 rounded-full bg-ink/[0.06] text-[14px] font-semibold text-ink transition hover:bg-ink/10 disabled:opacity-40 sm:flex-1"
           >
             Save as draft
           </button>

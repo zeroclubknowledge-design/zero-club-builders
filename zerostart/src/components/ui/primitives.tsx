@@ -35,7 +35,7 @@ const STATUS_TONE: Record<string, string> = {
   paused: "bg-warn/15 text-warn",
   rejected: "bg-bad/15 text-bad",
   cancelled: "bg-bad/15 text-bad",
-  draft: "bg-white/8 text-ink-faint",
+  draft: "bg-ink/[0.06] text-ink-faint",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -45,7 +45,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  const tone = STATUS_TONE[status] || "bg-white/8 text-ink-faint";
+  const tone = STATUS_TONE[status] || "bg-ink/[0.06] text-ink-faint";
   const label = STATUS_LABEL[status] || status.charAt(0).toUpperCase() + status.slice(1);
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${tone}`}>
@@ -65,7 +65,7 @@ export function SeatMeter({ taken, limit }: { taken: number; limit: number }) {
         <span className="font-semibold text-ink">{taken} / {limit} testers</span>
         {full && <span className="text-[11px] font-semibold text-warn">Full</span>}
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/8">
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink/[0.06]">
         <div
           className={`h-full rounded-full transition-[width] duration-500 ${full ? "bg-warn" : "bg-accent"}`}
           style={{ width: `${pct}%` }}
@@ -88,7 +88,7 @@ export function EmptyState({ title, body, action }: { title: string; body: strin
 /** A skeleton, not a spinner: the spec asks for no empty screens while loading,
     and a shape that matches what is coming reads as "nearly there". */
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-white/[0.06] ${className}`} />;
+  return <div className={`animate-pulse rounded-lg bg-ink/[0.05] ${className}`} />;
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
