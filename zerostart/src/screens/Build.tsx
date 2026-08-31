@@ -128,27 +128,45 @@ export function Build() {
                     {mvp.campaigns && mvp.campaigns.length > 0 && (
                       <div className="mt-3 space-y-2">
                         {mvp.campaigns.map((c) => (
-                          <div
-                            key={c.id}
-                            className="flex items-center gap-2 rounded-xl bg-ink/[0.03] px-3.5 py-2.5"
-                          >
-                            <Link
-                              to="/build/campaign/$id"
-                              params={{ id: c.id }}
-                              className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink hover:text-accent"
-                            >
-                              {c.name}
-                            </Link>
-                            <span className="shrink-0 text-[12px] text-ink-faint">{c.zp_reward} ZP</span>
-                            <StatusBadge status={c.status} />
-                            <Link
-                              to="/build/campaign/$id/edit"
-                              params={{ id: c.id }}
-                              aria-label={`Edit ${c.name}`}
-                              className="shrink-0 rounded-lg p-1.5 text-ink-faint transition hover:bg-ink/[0.06] hover:text-ink"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Link>
+                          /*
+                            Two lines, not one.
+                            
+                            This was a single row ending in a 14px faint pencil
+                            icon, wedged in after a status badge. On a phone the
+                            name truncates, the badge takes what is left, and the
+                            only way to edit anything was a grey glyph most people
+                            never saw. A labelled button on its own line is not a
+                            style preference here — it is the difference between
+                            the feature existing and not.
+                          */
+                          <div key={c.id} className="rounded-xl bg-ink/[0.03] p-3.5">
+                            <div className="flex items-center gap-2">
+                              <Link
+                                to="/build/campaign/$id"
+                                params={{ id: c.id }}
+                                className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink hover:text-accent"
+                              >
+                                {c.name}
+                              </Link>
+                              <span className="shrink-0 text-[12px] text-ink-faint">{c.zp_reward} ZP</span>
+                              <StatusBadge status={c.status} />
+                            </div>
+                            <div className="mt-2.5 flex gap-2">
+                              <Link
+                                to="/build/campaign/$id/edit"
+                                params={{ id: c.id }}
+                                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-accent px-3.5 text-[12px] font-semibold text-accent-ink transition hover:opacity-90"
+                              >
+                                <Pencil className="h-3 w-3" /> Edit
+                              </Link>
+                              <Link
+                                to="/build/campaign/$id"
+                                params={{ id: c.id }}
+                                className="inline-flex h-8 items-center rounded-full bg-ink/[0.06] px-3.5 text-[12px] font-semibold text-ink-muted transition hover:text-ink"
+                              >
+                                Submissions
+                              </Link>
+                            </div>
                           </div>
                         ))}
                       </div>

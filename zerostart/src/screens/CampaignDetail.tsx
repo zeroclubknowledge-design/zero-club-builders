@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, ExternalLink, Check } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, Inbox, Pencil } from "lucide-react";
 import { getCampaign, joinCampaign } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { Campaign } from "@/types";
@@ -202,21 +202,54 @@ export function CampaignDetail() {
             <p className="mt-6 rounded-xl bg-bad/12 px-4 py-3 text-[13px] font-medium text-bad">{refusal}</p>
           )}
 
-          <button
-            onClick={start}
-            disabled={joining || full || isOwn || campaign.status !== "live"}
-            className="zs-glow mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
-          >
-            {isOwn ? "Your own campaign"
-              : full ? "All seats taken"
-              : campaign.status !== "live" ? "Not recruiting"
-              : joining ? "Taking your seat…"
-              : <><Check className="h-4 w-4" /> Start testing</>}
-          </button>
+          {/*
+            Your own campaign is not a dead end.
+            
+            This used to render one greyed-out button saying "Your own
+            campaign" and nothing else — which is a correct statement and a
+            useless screen. A builder opening their own campaign wants to
+            change it or see who has submitted, so those are what they get.
+          */}
+          {isOwn ? (
+            <div className="mt-6">
+              <div className="flex flex-col gap-2.5 sm:flex-row">
+                <Link
+                  to="/build/campaign/$id/edit"
+                  params={{ id: campaign.id }}
+                  className="zs-glow inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 sm:flex-1"
+                >
+                  <Pencil className="h-4 w-4" /> Edit campaign
+                </Link>
+                <Link
+                  to="/build/campaign/$id"
+                  params={{ id: campaign.id }}
+                  className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-ink/[0.06] text-[14px] font-semibold text-ink transition hover:bg-ink/10 sm:flex-1"
+                >
+                  <Inbox className="h-4 w-4" /> Review submissions
+                </Link>
+              </div>
+              <p className="mt-3 text-[12px] leading-relaxed text-ink-faint">
+                This is your campaign, so you can't test it yourself.
+              </p>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={start}
+                disabled={joining || full || campaign.status !== "live"}
+                className="zs-glow mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[14px] font-semibold text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
+              >
+                {full ? "All seats taken"
+                  : campaign.status !== "live" ? "Not recruiting"
+                  : joining ? "Taking your seat…"
+                  : <><Check className="h-4 w-4" /> Start testing</>}
+              </button>
 
-          <p className="mt-3 text-[12px] leading-relaxed text-ink-faint">
-            ZP is paid once, after the builder approves your submission.
-          </p>
+              <p className="mt-3 text-[12px] leading-relaxed text-ink-faint">
+                ZP is paid once, after the builder approves your submission.
+              </p>
+            </>
+          )}
         </div>
       </Card>
     </div>
