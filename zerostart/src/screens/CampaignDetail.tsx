@@ -81,7 +81,17 @@ export function CampaignDetail() {
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <h1 className="text-[22px] font-bold leading-tight text-ink sm:text-[26px]">{mvp?.name}</h1>
+              {mvp ? (
+                <Link
+                  to="/product/$id"
+                  params={{ id: mvp.id }}
+                  className="text-[22px] font-bold leading-tight text-ink hover:text-accent sm:text-[26px]"
+                >
+                  {mvp.name}
+                </Link>
+              ) : (
+                <h1 className="text-[22px] font-bold leading-tight text-ink sm:text-[26px]">Product</h1>
+              )}
               <p className="mt-1 text-[13px] text-ink-faint">
                 {mvp?.category}
                 {mvp?.builder?.username && <> · by @{mvp.builder.username}</>}
@@ -124,6 +134,16 @@ export function CampaignDetail() {
                 )
               )}
             </div>
+          )}
+
+          {mvp && (
+            <Link
+              to="/product/$id"
+              params={{ id: mvp.id }}
+              className="mt-4 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-accent"
+            >
+              See full product details →
+            </Link>
           )}
 
           {link && (

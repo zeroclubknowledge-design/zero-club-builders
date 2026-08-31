@@ -168,3 +168,18 @@ export interface LeaderboardRow {
   total_zp_earned: number;
   level: TesterLevel;
 }
+
+export interface MvpOverview {
+  found: boolean;
+  zp_offered: number;
+  overall_rank: number;
+  overall_total: number;
+  category_rank: number;
+  category_total: number;
+  campaigns: number;
+  testers: number;
+  tests_approved: number;
+  feedback_count: number;
+  average_rating: number | null;
+  zp_paid: number;
+}

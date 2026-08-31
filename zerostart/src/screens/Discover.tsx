@@ -182,7 +182,17 @@ function CampaignRow({ campaign, rank }: { campaign: Campaign; rank: number }) {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <h3 className="truncate text-[14.5px] font-semibold text-ink">{mvp?.name}</h3>
+            {mvp ? (
+              <Link
+                to="/product/$id"
+                params={{ id: mvp.id }}
+                className="truncate text-[14.5px] font-semibold text-ink hover:text-accent"
+              >
+                {mvp.name}
+              </Link>
+            ) : (
+              <h3 className="truncate text-[14.5px] font-semibold text-ink">Product</h3>
+            )}
             {mvp?.is_featured && <Sparkles className="h-3.5 w-3.5 shrink-0 text-accent" />}
           </div>
           <p className="mt-0.5 line-clamp-1 text-[12.5px] text-ink-muted">{mvp?.short_description}</p>

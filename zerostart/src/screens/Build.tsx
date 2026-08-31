@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { myMvps } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { Mvp } from "@/types";
@@ -82,7 +82,13 @@ export function Build() {
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-semibold text-ink">{mvp.name}</p>
+                    <Link
+                      to="/product/$id"
+                      params={{ id: mvp.id }}
+                      className="block truncate text-[15px] font-semibold text-ink hover:text-accent"
+                    >
+                      {mvp.name}
+                    </Link>
                     <p className="mt-0.5 line-clamp-1 text-[12.5px] text-ink-muted">{mvp.short_description}</p>
                   </div>
                   <StatusBadge status={mvp.status} />
@@ -122,18 +128,28 @@ export function Build() {
                     {mvp.campaigns && mvp.campaigns.length > 0 && (
                       <div className="mt-3 space-y-2">
                         {mvp.campaigns.map((c) => (
-                          <Link
+                          <div
                             key={c.id}
-                            to="/build/campaign/$id"
-                            params={{ id: c.id }}
-                            className="flex items-center justify-between gap-3 rounded-xl bg-ink/[0.03] px-3.5 py-2.5 transition hover:bg-ink/[0.05]"
+                            className="flex items-center gap-2 rounded-xl bg-ink/[0.03] px-3.5 py-2.5"
                           >
-                            <span className="min-w-0 truncate text-[13px] font-medium text-ink">{c.name}</span>
-                            <span className="flex shrink-0 items-center gap-2">
-                              <span className="text-[12px] text-ink-faint">{c.zp_reward} ZP</span>
-                              <StatusBadge status={c.status} />
-                            </span>
-                          </Link>
+                            <Link
+                              to="/build/campaign/$id"
+                              params={{ id: c.id }}
+                              className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink hover:text-accent"
+                            >
+                              {c.name}
+                            </Link>
+                            <span className="shrink-0 text-[12px] text-ink-faint">{c.zp_reward} ZP</span>
+                            <StatusBadge status={c.status} />
+                            <Link
+                              to="/build/campaign/$id/edit"
+                              params={{ id: c.id }}
+                              aria-label={`Edit ${c.name}`}
+                              className="shrink-0 rounded-lg p-1.5 text-ink-faint transition hover:bg-ink/[0.06] hover:text-ink"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Link>
+                          </div>
                         ))}
                       </div>
                     )}

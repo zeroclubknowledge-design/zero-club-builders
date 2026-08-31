@@ -149,6 +149,7 @@ paid once.
 | Admin functions | `20260901002000_zerostart_admin_review.sql` |
 | Open listing + media | `20260901003000_zerostart_open_listing.sql` |
 | Board stats, activity, leaderboard | `20260901004000_zerostart_board.sql` |
+| Editing guards + product page data | `20260901005000_zerostart_editing.sql` |
 | Everything joined, to paste into Supabase | `supabase/RUN_THIS_IN_SUPABASE.sql` |
 
 ### Why listings are not approved first
@@ -198,6 +199,41 @@ policy and expose everyone's submissions, each function returns exactly the
 aggregate the board shows. Feedback text, bug reports and review notes are
 never exposed, and the feed announces joins and approvals only: a submission is
 private between tester and builder until the builder has acted on it.
+
+### Editing a campaign
+
+The policies already allowed it — `zs_campaigns_builder_write` is `for all`.
+What was missing was protection for the people who had already joined, so two
+triggers do that:
+
+- The reward cannot be lowered, and the seat limit cannot drop below the seats
+  already taken, once anyone holds a seat. A tester commits their time on the
+  strength of a stated reward; letting it be cut afterwards means the deal on
+  offer is not the deal being honoured.
+- A task that someone has already ticked cannot be deleted. Rewording is fine;
+  removing it would silently rewrite what they agreed to do and leave their
+  `completed_task_ids` pointing at nothing.
+
+These are triggers rather than form validation because they are promises, not
+validations. A disabled input is a courtesy; a trigger is the rule, and it
+holds whatever sends the request.
+
+Create and edit share one `CampaignForm`. They were going to be two screens
+with the same nine fields — two places to add a field and one place to forget.
+
+### The product page
+
+`/product/$id` — what the product is, how it ranks, and what it is offering.
+Reachable from the board, from any campaign, and from the builder's own list.
+
+Rank comes from `zs_mvp_overview`, which returns everything the page shows in
+one call. It is a function rather than a query because working out "#24 of 41
+in Productivity" client-side would mean fetching every live MVP in the category
+and counting locally — fine at 41, useless at 4,100. Ranking is by the best
+reward currently on offer, since that is the number a tester is choosing on.
+
+The page shows feedback *counts* and an average rating. It never shows what
+anyone wrote — that goes to the builder, not the board.
 
 **Not built yet:** the bug-report form (table and policies exist, nothing writes
 to it), tester leaderboards, notifications, and campaign editing after creation.

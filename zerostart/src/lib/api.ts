@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import type {
-  ActivityItem, BoardStats, Campaign, LeaderboardRow, Mvp, Participation, TesterStats,
+  ActivityItem, BoardStats, Campaign, LeaderboardRow, Mvp, MvpOverview,
+  Participation, TesterStats,
 } from "@/types";
 
 /**
@@ -236,4 +237,16 @@ export async function getLeaderboard(limit = 10) {
   const { data, error } = await supabase.rpc("zs_leaderboard", { p_limit: limit });
   if (error) throw error;
   return (data || []) as LeaderboardRow[];
+}
+
+/** Everything the product page shows, ranks included. One call. */
+export async function getMvpOverview(mvpId: string) {
+  const { data, error } = await supabase.rpc("zs_mvp_overview", { p_mvp_id: mvpId });
+  if (error) throw error;
+  return data as MvpOverview;
+}
+
+/** Every live campaign for a product, so the page can show what is on offer. */
+export async function listCampaignsForProduct(mvpId: string) {
+  return listCampaignsForMvp(mvpId);
 }

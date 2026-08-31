@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, Pencil, Star } from "lucide-react";
 import { getCampaign, reviewSubmission, submissionsForCampaign } from "@/lib/api";
 import type { Campaign, Participation } from "@/types";
 import { Card, EmptyState, ErrorState, SeatMeter, Skeleton, StatusBadge, ZpBadge } from "@/components/ui/primitives";
@@ -53,6 +53,25 @@ export function CampaignReview() {
             <ZpBadge amount={campaign.zp_reward} />
             <StatusBadge status={campaign.status} />
           </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2.5">
+          <Link
+            to="/build/campaign/$id/edit"
+            params={{ id }}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-ink/[0.06] px-4 text-[12.5px] font-semibold text-ink transition hover:bg-ink/10"
+          >
+            <Pencil className="h-3.5 w-3.5" /> Edit campaign
+          </Link>
+          {campaign.mvp && (
+            <Link
+              to="/product/$id"
+              params={{ id: campaign.mvp.id }}
+              className="inline-flex h-9 items-center rounded-full bg-ink/[0.06] px-4 text-[12.5px] font-semibold text-ink-muted transition hover:text-ink"
+            >
+              View product page
+            </Link>
+          )}
         </div>
         <div className="mt-5 max-w-[280px]">
           <SeatMeter taken={campaign.seats_taken ?? 0} limit={campaign.tester_limit} />

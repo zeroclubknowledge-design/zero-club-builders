@@ -11,6 +11,8 @@ import { NewMvp } from "@/screens/NewMvp";
 import { NewCampaign } from "@/screens/NewCampaign";
 import { CampaignReview } from "@/screens/CampaignReview";
 import { AdminReview } from "@/screens/AdminReview";
+import { ProductPage } from "@/screens/ProductPage";
+import { EditCampaign } from "@/screens/EditCampaign";
 import { SignIn } from "@/screens/SignIn";
 
 /**
@@ -75,6 +77,12 @@ const newCampaignRoute = createRoute({
 const campaignReviewRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/build/campaign/$id", component: CampaignReview,
 });
+const productRoute = createRoute({
+  getParentRoute: () => rootRoute, path: "/product/$id", component: ProductPage,
+});
+const editCampaignRoute = createRoute({
+  getParentRoute: () => rootRoute, path: "/build/campaign/$id/edit", component: EditCampaign,
+});
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/admin", component: AdminReview,
 });
@@ -89,6 +97,8 @@ const routeTree = rootRoute.addChildren([
   newMvpRoute,
   newCampaignRoute,
   campaignReviewRoute,
+  editCampaignRoute,
+  productRoute,
   adminRoute,
 ]);
 
