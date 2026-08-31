@@ -360,6 +360,36 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
 
+  /* Scroll arrival. Paired with useReveal.
+     Transform and opacity only — both are compositor properties, so a long
+     page of these costs nothing to animate. The distance is small on purpose:
+     22px reads as the section settling into place, where 60px reads as the
+     page being assembled in front of you. */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+    /* Released once the animation is done: leaving will-change on hundreds of
+       elements keeps each one on its own layer for the life of the page. */
+    will-change: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
   /* A dark surface that reads as a physical object.
    *
    * The showcase cards were a flat fill with a 1px ring, which is why they

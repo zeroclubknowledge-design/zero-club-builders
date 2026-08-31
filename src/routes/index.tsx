@@ -2,6 +2,7 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { HeroStage } from "@/features/landing/HeroStage";
+import { useReveal } from "@/hooks/useReveal";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -705,19 +706,29 @@ function LearningSection() {
         </div>
         <div className="mx-auto mt-10 max-w-[860px] pb-5">
           {platformHighlights.map((item, index) => (
+            /* These stack as you scroll, so each one is seen against the last
+               — which is exactly when a flat panel with a 1px ring looks
+               unfinished. zc-surface-light gives the same treatment as the
+               showcase: a hairline along the top edge, a soft inner glow, and
+               a contact shadow under a wide ambient one. The pink wash in the
+               corner keeps the brand present without a border doing it. */
             <article
               key={item.title}
-              className="sticky mb-5 min-h-[210px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[220px] md:p-8"
+              className="zc-surface-light group sticky mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 transition duration-500 hover:-translate-y-0.5 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
               style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
             >
-              <div className="flex items-start justify-between gap-5">
-                <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#cc208f]/[0.10] blur-[60px] transition-opacity duration-500 group-hover:opacity-150 dark:bg-[#cc208f]/25"
+              />
+              <div className="relative flex items-start justify-between gap-5">
+                <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-gradient-to-br from-[#cc208f]/[0.16] to-[#cc208f]/[0.04] text-[#cc208f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-[#cc208f]/20 transition duration-500 group-hover:scale-[1.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                   <item.Icon active className="h-[22px] w-[22px]" />
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">0{index + 1}</span>
               </div>
-              <h3 className="mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">{item.title}</h3>
-              <p className="mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[14px]">{item.copy}</p>
+              <h3 className="relative mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">{item.title}</h3>
+              <p className="relative mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[14px]">{item.copy}</p>
             </article>
           ))}
         </div>
@@ -1174,6 +1185,9 @@ function Footer() {
 function Landing() {
   const { ref } = useSearch({ from: "/" });
 
+  /* Sections arrive as they are reached rather than sitting there. */
+  useReveal();
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#141118] font-['Montserrat'] text-[#171717] dark:text-white selection:bg-[#cc208f]/20">
       <Header referralCode={ref} />
@@ -1182,16 +1196,16 @@ function Landing() {
             motion behind it, and counts read from the database rather than
             asserted. Everything below it is unchanged. */}
         <HeroStage referralCode={ref} />
-        <ProductSection />
-        <TopicExplorer />
-        <LearningSection />
-        <ClubsSection />
-        <OpportunitiesSection />
-        <WalletSection />
-        <FeaturesSection />
-        <ContactSection />
-        <FaqSection />
-        <FinalCta referralCode={ref} />
+        <div data-reveal><ProductSection /></div>
+        <div data-reveal><TopicExplorer /></div>
+        <div data-reveal><LearningSection /></div>
+        <div data-reveal><ClubsSection /></div>
+        <div data-reveal><OpportunitiesSection /></div>
+        <div data-reveal><WalletSection /></div>
+        <div data-reveal><FeaturesSection /></div>
+        <div data-reveal><ContactSection /></div>
+        <div data-reveal><FaqSection /></div>
+        <div data-reveal><FinalCta referralCode={ref} /></div>
       </main>
       <Footer />
     </div>

@@ -53,7 +53,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
     /* min-h rather than h: the composition wants one screen, but a short
        laptop window should scroll rather than crush the stats into the
        headline. */
-    <section className="relative flex min-h-[88svh] flex-col overflow-hidden bg-[#0b0a0d] text-white md:min-h-[92svh]">
+    <section className="relative flex min-h-[88svh] flex-col overflow-hidden bg-[#f4f2ef] text-[#171717] dark:bg-[#0b0a0d] dark:text-white md:min-h-[92svh]">
       <BrandField />
 
       {/* Tighter. The hero was centring inside a 1080px column with 5.5rem of
@@ -61,13 +61,6 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           middle of a lot of nothing. The measure only has to hold the
           headline, and the top padding only has to clear the header. */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-1 flex-col items-center justify-center px-4 pb-6 pt-[calc(4.5rem+env(safe-area-inset-top))] text-center md:px-8">
-        {/* Only once there is something true to say. There is no placeholder
-            line: a sentence written to fill the gap is a sentence nobody asked
-            for on the front door. */}
-        {stats && shown.builders > 0 && (
-          <ProofRow builders={shown.builders} clubs={shown.clubs} />
-        )}
-
         {/* The wording is the landing page's own, unchanged. Three lines, so
             the progression reads as a sequence — skills, then proof, then what
             the proof opens — with the third in brand pink. Each is its own
@@ -90,7 +83,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           </span>
         </h1>
 
-        <p className="mt-5 max-w-[min(560px,92%)] text-[clamp(15px,1.7vw,18px)] leading-[1.55] text-white/70 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.28s_both]">
+        <p className="mt-5 max-w-[min(560px,92%)] text-[clamp(15px,1.7vw,18px)] leading-[1.55] text-[#4d4f55] dark:text-white/70 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.28s_both]">
           Learn in live bootcamps, ship work in public, join serious communities —
           and turn proof of work into reputation and income.
         </p>
@@ -100,7 +93,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
             to="/signup"
             search={{ ref: referralCode, club: undefined }}
             preload={false}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-7 text-[15px] font-semibold tracking-tight text-black shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_26px_rgba(204,32,143,0.35),0_0_54px_rgba(204,32,143,0.16)] transition hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.99]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[15px] font-semibold tracking-tight text-white shadow-[0_10px_30px_-12px_rgba(204,32,143,0.6)] transition hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.99] dark:bg-white dark:text-black dark:shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_26px_rgba(204,32,143,0.35),0_0_54px_rgba(204,32,143,0.16)]"
           >
             Start building free <ArrowRight className="h-4 w-4" />
           </Link>
@@ -108,13 +101,13 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
             to="/signin"
             search={{ ref: referralCode, club: undefined }}
             preload={false}
-            className="inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-semibold tracking-tight text-white/85 ring-1 ring-white/20 transition hover:bg-white/10 hover:text-white active:scale-[0.99]"
+            className="inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-semibold tracking-tight text-[#303236] ring-1 ring-[#171717]/15 transition hover:bg-white active:scale-[0.99] dark:text-white/85 dark:ring-white/20 dark:hover:bg-white/10 dark:hover:text-white"
           >
             Sign in
           </Link>
         </div>
 
-        <p className="mt-4 text-[12.5px] text-white/45">
+        <p className="mt-4 text-[12.5px] text-[#666a70] dark:text-white/45">
           Free to join · Profiles, clubs, bootcamps, wallet, and XP built in
         </p>
       </div>
@@ -138,36 +131,17 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
  */
 function BrandField() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#0b0a0d]">
-      <div className="absolute -left-[20%] -top-[30%] h-[70vmax] w-[70vmax] rounded-full bg-[radial-gradient(circle,rgba(204,32,143,0.30)_0%,rgba(204,32,143,0.10)_38%,transparent_66%)] blur-[40px] animate-[zc-drift-a_26s_ease-in-out_infinite]" />
-      <div className="absolute -bottom-[35%] -right-[15%] h-[62vmax] w-[62vmax] rounded-full bg-[radial-gradient(circle,rgba(120,60,200,0.24)_0%,rgba(120,60,200,0.08)_42%,transparent_70%)] blur-[50px] animate-[zc-drift-b_32s_ease-in-out_infinite]" />
-      <div className="absolute left-[45%] top-[35%] h-[40vmax] w-[40vmax] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.05)_0%,transparent_65%)] blur-[30px] animate-[zc-drift-a_38s_ease-in-out_infinite_reverse]" />
+    /* Same composition, two palettes. On a light page the same blooms would
+       be invisible at these opacities, so they are stronger and the veil at
+       the bottom fades to the light background instead of near-black. */
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#f4f2ef] dark:bg-[#0b0a0d]">
+      <div className="absolute -left-[20%] -top-[30%] h-[70vmax] w-[70vmax] rounded-full bg-[radial-gradient(circle,rgba(204,32,143,0.22)_0%,rgba(204,32,143,0.08)_38%,transparent_66%)] dark:bg-[radial-gradient(circle,rgba(204,32,143,0.30)_0%,rgba(204,32,143,0.10)_38%,transparent_66%)] blur-[40px] animate-[zc-drift-a_26s_ease-in-out_infinite]" />
+      <div className="absolute -bottom-[35%] -right-[15%] h-[62vmax] w-[62vmax] rounded-full bg-[radial-gradient(circle,rgba(120,60,200,0.16)_0%,rgba(120,60,200,0.05)_42%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(120,60,200,0.24)_0%,rgba(120,60,200,0.08)_42%,transparent_70%)] blur-[50px] animate-[zc-drift-b_32s_ease-in-out_infinite]" />
+      <div className="absolute left-[45%] top-[35%] h-[40vmax] w-[40vmax] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.55)_0%,transparent_65%)] dark:bg-[radial-gradient(circle,rgba(255,255,255,0.05)_0%,transparent_65%)] blur-[30px] animate-[zc-drift-a_38s_ease-in-out_infinite_reverse]" />
       {/* Grain. Without it the blurs band into visible steps on 6-bit panels,
           which is most budget Android phones. */}
-      <div className="zc-grain absolute inset-0 opacity-[0.16]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0b0a0d]/40 via-transparent to-[#0b0a0d]" />
-    </div>
-  );
-}
-
-/** Real counts. Rendered only when there are some. */
-function ProofRow({ builders, clubs }: { builders: number; clubs: number }) {
-  return (
-    <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-1.5 pr-4 backdrop-blur-md animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.05s_both]">
-      <span className="flex -space-x-2">
-        {["#cc208f", "#7a3cc8", "#2f7a8b"].map((colour) => (
-          <span
-            key={colour}
-            className="grid h-7 w-7 place-items-center rounded-full ring-2 ring-[#0b0a0d]"
-            style={{ background: colour }}
-          >
-            <span className="h-2 w-2 rounded-full bg-white/85" />
-          </span>
-        ))}
-      </span>
-      <span className="text-[12.5px] font-medium text-white/75">
-        {builders.toLocaleString()} builders across {clubs.toLocaleString()} {clubs === 1 ? "club" : "clubs"}
-      </span>
+      <div className="zc-grain absolute inset-0 opacity-[0.07] dark:opacity-[0.16]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#f4f2ef]/40 via-transparent to-[#f4f2ef] dark:from-[#0b0a0d]/40 dark:to-[#0b0a0d]" />
     </div>
   );
 }
@@ -189,7 +163,7 @@ function StatsStrip({ stats }: { stats: Stats }) {
           className="text-center animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_both]"
           style={{ animationDelay: `${0.5 + index * 0.08}s` }}
         >
-          <p className="font-display text-[clamp(20px,2.4vw,28px)] font-semibold tabular-nums tracking-[-0.03em] text-white">
+          <p className="font-display text-[clamp(20px,2.4vw,28px)] font-semibold tabular-nums tracking-[-0.03em] text-[#171717] dark:text-white">
             {/* Always the number. A dash while loading meant the strip spent
                 its first second saying nothing, and 0 is a true answer that
                 becomes 1 the moment somebody joins. CountUp re-runs when the
@@ -197,7 +171,7 @@ function StatsStrip({ stats }: { stats: Stats }) {
                 than snapping. */}
             <CountUp to={item.value} delay={480 + index * 90} />
           </p>
-          <p className="mt-1 text-[clamp(11px,1.2vw,12.5px)] text-white/45">{item.label}</p>
+          <p className="mt-1 text-[clamp(11px,1.2vw,12.5px)] text-[#666a70] dark:text-white/45">{item.label}</p>
         </div>
       ))}
     </div>
