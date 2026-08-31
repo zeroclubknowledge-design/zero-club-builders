@@ -1,0 +1,41 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "//": [
+    "ZeroStart's own build settings, kept here rather than in the Vercel",
+    "dashboard so they travel with the code and cannot be confused with Zero",
+    "Club's. Zero Club is server-rendered and outputs dist/client; ZeroStart is",
+    "a plain single-page app and outputs dist. Settings in this file take",
+    "precedence over the dashboard, so the two projects cannot drift."
+  ],
+
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "cleanUrls": true,
+
+  "rewrites": [
+    {
+      "//": "Routing happens in the browser, so the server has no file at /tests or /campaign/<id>. Without this, those URLs 404 on refresh and every shared link is broken - the page only ever works if you arrive from the home page. Real files are still served normally: Vercel checks the filesystem before it applies a rewrite.",
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+
+  "headers": [
+    {
+      "//": "Hashed filenames, so they can be cached forever and never go stale.",
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "//": "index.html must never be cached, or people keep running an old build after a deploy.",
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
+  ]
+}
