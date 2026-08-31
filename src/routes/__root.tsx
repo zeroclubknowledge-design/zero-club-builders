@@ -208,6 +208,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      /*
+       * The tab icon.
+       *
+       * There was no icon link at all — not a broken path, simply nothing
+       * declared. A browser with no favicon draws its own tile from the first
+       * letters of the site name, which is where "ZO" came from. The PWA icons
+       * already existed and were already being shipped; nothing was pointing
+       * the browser at them.
+       *
+       * Two sizes because a tab wants roughly 32px and a bookmark or a pinned
+       * shortcut wants far more, and left to one file the browser will scale
+       * whichever it has. apple-touch-icon is separate: iOS ignores rel="icon"
+       * when a page is saved to the home screen.
+       */
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icons/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icons/icon-512.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/icon-192.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },

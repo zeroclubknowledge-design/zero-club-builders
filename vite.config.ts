@@ -32,7 +32,9 @@ export default defineConfig(({ command }) => {
       // app and coming back threw away whatever you were doing. With "prompt"
       // the new version is picked up on the next cold start instead.
       registerType: "prompt",
-      includeAssets: ["logo.png", "favicon.ico"],
+      // favicon.ico was listed here and has never existed in public/. The
+      // icons that do exist are what the head now points at.
+      includeAssets: ["logo.png", "icons/icon-192.png", "icons/icon-512.png"],
       manifest: {
         // A stable identity for the app. Browsers and app stores use this
         // instead of the URL, so the install stays recognised even if
