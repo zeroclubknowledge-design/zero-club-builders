@@ -110,6 +110,24 @@ In the new Vercel project:
 | Output Directory | `dist` |
 | Domain | `zerostart.zeroclubs.xyz` |
 
+`zerostart/vercel.json` carries the build settings rather than the dashboard,
+so they travel with the code and cannot be confused with Zero Club's. Two of
+them matter:
+
+- **`outputDirectory: "dist"`.** Zero Club is server-rendered and outputs
+  `dist/client`; ZeroStart is a plain single-page app and outputs `dist`. A
+  dashboard override left over from the other project is what makes Vercel
+  report *No Output Directory named "client"* even though the build succeeded.
+- **The rewrite to `/index.html`.** Routing happens in the browser, so the
+  server has no file at `/tests` or `/campaign/<id>`. Without the rewrite those
+  URLs 404 on refresh and every shared campaign link is broken — the app only
+  works if you arrive via the home page. Real files still serve normally,
+  because Vercel checks the filesystem before applying a rewrite.
+
+Note that `vercel.json` is validated strictly: it rejects any property outside
+its schema, including `//` keys used as comments. That is why the reasoning
+lives here rather than in the file.
+
 Zero Club's own project is untouched — its `tsconfig.json` includes only
 `src/**/*`, so this folder is invisible to its build, and its `.gitignore`
 already excludes `node_modules` and `dist` at any depth.
