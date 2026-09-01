@@ -71,7 +71,7 @@ function SettingsIndex() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center border-b hairline">
+      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center">
         <Link to="/app" className="mr-4 grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]">
           <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
         </Link>

@@ -102,7 +102,7 @@ function TutorSettingsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 border-b hairline bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3.5 md:px-7">
           <Link
             to="/app/tutor-studio"

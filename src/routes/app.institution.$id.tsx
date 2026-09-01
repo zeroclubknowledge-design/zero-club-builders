@@ -124,7 +124,7 @@ function InstitutionPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
+      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[900px] items-center gap-3">
           <button
             onClick={goBack}

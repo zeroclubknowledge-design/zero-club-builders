@@ -95,7 +95,7 @@ function NotesIndexPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background selection:bg-foreground selection:text-background">
       {/* Sticky Header and Tabs */}
-      <div className="sticky top-0 z-50 flex flex-col border-b border-border/60 bg-background">
+      <div className="sticky top-0 z-50 flex flex-col bg-background">
         {/* Editorial Header */}
         <header className="mx-auto flex w-full max-w-[1100px] items-center gap-3 px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6">
           <button 

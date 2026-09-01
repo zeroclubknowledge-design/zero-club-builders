@@ -417,7 +417,7 @@ function Feed() {
           The header sits above this one, so the overlap is invisible — and it
           means no rounding difference can ever reopen a gap for posts to
           scroll through. */}
-      <header className="sticky top-[calc(var(--zc-header-h)-1px)] z-40 border-b border-border bg-background md:mx-auto md:w-full md:max-w-[780px] md:border-x">
+      <header className="sticky top-[calc(var(--zc-header-h)-1px)] z-40 bg-background md:mx-auto md:w-full md:max-w-[780px] md:border-x">
         <div className="flex min-h-[52px] items-center justify-between px-4 py-1">
           {!showSearch ? (
             <>

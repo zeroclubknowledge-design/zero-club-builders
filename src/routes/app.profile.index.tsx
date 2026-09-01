@@ -228,7 +228,7 @@ function Profile() {
       {/* ═══════════════════════════════════════════
           FROSTED HEADER — Settings + @handle + Edit
          ═══════════════════════════════════════════ */}
-      <header className="fixed left-1/2 top-0 z-50 h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
+      <header className="fixed left-1/2 top-0 z-50 h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
         <div className="relative z-20 flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
             <button 

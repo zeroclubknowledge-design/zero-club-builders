@@ -557,7 +557,7 @@ function NotesEditPage() {
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-background selection:bg-foreground selection:text-background">
       
       {/* Minimal Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-50 bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center gap-3 px-4 sm:px-6">
         <button onClick={() => noteData?.slug ? navigate({ to: '/notes/$slug', params: { slug: noteData.slug } }) : navigate({ to: '/app/notes/$id', params: { id: noteId } })} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95">
           <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />

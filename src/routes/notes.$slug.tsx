@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
-import { buildNoteHead, NoteReaderPage } from "@/routes/app.notes.$id";
+import { buildNoteHead } from "@/features/notes/noteHead";
+import { NoteReaderPage } from "@/features/notes/NoteReaderPage";
 
 export const Route = createFileRoute("/notes/$slug")({
   loader: async ({ params: { slug } }) => {

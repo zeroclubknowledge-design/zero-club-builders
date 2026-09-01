@@ -117,7 +117,7 @@ function ProfileNetwork() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="fixed left-1/2 top-0 z-50 h-[calc(4rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
+      <header className="fixed left-1/2 top-0 z-50 h-[calc(4rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
         <div className="relative z-20 mx-auto flex h-full max-w-[820px] items-center gap-3 px-4 md:px-6">
           <button 
             onClick={() => navigate({ to: "/app/profile/$id", params: { id: profile.username || profile.id } })}

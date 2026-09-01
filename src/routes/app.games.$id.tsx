@@ -337,7 +337,7 @@ function ZeroGameCompetitionPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-10">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
+      <header className="sticky top-0 z-40 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[1080px] items-center gap-3">
           <button onClick={() => navigate({ to: "/app/games" })} className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card"><ArrowLeft className="h-4 w-4" /></button>
           <div className="min-w-0 flex-1"><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">{getGameName(competition.game_type)}</p><h1 className="truncate text-[17px] font-semibold tracking-tight">Competition lobby</h1></div>
@@ -398,7 +398,7 @@ function ZeroGameCompetitionPage() {
 function RaceScreen({ competition, players, currentProfileId, timeRemaining, submitting, onProgress, onSubmit, onLeave, onMessage }: any) {
   return (
     <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/96 px-3 py-2.5 backdrop-blur-xl sm:px-5">
+      <header className="sticky top-0 z-40 bg-background/96 px-3 py-2.5 backdrop-blur-xl sm:px-5">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3">
           <button onClick={onLeave} className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-card"><X className="h-4 w-4" /></button>
           <div className="min-w-0 flex-1"><p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-primary">Live race</p><h1 className="truncate text-[14px] font-semibold tracking-tight">{competition.title}</h1></div>

@@ -382,7 +382,7 @@ function MetricsPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background pb-28 md:pb-10">
-      <header className="sticky top-0 z-30 border-b hairline bg-background/88 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 bg-background/88 backdrop-blur-xl">
         <div className="mx-auto flex h-[calc(4rem+env(safe-area-inset-top))] max-w-6xl items-end justify-between gap-3 px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-7">
           <div className="flex items-center gap-3">
             <button type="button" onClick={goBack} className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground tap" aria-label="Back to feed">

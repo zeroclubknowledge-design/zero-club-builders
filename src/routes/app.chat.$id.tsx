@@ -945,7 +945,7 @@ function ChatViewPage() {
       className="fixed inset-x-0 z-[60] mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-background md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
-      <header className="flex items-center justify-between border-b border-border bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md">
+      <header className="flex items-center justify-between bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate({ to: '/app/chat' })} className="grid h-9 w-9 place-items-center rounded-full transition active:scale-95 active:bg-accent/50">
             <ChevronLeft className="h-6 w-6" />

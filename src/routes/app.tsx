@@ -64,6 +64,7 @@ import { NOIR_THEME, getNoirAccess, startNoirTrial } from "@/lib/noirTheme";
 import { useUser } from "@/hooks/useUser";
 import { useTrackNavigationDepth } from "@/hooks/useGoBack";
 import { useOrientationLock } from "@/hooks/useOrientationLock";
+import { useIdlePreload } from "@/hooks/useIdlePreload";
 import { isGuestReadablePath } from "@/lib/guestAccess";
 import { toast } from "sonner";
 import { getFirstName, displayName } from "@/lib/utils";
@@ -193,7 +194,10 @@ function SidebarContent({
         }
       }}
     >
-      <div className="mb-4 flex h-11 shrink-0 items-center justify-between border-b border-border/60 px-1 pb-3">
+      {/* No rule under the workspace title. The sidebar is one continuous
+          surface, so the name at the top reads as its heading without a line
+          drawn beneath it — the spacing already separates it from the card. */}
+      <div className="mb-4 flex h-11 shrink-0 items-center justify-between px-1 pb-3">
         <Link to="/app" className="flex items-center gap-2.5" aria-label="Zero Club feed">
           <img src="/logo.png" alt="" className="h-7 w-7 object-contain" loading="lazy" decoding="async" />
           <span className="font-display text-[17px] font-semibold tracking-tight text-foreground">
@@ -811,6 +815,11 @@ function AppLayout() {
   /* The layout is a single column built for portrait. The manifest no longer
      enforces that, so the shell asks for it — and the live room releases it. */
   useOrientationLock("portrait");
+
+  /* Warm the code for the tab bar and the menu card once the app goes quiet,
+     so tapping one of them does not start with a download. */
+  useIdlePreload();
+
   const [visible, setVisible] = useState(true);
   const [session, setSession] = useState<any>(getInitialSession);
   const [loading, setLoading] = useState(!getInitialSession());
@@ -1442,7 +1451,12 @@ function AppLayout() {
         {!hideHeader && (
           <header
             ref={headerRef}
-            className="fixed left-1/2 top-0 z-50 flex h-[calc(66px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between border-b border-border bg-background px-5 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[66px] md:max-w-full md:translate-x-0 md:pt-0"
+            /* The header shares the page's background and carries no rule
+               beneath it, so it reads as the top of the page rather than a
+               separate bar sitting on it. It is still a real header: same
+               height, same position, still fixed on mobile and sticky on
+               desktop — only the dividing line is gone. */
+            className="fixed left-1/2 top-0 z-50 flex h-[calc(66px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between bg-background px-5 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[66px] md:max-w-full md:translate-x-0 md:pt-0"
           >
             <div className="flex w-10 items-center md:hidden">
               <button

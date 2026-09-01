@@ -54,7 +54,7 @@ function PaymentsSettings() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background">
+      <header className="sticky top-0 z-50 bg-background">
         <div className="mx-auto flex min-h-16 max-w-[980px] items-center gap-3 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] md:px-6 md:pt-3">
           <Link to="/app/wallet" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border/60 bg-card transition hover:bg-accent/60 active:scale-95">
             <ChevronLeft className="h-5 w-5 text-foreground" />

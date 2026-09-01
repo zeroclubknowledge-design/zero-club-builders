@@ -225,7 +225,7 @@ function WalletPage() {
   return (
     <div className="min-h-screen bg-background pb-20 text-foreground">
       {/* ── Header ── */}
-      <header className="fixed left-1/2 top-0 z-20 flex w-full max-w-md -translate-x-1/2 items-center justify-between border-b border-border/60 bg-background px-5 pb-3 pt-[calc(1.25rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-full md:translate-x-0 md:px-8 md:pt-5">
+      <header className="fixed left-1/2 top-0 z-20 flex w-full max-w-md -translate-x-1/2 items-center justify-between bg-background px-5 pb-3 pt-[calc(1.25rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-full md:translate-x-0 md:px-8 md:pt-5">
         <div className="flex items-center gap-3">
           <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-border/30 shadow-sm shrink-0 transition-all duration-300 active:scale-95 hover:ring-primary/40 hover:shadow-md cursor-pointer">
             {profile?.avatar_url ? (

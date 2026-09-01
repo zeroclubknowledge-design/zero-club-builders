@@ -215,7 +215,7 @@ function NotificationsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto w-full max-w-[900px] px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6 md:pt-5">
           <div className="mb-4">
             <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Notifications</h1>

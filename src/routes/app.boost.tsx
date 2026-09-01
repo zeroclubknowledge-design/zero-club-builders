@@ -52,7 +52,7 @@ function BoostPage() {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background overflow-y-auto">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] sticky top-0 bg-background/80 backdrop-blur-lg z-50 border-b border-border/50">
+      <header className="flex items-center justify-between px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] sticky top-0 bg-background/80 backdrop-blur-lg z-50">
         <button 
           onClick={() => navigate({ to: "/app/compose" })}
           className="h-10 w-10 bg-card rounded-full grid place-items-center shadow-sm border border-border/50 transition hover:bg-accent active:scale-95"

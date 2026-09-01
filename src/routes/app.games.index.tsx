@@ -96,7 +96,7 @@ function ZeroGamesHome() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-10">
-      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
+      <header className="sticky top-0 z-40 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-foreground text-background">
             <Gamepad2 className="h-5 w-5 fill-current" />

@@ -596,7 +596,7 @@ function TutorStudioPage() {
   if (view === "zero-forms") {
     return (
       <div className="flex min-h-screen flex-col bg-background pb-20">
-        <header className="sticky top-0 z-40 flex items-center gap-3 border-b hairline bg-background/85 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
+        <header className="sticky top-0 z-40 flex items-center gap-3 bg-background/85 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
           <button
             onClick={() => setView("dashboard")}
             className="grid h-9 w-9 place-items-center rounded-full ring-1 ring-border text-foreground tap hover:bg-foreground/[0.04]"
@@ -621,7 +621,7 @@ function TutorStudioPage() {
   if (view === "operations") {
     return (
       <div className="min-h-screen bg-background pb-24">
-        <header className="sticky top-0 z-40 border-b hairline bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+        <header className="sticky top-0 z-40 bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
           <div className="mx-auto flex max-w-[1240px] items-center gap-3 px-4 py-3.5 md:px-7">
             <button onClick={() => setView("dashboard")} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground hover:bg-muted">
               <ChevronLeft className="h-[18px] w-[18px]" />
@@ -650,7 +650,7 @@ function TutorStudioPage() {
     return (
       <div className="flex flex-col min-h-screen bg-background pb-20">
         {/* ── Editor Header ────────────────────────────── */}
-        <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 border-b hairline px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between">
+        <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl backdrop-saturate-150 px-5 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setView("dashboard")}
@@ -1463,7 +1463,7 @@ function TutorStudioPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* ── Header ────────────────────────── */}
-      <div className="sticky top-0 z-30 w-full border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
+      <div className="sticky top-0 z-30 w-full bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4">
           <div>
             <p className="text-[11px] font-medium uppercase text-muted-foreground">Tutor workspace</p>

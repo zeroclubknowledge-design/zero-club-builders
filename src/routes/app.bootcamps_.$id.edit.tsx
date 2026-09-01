@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BootcampForm } from "@/routes/app.tutor-studio.create";
+import { BootcampForm } from "@/features/bootcamps/BootcampForm";
 
 export const Route = createFileRoute("/app/bootcamps_/$id/edit")({
   validateSearch: (search: Record<string, unknown>) => ({
-    source: search.source === "institution" ? "institution" as const : "tutor" as const,
+    source: search.source === "institution" ? ("institution" as const) : ("tutor" as const),
   }),
   component: EditBootcampPage,
 });

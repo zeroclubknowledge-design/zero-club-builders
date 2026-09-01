@@ -768,7 +768,7 @@ function PostDetail() {
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-background md:relative md:inset-auto md:z-auto md:h-screen md:min-h-screen">
-      <header className="sticky top-0 z-50 h-[calc(72px+env(safe-area-inset-top))] shrink-0 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-50 h-[calc(72px+env(safe-area-inset-top))] shrink-0 bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-[72px] w-full max-w-[860px] items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2">
             <button onClick={handleBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60">

@@ -252,7 +252,7 @@ export function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6">
+      <header className="sticky top-0 z-40 bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <Link to="/app" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Link>

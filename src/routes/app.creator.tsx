@@ -64,7 +64,7 @@ function CreatorWorkspace() {
 
   return (
     <div className="min-h-screen bg-background pb-20 text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-8">
+      <header className="sticky top-0 z-30 bg-background/95 px-4 py-3 backdrop-blur-xl md:px-8">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between">
           <div className="flex items-center gap-3"><Link to="/app" aria-label="Back" className="grid h-9 w-9 place-items-center rounded-md border border-border"><ChevronLeft className="h-4 w-4" /></Link><div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Community operations</p><h1 className="text-[18px] font-semibold tracking-tight">Creator Workspace</h1></div></div>
           <Link to="/app/clubs" className="inline-flex h-9 items-center gap-2 rounded-md bg-foreground px-3 text-[10.5px] font-semibold text-background">Manage Clubs <ArrowRight className="h-3.5 w-3.5" /></Link>

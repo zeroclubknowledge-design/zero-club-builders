@@ -15,7 +15,7 @@ function ChatSettingsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background relative">
       {/* High-Fidelity Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center gap-3">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center gap-3">
         <button onClick={() => router.history.back()} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-accent/50 transition">
           <ChevronLeft className="h-5 w-5" />
         </button>

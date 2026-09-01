@@ -609,7 +609,7 @@ function NotesCreatePage() {
       
       {/* Minimal Header */}
       <header
-        className={`sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)] transition-transform duration-300 ease-out ${
+        className={`sticky top-0 z-50 bg-background pt-[env(safe-area-inset-top)] transition-transform duration-300 ease-out ${
           headerHidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >

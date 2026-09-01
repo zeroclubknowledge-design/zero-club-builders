@@ -47,7 +47,7 @@ function PremiumSettings() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center">
         <Link to="/app/settings" className="mr-6 p-2 rounded-full transition active:bg-accent/10">
           <ChevronLeft className="h-5 w-5 text-foreground" />
         </Link>

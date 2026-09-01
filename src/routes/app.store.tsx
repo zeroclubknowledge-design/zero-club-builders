@@ -232,7 +232,7 @@ function StorePage() {
   return (
     <div className="min-h-screen bg-background pb-16 text-foreground">
       {/* Sticky Header Section */}
-      <div className="sticky top-0 z-40 border-b hairline bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
+      <div className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="mx-auto w-full max-w-[1180px]">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3">

@@ -78,7 +78,7 @@ function BookmarksPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-50 bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex w-full max-w-[860px] items-center gap-3 px-4 py-4 sm:px-6">
           <Link to="/app" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60 lg:hidden">
             <ChevronLeft className="h-6 w-6" />

@@ -125,7 +125,7 @@ function ZeroHubPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-40 bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-3 px-4 py-3.5 md:px-6">
           <div className="flex items-center gap-3">
             <button onClick={goBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card tap hover:bg-foreground/[0.04]">

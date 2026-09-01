@@ -36,7 +36,7 @@ function PlanFeatures() {
 
   return (
     <div className="min-h-screen bg-background pb-20 text-foreground">
-      <header className="sticky top-0 z-40 flex items-center border-b border-border bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 flex items-center bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
         <Link to="/app/settings/premium" className="mr-4 grid h-9 w-9 place-items-center rounded-md border border-border" aria-label="Back"><ChevronLeft className="h-4 w-4" /></Link>
         <div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Membership</p><h1 className="text-[18px] font-semibold">Current plan features</h1></div>
       </header>
