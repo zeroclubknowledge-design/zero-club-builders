@@ -229,9 +229,14 @@
   --gradient-hero: radial-gradient(circle at top right, oklch(0.72 0.18 350 / 0.16), transparent 66%);
   --shadow-glow: 0 10px 34px -14px color-mix(in oklab, #cc208f 55%, transparent);
 
+  /* Two blooms of the SAME brand pink at different depths, not two different
+     hues. The corner bloom used to be #7a2bff, a blue-violet — it gave the
+     wash tonal range by leaving the brand altogether, which read as a stray
+     purple glow in the bottom corner of every page. A deeper magenta gets the
+     same depth from lightness instead of from hue. */
   --zc-noir-veil:
     radial-gradient(115% 80% at 50% -12%, rgba(204, 32, 143, 0.34) 0%, rgba(204, 32, 143, 0.10) 34%, transparent 64%),
-    radial-gradient(95% 65% at 105% 105%, rgba(122, 43, 255, 0.16) 0%, transparent 62%),
+    radial-gradient(95% 65% at 105% 105%, rgba(163, 26, 118, 0.20) 0%, transparent 62%),
     linear-gradient(180deg, #150710 0%, #0a0409 48%, #000000 100%);
 }
 
@@ -259,7 +264,7 @@
   background-color: transparent;
   background-image:
     radial-gradient(125% 150% at 10% 0%, rgba(204, 32, 143, 0.40) 0%, rgba(204, 32, 143, 0.13) 38%, transparent 70%),
-    radial-gradient(90% 120% at 100% 100%, rgba(122, 43, 255, 0.18) 0%, transparent 65%),
+    radial-gradient(90% 120% at 100% 100%, rgba(163, 26, 118, 0.22) 0%, transparent 65%),
     linear-gradient(158deg, #1d0c17 0%, #120810 48%, #0a0509 100%);
   background-attachment: scroll;
   background-repeat: no-repeat;

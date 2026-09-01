@@ -629,7 +629,7 @@ function Feed() {
                         </h2>
                         <p className="mt-2.5 max-w-lg text-[12.5px] leading-relaxed text-white/55">Start inside a community you manage, or join a room when its host goes live.</p>
                       </div>
-                      <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#cc208f] to-[#7a2bff] text-white shadow-[0_14px_32px_-12px_rgba(204,32,143,0.9)] ring-1 ring-white/15 sm:grid">
+                      <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#cc208f] to-[#8c1866] text-white shadow-[0_14px_32px_-12px_rgba(204,32,143,0.9)] ring-1 ring-white/15 sm:grid">
                         <Radio className="h-6 w-6" />
                       </div>
                     </div>
