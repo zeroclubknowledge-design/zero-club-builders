@@ -950,6 +950,39 @@
      Transform only, so it stays on the compositor. */
   .zc-parallax { transform: translate3d(0, var(--py, 0px), 0); }
 
+  /* ── Partner marquee ────────────────────────────────────────────────────
+   *
+   * The track holds the list twice and slides exactly one copy's width, so the
+   * moment it reaches -50% it is pixel-identical to where it started and the
+   * loop is invisible. Animating a transform keeps the whole thing on the
+   * compositor — a marquee that repaints every frame is the classic way a
+   * landing page starts dropping frames on a mid-range phone.
+   */
+  .zc-marquee {
+    display: flex;
+    width: max-content;
+    animation: zc-marquee-slide 34s linear infinite;
+  }
+  @keyframes zc-marquee-slide {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+  }
+  /* Pausing on hover lets someone actually read a name they recognised. */
+  .zc-marquee-wrap:hover .zc-marquee { animation-play-state: paused; }
+
+  /* Fades the track into the page at both ends instead of cutting it off. */
+  .zc-marquee-wrap {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zc-marquee { animation: none; }
+    /* Standing still, a max-content track would overflow; let it wrap. */
+    .zc-marquee-wrap { -webkit-mask-image: none; mask-image: none; }
+    .zc-marquee { width: 100%; flex-wrap: wrap; justify-content: center; }
+  }
+
   /* ── Notched panel ──────────────────────────────────────────────────────
    *
    * The clipped-corner card from the timeline reference. Two corners cut on

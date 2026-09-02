@@ -169,11 +169,11 @@ function SignInPage() {
        stacked a full marketing column above the form, which is what made it so
        tall on a phone — here the panel simply does not render below lg, and
        the form is the whole screen. */
-    <div className="min-h-dvh bg-[#0b0a0d] px-4 py-4 text-white sm:px-6 sm:py-6">
+    <div className="min-h-dvh bg-[#f8f6f1] px-4 py-4 text-[#171417] dark:bg-[#0b0a0d] dark:text-white sm:px-6 sm:py-6">
       <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between pb-4">
         <Link
           to="/"
-          className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06] text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
+          className="grid h-10 w-10 place-items-center rounded-xl bg-black/[0.04] text-[#5a5056] ring-1 ring-black/10 transition hover:bg-black/[0.07] active:scale-[0.98] dark:bg-white/[0.06] dark:text-white/80 dark:ring-white/10 dark:hover:bg-white/10"
           aria-label="Back to home"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
@@ -181,13 +181,13 @@ function SignInPage() {
         <Link
           to="/signup"
           search={{ ref, club }}
-          className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
+          className="rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-[#5a5056] ring-1 ring-black/10 transition hover:bg-black/[0.07] active:scale-[0.98] dark:bg-white/[0.06] dark:text-white/80 dark:ring-white/10 dark:hover:bg-white/10"
         >
           Create account
         </Link>
       </div>
 
-      <main className="zc-glow-card mx-auto grid w-full max-w-[1120px] overflow-hidden rounded-[26px] bg-[#100c11] lg:grid-cols-2">
+      <main className="zc-glow-card mx-auto grid w-full max-w-[1120px] overflow-hidden rounded-[26px] bg-white dark:bg-[#100c11] lg:grid-cols-2">
         {/* The identity panel. A single soft bloom of brand light falling to
             near-black at the edges, with the mark and the line that goes with
             it sitting at the bottom — exactly the shape of the reference. */}
@@ -259,10 +259,10 @@ function SignInPage() {
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
                 Passwordless secure access
               </p>
-              <h1 className="font-display text-[26px] font-normal leading-tight text-white sm:text-[30px]">
+              <h1 className="font-display text-[26px] font-normal leading-tight text-[#241f23] dark:text-white sm:text-[30px]">
                 Return to your proof of work.
               </h1>
-              <p className="mx-auto mt-2 max-w-[340px] text-[13px] leading-6 text-white/50">
+              <p className="mx-auto mt-2 max-w-[340px] text-[13px] leading-6 text-[#6d6269] dark:text-white/50">
                 Sign in with a one-time email code and continue from your feed, clubs, bootcamps, wallet, and profile.
               </p>
             </div>
@@ -271,28 +271,28 @@ function SignInPage() {
             {step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-white">Sign in</h2>
-                  <p className="mt-1 text-sm leading-6 text-white/55">We will send a short confirmation code.</p>
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Sign in</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">We will send a short confirmation code.</p>
                 </div>
 
                 <GoogleAuthButton label="Continue with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignIn} />
 
                 <div className="flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-white/12" />
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">or use email</span>
-                  <span className="h-px flex-1 bg-white/12" />
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-white/60">Email address</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
                   <span className="relative block">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
+                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                     <input
                       type="email"
                       placeholder="ada@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-12 w-full rounded-lg border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                      className="h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                     />
                   </span>
                 </label>
@@ -308,21 +308,21 @@ function SignInPage() {
             ) : (
               <form onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-white">Enter the code</h2>
-                  <p className="mt-1 text-sm leading-6 text-white/55">
-                    Sent to <span className="font-medium text-white">{email}</span>.
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Enter the code</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
+                    Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
                   </p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-white/60">Confirmation code</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
                   <input
                     type="text"
                     placeholder="000000"
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-12 w-full rounded-lg border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -335,10 +335,10 @@ function SignInPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
                     Change email
                   </button>
                 </div>

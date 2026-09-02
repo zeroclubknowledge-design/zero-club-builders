@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "@/components/icons/solar";
 import { supabase } from "@/lib/supabase";
+import { PartnerMarquee } from "./PartnerMarquee";
 
 /**
  * The front door.
@@ -127,9 +128,21 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
         <p className="mt-4 text-[12.5px] text-[#666a70] dark:text-white/45">
           Free to join · Profiles, clubs, bootcamps, wallet, and XP built in
         </p>
+
+        <PartnerMarquee />
       </div>
 
-      {!isError && <StatsStrip stats={stats} />}
+      {/* The space is reserved whether or not the strip renders.
+       *
+       * The headline is centred in the room left over above this, so anything
+       * that changes height down here moves it. get_landing_stats failing —
+       * which it does until the migration is run — unmounted the strip a
+       * moment after load, the leftover room grew, and the headline visibly
+       * dropped. Holding the height means the layout is identical while
+       * loading, once loaded, and if the query never succeeds at all. */}
+      <div className="min-h-[168px] md:min-h-[92px]">
+        {!isError && <StatsStrip stats={stats} />}
+      </div>
     </section>
   );
 }

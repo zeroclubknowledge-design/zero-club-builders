@@ -245,24 +245,24 @@ function SignUpPage() {
        than two designs. The panel carries the numbered steps from the
        reference; on a phone it does not render at all and the form is the
        whole screen. */
-    <div className="min-h-dvh overflow-x-hidden bg-[#0b0a0d] px-4 py-4 text-white sm:px-6 sm:py-6">
+    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] px-4 py-4 text-[#171417] dark:bg-[#0b0a0d] dark:text-white sm:px-6 sm:py-6">
       <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between pb-4">
         <Link
           to="/signin"
-          className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06] text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
+          className="grid h-10 w-10 place-items-center rounded-xl bg-black/[0.04] text-[#5a5056] ring-1 ring-black/10 transition hover:bg-black/[0.07] active:scale-[0.98] dark:bg-white/[0.06] dark:text-white/80 dark:ring-white/10 dark:hover:bg-white/10"
           aria-label="Back to sign in"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
         </Link>
         <Link
           to="/signin"
-          className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
+          className="rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-[#5a5056] ring-1 ring-black/10 transition hover:bg-black/[0.07] active:scale-[0.98] dark:bg-white/[0.06] dark:text-white/80 dark:ring-white/10 dark:hover:bg-white/10"
         >
           Sign in
         </Link>
       </div>
 
-      <main className="zc-glow-card mx-auto grid w-full max-w-[1180px] overflow-hidden rounded-[26px] bg-[#100c11] lg:grid-cols-[1fr_minmax(430px,480px)]">
+      <main className="zc-glow-card mx-auto grid w-full max-w-[1180px] overflow-hidden rounded-[26px] bg-white dark:bg-[#100c11] lg:grid-cols-[1fr_minmax(430px,480px)]">
         <section className="relative hidden overflow-hidden rounded-[20px] bg-[#0a070a] p-8 lg:m-3 lg:flex lg:flex-col xl:p-10">
           <div
             aria-hidden
@@ -336,7 +336,7 @@ function SignUpPage() {
           <div className="mb-6 text-center">
             <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:hidden">
               <img decoding="async" src="/logo.png" alt="Zero Club" className="h-9 w-auto object-contain lg:h-10" />
-              <span className="font-display text-xl font-medium text-white">Zero Club</span>
+              <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
             </Link>
             <p className="zc-eyebrow mx-auto">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
@@ -350,12 +350,12 @@ function SignUpPage() {
             {step === "info" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-white">Create account</h2>
-                  <p className="mt-1 text-sm leading-6 text-white/55">Set up the identity attached to your proof.</p>
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Create account</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">Set up the identity attached to your proof.</p>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[12px] font-medium text-white/60">Account type</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Account type</span>
                   {/* Icons removed at request. The icon was also what set the
                       96px floor on these tiles, so without it they come down to
                       the height of their own text. */}
@@ -367,12 +367,12 @@ function SignUpPage() {
                         onClick={() => setAccountType(role.id)}
                         className={`rounded-lg border p-2.5 text-left transition ${
                           accountType === role.id
-                            ? "border-[#cc208f]/55 bg-[#cc208f]/12 text-white ring-2 ring-[#cc208f]/20"
-                            : "border-white/12 bg-white/[0.04] text-white/60 hover:bg-white/[0.07]"
+                            ? "border-[#cc208f]/55 bg-[#cc208f]/12 text-[#9d176d] ring-2 ring-[#cc208f]/20 dark:text-white"
+                            : "border-black/10 bg-[#fbfaf7] text-[#655b61] hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/[0.07]"
                         }`}
                       >
                         <span className="block text-[12.5px] font-medium">{role.label}</span>
-                        <span className="mt-0.5 block text-[10.5px] leading-4 text-white/50">{role.helper}</span>
+                        <span className="mt-0.5 block text-[10.5px] leading-4 text-[#81767d] dark:text-white/50">{role.helper}</span>
                       </button>
                     ))}
                   </div>
@@ -380,67 +380,67 @@ function SignUpPage() {
 
                 <div className="grid gap-4 lg:grid-cols-2">
                   <label className="block min-w-0 space-y-2">
-                    <span className="text-[12px] font-medium text-white/60">Username</span>
+                    <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Username</span>
                     <span className="relative block">
-                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
+                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                       <input
                         type="text"
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-12 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-12 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
 
                   <label className="block min-w-0 space-y-2">
-                    <span className="text-[12px] font-medium text-white/60">Email address</span>
+                    <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
                     <span className="relative block">
-                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                       <input
                         type="email"
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-12 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-12 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-white/60">Referral code <span className="text-white/40">optional</span></span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Referral code <span className="text-[#9b9297] dark:text-white/40">optional</span></span>
                   <span className="relative block">
-                    <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
+                    <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
                     <input
                       type="text"
                       placeholder="Enter referral code"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      className={`h-12 w-full rounded-lg border bg-white/[0.04] px-4 pl-11 pr-20 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-white/12"}`}
+                      className={`h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] px-4 pl-11 pr-20 dark:border-white/12 dark:bg-white/[0.04] text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10 dark:border-white/12"}`}
                     />
                     {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#9d176d]">Applied</span>}
                   </span>
                 </label>
 
-                <label className="flex items-start gap-3 rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5">
+                <label className="flex items-start gap-3 rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 py-2.5">
                   <input
                     type="checkbox"
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-white/25 accent-[#cc208f]"
+                    className="mt-1 h-4 w-4 rounded border-black/20 accent-[#cc208f] dark:border-white/25"
                   />
-                  <span className="text-xs leading-5 text-white/55">
-                    I agree to the <span className="font-medium text-white underline">Terms of Service</span> and <span className="font-medium text-white underline">Privacy Policy</span>.
+                  <span className="text-xs leading-5 text-[#746970] dark:text-white/55">
+                    I agree to the <span className="font-medium text-[#241f23] underline dark:text-white">Terms of Service</span> and <span className="font-medium text-[#241f23] underline dark:text-white">Privacy Policy</span>.
                   </span>
                 </label>
 
                 <GoogleAuthButton label="Sign up with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignUp} />
 
                 <div className="flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-white/12" />
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">or use email</span>
-                  <span className="h-px flex-1 bg-white/12" />
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
+                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
                 </div>
 
                 <button
@@ -454,21 +454,21 @@ function SignUpPage() {
             ) : (
               <form onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-white">Verify email</h2>
-                  <p className="mt-1 text-sm leading-6 text-white/55">
-                    Sent to <span className="font-medium text-white">{email}</span>.
+                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Verify email</h2>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
+                    Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
                   </p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-white/60">Confirmation code</span>
+                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
                   <input
                     type="text"
                     placeholder="000000"
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-12 w-full rounded-lg border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -481,10 +481,10 @@ function SignUpPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
                     Go back
                   </button>
                 </div>

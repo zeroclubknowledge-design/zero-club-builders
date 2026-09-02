@@ -63,24 +63,64 @@ const mobileNavGroups = [
     label: "Build",
     items: [
       { label: "Docs", detail: "The complete guide to Zero Club", href: "/docs", slug: null },
-      { label: "Metrics", detail: "Your proof, progress, and momentum", href: "/explore/metrics", slug: "metrics" },
-      { label: "Zero AI", detail: "A practical thinking partner", href: "/explore/zero-ai", slug: "zero-ai" },
+      {
+        label: "Metrics",
+        detail: "Your proof, progress, and momentum",
+        href: "/explore/metrics",
+        slug: "metrics",
+      },
+      {
+        label: "Zero AI",
+        detail: "A practical thinking partner",
+        href: "/explore/zero-ai",
+        slug: "zero-ai",
+      },
     ],
   },
   {
     label: "Explore",
     items: [
-      { label: "Feed", detail: "Follow real work and progress", href: "/explore/feed", slug: "feed" },
-      { label: "Bootcamps", detail: "Learn with working professionals", href: "/explore/bootcamps", slug: "bootcamps" },
-      { label: "Clubs", detail: "Focused communities around work", href: "/explore/clubs", slug: "clubs" },
-      { label: "Opportunities", detail: "Open doors through proof", href: "/explore/opportunities", slug: "opportunities" },
+      {
+        label: "Feed",
+        detail: "Follow real work and progress",
+        href: "/explore/feed",
+        slug: "feed",
+      },
+      {
+        label: "Bootcamps",
+        detail: "Learn with working professionals",
+        href: "/explore/bootcamps",
+        slug: "bootcamps",
+      },
+      {
+        label: "Clubs",
+        detail: "Focused communities around work",
+        href: "/explore/clubs",
+        slug: "clubs",
+      },
+      {
+        label: "Opportunities",
+        detail: "Open doors through proof",
+        href: "/explore/opportunities",
+        slug: "opportunities",
+      },
     ],
   },
   {
     label: "Earn",
     items: [
-      { label: "Wallet", detail: "Manage what your work earns", href: "/explore/wallet", slug: "wallet" },
-      { label: "Store", detail: "Sell products and private access", href: "/explore/store", slug: "store" },
+      {
+        label: "Wallet",
+        detail: "Manage what your work earns",
+        href: "/explore/wallet",
+        slug: "wallet",
+      },
+      {
+        label: "Store",
+        detail: "Sell products and private access",
+        href: "/explore/store",
+        slug: "store",
+      },
     ],
   },
 ];
@@ -117,7 +157,9 @@ const zeroClubFeatures = [
   {
     title: "Zero AI",
     copy: "Get help to think through lessons, ideas, projects, and your next practical move.",
-    icon: <img decoding="async" src="/logo.png" alt="" className="h-[22px] w-[22px] object-contain" />,
+    icon: (
+      <img decoding="async" src="/logo.png" alt="" className="h-[22px] w-[22px] object-contain" />
+    ),
   },
   {
     title: "Creator wallet",
@@ -195,7 +237,9 @@ function BrandMark({ light = false }: { light?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2" aria-label="Zero Club home">
       <img decoding="async" src="/logo.png" alt="" className="h-8 w-8 object-contain" />
-      <span className={`font-display text-[19px] font-semibold tracking-tight ${light ? "text-white" : "text-[#171717] dark:text-white"}`}>
+      <span
+        className={`font-display text-[19px] font-semibold tracking-tight ${light ? "text-white" : "text-[#171717] dark:text-white"}`}
+      >
         Zero <span className="text-[#cc208f]">Club</span>
       </span>
     </Link>
@@ -230,133 +274,144 @@ function Header({ referralCode }: ReferralProps) {
 
   return (
     <>
-    <header
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-200 ${
-        isOpen || isScrolled
-          ? "border-[#171717]/[0.08] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] shadow-[0_1px_0_rgba(23,23,23,0.02)]"
-          : "border-transparent bg-transparent shadow-none"
-      }`}
-    >
-      {/* Full width, not a centred 1180px column.
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow] duration-200 ${
+          isOpen || isScrolled
+            ? "border-[#171717]/[0.08] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] shadow-[0_1px_0_rgba(23,23,23,0.02)]"
+            : "ransparent bg-transparent shadow-none"
+        }`}
+      >
+        {/* Full width, not a centred 1180px column.
           On a 1366px screen that column left ~93px of dead margin on each
           side, so the logo floated inward from the left edge and Join floated
-          inward from the right — the header read as a narrow strip laid on the
-          page rather than the top of it. A header belongs to the window; only
-          the reading content below needs a measure. */}
-      <div className="flex h-[calc(4rem+env(safe-area-inset-top))] w-full items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6 lg:px-8">
-        <BrandMark />
+            inward from the right — the header read as a narrow strip laid on the
+            page rather than the top of it. A header belongs to the window; only
+            the reading content below needs a measure. */}
+        <div className="flex h-[calc(4rem+env(safe-area-inset-top))] w-full items-end justify-between px-4 pb-3 pt-[env(safe-area-inset-top)] md:px-6 lg:px-8">
+          <BrandMark />
 
-        {/* The same three groups the mobile menu uses, as dropdowns.
+          {/* The same three groups the mobile menu uses, as dropdowns.
             The old bar was five #anchor links that only scrolled this page —
-            so the desktop header advertised sections while the mobile menu
-            offered real destinations. One source of truth now: mobileNavGroups
-            drives both. */}
-        <nav
-          className="hidden items-center gap-1 lg:flex"
-          aria-label="Primary navigation"
-          onMouseLeave={() => setOpenGroup(null)}
-        >
-          {mobileNavGroups.map((group) => {
-            const isOpen = openGroup === group.label;
-            return (
-              <div key={group.label} className="relative" onMouseEnter={() => setOpenGroup(group.label)}>
-                <button
-                  type="button"
-                  onClick={() => setOpenGroup(isOpen ? null : group.label)}
-                  aria-expanded={isOpen}
-                  aria-haspopup="true"
-                  className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight transition-colors ${
-                    isOpen
-                      ? "bg-[#171717]/[0.05] text-[#171717] dark:bg-white/10 dark:text-white"
-                      : "text-[#666a70] hover:bg-[#171717]/[0.04] hover:text-[#171717] dark:text-white/55 dark:hover:bg-white/10 dark:hover:text-white"
-                  }`}
+              so the desktop header advertised sections while the mobile menu
+              offered real destinations. One source of truth now: mobileNavGroups
+              drives both. */}
+          <nav
+            className="hidden items-center gap-1 lg:flex"
+            aria-label="Primary navigation"
+            onMouseLeave={() => setOpenGroup(null)}
+          >
+            {mobileNavGroups.map((group) => {
+              const isOpen = openGroup === group.label;
+              return (
+                <div
+                  key={group.label}
+                  className="relative"
+                  onMouseEnter={() => setOpenGroup(group.label)}
                 >
-                  {group.label}
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroup(isOpen ? null : group.label)}
+                    aria-expanded={isOpen}
+                    aria-haspopup="true"
+                    className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight transition-colors ${
+                      isOpen
+                        ? "bg-[#171717]/[0.05] text-[#171717] dark:bg-white/10 dark:text-white"
+                        : "text-[#666a70] hover:bg-[#171717]/[0.04] hover:text-[#171717] dark:text-white/55 dark:hover:bg-white/10 dark:hover:text-white"
+                    }`}
+                  >
+                    {group.label}
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
 
-                {isOpen && (
-                  <div className="absolute left-0 top-full z-50 w-[320px] pt-2">
-                    <div className="overflow-hidden rounded-xl border border-[#171717]/[0.08] bg-[#f7f6f3] p-1.5 dark:border-white/10 dark:bg-[#16131a]">
-                      {group.items.map((item) => (
-                        <Link
-                          key={item.href}
-                          {...(item.slug
-                            ? { to: "/explore/$slug" as const, params: { slug: item.slug } }
-                            : { to: "/docs" as const, search: { page: undefined } })}
-                          onClick={() => setOpenGroup(null)}
-                          preload={false}
-                          className="group/item flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#171717]/[0.04] dark:hover:bg-white/[0.06]"
-                        >
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-[13px] font-semibold tracking-tight text-[#171717] dark:text-white">
-                              {item.label}
+                  {isOpen && (
+                    <div className="absolute left-0 top-full z-50 w-[320px] pt-2">
+                      <div className="overflow-hidden rounded-xl border border-[#171717]/[0.08] bg-[#f7f6f3] p-1.5 dark:border-white/10 dark:bg-[#16131a]">
+                        {group.items.map((item) => (
+                          <Link
+                            key={item.href}
+                            {...(item.slug
+                              ? { to: "/explore/$slug" as const, params: { slug: item.slug } }
+                              : { to: "/docs" as const, search: { page: undefined } })}
+                            onClick={() => setOpenGroup(null)}
+                            preload={false}
+                            className="group/item flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#171717]/[0.04] dark:hover:bg-white/[0.06]"
+                          >
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-[13px] font-semibold tracking-tight text-[#171717] dark:text-white">
+                                {item.label}
+                              </span>
+                              <span className="mt-0.5 block text-[11px] leading-4 text-[#6d6269] dark:text-white/50">
+                                {item.detail}
+                              </span>
                             </span>
-                            <span className="mt-0.5 block text-[11px] leading-4 text-[#6d6269] dark:text-white/50">
-                              {item.detail}
-                            </span>
-                          </span>
-                          <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#cc208f] opacity-0 transition-opacity group-hover/item:opacity-100" />
-                        </Link>
-                      ))}
+                            <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#cc208f] opacity-0 transition-opacity group-hover/item:opacity-100" />
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            title={dark ? "Switch to light" : "Switch to dark"}
-            aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
-            aria-pressed={dark}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#4d4f55] dark:text-white/60 transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:h-10 sm:w-10"
-          >
-            {dark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
-          </button>
-          <Link
-            to="/signin"
-            search={{ ref: referralCode, club: undefined }}
-            className="hidden rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:inline-flex"
-            preload={false}
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/signup"
-            search={{ ref: referralCode, club: undefined }}
-            className="inline-flex h-9 w-[68px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#171717] px-0 text-[12.5px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:h-10 sm:w-auto sm:px-5 sm:text-[13.5px]"
-            preload={false}
-          >
-            <span className="sm:hidden">Join</span>
-            <span className="hidden sm:inline">Join Zero Club</span>
-          </Link>
-          <button
-            type="button"
-            className="grid h-10 w-10 place-items-center rounded-full text-[#303236] dark:text-white transition hover:bg-[#171717]/[0.04] dark:text-white dark:hover:bg-white/10 lg:hidden"
-            aria-label={isOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen((value) => !value)}
-          >
-            {isOpen ? <X className="h-6 w-7" /> : <Menu className="h-6 w-7" strokeWidth={2.25} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={dark ? "Switch to light" : "Switch to dark"}
+              aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+              aria-pressed={dark}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#4d4f55] dark:text-white/60 transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:h-10 sm:w-10"
+            >
+              {dark ? (
+                <Sun className="h-[18px] w-[18px]" />
+              ) : (
+                <Moon className="h-[18px] w-[18px]" />
+              )}
+            </button>
+            <Link
+              to="/signin"
+              search={{ ref: referralCode, club: undefined }}
+              className="hidden rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 transition-colors hover:bg-[#171717]/[0.04] dark:text-white/70 dark:hover:bg-white/10 sm:inline-flex"
+              preload={false}
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/signup"
+              search={{ ref: referralCode, club: undefined }}
+              className="inline-flex h-9 w-[68px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#171717] px-0 text-[12.5px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:h-10 sm:w-auto sm:px-5 sm:text-[13.5px]"
+              preload={false}
+            >
+              <span className="sm:hidden">Join</span>
+              <span className="hidden sm:inline">Join Zero Club</span>
+            </Link>
+            <button
+              type="button"
+              className="grid h-10 w-10 place-items-center rounded-full text-[#303236] dark:text-white transition hover:bg-[#171717]/[0.04] dark:text-white dark:hover:bg-white/10 lg:hidden"
+              aria-label={isOpen ? "Close navigation" : "Open navigation"}
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen((value) => !value)}
+            >
+              {isOpen ? <X className="h-6 w-7" /> : <Menu className="h-6 w-7" strokeWidth={2.25} />}
+            </button>
+          </div>
         </div>
-      </div>
-
-    </header>
+      </header>
 
       {isOpen && (
-        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 z-40 overflow-y-auto overscroll-contain border-t border-[#171717]/[0.08] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-5 lg:hidden">
+        <div className="fixed inset-x-0 top-[calc(4rem+env(safe-area-inset-top))] bottom-0 z-40 overflow-y-auto overscroll-contain bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-5 lg:hidden">
           <div className="mx-auto max-w-xl pb-10">
             <div className="space-y-7">
               {mobileNavGroups.map((group) => (
                 <section key={group.label}>
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73] dark:text-white/45">{group.label}</p>
-                  <div className="divide-y divide-[#171717]/[0.08] dark:divide-white/10 border-y border-[#171717]/[0.08] dark:border-white/10">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73] dark:text-white/45">
+                    {group.label}
+                  </p>
+                  <div className="">
                     {group.items.map((item) => (
                       <Link
                         key={item.label}
@@ -368,8 +423,12 @@ function Header({ referralCode }: ReferralProps) {
                         className="group flex items-center justify-between gap-4 py-3.5 transition-colors active:opacity-70"
                       >
                         <span>
-                          <span className="block font-display text-[28px] font-medium leading-none tracking-tight text-[#171417] dark:text-white">{item.label}</span>
-                          <span className="mt-1 block text-[11.5px] leading-5 text-[#6d6269] dark:text-white/55">{item.detail}</span>
+                          <span className="block font-display text-[28px] font-medium leading-none tracking-tight text-[#171417] dark:text-white">
+                            {item.label}
+                          </span>
+                          <span className="mt-1 block text-[11.5px] leading-5 text-[#6d6269] dark:text-white/55">
+                            {item.detail}
+                          </span>
                         </span>
                         <ArrowUpRight className="h-5 w-5 shrink-0 text-[#cc208f] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                       </Link>
@@ -379,10 +438,20 @@ function Header({ referralCode }: ReferralProps) {
               ))}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-3">
-              <Link to="/signin" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-[#171717]/12 dark:border-white/12 text-[13px] font-semibold text-[#242126] dark:text-white">
+              <Link
+                to="/signin"
+                search={{ ref: referralCode, club: undefined }}
+                onClick={() => setIsOpen(false)}
+                className="flex h-12 items-center justify-center rounded-lg border border-[#171717]/12 dark:border-white/12 text-[13px] font-semibold text-[#242126] dark:text-white"
+              >
                 Sign in
               </Link>
-              <Link to="/signup" search={{ ref: referralCode, club: undefined }} onClick={() => setIsOpen(false)} className="flex h-12 items-center justify-center rounded-lg bg-[#171417] dark:bg-white px-4 text-[13px] font-semibold text-white dark:text-[#171417]">
+              <Link
+                to="/signup"
+                search={{ ref: referralCode, club: undefined }}
+                onClick={() => setIsOpen(false)}
+                className="flex h-12 items-center justify-center rounded-lg bg-[#171417] dark:bg-white px-4 text-[13px] font-semibold text-white dark:text-[#171417]"
+              >
                 Join Zero Club
               </Link>
             </div>
@@ -436,7 +505,7 @@ function ProductShowcase() {
             built"; abstract pills read as a loading state that never
             finished. */}
         <div className="zc-surface relative mt-4 overflow-hidden rounded-[14px] bg-gradient-to-br from-[#2a1f2e] via-[#1a161d] to-[#121016]">
-          <div className="flex items-center gap-1.5 border-b border-white/[0.07] px-3 py-2">
+          <div className="flex items-center gap-1.5 px-3 py-2">
             <span className="h-2 w-2 rounded-full bg-white/20" />
             <span className="h-2 w-2 rounded-full bg-white/15" />
             <span className="h-2 w-2 rounded-full bg-white/10" />
@@ -477,16 +546,24 @@ function ProductShowcase() {
           <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
         </span>
         <div className="relative">
-          <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Live bootcamp</p>
-          <p className="text-[10.5px] text-[#666a70] dark:text-white/55">UI Engineering · 48 learners</p>
+          <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">
+            Live bootcamp
+          </p>
+          <p className="text-[10.5px] text-[#666a70] dark:text-white/55">
+            UI Engineering · 48 learners
+          </p>
         </div>
       </div>
 
       {/* Floating: wallet mini-card */}
       <div className="zc-showcase-float-delayed zc-surface absolute bottom-0 right-0 w-[130px] overflow-hidden rounded-[16px] bg-gradient-to-br from-[#241c29] via-[#161219] to-[#0d0b10] p-3 sm:-bottom-6 sm:-right-6 sm:w-44 sm:rounded-[18px] sm:p-4">
         <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
-        <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">Creator wallet</p>
-        <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-white tabular-nums sm:text-[20px]">₦248,500</p>
+        <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">
+          Creator wallet
+        </p>
+        <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-white tabular-nums sm:text-[20px]">
+          ₦248,500
+        </p>
         <p className="mt-0.5 text-[10px] text-emerald-400">+ ₦45,000 this week</p>
       </div>
     </div>
@@ -494,16 +571,16 @@ function ProductShowcase() {
 }
 
 /**
- * The scrolling rail under the hero, showing real clubs.
- *
- * Reads clubs directly with the anon key and only shows active clubs that have
- * a real logo or banner. The landing rail is a visual showcase only: it does
- * not expose a private club's posts, members, chat, or join controls.
- *
- * If the query fails or returns nothing, the rail renders nothing at all rather
- * than falling back to invented clubs. An empty strip is better than a landing
- * page that promises communities which do not exist.
- */
+   * The scrolling rail under the hero, showing real clubs.
+   *
+   * Reads clubs directly with the anon key and only shows active clubs that have
+   * a real logo or banner. The landing rail is a visual showcase only: it does
+   * not expose a private club's posts, members, chat, or join controls.
+   *
+   * If the query fails or returns nothing, the rail renders nothing at all rather
+   * than falling back to invented clubs. An empty strip is better than a landing
+   * page that promises communities which do not exist.
+   */
 function ActivityRail() {
   const { data: clubs = [] } = useQuery({
     queryKey: ["landing-live-clubs"],
@@ -579,10 +656,16 @@ function ActivityRail() {
                 />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[11.5px] font-semibold text-[#242126] dark:text-white">{club.name}</span>
-                <span className="block truncate text-[10.5px] text-[#666a70] dark:text-white/55">{club.category || "Community"}</span>
+                <span className="block truncate text-[11.5px] font-semibold text-[#242126] dark:text-white">
+                  {club.name}
+                </span>
+                <span className="block truncate text-[10.5px] text-[#666a70] dark:text-white/55">
+                  {club.category || "Community"}
+                </span>
               </span>
-              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">Live</span>
+              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">
+                Live
+              </span>
             </article>
           ))}
         </div>
@@ -592,15 +675,15 @@ function ActivityRail() {
 }
 
 /**
- * Download button for the Android app, shown only on Android.
- *
- * An APK is useless on iPhone and desktop, so showing it there would only add
- * noise to the hero. Detection runs in an effect rather than during render:
- * this route is server-rendered, `navigator` does not exist on the server, and
- * assuming a value would make the server and client markup disagree. Starting
- * hidden and revealing after mount keeps hydration clean, and means non-Android
- * visitors never see a flash of a button meant for someone else.
- */
+   * Download button for the Android app, shown only on Android.
+   *
+   * An APK is useless on iPhone and desktop, so showing it there would only add
+   * noise to the hero. Detection runs in an effect rather than during render:
+   * this route is server-rendered, `navigator` does not exist on the server, and
+   * assuming a value would make the server and client markup disagree. Starting
+   * hidden and revealing after mount keeps hydration clean, and means non-Android
+   * visitors never see a flash of a button meant for someone else.
+   */
 function AndroidAppDownload() {
   const [isAndroid, setIsAndroid] = useState(false);
 
@@ -637,7 +720,7 @@ function ProductSection() {
    * new first screen, where they still do their job.
    */
   return (
-    <section className="relative overflow-hidden border-b border-[#171717]/[0.06] bg-[#f4f2ef] dark:border-white/10 dark:bg-[#0f0d12]">
+    <section className="relative overflow-hidden bg-[#f4f2ef] dark:border-white/10 dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
       <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:grid-cols-[1fr_0.95fr] lg:gap-12 lg:py-20">
         <div className="min-w-0">
@@ -645,8 +728,8 @@ function ProductSection() {
             Everything you build, in one place.
           </h2>
           <p className="mt-5 max-w-[520px] text-[16px] leading-relaxed text-[#4d4f55] dark:text-white/60 md:text-[17px]">
-            Profiles, clubs, live bootcamps, a wallet and a store — so the work, the people
-            and the money all live where the learning happens.
+            Profiles, clubs, live bootcamps, a wallet and a store — so the work, the people and the
+            money all live where the learning happens.
           </p>
 
           <AndroidAppDownload />
@@ -662,7 +745,7 @@ function ProductSection() {
 
 function TopicExplorer() {
   return (
-    <section id="people" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
+    <section id="people" className="bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-20">
         <div>
           <p className="zc-eyebrow">Find your people</p>
@@ -699,7 +782,7 @@ function TopicExplorer() {
 
 function LearningSection() {
   return (
-    <section id="learning" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
+    <section id="learning" className="bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="max-w-[640px]">
           <p className="zc-eyebrow">Learning that compounds</p>
@@ -727,10 +810,16 @@ function LearningSection() {
                 <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-gradient-to-br from-[#cc208f]/[0.16] to-[#cc208f]/[0.04] text-[#cc208f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-[#cc208f]/20 transition duration-500 group-hover:scale-[1.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                   <item.Icon active className="h-[22px] w-[22px]" />
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">0{index + 1}</span>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">
+                  0{index + 1}
+                </span>
               </div>
-              <h3 className="relative mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">{item.title}</h3>
-              <p className="relative mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[14px]">{item.copy}</p>
+              <h3 className="relative mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">
+                {item.title}
+              </h3>
+              <p className="relative mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[14px]">
+                {item.copy}
+              </p>
             </article>
           ))}
         </div>
@@ -741,7 +830,7 @@ function LearningSection() {
 
 function ClubsSection() {
   return (
-    <section id="clubs" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
+    <section id="clubs" className="bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
         {/* The visual arrives from the side it sits on and drifts a little
             against the text as you pass, so the row assembles toward its own
@@ -749,7 +838,8 @@ function ClubsSection() {
         <div data-reveal="left" className="order-2 lg:order-1">
           <div data-parallax="0.10" className="zc-parallax relative">
             <Bloom className="-left-10 top-1/3 h-56 w-56" />
-            <img decoding="async"
+            <img
+              decoding="async"
               src="/landing-communities-purpose.png"
               alt="Zero Club private clubs"
               className="relative h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08]"
@@ -771,7 +861,9 @@ function ClubsSection() {
                 <span className="mt-0.5 grid h-5.5 w-5.5 shrink-0 place-items-center rounded-full bg-[#cc208f]/10">
                   <Check className="h-3 w-3 text-[#cc208f]" strokeWidth={2.5} />
                 </span>
-                <p className="text-[15.5px] leading-relaxed text-[#4d4f55] dark:text-white/60">{item}</p>
+                <p className="text-[15.5px] leading-relaxed text-[#4d4f55] dark:text-white/60">
+                  {item}
+                </p>
               </div>
             ))}
           </div>
@@ -783,7 +875,7 @@ function ClubsSection() {
 
 function OpportunitiesSection() {
   return (
-    <section id="opportunities" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
+    <section id="opportunities" className="bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
         <div>
           <p className="zc-eyebrow">Open doors through proof</p>
@@ -801,10 +893,16 @@ function OpportunitiesSection() {
                 <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
                   <card.Icon active className="h-[22px] w-[22px]" />
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">
+                  0{index + 1}
+                </span>
               </div>
-              <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">{card.title}</h3>
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55">{card.copy}</p>
+              <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">
+                {card.title}
+              </h3>
+              <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55">
+                {card.copy}
+              </p>
             </article>
           ))}
         </div>
@@ -815,7 +913,7 @@ function OpportunitiesSection() {
 
 function WalletSection() {
   return (
-    <section id="wallet" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
+    <section id="wallet" className="bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
         <div>
           <p className="zc-eyebrow">Creator economy built in</p>
@@ -823,8 +921,17 @@ function WalletSection() {
             Teach, sell, earn, and manage it all in one account.
           </h2>
           <div className="mt-8 flex flex-wrap gap-2">
-            {["Paid bootcamps", "Digital products", "Creator wallet", "Coupons", "Private access"].map((item) => (
-              <span key={item} className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 ring-1 ring-[#171717]/12">
+            {[
+              "Paid bootcamps",
+              "Digital products",
+              "Creator wallet",
+              "Coupons",
+              "Private access",
+            ].map((item) => (
+              <span
+                key={item}
+                className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 ring-1 ring-[#171717]/12"
+              >
                 {item}
               </span>
             ))}
@@ -847,15 +954,26 @@ function WalletSection() {
 
             <div className="relative z-10 flex flex-1 flex-col">
               <div className="mb-5 flex items-center gap-2">
-                <img decoding="async" src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" />
-                <span className="text-[11.5px] font-semibold tracking-tight text-white/85">Zero Wallet</span>
+                <img
+                  decoding="async"
+                  src="/logo.png"
+                  alt=""
+                  className="h-6 w-6 shrink-0 object-contain"
+                />
+                <span className="text-[11.5px] font-semibold tracking-tight text-white/85">
+                  Zero Wallet
+                </span>
               </div>
 
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">Available balance</p>
+                  <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">
+                    Available balance
+                  </p>
                   <h3 className="mt-2.5 flex items-start text-[46px] font-semibold leading-none tracking-[-0.045em] tabular-nums">
-                    <span className="mr-2 mt-1 text-[23px] font-medium tracking-normal text-white/55">₦</span>
+                    <span className="mr-2 mt-1 text-[23px] font-medium tracking-normal text-white/55">
+                      ₦
+                    </span>
                     <span>248,500</span>
                   </h3>
                 </div>
@@ -868,17 +986,25 @@ function WalletSection() {
                 <p className="text-[9.5px] font-medium uppercase tracking-[0.15em] text-white/45">
                   Withdrawable earnings
                 </p>
-                <p className="shrink-0 text-[17px] font-semibold tracking-tight tabular-nums text-white">₦92,400</p>
+                <p className="shrink-0 text-[17px] font-semibold tracking-tight tabular-nums text-white">
+                  ₦92,400
+                </p>
               </div>
             </div>
           </div>
           <div className="relative -mt-4 mx-6 rounded-lg bg-white dark:bg-[#141118] p-4 ring-1 ring-[#171717]/[0.06] dark:ring-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Bootcamp enrollment</p>
-                <p className="text-[10.5px] text-[#666a70] dark:text-white/55">UI Engineering · just now</p>
+                <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">
+                  Bootcamp enrollment
+                </p>
+                <p className="text-[10.5px] text-[#666a70] dark:text-white/55">
+                  UI Engineering · just now
+                </p>
               </div>
-              <span className="text-[13px] font-semibold text-emerald-600 tabular-nums">+ ₦15,000</span>
+              <span className="text-[13px] font-semibold text-emerald-600 tabular-nums">
+                + ₦15,000
+              </span>
             </div>
           </div>
         </div>
@@ -889,7 +1015,7 @@ function WalletSection() {
 
 function FeaturesSection() {
   return (
-    <section id="features" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
+    <section id="features" className="bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="max-w-[650px]">
           <p className="zc-eyebrow">The Zero Club toolkit</p>
@@ -897,7 +1023,8 @@ function FeaturesSection() {
             The tools behind a more visible kind of progress.
           </h2>
           <p className="mt-4 text-[15px] leading-relaxed text-[#666a70] dark:text-white/55">
-            Learn, build, find your people, and turn momentum into the next opportunity without spreading your work across separate apps.
+            Learn, build, find your people, and turn momentum into the next opportunity without
+            spreading your work across separate apps.
           </p>
         </div>
 
@@ -914,10 +1041,16 @@ function FeaturesSection() {
                 <div className="grid h-11 w-11 place-items-center rounded-[13px] bg-gradient-to-br from-[#cc208f]/20 to-[#cc208f]/[0.04] text-[#cc208f] ring-1 ring-[#cc208f]/25 shadow-[0_0_24px_-6px_rgba(204,32,143,0.55)]">
                   {feature.icon}
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">
+                  0{index + 1}
+                </span>
               </div>
-              <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white md:text-[20px]">{feature.title}</h3>
-              <p className="mt-2 max-w-[680px] text-[13px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[13.5px]">{feature.copy}</p>
+              <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white md:text-[20px]">
+                {feature.title}
+              </h3>
+              <p className="mt-2 max-w-[680px] text-[13px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[13.5px]">
+                {feature.copy}
+              </p>
             </article>
           ))}
         </div>
@@ -927,11 +1060,26 @@ function FeaturesSection() {
 }
 
 const faqs = [
-  { q: "What is Zero Club?", a: "Zero Club is a professional network designed specifically for the next generation of builders, creators, and institutions to learn, connect, and grow." },
-  { q: "Who can join Zero Club?", a: "Whether you're a student learning new skills, a tutor looking to monetize your expertise, or an institution managing bootcamps, Zero Club is built for you." },
-  { q: "How does the Creator Wallet work?", a: "The built-in wallet lets you manage earnings from paid bootcamps, digital products, and private access seamlessly directly within the platform." },
-  { q: "Can I host my own bootcamps?", a: "Yes! Tutors and Institutions have access to dedicated studios where they can create, manage, and monetize their own bootcamps — including live video classes." },
-  { q: "Is Zero Club free to use?", a: "It is free to join and start building your network. We also offer Premium memberships for advanced features, and creators can charge for their own content." },
+  {
+    q: "What is Zero Club?",
+    a: "Zero Club is a professional network designed specifically for the next generation of builders, creators, and institutions to learn, connect, and grow.",
+  },
+  {
+    q: "Who can join Zero Club?",
+    a: "Whether you're a student learning new skills, a tutor looking to monetize your expertise, or an institution managing bootcamps, Zero Club is built for you.",
+  },
+  {
+    q: "How does the Creator Wallet work?",
+    a: "The built-in wallet lets you manage earnings from paid bootcamps, digital products, and private access seamlessly directly within the platform.",
+  },
+  {
+    q: "Can I host my own bootcamps?",
+    a: "Yes! Tutors and Institutions have access to dedicated studios where they can create, manage, and monetize their own bootcamps — including live video classes.",
+  },
+  {
+    q: "Is Zero Club free to use?",
+    a: "It is free to join and start building your network. We also offer Premium memberships for advanced features, and creators can charge for their own content.",
+  },
 ];
 
 type ContactFormState = {
@@ -976,14 +1124,19 @@ function ContactSection() {
       });
       const result = (await response.json().catch(() => ({}))) as { error?: string };
 
-      if (!response.ok) throw new Error(result.error || "Your message could not be sent. Please try again.");
+      if (!response.ok)
+        throw new Error(result.error || "Your message could not be sent. Please try again.");
 
       setForm(emptyContactForm);
       setStatus("sent");
       setFeedback("Message sent. The Zero Club team will get back to you soon.");
     } catch (error) {
       setStatus("error");
-      setFeedback(error instanceof Error ? error.message : "Your message could not be sent. Please try again.");
+      setFeedback(
+        error instanceof Error
+          ? error.message
+          : "Your message could not be sent. Please try again.",
+      );
     }
   };
 
@@ -991,7 +1144,7 @@ function ContactSection() {
     "mt-2 w-full rounded-lg border border-[#171717]/[0.08] dark:border-white/10 bg-white dark:bg-[#141118] px-4 py-3 text-[14px] text-[#171717] dark:text-white outline-none transition placeholder:text-[#8a8c91] focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/[0.07]";
 
   return (
-    <section id="contact" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
+    <section id="contact" className="bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:py-20">
         <div className="lg:pt-5">
           <p className="zc-eyebrow">Contact us</p>
@@ -999,11 +1152,16 @@ function ContactSection() {
             Let&apos;s talk about what you&apos;re building.
           </h2>
           <p className="mt-5 max-w-[430px] text-[14px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[15px]">
-            Have a question, partnership idea, or need help with Zero Club? Send us a note and it will go directly to our team.
+            Have a question, partnership idea, or need help with Zero Club? Send us a note and it
+            will go directly to our team.
           </p>
         </div>
 
-        <form onSubmit={submit} className="rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] p-5 ring-1 ring-[#171717]/[0.06] dark:ring-white/10 sm:p-7" noValidate={false}>
+        <form
+          onSubmit={submit}
+          className="rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] p-5 ring-1 ring-[#171717]/[0.06] dark:ring-white/10 sm:p-7"
+          noValidate={false}
+        >
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="text-[12px] font-semibold text-[#343238] dark:text-white/75">
               Name
@@ -1057,7 +1215,10 @@ function ContactSection() {
             />
           </label>
 
-          <label className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+          <label
+            className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
+            aria-hidden="true"
+          >
             Website
             <input
               tabIndex={-1}
@@ -1073,11 +1234,18 @@ function ContactSection() {
               disabled={status === "sending"}
               className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[14px] font-semibold text-white transition hover:opacity-90 active:scale-[0.98] disabled:cursor-wait disabled:opacity-65"
             >
-              {status === "sending" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {status === "sending" ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
               {status === "sending" ? "Sending..." : "Send message"}
             </button>
             {feedback && (
-              <p role="status" className={`max-w-[360px] text-[12px] leading-relaxed ${status === "sent" ? "text-emerald-700" : "text-red-600"}`}>
+              <p
+                role="status"
+                className={`max-w-[360px] text-[12px] leading-relaxed ${status === "sent" ? "text-emerald-700" : "text-red-600"}`}
+              >
                 {feedback}
               </p>
             )}
@@ -1092,7 +1260,7 @@ function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
+    <section className="bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="mb-10 text-center md:mb-14">
           <p className="zc-eyebrow">Questions</p>
@@ -1116,30 +1284,32 @@ function FaqSection() {
                * So the reveal lives on a wrapper React never re-renders, and
                * the interactive card owns the className that changes. Nothing
                * writes to the same attribute from two directions. */
-              <div
-                key={i}
-                data-reveal
-                style={{ "--reveal-delay": `${i * 60}ms` } as CSSProperties}
-              >
-              <div
-                className={`zc-glow-card overflow-hidden rounded-[16px] bg-white dark:bg-[#141118] ${isOpen ? "is-featured" : ""}`}
-              >
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : i)}
-                  aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left"
-                >
-                  <h3 className="text-[15.5px] font-semibold tracking-tight text-[#171717] dark:text-white">{faq.q}</h3>
-                  <ChevronDown className={`h-4.5 w-4.5 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#cc208f]" : "text-[#666a70] dark:text-white/55"}`} />
-                </button>
+              <div key={i} data-reveal style={{ "--reveal-delay": `${i * 60}ms` } as CSSProperties}>
                 <div
-                  className={`overflow-hidden px-6 transition-all duration-300 ${
-                    isOpen ? "max-h-[200px] pb-5 opacity-100" : "max-h-0 pb-0 opacity-0"
-                  }`}
+                  className={`zc-glow-card overflow-hidden rounded-[16px] bg-white dark:bg-[#141118] ${isOpen ? "is-featured" : ""}`}
                 >
-                  <p className="text-[14px] leading-relaxed text-[#666a70] dark:text-white/55">{faq.a}</p>
+                  <button
+                    onClick={() => setOpenIndex(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left"
+                  >
+                    <h3 className="text-[15.5px] font-semibold tracking-tight text-[#171717] dark:text-white">
+                      {faq.q}
+                    </h3>
+                    <ChevronDown
+                      className={`h-4.5 w-4.5 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#cc208f]" : "text-[#666a70] dark:text-white/55"}`}
+                    />
+                  </button>
+                  <div
+                    className={`overflow-hidden px-6 transition-all duration-300 ${
+                      isOpen ? "max-h-[200px] pb-5 opacity-100" : "max-h-0 pb-0 opacity-0"
+                    }`}
+                  >
+                    <p className="text-[14px] leading-relaxed text-[#666a70] dark:text-white/55">
+                      {faq.a}
+                    </p>
+                  </div>
                 </div>
-              </div>
               </div>
             );
           })}
@@ -1193,20 +1363,27 @@ function FinalCta({ referralCode }: ReferralProps) {
 
 function Footer() {
   return (
-    <footer className="border-t border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12] px-4 py-12 md:px-6">
+    <footer className="bg-[#f4f2ef] dark:bg-[#0f0d12] px-4 py-12 md:px-6">
       <div className="mx-auto max-w-[1320px]">
         <div className="mb-10 flex flex-wrap items-center justify-between gap-5">
           <BrandMark />
-          <p className="text-[12px] text-[#666a70] dark:text-white/55">The social network for builders.</p>
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">
+            The social network for builders.
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {footerGroups.map((group) => (
             <div key={group.title}>
-              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#171717] dark:text-white">{group.title}</h3>
+              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#171717] dark:text-white">
+                {group.title}
+              </h3>
               <ul className="grid gap-2.5">
                 {group.links.map((link) => (
                   <li key={link}>
-                    <a href={link === "Contact" ? "#contact" : "#people"} className="text-[13px] font-medium text-[#666a70] dark:text-white/55 transition-colors hover:text-[#171717]">
+                    <a
+                      href={link === "Contact" ? "#contact" : "#people"}
+                      className="text-[13px] font-medium text-[#666a70] dark:text-white/55 transition-colors hover:text-[#171717]"
+                    >
                       {link}
                     </a>
                   </li>
@@ -1215,9 +1392,11 @@ function Footer() {
             </div>
           ))}
         </div>
-        <div className="mt-12 flex items-center justify-between border-t border-[#171717]/[0.06] dark:border-white/10 pt-6">
+        <div className="mt-12 flex items-center justify-between pt-6">
           <p className="text-[12px] text-[#666a70] dark:text-white/55">Zero Club © 2026</p>
-          <p className="text-[12px] text-[#666a70] dark:text-white/55">Made for builders, by builders.</p>
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">
+            Made for builders, by builders.
+          </p>
         </div>
       </div>
     </footer>
@@ -1245,16 +1424,36 @@ function Landing() {
             motion behind it, and counts read from the database rather than
             asserted. Everything below it is unchanged. */}
         <HeroStage referralCode={ref} />
-        <div data-reveal><ProductSection /></div>
-        <div data-reveal><TopicExplorer /></div>
-        <div data-reveal><LearningSection /></div>
-        <div data-reveal><ClubsSection /></div>
-        <div data-reveal><OpportunitiesSection /></div>
-        <div data-reveal><WalletSection /></div>
-        <div data-reveal><FeaturesSection /></div>
-        <div data-reveal><ContactSection /></div>
-        <div data-reveal><FaqSection /></div>
-        <div data-reveal><FinalCta referralCode={ref} /></div>
+        <div data-reveal>
+          <ProductSection />
+        </div>
+        <div data-reveal>
+          <TopicExplorer />
+        </div>
+        <div data-reveal>
+          <LearningSection />
+        </div>
+        <div data-reveal>
+          <ClubsSection />
+        </div>
+        <div data-reveal>
+          <OpportunitiesSection />
+        </div>
+        <div data-reveal>
+          <WalletSection />
+        </div>
+        <div data-reveal>
+          <FeaturesSection />
+        </div>
+        <div data-reveal>
+          <ContactSection />
+        </div>
+        <div data-reveal>
+          <FaqSection />
+        </div>
+        <div data-reveal>
+          <FinalCta referralCode={ref} />
+        </div>
       </main>
       <Footer />
     </div>
