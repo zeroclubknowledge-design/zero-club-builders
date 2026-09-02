@@ -328,28 +328,25 @@ function SignUpPage() {
 
         <section className="px-5 py-8 sm:px-8 sm:py-10 lg:px-9">
           <div className="mx-auto w-full max-w-[420px]">
-          {/* Signup has more form below it than signin does, so the intro pays
-              for itself twice over on a phone. Same words, less air. */}
+          {/* Heading and its supporting line removed at request. The panel
+              beside this already says what the page is, and the form's own
+              "Create account" heading says what to do — so on a phone the
+              screen now opens on the form rather than on two more paragraphs
+              about it. */}
           <div className="mb-6 text-center">
             <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:hidden">
               <img decoding="async" src="/logo.png" alt="Zero Club" className="h-9 w-auto object-contain lg:h-10" />
               <span className="font-display text-xl font-medium text-white">Zero Club</span>
             </Link>
-            <p className="zc-eyebrow mx-auto mb-3 lg:mx-0 lg:mb-4">
+            <p className="zc-eyebrow mx-auto">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               One code, no password
-            </p>
-            <h1 className="font-display text-[30px] font-normal leading-[1.08] text-white sm:text-[38px] lg:text-[44px] xl:text-[48px]">
-              Start your Zero Club profile.
-            </h1>
-            <p className="mx-auto mt-3 max-w-sm text-[14px] leading-6 text-white/55 lg:mx-0 lg:text-[15px] lg:leading-7">
-              Choose your account type, reserve your handle, and enter with a secure email code.
             </p>
           </div>
 
           {/* The lit edge from the landing page, so the create-account card is
               recognisably part of the same product. */}
-          <div className="rounded-2xl bg-transparent">
+          <div className="rounded-xl bg-transparent">
             {step === "info" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
@@ -359,21 +356,23 @@ function SignUpPage() {
 
                 <div className="space-y-2">
                   <span className="text-[12px] font-medium text-white/60">Account type</span>
+                  {/* Icons removed at request. The icon was also what set the
+                      96px floor on these tiles, so without it they come down to
+                      the height of their own text. */}
                   <div className="grid grid-cols-3 gap-2">
                     {accountTypeOptions.map((role) => (
                       <button
                         key={role.id}
                         type="button"
                         onClick={() => setAccountType(role.id)}
-                        className={`min-h-[96px] rounded-xl border p-3 text-left transition ${
+                        className={`rounded-lg border p-2.5 text-left transition ${
                           accountType === role.id
-                            ? "border-[#cc208f]/45 bg-[#cc208f]/9 text-[#9d176d] ring-4 ring-[#cc208f]/8"
+                            ? "border-[#cc208f]/55 bg-[#cc208f]/12 text-white ring-2 ring-[#cc208f]/20"
                             : "border-white/12 bg-white/[0.04] text-white/60 hover:bg-white/[0.07]"
                         }`}
                       >
-                        <role.Icon className="mb-3 h-6 w-6" active={accountType === role.id} />
-                        <span className="block text-[13px] font-medium">{role.label}</span>
-                        <span className="mt-0.5 block text-[11px] text-white/50">{role.helper}</span>
+                        <span className="block text-[12.5px] font-medium">{role.label}</span>
+                        <span className="mt-0.5 block text-[10.5px] leading-4 text-white/50">{role.helper}</span>
                       </button>
                     ))}
                   </div>
@@ -389,7 +388,7 @@ function SignUpPage() {
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-12 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
@@ -403,7 +402,7 @@ function SignUpPage() {
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-12 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
@@ -418,13 +417,13 @@ function SignUpPage() {
                       placeholder="Enter referral code"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      className={`h-14 w-full rounded-xl border bg-white/[0.04] px-4 pl-11 pr-20 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-white/12"}`}
+                      className={`h-12 w-full rounded-lg border bg-white/[0.04] px-4 pl-11 pr-20 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-white/12"}`}
                     />
                     {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#9d176d]">Applied</span>}
                   </span>
                 </label>
 
-                <label className="flex items-start gap-3 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3">
+                <label className="flex items-start gap-3 rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5">
                   <input
                     type="checkbox"
                     checked={agreedToTerms}
@@ -447,7 +446,7 @@ function SignUpPage() {
                 <button
                   type="submit"
                   disabled={loading || googleLoading}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Continue <ArrowRight className="h-4 w-4" /></>}
                 </button>
@@ -469,23 +468,23 @@ function SignUpPage() {
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-12 w-full rounded-lg border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
                 <button
                   type="submit"
                   disabled={loading || code.length < 6}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Complete signup <ArrowRight className="h-4 w-4" /></>}
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Go back
                   </button>
                 </div>

@@ -64,25 +64,31 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
     /* min-h rather than h: the composition wants one screen, but a short
        laptop window should scroll rather than crush the stats into the
        headline. */
-    <section className="relative flex min-h-[88svh] flex-col overflow-hidden bg-[#f4f2ef] text-[#171717] dark:bg-[#0b0a0d] dark:text-white md:min-h-[92svh]">
+    /* Shorter section, so the headline sits nearer the header.
+       The gap under the header was not padding — it was slack. The content is
+       centred inside the section, so at 88svh there was a screenful of height
+       to centre within and the headline drifted to the middle of it. Taking
+       the section down to ~76svh removes the slack itself, which pulls the
+       whole composition up without moving anything relative to anything else.
+
+       Plain block comment, not {braced}: this sits between `return (` and the
+       root element, which is expression position — a braced comment there is a
+       second expression and the file stops compiling. */
+    <section className="relative flex min-h-[76svh] flex-col overflow-hidden bg-[#f4f2ef] text-[#171717] dark:bg-[#0b0a0d] dark:text-white md:min-h-[82svh]">
       <BrandField />
 
-      {/* Tighter. The hero was centring inside a 1080px column with 5.5rem of
-          top padding, which on a laptop left the headline stranded in the
-          middle of a lot of nothing. The measure only has to hold the
-          headline, and the top padding only has to clear the header. */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-1 flex-col items-center justify-center px-4 pb-6 pt-[calc(4.5rem+env(safe-area-inset-top))] text-center md:px-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-1 flex-col items-center justify-center px-4 pb-6 pt-[calc(3.25rem+env(safe-area-inset-top))] text-center md:px-8">
         {/* The wording is the landing page's own, unchanged. Three lines, so
             the progression reads as a sequence — skills, then proof, then what
             the proof opens — with the third in brand pink. Each is its own
             block and never wraps, which is what keeps the set visually even at
             any width. Only the presentation moved. */}
-        {/* Bigger on both frames. The old ceiling was 66px on a screen this
-            wide and the floor 30px on a phone, which made the one thing the
-            page is actually saying the least prominent thing on it. The floor
-            rises with the viewport rather than by breakpoint, so the three
-            lines stay proportional at every width. */}
-        <h1 className="mt-5 font-display text-[clamp(40px,9.2vw,92px)] font-semibold leading-[1.04] tracking-[-0.045em]">
+        {/* Bigger again, and no top margin.
+            The floor rises with the viewport rather than by breakpoint, so the
+            three lines stay proportional at every width. The mt-5 is gone: the
+            container's own top padding already clears the header, and the
+            margin was stacking on top of it. */}
+        <h1 className="font-display text-[clamp(46px,10.6vw,104px)] font-semibold leading-[1.02] tracking-[-0.045em]">
           <span className="block whitespace-nowrap animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.12s_both]">
             Build Skills.
           </span>

@@ -267,7 +267,7 @@ function SignInPage() {
               </p>
             </div>
 
-          <div className="rounded-2xl bg-transparent">
+          <div className="rounded-xl bg-transparent">
             {step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-5">
                 <div>
@@ -292,7 +292,7 @@ function SignInPage() {
                       placeholder="ada@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                      className="h-12 w-full rounded-lg border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                     />
                   </span>
                 </label>
@@ -300,7 +300,7 @@ function SignInPage() {
                 <button
                   type="submit"
                   disabled={loading || googleLoading}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Send code <ArrowRight className="h-4 w-4" /></>}
                 </button>
@@ -322,23 +322,23 @@ function SignInPage() {
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-12 w-full rounded-lg border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
                 <button
                   type="submit"
                   disabled={loading || code.length < 6}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Verify code <ArrowRight className="h-4 w-4" /></>}
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
+                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-lg border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Change email
                   </button>
                 </div>
