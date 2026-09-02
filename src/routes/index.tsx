@@ -277,7 +277,7 @@ function Header({ referralCode }: ReferralProps) {
 
                 {isOpen && (
                   <div className="absolute left-0 top-full z-50 w-[320px] pt-2">
-                    <div className="overflow-hidden rounded-xl border border-[#171717]/[0.08] bg-[#f7f6f3] p-1.5 shadow-[0_28px_60px_-28px_rgba(23,23,23,0.35)] dark:border-white/10 dark:bg-[#16131a]">
+                    <div className="overflow-hidden rounded-xl border border-[#171717]/[0.08] bg-[#f7f6f3] p-1.5 dark:border-white/10 dark:bg-[#16131a]">
                       {group.items.map((item) => (
                         <Link
                           key={item.href}
@@ -717,8 +717,7 @@ function LearningSection() {
                corner keeps the brand present without a border doing it. */
             <article
               key={item.title}
-              className="zc-surface-light zc-glow-card group sticky mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
-              style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
+              className="zc-surface-light zc-glow-card group mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
             >
               <span
                 aria-hidden
@@ -753,7 +752,7 @@ function ClubsSection() {
             <img decoding="async"
               src="/landing-communities-purpose.png"
               alt="Zero Club private clubs"
-              className="relative h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
+              className="relative h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08]"
             />
           </div>
         </div>
@@ -796,8 +795,7 @@ function OpportunitiesSection() {
           {audienceCards.map((card, index) => (
             <article
               key={card.title}
-              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px]"
-              style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
+              className="mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] md:min-h-[205px]"
             >
               <div className="flex items-start justify-between gap-5">
                 <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
@@ -841,7 +839,7 @@ function WalletSection() {
               embossed rings, and the same two figures — balance above,
               withdrawable earnings on the bottom line. If the product card
               changes, this is the one to change with it. */}
-          <div className="relative flex min-h-[252px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-7 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10">
+          <div className="relative flex min-h-[252px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-7 text-white ring-1 ring-black/10">
             <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
             <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
             <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
@@ -874,7 +872,7 @@ function WalletSection() {
               </div>
             </div>
           </div>
-          <div className="relative -mt-4 mx-6 rounded-lg bg-white dark:bg-[#141118] p-4 shadow-[0_16px_44px_-16px_rgba(0,0,0,0.25)] ring-1 ring-[#171717]/[0.06] dark:ring-white/10">
+          <div className="relative -mt-4 mx-6 rounded-lg bg-white dark:bg-[#141118] p-4 ring-1 ring-[#171717]/[0.06] dark:ring-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">Bootcamp enrollment</p>
@@ -907,8 +905,7 @@ function FeaturesSection() {
           {zeroClubFeatures.map((feature, index) => (
             <article
               key={feature.title}
-              className="zc-glow-card sticky mb-5 min-h-[190px] rounded-[20px] bg-white p-6 shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] dark:bg-[#141118] md:min-h-[205px] md:p-7"
-              style={{ top: `calc(4.75rem + ${index * 11}px)`, zIndex: index + 1 }}
+              className="zc-glow-card mb-5 min-h-[190px] rounded-[20px] bg-white p-6 dark:bg-[#141118] md:min-h-[205px] md:p-7"
             >
               <div className="flex items-start justify-between gap-5">
                 {/* The icon is the small light source each card is built
