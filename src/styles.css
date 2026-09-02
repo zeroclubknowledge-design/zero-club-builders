@@ -564,7 +564,7 @@
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
-    z-index: 2;
+    z-index: -1;
   }
   .dark .zc-glow-card::before {
     background: linear-gradient(
@@ -587,7 +587,7 @@
       rgb(204 32 143 / 0.16),
       transparent 62%
     );
-    z-index: 1;
+    z-index: -1;
   }
   .zc-glow-card:hover::after { opacity: 1; }
   .dark .zc-glow-card::after {
@@ -597,12 +597,28 @@
       transparent 62%
     );
   }
-  .zc-glow-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 26px 60px -28px rgb(204 32 143 / 0.42);
-  }
-  /* Content has to sit above both layers or the ring paints over it. */
-  .zc-glow-card > * { position: relative; z-index: 3; }
+  /* Lift only — no box-shadow.
+   *
+   * These cards are used alongside zc-surface-light, which carries its own
+   * carefully built shadow stack. A box-shadow here does not add to that, it
+   * REPLACES it, so hovering flattened the card at the exact moment it was
+   * meant to feel more physical. The pink bloom already arrives via ::after;
+   * the lift is all the hover needs to add. */
+  .zc-glow-card:hover { transform: translateY(-3px); }
+  /* There used to be a `.zc-glow-card > * { position: relative; z-index: 3 }`
+   * here, to lift content above the two decorative layers. It was a bad way to
+   * solve it and it broke the page.
+   *
+   * `position: relative` on EVERY direct child overrode `absolute` on the ones
+   * that were deliberately positioned — the corner wash on the learning cards,
+   * the spotlight and both blooms in the closing band. Those are large
+   * elements; dropped into normal flow they took up real space and pushed
+   * everything around them out of place.
+   *
+   * The layering is now done by painting order instead. The card isolates, so
+   * its ::before and ::after sit at z-index -1: above the card's own
+   * background, below its content, and touching nothing else. No child is told
+   * anything about its own position. */
 
   /* The one card in a row that is the point — the middle pricing tier in the
      reference. Same object, more light. */

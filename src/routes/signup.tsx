@@ -261,7 +261,10 @@ function SignUpPage() {
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto grid min-h-[calc(100dvh-68px)] w-full max-w-[1240px] grid-cols-1 gap-8 px-5 pb-10 pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(440px,520px)] lg:items-start lg:gap-12 lg:px-8 lg:pb-14 lg:pt-8 xl:gap-16">
+      {/* min-h only from lg up — see signin. On a phone this stretched the
+          single column to the full viewport regardless of its content, so the
+          form ended and the page carried on past it. */}
+      <main className="relative z-10 mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-8 px-5 pb-8 pt-3 lg:min-h-[calc(100dvh-68px)] lg:grid-cols-[minmax(0,1fr)_minmax(440px,520px)] lg:items-start lg:gap-12 lg:px-8 lg:pb-14 lg:pt-8 xl:gap-16">
         <section className="hidden lg:sticky lg:top-8 lg:block lg:self-start">
           <div className="relative min-h-[720px] overflow-hidden rounded-[24px] bg-[#181217] p-8 text-white shadow-[0_34px_90px_-44px_rgba(24,18,23,0.9)] xl:min-h-[760px] xl:p-10">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(204,32,143,0.34),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.12),transparent_38%)]" />
@@ -312,24 +315,28 @@ function SignUpPage() {
         </section>
 
         <section className="mx-auto w-full max-w-[480px] lg:mx-0 lg:max-w-[520px] lg:justify-self-end">
-          <div className="mb-8 text-center lg:mb-6 lg:text-left">
-            <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0 lg:mb-5">
-              <img decoding="async" src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
+          {/* Signup has more form below it than signin does, so the intro pays
+              for itself twice over on a phone. Same words, less air. */}
+          <div className="mb-5 text-center lg:mb-6 lg:text-left">
+            <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:mx-0 lg:mb-5">
+              <img decoding="async" src="/logo.png" alt="Zero Club" className="h-9 w-auto object-contain lg:h-10" />
               <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
             </Link>
-            <p className="mx-auto mb-4 flex w-fit max-w-full items-center justify-center gap-2 rounded-full border border-[#cc208f]/18 bg-[#cc208f]/8 px-3 py-1.5 text-center text-[12px] font-medium leading-5 text-[#9d176d] lg:mx-0">
-              <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+            <p className="zc-eyebrow mx-auto mb-3 lg:mx-0 lg:mb-4">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               One code, no password
             </p>
-            <h1 className="font-display text-[40px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[50px] lg:text-[44px] xl:text-[48px]">
+            <h1 className="font-display text-[30px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[38px] lg:text-[44px] xl:text-[48px]">
               Start your Zero Club profile.
             </h1>
-            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] dark:text-white/55 lg:mx-0 lg:mt-3">
+            <p className="mx-auto mt-3 max-w-sm text-[14px] leading-6 text-[#6d6269] dark:text-white/55 lg:mx-0 lg:text-[15px] lg:leading-7">
               Choose your account type, reserve your handle, and enter with a secure email code.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 dark:border-white/12 bg-white/88 dark:bg-[#141118]/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6 lg:p-6">
+          {/* The lit edge from the landing page, so the create-account card is
+              recognisably part of the same product. */}
+          <div className="zc-glow-card rounded-2xl bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl dark:bg-[#141118]/88 sm:p-6 lg:p-6">
             {step === "info" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>

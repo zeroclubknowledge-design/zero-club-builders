@@ -184,26 +184,35 @@ function SignInPage() {
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto grid min-h-[calc(100vh-68px)] w-full max-w-6xl grid-cols-1 gap-8 px-5 pb-10 pt-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-8 lg:pb-14">
+      {/* min-h only from lg up.
+          On a phone this forced the single column to fill the viewport whether
+          it had that much to say or not, which is most of why the page felt
+          long — the content ended and the page kept going. On desktop it is
+          still needed, because that is what centres the two columns. */}
+      <main className="relative z-10 mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 px-5 pb-8 pt-3 lg:min-h-[calc(100vh-68px)] lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-8 lg:pb-14 lg:pt-5">
         <section className="mx-auto w-full max-w-[460px]">
-          <div className="mb-8 text-center lg:text-left">
-            <Link to="/" className="mx-auto mb-7 inline-flex items-center gap-3 lg:mx-0">
-              <img decoding="async" src="/logo.png" alt="Zero Club" className="h-10 w-auto object-contain" />
+          {/* Every step here is tighter on a phone and unchanged on a large
+              screen. The wording is the same; only the air around it moved. */}
+          <div className="mb-5 text-center lg:mb-8 lg:text-left">
+            <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:mx-0 lg:mb-7">
+              <img decoding="async" src="/logo.png" alt="Zero Club" className="h-9 w-auto object-contain lg:h-10" />
               <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
             </Link>
-            <p className="mx-auto mb-4 flex w-fit max-w-full items-center justify-center gap-2 rounded-full border border-[#cc208f]/18 bg-[#cc208f]/8 px-3 py-1.5 text-center text-[12px] font-medium leading-5 text-[#9d176d] lg:mx-0">
-              <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+            <p className="zc-eyebrow mx-auto mb-3 lg:mx-0 lg:mb-4">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               Passwordless secure access
             </p>
-            <h1 className="font-display text-[42px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[52px]">
+            <h1 className="font-display text-[30px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[38px] lg:text-[46px]">
               Return to your proof of work.
             </h1>
-            <p className="mx-auto mt-4 max-w-sm text-[15px] leading-7 text-[#6d6269] dark:text-white/55 lg:mx-0">
+            <p className="mx-auto mt-3 max-w-sm text-[14px] leading-6 text-[#6d6269] dark:text-white/55 lg:mx-0 lg:mt-4 lg:text-[15px] lg:leading-7">
               Sign in with a one-time email code and continue from your feed, clubs, bootcamps, wallet, and profile.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-black/10 dark:border-white/12 bg-white/88 dark:bg-[#141118]/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl sm:p-6">
+          {/* The same lit edge the landing page uses, so arriving here from the
+              landing page feels like the same product rather than a form. */}
+          <div className="zc-glow-card rounded-2xl bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl dark:bg-[#141118]/88 sm:p-6">
             {step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-5">
                 <div>
