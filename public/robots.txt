@@ -1,0 +1,14 @@
+# Zero Club
+#
+# Everything public is crawlable. The favicon is called out explicitly because
+# Google will not show a site icon in search results if it cannot fetch it, and
+# a blocked icon is one of the few ways to end up with the generic globe even
+# when the file exists.
+
+User-agent: *
+Allow: /
+Allow: /favicon.ico
+
+# Signed-in areas hold nothing useful to a crawler and should not be indexed.
+Disallow: /app/
+Disallow: /api/

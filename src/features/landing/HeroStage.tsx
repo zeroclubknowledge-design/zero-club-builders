@@ -23,8 +23,6 @@ import { supabase } from "@/lib/supabase";
 
 type Stats = { builders: number; clubs: number; bootcamps: number; projects: number };
 
-const PLACEHOLDER: Stats = { builders: 0, clubs: 0, bootcamps: 0, projects: 0 };
-
 export function HeroStage({ referralCode }: { referralCode?: string }) {
   /*
    * Counted live, and kept current.
@@ -34,7 +32,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
    * again, so a page left open on a second monitor is not quietly showing
    * yesterday's numbers — and a new signup appears without a reload.
    */
-  const { data: stats } = useQuery({
+  const { data: stats, isError } = useQuery({
     queryKey: ["landing-stats"],
     queryFn: async (): Promise<Stats> => {
       const { data, error } = await supabase.rpc("get_landing_stats");
@@ -47,7 +45,20 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
     retry: 1,
   });
 
-  const shown = stats || PLACEHOLDER;
+  /*
+   * No invented numbers.
+   *
+   * This used to fall back to a PLACEHOLDER of all zeros whenever the query
+   * had not answered — including when get_landing_stats does not exist, which
+   * is exactly what happened. The strip then told every first-time visitor
+   * "0 Builders · 0 Clubs · 0 Bootcamps · 0 Projects shipped", which reads as
+   * a dead platform. A real zero and a failed request are not the same claim,
+   * and only one of them is ours to make.
+   *
+   * So: undefined while loading (the strip holds its space and shows nothing),
+   * and hidden outright on error. A missing strip costs a little polish. A
+   * strip of zeros costs the visitor's belief that anyone is here.
+   */
 
   return (
     /* min-h rather than h: the composition wants one screen, but a short
@@ -112,7 +123,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
         </p>
       </div>
 
-      <StatsStrip stats={shown} />
+      {!isError && <StatsStrip stats={stats} />}
     </section>
   );
 }
@@ -136,23 +147,33 @@ function BrandField() {
        the bottom fades to the light background instead of near-black. */
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#f4f2ef] dark:bg-[#0b0a0d]">
       <div className="absolute -left-[20%] -top-[30%] h-[70vmax] w-[70vmax] rounded-full bg-[radial-gradient(circle,rgba(204,32,143,0.22)_0%,rgba(204,32,143,0.08)_38%,transparent_66%)] dark:bg-[radial-gradient(circle,rgba(204,32,143,0.30)_0%,rgba(204,32,143,0.10)_38%,transparent_66%)] blur-[40px] animate-[zc-drift-a_26s_ease-in-out_infinite]" />
-      <div className="absolute -bottom-[35%] -right-[15%] h-[62vmax] w-[62vmax] rounded-full bg-[radial-gradient(circle,rgba(120,60,200,0.16)_0%,rgba(120,60,200,0.05)_42%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(120,60,200,0.24)_0%,rgba(120,60,200,0.08)_42%,transparent_70%)] blur-[50px] animate-[zc-drift-b_32s_ease-in-out_infinite]" />
+      {/* Was rgba(120,60,200) — a blue-violet roughly 55° off the brand hue,
+          so the second bloom was quietly a different colour from the first.
+          A deeper magenta gives the same tonal separation from lightness
+          instead, and keeps the whole field in one family. */}
+      <div className="absolute -bottom-[35%] -right-[15%] h-[62vmax] w-[62vmax] rounded-full bg-[radial-gradient(circle,rgba(163,26,118,0.18)_0%,rgba(163,26,118,0.06)_42%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(163,26,118,0.28)_0%,rgba(163,26,118,0.09)_42%,transparent_70%)] blur-[50px] animate-[zc-drift-b_32s_ease-in-out_infinite]" />
       <div className="absolute left-[45%] top-[35%] h-[40vmax] w-[40vmax] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.55)_0%,transparent_65%)] dark:bg-[radial-gradient(circle,rgba(255,255,255,0.05)_0%,transparent_65%)] blur-[30px] animate-[zc-drift-a_38s_ease-in-out_infinite_reverse]" />
       {/* Grain. Without it the blurs band into visible steps on 6-bit panels,
           which is most budget Android phones. */}
       <div className="zc-grain absolute inset-0 opacity-[0.07] dark:opacity-[0.16]" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#f4f2ef]/40 via-transparent to-[#f4f2ef] dark:from-[#0b0a0d]/40 dark:to-[#0b0a0d]" />
+      {/* The horizon. Sits above the fade so it is the last thing painted:
+          a wide, shallow arc of brand light along the bottom edge, which makes
+          the hero read as lit from below rather than decorated. It is the
+          reference's most recognisable move and the one that carries the
+          whole style downward into the sections that follow. */}
+      <div className="zc-horizon" />
     </div>
   );
 }
 
-/** The four numbers, counted up once they are real. */
-function StatsStrip({ stats }: { stats: Stats }) {
+/** The four numbers, counted up once they are real. Undefined until then. */
+function StatsStrip({ stats }: { stats?: Stats }) {
   const items = [
-    { value: stats.builders, label: "Builders" },
-    { value: stats.clubs, label: "Clubs" },
-    { value: stats.bootcamps, label: "Bootcamps" },
-    { value: stats.projects, label: "Projects shipped" },
+    { value: stats?.builders, label: "Builders" },
+    { value: stats?.clubs, label: "Clubs" },
+    { value: stats?.bootcamps, label: "Bootcamps" },
+    { value: stats?.projects, label: "Projects shipped" },
   ];
 
   return (
@@ -164,12 +185,16 @@ function StatsStrip({ stats }: { stats: Stats }) {
           style={{ animationDelay: `${0.5 + index * 0.08}s` }}
         >
           <p className="font-display text-[clamp(20px,2.4vw,28px)] font-semibold tabular-nums tracking-[-0.03em] text-[#171717] dark:text-white">
-            {/* Always the number. A dash while loading meant the strip spent
-                its first second saying nothing, and 0 is a true answer that
-                becomes 1 the moment somebody joins. CountUp re-runs when the
-                value changes, so a refresh animates to the new figure rather
-                than snapping. */}
-            <CountUp to={item.value} delay={480 + index * 90} />
+            {/* A number only once there is one. The previous version always
+                rendered a figure, which is right when the answer is a real 0
+                and badly wrong when there is no answer at all — it printed a
+                confident zero over a failed request. The placeholder holds the
+                same height so nothing shifts when the real figure lands.
+                CountUp re-runs when the value changes, so a refresh animates
+                to the new figure rather than snapping. */}
+            {item.value === undefined
+              ? <span className="inline-block h-[1em] w-10 animate-pulse rounded bg-current align-middle opacity-10" />
+              : <CountUp to={item.value} delay={480 + index * 90} />}
           </p>
           <p className="mt-1 text-[clamp(11px,1.2vw,12.5px)] text-[#666a70] dark:text-white/45">{item.label}</p>
         </div>

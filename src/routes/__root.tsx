@@ -222,6 +222,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
        * whichever it has. apple-touch-icon is separate: iOS ignores rel="icon"
        * when a page is saved to the home screen.
        */
+      /*
+       * Google's search results are a separate problem from the browser tab,
+       * and they were still showing a generic globe.
+       *
+       * Google asks for /favicon.ico by name, before it reads anything in the
+       * head. There was no such file, and vercel.json rewrites everything
+       * unmatched to /api/index — so that request returned the HTML app with a
+       * 200. Google fetched what it believed was an icon, got a web page, and
+       * fell back to the globe. The .ico below is a real file at the root, so
+       * the request now resolves to an image.
+       *
+       * Sizes are multiples of 48, which is what Google's documentation asks
+       * for. The larger PNGs stay for tabs, bookmarks and the PWA.
+       */
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", type: "image/png", sizes: "48x48", href: "/favicon-48.png" },
+      { rel: "icon", type: "image/png", sizes: "96x96", href: "/favicon-96.png" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icons/icon-192.png" },
       { rel: "icon", type: "image/png", sizes: "512x512", href: "/icons/icon-512.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/icon-192.png" },

@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { HeroStage } from "@/features/landing/HeroStage";
 import { useReveal } from "@/hooks/useReveal";
+import { usePointerGlow, useParallax } from "@/hooks/useLandingMotion";
+import { Bloom, Seam, Spotlight } from "@/features/landing/LandingKit";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -23,6 +25,7 @@ import {
   Zap,
 } from "@/components/icons/solar";
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
 import {
   IconClubs,
@@ -662,7 +665,7 @@ function TopicExplorer() {
     <section id="people" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:py-20">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Find your people</p>
+          <p className="zc-eyebrow">Find your people</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             The people and work that move your goals forward
           </h2>
@@ -699,7 +702,7 @@ function LearningSection() {
     <section id="learning" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="max-w-[640px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Learning that compounds</p>
+          <p className="zc-eyebrow">Learning that compounds</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Take bootcamps, join clubs, and make your progress visible.
           </h2>
@@ -714,7 +717,7 @@ function LearningSection() {
                corner keeps the brand present without a border doing it. */
             <article
               key={item.title}
-              className="zc-surface-light group sticky mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 transition duration-500 hover:-translate-y-0.5 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
+              className="zc-surface-light zc-glow-card group sticky mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
               style={{ top: `calc(4.75rem + ${index * 12}px)`, zIndex: index + 1 }}
             >
               <span
@@ -741,15 +744,21 @@ function ClubsSection() {
   return (
     <section id="clubs" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
-        <div className="order-2 lg:order-1">
-          <img decoding="async"
-            src="/landing-communities-purpose.png"
-            alt="Zero Club private clubs"
-            className="h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
-          />
+        {/* The visual arrives from the side it sits on and drifts a little
+            against the text as you pass, so the row assembles toward its own
+            centre instead of everything sliding the same way. */}
+        <div data-reveal="left" className="order-2 lg:order-1">
+          <div data-parallax="0.10" className="zc-parallax relative">
+            <Bloom className="-left-10 top-1/3 h-56 w-56" />
+            <img decoding="async"
+              src="/landing-communities-purpose.png"
+              alt="Zero Club private clubs"
+              className="relative h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08] shadow-[0_20px_50px_-24px_rgba(0,0,0,0.25)]"
+            />
+          </div>
         </div>
-        <div className="order-1 lg:order-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Communities with a purpose</p>
+        <div data-reveal="right" className="order-1 lg:order-2">
+          <p className="zc-eyebrow">Communities with a purpose</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Private spaces for cohorts, creator circles, and serious teams.
           </h2>
@@ -778,7 +787,7 @@ function OpportunitiesSection() {
     <section id="opportunities" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Open doors through proof</p>
+          <p className="zc-eyebrow">Open doors through proof</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             A network for people who want to be known by what they build.
           </h2>
@@ -811,7 +820,7 @@ function WalletSection() {
     <section id="wallet" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-2 lg:py-20">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Creator economy built in</p>
+          <p className="zc-eyebrow">Creator economy built in</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Teach, sell, earn, and manage it all in one account.
           </h2>
@@ -885,7 +894,7 @@ function FeaturesSection() {
     <section id="features" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="max-w-[650px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">The Zero Club toolkit</p>
+          <p className="zc-eyebrow">The Zero Club toolkit</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             The tools behind a more visible kind of progress.
           </h2>
@@ -898,11 +907,14 @@ function FeaturesSection() {
           {zeroClubFeatures.map((feature, index) => (
             <article
               key={feature.title}
-              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] md:min-h-[205px] md:p-7"
+              className="zc-glow-card sticky mb-5 min-h-[190px] rounded-[20px] bg-white p-6 shadow-[0_18px_48px_-28px_rgba(23,20,23,0.42)] dark:bg-[#141118] md:min-h-[205px] md:p-7"
               style={{ top: `calc(4.75rem + ${index * 11}px)`, zIndex: index + 1 }}
             >
               <div className="flex items-start justify-between gap-5">
-                <div className="grid h-10 w-10 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
+                {/* The icon is the small light source each card is built
+                    around, the way every card in the reference has one glowing
+                    object in it. */}
+                <div className="grid h-11 w-11 place-items-center rounded-[13px] bg-gradient-to-br from-[#cc208f]/20 to-[#cc208f]/[0.04] text-[#cc208f] ring-1 ring-[#cc208f]/25 shadow-[0_0_24px_-6px_rgba(204,32,143,0.55)]">
                   {feature.icon}
                 </div>
                 <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">0{index + 1}</span>
@@ -985,7 +997,7 @@ function ContactSection() {
     <section id="contact" className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-white dark:bg-[#141118]">
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:py-20">
         <div className="lg:pt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Contact us</p>
+          <p className="zc-eyebrow">Contact us</p>
           <h2 className="mt-3 max-w-[440px] font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Let&apos;s talk about what you&apos;re building.
           </h2>
@@ -1086,7 +1098,7 @@ function FaqSection() {
     <section className="border-b border-[#171717]/[0.06] dark:border-white/10 bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="mb-10 text-center md:mb-14">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Questions</p>
+          <p className="zc-eyebrow">Questions</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             Everything you're wondering
           </h2>
@@ -1095,13 +1107,24 @@ function FaqSection() {
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <div key={i} className={`overflow-hidden rounded-lg bg-white dark:bg-[#141118] ring-1 transition-all ${isOpen ? "ring-[#cc208f]/25" : "ring-[#171717]/[0.06] dark:ring-white/10"}`}>
+              /* The open one is lit, the closed ones are quiet — the whole
+                 point of the reference's accordion is that you can see which
+                 question you are inside without reading. is-featured borrows
+                 the same edge the pricing card uses, so "this is the active
+                 one" means one thing across the page. */
+              <div
+                key={i}
+                data-reveal
+                style={{ "--reveal-delay": `${i * 60}ms` } as CSSProperties}
+                className={`zc-glow-card overflow-hidden rounded-[16px] bg-white dark:bg-[#141118] ${isOpen ? "is-featured" : ""}`}
+              >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="flex w-full items-center justify-between px-6 py-4 text-left"
+                  aria-expanded={isOpen}
+                  className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left"
                 >
                   <h3 className="text-[15.5px] font-semibold tracking-tight text-[#171717] dark:text-white">{faq.q}</h3>
-                  <ChevronDown className={`h-4.5 w-4.5 shrink-0 text-[#666a70] dark:text-white/55 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4.5 w-4.5 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#cc208f]" : "text-[#666a70] dark:text-white/55"}`} />
                 </button>
                 <div
                   className={`overflow-hidden px-6 transition-all duration-300 ${
@@ -1123,11 +1146,23 @@ function FinalCta({ referralCode }: ReferralProps) {
   return (
     <section className="bg-white dark:bg-[#141118] px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-[1320px]">
-        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] px-6 py-12 text-center md:px-16 md:py-16">
+        {/* The closing band is the one place the page raises its voice: a cone
+            of light falling from the top edge onto the mark, the way the
+            reference lights its final call. The two existing blooms stay —
+            they fill the corners the cone does not reach. */}
+        <div className="zc-glow-card relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] px-6 py-12 text-center md:px-16 md:py-16">
+          <Spotlight />
           <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
           <div className="relative">
-            <img decoding="async" src="/logo.png" alt="Zero Club" className="mx-auto h-10 w-10 object-contain" />
+            {/* Lit from above, so the mark reads as sitting under the cone
+                rather than pasted onto it. */}
+            <img
+              decoding="async"
+              src="/logo.png"
+              alt="Zero Club"
+              className="mx-auto h-12 w-12 object-contain drop-shadow-[0_0_28px_rgba(204,32,143,0.65)]"
+            />
             <h2 className="mx-auto mt-4 max-w-[680px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] text-white md:text-[52px]">
               Built for the next generation of builders.
             </h2>
@@ -1187,6 +1222,13 @@ function Landing() {
 
   /* Sections arrive as they are reached rather than sitting there. */
   useReveal();
+
+  /* And they respond once reached: cards light from where the pointer is, and
+     section visuals drift against their text as you pass. Both are delegated
+     document listeners writing CSS variables, so a page of dozens of cards
+     costs two listeners rather than dozens of React state updates. */
+  usePointerGlow();
+  useParallax();
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#141118] font-['Montserrat'] text-[#171717] dark:text-white selection:bg-[#cc208f]/20">

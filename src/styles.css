@@ -487,6 +487,231 @@
     }
   }
 
+  /* ── Landing kit ────────────────────────────────────────────────────────
+   *
+   * The look the reference sells is one trick used consistently: light appears
+   * to come FROM the brand colour rather than being painted on in it. A card
+   * is not "a card with a pink border" — it is a dark object with pink light
+   * catching one edge and blooming softly behind it.
+   *
+   * Everything below is that one idea at different scales: an eyebrow pill, a
+   * card edge, a section bloom, a spotlight cone. All in #cc208f, because the
+   * reference's orange is its brand and this one is ours.
+   */
+
+  /* The small outlined chip above each section heading. In the reference it is
+     what turns a wall of sections into a table of contents you read on the way
+     past — each one names the section before the headline has to. */
+  .zc-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a8156f;
+    background: rgb(204 32 143 / 0.07);
+    box-shadow: inset 0 0 0 1px rgb(204 32 143 / 0.22);
+  }
+  .dark .zc-eyebrow {
+    color: #ff86cd;
+    background: rgb(204 32 143 / 0.10);
+    box-shadow:
+      inset 0 0 0 1px rgb(204 32 143 / 0.30),
+      0 0 22px -6px rgb(204 32 143 / 0.45);
+  }
+
+  /* The signature card.
+   *
+   * Two layers do the work. ::before is a gradient ring — brand pink at the
+   * top-left corner fading to nothing — which reads as an edge catching light
+   * rather than a border someone drew. ::after is the pointer bloom: a soft
+   * radial that follows the cursor, driven by --mx/--my set in JS.
+   *
+   * The bloom sits at opacity 0 until hover, so a page of these is completely
+   * still until you actually reach for one. */
+  /* Deliberately sets neither background nor border-radius.
+   *
+   * Both would be utility-layer declarations competing with Tailwind's own
+   * bg-* and rounded-* on the same element, where the winner is decided by
+   * source order rather than by intent — the kind of conflict that works until
+   * a build reorders something. The caller owns its fill and its corners; the
+   * ring below inherits whatever radius it is given. */
+  .zc-glow-card {
+    position: relative;
+    isolation: isolate;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .zc-glow-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      145deg,
+      rgb(204 32 143 / 0.55) 0%,
+      rgb(204 32 143 / 0.12) 26%,
+      rgb(23 23 23 / 0.08) 55%
+    );
+    /* Ring, not fill: mask out the middle so only the 1px padding shows. */
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .dark .zc-glow-card::before {
+    background: linear-gradient(
+      145deg,
+      rgb(204 32 143 / 0.75) 0%,
+      rgb(204 32 143 / 0.18) 28%,
+      rgb(255 255 255 / 0.06) 60%
+    );
+  }
+  .zc-glow-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    background: radial-gradient(
+      380px circle at var(--mx, 50%) var(--my, 0%),
+      rgb(204 32 143 / 0.16),
+      transparent 62%
+    );
+    z-index: 1;
+  }
+  .zc-glow-card:hover::after { opacity: 1; }
+  .dark .zc-glow-card::after {
+    background: radial-gradient(
+      380px circle at var(--mx, 50%) var(--my, 0%),
+      rgb(204 32 143 / 0.26),
+      transparent 62%
+    );
+  }
+  .zc-glow-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 26px 60px -28px rgb(204 32 143 / 0.42);
+  }
+  /* Content has to sit above both layers or the ring paints over it. */
+  .zc-glow-card > * { position: relative; z-index: 3; }
+
+  /* The one card in a row that is the point — the middle pricing tier in the
+     reference. Same object, more light. */
+  .zc-glow-card.is-featured::before {
+    background: linear-gradient(
+      145deg,
+      rgb(204 32 143 / 0.95) 0%,
+      rgb(204 32 143 / 0.35) 34%,
+      rgb(204 32 143 / 0.12) 70%
+    );
+  }
+  .zc-glow-card.is-featured {
+    box-shadow: 0 30px 70px -30px rgb(204 32 143 / 0.5);
+  }
+  .zc-glow-card.is-featured::after { opacity: 0.65; }
+
+  /* A wash of brand light behind a section. Sized and placed by the caller;
+     this only carries the colour and the blur so the values stay in one file. */
+  .zc-bloom {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgb(204 32 143 / 0.55) 0%, rgb(204 32 143 / 0.16) 38%, transparent 70%);
+    filter: blur(60px);
+    opacity: 0.5;
+  }
+  .dark .zc-bloom { opacity: 0.75; }
+
+  /* The horizon glow under the hero — the reference's most recognisable move.
+     A wide, shallow ellipse sitting just below the fold so the section looks
+     lit from underneath rather than decorated. */
+  .zc-horizon {
+    position: absolute;
+    left: 50%;
+    bottom: -42%;
+    width: 150%;
+    height: 62%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      rgb(204 32 143 / 0.42) 0%,
+      rgb(204 32 143 / 0.16) 34%,
+      transparent 68%
+    );
+    filter: blur(48px);
+  }
+  .dark .zc-horizon {
+    background: radial-gradient(
+      ellipse at center,
+      rgb(255 61 176 / 0.55) 0%,
+      rgb(204 32 143 / 0.24) 32%,
+      transparent 68%
+    );
+  }
+
+  /* A cone of light falling from the top edge, for the closing CTA band. */
+  .zc-spotlight {
+    position: absolute;
+    left: 50%;
+    top: -1px;
+    width: 78%;
+    height: 68%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 60% 100% at 50% 0%,
+      rgb(204 32 143 / 0.30) 0%,
+      rgb(204 32 143 / 0.08) 40%,
+      transparent 72%
+    );
+    filter: blur(26px);
+  }
+
+  /* A hairline that fades out at both ends, for section seams. A full-width
+     rule reads as a table border; this reads as a horizon. */
+  .zc-seam {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(204 32 143 / 0.28) 22%,
+      rgb(204 32 143 / 0.28) 78%,
+      transparent
+    );
+  }
+
+  /* Directional arrivals. The base [data-reveal] rises; these come from the
+     side, so an alternating text/visual row assembles toward its own centre
+     instead of every element sliding the same way. */
+  [data-reveal="left"]  { transform: translateX(-26px); }
+  [data-reveal="right"] { transform: translateX(26px); }
+  [data-reveal="zoom"]  { transform: scale(0.965); }
+  [data-reveal="left"].is-in,
+  [data-reveal="right"].is-in,
+  [data-reveal="zoom"].is-in { transform: none; }
+
+  /* Scroll-linked drift, set by useParallax as a fraction of section progress.
+     Transform only, so it stays on the compositor. */
+  .zc-parallax { transform: translate3d(0, var(--py, 0px), 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zc-glow-card { transition: none; }
+    .zc-glow-card:hover { transform: none; }
+    .zc-glow-card::after { display: none; }
+    .zc-parallax { transform: none !important; }
+  }
+
   /* ZeroNotes article typography.
    *
    * Tailwind's prose defaults are tuned for documentation — tight headings,
