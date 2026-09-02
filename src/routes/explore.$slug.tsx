@@ -342,7 +342,7 @@ function ProductDetailPage() {
     <div className="min-h-screen bg-[#f7f6f3] dark:bg-[#100e13] font-sans text-[#171717] dark:text-white">
       <PublicHeader section={product.name} />
       <main>
-        <section className="">
+        <section>
           <div className="mx-auto grid max-w-[1180px] gap-12 px-5 py-16 md:px-8 md:py-24 lg:grid-cols-[1fr_0.72fr] lg:items-end">
             <div>
               <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">
@@ -392,7 +392,7 @@ function ProductDetailPage() {
           </div>
         </section>
 
-        <section className="">
+        <section>
           <div className="mx-auto max-w-[1180px] px-5 py-16 md:px-8 md:py-24">
             <div className="max-w-[620px]">
               <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">

@@ -190,8 +190,6 @@ function DocsPage() {
               {page.summary}
             </p>
 
-            <div className="mt-10 h-px bg-[#171717]/10" />
-
             <div className="mt-10 space-y-12">
               {page.sections.map((section) => (
                 <section key={section.title} id={sectionId(section.title)} className="scroll-mt-28">

@@ -411,7 +411,7 @@ function Header({ referralCode }: ReferralProps) {
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#766d73] dark:text-white/45">
                     {group.label}
                   </p>
-                  <div className="">
+                  <div>
                     {group.items.map((item) => (
                       <Link
                         key={item.label}
