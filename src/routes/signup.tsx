@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft, Gift, Loader2, Mail, ShieldCheck, User } from "@/components/icons/solar";
-import { IconClubs, IconInstitution, IconPresentation, IconProfile } from "@/components/icons/nav";
+import { IconInstitution, IconPresentation, IconProfile } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
@@ -241,111 +241,124 @@ function SignUpPage() {
   };
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417] dark:text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-[42vh] bg-[radial-gradient(circle_at_22%_14%,rgba(204,32,143,0.16),transparent_35%),radial-gradient(circle_at_84%_8%,rgba(143,88,73,0.14),transparent_30%)]" />
-
-      <header className="relative z-20 mx-auto flex h-[calc(68px+env(safe-area-inset-top))] w-full max-w-[1240px] items-center justify-between px-5 pt-[env(safe-area-inset-top)] lg:px-8">
+    /* Same split container as signin, so the two pages are one flow rather
+       than two designs. The panel carries the numbered steps from the
+       reference; on a phone it does not render at all and the form is the
+       whole screen. */
+    <div className="min-h-dvh overflow-x-hidden bg-[#0b0a0d] px-4 py-4 text-white sm:px-6 sm:py-6">
+      <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between pb-4">
         <Link
           to="/signin"
-          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 dark:border-white/12 bg-white/75 dark:bg-[#141118]/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06] text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
           aria-label="Back to sign in"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
         </Link>
         <Link
           to="/signin"
-          className="rounded-xl border border-black/10 dark:border-white/12 bg-white/75 dark:bg-[#141118]/75 px-4 py-2 text-sm font-medium text-[#171417] dark:text-white shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
         >
           Sign in
         </Link>
-      </header>
+      </div>
 
-      {/* min-h only from lg up — see signin. On a phone this stretched the
-          single column to the full viewport regardless of its content, so the
-          form ended and the page carried on past it. */}
-      <main className="relative z-10 mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-8 px-5 pb-8 pt-3 lg:min-h-[calc(100dvh-68px)] lg:grid-cols-[minmax(0,1fr)_minmax(440px,520px)] lg:items-start lg:gap-12 lg:px-8 lg:pb-14 lg:pt-8 xl:gap-16">
-        <section className="hidden lg:sticky lg:top-8 lg:block lg:self-start">
-          <div className="relative min-h-[720px] overflow-hidden rounded-[24px] bg-[#181217] p-8 text-white shadow-[0_34px_90px_-44px_rgba(24,18,23,0.9)] xl:min-h-[760px] xl:p-10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(204,32,143,0.34),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.12),transparent_38%)]" />
-            <div className="relative">
-              <div className="mb-12 flex items-center justify-between xl:mb-16">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/12">
-                    <img decoding="async" src="/logo.png" alt="" className="h-7 w-auto object-contain" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Zero Club</p>
-                    <p className="text-xs text-white/55">Social proof for builders</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 ring-1 ring-white/12">New profile</span>
-              </div>
+      <main className="zc-glow-card mx-auto grid w-full max-w-[1180px] overflow-hidden rounded-[26px] bg-[#100c11] lg:grid-cols-[1fr_minmax(430px,480px)]">
+        <section className="relative hidden overflow-hidden rounded-[20px] bg-[#0a070a] p-8 lg:m-3 lg:flex lg:flex-col xl:p-10">
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(120% 90% at 50% 20%, rgba(255,61,176,0.85) 0%, rgba(204,32,143,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
+            }}
+          />
+          <div aria-hidden className="zc-grain absolute inset-0 opacity-[0.14]" />
 
-              <div className="max-w-md">
-                <p className="text-sm font-medium text-[#f2a8dc]">Join the network</p>
-                <h1 className="mt-4 font-display text-[44px] font-normal leading-[1.08] xl:text-[48px]">
-                  Build a profile people can trust.
-                </h1>
-                <p className="mt-5 text-[15px] leading-7 text-white/64">
-                  Start with your identity, then connect every post, bootcamp, club, and shipped project to one public record.
-                </p>
-              </div>
+          <div className="relative max-w-md">
+            <p className="text-sm font-medium text-[#f2a8dc]">Join the network</p>
+            <h2 className="mt-3 font-display text-[34px] font-normal leading-[1.08] text-white xl:text-[38px]">
+              Build a profile people can trust.
+            </h2>
+            <p className="mt-4 text-[14px] leading-6 text-white/60">
+              Start with your identity, then connect every post, bootcamp, club, and shipped project to one public record.
+            </p>
+          </div>
 
-              <div className="mt-10 rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/10 backdrop-blur-xl xl:mt-12">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#cc208f]/18 text-[#f2a8dc] ring-1 ring-[#cc208f]/20">
-                    <IconClubs className="h-6 w-6" active />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Your first layer</p>
-                    <p className="text-xs text-white/55">Profile, clubs, learning, work</p>
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  {proofPoints.map((point) => (
-                    <div key={point} className="rounded-xl bg-black/16 px-3 py-2 text-sm text-white/72">
-                      {point}
-                    </div>
-                  ))}
-                </div>
+          {/* The numbered steps from the reference. The current step is lit and
+              the rest are quiet, so the panel doubles as a progress indicator
+              rather than being decoration next to the form. */}
+          <div className="relative mt-8 grid gap-3 sm:grid-cols-2">
+            {[
+              { n: 1, label: "Create your account", done: true },
+              { n: 2, label: "Confirm your email", done: step === "code" },
+            ].map((item) => (
+              <div
+                key={item.n}
+                className={`zc-notch p-4 ${
+                  item.done ? "bg-white/[0.10] ring-1 ring-[#cc208f]/30" : "bg-black/30 ring-1 ring-white/10"
+                }`}
+              >
+                <span className={`zc-node h-7 w-7 text-[12px] font-semibold ${item.done ? "is-done" : ""}`}>
+                  {item.n}
+                </span>
+                <p className="mt-3 text-[13px] font-medium leading-5 text-white">{item.label}</p>
               </div>
-            </div>
+            ))}
+          </div>
+
+          <div className="relative mt-6 grid gap-2">
+            {proofPoints.map((point) => (
+              <div key={point} className="rounded-xl bg-black/30 px-3.5 py-2.5 text-[12.5px] text-white/70 ring-1 ring-white/8">
+                {point}
+              </div>
+            ))}
+          </div>
+
+          <div className="relative mt-auto pt-8 text-center">
+            <img
+              decoding="async"
+              src="/logo.png"
+              alt=""
+              className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(204,32,143,0.7)]"
+            />
+            <p className="mt-3 font-display text-[19px] font-medium tracking-tight text-white">Zero Club</p>
+            <p className="mt-1 text-[12.5px] text-white/55">Social proof for builders.</p>
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-[480px] lg:mx-0 lg:max-w-[520px] lg:justify-self-end">
+        <section className="px-5 py-8 sm:px-8 sm:py-10 lg:px-9">
+          <div className="mx-auto w-full max-w-[420px]">
           {/* Signup has more form below it than signin does, so the intro pays
               for itself twice over on a phone. Same words, less air. */}
-          <div className="mb-5 text-center lg:mb-6 lg:text-left">
-            <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:mx-0 lg:mb-5">
+          <div className="mb-6 text-center">
+            <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:hidden">
               <img decoding="async" src="/logo.png" alt="Zero Club" className="h-9 w-auto object-contain lg:h-10" />
-              <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
+              <span className="font-display text-xl font-medium text-white">Zero Club</span>
             </Link>
             <p className="zc-eyebrow mx-auto mb-3 lg:mx-0 lg:mb-4">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               One code, no password
             </p>
-            <h1 className="font-display text-[30px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[38px] lg:text-[44px] xl:text-[48px]">
+            <h1 className="font-display text-[30px] font-normal leading-[1.08] text-white sm:text-[38px] lg:text-[44px] xl:text-[48px]">
               Start your Zero Club profile.
             </h1>
-            <p className="mx-auto mt-3 max-w-sm text-[14px] leading-6 text-[#6d6269] dark:text-white/55 lg:mx-0 lg:text-[15px] lg:leading-7">
+            <p className="mx-auto mt-3 max-w-sm text-[14px] leading-6 text-white/55 lg:mx-0 lg:text-[15px] lg:leading-7">
               Choose your account type, reserve your handle, and enter with a secure email code.
             </p>
           </div>
 
           {/* The lit edge from the landing page, so the create-account card is
               recognisably part of the same product. */}
-          <div className="zc-glow-card rounded-2xl bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl dark:bg-[#141118]/88 sm:p-6 lg:p-6">
+          <div className="rounded-2xl bg-transparent">
             {step === "info" ? (
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Create account</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">Set up the identity attached to your proof.</p>
+                  <h2 className="font-display text-2xl font-normal text-white">Create account</h2>
+                  <p className="mt-1 text-sm leading-6 text-white/55">Set up the identity attached to your proof.</p>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Account type</span>
+                  <span className="text-[12px] font-medium text-white/60">Account type</span>
                   <div className="grid grid-cols-3 gap-2">
                     {accountTypeOptions.map((role) => (
                       <button
@@ -355,12 +368,12 @@ function SignUpPage() {
                         className={`min-h-[96px] rounded-xl border p-3 text-left transition ${
                           accountType === role.id
                             ? "border-[#cc208f]/45 bg-[#cc208f]/9 text-[#9d176d] ring-4 ring-[#cc208f]/8"
-                            : "border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] text-[#655b61] dark:text-white/60 hover:bg-white"
+                            : "border-white/12 bg-white/[0.04] text-white/60 hover:bg-white/[0.07]"
                         }`}
                       >
                         <role.Icon className="mb-3 h-6 w-6" active={accountType === role.id} />
                         <span className="block text-[13px] font-medium">{role.label}</span>
-                        <span className="mt-0.5 block text-[11px] text-[#81767d] dark:text-white/50">{role.helper}</span>
+                        <span className="mt-0.5 block text-[11px] text-white/50">{role.helper}</span>
                       </button>
                     ))}
                   </div>
@@ -368,67 +381,67 @@ function SignUpPage() {
 
                 <div className="grid gap-4 lg:grid-cols-2">
                   <label className="block min-w-0 space-y-2">
-                    <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Username</span>
+                    <span className="text-[12px] font-medium text-white/60">Username</span>
                     <span className="relative block">
-                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
+                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
                       <input
                         type="text"
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-14 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
 
                   <label className="block min-w-0 space-y-2">
-                    <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
+                    <span className="text-[12px] font-medium text-white/60">Email address</span>
                     <span className="relative block">
-                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
+                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
                       <input
                         type="email"
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full min-w-0 rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-14 w-full min-w-0 rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                       />
                     </span>
                   </label>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Referral code <span className="text-[#9b9297] dark:text-white/40">optional</span></span>
+                  <span className="text-[12px] font-medium text-white/60">Referral code <span className="text-white/40">optional</span></span>
                   <span className="relative block">
-                    <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
+                    <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
                     <input
                       type="text"
                       placeholder="Enter referral code"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      className={`h-14 w-full rounded-xl border bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 pr-20 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10 dark:border-white/12"}`}
+                      className={`h-14 w-full rounded-xl border bg-white/[0.04] px-4 pl-11 pr-20 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-white/12"}`}
                     />
                     {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#9d176d]">Applied</span>}
                   </span>
                 </label>
 
-                <label className="flex items-start gap-3 rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3">
+                <label className="flex items-start gap-3 rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3">
                   <input
                     type="checkbox"
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-black/20 accent-[#cc208f] dark:border-white/25"
+                    className="mt-1 h-4 w-4 rounded border-white/25 accent-[#cc208f]"
                   />
-                  <span className="text-xs leading-5 text-[#746970] dark:text-white/55">
-                    I agree to the <span className="font-medium text-[#241f23] dark:text-white underline">Terms of Service</span> and <span className="font-medium text-[#241f23] dark:text-white underline">Privacy Policy</span>.
+                  <span className="text-xs leading-5 text-white/55">
+                    I agree to the <span className="font-medium text-white underline">Terms of Service</span> and <span className="font-medium text-white underline">Privacy Policy</span>.
                   </span>
                 </label>
 
                 <GoogleAuthButton label="Sign up with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignUp} />
 
                 <div className="flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                  <span className="h-px flex-1 bg-white/12" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">or use email</span>
+                  <span className="h-px flex-1 bg-white/12" />
                 </div>
 
                 <button
@@ -442,21 +455,21 @@ function SignUpPage() {
             ) : (
               <form onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Verify email</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
-                    Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
+                  <h2 className="font-display text-2xl font-normal text-white">Verify email</h2>
+                  <p className="mt-1 text-sm leading-6 text-white/55">
+                    Sent to <span className="font-medium text-white">{email}</span>.
                   </p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
+                  <span className="text-[12px] font-medium text-white/60">Confirmation code</span>
                   <input
                     type="text"
                     placeholder="000000"
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -469,15 +482,16 @@ function SignUpPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
+                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Go back
                   </button>
                 </div>
               </form>
             )}
+          </div>
           </div>
         </section>
       </main>

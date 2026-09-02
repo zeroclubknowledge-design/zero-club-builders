@@ -163,14 +163,17 @@ function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f8f6f1] dark:bg-[#16131a] text-[#171417] dark:text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(23,20,23,0.045)_1px,transparent_1px),linear-gradient(rgba(23,20,23,0.035)_1px,transparent_1px)] bg-[size:56px_56px]" />
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-[42vh] bg-[radial-gradient(circle_at_24%_18%,rgba(204,32,143,0.16),transparent_34%),radial-gradient(circle_at_78%_8%,rgba(143,88,73,0.14),transparent_30%)]" />
-
-      <header className="relative z-20 mx-auto flex h-[calc(68px+env(safe-area-inset-top))] w-full max-w-6xl items-center justify-between px-5 pt-[env(safe-area-inset-top)] lg:px-8">
+    /* Rebuilt to the reference: one rounded container, split down the middle.
+       A brand gradient panel carries the identity on the left, the form sits
+       on the right, and the page around them is quiet. The previous version
+       stacked a full marketing column above the form, which is what made it so
+       tall on a phone — here the panel simply does not render below lg, and
+       the form is the whole screen. */
+    <div className="min-h-dvh bg-[#0b0a0d] px-4 py-4 text-white sm:px-6 sm:py-6">
+      <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between pb-4">
         <Link
           to="/"
-          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 dark:border-white/12 bg-white/75 dark:bg-[#141118]/75 shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06] text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
           aria-label="Back to home"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
@@ -178,66 +181,118 @@ function SignInPage() {
         <Link
           to="/signup"
           search={{ ref, club }}
-          className="rounded-xl border border-black/10 dark:border-white/12 bg-white/75 dark:bg-[#141118]/75 px-4 py-2 text-sm font-medium text-[#171417] dark:text-white shadow-sm backdrop-blur-xl transition hover:bg-white active:scale-[0.98]"
+          className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 active:scale-[0.98]"
         >
           Create account
         </Link>
-      </header>
+      </div>
 
-      {/* min-h only from lg up.
-          On a phone this forced the single column to fill the viewport whether
-          it had that much to say or not, which is most of why the page felt
-          long — the content ended and the page kept going. On desktop it is
-          still needed, because that is what centres the two columns. */}
-      <main className="relative z-10 mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 px-5 pb-8 pt-3 lg:min-h-[calc(100vh-68px)] lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-8 lg:pb-14 lg:pt-5">
-        <section className="mx-auto w-full max-w-[460px]">
-          {/* Every step here is tighter on a phone and unchanged on a large
-              screen. The wording is the same; only the air around it moved. */}
-          <div className="mb-5 text-center lg:mb-8 lg:text-left">
-            <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:mx-0 lg:mb-7">
-              <img decoding="async" src="/logo.png" alt="Zero Club" className="h-9 w-auto object-contain lg:h-10" />
-              <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
-            </Link>
-            <p className="zc-eyebrow mx-auto mb-3 lg:mx-0 lg:mb-4">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
-              Passwordless secure access
-            </p>
-            <h1 className="font-display text-[30px] font-normal leading-[1.08] text-[#241f23] dark:text-white sm:text-[38px] lg:text-[46px]">
-              Return to your proof of work.
-            </h1>
-            <p className="mx-auto mt-3 max-w-sm text-[14px] leading-6 text-[#6d6269] dark:text-white/55 lg:mx-0 lg:mt-4 lg:text-[15px] lg:leading-7">
-              Sign in with a one-time email code and continue from your feed, clubs, bootcamps, wallet, and profile.
+      <main className="zc-glow-card mx-auto grid w-full max-w-[1120px] overflow-hidden rounded-[26px] bg-[#100c11] lg:grid-cols-2">
+        {/* The identity panel. A single soft bloom of brand light falling to
+            near-black at the edges, with the mark and the line that goes with
+            it sitting at the bottom — exactly the shape of the reference. */}
+        <section className="relative hidden overflow-hidden rounded-[20px] bg-[#0a070a] p-8 lg:m-3 lg:flex lg:flex-col">
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(120% 90% at 50% 22%, rgba(255,61,176,0.85) 0%, rgba(204,32,143,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
+            }}
+          />
+          <div aria-hidden className="zc-grain absolute inset-0 opacity-[0.14]" />
+
+          {/* The copy that used to live in the old right-hand panel, kept
+              word for word and rehoused here. */}
+          <div className="relative">
+            <p className="text-sm font-medium text-[#f2a8dc]">Your work, made visible</p>
+            <h2 className="mt-3 font-display text-[34px] font-normal leading-[1.08] text-white">
+              Every login returns you to momentum.
+            </h2>
+            <p className="mt-4 max-w-[340px] text-[14px] leading-6 text-white/60">
+              Keep your profile, learning, conversations, and earnings in one focused social layer.
             </p>
           </div>
 
-          {/* The same lit edge the landing page uses, so arriving here from the
-              landing page feels like the same product rather than a form. */}
-          <div className="zc-glow-card rounded-2xl bg-white/88 p-5 shadow-[0_24px_70px_-38px_rgba(23,20,23,0.45)] backdrop-blur-2xl dark:bg-[#141118]/88 sm:p-6">
+          <div className="relative mt-8 grid gap-2.5">
+            {proofItems.map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center gap-3.5 rounded-2xl bg-black/25 p-3.5 ring-1 ring-white/10 backdrop-blur-xl"
+              >
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/25 text-[#f2a8dc] ring-1 ring-[#cc208f]/30">
+                  <item.Icon className="h-5 w-5" active />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-medium text-white">{item.label}</p>
+                  <p className="mt-0.5 text-[11.5px] leading-5 text-white/55">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="relative mt-auto pt-8 text-center">
+            <img
+              decoding="async"
+              src="/logo.png"
+              alt=""
+              className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(204,32,143,0.7)]"
+            />
+            <p className="mt-3 font-display text-[19px] font-medium tracking-tight text-white">Zero Club</p>
+            <p className="mt-1 text-[12.5px] text-white/55">The social network for builders.</p>
+          </div>
+        </section>
+
+        {/* The form side. */}
+        <section className="px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
+          <div className="mx-auto w-full max-w-[400px]">
+            <div className="mb-6 text-center">
+              {/* The mark only shows here when the panel beside it is hidden,
+                  so it is never on screen twice. */}
+              <img
+                decoding="async"
+                src="/logo.png"
+                alt="Zero Club"
+                className="mx-auto mb-4 h-10 w-10 object-contain drop-shadow-[0_0_22px_rgba(204,32,143,0.6)] lg:hidden"
+              />
+              <p className="zc-eyebrow mb-3">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+                Passwordless secure access
+              </p>
+              <h1 className="font-display text-[26px] font-normal leading-tight text-white sm:text-[30px]">
+                Return to your proof of work.
+              </h1>
+              <p className="mx-auto mt-2 max-w-[340px] text-[13px] leading-6 text-white/50">
+                Sign in with a one-time email code and continue from your feed, clubs, bootcamps, wallet, and profile.
+              </p>
+            </div>
+
+          <div className="rounded-2xl bg-transparent">
             {step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Sign in</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">We will send a short confirmation code.</p>
+                  <h2 className="font-display text-2xl font-normal text-white">Sign in</h2>
+                  <p className="mt-1 text-sm leading-6 text-white/55">We will send a short confirmation code.</p>
                 </div>
 
                 <GoogleAuthButton label="Continue with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignIn} />
 
                 <div className="flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+                  <span className="h-px flex-1 bg-white/12" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">or use email</span>
+                  <span className="h-px flex-1 bg-white/12" />
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
+                  <span className="text-[12px] font-medium text-white/60">Email address</span>
                   <span className="relative block">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
+                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" strokeWidth={1.7} />
                     <input
                       type="email"
                       placeholder="ada@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-14 w-full rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 pl-11 text-[15px] font-normal text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                      className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                     />
                   </span>
                 </label>
@@ -253,21 +308,21 @@ function SignInPage() {
             ) : (
               <form onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Enter the code</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
-                    Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
+                  <h2 className="font-display text-2xl font-normal text-white">Enter the code</h2>
+                  <p className="mt-1 text-sm leading-6 text-white/55">
+                    Sent to <span className="font-medium text-white">{email}</span>.
                   </p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
+                  <span className="text-[12px] font-medium text-white/60">Confirmation code</span>
                   <input
                     type="text"
                     placeholder="000000"
                     maxLength={10}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-14 w-full rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] dark:text-white outline-none transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10"
+                    className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-white outline-none transition placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                   />
                 </label>
 
@@ -280,59 +335,16 @@ function SignInPage() {
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
+                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Resend code
                   </button>
-                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-xl border border-black/10 dark:border-white/12 bg-[#fbfaf7] dark:bg-[#0f0d12] px-4 py-3 text-sm font-medium text-[#5a5056] dark:text-white/60 transition hover:bg-white">
+                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/10">
                     Change email
                   </button>
                 </div>
               </form>
             )}
           </div>
-        </section>
-
-        <section className="hidden lg:block">
-          <div className="relative overflow-hidden rounded-[28px] bg-[#181217] p-7 text-white shadow-[0_34px_90px_-44px_rgba(24,18,23,0.9)]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_12%,rgba(204,32,143,0.34),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.12),transparent_38%)]" />
-            <div className="relative">
-              <div className="mb-16 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/12">
-                    <img decoding="async" src="/logo.png" alt="" className="h-7 w-auto object-contain" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Zero Club</p>
-                    <p className="text-xs text-white/55">Builder operating system</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 ring-1 ring-white/12">Live account</span>
-              </div>
-
-              <div className="max-w-md">
-                <p className="text-sm font-medium text-[#f2a8dc]">Your work, made visible</p>
-                <h2 className="mt-4 font-display text-[46px] font-normal leading-[1.08]">
-                  Every login returns you to momentum.
-                </h2>
-                <p className="mt-5 text-[15px] leading-7 text-white/64">
-                  Keep your profile, learning, conversations, and earnings in one focused social layer.
-                </p>
-              </div>
-
-              <div className="mt-12 grid gap-3">
-                {proofItems.map((item) => (
-                  <div key={item.label} className="flex items-center gap-4 rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/10 backdrop-blur-xl">
-                    <div className="grid h-12 w-12 place-items-center rounded-xl bg-[#cc208f]/18 text-[#f2a8dc] ring-1 ring-[#cc208f]/20">
-                      <item.Icon className="h-6 w-6" active />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{item.label}</p>
-                      <p className="mt-0.5 text-xs leading-5 text-white/55">{item.value}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </section>
       </main>

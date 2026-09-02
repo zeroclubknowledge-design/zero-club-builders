@@ -1107,15 +1107,24 @@ function FaqSection() {
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              /* The open one is lit, the closed ones are quiet — the whole
-                 point of the reference's accordion is that you can see which
-                 question you are inside without reading. is-featured borrows
-                 the same edge the pricing card uses, so "this is the active
-                 one" means one thing across the page. */
+              /* Two elements, and the split matters.
+               *
+               * useReveal adds `is-in` straight to the DOM. React does not
+               * know about it, so the next time React writes className on that
+               * same element the class is wiped — and [data-reveal] without
+               * is-in is opacity: 0. Tapping a question rewrote className to
+               * add `is-featured`, which erased `is-in`, and the whole item
+               * vanished.
+               *
+               * So the reveal lives on a wrapper React never re-renders, and
+               * the interactive card owns the className that changes. Nothing
+               * writes to the same attribute from two directions. */
               <div
                 key={i}
                 data-reveal
                 style={{ "--reveal-delay": `${i * 60}ms` } as CSSProperties}
+              >
+              <div
                 className={`zc-glow-card overflow-hidden rounded-[16px] bg-white dark:bg-[#141118] ${isOpen ? "is-featured" : ""}`}
               >
                 <button
@@ -1133,6 +1142,7 @@ function FaqSection() {
                 >
                   <p className="text-[14px] leading-relaxed text-[#666a70] dark:text-white/55">{faq.a}</p>
                 </div>
+              </div>
               </div>
             );
           })}
