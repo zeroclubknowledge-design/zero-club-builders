@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Compass, LayoutGrid, Rocket, ShieldCheck, User } from "lucide-react";
+import { Compass, LayoutGrid, ShieldCheck, User, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { getZpBalance } from "@/lib/api";
@@ -17,7 +17,7 @@ import { ZpBadge } from "./ui/primitives";
 const NAV = [
   { to: "/", label: "My work", icon: LayoutGrid, exact: true },
   { to: "/ambassadors", label: "Ambassadors", icon: Compass, exact: false },
-  { to: "/join", label: "My profile", icon: Rocket, exact: false },
+  { to: "/join", label: "My profile", icon: UserRound, exact: false },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {

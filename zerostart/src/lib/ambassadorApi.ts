@@ -78,3 +78,64 @@ export async function listPushableBootcamps() {
   if (error) throw error;
   return (data || []) as PushableBootcamp[];
 }
+
+/* ── Initiatives ────────────────────────────────────────────────────────── */
+
+import type { Initiative, InitiativeKind } from "@/types/ambassador";
+
+export async function listMyInitiatives(profileId: string) {
+  const { data, error } = await supabase
+    .from("zs_initiatives")
+    .select("*")
+    .eq("profile_id", profileId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []) as Initiative[];
+}
+
+export async function createInitiative(input: {
+  profileId: string;
+  focus: string;
+  kind: InitiativeKind;
+  title: string;
+  description: string;
+  targetCount?: number | null;
+  targetLabel?: string | null;
+}) {
+  const { error } = await supabase.from("zs_initiatives").insert({
+    profile_id: input.profileId,
+    focus_slug: input.focus,
+    kind: input.kind,
+    title: input.title.trim(),
+    description: input.description.trim(),
+    target_count: input.targetCount ?? null,
+    target_label: input.targetLabel ?? null,
+    // status and zp_awarded are left at their defaults on purpose — the insert
+    // policy requires them, so setting them here could only ever break it.
+  });
+  if (error) throw error;
+}
+
+export async function submitInitiative(input: {
+  id: string;
+  summary: string;
+  count?: number | null;
+  evidenceUrl?: string;
+}) {
+  const { data, error } = await supabase.rpc("zs_submit_initiative", {
+    p_id: input.id,
+    p_summary: input.summary,
+    p_count: input.count ?? null,
+    p_evidence_url: input.evidenceUrl ?? null,
+  });
+  if (error) throw error;
+  return data as { ok: boolean; reason?: string };
+}
+
+export async function abandonInitiative(id: string) {
+  const { error } = await supabase
+    .from("zs_initiatives")
+    .update({ status: "abandoned" })
+    .eq("id", id);
+  if (error) throw error;
+}

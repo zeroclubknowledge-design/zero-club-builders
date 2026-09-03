@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Check, Clock, MapPin, X } from "lucide-react";
-import { getMe, listFocusAreas, listTasks, submitTask } from "@/lib/ambassadorApi";
+import { ArrowUpRight, Check, Clock, MapPin, Plus, X } from "lucide-react";
+import {
+  abandonInitiative, getMe, listFocusAreas, listMyInitiatives, listTasks,
+  submitInitiative, submitTask,
+} from "@/lib/ambassadorApi";
 import { useAuth } from "@/lib/auth";
-import type { AmbassadorMe, AmbassadorTask, FocusArea } from "@/types/ambassador";
-import { nextLevel } from "@/types/ambassador";
+import type {
+  AmbassadorMe, AmbassadorTask, FocusArea, Initiative,
+} from "@/types/ambassador";
+import { INITIATIVE_KINDS, nextLevel } from "@/types/ambassador";
+import { NewInitiativeSheet } from "@/features/ambassador/NewInitiativeSheet";
 import { Card, EmptyState, ErrorState, Skeleton, ZpBadge } from "@/components/ui/primitives";
 
 /**
@@ -19,6 +25,8 @@ export function AmbassadorHome() {
   const [me, setMe] = useState<AmbassadorMe | null>(null);
   const [tasks, setTasks] = useState<AmbassadorTask[] | null>(null);
   const [areas, setAreas] = useState<FocusArea[]>([]);
+  const [mine, setMine] = useState<Initiative[] | null>(null);
+  const [composing, setComposing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = () => {
@@ -27,6 +35,7 @@ export function AmbassadorHome() {
     getMe().then(setMe).catch((e) => setError(e.message || "Could not load your profile."));
     listTasks().then(setTasks).catch(() => setTasks([]));
     listFocusAreas().then(setAreas).catch(() => setAreas([]));
+    listMyInitiatives(session.user.id).then(setMine).catch(() => setMine([]));
   };
 
   useEffect(load, [session?.user?.id]);
@@ -128,6 +137,29 @@ export function AmbassadorHome() {
       </Card>
 
       <h2 className="mb-3 mt-8 text-[12px] font-bold uppercase tracking-wider text-ink-faint">
+        What you started
+      </h2>
+
+      {mine && mine.filter((i) => i.status !== "abandoned").length === 0 && (
+        <Card className="p-5">
+          <p className="text-[13px] leading-relaxed text-ink-muted">
+            Nothing yet. Tap the button to start something — a project, a bootcamp to push, people
+            to invite, a brand to bring in.
+          </p>
+        </Card>
+      )}
+
+      {mine && mine.filter((i) => i.status !== "abandoned").length > 0 && (
+        <div className="space-y-3">
+          {mine
+            .filter((i) => i.status !== "abandoned")
+            .map((item) => (
+              <InitiativeCard key={item.id} item={item} areas={areas} onDone={load} />
+            ))}
+        </div>
+      )}
+
+      <h2 className="mb-3 mt-8 text-[12px] font-bold uppercase tracking-wider text-ink-faint">
         Tasks from Zero Club
       </h2>
 
@@ -146,6 +178,26 @@ export function AmbassadorHome() {
             <TaskCard key={task.quest_id} task={task} onDone={load} />
           ))}
         </div>
+      )}
+
+      {/* Sits above the phone tab bar rather than on top of it — a floating
+          button that covers navigation is a button that breaks navigation. */}
+      <button
+        onClick={() => setComposing(true)}
+        aria-label="Start something new"
+        className="zs-glow fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-accent text-accent-ink transition hover:opacity-90 active:scale-95 sm:bottom-8 sm:right-8"
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.4} />
+      </button>
+
+      {composing && session && (
+        <NewInitiativeSheet
+          profileId={session.user.id}
+          areas={areas}
+          myFocus={me.focus || []}
+          onClose={() => setComposing(false)}
+          onCreated={load}
+        />
       )}
     </div>
   );
@@ -279,6 +331,175 @@ function TaskCard({ task, onDone }: { task: AmbassadorTask; onDone: () => void }
               Say what you did — the team needs something to go on.
             </p>
           )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+const INITIATIVE_REFUSAL: Record<string, string> = {
+  summary_required: "Say what actually happened — the team needs something to judge.",
+  already_submitted: "You've already sent this one in.",
+  not_yours: "This isn't yours.",
+};
+
+/**
+ * One thing an ambassador committed to.
+ *
+ * Its whole life is on the card: what they said they'd do, what they said
+ * happened, and what the team decided. No detail page, because there is never
+ * enough here to justify a second screen.
+ */
+function InitiativeCard({
+  item, areas, onDone,
+}: { item: Initiative; areas: FocusArea[]; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [summary, setSummary] = useState("");
+  const [count, setCount] = useState("");
+  const [url, setUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const kind = INITIATIVE_KINDS.find((k) => k.value === item.kind);
+  const area = areas.find((a) => a.slug === item.focus_slug);
+
+  const send = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await submitInitiative({
+        id: item.id,
+        summary: summary.trim(),
+        count: count ? Number(count) : null,
+        evidenceUrl: url.trim() || undefined,
+      });
+      if (!result.ok) {
+        setError(INITIATIVE_REFUSAL[result.reason || ""] || "Could not send that.");
+        return;
+      }
+      setOpen(false);
+      onDone();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const drop = async () => {
+    setBusy(true);
+    try { await abandonInitiative(item.id); onDone(); }
+    catch (e) { setError((e as Error).message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
+            {kind?.label ?? item.kind}
+            {area && <span className="text-ink-faint"> · {area.label}</span>}
+          </p>
+          <h3 className="mt-1.5 text-[14.5px] font-semibold text-ink">{item.title}</h3>
+          <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-muted">{item.description}</p>
+          {item.target_count && (
+            <p className="mt-2 text-[12px] text-ink-faint">
+              Aiming for <span className="font-semibold text-ink-muted">{item.target_count}</span>{" "}
+              {item.target_label || "…"}
+            </p>
+          )}
+        </div>
+        {item.status === "completed" && item.zp_awarded > 0 && <ZpBadge amount={item.zp_awarded} />}
+      </div>
+
+      {item.status === "completed" && (
+        <p className="mt-4 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-ok">
+          <Check className="h-3.5 w-3.5" />
+          {item.zp_awarded > 0 ? `Approved — ${item.zp_awarded} ZP paid` : "Approved"}
+        </p>
+      )}
+
+      {item.status === "submitted" && (
+        <p className="mt-4 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-warn">
+          <Clock className="h-3.5 w-3.5" /> Waiting on the Zero Club team
+        </p>
+      )}
+
+      {item.status === "rejected" && (
+        <div className="mt-4">
+          <p className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-bad">
+            <X className="h-3.5 w-3.5" /> Not approved
+          </p>
+          {item.review_note && (
+            <p className="mt-1.5 text-[12px] leading-relaxed text-ink-muted">{item.review_note}</p>
+          )}
+        </div>
+      )}
+
+      {item.status === "active" && !open && (
+        <div className="mt-4 flex flex-wrap gap-2.5">
+          <button
+            onClick={() => setOpen(true)}
+            className="zs-glow inline-flex h-10 items-center gap-1.5 rounded-full bg-accent px-5 text-[12.5px] font-semibold text-accent-ink transition hover:opacity-90"
+          >
+            I've done this <ArrowUpRight className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={drop}
+            disabled={busy}
+            className="h-10 rounded-full bg-ink/[0.06] px-4 text-[12.5px] font-semibold text-ink-muted transition hover:text-bad disabled:opacity-40"
+          >
+            Drop it
+          </button>
+        </div>
+      )}
+
+      {item.status === "active" && open && (
+        <div className="mt-4 border-t border-line pt-4">
+          <textarea
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            rows={3}
+            placeholder="What happened? Numbers help — how many, where, when."
+            className="w-full resize-y rounded-lg border border-line bg-bg px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+          />
+          {item.target_count && (
+            <input
+              type="number"
+              min={0}
+              value={count}
+              onChange={(e) => setCount(e.target.value)}
+              placeholder={`How many ${item.target_label || "in the end"}?`}
+              className="mt-2.5 h-11 w-full rounded-lg border border-line bg-bg px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            />
+          )}
+          <input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Link to proof — a post, photos, a signup list (optional)"
+            className="mt-2.5 h-11 w-full rounded-lg border border-line bg-bg px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+          />
+
+          {error && (
+            <p className="mt-3 rounded-lg bg-bad/12 px-3.5 py-2.5 text-[12.5px] font-medium text-bad">{error}</p>
+          )}
+
+          <div className="mt-3 flex gap-2.5">
+            <button
+              onClick={send}
+              disabled={busy || summary.trim().length < 15}
+              className="h-10 flex-1 rounded-full bg-accent text-[12.5px] font-semibold text-accent-ink transition hover:opacity-90 disabled:opacity-40"
+            >
+              {busy ? "Sending…" : "Send for review"}
+            </button>
+            <button
+              onClick={() => { setOpen(false); setError(null); }}
+              className="h-10 rounded-full bg-ink/[0.06] px-5 text-[12.5px] font-semibold text-ink-muted transition hover:text-ink"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </Card>

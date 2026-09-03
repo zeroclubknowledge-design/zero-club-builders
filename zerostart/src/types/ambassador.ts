@@ -86,3 +86,55 @@ export const LEVELS: { level: AmbassadorLevel; approved: number }[] = [
 export function nextLevel(approved: number) {
   return LEVELS.find((l) => approved < l.approved) ?? null;
 }
+
+/* ── Initiatives ────────────────────────────────────────────────────────── */
+
+export type InitiativeKind =
+  | "project" | "market_course" | "invite" | "partnership"
+  | "event" | "content" | "chapter" | "other";
+
+export type InitiativeStatus =
+  | "active" | "submitted" | "completed" | "rejected" | "abandoned";
+
+export interface Initiative {
+  id: string;
+  focus_slug: string;
+  kind: InitiativeKind;
+  title: string;
+  description: string;
+  target_count: number | null;
+  target_label: string | null;
+  status: InitiativeStatus;
+  result_summary: string | null;
+  result_count: number | null;
+  evidence_url: string | null;
+  zp_awarded: number;
+  review_note: string | null;
+  created_at: string;
+  submitted_at: string | null;
+}
+
+/**
+ * What an ambassador can commit to.
+ *
+ * `needsTarget` marks the kinds where a number is the point — you cannot
+ * meaningfully say "invite people" without saying how many. The others are
+ * judged on what happened rather than counted, so asking for a figure would
+ * only invite a made-up one.
+ */
+export const INITIATIVE_KINDS: {
+  value: InitiativeKind;
+  label: string;
+  blurb: string;
+  needsTarget: boolean;
+  targetLabel?: string;
+}[] = [
+  { value: "project", label: "Run a project", blurb: "Something you'll build or organise for Zero Club.", needsTarget: false },
+  { value: "market_course", label: "Market a bootcamp", blurb: "Push a specific bootcamp to people who'd take it.", needsTarget: true, targetLabel: "signups" },
+  { value: "invite", label: "Invite people", blurb: "Bring a number of new builders onto Zero Club.", needsTarget: true, targetLabel: "people" },
+  { value: "partnership", label: "Land a partnership", blurb: "Bring a brand, school, or organisation on board.", needsTarget: false },
+  { value: "event", label: "Run an event", blurb: "A meetup, workshop, build night, or class.", needsTarget: true, targetLabel: "attendees" },
+  { value: "content", label: "Make content", blurb: "Posts, videos, or threads that reach your people.", needsTarget: true, targetLabel: "pieces" },
+  { value: "chapter", label: "Start a chapter", blurb: "A standing Zero Club presence at a campus or hub.", needsTarget: true, targetLabel: "members" },
+  { value: "other", label: "Something else", blurb: "Your idea. Say what it is and what it should achieve.", needsTarget: false },
+];
