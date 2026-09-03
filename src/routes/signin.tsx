@@ -18,7 +18,6 @@ export const Route = createFileRoute("/signin")({
     meta: [
       { title: "Sign In - Zero Club" },
       { name: "description", content: "Sign in to your Zero Club account to access bootcamps and your builder feed." },
-      { property: "og:image", content: "/logo.png" },
     ],
   }),
 });

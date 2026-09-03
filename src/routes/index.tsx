@@ -48,7 +48,6 @@ export const Route = createFileRoute("/")({
         content:
           "Zero Club is a professional social network where builders learn, share work, join communities, and turn proof into opportunity.",
       },
-      { property: "og:image", content: "/logo.png" },
     ],
   }),
 });

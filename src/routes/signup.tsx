@@ -18,7 +18,6 @@ export const Route = createFileRoute("/signup")({
     meta: [
       { title: "Join Zero Club - Start Building" },
       { name: "description", content: "Join the builder ecosystem. Learn, ship, and earn rewards." },
-      { property: "og:image", content: "/logo.png" },
     ],
   }),
 });
