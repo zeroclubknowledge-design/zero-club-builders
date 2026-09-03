@@ -1,8 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "@/components/icons/solar";
-import { supabase } from "@/lib/supabase";
 import { PartnerMarquee } from "./PartnerMarquee";
 
 /**
@@ -17,50 +14,13 @@ import { PartnerMarquee } from "./PartnerMarquee";
  * Enterprises" over Microsoft, Amazon and Google logos, and metrics about
  * inference latency.
  *
- * The numbers here are read from the database. A landing page that states a
- * figure it cannot substantiate is the one thing on a product that is
- * definitionally not worth building.
+ * The counted-numbers strip along the bottom is gone. It was removed rather
+ * than hidden: it depended on a database function that does not exist, so it
+ * appeared for a moment on every load and then vanished, which is worse than
+ * never having been there.
  */
 
-type Stats = { builders: number; clubs: number; bootcamps: number; projects: number };
-
 export function HeroStage({ referralCode }: { referralCode?: string }) {
-  /*
-   * Counted live, and kept current.
-   *
-   * A one-shot fetch would have frozen these at whatever they were when the
-   * tab opened. They refresh on an interval and whenever the tab is focused
-   * again, so a page left open on a second monitor is not quietly showing
-   * yesterday's numbers — and a new signup appears without a reload.
-   */
-  const { data: stats, isError } = useQuery({
-    queryKey: ["landing-stats"],
-    queryFn: async (): Promise<Stats> => {
-      const { data, error } = await supabase.rpc("get_landing_stats");
-      if (error) throw error;
-      return data as Stats;
-    },
-    refetchInterval: 60_000,
-    refetchOnWindowFocus: true,
-    staleTime: 30_000,
-    retry: 1,
-  });
-
-  /*
-   * No invented numbers.
-   *
-   * This used to fall back to a PLACEHOLDER of all zeros whenever the query
-   * had not answered — including when get_landing_stats does not exist, which
-   * is exactly what happened. The strip then told every first-time visitor
-   * "0 Builders · 0 Clubs · 0 Bootcamps · 0 Projects shipped", which reads as
-   * a dead platform. A real zero and a failed request are not the same claim,
-   * and only one of them is ours to make.
-   *
-   * So: undefined while loading (the strip holds its space and shows nothing),
-   * and hidden outright on error. A missing strip costs a little polish. A
-   * strip of zeros costs the visitor's belief that anyone is here.
-   */
-
   return (
     /* min-h rather than h: the composition wants one screen, but a short
        laptop window should scroll rather than crush the stats into the
@@ -146,7 +106,6 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
        * moving when this strip failed to load. Nothing is centred now, so the
        * strip can come and go freely — and when it does not load there is no
        * empty block left behind under the partner row. */}
-      {!isError && <StatsStrip stats={stats} />}
     </section>
   );
 }
@@ -190,84 +149,3 @@ function BrandField() {
   );
 }
 
-/** The four numbers, counted up once they are real. Undefined until then. */
-function StatsStrip({ stats }: { stats?: Stats }) {
-  const items = [
-    { value: stats?.builders, label: "Builders" },
-    { value: stats?.clubs, label: "Clubs" },
-    { value: stats?.bootcamps, label: "Bootcamps" },
-    { value: stats?.projects, label: "Projects shipped" },
-  ];
-
-  return (
-    <div className="relative z-10 mx-auto grid w-full max-w-[860px] grid-cols-2 gap-y-6 px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] md:grid-cols-4 md:px-8">
-      {items.map((item, index) => (
-        <div
-          key={item.label}
-          className="text-center animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_both]"
-          style={{ animationDelay: `${0.5 + index * 0.08}s` }}
-        >
-          <p className="font-display text-[clamp(20px,2.4vw,28px)] font-semibold tabular-nums tracking-[-0.03em] text-[#171717] dark:text-white">
-            {/* A number only once there is one. The previous version always
-                rendered a figure, which is right when the answer is a real 0
-                and badly wrong when there is no answer at all — it printed a
-                confident zero over a failed request. The placeholder holds the
-                same height so nothing shifts when the real figure lands.
-                CountUp re-runs when the value changes, so a refresh animates
-                to the new figure rather than snapping. */}
-            {item.value === undefined
-              ? <span className="inline-block h-[1em] w-10 animate-pulse rounded bg-current align-middle opacity-10" />
-              : <CountUp to={item.value} delay={480 + index * 90} />}
-          </p>
-          <p className="mt-1 text-[clamp(11px,1.2vw,12.5px)] text-[#666a70] dark:text-white/45">{item.label}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Counts once, on an easing curve, and respects reduced motion. */
-function CountUp({ to, delay }: { to: number; delay: number }) {
-  const [value, setValue] = useState(0);
-  const frame = useRef<number>(0);
-  // Where this run starts from. First paint counts up from zero; a later
-  // refresh counts from what is already on screen, so 41 becoming 42 is a
-  // small move rather than a full recount.
-  const fromRef = useRef(0);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const from = fromRef.current;
-
-    if (reduced || to === from) {
-      setValue(to);
-      fromRef.current = to;
-      return;
-    }
-
-    // A first count deserves the full run; a later nudge should be quick.
-    const duration = from === 0 ? 1500 : 600;
-    const wait = from === 0 ? delay : 0;
-    let start = 0;
-
-    const timer = setTimeout(() => {
-      const step = (now: number) => {
-        if (!start) start = now;
-        const progress = Math.min(1, (now - start) / duration);
-        // easeOutCubic: fast enough to feel responsive, settles rather than stops.
-        setValue(Math.round(from + (to - from) * (1 - Math.pow(1 - progress, 3))));
-        if (progress < 1) frame.current = requestAnimationFrame(step);
-        else fromRef.current = to;
-      };
-      frame.current = requestAnimationFrame(step);
-    }, wait);
-
-    return () => {
-      clearTimeout(timer);
-      cancelAnimationFrame(frame.current);
-    };
-  }, [to, delay]);
-
-  return <>{value.toLocaleString()}</>;
-}
