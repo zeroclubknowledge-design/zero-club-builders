@@ -129,6 +129,7 @@ export function AdminDashboard() {
         admin_update_gig_status: "Gig status updated",
         admin_update_bootcamp_status: "Bootcamp status updated",
         admin_delete_bootcamp: "Bootcamp deleted",
+        zc_review_ship_reward: "Shipped project reviewed",
         admin_update_platform_setting: "Platform setting updated",
         admin_set_institution_status: "Institution updated",
         admin_create_gig: "Gig published",
@@ -195,6 +196,21 @@ export function AdminDashboard() {
     queryKey: ["admin-xp-quests"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_admin_xp_quests");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: activeTab === "quests",
+    staleTime: 15_000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  /* Shipped projects waiting on a decision. Lives beside the quests query
+     because it is the same job: deciding what earns ZP. */
+  const shipQueueQuery = useQuery({
+    queryKey: ["admin-ship-rewards"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("zc_pending_ship_rewards", { p_limit: 50 });
       if (error) throw error;
       return (data || []) as any[];
     },
@@ -283,7 +299,12 @@ export function AdminDashboard() {
           {activeTab === "people" && <People users={filteredUsers} search={userSearch} setSearch={setUserSearch} type={userType} setType={setUserType} busy={action.isPending} runAction={runAction} />}
           {activeTab === "moderation" && <Moderation reports={data.reports} busy={action.isPending} runAction={runAction} />}
           {activeTab === "learning" && <Learning bootcamps={data.bootcamps} format={format} busy={action.isPending} runAction={runAction} />}
-          {activeTab === "quests" && <QuestManagement query={questsQuery} busy={action.isPending} runAction={runAction} />}
+          {activeTab === "quests" && (
+            <div className="space-y-6">
+              <ShipRewardQueue query={shipQueueQuery} busy={action.isPending} runAction={runAction} />
+              <QuestManagement query={questsQuery} busy={action.isPending} runAction={runAction} />
+            </div>
+          )}
           {activeTab === "community" && <Community clubs={data.clubs} posts={data.posts} />}
           {activeTab === "marketplace" && <Marketplace gigs={data.gigs} format={format} busy={action.isPending} runAction={runAction} />}
           {activeTab === "commerce" && <Commerce snapshot={data} format={format} />}
@@ -432,6 +453,126 @@ const EMPTY_QUEST = {
   status: "draft",
   sortOrder: "0",
 };
+
+/**
+ * Shipped projects waiting on a decision.
+ *
+ * This exists because the 50 ZP for shipping used to be automatic: a quest
+ * checked that a build post existed and paid out. Nothing looked at whether
+ * anything had actually been shipped, so the reward was one post away for
+ * anyone who wanted it. Until Zero AI can make that judgement, a person makes
+ * it here.
+ *
+ * The amount is editable per decision rather than fixed at 50, because "this
+ * was a real ship but a small one" is a judgement the reviewer is already
+ * making and there is no reason to make them pay all-or-nothing for it.
+ */
+function ShipRewardQueue({ query, busy, runAction }: { query: any; busy: boolean; runAction: (fn: string, args: Record<string, any>) => void }) {
+  const { data, isLoading, error } = query;
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+
+  if (isLoading) return <TabLoading />;
+  if (error) {
+    if (isMissingRpc(error)) return <MigrationNote file="20260903121000_ship_reward_review.sql" title="Ship reward review setup required" />;
+    return <EmptyState Icon={ShieldOff} title="Shipped projects could not load" detail={error.message || "Try refreshing."} />;
+  }
+
+  const posts = (data || []) as any[];
+  const field = "h-9 rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary/50";
+
+  const decide = (post: any, approve: boolean) => {
+    runAction("zc_review_ship_reward", {
+      p_post_id: post.post_id,
+      p_approve: approve,
+      p_note: (notes[post.post_id] || "").trim() || null,
+      p_amount: Number(amounts[post.post_id] ?? 50) || 0,
+    });
+  };
+
+  return (
+    <section className="rounded-lg bg-card p-5 ring-1 ring-border">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-[15px] font-semibold">Shipped projects</h2>
+          <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
+            The 50 ZP for shipping is no longer automatic. Approve a build post here to release it.
+          </p>
+        </div>
+        <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
+          {posts.length} waiting
+        </span>
+      </div>
+
+      {posts.length === 0 ? (
+        <p className="mt-5 text-[12.5px] text-muted-foreground">
+          Nothing waiting. New build posts appear here as they are published.
+        </p>
+      ) : (
+        <div className="mt-5 space-y-3">
+          {posts.map((post) => (
+            <article key={post.post_id} className="rounded-lg bg-background p-4 ring-1 ring-border">
+              <div className="flex items-center gap-3">
+                {post.author_avatar ? (
+                  <img src={post.author_avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                    {(post.author_name || "?").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-semibold">{post.author_name}</p>
+                  {post.author_username && (
+                    <p className="truncate text-[11px] text-muted-foreground">@{post.author_username}</p>
+                  )}
+                </div>
+                <span className="shrink-0 text-[11px] text-muted-foreground">
+                  {post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}
+                </span>
+              </div>
+
+              <p className="mt-3 line-clamp-4 whitespace-pre-wrap text-[12.5px] leading-5 text-muted-foreground">
+                {post.content || "(no text)"}
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  value={amounts[post.post_id] ?? "50"}
+                  onChange={(e) => setAmounts((a) => ({ ...a, [post.post_id]: e.target.value }))}
+                  aria-label="ZP to award"
+                  className={`${field} w-20`}
+                />
+                <span className="text-[11px] text-muted-foreground">ZP</span>
+                <input
+                  value={notes[post.post_id] || ""}
+                  onChange={(e) => setNotes((n) => ({ ...n, [post.post_id]: e.target.value }))}
+                  placeholder="Note (optional)"
+                  className={`${field} min-w-0 flex-1`}
+                />
+                <button
+                  onClick={() => decide(post, true)}
+                  disabled={busy}
+                  className="h-9 rounded-lg bg-primary px-4 text-[12px] font-semibold text-primary-foreground disabled:opacity-50"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => decide(post, false)}
+                  disabled={busy}
+                  className="h-9 rounded-lg border border-border px-4 text-[12px] font-semibold text-muted-foreground transition hover:text-destructive disabled:opacity-50"
+                >
+                  Reject
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean; runAction: (fn: string, args: Record<string, any>) => void }) {
   const { data, isLoading, error } = query;
