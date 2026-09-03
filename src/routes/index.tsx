@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { HeroStage } from "@/features/landing/HeroStage";
 import { useReveal } from "@/hooks/useReveal";
-import { usePointerGlow, useParallax } from "@/hooks/useLandingMotion";
+import { usePointerGlow, useParallax, usePrefersReducedMotion } from "@/hooks/useLandingMotion";
 import { Bloom, Seam, Spotlight } from "@/features/landing/LandingKit";
 import {
   ArrowRight,
@@ -176,17 +176,20 @@ const platformHighlights = [
   {
     title: "A profile that shows real progress",
     copy: "Posts, projects, clubs, XP, bootcamps, and public proof — one credible builder identity.",
-    Icon: IconProfile,
+    video: "/highlights/profile.mp4",
+    poster: "/highlights/profile.webp",
   },
   {
     title: "Learn in public, together",
     copy: "Join live bootcamps, follow structured paths, and make your learning visible through shipped work.",
-    Icon: IconLearn,
+    video: "/highlights/learn.mp4",
+    poster: "/highlights/learn.webp",
   },
   {
     title: "Communities built around work",
     copy: "Private clubs keep cohorts, teams, tutors, and creators close to the conversations that matter.",
-    Icon: IconClubs,
+    video: "/highlights/communities.mp4",
+    poster: "/highlights/communities.webp",
   },
 ];
 
@@ -780,6 +783,9 @@ function TopicExplorer() {
 }
 
 function LearningSection() {
+  // Decoration, so it yields to anyone who has asked for less of it.
+  const reducedMotion = usePrefersReducedMotion();
+
   return (
     <section id="learning" className="bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
@@ -799,24 +805,41 @@ function LearningSection() {
                corner keeps the brand present without a border doing it. */
             <article
               key={item.title}
-              className="zc-surface-light zc-glow-card group sticky mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
+              className="zc-surface-light zc-glow-card group sticky mb-5 overflow-hidden rounded-[22px] bg-white dark:bg-[#141118]"
               style={{ top: "4.75rem", zIndex: index + 1 }}
             >
-              <span
+              {/*
+                Silent by construction, not by attribute.
+                
+                The audio track was removed from the file itself, so there is
+                nothing left that a browser, an extension, or a right-click
+                could ever unmute. `muted` is still set because autoplay is
+                refused without it on every mobile browser, and `playsInline`
+                because iOS otherwise takes the video fullscreen the moment it
+                starts — which would be startling on a landing page.
+                
+                The poster is the first frame, so the card shows its artwork
+                immediately instead of a black rectangle while the file loads.
+              */}
+              <video
+                src={item.video}
+                poster={item.poster}
+                autoPlay={!reducedMotion}
+                muted
+                loop
+                playsInline
+                preload="metadata"
                 aria-hidden
-                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#cc208f]/[0.10] blur-[60px] transition-opacity duration-500 group-hover:opacity-150 dark:bg-[#cc208f]/25"
+                className="aspect-video w-full bg-[#f4f2ef] object-cover dark:bg-[#0f0d12]"
               />
-              <div className="relative flex items-start">
-                <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-gradient-to-br from-[#cc208f]/[0.16] to-[#cc208f]/[0.04] text-[#cc208f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-[#cc208f]/20 transition duration-500 group-hover:scale-[1.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                  <item.Icon active className="h-[22px] w-[22px]" />
-                </div>
+              <div className="bg-gradient-to-br from-white via-[#fbfaf8] to-[#f2f0ec] p-6 dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:p-8">
+                <h3 className="max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">
+                  {item.title}
+                </h3>
+                <p className="mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[14px]">
+                  {item.copy}
+                </p>
               </div>
-              <h3 className="relative mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">
-                {item.title}
-              </h3>
-              <p className="relative mt-2.5 max-w-[650px] text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[14px]">
-                {item.copy}
-              </p>
             </article>
           ))}
         </div>

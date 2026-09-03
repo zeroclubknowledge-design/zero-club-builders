@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * The two behaviours that make the landing page feel responsive rather than
@@ -129,4 +129,31 @@ export function useParallax() {
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
+}
+
+/**
+ * Whether the visitor has asked for less movement.
+ *
+ * The looping highlight videos are decoration, and three of them playing at
+ * once is precisely what this setting exists to prevent — for someone with
+ * vestibular sensitivity it is not a preference so much as a symptom. When it
+ * is on the video holds on its poster frame, which is the same artwork
+ * standing still.
+ *
+ * Read as state rather than in CSS because `autoplay` is an attribute, not a
+ * style: there is no media query that can switch it off.
+ */
+export function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const read = () => setReduced(query.matches);
+    read();
+    query.addEventListener("change", read);
+    return () => query.removeEventListener("change", read);
+  }, []);
+
+  return reduced;
 }
