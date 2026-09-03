@@ -1,12 +1,12 @@
 -- ===========================================================================
--- ZeroStart — run this once in the Zero Club Supabase project
+-- ZeroStart — the Zero Ambassador platform.
 --
 -- Supabase → SQL Editor → New query → paste all of this → Run.
+-- Runs against the same project as Zero Club. Safe to run more than once.
 --
--- This is every migration joined in order. Running it twice is safe: every
--- table is "create table if not exists", every function is "create or
--- replace", every policy and trigger is dropped before it is created, and
--- every column add is "if not exists".
+-- IMPORTANT: run Zero Club's supabase/RUN_THIS_IN_SUPABASE.sql first. The
+-- ambassador tasks live in Zero Club's quests table, and the migration that
+-- adds the `audience` column is over there.
 -- ===========================================================================
 
 
@@ -1237,5 +1237,660 @@ $$;
 grant execute on function public.zs_mvp_overview(uuid) to anon, authenticated;
 
 notify pgrst, 'reload schema';
+
+-- ===========================================================================
+-- 20260903122000_pause_tester_payout.sql
+-- ===========================================================================
+
+-- ===========================================================================
+-- ZeroStart stops paying ZP.
+--
+-- Two reasons, and the second is the real one:
+--
+--   1. The rule is now that only a referral and an admin-created quest mint
+--      ZP. A tester reward is approved by a builder, not by Zero Club, so it
+--      does not qualify.
+--   2. ZeroStart is being repointed at Zero Ambassadors, so the campaign model
+--      that this reward belongs to is on its way out regardless.
+--
+-- The review itself still works: a builder can still approve or reject, the
+-- participation still moves to its final state, and the tester's counters
+-- still update. Only the payment is withheld — so no work is lost and nothing
+-- has to be re-reviewed when rewards come back under the ambassador model.
+-- ===========================================================================
+
+create or replace function public.zs_review_submission(
+  p_participation_id uuid,
+  p_approve boolean,
+  p_note text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  caller uuid := auth.uid();
+  participation public.zs_participations;
+  campaign public.zs_campaigns;
+begin
+  if caller is null then
+    return jsonb_build_object('ok', false, 'reason', 'not_authenticated');
+  end if;
+
+  select * into participation
+  from public.zs_participations
+  where id = p_participation_id
+  for update;
+
+  if participation.id is null then
+    return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+
+  select * into campaign from public.zs_campaigns where id = participation.campaign_id;
+
+  if campaign.builder_id <> caller then
+    return jsonb_build_object('ok', false, 'reason', 'not_yours');
+  end if;
+
+  if participation.tester_id = caller then
+    return jsonb_build_object('ok', false, 'reason', 'own_submission');
+  end if;
+
+  if participation.status <> 'submitted' then
+    return jsonb_build_object(
+      'ok', false,
+      'reason', case participation.status
+        when 'approved' then 'already_approved'
+        when 'rejected' then 'already_rejected'
+        else 'not_submitted'
+      end
+    );
+  end if;
+
+  /*
+   * No award_profile_zp call. The idempotency work that used to guard it is
+   * not deleted so much as no longer needed: with nothing being paid there is
+   * nothing to pay twice. When the ambassador model defines its rewards, the
+   * ledger call comes back here with the participation id as its source key,
+   * exactly as before.
+   */
+  if p_approve then
+    update public.zs_participations
+    set status = 'approved', reviewed_at = now(), review_note = p_note
+    where id = p_participation_id;
+
+    insert into public.zs_tester_stats (profile_id, tests_approved)
+    values (participation.tester_id, 1)
+    on conflict (profile_id) do update
+      set tests_approved = public.zs_tester_stats.tests_approved + 1,
+          updated_at = now();
+  else
+    update public.zs_participations
+    set status = 'rejected', reviewed_at = now(), review_note = p_note
+    where id = p_participation_id;
+
+    insert into public.zs_tester_stats (profile_id, tests_rejected)
+    values (participation.tester_id, 1)
+    on conflict (profile_id) do update
+      set tests_rejected = public.zs_tester_stats.tests_rejected + 1,
+          updated_at = now();
+  end if;
+
+  update public.zs_campaigns
+  set status = 'completed'
+  where id = campaign.id
+    and status = 'live'
+    and (
+      select count(*) from public.zs_participations
+      where campaign_id = campaign.id and status = 'approved'
+    ) >= campaign.tester_limit;
+
+  return jsonb_build_object('ok', true, 'approved', p_approve, 'zp_awarded', 0);
+end;
+$$;
+
+grant execute on function public.zs_review_submission(uuid, boolean, text) to authenticated;
+
+notify pgrst, 'reload schema';
+
+-- ===========================================================================
+-- 20260903140000_zerostart_ambassadors.sql
+-- ===========================================================================
+
+-- ===========================================================================
+-- ZeroStart becomes the Zero Ambassador platform.
+--
+-- The old model asked a builder to list an MVP and recruit testers. The new
+-- one asks an ambassador to pick the growth levers they will pull for Zero
+-- Club, in their own place, and then tracks what they actually did.
+--
+-- The zs_mvps / zs_campaigns tables are left in place rather than dropped.
+-- Nothing reads them any more, but dropping tables that may hold real rows is
+-- a one-way door, and there is no cost to leaving them until it is certain
+-- they are empty.
+-- ===========================================================================
+
+-- ------------------------------------------------------ growth levers ------
+/*
+ * The things an ambassador can choose to do.
+ *
+ * A table rather than an enum, so the list can change from the admin side
+ * without a migration — the whole point of the pivot is that Zero Club will
+ * learn which levers actually move growth and will want to reweight them.
+ */
+create table if not exists public.zs_focus_areas (
+  slug text primary key,
+  label text not null,
+  description text not null,
+  icon text,
+  sort_order integer not null default 0,
+  active boolean not null default true
+);
+
+insert into public.zs_focus_areas (slug, label, description, icon, sort_order) values
+  ('builders',     'Bring builders',        'Get people signed up and actually posting their work.',            'users',        10),
+  ('bootcamps',    'Fill bootcamps',        'Push specific bootcamps to people near you and get them enrolled.', 'graduation',   20),
+  ('clubs',        'Grow clubs',            'Start or grow a focused club and keep the conversation alive.',     'message',      30),
+  ('campus',       'Represent on campus',   'Be the Zero Club face at your school or campus community.',         'school',       40),
+  ('content',      'Create and share',      'Make content about Zero Club and put it where your people are.',    'megaphone',    50),
+  ('events',       'Run meetups',           'Organise local sessions, workshops, and build nights.',             'calendar',     60),
+  ('tutors',       'Recruit tutors',        'Find people who can teach and bring them in to run bootcamps.',     'presentation', 70),
+  ('institutions', 'Open institutions',     'Introduce schools, hubs, and organisations to Zero Club.',          'building',     80)
+on conflict (slug) do update
+  set label = excluded.label,
+      description = excluded.description,
+      icon = excluded.icon,
+      sort_order = excluded.sort_order;
+
+alter table public.zs_focus_areas enable row level security;
+
+drop policy if exists zs_focus_areas_read on public.zs_focus_areas;
+create policy zs_focus_areas_read on public.zs_focus_areas
+  for select to anon, authenticated using (true);
+
+-- -------------------------------------------------------- ambassadors ------
+create table if not exists public.zs_ambassadors (
+  profile_id uuid primary key references public.profiles(id) on delete cascade,
+  -- Where they represent. Free text on purpose: "Yaba, Lagos" and "Nsukka" are
+  -- both useful, and a fixed list of regions would be wrong within a month.
+  location text not null check (length(btrim(location)) between 2 and 120),
+  country text,
+  bio text,
+  status text not null default 'active'
+    check (status in ('active', 'paused', 'removed')),
+  joined_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+/* The levers this ambassador picked. */
+create table if not exists public.zs_ambassador_focus (
+  profile_id uuid not null references public.zs_ambassadors(profile_id) on delete cascade,
+  focus_slug text not null references public.zs_focus_areas(slug) on delete cascade,
+  primary key (profile_id, focus_slug)
+);
+
+/* Bootcamps they have committed to push locally. */
+create table if not exists public.zs_ambassador_bootcamps (
+  profile_id uuid not null references public.zs_ambassadors(profile_id) on delete cascade,
+  bootcamp_id uuid not null,
+  added_at timestamptz not null default now(),
+  primary key (profile_id, bootcamp_id)
+);
+
+/*
+ * Task completions, decided by an admin.
+ *
+ * The task itself lives in Zero Club's quests table with audience = ambassador.
+ * This records who did it and when it was signed off, because nothing in the
+ * database can prove a meetup happened.
+ */
+create table if not exists public.zs_ambassador_task_log (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.zs_ambassadors(profile_id) on delete cascade,
+  quest_id uuid not null,
+  status text not null default 'submitted'
+    check (status in ('submitted', 'approved', 'rejected')),
+  evidence text,
+  evidence_url text,
+  note text,
+  reviewed_by uuid references public.profiles(id),
+  submitted_at timestamptz not null default now(),
+  reviewed_at timestamptz,
+  zp_awarded integer not null default 0,
+  -- One submission per task per ambassador. Re-doing a repeatable task is a
+  -- later problem; letting the same one be submitted five times is not.
+  unique (profile_id, quest_id)
+);
+
+create index if not exists zs_task_log_pending_idx
+  on public.zs_ambassador_task_log (status, submitted_at);
+
+alter table public.zs_ambassadors           enable row level security;
+alter table public.zs_ambassador_focus      enable row level security;
+alter table public.zs_ambassador_bootcamps  enable row level security;
+alter table public.zs_ambassador_task_log   enable row level security;
+
+/* An ambassador roster is public — that is rather the point of being one. */
+drop policy if exists zs_ambassadors_read on public.zs_ambassadors;
+create policy zs_ambassadors_read on public.zs_ambassadors
+  for select to anon, authenticated using (status = 'active' or profile_id = auth.uid() or public.is_zero_club_admin());
+
+drop policy if exists zs_ambassadors_self_write on public.zs_ambassadors;
+create policy zs_ambassadors_self_write on public.zs_ambassadors
+  for insert to authenticated with check (profile_id = auth.uid());
+
+drop policy if exists zs_ambassadors_self_update on public.zs_ambassadors;
+create policy zs_ambassadors_self_update on public.zs_ambassadors
+  for update to authenticated
+  using (profile_id = auth.uid())
+  -- They can pause themselves, but not un-remove themselves.
+  with check (profile_id = auth.uid() and status in ('active', 'paused'));
+
+drop policy if exists zs_focus_read on public.zs_ambassador_focus;
+create policy zs_focus_read on public.zs_ambassador_focus
+  for select to anon, authenticated using (true);
+
+drop policy if exists zs_focus_self on public.zs_ambassador_focus;
+create policy zs_focus_self on public.zs_ambassador_focus
+  for all to authenticated using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+drop policy if exists zs_amb_bootcamps_read on public.zs_ambassador_bootcamps;
+create policy zs_amb_bootcamps_read on public.zs_ambassador_bootcamps
+  for select to anon, authenticated using (true);
+
+drop policy if exists zs_amb_bootcamps_self on public.zs_ambassador_bootcamps;
+create policy zs_amb_bootcamps_self on public.zs_ambassador_bootcamps
+  for all to authenticated using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+
+/* A task log is between the ambassador and the reviewers. */
+drop policy if exists zs_task_log_read on public.zs_ambassador_task_log;
+create policy zs_task_log_read on public.zs_ambassador_task_log
+  for select to authenticated
+  using (profile_id = auth.uid() or public.is_zero_club_admin());
+
+drop policy if exists zs_task_log_submit on public.zs_ambassador_task_log;
+create policy zs_task_log_submit on public.zs_ambassador_task_log
+  for insert to authenticated
+  with check (profile_id = auth.uid() and status = 'submitted');
+
+-- ------------------------------------------------------------- levels ------
+/*
+ * Level is derived from approved tasks, never stored.
+ *
+ * Stored levels go stale the moment the thresholds move and then need
+ * backfilling. This is the same reasoning the tester levels used, and the same
+ * function shape, so the two agree.
+ */
+create or replace function public.zs_ambassador_level(p_approved integer)
+returns text
+language sql
+immutable
+as $$
+  select case
+    when p_approved >= 40 then 'Regional Lead'
+    when p_approved >= 20 then 'Lead Ambassador'
+    when p_approved >= 8  then 'Active Ambassador'
+    when p_approved >= 1  then 'Ambassador'
+    else 'New Ambassador'
+  end;
+$$;
+
+notify pgrst, 'reload schema';
+
+-- ===========================================================================
+-- 20260903141000_ambassador_flow.sql
+-- ===========================================================================
+
+-- ===========================================================================
+-- The ambassador loop: join, pick levers, do a task, get signed off, get paid.
+--
+-- The payment is the part that matters. It runs through Zero Club's
+-- award_profile_zp, keyed on the task-log id, so the same task cannot pay
+-- twice however many times an admin clicks. And it is gated behind an admin —
+-- which is exactly the rule Zero Club now runs on: only a referral and an
+-- admin-created task mint ZP.
+-- ===========================================================================
+
+/*
+ * Join, or update your details.
+ *
+ * One call does both, because "am I already an ambassador" is a question the
+ * client should not have to ask before it can save a form.
+ */
+create or replace function public.zs_save_ambassador(
+  p_location text,
+  p_country text default null,
+  p_bio text default null,
+  p_focus text[] default '{}',
+  p_bootcamps uuid[] default '{}'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  caller uuid := auth.uid();
+begin
+  if caller is null then
+    return jsonb_build_object('ok', false, 'reason', 'not_authenticated');
+  end if;
+  if length(btrim(coalesce(p_location, ''))) < 2 then
+    return jsonb_build_object('ok', false, 'reason', 'location_required');
+  end if;
+  if coalesce(array_length(p_focus, 1), 0) = 0 then
+    return jsonb_build_object('ok', false, 'reason', 'focus_required');
+  end if;
+
+  insert into public.zs_ambassadors (profile_id, location, country, bio)
+  values (caller, btrim(p_location), nullif(btrim(coalesce(p_country, '')), ''), nullif(btrim(coalesce(p_bio, '')), ''))
+  on conflict (profile_id) do update
+    set location = excluded.location,
+        country = excluded.country,
+        bio = excluded.bio,
+        status = case when public.zs_ambassadors.status = 'removed'
+                      then public.zs_ambassadors.status   -- a removal is not self-reversible
+                      else 'active' end,
+        updated_at = now();
+
+  -- Replace rather than merge: the form shows the full set, so what it sends
+  -- is the full set. Merging would make unticking a lever impossible.
+  delete from public.zs_ambassador_focus where profile_id = caller;
+  insert into public.zs_ambassador_focus (profile_id, focus_slug)
+  select caller, slug from public.zs_focus_areas
+  where slug = any(p_focus) and active
+  on conflict do nothing;
+
+  delete from public.zs_ambassador_bootcamps where profile_id = caller;
+  if coalesce(array_length(p_bootcamps, 1), 0) > 0 then
+    insert into public.zs_ambassador_bootcamps (profile_id, bootcamp_id)
+    select caller, unnest(p_bootcamps)
+    on conflict do nothing;
+  end if;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+grant execute on function public.zs_save_ambassador(text, text, text, text[], uuid[]) to authenticated;
+
+/*
+ * Everything the dashboard shows, in one call.
+ *
+ * Level is computed here rather than in the browser so the number on screen
+ * and the number the database would agree with cannot drift apart.
+ */
+create or replace function public.zs_ambassador_me()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  caller uuid := auth.uid();
+  amb public.zs_ambassadors;
+  approved integer;
+begin
+  if caller is null then
+    return jsonb_build_object('found', false);
+  end if;
+
+  select * into amb from public.zs_ambassadors where profile_id = caller;
+  if amb.profile_id is null then
+    return jsonb_build_object('found', false);
+  end if;
+
+  select count(*) into approved
+  from public.zs_ambassador_task_log
+  where profile_id = caller and status = 'approved';
+
+  return jsonb_build_object(
+    'found', true,
+    'location', amb.location,
+    'country', amb.country,
+    'bio', amb.bio,
+    'status', amb.status,
+    'joined_at', amb.joined_at,
+    'focus', coalesce((
+      select jsonb_agg(focus_slug order by focus_slug)
+      from public.zs_ambassador_focus where profile_id = caller
+    ), '[]'::jsonb),
+    'bootcamps', coalesce((
+      select jsonb_agg(bootcamp_id)
+      from public.zs_ambassador_bootcamps where profile_id = caller
+    ), '[]'::jsonb),
+    'tasks_approved', approved,
+    'tasks_submitted', (
+      select count(*) from public.zs_ambassador_task_log
+      where profile_id = caller and status = 'submitted'
+    ),
+    'zp_earned', coalesce((
+      select sum(zp_awarded) from public.zs_ambassador_task_log
+      where profile_id = caller and status = 'approved'
+    ), 0),
+    'level', public.zs_ambassador_level(approved)
+  );
+end;
+$$;
+
+grant execute on function public.zs_ambassador_me() to authenticated;
+
+/*
+ * The task list: active ambassador quests, with this person's status on each.
+ *
+ * The quests live in Zero Club's table. Reading them through a function keeps
+ * ZeroStart from needing a policy on a table it does not own.
+ */
+create or replace function public.zs_ambassador_tasks()
+returns table (
+  quest_id uuid,
+  title text,
+  description text,
+  reward integer,
+  icon_name text,
+  frequency text,
+  my_status text,
+  submitted_at timestamptz,
+  note text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select q.id, q.title, q.description, q.reward_xp, q.icon_name, q.type,
+         coalesce(l.status, 'available'), l.submitted_at, l.note
+  from public.quests q
+  left join public.zs_ambassador_task_log l
+    on l.quest_id = q.id and l.profile_id = auth.uid()
+  where q.audience = 'ambassador' and q.status = 'active'
+  order by q.sort_order, q.created_at desc;
+$$;
+
+grant execute on function public.zs_ambassador_tasks() to authenticated;
+
+/* Submitting a task for review, with whatever evidence they have. */
+create or replace function public.zs_submit_ambassador_task(
+  p_quest_id uuid,
+  p_evidence text default null,
+  p_evidence_url text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  caller uuid := auth.uid();
+begin
+  if caller is null then
+    return jsonb_build_object('ok', false, 'reason', 'not_authenticated');
+  end if;
+  if not exists (select 1 from public.zs_ambassadors where profile_id = caller and status = 'active') then
+    return jsonb_build_object('ok', false, 'reason', 'not_an_ambassador');
+  end if;
+  if not exists (
+    select 1 from public.quests
+    where id = p_quest_id and audience = 'ambassador' and status = 'active'
+  ) then
+    return jsonb_build_object('ok', false, 'reason', 'task_unavailable');
+  end if;
+
+  insert into public.zs_ambassador_task_log (profile_id, quest_id, evidence, evidence_url)
+  values (caller, p_quest_id, nullif(btrim(coalesce(p_evidence, '')), ''), nullif(btrim(coalesce(p_evidence_url, '')), ''))
+  on conflict (profile_id, quest_id) do nothing;
+
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'already_submitted');
+  end if;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+grant execute on function public.zs_submit_ambassador_task(uuid, text, text) to authenticated;
+
+/*
+ * The sign-off, and the only place an ambassador task pays.
+ *
+ * Admin only, idempotent through the ledger, and it refuses to act on a log
+ * row that has already been decided — so a second click reports the decision
+ * rather than repeating it.
+ */
+create or replace function public.zs_review_ambassador_task(
+  p_log_id uuid,
+  p_approve boolean,
+  p_note text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  reviewer uuid := auth.uid();
+  log public.zs_ambassador_task_log;
+  reward integer;
+  paid boolean := false;
+begin
+  if not public.is_zero_club_admin() then
+    return jsonb_build_object('ok', false, 'reason', 'not_admin');
+  end if;
+
+  select * into log from public.zs_ambassador_task_log where id = p_log_id for update;
+  if log.id is null then
+    return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+  if log.status <> 'submitted' then
+    return jsonb_build_object('ok', false, 'reason',
+      case log.status when 'approved' then 'already_approved' else 'already_rejected' end);
+  end if;
+
+  select reward_xp into reward from public.quests where id = log.quest_id;
+
+  if p_approve then
+    paid := public.award_profile_zp(
+      log.profile_id, 'ambassador_task', p_log_id::text, coalesce(reward, 0),
+      jsonb_build_object('quest_id', log.quest_id, 'reviewed_by', reviewer, 'source', 'ZeroStart')
+    );
+  end if;
+
+  update public.zs_ambassador_task_log
+  set status = case when p_approve then 'approved' else 'rejected' end,
+      note = p_note,
+      reviewed_by = reviewer,
+      reviewed_at = now(),
+      zp_awarded = case when paid then coalesce(reward, 0) else 0 end
+  where id = p_log_id;
+
+  return jsonb_build_object('ok', true, 'approved', p_approve,
+                            'zp_awarded', case when paid then coalesce(reward, 0) else 0 end);
+end;
+$$;
+
+grant execute on function public.zs_review_ambassador_task(uuid, boolean, text) to authenticated;
+
+/* The admin queue of submissions waiting on a decision. */
+create or replace function public.zs_pending_ambassador_tasks()
+returns table (
+  log_id uuid,
+  profile_id uuid,
+  ambassador_name text,
+  ambassador_username text,
+  ambassador_avatar text,
+  location text,
+  quest_title text,
+  reward integer,
+  evidence text,
+  evidence_url text,
+  submitted_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_zero_club_admin() then return; end if;
+
+  return query
+    select l.id, l.profile_id,
+           coalesce(nullif(btrim(pr.full_name), ''), pr.username, 'An ambassador'),
+           pr.username, pr.avatar_url, a.location,
+           q.title, q.reward_xp, l.evidence, l.evidence_url, l.submitted_at
+    from public.zs_ambassador_task_log l
+    join public.zs_ambassadors a on a.profile_id = l.profile_id
+    join public.profiles pr on pr.id = l.profile_id
+    join public.quests q on q.id = l.quest_id
+    where l.status = 'submitted'
+    order by l.submitted_at asc;
+end;
+$$;
+
+grant execute on function public.zs_pending_ambassador_tasks() to authenticated;
+
+/* The public roster, for the leaderboard. */
+create or replace function public.zs_ambassador_roster(p_limit integer default 50)
+returns table (
+  profile_id uuid,
+  display_name text,
+  username text,
+  avatar_url text,
+  location text,
+  focus text[],
+  tasks_approved integer,
+  level text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select a.profile_id,
+         coalesce(nullif(btrim(pr.full_name), ''), pr.username, 'An ambassador'),
+         pr.username, pr.avatar_url, a.location,
+         coalesce(array_agg(f.focus_slug) filter (where f.focus_slug is not null), '{}'),
+         count(l.id) filter (where l.status = 'approved')::integer,
+         public.zs_ambassador_level(count(l.id) filter (where l.status = 'approved')::integer)
+  from public.zs_ambassadors a
+  join public.profiles pr on pr.id = a.profile_id
+  left join public.zs_ambassador_focus f on f.profile_id = a.profile_id
+  left join public.zs_ambassador_task_log l on l.profile_id = a.profile_id
+  where a.status = 'active'
+  group by a.profile_id, pr.full_name, pr.username, pr.avatar_url, a.location
+  order by count(l.id) filter (where l.status = 'approved') desc, a.joined_at asc
+  limit greatest(1, least(coalesce(p_limit, 50), 200));
+$$;
+
+grant execute on function public.zs_ambassador_roster(integer) to anon, authenticated;
+
+notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------
+-- Check: the growth levers an ambassador can pick.
+-- ---------------------------------------------------------------------------
+select slug, label from public.zs_focus_areas order by sort_order;
 
 notify pgrst, 'reload schema';

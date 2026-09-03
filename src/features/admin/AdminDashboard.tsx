@@ -139,6 +139,7 @@ export function AdminDashboard() {
         admin_delete_promotion: "Campaign deleted",
         admin_create_xp_quest: "Quest published",
         admin_update_xp_quest: "Quest updated",
+        admin_save_quest: "Task saved",
         admin_delete_xp_quest: "Quest deleted",
       };
       toast.success(messages[variables.fn] || "Change saved");
@@ -452,6 +453,7 @@ const EMPTY_QUEST = {
   iconName: "Rocket",
   status: "draft",
   sortOrder: "0",
+  audience: "everyone",
 };
 
 /**
@@ -605,6 +607,7 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
       iconName: quest.icon_name || "Rocket",
       status: quest.status || "draft",
       sortOrder: String(quest.sort_order || 0),
+      audience: quest.audience || "everyone",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -617,20 +620,23 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
     if (!Number.isInteger(reward) || reward < 1 || reward > 10_000) { toast.error("ZP reward must be between 1 and 10,000"); return; }
     if (!Number.isInteger(target) || target < 1 || target > 10_000) { toast.error("Target must be between 1 and 10,000"); return; }
 
-    const args = {
-      new_title: form.title.trim(),
-      new_description: form.description.trim(),
-      new_type: form.type,
-      new_reward_xp: reward,
-      new_criteria_type: form.criteriaType,
-      new_criteria_count: target,
-      new_icon_name: form.iconName,
-      new_status: form.status,
-      new_sort_order: Number(form.sortOrder) || 0,
-    };
-
-    if (form.id) runAction("admin_update_xp_quest", { target_quest_id: form.id, ...args });
-    else runAction("admin_create_xp_quest", args);
+    /* One function for create and update, because it is the only one that
+       knows about audience — the older pair would drop the field silently. */
+    runAction("admin_save_quest", {
+      p_id: form.id,
+      p_title: form.title.trim(),
+      p_description: form.description.trim(),
+      p_type: form.type,
+      p_reward: reward,
+      // An ambassador task is witnessed by a person, never auto-verified, so
+      // its requirement is fixed here as well as in the database.
+      p_criteria_type: form.audience === "ambassador" ? "manual" : form.criteriaType,
+      p_criteria_count: target,
+      p_icon_name: form.iconName,
+      p_status: form.status,
+      p_sort_order: Number(form.sortOrder) || 0,
+      p_audience: form.audience,
+    });
     reset();
   };
 
@@ -652,7 +658,30 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
               <div><p className={label}>Frequency</p><select value={form.type} onChange={(event) => set("type", event.target.value)} className={`${field} mt-1.5`}><option value="daily">Daily</option><option value="one-time">One time</option><option value="milestone">Milestone</option></select></div>
               <div><p className={label}>Status</p><select value={form.status} onChange={(event) => set("status", event.target.value)} className={`${field} mt-1.5`}><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></div>
             </div>
-            <div><p className={label}>Completion requirement</p><select value={form.criteriaType} onChange={(event) => set("criteriaType", event.target.value)} className={`${field} mt-1.5`}>{QUEST_REQUIREMENTS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+            {/* Who the task is for. An ambassador task goes to ZeroStart and
+                is signed off by hand there; everything else stays in the Zero
+                Club task list and is verified automatically. */}
+            <div>
+              <p className={label}>Audience</p>
+              <select
+                value={form.audience}
+                onChange={(event) => set("audience", event.target.value)}
+                className={`${field} mt-1.5`}
+              >
+                <option value="everyone">Everyone on Zero Club</option>
+                <option value="ambassador">Zero Ambassadors</option>
+              </select>
+            </div>
+            {form.audience === "ambassador" ? (
+              <div>
+                <p className={label}>Completion requirement</p>
+                <p className="mt-1.5 flex h-10 items-center rounded-lg border border-border bg-muted/40 px-3 text-[11.5px] text-muted-foreground">
+                  Reviewed by an admin in ZeroStart
+                </p>
+              </div>
+            ) : (
+              <div><p className={label}>Completion requirement</p><select value={form.criteriaType} onChange={(event) => set("criteriaType", event.target.value)} className={`${field} mt-1.5`}>{QUEST_REQUIREMENTS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div><p className={label}>Target</p><input type="number" min="1" max="10000" value={form.criteriaCount} onChange={(event) => set("criteriaCount", event.target.value)} className={`${field} mt-1.5`} /></div>
               <div><p className={label}>ZP reward</p><input type="number" min="1" max="10000" value={form.rewardXp} onChange={(event) => set("rewardXp", event.target.value)} className={`${field} mt-1.5`} /></div>

@@ -15,9 +15,9 @@ import { ZpBadge } from "./ui/primitives";
  */
 
 const NAV = [
-  { to: "/", label: "Discover", icon: Compass, exact: true },
-  { to: "/tests", label: "My tests", icon: LayoutGrid, exact: false },
-  { to: "/build", label: "Build", icon: Rocket, exact: false },
+  { to: "/", label: "My work", icon: LayoutGrid, exact: true },
+  { to: "/ambassadors", label: "Ambassadors", icon: Compass, exact: false },
+  { to: "/join", label: "My profile", icon: Rocket, exact: false },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {

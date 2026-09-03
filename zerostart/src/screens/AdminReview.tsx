@@ -1,138 +1,158 @@
 import { useEffect, useState } from "react";
+import { ExternalLink, MapPin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { displayUrl, externalUrl } from "@/lib/links";
-import type { Mvp } from "@/types";
-import { Card, EmptyState, ErrorState, Skeleton, StatusBadge } from "@/components/ui/primitives";
+import { Card, EmptyState, ErrorState, Skeleton, ZpBadge } from "@/components/ui/primitives";
+
+interface Pending {
+  log_id: string;
+  profile_id: string;
+  ambassador_name: string;
+  ambassador_username: string | null;
+  ambassador_avatar: string | null;
+  location: string;
+  quest_title: string;
+  reward: number;
+  evidence: string | null;
+  evidence_url: string | null;
+  submitted_at: string;
+}
+
+const REFUSAL: Record<string, string> = {
+  already_approved: "Already approved — the ambassador has been paid.",
+  already_rejected: "Already rejected.",
+  not_found: "This submission no longer exists.",
+  not_admin: "This page is for Zero Club admins.",
+};
 
 /**
- * Moderation, after the fact rather than before it.
+ * Signing off ambassador work.
  *
- * Listings no longer wait for approval, so this is not a queue — it is a view
- * of what is up, with the ability to take something down. An admin reads
- * everything here because the read policy grants them that; there is no
- * separate function fetching a hidden set.
+ * This is the only place an ambassador task pays, and it is deliberately a
+ * person's decision: nothing in the database can prove a meetup happened or
+ * that twelve people actually signed up because of someone's post. The
+ * evidence is here to be read, not parsed.
  */
 export function AdminReview() {
   const { isAdmin, loading } = useAuth();
-  const [rows, setRows] = useState<Mvp[] | null>(null);
+  const [rows, setRows] = useState<Pending[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [note, setNote] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
   const load = () => {
     setError(null);
-    supabase
-      .from("zs_mvps")
-      .select("*, builder:profiles!zs_mvps_builder_id_fkey (id, username, full_name, avatar_url)")
-      .order("created_at", { ascending: false })
-      .limit(100)
-      .then(({ data, error: e }) => {
-        if (e) { setError(e.message); return; }
-        setRows((data || []) as unknown as Mvp[]);
-      });
+    supabase.rpc("zs_pending_ambassador_tasks").then(({ data, error: e }) => {
+      if (e) { setError(e.message); return; }
+      setRows((data || []) as Pending[]);
+    });
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
-  const act = async (mvp: Mvp, takeDown: boolean) => {
-    setBusyId(mvp.id);
-    const { error: e } = takeDown
-      ? await supabase.rpc("zs_take_down_mvp", { p_mvp_id: mvp.id, p_note: note[mvp.id]?.trim() || null })
-      : await supabase.rpc("zs_restore_mvp", { p_mvp_id: mvp.id });
+  const decide = async (row: Pending, approve: boolean) => {
+    setBusyId(row.log_id);
+    const { data, error: e } = await supabase.rpc("zs_review_ambassador_task", {
+      p_log_id: row.log_id,
+      p_approve: approve,
+      p_note: notes[row.log_id]?.trim() || null,
+    });
     setBusyId(null);
     if (e) { setError(e.message); return; }
+    const result = data as { ok: boolean; reason?: string };
+    if (!result?.ok) setError(REFUSAL[result?.reason || ""] || "Could not record that decision.");
     load();
   };
 
   if (loading) return <Skeleton className="h-[300px] rounded-[18px]" />;
-  if (!isAdmin) return <EmptyState title="Not for you" body="This page is for ZeroStart admins." />;
+  if (!isAdmin) return <EmptyState title="Not for you" body="This page is for Zero Club admins." />;
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-[26px] font-bold text-ink">Moderation</h1>
+      <h1 className="text-[26px] font-bold text-ink">Ambassador submissions</h1>
       <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-muted">
-        Listings publish immediately. Take one down if it shouldn't be up — its campaigns stop
-        recruiting at the same time.
+        Approving pays the task's ZP once. Rejecting costs nothing and tells them why.
       </p>
 
       <div className="mt-6">
         {error && <ErrorState message={error} onRetry={load} />}
         {!error && !rows && <Skeleton className="h-[200px] rounded-[18px]" />}
-        {rows && rows.length === 0 && <EmptyState title="Nothing listed yet" body="No MVPs have been published." />}
+        {rows && rows.length === 0 && (
+          <EmptyState title="Nothing waiting" body="Submissions appear here as ambassadors send work in." />
+        )}
 
         {rows && rows.length > 0 && (
-          <div className="space-y-3">
-            {rows.map((mvp) => {
-              const down = mvp.status === "rejected";
-              return (
-                <Card key={mvp.id} className="p-5">
-                  <div className="flex items-start gap-3">
-                    {mvp.media_urls?.[0] ? (
-                      <img src={mvp.media_urls[0]} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
-                    ) : (
-                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent-soft font-display text-[15px] font-bold text-accent">
-                        {mvp.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[15px] font-semibold text-ink">{mvp.name}</p>
-                      <p className="mt-0.5 text-[12px] text-ink-faint">
-                        {mvp.category}
-                        {mvp.builder?.username && <> · @{mvp.builder.username}</>}
-                      </p>
-                    </div>
-                    <StatusBadge status={mvp.status} />
-                  </div>
-
-                  <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">{mvp.short_description}</p>
-
-                  {(externalUrl(mvp.zerohub_url) || externalUrl(mvp.website_url)) && (
-                    <a
-                      href={externalUrl(mvp.zerohub_url) || externalUrl(mvp.website_url) || "#"}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="mt-2 inline-block break-all text-[12.5px] font-semibold text-accent"
-                    >
-                      {displayUrl(mvp.zerohub_url) || displayUrl(mvp.website_url)}
-                    </a>
-                  )}
-
-                  {down ? (
-                    <div className="mt-4">
-                      {mvp.review_note && (
-                        <p className="mb-3 text-[12.5px] leading-relaxed text-ink-faint">
-                          Reason given: {mvp.review_note}
-                        </p>
-                      )}
-                      <button
-                        onClick={() => act(mvp, false)}
-                        disabled={busyId === mvp.id}
-                        className="h-10 rounded-full bg-ink/[0.06] px-5 text-[13px] font-semibold text-ink transition hover:bg-ink/10 disabled:opacity-40"
-                      >
-                        Restore
-                      </button>
-                    </div>
+          <div className="space-y-4">
+            {rows.map((row) => (
+              <Card key={row.log_id} className="p-5 sm:p-6">
+                <div className="flex items-start gap-3">
+                  {row.ambassador_avatar ? (
+                    <img src={row.ambassador_avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
                   ) : (
-                    <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
-                      <input
-                        value={note[mvp.id] || ""}
-                        onChange={(e) => setNote((n) => ({ ...n, [mvp.id]: e.target.value }))}
-                        placeholder="Reason (shown to the builder)"
-                        className="h-10 w-full rounded-full border border-line bg-bg px-4 text-[12.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50 sm:flex-1"
-                      />
-                      <button
-                        onClick={() => act(mvp, true)}
-                        disabled={busyId === mvp.id}
-                        className="h-10 w-full shrink-0 rounded-full bg-ink/[0.06] px-5 text-[13px] font-semibold text-ink-muted transition hover:text-bad disabled:opacity-40 sm:w-auto"
-                      >
-                        Take down
-                      </button>
-                    </div>
+                    <span className="grid h-10 w-10 place-items-center rounded-full bg-ink/[0.06] text-[13px] font-bold text-ink-muted">
+                      {row.ambassador_name.charAt(0).toUpperCase()}
+                    </span>
                   )}
-                </Card>
-              );
-            })}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[14px] font-semibold text-ink">{row.ambassador_name}</p>
+                    <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-ink-faint">
+                      <MapPin className="h-3 w-3" /> {row.location}
+                      {row.ambassador_username && <> · @{row.ambassador_username}</>}
+                    </p>
+                  </div>
+                  <ZpBadge amount={row.reward} />
+                </div>
+
+                <p className="mt-4 text-[12px] font-bold uppercase tracking-wider text-ink-faint">
+                  {row.quest_title}
+                </p>
+
+                {row.evidence && (
+                  <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-ink-muted">
+                    {row.evidence}
+                  </p>
+                )}
+
+                {row.evidence_url && (
+                  <a
+                    href={row.evidence_url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="mt-3 inline-flex items-center gap-1.5 break-all text-[12.5px] font-semibold text-accent"
+                  >
+                    {row.evidence_url} <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                  </a>
+                )}
+
+                <div className="mt-5 border-t border-line pt-4">
+                  <input
+                    value={notes[row.log_id] || ""}
+                    onChange={(e) => setNotes((n) => ({ ...n, [row.log_id]: e.target.value }))}
+                    placeholder="A note for the ambassador (optional)"
+                    className="h-10 w-full rounded-lg border border-line bg-bg px-3.5 text-[12.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                  />
+                  <div className="mt-3 flex gap-3">
+                    <button
+                      onClick={() => decide(row, true)}
+                      disabled={busyId === row.log_id}
+                      className="zs-glow h-11 flex-1 rounded-full bg-accent text-[13px] font-semibold text-accent-ink transition hover:opacity-90 disabled:opacity-40"
+                    >
+                      {busyId === row.log_id ? "Working…" : `Approve · pay ${row.reward} ZP`}
+                    </button>
+                    <button
+                      onClick={() => decide(row, false)}
+                      disabled={busyId === row.log_id}
+                      className="h-11 rounded-full bg-ink/[0.06] px-5 text-[13px] font-semibold text-ink-muted transition hover:text-bad disabled:opacity-40"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                  <p className="mt-2.5 text-[11.5px] leading-relaxed text-ink-faint">
+                    Approving pays once. Pressing it twice cannot pay twice.
+                  </p>
+                </div>
+              </Card>
+            ))}
           </div>
         )}
       </div>
