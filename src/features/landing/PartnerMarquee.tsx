@@ -23,12 +23,20 @@ const PARTNERS = [
 
 export function PartnerMarquee() {
   return (
-    <div className="mt-8 w-full animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.52s_both]">
+    /* Even rhythm.
+       This block sat 32px below the line above it but only 14px above its own
+       logos, so it read as detached from the hero and cramped inside itself.
+       The two gaps are now proportional — a smaller step down from the line
+       above, a larger one between the label and the row it introduces.
+
+       Plain block comment: this is expression position, between `return (` and
+       the root element. A braced one here is a second expression. */
+    <div className="mt-7 w-full animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.52s_both]">
       <p className="text-center text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[#8b8f96] dark:text-white/35">
         Built with the tools you already use
       </p>
 
-      <div className="zc-marquee-wrap mt-3.5 overflow-hidden">
+      <div className="zc-marquee-wrap mt-5 overflow-hidden py-1">
         {/*
           The list is rendered twice. The track slides exactly one copy's width,
           so at the end of the cycle it is pixel-identical to the start and the

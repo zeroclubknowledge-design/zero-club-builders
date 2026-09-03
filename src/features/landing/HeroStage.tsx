@@ -75,10 +75,22 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
        Plain block comment, not {braced}: this sits between `return (` and the
        root element, which is expression position — a braced comment there is a
        second expression and the file stops compiling. */
-    <section className="relative flex min-h-[76svh] flex-col overflow-hidden bg-[#f4f2ef] text-[#171717] dark:bg-[#0b0a0d] dark:text-white md:min-h-[82svh]">
+    <section className="relative flex min-h-[68svh] flex-col overflow-hidden bg-[#f4f2ef] text-[#171717] dark:bg-[#0b0a0d] dark:text-white md:min-h-[74svh]">
       <BrandField />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-1 flex-col items-center justify-center px-4 pb-6 pt-[calc(3.25rem+env(safe-area-inset-top))] text-center md:px-8">
+      {/* Positioned, not centred.
+       *
+       * Centring inside the leftover space was the root of both problems here.
+       * It meant the headline moved whenever anything below it changed height,
+       * and it forced me to reserve a block of empty space to hold it still —
+       * which then showed as a void under the partner row. Laying the content
+       * out from the top instead fixes both at once: nothing below can move
+       * the headline, so nothing has to be reserved.
+       *
+       * The top padding has to CLEAR the header, which is 4rem tall and fixed.
+       * It was 3.25rem — 12px less than the header itself — which is why the
+       * headline was sitting right up against it. */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-col items-center px-4 pb-10 pt-[calc(4rem+2.5rem+env(safe-area-inset-top))] text-center md:px-8">
         {/* The wording is the landing page's own, unchanged. Three lines, so
             the progression reads as a sequence — skills, then proof, then what
             the proof opens — with the third in brand pink. Each is its own
@@ -132,17 +144,13 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
         <PartnerMarquee />
       </div>
 
-      {/* The space is reserved whether or not the strip renders.
+      {/* No reserved height any more.
        *
-       * The headline is centred in the room left over above this, so anything
-       * that changes height down here moves it. get_landing_stats failing —
-       * which it does until the migration is run — unmounted the strip a
-       * moment after load, the leftover room grew, and the headline visibly
-       * dropped. Holding the height means the layout is identical while
-       * loading, once loaded, and if the query never succeeds at all. */}
-      <div className="min-h-[168px] md:min-h-[92px]">
-        {!isError && <StatsStrip stats={stats} />}
-      </div>
+       * The 168px placeholder existed only to stop the centred headline from
+       * moving when this strip failed to load. Nothing is centred now, so the
+       * strip can come and go freely — and when it does not load there is no
+       * empty block left behind under the partner row. */}
+      {!isError && <StatsStrip stats={stats} />}
     </section>
   );
 }

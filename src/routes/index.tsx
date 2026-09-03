@@ -800,7 +800,8 @@ function LearningSection() {
                corner keeps the brand present without a border doing it. */
             <article
               key={item.title}
-              className="zc-surface-light zc-glow-card group mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
+              className="zc-surface-light zc-glow-card group sticky mb-5 min-h-[210px] overflow-hidden rounded-[22px] bg-white p-6 dark:bg-gradient-to-br dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:min-h-[220px] md:p-8"
+              style={{ top: "4.75rem", zIndex: index + 1 }}
             >
               <span
                 aria-hidden
@@ -887,7 +888,8 @@ function OpportunitiesSection() {
           {audienceCards.map((card, index) => (
             <article
               key={card.title}
-              className="mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] md:min-h-[205px]"
+              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] md:min-h-[205px]"
+              style={{ top: "4.75rem", zIndex: index + 1 }}
             >
               <div className="flex items-start justify-between gap-5">
                 <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
@@ -1032,7 +1034,8 @@ function FeaturesSection() {
           {zeroClubFeatures.map((feature, index) => (
             <article
               key={feature.title}
-              className="zc-glow-card mb-5 min-h-[190px] rounded-[20px] bg-white p-6 dark:bg-[#141118] md:min-h-[205px] md:p-7"
+              className="zc-glow-card sticky mb-5 min-h-[190px] rounded-[20px] bg-white p-6 dark:bg-[#141118] md:min-h-[205px] md:p-7"
+              style={{ top: "4.75rem", zIndex: index + 1 }}
             >
               <div className="flex items-start justify-between gap-5">
                 {/* The icon is the small light source each card is built
