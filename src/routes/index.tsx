@@ -807,13 +807,10 @@ function LearningSection() {
                 aria-hidden
                 className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#cc208f]/[0.10] blur-[60px] transition-opacity duration-500 group-hover:opacity-150 dark:bg-[#cc208f]/25"
               />
-              <div className="relative flex items-start justify-between gap-5">
+              <div className="relative flex items-start">
                 <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-gradient-to-br from-[#cc208f]/[0.16] to-[#cc208f]/[0.04] text-[#cc208f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-[#cc208f]/20 transition duration-500 group-hover:scale-[1.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                   <item.Icon active className="h-[22px] w-[22px]" />
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25 dark:text-white/25">
-                  0{index + 1}
-                </span>
               </div>
               <h3 className="relative mt-6 max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">
                 {item.title}
@@ -891,13 +888,10 @@ function OpportunitiesSection() {
               className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] dark:ring-white/10 md:min-h-[205px]"
               style={{ top: "4.75rem", zIndex: index + 1 }}
             >
-              <div className="flex items-start justify-between gap-5">
+              <div className="flex items-start">
                 <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
                   <card.Icon active className="h-[22px] w-[22px]" />
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">
-                  0{index + 1}
-                </span>
               </div>
               <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">
                 {card.title}
@@ -1037,16 +1031,13 @@ function FeaturesSection() {
               className="zc-glow-card sticky mb-5 min-h-[190px] rounded-[20px] bg-white p-6 dark:bg-[#141118] md:min-h-[205px] md:p-7"
               style={{ top: "4.75rem", zIndex: index + 1 }}
             >
-              <div className="flex items-start justify-between gap-5">
+              <div className="flex items-start">
                 {/* The icon is the small light source each card is built
                     around, the way every card in the reference has one glowing
                     object in it. */}
                 <div className="grid h-11 w-11 place-items-center rounded-[13px] bg-gradient-to-br from-[#cc208f]/20 to-[#cc208f]/[0.04] text-[#cc208f] ring-1 ring-[#cc208f]/25 shadow-[0_0_24px_-6px_rgba(204,32,143,0.55)]">
                   {feature.icon}
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">
-                  0{index + 1}
-                </span>
               </div>
               <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white md:text-[20px]">
                 {feature.title}
