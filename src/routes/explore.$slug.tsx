@@ -363,14 +363,14 @@ function ProductDetailPage() {
                 <Link
                   to="/signup"
                   search={{ ref: undefined, club: undefined }}
-                  className="inline-flex h-11 items-center gap-2 rounded-md bg-[#171717] px-5 text-[11.5px] font-semibold text-white"
+                  className="inline-flex h-11 items-center gap-2 rounded-md bg-[#171717] px-5 text-[11.5px] font-semibold text-white dark:bg-white dark:text-[#171717]"
                 >
                   Start building <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
                 <Link
                   to="/docs"
                   search={{ page: product.docPage }}
-                  className="inline-flex h-11 items-center rounded-md border border-[#171717]/15 px-5 text-[11.5px] font-semibold"
+                  className="inline-flex h-11 items-center rounded-md border border-[#171717]/15 px-5 dark:border-white/18 text-[11.5px] font-semibold"
                 >
                   Read the guide
                 </Link>
@@ -402,7 +402,7 @@ function ProductDetailPage() {
                 What makes {product.name} different
               </h2>
             </div>
-            <div className="mt-12/10/10 dark:border-white/10">
+            <div className="mt-12">
               {product.principles.map((item, index) => (
                 <article
                   key={item.title}
@@ -434,10 +434,10 @@ function ProductDetailPage() {
                 {product.forWhom}
               </p>
             </div>
-            <ol className="/10 dark:border-white/10">
+            <ol className="/10">
               {product.workflow.map((step, index) => (
-                <li key={step} className="flex items-center gap-5/10 dark:border-white/10 py-5">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#171717] text-[10px] font-semibold text-white">
+                <li key={step} className="flex items-center gap-5 py-5">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#171717] text-[10px] font-semibold text-white dark:bg-white dark:text-[#171717]">
                     {index + 1}
                   </span>
                   <span className="text-[13px] font-medium leading-5">{step}</span>
@@ -456,7 +456,7 @@ function ProductDetailPage() {
           <Link
             to="/signup"
             search={{ ref: undefined, club: undefined }}
-            className="mt-7 inline-flex h-11 items-center gap-2 rounded-md bg-[#171717] px-5 text-[11.5px] font-semibold text-white"
+            className="mt-7 inline-flex h-11 items-center gap-2 rounded-md bg-[#171717] px-5 text-[11.5px] font-semibold text-white dark:bg-white dark:text-[#171717]"
           >
             Join Zero Club <ArrowRight className="h-4 w-4" />
           </Link>

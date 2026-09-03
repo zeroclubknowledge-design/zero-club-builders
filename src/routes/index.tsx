@@ -383,7 +383,7 @@ function Header({ referralCode }: ReferralProps) {
             <Link
               to="/signup"
               search={{ ref: referralCode, club: undefined }}
-              className="inline-flex h-9 w-[68px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#171717] px-0 text-[12.5px] font-semibold tracking-tight text-white transition hover:opacity-90 active:scale-[0.97] sm:h-10 sm:w-auto sm:px-5 sm:text-[13.5px]"
+              className="inline-flex h-9 w-[68px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[#171717] px-0 text-[12.5px] font-semibold tracking-tight text-white transition hover:opacity-90 dark:bg-white dark:text-[#171717] active:scale-[0.97] sm:h-10 sm:w-auto sm:px-5 sm:text-[13.5px]"
               preload={false}
             >
               <span className="sm:hidden">Join</span>
@@ -645,7 +645,7 @@ function ActivityRail() {
             <article
               key={`${club.id}-${index}`}
               aria-hidden={index >= clubs.length || undefined}
-              className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] sm:w-[218px] sm:gap-3"
+              className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] dark:ring-white/[0.08] sm:w-[218px] sm:gap-3"
             >
               <span className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-[#cc208f]/10 ring-1 ring-[#171717]/[0.06] dark:ring-white/10">
                 <img
@@ -720,7 +720,7 @@ function ProductSection() {
    * new first screen, where they still do their job.
    */
   return (
-    <section className="relative overflow-hidden bg-[#f4f2ef] dark:border-white/10 dark:bg-[#0f0d12]">
+    <section className="relative overflow-hidden bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
       <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:grid-cols-[1fr_0.95fr] lg:gap-12 lg:py-20">
         <div className="min-w-0">
@@ -768,7 +768,7 @@ function TopicExplorer() {
               <a
                 key={topic}
                 href="#learning"
-                className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 ring-1 ring-[#171717]/12 transition hover:bg-[#171717] hover:text-white hover:ring-transparent"
+                className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] ring-1 ring-[#171717]/12 transition hover:bg-[#171717] hover:text-white hover:ring-transparent dark:text-white/60 dark:ring-white/15 dark:hover:bg-white dark:hover:text-[#171717]"
               >
                 {topic}
               </a>
@@ -811,7 +811,7 @@ function LearningSection() {
                 <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-gradient-to-br from-[#cc208f]/[0.16] to-[#cc208f]/[0.04] text-[#cc208f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-[#cc208f]/20 transition duration-500 group-hover:scale-[1.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                   <item.Icon active className="h-[22px] w-[22px]" />
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25 dark:text-white/25">
                   0{index + 1}
                 </span>
               </div>
@@ -843,7 +843,7 @@ function ClubsSection() {
               decoding="async"
               src="/landing-communities-purpose.png"
               alt="Zero Club private clubs"
-              className="relative h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08]"
+              className="relative h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08] dark:ring-white/10"
             />
           </div>
         </div>
@@ -888,14 +888,14 @@ function OpportunitiesSection() {
           {audienceCards.map((card, index) => (
             <article
               key={card.title}
-              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] md:min-h-[205px]"
+              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] dark:ring-white/10 md:min-h-[205px]"
               style={{ top: "4.75rem", zIndex: index + 1 }}
             >
               <div className="flex items-start justify-between gap-5">
                 <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
                   <card.Icon active className="h-[22px] w-[22px]" />
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">
                   0{index + 1}
                 </span>
               </div>
@@ -932,7 +932,7 @@ function WalletSection() {
             ].map((item) => (
               <span
                 key={item}
-                className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 ring-1 ring-[#171717]/12"
+                className="rounded-full px-4 py-2 text-[13.5px] font-semibold tracking-tight text-[#4d4f55] dark:text-white/60 ring-1 ring-[#171717]/12 dark:ring-white/15"
               >
                 {item}
               </span>
@@ -1044,7 +1044,7 @@ function FeaturesSection() {
                 <div className="grid h-11 w-11 place-items-center rounded-[13px] bg-gradient-to-br from-[#cc208f]/20 to-[#cc208f]/[0.04] text-[#cc208f] ring-1 ring-[#cc208f]/25 shadow-[0_0_24px_-6px_rgba(204,32,143,0.55)]">
                   {feature.icon}
                 </div>
-                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25">
+                <span className="font-mono text-[10px] tracking-[0.14em] text-[#171717]/25 dark:text-white/25">
                   0{index + 1}
                 </span>
               </div>
@@ -1235,7 +1235,7 @@ function ContactSection() {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[14px] font-semibold text-white transition hover:opacity-90 active:scale-[0.98] disabled:cursor-wait disabled:opacity-65"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[14px] font-semibold text-white transition hover:opacity-90 dark:bg-white dark:text-[#171717] active:scale-[0.98] disabled:cursor-wait disabled:opacity-65"
             >
               {status === "sending" ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" />

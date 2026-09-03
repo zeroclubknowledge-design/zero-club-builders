@@ -103,7 +103,7 @@ function DocsPage() {
                     key={item.slug}
                     to="/docs"
                     search={{ page: item.slug }}
-                    className={`flex min-h-9 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-[11.5px] font-medium leading-4 transition-colors ${active ? "bg-[#171717] text-white" : "text-[#5f5a5d] dark:text-white/55 hover:bg-[#171717]/[0.045] hover:text-[#171717]"}`}
+                    className={`flex min-h-9 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-[11.5px] font-medium leading-4 transition-colors ${active ? "bg-[#171717] text-white dark:bg-white dark:text-[#171717]" : "text-[#5f5a5d] dark:text-white/55 hover:bg-[#171717]/[0.045] hover:text-[#171717]"}`}
                   >
                     <span>{item.title}</span>
                     {active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#f28fd0]" />}
@@ -151,7 +151,7 @@ function DocsPage() {
             className="h-full w-[min(88vw,340px)] border-r border-[#171717]/10 dark:border-white/10 bg-[#f7f6f3] dark:bg-[#100e13] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex h-14 items-center justify-between/10 dark:border-white/10 px-4">
+            <div className="flex h-14 items-center justify-between/10 px-4">
               <span className="flex items-center gap-2 text-[12px] font-semibold">
                 <BookOpen className="h-4 w-4 fill-current" /> Documentation
               </span>
@@ -228,7 +228,7 @@ function DocsPage() {
               ))}
             </div>
 
-            <div className="mt-16 grid gap-px overflow-hidden rounded-md border border-[#171717]/10 dark:border-white/10 bg-[#171717]/10 sm:grid-cols-2">
+            <div className="mt-16 grid gap-px overflow-hidden rounded-md border border-[#171717]/10 dark:border-white/10 bg-[#171717]/10 dark:bg-white/10 sm:grid-cols-2">
               {previousPage ? (
                 <Link
                   to="/docs"
@@ -261,7 +261,7 @@ function DocsPage() {
               )}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3/10 dark:border-white/10 pt-6">
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 pt-6">
               <p className="text-[10px] text-[#8a8388] dark:text-white/45">
                 Last reviewed August 2026
               </p>
@@ -291,7 +291,7 @@ function DocsPage() {
               </a>
             ))}
           </nav>
-          <div className="mt-8/10 dark:border-white/10 pt-6">
+          <div className="mt-8 pt-6">
             <p className="text-[10.5px] font-semibold">Need the product view?</p>
             <p className="mt-1.5 text-[9.5px] leading-4 text-[#827b80] dark:text-white/55">
               Explore how each Zero Club tool works before joining.
