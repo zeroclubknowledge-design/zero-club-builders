@@ -29,7 +29,6 @@ import type { CSSProperties } from "react";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
 import {
   IconClubs,
-  IconInstitution,
   IconLearn,
   IconPresentation,
   IconProfile,
@@ -195,22 +194,22 @@ const audienceCards = [
   {
     title: "For builders",
     copy: "Share what you're learning, document your work, join clubs, and build a profile that compounds.",
-    Icon: IconProfile,
+    art: "/audience/builders.webp",
   },
   {
     title: "For tutors",
     copy: "Run live bootcamps, manage curriculum, teach communities, and earn from your knowledge.",
-    Icon: IconPresentation,
+    art: "/audience/tutors.webp",
   },
   {
     title: "For institutions",
     copy: "Create structured learning spaces, support cohorts, and track real learner participation.",
-    Icon: IconInstitution,
+    art: "/audience/institutions.webp",
   },
   {
     title: "For teams",
     copy: "Find people through proof of work, contribution history, and community signal.",
-    Icon: IconClubs,
+    art: "/audience/teams.webp",
   },
 ];
 
@@ -883,22 +882,32 @@ function OpportunitiesSection() {
         </div>
         <div className="pb-5">
           {audienceCards.map((card, index) => (
+            /* The illustration is the card now, so the icon has gone — a small
+               mark above a full piece of art was the art competing with a
+               thumbnail of itself. The 3:2 ratio is the artwork's own, so
+               nothing is cropped at any width. */
             <article
               key={card.title}
-              className="sticky mb-5 min-h-[190px] rounded-lg bg-white dark:bg-[#141118] p-6 ring-1 ring-[#171717]/[0.08] dark:ring-white/10 md:min-h-[205px]"
+              className="sticky mb-5 overflow-hidden rounded-lg bg-white ring-1 ring-[#171717]/[0.08] dark:bg-[#141118] dark:ring-white/10"
               style={{ top: "4.75rem", zIndex: index + 1 }}
             >
-              <div className="flex items-start">
-                <div className="grid h-11 w-11 place-items-center rounded-md bg-[#cc208f]/[0.08] text-[#cc208f] ring-1 ring-[#cc208f]/15">
-                  <card.Icon active className="h-[22px] w-[22px]" />
-                </div>
+              <img
+                src={card.art}
+                alt=""
+                width={1200}
+                height={800}
+                loading="lazy"
+                decoding="async"
+                className="aspect-[3/2] w-full bg-[#f4f2ef] object-cover dark:bg-[#0f0d12]"
+              />
+              <div className="p-6">
+                <h3 className="text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">
+                  {card.title}
+                </h3>
+                <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55">
+                  {card.copy}
+                </p>
               </div>
-              <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">
-                {card.title}
-              </h3>
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55">
-                {card.copy}
-              </p>
             </article>
           ))}
         </div>

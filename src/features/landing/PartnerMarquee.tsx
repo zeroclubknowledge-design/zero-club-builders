@@ -1,162 +1,80 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * The tools row under the hero.
  *
- * Each brand ships as two prepared files: `<name>.png` for the light theme and
- * `<name>-dark.png` for the dark one. The difference between them is only the
- * wordmark — the coloured mark is byte-identical in both, because that is the
- * part that belongs to the brand and should never be repainted.
+ * Every brand ships as two prepared files — `<name>.png` for the light theme
+ * and `<name>-dark.png` for the dark one. The only difference between them is
+ * the wordmark; the coloured mark is identical in both, because that part
+ * belongs to the brand and should never be repainted. A CSS filter cannot make
+ * that distinction: `invert` would turn Claude's coral sunburst cyan.
  *
- * This is done with two files rather than a CSS filter on purpose. A filter
- * cannot tell a logo's symbol from its lettering: `invert` would turn Claude's
- * coral sunburst cyan, and `grayscale` would throw away the thing that makes
- * these marks recognisable. Deciding per pixel — is this ink, or is this
- * colour — can only happen when the asset is made.
- *
- * A missing file falls back to the next extension, then to the light file,
- * then to a plain wordmark, so the row is never broken while assets change.
+ * Paths are written out rather than probed. An earlier version tried `.svg`
+ * then `.png` then `.webp` then `.jpg` so any file you dropped in would work —
+ * useful while the assets were arriving, and pure cost once they had. Every
+ * logo is a .png, so that guesswork was twelve 404s on every page load, and on
+ * a slow connection a request that is merely slow gets treated as a failure
+ * and the real file is skipped. That is why logos went missing on low network.
  */
 
 interface Partner {
-  /** Shown when no file is found, and used as the accessible name either way. */
   name: string;
-  /** The filename stem in /public/partners. Any supported extension works. */
-  file: string;
+  /** Natural size, used to reserve space so nothing shifts as they load. */
+  w: number;
+  h: number;
 }
 
-/**
- * Extensions tried in order, so the file you happen to have is the file that
- * works. SVG first because it stays sharp at any size and is usually the
- * smallest, then the raster formats.
- */
-const EXTENSIONS = ["svg", "png", "webp", "jpg"] as const;
+const PARTNERS: Record<string, Partner> = {
+  google: { name: "Google", w: 317, h: 96 },
+  claude: { name: "Claude", w: 447, h: 96 },
+  paystack: { name: "Paystack", w: 545, h: 96 },
+  canva: { name: "Canva", w: 298, h: 96 },
+  lovable: { name: "Lovable", w: 562, h: 96 },
+  capcut: { name: "CapCut", w: 354, h: 96 },
+};
 
-const PARTNERS: Partner[] = [
-  { name: "Google", file: "google" },
-  { name: "Claude", file: "claude" },
-  { name: "Paystack", file: "paystack" },
-  { name: "Canva", file: "canva" },
-  { name: "Lovable", file: "lovable" },
-  { name: "CapCut", file: "capcut" },
-];
+const ORDER = ["google", "claude", "paystack", "canva", "lovable", "capcut"];
 
 /**
- * One logo, in whichever form is available.
+ * Whether the dark theme is on, read from the class the pre-paint script sets.
  *
- * `variant` is "" for the light-theme file and "-dark" for the light-text
- * version used on the dark theme. Both walk the extension list independently,
- * and the dark one falls back to the light file if no dark version exists —
- * so a brand whose lockup has no text (a plain coloured mark) needs only one
- * file and still works in both themes.
+ * Used so only ONE file per logo is requested. Rendering both and hiding one
+ * in CSS is simpler, but it makes the browser fetch twelve images to show six
+ * — which is exactly the wrong trade on the connection this is meant to fix.
  */
-function LogoImage({
-  partner,
-  variant,
-  className,
-  onExhausted,
-}: {
-  partner: Partner;
-  variant: "" | "-dark";
-  className: string;
-  onExhausted: () => void;
-}) {
-  const [attempt, setAttempt] = useState(0);
-  // After the variant's own extensions run out, try the plain file, then give
-  // up so the wordmark can take over.
-  const candidates = [
-    ...EXTENSIONS.map((ext) => `/partners/${partner.file}${variant}.${ext}`),
-    ...(variant ? EXTENSIONS.map((ext) => `/partners/${partner.file}.${ext}`) : []),
-  ];
+function useIsDark() {
+  const [dark, setDark] = useState(false);
 
-  /*
-   * Reported here rather than caught on an ancestor. An error event fires for
-   * every extension that is missing, so a parent listening for errors would
-   * conclude the logo had failed the moment the .svg 404'd — even when the
-   * .png right behind it loads perfectly. Only running out of candidates means
-   * failure.
-   */
   useEffect(() => {
-    if (attempt >= candidates.length) onExhausted();
-  }, [attempt, candidates.length, onExhausted]);
+    const root = document.documentElement;
+    const read = () => setDark(root.classList.contains("dark"));
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
-  if (attempt >= candidates.length) return null;
-
-  return (
-    <img
-      key={candidates[attempt]}
-      src={candidates[attempt]}
-      alt={partner.name}
-      loading="lazy"
-      decoding="async"
-      onError={() => setAttempt((n) => n + 1)}
-      className={className}
-    />
-  );
-}
-
-function PartnerItem({ partner }: { partner: Partner }) {
-  /*
-   * The wordmark is the floor, not the plan. It shows only when no image of
-   * any kind resolves, and is hidden the moment one does — tracked here rather
-   * than guessed, because a missing file is the normal state until every asset
-   * is in and a broken-image icon in a logo strip looks worse than a name.
-   */
-  const [lightFailed, setLightFailed] = useState(false);
-  const [darkFailed, setDarkFailed] = useState(false);
-
-  // Stable identities, so the effect inside LogoImage does not re-run on every
-  // parent render and re-report an exhaustion it has already reported.
-  const onLightExhausted = useCallback(() => setLightFailed(true), []);
-  const onDarkExhausted = useCallback(() => setDarkFailed(true), []);
-
-  /*
-    Uniform height, natural width — logos have wildly different aspect ratios,
-    and forcing a box on them is what makes a strip look cheap. The max-width
-    is what keeps a long lockup like Lovable from dwarfing a compact one like
-    Paystack: past that width it scales down instead of running away.
-  */
-  const imgClass =
-    "h-6 w-auto max-w-[122px] object-contain opacity-85 transition-opacity duration-300 hover:opacity-100 sm:h-7 sm:max-w-[138px]";
-
-  return (
-    <li className="flex shrink-0 items-center">
-      {/* One file per theme, swapped in CSS rather than in JS, so the right one
-          is correct on the very first paint and nothing has to know the theme. */}
-      <span className="dark:hidden">
-        <LogoImage
-          partner={partner}
-          variant=""
-          className={imgClass}
-          onExhausted={onLightExhausted}
-        />
-      </span>
-      <span className="hidden dark:block">
-        <LogoImage
-          partner={partner}
-          variant="-dark"
-          className={imgClass}
-          onExhausted={onDarkExhausted}
-        />
-      </span>
-
-      {lightFailed && darkFailed && (
-        <span className="whitespace-nowrap font-display text-[17px] font-semibold tracking-tight text-[#171717]/45 transition-colors duration-300 hover:text-[#171717]/80 dark:text-white/40 dark:hover:text-white/75 sm:text-[20px]">
-          {partner.name}
-        </span>
-      )}
-    </li>
-  );
+  return dark;
 }
 
 export function PartnerMarquee() {
-  return (
-    /* Even rhythm.
-       A smaller step down from the line above, a larger one between the label
-       and the row it introduces.
+  const dark = useIsDark();
 
-       Plain block comment: this is expression position, between `return (` and
-       the root element. A braced one here is a second expression. */
+  const items = ORDER.map((slug) => {
+    const p = PARTNERS[slug];
+    return {
+      slug,
+      ...p,
+      src: `/partners/${slug}${dark ? "-dark" : ""}.png`,
+    };
+  });
+
+  return (
+    /* Even rhythm: a smaller step down from the line above, a larger one
+       between the label and the row it introduces.
+
+       Plain block comment — this sits between `return (` and the root element,
+       which is expression position. A braced one here is a second expression. */
     <div className="mt-7 w-full animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.52s_both]">
       <p className="text-center text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[#8b8f96] dark:text-white/35">
         Partnering Tools at Zero Club
@@ -164,10 +82,10 @@ export function PartnerMarquee() {
 
       <div className="zc-marquee-wrap mt-5 overflow-hidden py-1">
         {/*
-          The list is rendered twice. The track slides exactly one copy's width,
-          so at the end of the cycle it is pixel-identical to the start and the
-          loop cannot be seen. The second copy is aria-hidden — a screen reader
-          should hear six names, not twelve.
+          The list is rendered twice and the track slides exactly one copy's
+          width, so at the end of the cycle it is pixel-identical to the start
+          and the loop cannot be seen. The second copy is aria-hidden — a
+          screen reader should hear six names, not twelve.
         */}
         <div className="zc-marquee">
           {[0, 1].map((copy) => (
@@ -176,8 +94,21 @@ export function PartnerMarquee() {
               aria-hidden={copy === 1}
               className="flex shrink-0 items-center gap-10 pr-10 sm:gap-14 sm:pr-14"
             >
-              {PARTNERS.map((partner) => (
-                <PartnerItem key={partner.name} partner={partner} />
+              {items.map((item) => (
+                <li key={item.slug} className="flex shrink-0 items-center">
+                  <img
+                    src={item.src}
+                    alt={item.name}
+                    width={item.w}
+                    height={item.h}
+                    /* Not lazy. These sit in the hero, so deferring them means
+                       deferring something already on screen — and on a slow
+                       connection lazy loading in a moving track is the other
+                       reason logos arrived late or not at all. */
+                    decoding="async"
+                    className="h-6 w-auto max-w-[122px] object-contain opacity-85 transition-opacity duration-300 hover:opacity-100 sm:h-7 sm:max-w-[138px]"
+                  />
+                </li>
               ))}
             </ul>
           ))}
