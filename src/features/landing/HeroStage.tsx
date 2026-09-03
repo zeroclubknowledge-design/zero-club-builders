@@ -137,10 +137,6 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           </Link>
         </div>
 
-        <p className="mt-4 text-[12.5px] text-[#666a70] dark:text-white/45">
-          Free to join · Profiles, clubs, bootcamps, wallet, and XP built in
-        </p>
-
         <PartnerMarquee />
       </div>
 

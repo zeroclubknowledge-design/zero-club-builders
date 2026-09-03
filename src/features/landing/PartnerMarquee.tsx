@@ -159,7 +159,7 @@ export function PartnerMarquee() {
        the root element. A braced one here is a second expression. */
     <div className="mt-7 w-full animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.52s_both]">
       <p className="text-center text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[#8b8f96] dark:text-white/35">
-        Built with the tools you already use
+        Partnering Tools at Zero Club
       </p>
 
       <div className="zc-marquee-wrap mt-5 overflow-hidden py-1">

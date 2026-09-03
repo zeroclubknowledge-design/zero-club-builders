@@ -247,10 +247,14 @@ function SignUpPage() {
        whole screen. */
     <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] px-4 py-4 text-[#171417] dark:bg-[#0b0a0d] dark:text-white sm:px-6 sm:py-6">
       <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between pb-4">
+        {/* Home, not sign in. The arrow beside a page's title reads as "leave
+            this flow", and the flow someone is leaving here is signing up —
+            sending them to sign in instead was answering a question they had
+            not asked. Sign in is still one tap away on the right. */}
         <Link
-          to="/signin"
+          to="/"
           className="grid h-10 w-10 place-items-center rounded-xl bg-black/[0.04] text-[#5a5056] ring-1 ring-black/10 transition hover:bg-black/[0.07] active:scale-[0.98] dark:bg-white/[0.06] dark:text-white/80 dark:ring-white/10 dark:hover:bg-white/10"
-          aria-label="Back to sign in"
+          aria-label="Back to home"
         >
           <ChevronLeft className="h-5 w-5" strokeWidth={1.8} />
         </Link>
