@@ -900,7 +900,12 @@ function OpportunitiesSection() {
                 decoding="async"
                 className="aspect-[3/2] w-full bg-[#f4f2ef] object-cover dark:bg-[#0f0d12]"
               />
-              <div className="p-6">
+              {/* The words sit on the same gradient the stacking cards use,
+                  rather than a flat fill. It runs top-left to bottom-right so
+                  the lighter end meets the illustration above it and the block
+                  settles as it goes down — a flat panel under a full piece of
+                  art reads as a caption bolted on. */}
+              <div className="bg-gradient-to-br from-white via-[#fbfaf8] to-[#f2f0ec] p-6 dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016]">
                 <h3 className="text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">
                   {card.title}
                 </h3>
