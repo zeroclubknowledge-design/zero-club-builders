@@ -519,7 +519,7 @@ function ProfileDetail() {
         </Drawer>
       </header>
 
-      <div className="mx-auto max-w-[680px] pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-2">
+      <div className="mx-auto w-full max-w-[680px] pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-2">
         {/* ── Who this is ── */}
         <section className="bg-card pb-4 md:overflow-hidden md:rounded-xl md:border md:border-border">
           <div className="relative h-[104px] w-full overflow-hidden bg-[#221d22] sm:h-[140px]">
@@ -532,12 +532,15 @@ function ProfileDetail() {
             <button
               onClick={() => setIsAvatarOpen(true)}
               aria-label="View profile photo"
-              className="absolute -top-14 left-3 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 border-card bg-accent/10 font-display text-[32px] font-semibold text-accent"
+              className="absolute -top-14 left-3 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 border-card bg-card font-display text-[32px] font-semibold text-accent"
             >
+              {/* The tint sits on a solid card-coloured base. On its own it was
+                  see-through, so the dark cover showed through the top half of
+                  the circle and the avatar looked cut in two. */}
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} className="h-full w-full object-cover" alt="" loading="lazy" decoding="async" />
               ) : (
-                initials
+                <span className="grid h-full w-full place-items-center bg-accent/10">{initials}</span>
               )}
             </button>
 

@@ -160,7 +160,7 @@ function SearchPage() {
         </div>
       </header>
 
-      <main className="md:mx-auto md:max-w-[680px]">
+      <main className="w-full md:mx-auto md:max-w-[680px]">
         {query.length < 2 ? (
           <p className="mt-2 bg-card px-4 py-10 text-center text-[14px] text-muted-foreground md:rounded-xl">
             Search for builders, tutors, clubs, bootcamps and posts.
