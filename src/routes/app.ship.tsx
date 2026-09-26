@@ -10,6 +10,7 @@ import { useUser } from "@/hooks/useUser";
 import { CollaboratorPicker, type Collaborator } from "@/components/CollaboratorPicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
+import { notifyMentionedUsers } from "@/lib/mentions";
 
 export const Route = createFileRoute("/app/ship")({
   validateSearch: (search: Record<string, unknown>): { editId?: string; versionOf?: string } => {
@@ -342,6 +343,15 @@ function ShipPage() {
               entity_id: newPost.id
             }]);
         }
+      }
+
+      if (newPost) {
+        void notifyMentionedUsers({
+          content: postData.content || description || "",
+          actorId: user.id,
+          entityId: newPost.id,
+          type: 'post',
+        });
       }
 
       queryClient.invalidateQueries({ queryKey: ['feed_posts'] });

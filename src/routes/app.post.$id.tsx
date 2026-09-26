@@ -21,6 +21,7 @@ import { CommentComposer, CommentContent, buildCommentContent } from "@/componen
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { JoinToInteract } from "@/components/JoinToInteract";
 import { fetchPostComments } from "@/features/comments/api";
+import { notifyMentionedUsers } from "@/lib/mentions";
 
 // Query data is undefined while replies are loading. A fallback created inline
 // (`data: postComments = []`) is a different array on every render; because the
@@ -651,7 +652,15 @@ function PostDetail() {
       
       if (error) throw error;
       setComments((current) => [...current, data]);
+      const submittedRawText = commentText;
       setCommentText("");
+
+      void notifyMentionedUsers({
+        content: submittedRawText || content,
+        actorId: currentUser.id,
+        entityId: post.id,
+        type: 'comment',
+      });
       // Reset auto-growing textarea heights in the DOM
       const textareas = document.querySelectorAll('textarea');
       textareas.forEach(t => {

@@ -147,7 +147,8 @@ function NotificationsPage() {
       case 'comment': return { icon: MessageSquare, ...ink, action: 'commented on your post' };
       case 'follow': return { icon: UserRoundPlus, ...ink, action: 'started following you' };
       case 'repost': return { icon: Repeat, ...ink, action: 'reposted your post' };
-      case 'mention': return { icon: AtSign, ...ink, action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };
+      case 'mention': return { icon: AtSign, ...ink, action: isActorMe ? `You mentioned @${recipientName}` : 'tagged you' };
+      case 'club_mention': return { icon: AtSign, ...ink, action: isActorMe ? `You mentioned @${recipientName}` : 'tagged you in a club chat' };
       case 'build_tagged': return { icon: ShieldCheck, ...green, action: 'tagged their post for verification' };
       case 'game_buzz': return { icon: Gamepad2, ...ink, action: 'buzzed you into a Zero Game' };
       case 'system': return { icon: Zap, ...ink, action: `You and ${actorName} each earned 200 ZP from your referral.` };
@@ -166,7 +167,7 @@ function NotificationsPage() {
 
   const filteredNotifs = notifs.filter(n => {
     if (activeTab === "all") return true;
-    if (activeTab === "mentions") return n.type === "mention";
+    if (activeTab === "mentions") return n.type === "mention" || n.type === "club_mention";
     return true;
   });
 
@@ -228,7 +229,7 @@ function NotificationsPage() {
     const unread = isUnread(n);
 
     const renderActors = () => {
-      if (isActorMe && n.type === 'mention') return currentUser?.full_name || currentUser?.username || "You";
+      if (isActorMe && (n.type === 'mention' || n.type === 'club_mention')) return currentUser?.full_name || currentUser?.username || "You";
       if (!n.isGroup) return n.actor?.full_name || n.actor?.username;
       const actors = n.groupActors;
       if (actors.length === 1) return actors[0].full_name || actors[0].username;
@@ -245,6 +246,8 @@ function NotificationsPage() {
 
       if (n.type === 'game_buzz' && n.entity_id) {
         navigate({ to: '/app/games/$id', params: { id: n.entity_id } });
+      } else if (n.type === 'club_mention' && n.entity_id) {
+        navigate({ to: '/app/clubs/chat', search: { clubId: n.entity_id } });
       } else if (['like', 'comment_like', 'comment', 'repost', 'mention', 'build_tagged'].includes(n.type) && n.entity_id) {
         navigate({ to: '/app/post/$id', params: { id: n.entity_id } });
       } else if (n.type === 'follow' && n.actor_id) {

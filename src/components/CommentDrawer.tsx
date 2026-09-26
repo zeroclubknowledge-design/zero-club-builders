@@ -20,6 +20,7 @@ import { UserMinus } from "@/components/icons/glyphs";
 import { CommentComposer, CommentContent, buildCommentContent } from "@/components/CommentComposer";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { fetchPostComments } from "@/features/comments/api";
+import { notifyMentionedUsers } from "@/lib/mentions";
 
 interface CommentDrawerProps {
   post: any;
@@ -333,7 +334,15 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       return false;
     } else {
       updateComments(current => [...current, { ...data, isLiked: false, likes_count: data.likes_count || 0, reactions: [] }]);
+      const submittedRawText = newComment;
       setNewComment("");
+
+      void notifyMentionedUsers({
+        content: submittedRawText || content,
+        actorId: session.user.id,
+        entityId: post.original_id || post.id,
+        type: 'comment',
+      });
       // Reset auto-growing textarea heights in the DOM
       const textareas = document.querySelectorAll('textarea');
       textareas.forEach(t => {

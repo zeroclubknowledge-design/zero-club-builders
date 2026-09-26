@@ -18,6 +18,7 @@ import { Bold, Italic, List } from "@/components/icons/glyphs";
 import { Mark, mergeAttributes } from '@tiptap/core';
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
+import { notifyMentionedUsers } from "@/lib/mentions";
 import { toPlainText } from "@/lib/contentPreview";
 
 const MentionMark = Mark.create({
@@ -389,29 +390,13 @@ function ComposePage() {
         }
       }
 
-      const mentions = finalContent.match(/@(\w+)/g);
-      if (mentions && newPost) {
-        const usernames = mentions.map(m => m.slice(1));
-        const { data: mentionedProfiles } = await supabase
-          .from('profiles')
-          .select('id')
-          .in('username', usernames);
-        
-        if (mentionedProfiles && mentionedProfiles.length > 0) {
-          const mentionNotifications = mentionedProfiles
-            .filter(p => p.id !== user.id)
-            .map(p => ({
-              recipient_id: p.id,
-              actor_id: user.id,
-              type: 'mention',
-              content: `mentioned you in a post`,
-              entity_id: newPost.id
-            }));
-          
-          if (mentionNotifications.length > 0) {
-            await supabase.from('notifications').insert(mentionNotifications);
-          }
-        }
+      if (newPost) {
+        void notifyMentionedUsers({
+          content: finalContent,
+          actorId: user.id,
+          entityId: newPost.id,
+          type: 'post',
+        });
       }
 
       queryClient.invalidateQueries({ queryKey: ['feed_posts'] });

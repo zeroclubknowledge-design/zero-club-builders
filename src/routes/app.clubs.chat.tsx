@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useGoBack } from "@/hooks/useGoBack";
+import { notifyMentionedUsers } from "@/lib/mentions";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string } => {
@@ -906,6 +907,14 @@ function ClubChat() {
         return next;
       });
       
+      void notifyMentionedUsers({
+        content: text,
+        actorId: currentUser.id,
+        entityId: club.id,
+        type: 'club_chat',
+        entityTitle: club.name,
+      });
+
       // Featured club first-message reward
       if (club.name === "Zero K Bootcamp") {
         const hasSentMessageBefore = messages.some(m => m.profile_id === currentUser.id && m.id !== tempId);
