@@ -1,14 +1,9 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { 
-  ChevronLeft, MoreHorizontal, ThumbsUp,
-  Repeat, Share2, Send, CheckCircle2, TrendingUp, UserPlus, UserMinus, Loader2, Bookmark,
-  MessageSquare, Mail, Flag, EyeOff, ShieldCheck, Award, Zap, Trash2, Link as LinkIcon,
-  VolumeX, Volume2, Pencil, Edit3, Rocket, MapPin
-} from "@/components/icons/glyphs";
+import { MoreHorizontal, ThumbsUp, Repeat, Send, UserPlus, UserMinus, Loader2, Bookmark, MessageSquare, Mail, Flag, ShieldCheck, Trash2, Link as LinkIcon, VolumeX, Volume2, Pencil, Edit3, Rocket, ArrowLeft, Plus, Quote, BadgeCheck } from "@/components/icons/glyphs";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { bookmarkPostAction, unbookmarkPostAction, likePostAction, unlikePostAction } from "@/api";
+import { likePostAction, unlikePostAction } from "@/api";
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";
 import { useFollow } from "@/hooks/useFollow";
@@ -26,13 +21,6 @@ import { CommentComposer, CommentContent, buildCommentContent } from "@/componen
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { JoinToInteract } from "@/components/JoinToInteract";
 import { fetchPostComments } from "@/features/comments/api";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 // Query data is undefined while replies are loading. A fallback created inline
 // (`data: postComments = []`) is a different array on every render; because the
@@ -766,38 +754,34 @@ function PostDetail() {
 
   const threadedComments = getThreadedComments(comments);
 
+  const likeCount = (post?.likes_count || 0) + (liked && !initialLiked ? 1 : 0) - (!liked && initialLiked ? 1 : 0);
+  const repostCount = Math.max(0, (post?.computed_reposts_count ?? post?.reposts_count ?? 0) + (hasReposted && !data?.hasReposted ? 1 : (!hasReposted && data?.hasReposted ? -1 : 0)));
+  const authorRole = post?.profiles?.account_type === 'Institution' ? 'Institution' : post?.profiles?.account_type === 'Tutor' ? 'Tutor' : 'Builder';
+  const focusComposer = () => {
+    const inputElement = document.querySelector<HTMLTextAreaElement>('[data-comment-composer]');
+    if (inputElement) inputElement.focus();
+  };
+  const actionClass = "flex h-full flex-col items-center justify-center gap-0.5 text-[12px] font-semibold tap transition-colors hover:bg-foreground/[0.03]";
+
   return (
-    <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-background md:relative md:inset-auto md:z-auto md:h-screen md:min-h-screen">
-      <header className="sticky top-0 z-50 h-[calc(72px+env(safe-area-inset-top))] shrink-0 bg-background pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-[72px] w-full max-w-[860px] items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-2">
-            <button onClick={handleBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60">
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-            {/* A shipped build is a project, and calling its page "Post"
-                made the header disagree with everything under it. */}
-            <h1 className="text-[17px] font-semibold tracking-tight">{post?.is_build_post ? "Project" : "Post"}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-          {/* The brand mark, where a reader's eye already goes on a detail
-              page. It is a link home rather than decoration. */}
-          <Link to="/app" aria-label="Zero Club home" className="grid h-9 w-9 shrink-0 place-items-center rounded-full transition active:scale-95 hover:bg-accent/50">
-            <img src="/logo.png" alt="Zero Club" className="h-6 w-6 object-contain" loading="lazy" decoding="async" />
-          </Link>
-          {post?.is_verified_build && (
-            <div className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-success ring-1 ring-success/20">
-              <ShieldCheck className="h-2.5 w-2.5" /> Proof
-            </div>
-          )}
+    <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-canvas md:relative md:inset-auto md:z-auto md:h-screen md:min-h-screen">
+      <header className="sticky top-0 z-50 shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button onClick={handleBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          {/* A shipped build is a project, and calling its page "Post"
+              made the header disagree with everything under it. */}
+          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">{post?.is_build_post ? "Project" : "Post"}</h1>
           {post && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-1 transition active:opacity-60 outline-none">
-                  <MoreHorizontal className="h-6 w-6" />
+                <button aria-label="More options" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+                  <MoreHorizontal className="h-[22px] w-[22px]" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-lg border-border bg-background shadow-lg">
-                <DropdownMenuItem 
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem
                   className="flex items-center gap-3 py-2.5 cursor-pointer"
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.href);
@@ -805,52 +789,43 @@ function PostDetail() {
                   }}
                 >
                   <LinkIcon className="h-4 w-4" />
-                  <span className="font-medium text-sm">Copy Link</span>
+                  <span className="font-medium text-sm">Copy link</span>
                 </DropdownMenuItem>
-                
-                {currentUser && currentUser.id !== post.author_id && (
-                  <DropdownMenuItem 
-                    className="flex items-center gap-3 py-2.5 cursor-pointer"
-                    onClick={handleFollow}
-                  >
-                    {isFollowing ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                    <span className="font-medium text-sm">{isFollowing ? `Unfollow ${getFirstName(post.profiles)}` : `Follow ${getFirstName(post.profiles)}`}</span>
+                <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleBookmark}>
+                  <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                  <span className="font-medium text-sm">{isBookmarked ? 'Saved' : 'Save'}</span>
+                </DropdownMenuItem>
+                {currentUser && currentUser.id !== post.author_id && isFollowing && (
+                  <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleFollow}>
+                    <UserMinus className="h-4 w-4" />
+                    <span className="font-medium text-sm">Unfollow {getFirstName(post.profiles)}</span>
                   </DropdownMenuItem>
                 )}
-
                 {isEditable && (
-                  <DropdownMenuItem 
-                    className="flex items-center gap-3 py-2.5 cursor-pointer text-blue-500 hover:text-blue-600 focus:text-blue-600 font-bold"
-                    onClick={handleEditClick}
-                  >
+                  <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleEditClick}>
                     <Edit3 className="h-4 w-4" />
-                    <span className="font-medium text-sm">Edit Post</span>
+                    <span className="font-medium text-sm">Edit post</span>
                   </DropdownMenuItem>
                 )}
-
                 {currentUser && currentUser.id === post.author_id && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive"
                     onClick={handleDeletePost}
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span className="font-medium text-sm">Delete Post</span>
+                    <span className="font-medium text-sm">Delete post</span>
                   </DropdownMenuItem>
                 )}
-
-
-
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive"
                   onClick={() => toast.success("Report submitted. Thank you!")}
                 >
                   <Flag className="h-4 w-4" />
-                  <span className="font-medium text-sm">Report Post</span>
+                  <span className="font-medium text-sm">Report post</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          </div>
         </div>
       </header>
 
@@ -861,438 +836,352 @@ function PostDetail() {
           <div className="flex flex-col items-center justify-center py-20">
             {isError ? (
               <>
-                <p className="text-sm font-semibold text-foreground">This build could not be loaded.</p>
-                <button type="button" onClick={() => void queryClient.invalidateQueries({ queryKey: ['post', id] })} className="mt-4 h-9 rounded-md bg-foreground px-4 text-xs font-semibold text-background">Try again</button>
+                <p className="text-[15px] font-semibold text-foreground">This build could not be loaded.</p>
+                <button type="button" onClick={() => void queryClient.invalidateQueries({ queryKey: ['post', id] })} className="mt-4 h-9 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background">Try again</button>
               </>
             ) : (
               <>
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="mt-4 text-sm text-muted-foreground font-medium">Loading build details...</p>
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <p className="mt-4 text-[14px] text-muted-foreground">Loading…</p>
               </>
             )}
           </div>
         ) : (
-          <div className="mx-auto min-h-full w-full max-w-[860px] border-x border-border bg-background animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <section className="px-4 py-4 flex items-center justify-between">
-              <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex items-center gap-3">
-            <div className="relative">
-              <div className="h-12 w-12 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground">
-                {post.profiles?.avatar_url ? (
-                  <img src={post.profiles.avatar_url} alt={post.profiles.username} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                ) : (
-                  initials
+          <div className="mx-auto w-full max-w-[680px] animate-in fade-in duration-300">
+            <article className="bg-card md:mt-2 md:overflow-hidden md:rounded-xl md:border md:border-border">
+              <header className="flex items-start gap-2.5 px-4 pt-3">
+                <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex min-w-0 flex-1 items-start gap-2.5">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
+                    {post.profiles?.avatar_url ? (
+                      <img src={post.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <h2 className="truncate text-[15px] font-semibold tracking-normal text-foreground [font-family:inherit]">{post.profiles?.full_name || post.profiles?.username}</h2>
+                      {(post.profiles?.tier === 'Premium' || post.profiles?.tier === 'Premium+') && (
+                        <BadgeCheck className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === 'Premium+' ? 'text-[#e0a800]' : 'text-accent'}`} />
+                      )}
+                    </div>
+                    <p className="truncate text-[13px] leading-snug text-muted-foreground">
+                      {authorRole}{post.profiles?.username ? ` · @${post.profiles.username}` : ''}
+                    </p>
+                    <p className="flex items-center gap-1 text-[12px] leading-snug text-muted-foreground">
+                      {new Date(post.created_at).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {post.is_build_post && (
+                        <>
+                          <span aria-hidden>·</span>
+                          <Rocket className="h-3.5 w-3.5" /> Shipped a project
+                        </>
+                      )}
+                      {post.bootcamps && (
+                        <>
+                          <span aria-hidden>·</span>
+                          <span className="truncate font-semibold text-foreground">{post.bootcamps.title}</span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </Link>
+                {currentUser && currentUser.id !== post.author_id && !isFollowing && (
+                  <button
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className="flex h-8 shrink-0 items-center gap-0.5 text-[14px] font-semibold text-accent tap hover:opacity-80 disabled:opacity-50"
+                  >
+                    {followLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    Follow
+                  </button>
                 )}
-              </div>
-              {post.profiles?.tier === 'Premium' && (
-                <CheckCircle2 className="absolute -bottom-0.5 -right-0.5 h-4 w-4 fill-[#cc208f] text-white border-2 border-background rounded-full" />
-              )}
-              {post.profiles?.tier === 'Premium+' && (
-                <CheckCircle2 className="absolute -bottom-0.5 -right-0.5 h-4 w-4 fill-[#ffcf00] text-black border-2 border-background rounded-full" />
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-[15px] font-semibold tracking-tight">{post.profiles?.full_name || post.profiles?.username}</h2>
-                {post.is_build_post && (
-                  <span className="flex items-center gap-0.5 rounded-full bg-primary/20 px-2 py-0.5 text-[9px] text-primary border border-primary/20">
-                    <Rocket className="h-2.5 w-2.5 fill-current" /> Ship
+              </header>
+
+              <div className="px-4 pt-3">
+                <div className="whitespace-pre-wrap text-[15px] leading-[1.55] text-foreground">
+                  <LinkifiedText text={displayContent || ""} linkColor="text-accent hover:underline" />
+                  {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
+                    <span className="ml-2 text-[12px] text-muted-foreground">(edited)</span>
+                  )}
+                </div>
+                {post.is_verified_build && (
+                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[12px] font-semibold text-success">
+                    <ShieldCheck className="h-3.5 w-3.5 fill-current" /> Verified proof
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                @{post.profiles?.username}
-                {post.bootcamps && (
-                  <>
-                    <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-                    <span className="text-primary font-bold">{post.bootcamps.title}</span>
-                  </>
-                )}
-              </p>
-            </div>
-          </Link>
-          
-          {currentUser && currentUser.id !== post.author_id && (
-            <button 
-              onClick={handleFollow}
-              disabled={followLoading}
-              className={`flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold tap ${
-                isFollowing ? "bg-card ring-1 ring-border text-foreground" : "bg-foreground text-background"
-              }`}
-            >
-              {followLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isFollowing ? "Following" : "Follow"}
-            </button>
-          )}
-        </section>
 
-        <section className="px-4 py-2">
-            <div className="text-[17px] leading-[1.6] text-foreground/90 whitespace-pre-wrap">
-              <LinkifiedText text={displayContent || ""} linkColor="text-[#cc208f] hover:underline" />
-              {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
-                <span className="text-[10px] text-muted-foreground/50 ml-2 font-medium italic">(edited)</span>
+              {post.media_urls && post.media_urls.length > 0 && (
+                <div className={`mt-3 ${post.media_urls.length >= 2 ? "grid grid-cols-2 gap-0.5" : ""}`}>
+                  {post.media_urls.slice(0, 2).map((url: string, i: number) => (
+                    <div
+                      key={i}
+                      className={`relative cursor-zoom-in overflow-hidden bg-foreground/[0.04] ${post.media_urls.length >= 2 ? "h-[320px]" : ""}`}
+                      onClick={() => setSelectedImageIndex(i)}
+                    >
+                      {isVideoUrl(url) ? (
+                        <div className="relative flex h-full w-full items-center justify-center bg-black">
+                          <video
+                            ref={videoRef}
+                            src={url}
+                            className={post.media_urls.length >= 2 ? "h-full w-full object-cover" : "block max-h-[600px] w-full object-contain"}
+                            autoPlay
+                            loop
+                            playsInline
+                            muted={isMuted}
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleMute(e);
+                            }}
+                            aria-label={isMuted ? "Unmute video" : "Mute video"}
+                            className="absolute bottom-3 right-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur-md tap hover:bg-black/70"
+                          >
+                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      ) : (
+                        <img
+                          loading="lazy"
+                          decoding="async"
+                          src={url}
+                          alt={`Post media ${i + 1}`}
+                          className={post.media_urls.length >= 2 ? "h-full w-full object-cover" : "mx-auto block max-h-[600px] w-full object-contain"}
+                        />
+                      )}
+                      {post.media_urls.length > 2 && i === 1 && (
+                        <div className="absolute inset-0 z-10 grid place-items-center bg-black/55">
+                          <span className="text-2xl font-semibold text-white">+{post.media_urls.length - 2}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
-            </div>
-          
-          {/* Media Grid */}
-          {post.media_urls && post.media_urls.length > 0 && (
-            <div className={`mt-3 overflow-hidden rounded-lg transition-colors ${
-              post.media_urls.length === 2 
-                ? "grid grid-cols-2 gap-0.5 max-h-[320px] ring-1 ring-border bg-muted/40" 
-                : "flex justify-start"
-            }`}>
-              {post.media_urls.slice(0, 2).map((url: string, i: number) => (
-                <div 
-                  key={i} 
-                  className={`group relative cursor-zoom-in overflow-hidden rounded-lg ${
-                    post.media_urls.length === 2 
-                      ?"h-[320px] w-full" 
-                      : "max-w-full ring-1 ring-border bg-muted/40 transition-colors"
-                  }`}
-                  onClick={() => setSelectedImageIndex(i)}
-                >
-                  {isVideoUrl(url) ? (
-                    <div className="relative h-full w-full flex items-center justify-center">
-                      <video 
-                        ref={videoRef}
-                        src={url} 
-                        className={`rounded-lg [clip-path:inset(0_round_0.5rem)] transition duration-300 group-hover:scale-105 ${
-                          post.media_urls.length === 2 
-                            ?"w-full h-full object-cover" 
-                            : "max-w-full max-h-[600px] w-auto h-auto"
-                        }`} 
-                        autoPlay
-                        loop 
-                        playsInline
-                        muted={isMuted}
-                      />
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleMute(e);
-                        }}
-                        className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-black/50 backdrop-blur-md ring-1 ring-white/15 flex items-center justify-center text-white tap hover:bg-black/70 z-10"
-                      >
-                        {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  ) : (
-                    <img loading="lazy" decoding="async" 
-                      src={url} 
-                      alt={`Post media ${i + 1}`} 
-                      className={`rounded-lg transition duration-300 group-hover:scale-105 ${
-                        post.media_urls.length === 2 
-                          ?"w-full h-full object-cover" 
-                          : "max-w-full max-h-[600px] w-auto h-auto"
-                      }`}
-                    />
-                  )}
-                  {post.media_urls.length > 2 && i === 1 && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/60">
-                      <span className="text-white text-2xl font-semibold tracking-tight">+{post.media_urls.length - 2}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
 
-          {/* Tutor Proof Button */}
-          {isTutor && !post.is_verified_build && (
-            <div className="mt-8 rounded-lg border border-dashed border-primary/30 bg-primary/5 p-6 text-center">
-              <div className="flex justify-center mb-4">
-                <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10 text-primary">
-                  <Award className="h-6 w-6" />
-                </div>
-              </div>
-              <h3 className="text-[14px] font-semibold tracking-tight text-foreground mb-2">Verify this ship</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-6">
-                As the tutor of <span className="text-primary font-bold">{post.bootcamps?.title}</span>, you can verify this build as proof of learning. This will reward the author with XP.
-              </p>
-              <button 
-                onClick={handleVerifyBuild}
-                disabled={verifying}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-3.5 text-[14px] font-semibold text-background tap hover:opacity-90"
-              >
-                {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Mark as Proof
-              </button>
-            </div>
-          )}
-        </section>
-
-        <section className="px-4 py-4 border-b border-border/50">
-          <div className="flex flex-wrap items-center gap-y-1 gap-x-2 text-xs text-muted-foreground mb-4">
-            <span>{new Date(post.created_at).toLocaleString()}</span>
-            <span>·</span>
-            <span>Zero Club for Builders</span>
-            {post.location && (
-              <>
-                <span className="hidden sm:inline">·</span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3 opacity-60" />
-                  {post.location}
-                </span>
-              </>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between w-full text-muted-foreground gap-x-2 flex-wrap pr-1 sm:pr-4 mb-6 border-t border-border pt-4">
-            <button 
-              onClick={() => {
-                const inputElement = document.querySelector<HTMLTextAreaElement>('[data-comment-composer]');
-                if (inputElement) inputElement.focus();
-              }}
-              className="flex items-center gap-1.5 transition hover:text-primary active:scale-95 group/btn"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span className="text-xs">{comments.length}</span>
-            </button>
-            <button 
-              onClick={handleLike}
-              className="flex items-center gap-1.5 transition active:scale-95 group/btn"
-            >
-              <ThumbsUp className={`h-4 w-4 ${liked ?"fill-primary text-primary" : "group-hover/btn:text-primary"}`} />
-              <span className={`text-xs ${liked ?"text-primary" : ""}`}>
-                {(post.likes_count || 0) + (liked && !initialLiked ? 1 : 0) - (!liked && initialLiked ? 1 : 0)}
-              </span>
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  className={`flex items-center gap-1.5 transition active:scale-95 ${hasReposted ? 'text-success' : 'hover:text-success'}`}
-                >
-                  <Repeat className={`h-4 w-4 ${hasReposted ? 'text-success' : ''}`} />
-                  <span className="text-xs">{Math.max(0, (post.computed_reposts_count ?? post.reposts_count ?? 0) + (hasReposted && !data?.hasReposted ? 1 : (!hasReposted && data?.hasReposted ? -1 : 0)))}</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 rounded-lg border-border bg-background shadow-lg">
-                <DropdownMenuItem className="gap-3 py-3 cursor-pointer" onClick={(e) => handleRepost(e)}>
-                  <Repeat className="h-4 w-4" />
-                  <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="gap-3 py-3 cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    router.navigate({ 
-                      to: '/app/compose', 
-                      search: { quote: post.id } 
-                    });
-                  }}
-                >
-                  <Mail className="h-4 w-4" />
-                  <span className="font-medium text-sm">Quote</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <button 
-              onClick={handleBookmark}
-              className={`flex items-center gap-1.5 transition active:scale-95 ${isBookmarked ? 'text-primary' : 'hover:text-primary text-muted-foreground'}`}
-            >
-              <Bookmark className={`h-4 w-4 ${isBookmarked ?'fill-current' : ''}`} />
-              <span className="text-xs">{isBookmarked ? 'Saved' : 'Save'}</span>
-            </button>
-            <button 
-              onClick={handleShare}
-              className="flex items-center gap-1.5 transition hover:text-primary active:scale-95 text-muted-foreground"
-            >
-              <Share2 className="h-4 w-4" />
-              <span className="text-xs">Share</span>
-            </button>
-          </div>
-
-        </section>
-
-        <div className="flex items-center justify-between border-y border-border/60 px-4 py-3">
-          <div>
-            <p className="text-[13px] font-semibold tracking-tight text-foreground">Replies</p>
-            <p className="text-[10px] text-muted-foreground">Newest activity appears automatically</p>
-          </div>
-          <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold tabular-nums text-muted-foreground">
-            {comments.length}
-          </span>
-        </div>
-
-        {/* Comments List */}
-        <section className="mt-2 divide-y divide-border/30 px-4 pb-40">
-          {commentsLoading && comments.length === 0 && (
-            <div className="flex items-center justify-center gap-2 py-10 text-[12px] font-medium text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              Loading replies...
-            </div>
-          )}
-          {commentsError && comments.length === 0 && (
-            <div className="py-10 text-center">
-              <p className="text-[12px] font-medium text-muted-foreground">Replies could not be loaded.</p>
-              <button type="button" onClick={() => void refetchComments()} className="mt-3 h-9 rounded-md border border-border px-4 text-[11px] font-semibold hover:bg-accent">Try again</button>
-            </div>
-          )}
-          {threadedComments.map((comment: any) => {
-            const isReply = comment.isReply;
-            
-            return (
-              <div 
-                key={comment.id} 
-                className={`py-4 flex gap-3 relative transition-all duration-300 ${isReply ?"ml-10" : ""}`}
-              >
-                {/* Curved Connection Line for Replies */}
-                {isReply && (
-                  <div 
-                    className="absolute left-[-22px] top-[-16px] w-[16px] h-[36px] border-l-2 border-b-2 border-border/30 rounded-bl-[12px] pointer-events-none" 
-                  />
-                )}
-                {/* Avatar Container with Thread Line */}
-                <div className="flex flex-col items-center shrink-0 relative">
-                  <Link 
-                    to="/app/profile/$id" 
-                    params={{ id: comment.profile_id }} 
-                    className="h-9 w-9 rounded-full bg-muted overflow-hidden flex items-center justify-center text-xs font-bold text-muted-foreground transition active:opacity-70 z-10"
+              {/* Tutor proof: the tutor of the bootcamp this ship belongs to can verify it. */}
+              {isTutor && !post.is_verified_build && (
+                <div className="mx-4 mt-3 flex items-center gap-3 rounded-xl bg-success/10 p-3">
+                  <ShieldCheck className="h-[22px] w-[22px] shrink-0 text-success" />
+                  <p className="min-w-0 flex-1 text-[13px] leading-snug text-foreground">
+                    You tutor <b>{post.bootcamps?.title}</b>. Verify this ship as proof of learning — the author earns XP.
+                  </p>
+                  <button
+                    onClick={handleVerifyBuild}
+                    disabled={verifying}
+                    className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-success px-3.5 text-[14px] font-semibold text-success-foreground tap disabled:opacity-60"
                   >
-                    {comment.profiles?.avatar_url ? (
-                      <img src={comment.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                    ) : (
-                      (comment.profiles?.full_name || comment.profiles?.username || 'U').substring(0, 1).toUpperCase()
-                    )}
-                  </Link>
-                  
-                  {/* Twitter-style thread line */}
-                  {comment.hasMoreInThread && (
-                    <div className="absolute top-9 bottom-0 w-[2px] bg-border/40 left-1/2 -translate-x-1/2 z-0" style={{ bottom: '-16px' }} />
-                  )}
+                    {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Verify
+                  </button>
                 </div>
+              )}
 
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Link to="/app/profile/$id" params={{ id: comment.profile_id }} className="font-semibold tracking-tight text-sm text-foreground hover:underline">{comment.profiles?.full_name || comment.profiles?.username}</Link>
-                    <span className="text-xs text-muted-foreground">@{comment.profiles?.username}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(comment.created_at).toLocaleDateString()}</span>
-                  </div>
-                  
-                  {isReply && comment.parentUsername && (
-                    <p className="text-[10px] text-primary font-medium mb-1">Replying to @{comment.parentUsername}</p>
-                  )}
+              {(likeCount > 0 || comments.length > 0 || repostCount > 0) && (
+                <div className="flex items-center justify-between gap-3 px-4 pt-2.5 text-[12px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    {likeCount > 0 && (
+                      <>
+                        <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-accent text-accent-foreground">
+                          <ThumbsUp className="h-2.5 w-2.5 fill-current" />
+                        </span>
+                        <span className="tabular-nums">
+                          {liked ? (likeCount > 1 ? `You and ${likeCount - 1} other${likeCount - 1 === 1 ? '' : 's'}` : 'You') : likeCount}
+                        </span>
+                      </>
+                    )}
+                  </span>
+                  <span className="tabular-nums">
+                    {[comments.length > 0 && `${comments.length} ${comments.length === 1 ? 'reply' : 'replies'}`, repostCount > 0 && `${repostCount} repost${repostCount === 1 ? '' : 's'}`]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+              )}
 
-                  {editingCommentId === comment.id ? (
-                    <div className="mt-2">
-                      <textarea
-                        value={editCommentText}
-                        onChange={(e) => setEditCommentText(e.target.value)}
-                        className="min-h-[80px] w-full rounded-lg border border-border bg-card p-3 text-sm outline-none focus:border-primary"
-                        autoFocus
-                      />
-                      <div className="flex justify-end gap-2 mt-2">
-                        <button 
-                          onClick={() => setEditingCommentId(null)}
-                          className="px-3 py-1.5 text-xs font-semibold tracking-tight text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          Cancel
+              <div className="mx-4 mt-2.5 h-px bg-border" />
+              <div className="grid h-[52px] grid-cols-4 text-muted-foreground">
+                <button onClick={handleLike} aria-pressed={liked} className={`${actionClass} ${liked ? 'text-accent' : 'hover:text-foreground'}`}>
+                  <ThumbsUp className={`h-5 w-5 ${liked ? 'fill-current' : ''}`} />
+                  {liked ? 'Liked' : 'Like'}
+                </button>
+                <button onClick={focusComposer} className={`${actionClass} hover:text-foreground`}>
+                  <MessageSquare className="h-5 w-5" />
+                  Reply
+                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      className={`${actionClass} ${hasReposted ? 'text-accent' : 'hover:text-foreground'}`}
+                    >
+                      <Repeat className="h-5 w-5" />
+                      {hasReposted ? 'Reposted' : 'Repost'}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-48">
+                    <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={(e) => handleRepost(e)}>
+                      <Repeat className="h-4 w-4" />
+                      <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="gap-3 py-2.5 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.navigate({ to: '/app/compose', search: { quote: post.id } });
+                      }}
+                    >
+                      <Quote className="h-4 w-4" />
+                      <span className="font-medium text-sm">Quote</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <button onClick={handleShare} className={`${actionClass} hover:text-foreground`}>
+                  <Send className="h-5 w-5" />
+                  Send
+                </button>
+              </div>
+            </article>
+
+            <section className="mt-2 bg-card px-4 pb-40 pt-3 md:rounded-xl md:border md:border-border">
+              <h2 className="font-display text-[16px] font-semibold text-foreground">
+                Replies{comments.length > 0 && <span className="ml-1.5 text-muted-foreground">{comments.length}</span>}
+              </h2>
+              {commentsLoading && comments.length === 0 && (
+                <div className="flex items-center justify-center gap-2 py-10 text-[13px] text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading replies…
+                </div>
+              )}
+              {commentsError && comments.length === 0 && (
+                <div className="py-10 text-center">
+                  <p className="text-[14px] text-muted-foreground">Replies could not be loaded.</p>
+                  <button type="button" onClick={() => void refetchComments()} className="mt-3 h-8 rounded-full border border-border px-4 text-[14px] font-semibold hover:bg-foreground/[0.04]">Try again</button>
+                </div>
+              )}
+              {threadedComments.map((comment: any) => {
+                const isReply = comment.isReply;
+                const isAuthor = comment.profile_id === post.author_id;
+                return (
+                  <div key={comment.id} className={`mt-3 flex gap-2 ${isReply ? "ml-12" : ""}`}>
+                    <Link
+                      to="/app/profile/$id"
+                      params={{ id: comment.profile_id }}
+                      className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] font-semibold text-muted-foreground ${isReply ? "h-8 w-8 text-[12px]" : "h-10 w-10 text-[13px]"}`}
+                    >
+                      {comment.profiles?.avatar_url ? (
+                        <img src={comment.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : (
+                        (comment.profiles?.full_name || comment.profiles?.username || 'U').substring(0, 1).toUpperCase()
+                      )}
+                    </Link>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="rounded-[4px_12px_12px_12px] bg-foreground/[0.05] px-3 py-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <Link to="/app/profile/$id" params={{ id: comment.profile_id }} className="flex min-w-0 items-center gap-1.5 hover:underline">
+                            <span className="truncate text-[14px] font-semibold text-foreground">{comment.profiles?.full_name || comment.profiles?.username}</span>
+                            {isAuthor && <span className="shrink-0 rounded bg-foreground px-1.5 text-[11px] font-semibold text-background">Author</span>}
+                          </Link>
+                          <span className="shrink-0 text-[12px] text-muted-foreground">
+                            {new Date(comment.created_at).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                          </span>
+                        </div>
+                        {comment.profiles?.username && <p className="text-[12px] text-muted-foreground">@{comment.profiles.username}</p>}
+                        {editingCommentId === comment.id ? (
+                          <div className="mt-2">
+                            <textarea
+                              value={editCommentText}
+                              onChange={(e) => setEditCommentText(e.target.value)}
+                              className="min-h-[80px] w-full rounded-lg border border-border bg-card p-3 text-[14px] outline-none focus:border-foreground/40"
+                              autoFocus
+                            />
+                            <div className="mt-2 flex justify-end gap-2">
+                              <button onClick={() => setEditingCommentId(null)} className="h-8 px-3 text-[14px] font-semibold text-muted-foreground hover:text-foreground">
+                                Cancel
+                              </button>
+                              <button onClick={handleSaveCommentEdit} className="h-8 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background tap hover:opacity-90">
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-1 text-[14px] leading-[1.45] text-foreground">
+                            <CommentContent content={comment.content} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-1 flex items-center gap-4 pl-3 text-[12px] font-semibold text-muted-foreground">
+                        <button onClick={() => handleLikeComment(comment)} className={comment.isLiked ? "text-accent" : "hover:text-foreground"}>
+                          {comment.isLiked ? "Liked" : "Like"}{comment.likes_count > 0 ? ` · ${comment.likes_count}` : ""}
                         </button>
-                        <button 
-                          onClick={handleSaveCommentEdit}
-                          className="rounded-lg bg-foreground px-4 py-1.5 text-xs font-semibold text-background tap hover:opacity-90"
+                        <button
+                          onClick={() => {
+                            setReplyTo(comment);
+                            focusComposer();
+                          }}
+                          className="hover:text-foreground"
                         >
-                          Save
+                          Reply
                         </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button aria-label="Reply options" className="ml-auto grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.05] hover:text-foreground">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={() => {
+                              navigator.clipboard.writeText(window.location.href);
+                              toast.success("Comment link copied!");
+                            }}>
+                              <Send className="h-4 w-4" />
+                              <span className="font-medium text-sm">Send</span>
+                            </DropdownMenuItem>
+                            {currentUser?.id === comment.profile_id ? (
+                              <>
+                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => handleStartEditComment(comment)}>
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Edit reply</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive" onClick={() => handleDeleteComment(comment)}>
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Delete reply</span>
+                                </DropdownMenuItem>
+                              </>
+                            ) : (
+                              <>
+                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => router.navigate({ to: '/app/chat/$id', params: { id: comment.profile_id } })}>
+                                  <Mail className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Message {getFirstName(comment.profiles)}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => handleToggleCommentFollow(comment)}>
+                                  {currentUser?.following_ids?.includes(comment.profile_id) ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                                  <span className="text-sm font-medium">{currentUser?.following_ids?.includes(comment.profile_id) ? "Unfollow" : "Follow"} {getFirstName(comment.profiles)}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive" onClick={() => toast.success("Comment reported. Thank you.")}>
+                                  <Flag className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Report reply</span>
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
-                  ) : (
-                    <div className="mt-1 text-sm leading-relaxed text-foreground/90">
-                      <CommentContent content={comment.content} />
-                    </div>
-                  )}
-                  
-                  <div className="mt-2 flex items-center gap-4">
-                    <button 
-                      onClick={() => handleLikeComment(comment)}
-                      className={`text-xs font-bold transition flex items-center gap-1 ${comment.isLiked ?"text-primary" : "text-muted-foreground hover:text-primary"}`}
-                    >
-                      <ThumbsUp className={`h-3 w-3 ${comment.isLiked ?"fill-primary" : ""}`} />
-                      {comment.likes_count > 0 ? comment.likes_count : "Like"}
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setReplyTo(comment);
-                        const inputElement = document.querySelector<HTMLTextAreaElement>('[data-comment-composer]');
-                        if (inputElement) inputElement.focus();
-                      }}
-                      className="text-xs font-bold text-muted-foreground hover:text-primary transition flex items-center gap-1"
-                    >
-                      <MessageSquare className="h-3 w-3" />
-                      Reply
-                    </button>
-
-                    <div className="ml-auto">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="p-1 hover:bg-muted rounded-full transition-colors">
-                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 rounded-lg border-border bg-background shadow-lg">
-                          <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
-                            toast.success("Comment link copied!");
-                          }}>
-                            <Send className="h-4 w-4" />
-                            <span className="font-medium text-sm">Send</span>
-                          </DropdownMenuItem>
-                          
-                          {currentUser?.id === comment.profile_id ? (
-                            <>
-                              <DropdownMenuItem
-                                className="flex cursor-pointer items-center gap-3 py-2.5"
-                                onClick={() => handleStartEditComment(comment)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                                <span className="text-sm font-medium">Edit Comment</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive"
-                                onClick={() => handleDeleteComment(comment)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                <span className="text-sm font-medium">Delete Comment</span>
-                              </DropdownMenuItem>
-                            </>
-                          ) : (
-                            <>
-                              <DropdownMenuItem
-                                className="flex cursor-pointer items-center gap-3 py-2.5"
-                                onClick={() => router.navigate({ to: '/app/chat/$id', params: { id: comment.profile_id } })}
-                              >
-                                <Mail className="h-4 w-4" />
-                                <span className="text-sm font-medium">Message {getFirstName(comment.profiles)}</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => handleToggleCommentFollow(comment)}>
-                                {currentUser?.following_ids?.includes(comment.profile_id) ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                                <span className="text-sm font-medium">{currentUser?.following_ids?.includes(comment.profile_id) ? "Unfollow" : "Follow"} {getFirstName(comment.profiles)}</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive" onClick={() => toast.success("Comment reported. Thank you.")}>
-                                <Flag className="h-4 w-4" />
-                                <span className="text-sm font-medium">Report comment</span>
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-          {!commentsLoading && !commentsError && comments.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-sm text-muted-foreground italic">Be the first to reply!</p>
-            </div>
-          )}
-        </section>
-
+                );
+              })}
+              {!commentsLoading && !commentsError && comments.length === 0 && (
+                <p className="py-10 text-center text-[14px] text-muted-foreground">No replies yet. Start the conversation.</p>
+              )}
+            </section>
           </div>
         )}
       </div>
@@ -1318,7 +1207,6 @@ function PostDetail() {
           />
         </ComposerOverlay>
       )}
-
 
       {/* Fullscreen Image Preview using shared component */}
       <ImageLightbox 

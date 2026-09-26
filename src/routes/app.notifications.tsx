@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useMemo } from "react";
-import { 
+import {
   BellRing, UserRoundPlus, ThumbsUp, MessageSquare, Zap,
-  CheckCheck, MoreHorizontal, ArrowUpFromLine, AtSign, Loader2, Trophy
+  CheckCheck, Repeat, AtSign, Loader2, ShieldCheck, Gamepad2
 } from "@/components/icons/glyphs";
+import { useFollow } from "@/hooks/useFollow";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { stripMarkdownAsterisks } from "@/components/LinkifiedText";
@@ -14,7 +15,6 @@ import { CommentDrawer } from "@/components/CommentDrawer";
 import { enrichPosts } from "@/api";
 import { useUser } from "@/hooks/useUser";
 import { getFirstName } from "@/lib/utils";
-import { formatDistanceToNow } from "date-fns";
 import { SwipeToDelete } from "@/components/SwipeToDelete";
 
 export const Route = createFileRoute("/app/notifications")({
@@ -135,18 +135,23 @@ function NotificationsPage() {
     }
   };
 
+  /* One family of badge colours: pink for appreciation, green for proof,
+     ink for everything else. The old set used six unrelated hues. */
   const getNotifUI = (type: string, actorName?: string, isActorMe?: boolean, recipientName?: string) => {
+    const ink = { bg: 'bg-foreground', text: 'text-background' };
+    const pink = { bg: 'bg-accent', text: 'text-accent-foreground' };
+    const green = { bg: 'bg-success', text: 'text-success-foreground' };
     switch (type) {
-      case 'like': return { icon: ThumbsUp, bg: 'bg-primary', text: 'text-primary-foreground', action: 'liked your post' };
-      case 'comment_like': return { icon: ThumbsUp, bg: 'bg-rose-500', text: 'text-white', action: 'liked your comment' };
-      case 'comment': return { icon: MessageSquare, bg: 'bg-sky-600', text: 'text-white', action: 'commented on your post' };
-      case 'follow': return { icon: UserRoundPlus, bg: 'bg-emerald-600', text: 'text-white', action: 'started following you' };
-      case 'repost': return { icon: ArrowUpFromLine, bg: 'bg-emerald-600', text: 'text-white', action: 'reposted your post' };
-      case 'mention': return { icon: AtSign, bg: 'bg-amber-600', text: 'text-white', action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };
-      case 'build_tagged': return { icon: Trophy, bg: 'bg-violet-600', text: 'text-white', action: 'tagged their post for verification' };
-      case 'game_buzz': return { icon: BellRing, bg: 'bg-amber-400', text: 'text-black', action: 'buzzed you into a Zero Game' };
-      case 'system': return { icon: Zap, bg: 'bg-amber-500', text: 'text-black', action: `Referral reward: You and ${actorName} both earned 200 ZP.` };
-      default: return { icon: BellRing, bg: 'bg-muted-foreground', text: 'text-background', action: 'interacted with you' };
+      case 'like': return { icon: ThumbsUp, ...pink, action: 'liked your post' };
+      case 'comment_like': return { icon: ThumbsUp, ...pink, action: 'liked your comment' };
+      case 'comment': return { icon: MessageSquare, ...ink, action: 'commented on your post' };
+      case 'follow': return { icon: UserRoundPlus, ...ink, action: 'started following you' };
+      case 'repost': return { icon: Repeat, ...ink, action: 'reposted your post' };
+      case 'mention': return { icon: AtSign, ...ink, action: isActorMe ? `You mentioned @${recipientName}` : 'mentioned you' };
+      case 'build_tagged': return { icon: ShieldCheck, ...green, action: 'tagged their post for verification' };
+      case 'game_buzz': return { icon: Gamepad2, ...ink, action: 'buzzed you into a Zero Game' };
+      case 'system': return { icon: Zap, ...ink, action: `You and ${actorName} each earned 200 ZP from your referral.` };
+      default: return { icon: BellRing, ...ink, action: 'interacted with you' };
     }
   };
 
@@ -206,198 +211,210 @@ function NotificationsPage() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   const unreadCount = filteredNotifs.filter(n => !n.is_read && n.actor_id !== currentUser?.id).length;
+  const isUnread = (n: any) => !n.is_read && n.actor_id !== currentUser?.id;
+  const newNotifs = displayNotifs.filter(isUnread);
+  const earlierNotifs = displayNotifs.filter((n) => !isUnread(n));
+
+  const renderNotification = (n: any) => {
+    const isActorMe = n.actor_id === currentUser?.id;
+    const ui = getNotifUI(n.type, n.actor?.full_name || n.actor?.username, isActorMe, n.recipient?.username);
+    const Icon = ui.icon;
+    const unread = isUnread(n);
+
+    const renderActors = () => {
+      if (isActorMe && n.type === 'mention') return currentUser?.full_name || currentUser?.username || "You";
+      if (!n.isGroup) return n.actor?.full_name || n.actor?.username;
+      const actors = n.groupActors;
+      if (actors.length === 1) return actors[0].full_name || actors[0].username;
+      if (actors.length === 2) return `${actors[0].full_name || actors[0].username} and ${actors[1].full_name || actors[1].username}`;
+      return `${actors[0].full_name || actors[0].username} and ${actors.length - 1} others`;
+    };
+
+    const handleNotificationClick = () => {
+      if (n.isGroup) {
+        n.groupIds.forEach((id: string) => markRead(id));
+      } else {
+        markRead(n.id);
+      }
+
+      if (n.type === 'game_buzz' && n.entity_id) {
+        navigate({ to: '/app/games/$id', params: { id: n.entity_id } });
+      } else if (['like', 'comment_like', 'comment', 'repost', 'mention', 'build_tagged'].includes(n.type) && n.entity_id) {
+        navigate({ to: '/app/post/$id', params: { id: n.entity_id } });
+      } else if (n.type === 'follow' && n.actor_id) {
+        navigate({ to: '/app/profile/$id', params: { id: n.actor_id } });
+      }
+    };
+
+    const avatarPerson = isActorMe && n.type === 'mention' ? n.recipient : n.isGroup ? n.groupActors[0] : n.actor;
+    const avatarId = isActorMe && n.type === 'mention' ? n.recipient_id : avatarPerson?.id || n.actor_id;
+    const isReward = n.type === 'system';
+
+    return (
+      <SwipeToDelete key={n.id} onDelete={() => deleteNotification(n.isGroup ? n.groupIds : [n.id])}>
+        <div
+          onClick={handleNotificationClick}
+          className={`grid cursor-pointer grid-cols-[48px_minmax(0,1fr)_auto] gap-3 border-b border-border px-4 py-3 transition-colors ${
+            unread ? "bg-accent/[0.06] hover:bg-accent/[0.09]" : "bg-card hover:bg-foreground/[0.02]"
+          }`}
+        >
+          <div className="relative h-12 w-12">
+            {isReward ? (
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-foreground font-display text-[14px] font-bold text-background">ZP</span>
+            ) : (
+              <Link
+                to="/app/profile/$id"
+                params={{ id: avatarId }}
+                onClick={(e) => e.stopPropagation()}
+                className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground"
+              >
+                {avatarPerson?.avatar_url ? (
+                  <img src={avatarPerson.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                ) : (
+                  (avatarPerson?.username || "U").substring(0, 1).toUpperCase()
+                )}
+              </Link>
+            )}
+            {!isReward && (
+              <span className={`absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 ${unread ? "border-[color-mix(in_oklab,var(--accent)_6%,var(--card))]" : "border-card"} ${ui.bg} ${ui.text}`}>
+                <Icon className="h-2.5 w-2.5" />
+              </span>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <p className="text-[14px] leading-[1.4] text-foreground">
+              {!isReward && <span className="font-semibold">{renderActors()} </span>}
+              <span>{ui.action}</span>
+            </p>
+            {n.content && (
+              <p className="mt-1 line-clamp-2 text-[13px] leading-[1.4] text-muted-foreground">“{renderText(n)}”</p>
+            )}
+            {n.type === 'follow' && !isActorMe && n.actor_id && <FollowBack userId={n.actor_id} />}
+          </div>
+
+          <div className="flex flex-col items-end gap-1.5 text-[12px] text-muted-foreground">
+            <span className="whitespace-nowrap tabular-nums">{shortTime(n.created_at)}</span>
+            {unread && <span className="h-2 w-2 rounded-full bg-accent" aria-label="Unread" />}
+          </div>
+        </div>
+      </SwipeToDelete>
+    );
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-24">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto w-full max-w-[900px] px-4 pb-3 pt-[calc(1rem+env(safe-area-inset-top))] md:px-6 md:pt-5">
-          <div className="mb-4">
-            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Notifications</h1>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Updates from your work, network and communities</p>
-          </div>
-          <div className="grid grid-cols-3 gap-1 rounded-lg border border-border/60 bg-card p-1">
+    <div className="flex min-h-screen flex-col bg-canvas pb-24">
+      <header className="sticky top-0 z-20 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center justify-between px-4">
+          <h1 className="font-display text-[20px] font-semibold text-foreground">Notifications</h1>
+          {unreadCount > 0 && activeTab !== 'mentions' && (
+            <button onClick={markAllRead} className="flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+              <CheckCheck className="h-4 w-4" /> Mark all read
+            </button>
+          )}
+        </div>
+        <div className="mx-auto flex w-full max-w-[680px] gap-2 border-b border-border px-4 pb-3">
           {["all", "verified", "mentions"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`relative flex h-10 min-w-0 items-center justify-center rounded-md px-2 text-[12px] font-semibold tracking-tight transition-colors ${
-              activeTab === tab ? "bg-primary/[0.09] text-primary" : "text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
-            }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-          </div>
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`h-8 rounded-full px-3.5 text-[14px] font-semibold tap ${
+                activeTab === tab ? "bg-foreground text-background" : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[900px] items-center justify-between border-b border-border/50 px-5 py-3 md:px-6">
-        <span className="text-[11px] font-medium text-muted-foreground">
-          {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
-        </span>
-        {unreadCount > 0 && (
-          <button
-            onClick={markAllRead}
-            className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground hover:text-primary transition-colors tap"
-          >
-            <CheckCheck className="h-3.5 w-3.5" /> Mark all read
-          </button>
-        )}
-      </div>
-
-      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-2.5 p-4 md:px-6 md:py-5">
+      <div className="mx-auto flex w-full max-w-[680px] flex-col">
         {activeTab === 'mentions' ? (
           mentionsLoading ? (
-            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
           ) : mentionsFeed && mentionsFeed.length > 0 ? (
             mentionsFeed.map((post: any) => (
-              <div 
-                key={post.id} 
-                className="relative overflow-hidden rounded-lg border border-border/60 bg-background transition hover:border-border"
-              >
-                <PostCard post={post} currentUser={currentUser} onCommentClick={setCommentPost} />
-              </div>
+              <PostCard key={post.id} post={post} currentUser={currentUser} onCommentClick={setCommentPost} />
             ))
           ) : null
         ) : (
-          displayNotifs.map((n) => {
-            const isActorMe = n.actor_id === currentUser?.id;
-          const ui = getNotifUI(n.type, n.actor?.full_name || n.actor?.username, isActorMe, n.recipient?.username);
-          const Icon = ui.icon;
-          
-          const renderActors = () => {
-            if (isActorMe && n.type === 'mention') return currentUser?.full_name || currentUser?.username || "You";
-            if (!n.isGroup) return n.actor?.full_name || n.actor?.username;
-            const actors = n.groupActors;
-            if (actors.length === 1) return actors[0].full_name || actors[0].username;
-            if (actors.length === 2) return `${actors[0].full_name || actors[0].username} and ${actors[1].full_name || actors[1].username}`;
-            return `${actors[0].full_name || actors[0].username}, ${actors[1].full_name || actors[1].username} and ${actors.length - 2} others`;
-          };
-
-          const handleNotificationClick = () => {
-            if (n.isGroup) {
-              n.groupIds.forEach((id: string) => markRead(id));
-            } else {
-              markRead(n.id);
-            }
-            
-            if (n.type === 'game_buzz' && n.entity_id) {
-              navigate({ to: '/app/games/$id', params: { id: n.entity_id } });
-            } else if (['like', 'comment_like', 'comment', 'repost', 'mention', 'build_tagged'].includes(n.type) && n.entity_id) {
-              navigate({ to: '/app/post/$id', params: { id: n.entity_id } });
-            } else if (n.type === 'follow' && n.actor_id) {
-              navigate({ to: '/app/profile/$id', params: { id: n.actor_id } });
-            }
-          };
-
-          return (
-            <SwipeToDelete key={n.id} onDelete={() => deleteNotification(n.isGroup ? n.groupIds : [n.id])}>
-            <div
-              onClick={handleNotificationClick}
-              className={`group relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] gap-3.5 overflow-hidden rounded-lg border p-3.5 transition-[background-color,border-color,transform] duration-150 active:scale-[0.995] sm:p-4 ${(!n.is_read && !isActorMe) ? "border-primary/25 bg-primary/[0.045] shadow-sm" : "border-border/60 bg-card hover:border-border hover:bg-accent/20"}`}
-            >
-              {(!n.is_read && !isActorMe) && (
-                <div className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-primary" />
-              )}
-              
-              {/* Avatar Row */}
-              <div className="relative flex w-fit shrink-0 items-start pt-0.5">
-                <div className="flex -space-x-3">
-                  {n.isGroup ? (
-                    n.groupActors.slice(0, 3).map((actor: any, i: number) => (
-                      <Link 
-                        key={actor.id}
-                        to="/app/profile/$id" 
-                        params={{ id: actor.id }}
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ zIndex: 10 - i }}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-card bg-muted text-xs font-bold text-muted-foreground shadow-sm transition active:opacity-70 sm:h-12 sm:w-12"
-                      >
-                        {actor.avatar_url ? (
-                          <img src={actor.avatar_url} className="h-full w-full rounded-full object-cover" loading="lazy" decoding="async" />
-                        ) : (
-                          (actor.username || "U").substring(0, 1).toUpperCase()
-                        )}
-                      </Link>
-                    ))
-                  ) : (
-                    <Link 
-                      to="/app/profile/$id" 
-                      params={{ id: isActorMe && n.type === 'mention' ? n.recipient_id : n.actor_id }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-card bg-muted text-sm font-bold text-muted-foreground shadow-sm transition active:opacity-70 sm:h-12 sm:w-12"
-                    >
-                      {(isActorMe && n.type === 'mention' ? n.recipient?.avatar_url : n.actor?.avatar_url) ? (
-                        <img src={isActorMe && n.type === 'mention' ? n.recipient.avatar_url : n.actor.avatar_url} className="h-full w-full rounded-full object-cover" loading="lazy" decoding="async" />
-                      ) : (
-                        ((isActorMe && n.type === 'mention' ? n.recipient?.username : n.actor?.username) || "U").substring(0, 1).toUpperCase()
-                      )}
-                    </Link>
-                  )}
-                </div>
-                
-                {/* Action Badge Overlay */}
-                <div className={`absolute -bottom-1 -right-1 z-20 flex h-6 w-6 items-center justify-center rounded-full border-[2px] border-card ${ui.bg} shadow-sm`}>
-                  <Icon className={`h-3.5 w-3.5 ${ui.text}`} />
-                </div>
-              </div>
-
-              {/* Content Column */}
-              <div className="mt-0.5 flex min-w-0 flex-1 flex-col justify-center gap-1">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <span className="text-[13px] leading-snug tracking-tight sm:text-[14px]">
-                      <span className="mr-1 font-semibold text-foreground">{renderActors()}</span>
-                      <span className="font-normal text-muted-foreground">{ui.action}</span>
-                    </span>
-                  </div>
-                </div>
-                
-                {n.content && (
-                  <p className={`mt-0.5 line-clamp-2 text-[12px] leading-relaxed transition sm:text-[13px] ${(!n.is_read && !isActorMe) ?"font-medium text-foreground/90" : "text-muted-foreground"}`}>
-                    "{renderText(n)}"
-                  </p>
-                )}
-                
-                <span className="mt-1 text-[10.5px] text-muted-foreground/65">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</span>
-              </div>
-              <div className="flex items-start pt-1">{(!n.is_read && !isActorMe) && <span className="h-2 w-2 rounded-full bg-primary" aria-label="Unread" />}</div>
-            </div>
-            </SwipeToDelete>
-          );
-        })
+          <>
+            {newNotifs.length > 0 && (
+              <section className="mt-2 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+                <h2 className="px-4 pb-1.5 pt-3 font-display text-[16px] font-semibold text-foreground">New</h2>
+                {newNotifs.map(renderNotification)}
+              </section>
+            )}
+            {earlierNotifs.length > 0 && (
+              <section className="mt-2 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+                <h2 className="px-4 pb-1.5 pt-3 font-display text-[16px] font-semibold text-foreground">Earlier</h2>
+                {earlierNotifs.map(renderNotification)}
+              </section>
+            )}
+          </>
         )}
       </div>
 
       {(activeTab === 'mentions' ? (!mentionsLoading && (!mentionsFeed || mentionsFeed.length === 0)) : filteredNotifs.length === 0) && (
-        <div className="flex flex-1 flex-col items-center justify-center py-24 text-center px-10">
-          <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
-            <BellRing className="h-6 w-6 text-muted-foreground/60" />
+        <div className="mx-auto mt-2 flex w-full max-w-[680px] flex-col items-center bg-card px-10 py-20 text-center md:rounded-xl">
+          <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
+            <BellRing className="h-6 w-6 text-muted-foreground" />
           </div>
-          <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">Nothing to show yet</h3>
-          <p className="text-[13.5px] text-muted-foreground leading-relaxed max-w-[250px]">
-            {activeTab === "verified" 
-              ? "Verified notifications from Zero Club will appear here once you reach Level 5." 
-              : activeTab === "mentions" 
-              ? "When you are mentioned in a post, or you mention someone, it will appear here." 
+          <h3 className="mb-1.5 font-display text-[18px] font-semibold text-foreground">Nothing to show yet</h3>
+          <p className="max-w-[260px] text-[14px] leading-relaxed text-muted-foreground">
+            {activeTab === "verified"
+              ? "Verified notifications from Zero Club will appear here once you reach Level 5."
+              : activeTab === "mentions"
+              ? "When you are mentioned in a post, or you mention someone, it will appear here."
               : "When people interact with you or your clubs, you'll see it here."}
           </p>
         </div>
       )}
 
       {commentPost && (
-        <CommentDrawer 
-          isOpen={!!commentPost} 
-          onClose={() => setCommentPost(null)} 
-          post={commentPost} 
+        <CommentDrawer
+          isOpen={!!commentPost}
+          onClose={() => setCommentPost(null)}
+          post={commentPost}
         />
       )}
     </div>
   );
+}
+
+/** "Follow back" right inside a follow notification. */
+function FollowBack({ userId }: { userId: string }) {
+  const { isFollowing, isSelf, toggleFollow, loading } = useFollow(userId);
+  if (isSelf || isFollowing) return null;
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        void toggleFollow();
+      }}
+      disabled={loading}
+      className="mt-2 inline-flex h-8 items-center rounded-full border-[1.5px] border-accent px-3.5 text-[14px] font-semibold text-accent tap hover:bg-accent/[0.06] disabled:opacity-50"
+    >
+      Follow back
+    </button>
+  );
+}
+
+function shortTime(iso: string) {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+  if (minutes < 1) return "now";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w`;
+  return new Date(iso).toLocaleDateString([], { day: "numeric", month: "short" });
 }

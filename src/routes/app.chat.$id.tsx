@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/glyphs";
-import { useState, useRef, useEffect } from "react";
+import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/glyphs";
+import React, { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
@@ -17,11 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import EmojiPicker from 'emoji-picker-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { directMessagePreview, parseFundLinkMessage } from "@/lib/directMessage";
 
@@ -36,7 +32,7 @@ export const Route = createFileRoute("/app/chat/$id")({
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
 
-function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser }: any) {
+function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser, groupStart = true, groupEnd = true }: any) {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
@@ -172,7 +168,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
   return (
     <div 
       id={`message-${m.id}`}
-      className={`relative py-1.5 flex w-full transition-colors duration-500 ${isMe ?'justify-end' : 'justify-start'}`}
+      className={`relative flex w-full transition-colors duration-500 ${groupStart ? 'mt-3' : 'mt-0.5'} ${isMe ?'justify-end' : 'justify-start'}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -185,11 +181,13 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
         transition: isSwiping.current ? 'none' : 'transform 0.2s ease-out'
       }}
     >
-      <div className={`flex gap-2.5 relative z-10 max-w-[85%] ${isMe ?'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex gap-2 relative z-10 max-w-[80%] ${isMe ?'flex-row-reverse' : 'flex-row'}`}>
         
-        {/* Avatar for received */}
-        {!isMe && (
-          <Link to="/app/profile/$id" params={{ id: m.sender_id }} className="h-8 w-8 shrink-0 rounded-full bg-accent/30 border border-border overflow-hidden flex items-center justify-center text-xs font-bold text-muted-foreground self-end mb-1 transition hover:opacity-80">
+        {/* Their avatar sits beside the last message of a run, like a
+            signature; earlier messages in the run keep its space empty. */}
+        {!isMe && !groupEnd && <span className="w-7 shrink-0" />}
+        {!isMe && groupEnd && (
+          <Link to="/app/profile/$id" params={{ id: m.sender_id }} className="grid h-7 w-7 shrink-0 place-items-center self-end overflow-hidden rounded-full bg-foreground/[0.06] text-[12px] font-semibold text-muted-foreground transition hover:opacity-80">
             {otherUser?.avatar_url ? (
               <img src={otherUser.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
@@ -201,28 +199,28 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
         {/* Swipe reply icon for received */}
         {!isMe && (
           <div 
-            className="absolute left-full top-1/2 -translate-y-1/2 flex items-center justify-center h-8 w-8 rounded-full bg-accent/50"
+            className="absolute left-full top-1/2 -translate-y-1/2 flex items-center justify-center h-8 w-8 rounded-full bg-foreground/[0.06]"
             style={{
               opacity: Math.min(swipeOffset / 45, 1),
               transform: `translate(${-swipeOffset + 10}px, -50%) scale(${Math.min(swipeOffset / 45, 1)})`,
               transition: isSwiping.current ? 'none' : 'all 0.2s ease-out'
             }}
           >
-            <Reply className="h-3.5 w-3.5 text-primary" />
+            <Reply className="h-4 w-4 text-foreground" />
           </div>
         )}
 
         {/* Swipe reply icon for sent */}
         {isMe && (
           <div 
-            className="absolute right-full top-1/2 -translate-y-1/2 flex items-center justify-center h-8 w-8 rounded-full bg-accent/50"
+            className="absolute right-full top-1/2 -translate-y-1/2 flex items-center justify-center h-8 w-8 rounded-full bg-foreground/[0.06]"
             style={{
               opacity: Math.min(-swipeOffset / 45, 1),
               transform: `translate(${-swipeOffset - 10}px, -50%) scale(${Math.min(-swipeOffset / 45, 1)})`,
               transition: isSwiping.current ? 'none' : 'all 0.2s ease-out'
             }}
           >
-            <Reply className="h-3.5 w-3.5 text-primary" />
+            <Reply className="h-4 w-4 text-foreground" />
           </div>
         )}
 
@@ -246,10 +244,10 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
           )}
 
           <>
-              <div className={`relative group px-3.5 py-2.5 flex flex-col ${
-                isMe 
-                  ? 'rounded-[22px] rounded-br-sm border border-foreground/10 bg-foreground text-right text-background shadow-sm shadow-black/10'
-                  : 'bg-muted border border-border/50 rounded-[22px] rounded-bl-sm text-left'
+              <div className={`relative group px-3.5 py-2 flex flex-col rounded-[18px] ${
+                isMe
+                  ? `bg-foreground text-right text-background ${groupEnd ? 'rounded-br-[4px]' : ''} ${!groupStart ? 'rounded-tr-[4px]' : ''}`
+                  : `bg-foreground/[0.06] text-left ${groupEnd ? 'rounded-bl-[4px]' : ''} ${!groupStart ? 'rounded-tl-[4px]' : ''}`
               }`}>
                 
                 {/* Replied Message Preview */}
@@ -265,21 +263,14 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                         }, 1500);
                       }
                     }}
-                    className={`mb-1.5 p-2 rounded-xl text-left border-l-2 cursor-pointer hover:opacity-80 transition-opacity ${isMe ? 'bg-black/10 border-white/40' : 'bg-foreground/[0.04] border-primary/40'}`}
+                    className={`mb-1.5 rounded-[12px] px-2.5 py-1.5 text-left cursor-pointer hover:opacity-80 transition-opacity ${isMe ? 'bg-background/15' : 'bg-card'}`}
                   >
-                    <span className={`block text-[10px] font-bold mb-0.5 ${isMe ?'text-white/80' : 'text-primary'}`}>
+                    <span className={`block text-[12px] font-semibold mb-0.5 ${isMe ?'text-background/80' : 'text-foreground'}`}>
                       {repliedMessage.sender_id === (isMe ? m.sender_id : otherUser?.id) ? 'You' : (otherUser?.full_name || otherUser?.username || 'Someone')}
                     </span>
-                    <p className={`text-[11px] truncate max-w-[180px] ${isMe ?'text-white/90' : 'text-foreground/80'}`}>
+                    <p className={`text-[13px] truncate max-w-[200px] ${isMe ?'text-background/85' : 'text-muted-foreground'}`}>
                       {directMessagePreview(repliedMessage.content, { sentByCurrentUser: repliedMessage.sender_id === currentUser?.id })}
                     </p>
-                  </div>
-                )}
-
-                {/* Sender Name for Received */}
-                {!isMe && !repliedMessage && (
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[12px] font-bold text-foreground">{otherUser?.full_name || otherUser?.username}</span>
                   </div>
                 )}
 
@@ -352,30 +343,30 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 ) : m.content.startsWith('REJECTED_TUTOR_INVITE:') ? (
                    <p className={`text-[14px] font-bold ${isMe ? 'text-background' : 'text-red-600 dark:text-red-400'}`}>❌ Rejected invitation to join {m.content.split(':')[1]}</p>
                 ) : (
-                  <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
-                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
+                  <p className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
+                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-semibold hover:opacity-80" : "text-accent underline font-semibold hover:opacity-80"} />
                     {!m.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
                   </p>
                 )}
                 
                 {m.content.includes('$$MEDIA$$') && (
-                  <div className={`mt-2 rounded-xl overflow-hidden transition-colors ${
-                    m.content.split('$$MEDIA$$')[1].split(',').length >= 2 
-                      ? "grid grid-cols-2 gap-0.5 max-h-[240px] ring-1 ring-border bg-muted/40" 
-                      : "flex justify-start ring-1 ring-border"
+                  <div className={`mt-1.5 rounded-[12px] overflow-hidden transition-colors ${
+                    m.content.split('$$MEDIA$$')[1].split(',').length >= 2
+                      ? "grid grid-cols-2 gap-0.5 max-h-[240px]"
+                      : "flex justify-start"
                   }`}>
                     {m.content.split('$$MEDIA$$')[1].split(',').map((token: string, i: number) => {
                       const media = decodeChatMedia(token);
                       return (
                         <div key={i} className={`relative overflow-hidden w-full ${
-                          media.type === 'audio' || media.type === 'file' ? 'min-w-[220px] bg-card/10 p-3' : m.content.split('$$MEDIA$$')[1].split(',').length === 1 ? "max-h-[300px]" : "aspect-square"
+                          media.type === 'audio' || media.type === 'file' ? 'min-w-[220px] p-1' : m.content.split('$$MEDIA$$')[1].split(',').length === 1 ? "max-h-[300px]" : "aspect-square"
                         }`}>
                           {media.type === 'video' ? (
                             <video src={media.url} controls className="h-full w-full object-cover" />
                           ) : media.type === 'audio' ? (
-                            <div className="flex min-w-0 flex-col gap-2 text-left"><div className="flex items-center gap-2"><Mic className="h-4 w-4 shrink-0" /><span className="truncate text-[11px] font-semibold">Voice message</span></div><audio src={media.url} controls className="h-10 w-full min-w-[190px]" /></div>
+                            <div className="flex min-w-0 flex-col gap-1.5 text-left"><div className="flex items-center gap-1.5"><Mic className="h-4 w-4 shrink-0" /><span className="truncate text-[13px] font-semibold">Voice message</span></div><audio src={media.url} controls className="h-10 w-full min-w-[190px]" /></div>
                           ) : media.type === 'file' ? (
-                            <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 text-left"><FileText className="h-6 w-6 shrink-0" /><span className="min-w-0 flex-1 truncate text-[11px] font-semibold">{media.name}</span><Download className="h-4 w-4 shrink-0" /></a>
+                            <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 text-left"><FileText className="h-6 w-6 shrink-0" /><span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{media.name}</span><Download className="h-4 w-4 shrink-0" /></a>
                           ) : (
                             <img loading="lazy" decoding="async" src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
                           )}
@@ -387,7 +378,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 
                 {m.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
                 
-                <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-background/70' : 'text-muted-foreground'}`}>
+                <span className={`text-[11px] absolute bottom-1.5 right-3 tabular-nums ${isMe ?'text-background/65' : 'text-muted-foreground'}`}>
                   {time} {m.is_edited && "(edited)"}
                 </span>
 
@@ -452,8 +443,8 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                     <button
                       key={emoji}
                       onClick={() => onReact(m.id, emoji)}
-                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                        data.me ? 'bg-primary/15 border-primary/25 text-primary' : 'bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]'
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[12px] font-semibold transition-colors ${
+                        data.me ? 'bg-accent/10 border-accent/30 text-accent' : 'bg-card border-border text-muted-foreground hover:bg-foreground/[0.04]'
                       }`}
                     >
                       <span>{emoji}</span>
@@ -685,8 +676,6 @@ function ChatViewPage() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-
 
   const handleChatMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -929,8 +918,8 @@ function ChatViewPage() {
 
   if (messagesLoading && messages.length === 0) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="flex h-screen items-center justify-center bg-card">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -940,94 +929,89 @@ function ChatViewPage() {
     ? "Zero Club Support"
     : otherUser?.full_name || otherUser?.username;
 
+  const presence = (() => {
+    if (isSupportChat) return { tone: 'support', label: 'Official Zero Club support' };
+    const lastSeen = otherUser?.updated_at ? new Date(otherUser.updated_at).getTime() : 0;
+    const diffMins = (Date.now() - lastSeen) / (1000 * 60);
+    if (diffMins < 5) return { tone: 'active', label: 'Active now' };
+    if (diffMins < 15) return { tone: 'away', label: 'Away' };
+    return { tone: 'offline', label: 'Offline' };
+  })();
+
+  const dayLabel = (iso: string) => {
+    const d = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return 'Today';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short', ...(d.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) });
+  };
+
   return (
     <div 
-      className="fixed inset-x-0 z-[60] mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-background md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
+      className="fixed inset-x-0 z-[60] mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-card md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
-      <header className="flex items-center justify-between bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate({ to: '/app/chat' })} className="grid h-9 w-9 place-items-center rounded-full transition active:scale-95 active:bg-accent/50">
-            <ChevronLeft className="h-6 w-6" />
-          </button>
+      <header className="flex items-center gap-1 border-b border-border bg-card px-2 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))]">
+        <button onClick={() => navigate({ to: '/app/chat' })} aria-label="Back to messages" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <ArrowLeft className="h-[22px] w-[22px]" />
+        </button>
 
-          <div className="flex items-center gap-3">
-            <Link to="/app/profile/$id" params={{ id }} aria-label={`Open ${otherUserDisplayName || 'user'} profile`} className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground transition active:scale-95">
+        <Link to="/app/profile/$id" params={{ id }} className="flex min-w-0 flex-1 items-center gap-2.5 tap" aria-label={`Open ${otherUserDisplayName || 'user'} profile`}>
+          <span className="relative shrink-0">
+            <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[13px] font-semibold text-muted-foreground">
               {otherUser?.avatar_url ? (
                 <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+              ) : isSupportChat ? (
+                <Headphones className="h-[18px] w-[18px]" />
               ) : (
                 (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()
               )}
-            </Link>
-            <div>
-              <h2 className="flex items-center gap-1.5 text-sm font-bold leading-tight">
-                {otherUserDisplayName}
-                {isSupportChat && <BadgeCheck className="h-4 w-4 fill-primary text-primary-foreground" />}
-              </h2>
-              <div className="flex items-center gap-1.5">
-                {isSupportChat ? (
-                  <>
-                    <Headphones className="h-3 w-3 text-primary" />
-                    <span className="text-[10px] font-medium text-primary">Official Zero Club support</span>
-                  </>
-                ) : (() => {
-                  const lastSeen = otherUser?.updated_at ? new Date(otherUser.updated_at).getTime() : 0;
-                  const now = Date.now();
-                  const diffMins = (now - lastSeen) / (1000 * 60);
-                  
-                  if (diffMins < 5) return (
-                    <>
-                      <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                      <span className="text-[10px] text-muted-foreground">Active now</span>
-                    </>
-                  );
-                  if (diffMins < 15) return (
-                    <>
-                      <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-                      <span className="text-[10px] text-muted-foreground">Away</span>
-                    </>
-                  );
-                  return (
-                    <>
-                      <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
-                      <span className="text-[10px] text-muted-foreground">Offline</span>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => setInfoOpen(true)} aria-label="Conversation information" className="grid h-9 w-9 place-items-center rounded-full transition active:bg-accent/50">
-            <Info className="h-5 w-5" />
-          </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="grid h-9 w-9 place-items-center rounded-full transition active:bg-accent/50">
-                <MoreHorizontal className="h-5 w-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="z-[100] w-52 border-border bg-background/95 shadow-lift backdrop-blur-xl">
-              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={toggleMuteConversation}>
-                {isMuted ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-                <span className="text-sm font-medium">{isMuted ? 'Unmute chat' : 'Mute chat'}</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={() => navigate({ to: '/app/profile/$id', params: { id } })}>
-                <UserRound className="h-4 w-4" />
-                <span className="text-sm font-medium">View profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={handleClearChat}>
-                <Trash2 className="h-4 w-4" />
-                <span className="text-sm font-medium">Clear Chat</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled={reporting} className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={handleReportUser}>
-                <Flag className="h-4 w-4" />
-                <span className="text-sm font-medium">{reporting ? 'Submitting...' : 'Report User'}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            </span>
+            {presence.tone === 'active' && (
+              <span className="absolute -bottom-px -right-px h-3 w-3 rounded-full border-2 border-card bg-success" />
+            )}
+          </span>
+          <span className="min-w-0">
+            <span className="flex items-center gap-1 text-[15px] font-semibold leading-tight text-foreground">
+              <span className="truncate">{otherUserDisplayName}</span>
+              {isSupportChat && <BadgeCheck className="h-4 w-4 shrink-0 fill-current text-accent" />}
+            </span>
+            <span className={`block truncate text-[12px] font-medium ${presence.tone === 'active' ? 'text-success' : 'text-muted-foreground'}`}>
+              {presence.label}
+            </span>
+          </span>
+        </Link>
+
+        <button onClick={() => setInfoOpen(true)} aria-label="Conversation details" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <Info className="h-[22px] w-[22px]" />
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button aria-label="More options" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+              <MoreHorizontal className="h-[22px] w-[22px]" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="z-[100] w-52 border-border bg-background/95 shadow-lift backdrop-blur-xl">
+            <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={toggleMuteConversation}>
+              {isMuted ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+              <span className="text-sm font-medium">{isMuted ? 'Unmute chat' : 'Mute chat'}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={() => navigate({ to: '/app/profile/$id', params: { id } })}>
+              <UserRound className="h-4 w-4" />
+              <span className="text-sm font-medium">View profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={handleClearChat}>
+              <Trash2 className="h-4 w-4" />
+              <span className="text-sm font-medium">Clear chat</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={reporting} className="gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive" onClick={handleReportUser}>
+              <Flag className="h-4 w-4" />
+              <span className="text-sm font-medium">{reporting ? 'Submitting...' : 'Report user'}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <Sheet open={infoOpen} onOpenChange={setInfoOpen}>
@@ -1060,14 +1044,14 @@ function ChatViewPage() {
 
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 pb-28 space-y-6 no-scrollbar"
+        className="flex-1 overflow-y-auto px-3 pb-28 pt-2 no-scrollbar"
       >
         {!reachedStart && (
           <div className="flex justify-center pb-2">
             <button
               onClick={loadOlderMessages}
               disabled={loadingOlder}
-              className="rounded-full bg-card px-4 py-2 text-[11.5px] font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+              className="h-8 rounded-full border border-border px-4 text-[13px] font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
             >
               {loadingOlder ? "Loading..." : "Load earlier messages"}
             </button>
@@ -1077,29 +1061,50 @@ function ChatViewPage() {
         {/* This block marks the beginning of the conversation, so it only
             belongs at the top once there is nothing older left to fetch. */}
         {reachedStart && (
-        <div className="flex flex-col items-center py-6 text-center">
-          <Link to="/app/profile/$id" params={{ id }} className="h-20 w-20 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-muted-foreground text-xl mb-3 transition active:scale-95">
+        <div className="flex flex-col items-center pb-2 pt-6 text-center">
+          <Link to="/app/profile/$id" params={{ id }} className="mb-2.5 grid h-[72px] w-[72px] place-items-center overflow-hidden rounded-full bg-foreground/[0.06] font-display text-[24px] font-semibold text-muted-foreground transition active:scale-95">
             {otherUser?.avatar_url ? (
               <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()
             )}
           </Link>
-          <h3 className="font-bold">{otherUser?.full_name || otherUser?.username}</h3>
+          <h3 className="font-display text-[18px] font-semibold text-foreground">{otherUserDisplayName}</h3>
           {/* The username, not "First name · Builder". The line above already
               carries the display name, so repeating a truncated version of it
               next to a label everyone shares said nothing about who this is. */}
-          {otherUser?.username && (
-            <p className="text-xs text-muted-foreground">@{otherUser.username}</p>
+          {otherUser?.username && !isSupportChat && (
+            <p className="mt-0.5 text-[13px] text-muted-foreground">@{otherUser.username}</p>
           )}
+          <Link
+            to="/app/profile/$id"
+            params={{ id }}
+            className="mt-3 inline-flex h-8 items-center rounded-full border-[1.5px] border-foreground px-4 text-[14px] font-semibold text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            View profile
+          </Link>
         </div>
         )}
 
-        {messages.map((m: any) => (
-          <DMMessageBubble 
-            key={m.id}
+        {messages.map((m: any, index: number) => {
+          const previous = messages[index - 1];
+          const next = messages[index + 1];
+          const newDay = !previous || new Date(previous.created_at).toDateString() !== new Date(m.created_at).toDateString();
+          const nextNewDay = !next || new Date(next.created_at).toDateString() !== new Date(m.created_at).toDateString();
+          return (
+          <React.Fragment key={m.id}>
+          {newDay && (
+            <div className="my-4 flex items-center gap-3 text-[12px] font-semibold text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              {dayLabel(m.created_at)}
+              <span className="h-px flex-1 bg-border" />
+            </div>
+          )}
+          <DMMessageBubble
             m={m}
             isMe={m.sender_id === currentUserId}
+            groupStart={newDay || previous?.sender_id !== m.sender_id}
+            groupEnd={nextNewDay || next?.sender_id !== m.sender_id}
             time={new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             otherUser={otherUser}
             startEditing={startEditing}
@@ -1109,7 +1114,9 @@ function ChatViewPage() {
             onReact={handleReact}
             currentUser={{ id: currentUserId }}
           />
-        ))}
+          </React.Fragment>
+          );
+        })}
       </div>
 
       {/* An overlay, not a footer. The thread keeps the full height and the
@@ -1165,7 +1172,10 @@ function ChatViewPage() {
         
         {/* One container. The avatar used to sit outside the input, which read
             as two boxes side by side for what is a single action. */}
-        <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50">
+        <div
+          className="flex items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50"
+          style={{ fontFamily: '"Montserrat", system-ui, sans-serif', "--font-button": '"Montserrat", system-ui, sans-serif' } as React.CSSProperties}
+        >
           <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
             {currentUserProfile?.avatar_url ? (
               <img src={currentUserProfile.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />

@@ -1,23 +1,16 @@
-import { useLoaderData, createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { 
-  BadgeCheck, Flame, MapPin, LinkIcon, CalendarDays, ChevronLeft, 
-  Search, MoreHorizontal, Hash, Users, MessageCircle, Heart, 
-  UserPlus, UserMinus, Loader2, Share2, Copy, Flag, X, Send, Link2,
-  Bell, BellRing, Star, Play, CheckCircle2, Settings, Shield, Sparkles, Edit3, Mail, Pen, Zap
-} from "@/components/icons/glyphs";
+import { BadgeCheck, MoreHorizontal, Heart, Loader2, Share2, Copy, Flag, X, BellRing, Play, CheckCircle2, Pen, ArrowLeft, Plus, Rocket } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
-import { getProfile, enrichPosts } from "@/api";
+import { enrichPosts } from "@/api";
 import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { getFirstName, displayName } from "@/lib/utils";
-import { IconMessages } from "@/components/icons/nav";
+import { getFirstName, displayName, getLevelFromXp, getLevelProgress } from "@/lib/utils";
 import { useFollow } from "@/hooks/useFollow";
-import { ProfileExperience } from "@/components/ProfileExperience";
 
 export const Route = createFileRoute("/app/profile/$id")({
   loader: async ({ params: { id } }) => {
@@ -447,405 +440,328 @@ function ProfileDetail() {
   const shownName = displayName(profile);
   const profileHandle = profile?.username ? `@${profile.username}` : "@builder";
 
+  const level = getLevelFromXp(Number(profile?.xp || 0));
+  const levelProgress = getLevelProgress(Number(profile?.xp || 0));
+  const role = profile?.account_type === "Institution" ? "Institution" : profile?.account_type === "Tutor" ? "Tutor" : "Builder";
+  const verifiedShips = shipPosts.filter((p: any) => p.is_verified_build).length;
+  const networkId = profile?.username || profile?.id || "unknown";
+  const shipTitle = (post: any) => {
+    const firstLine = String(post.content || "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\*\*Project:\*\*|##\s*🚀\s*/g, "")
+      .replace(/[*#_`>]/g, "")
+      .split("\n")
+      .map((line: string) => line.trim())
+      .find(Boolean);
+    return firstLine || "Untitled ship";
+  };
+  const openTab = (next: typeof tabs[number]) => {
+    setTab(next);
+    document.getElementById("profile-activity")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const emptyState = (Icon: any, title: string, copy: string) => (
+    <div className="mt-2 flex flex-col items-center bg-card px-8 py-14 text-center md:rounded-xl md:border md:border-border">
+      <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]">
+        <Icon className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <h3 className="mb-1 font-display text-[17px] font-semibold text-foreground">{title}</h3>
+      <p className="max-w-[260px] text-[14px] leading-relaxed text-muted-foreground">{copy}</p>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* ═══════════════════════════════════════════
-          FROSTED HEADER — Back + @handle + Actions
-         ═══════════════════════════════════════════ */}
-      <header className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md md:sticky md:left-0 md:translate-x-0 md:max-w-none h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] overflow-hidden transition-colors duration-300 ${
-        scrolled || searchOpen
-          ? profile?.banner_url ? "border-b border-white/20 bg-black/45" : "border-b border-border bg-background"
-          : "border-b border-transparent bg-transparent"
-      }`}>
-        {profile?.banner_url && (
-          <div className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${scrolled || searchOpen ? 'opacity-100' : 'opacity-0'}`} aria-hidden="true">
-            <img src={profile.banner_url} alt="" className="h-full w-full scale-110 object-cover blur-md" loading="lazy" decoding="async" />
-            <div className="absolute inset-0 bg-black/45" />
-          </div>
-        )}
-        <div className="relative z-20 flex items-center justify-between px-4 h-full">
-          {!searchOpen ? (
-            <>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => navigate({ to: '/app' })}
-                  className={`grid h-9 w-9 place-items-center rounded-lg border transition-colors active:scale-95 ${
-                    profile?.banner_url
-                      ? "border-white/20 bg-black/35 text-white hover:bg-black/50"
-                      : scrolled ? "border-border bg-card text-foreground hover:bg-accent" : "border-white/10 bg-black/30 text-white"
-                  }`}
-                >
-                  <ChevronLeft className="h-[18px] w-[18px]" />
-                </button>
-                
-                {/* Sticky header @handle — only visible when scrolled */}
-                <div className={`transition-all duration-300 transform ${
-                  scrolled ?"opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
-                }`}>
-                  <h1 className={`font-display max-w-[12rem] truncate text-sm font-semibold leading-tight ${profile?.banner_url ? 'text-white' : 'text-foreground'}`}>
-                    {shownName}
-                  </h1>
-                  <p className={`text-[10px] ${profile?.banner_url ? 'text-white/70' : 'text-muted-foreground'}`}>
-                    {posts.length} {posts.length === 1 ? "Post" : "Posts"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* More Options Drawer */}
-                <Drawer>
-                  <DrawerTrigger asChild>
-                    <button className={`grid h-9 w-9 place-items-center rounded-lg border transition-colors active:scale-95 ${
-                      profile?.banner_url
-                        ? "border-white/20 bg-black/35 text-white hover:bg-black/50"
-                        : scrolled ? "border-border bg-card text-foreground hover:bg-accent" : "border-white/10 bg-black/30 text-white"
-                    }`}>
-                      <MoreHorizontal className="h-[18px] w-[18px]" />
-                    </button>
-                  </DrawerTrigger>
-                  <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
-                    <DrawerHeader className="mb-3 p-0 text-left sm:mb-6 sm:p-4">
-                      <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Profile actions</DrawerTitle>
-                    </DrawerHeader>
-                    <div className="space-y-2">
-                      <button 
-                        onClick={handleShare}
-                        className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
-                      >
-                        <Share2 className="h-5 w-5 text-primary" /> Share Profile Link
-                      </button>
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
-                          toast.success("Profile link copied!");
-                        }}
-                        className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
-                      >
-                        <Copy className="h-5 w-5 text-primary" /> Copy URL
-                      </button>
-                      {!isOwnProfile && (
-                        <button 
-                          onClick={() => toast.success("Report submitted. Thank you!")}
-                          className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold text-destructive tap hover:bg-destructive/5"
-                        >
-                          <Flag className="h-5 w-5" /> Report Profile
-                        </button>
-                      )}
-                    </div>
-                  </DrawerContent>
-                </Drawer>
-              </div>
-            </>
-          ) : null}
+    <div className="min-h-screen bg-canvas pb-24">
+      <header className="fixed left-1/2 top-0 z-50 flex h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 items-center gap-1 bg-card px-2 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
+        <button onClick={() => navigate({ to: '/app' })} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <ArrowLeft className="h-[22px] w-[22px]" />
+        </button>
+        <div className={`min-w-0 flex-1 transition-opacity duration-200 ${scrolled ? "opacity-100" : "opacity-0"}`}>
+          <p className="truncate text-[16px] font-semibold text-foreground">{shownName}</p>
         </div>
-      </header>
-
-      {/* ═══════════════════════════════════════════════
-          HENSOR STYLE HERO CARD
-         ═══════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-[900px] px-0 md:!-mt-14 md:px-6" style={{ marginTop: 'calc(-1 * env(safe-area-inset-top))' }}>
-        <div className="relative overflow-hidden bg-background md:rounded-lg md:border md:border-border">
-          {/* Banner */}
-          <div className="relative flex h-[calc(220px+env(safe-area-inset-top))] w-full items-center justify-center overflow-hidden bg-muted sm:h-[260px]">
-            {profile?.banner_url ? (
-              <img 
-                src={profile.banner_url} 
-                alt="Banner" 
-                className="h-full w-full object-cover object-center"
-              loading="lazy" decoding="async" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[#211d21]">
-                <img src="/logo.png" alt="" className="h-20 w-20 object-contain opacity-35" loading="lazy" decoding="async" />
-              </div>
-            )}
-          </div>
-          
-          {/* Profile Info Section */}
-          <div className="relative px-6 pb-6">
-            {/* Avatar overlapping banner */}
-            <div className="absolute -top-[44px] left-6 z-20 sm:-top-[48px]">
-              <div 
-                className="flex h-[88px] w-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90 sm:h-[96px] sm:w-[96px]"
-                onClick={() => setIsAvatarOpen(true)}
+        {/* Profile actions */}
+        <Drawer>
+          <DrawerTrigger asChild>
+            <button aria-label="Profile actions" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+              <MoreHorizontal className="h-[22px] w-[22px]" />
+            </button>
+          </DrawerTrigger>
+          <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
+            <DrawerHeader className="mb-3 p-0 text-left sm:mb-6 sm:p-4">
+              <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Profile actions</DrawerTitle>
+            </DrawerHeader>
+            <div className="space-y-2">
+              <button 
+                onClick={handleShare}
+                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
               >
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" loading="lazy" decoding="async" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary sm:text-3xl">
-                    {initials}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right side actions */}
-            <div className="flex h-[44px] items-center justify-end gap-4 sm:h-[48px]">
-               {isOwnProfile ? (
-                 <Link to="/app/profile/edit" className="flex h-10 items-center rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition hover:opacity-90">
-                   Edit profile
-                 </Link>
-               ) : canMessageProfile ? (
-                 <>
-                 {/* Following says "put this in my feed"; the bell says
-                     "interrupt me". Two different appetites, so two controls —
-                     you can follow quietly, or be told without following. */}
-                 <button
-                   onClick={togglePostAlerts}
-                   disabled={alertsPending}
-                   aria-pressed={postAlertsOn}
-                   title={postAlertsOn ? "Stop notifying me about their posts" : "Notify me when they post"}
-                   aria-label={postAlertsOn ? "Stop notifying me about their posts" : "Notify me when they post"}
-                   className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg transition active:scale-95 disabled:opacity-50 ${
-                     postAlertsOn
-                       ? "bg-[#cc208f] text-white"
-                       : "border border-border bg-card text-foreground hover:bg-accent"
-                   }`}
-                 >
-                   {alertsPending
-                     ? <Loader2 className="h-4 w-4 animate-spin" />
-                     : postAlertsOn ? <BellRing className="h-[18px] w-[18px]" /> : <Bell className="h-[18px] w-[18px]" />}
-                 </button>
-                 <button
-                   onClick={handleFollow}
-                   disabled={followLoading}
-                   className={`flex items-center gap-2 rounded-lg px-5 py-2 text-[14px] font-semibold transition-colors active:scale-95 ${
-                     isFollowing 
-                       ? "border border-border bg-transparent text-foreground hover:bg-accent" 
-                       : "bg-foreground text-background hover:opacity-90"
-                   }`}
-                 >
-                   {followLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                   {isFollowing ? "Following" : (isFollowingMe ? "Follow back" : "Follow")}
-                 </button>
-                 </>
-               ) : null}
-            </div>
-
-            <div className="mt-4 flex flex-col items-start gap-1">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
-                    {shownName}
-                  </h2>
-                  {profile?.tier === 'Premium' && <BadgeCheck className="h-[18px] w-[18px] fill-primary text-background shrink-0" />}
-                  {profile?.tier === 'Premium+' && <BadgeCheck className="h-[18px] w-[18px] fill-[#ffcf00] text-black shrink-0" />}
-                </div>
-                <span className="text-[15px] text-muted-foreground mt-1">{profileHandle}</span>
-              </div>
-              
-              <div className="mt-3 text-[15px] text-foreground leading-relaxed pr-4">
-                 {profile?.bio ? <LinkifiedText text={profile.bio} /> : "Dynamic builder and creator on Zero Club, specializing in shipping great products."}
-              </div>
-              
-              <div className="mt-4 flex items-center gap-4 text-[15px]">
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-foreground">{followingCount}</span>
-                  <span className="text-muted-foreground">Following</span>
-                </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-foreground">{followersCount}</span>
-                  <span className="text-muted-foreground">Followers</span>
-                </Link>
-                <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || 'unknown' }} className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                  <span className="font-bold text-foreground">{profileClubs.length}</span>
-                  <span className="text-muted-foreground">{profileClubs.length === 1 ? 'Club' : 'Clubs'}</span>
-                </Link>
-              </div>
-
-              <ProfileExperience xp={profile?.xp} accountType={profile?.account_type} />
-              
-              {profile?.website && (
-                <div className="mt-3 flex items-center gap-1.5 text-[14px]">
-                   <Link2 className="h-4 w-4 text-muted-foreground" />
-                   <a href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">
-                     {profile.website.replace(/^https?:\/\//, '')}
-                   </a>
-                </div>
+                <Share2 className="h-5 w-5 text-primary" /> Share Profile Link
+              </button>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
+                  toast.success("Profile link copied!");
+                }}
+                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
+              >
+                <Copy className="h-5 w-5 text-primary" /> Copy URL
+              </button>
+              {!isOwnProfile && (
+                <button 
+                  onClick={() => toast.success("Report submitted. Thank you!")}
+                  className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold text-destructive tap hover:bg-destructive/5"
+                >
+                  <Flag className="h-5 w-5" /> Report Profile
+                </button>
               )}
             </div>
-          </div>
-        </div>
-      </div>
+          </DrawerContent>
+        </Drawer>
+      </header>
 
-      {/* ═══════════════════════════════════════════
-          CONTENT TABS
-         ═══════════════════════════════════════════ */}
-      <div className="mx-auto mt-5 max-w-[760px] px-4 md:px-0">
-        {canMessageProfile && (
-          <Link
-            to="/app/chat/$id"
-            params={{ id: profile.id }}
-            aria-label={`Message ${getFirstName(profile)}`}
-            className="mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 text-[13px] font-semibold text-background transition hover:opacity-90 active:scale-[0.99]"
-          >
-            <IconMessages className="h-[18px] w-[18px]" active />
-            <span>Message {getFirstName(profile)}</span>
-          </Link>
+      <div className="mx-auto max-w-[680px] pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-2">
+        {/* ── Who this is ── */}
+        <section className="bg-card pb-4 md:overflow-hidden md:rounded-xl md:border md:border-border">
+          <div className="relative h-[104px] w-full overflow-hidden bg-[#221d22] sm:h-[140px]">
+            {profile?.banner_url && (
+              <img src={profile.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+            )}
+          </div>
+
+          <div className="relative px-4">
+            <button
+              onClick={() => setIsAvatarOpen(true)}
+              aria-label="View profile photo"
+              className="absolute -top-14 left-3 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 border-card bg-accent/10 font-display text-[32px] font-semibold text-accent"
+            >
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} className="h-full w-full object-cover" alt="" loading="lazy" decoding="async" />
+              ) : (
+                initials
+              )}
+            </button>
+
+            <div className="flex h-16 items-center justify-end">
+              <span className="flex h-7 items-center gap-1.5 rounded-full border border-border px-2.5 text-[12px] font-semibold text-foreground" title={`${levelProgress.currentXP} of ${levelProgress.maxXP} XP to the next level`}>
+                <svg viewBox="0 0 36 36" className="h-3.5 w-3.5 -rotate-90" aria-hidden="true">
+                  <circle cx="18" cy="18" r="15" fill="none" strokeWidth="5" className="stroke-foreground/10" />
+                  <circle cx="18" cy="18" r="15" fill="none" strokeWidth="5" strokeLinecap="round" className="stroke-accent" strokeDasharray={`${(levelProgress.percent / 100) * 94.2} 94.2`} />
+                </svg>
+                Level {level} {role.toLowerCase()}
+              </span>
+            </div>
+
+            <div className="mt-1 flex items-center gap-1.5">
+              <h1 className="truncate font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">{shownName}</h1>
+              {(profile?.tier === 'Premium' || profile?.tier === 'Premium+') && (
+                <BadgeCheck aria-label={profile.tier} className={`h-5 w-5 shrink-0 fill-current ${profile.tier === 'Premium+' ? 'text-[#e0a800]' : 'text-accent'}`} />
+              )}
+            </div>
+            {profile?.bio ? (
+              <div className="mt-1 text-[15px] leading-[1.45] text-foreground">
+                <LinkifiedText text={profile.bio} />
+              </div>
+            ) : isOwnProfile ? (
+              <Link to="/app/profile/edit" className="mt-1 inline-block text-[15px] font-semibold text-accent">Add a line about what you build</Link>
+            ) : null}
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
+              {profile?.username && <span>@{profile.username}</span>}
+              {profile?.website && (
+                <>
+                  <span aria-hidden>·</span>
+                  <a
+                    href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-foreground hover:underline"
+                  >
+                    {profile.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                  </a>
+                </>
+              )}
+            </p>
+            <Link to="/app/profile/$id/network" params={{ id: networkId }} className="mt-1.5 inline-block text-[13px] font-semibold text-accent hover:underline">
+              {followersCount.toLocaleString()} {followersCount === 1 ? "follower" : "followers"} · {followingCount.toLocaleString()} following · {profileClubs.length} {profileClubs.length === 1 ? "club" : "clubs"}
+            </Link>
+            <p className="mt-2 text-[13px] text-muted-foreground">
+              <b className="font-semibold text-foreground tabular-nums">{shipPosts.length}</b> {shipPosts.length === 1 ? "ship" : "ships"}
+              <span className="mx-1.5" aria-hidden>·</span>
+              <b className="font-semibold text-foreground tabular-nums">{verifiedShips}</b> verified
+              <span className="mx-1.5" aria-hidden>·</span>
+              <b className="font-semibold text-foreground tabular-nums">{Number(profile?.xp || 0).toLocaleString()}</b> XP
+            </p>
+
+            <div className="mt-4 flex gap-2">
+              {isOwnProfile ? (
+                <>
+                  <Link to="/app/profile/edit" className="flex h-10 flex-1 items-center justify-center rounded-full bg-foreground text-[15px] font-semibold text-background tap hover:opacity-90">
+                    Edit profile
+                  </Link>
+                  <button onClick={handleShare} className="flex h-10 flex-1 items-center justify-center rounded-full border-[1.5px] border-foreground text-[15px] font-semibold text-foreground tap hover:bg-foreground/[0.04]">
+                    Share profile
+                  </button>
+                </>
+              ) : canMessageProfile ? (
+                <>
+                  <button
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-[15px] font-semibold tap disabled:opacity-60 ${
+                      isFollowing ? "border-[1.5px] border-foreground/30 text-foreground hover:bg-foreground/[0.04]" : "bg-foreground text-background hover:opacity-90"
+                    }`}
+                  >
+                    {followLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : !isFollowing && <Plus className="h-[18px] w-[18px]" />}
+                    {isFollowing ? "Following" : isFollowingMe ? "Follow back" : "Follow"}
+                  </button>
+                  <Link
+                    to="/app/chat/$id"
+                    params={{ id: profile.id }}
+                    className="flex h-10 flex-1 items-center justify-center rounded-full border-[1.5px] border-foreground text-[15px] font-semibold text-foreground tap hover:bg-foreground/[0.04]"
+                  >
+                    Message
+                  </Link>
+                  {/* Following says "put this in my feed"; the bell says
+                      "interrupt me". Two different appetites, so two controls. */}
+                  <button
+                    onClick={togglePostAlerts}
+                    disabled={alertsPending}
+                    aria-pressed={postAlertsOn}
+                    title={postAlertsOn ? "Stop notifying me about their posts" : "Notify me when they post"}
+                    aria-label={postAlertsOn ? "Stop notifying me about their posts" : "Notify me when they post"}
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-full tap disabled:opacity-50 ${
+                      postAlertsOn ? "bg-accent text-accent-foreground" : "border-[1.5px] border-foreground/30 text-foreground hover:bg-foreground/[0.04]"
+                    }`}
+                  >
+                    {alertsPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className={`h-[18px] w-[18px] ${postAlertsOn ? "fill-current" : ""}`} />}
+                  </button>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Featured ships ── */}
+        {shipPosts.length > 0 && (
+          <section className="mt-2 bg-card py-4 md:rounded-xl md:border md:border-border">
+            <div className="flex items-center justify-between px-4">
+              <h2 className="font-display text-[18px] font-semibold text-foreground">Featured ships</h2>
+              {shipPosts.length > 2 && (
+                <button onClick={() => openTab("Ships")} className="text-[14px] font-semibold text-muted-foreground hover:text-foreground">
+                  See all {shipPosts.length}
+                </button>
+              )}
+            </div>
+            <div className="no-scrollbar mt-3 flex gap-2.5 overflow-x-auto px-4">
+              {shipPosts.slice(0, 6).map((post: any) => (
+                <Link key={post.id} to="/app/post/$id" params={{ id: post.id }} className="w-[232px] shrink-0 overflow-hidden rounded-xl border border-border tap hover:bg-foreground/[0.02]">
+                  <div className="h-28 bg-foreground/[0.05]">
+                    {post.media_urls?.[0] && !isVideoUrl(post.media_urls[0]) && (
+                      <img src={post.media_urls[0]} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                    )}
+                  </div>
+                  <div className="px-3 py-2.5">
+                    <p className="truncate text-[14px] font-semibold text-foreground">{shipTitle(post)}</p>
+                    {post.is_verified_build ? (
+                      <p className="mt-0.5 flex items-center gap-1 text-[12px] font-semibold text-success">
+                        <CheckCircle2 className="h-3.5 w-3.5 fill-current" /> Verified proof
+                      </p>
+                    ) : (
+                      <p className="mt-0.5 text-[12px] text-muted-foreground">
+                        Shipped {new Date(post.created_at).toLocaleDateString([], { month: "short", year: "numeric" })}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
-        <div className="grid grid-cols-4 gap-1 overflow-hidden rounded-lg border border-border bg-card p-1">
-          {tabs.map((t) => {
-            const active = tab === t;
-            return (
-              <button 
-                key={t} 
-                onClick={() => setTab(t)} 
-                className={`relative flex h-10 min-w-0 items-center justify-center rounded-md px-2 text-[12px] font-semibold transition-colors ${
-                  active 
-                    ? "bg-primary/[0.09] text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+
+        {/* ── Activity ── */}
+        <section id="profile-activity" className="mt-2 scroll-mt-16 bg-card px-4 pb-3 pt-4 md:rounded-xl md:border md:border-border">
+          <h2 className="font-display text-[18px] font-semibold text-foreground">Activity</h2>
+          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
+            {tabs.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`h-8 shrink-0 rounded-full px-3.5 text-[14px] font-semibold tap ${
+                  tab === t ? "bg-foreground text-background" : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
                 }`}
               >
                 {t}
               </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════
-          TAB CONTENT
-         ═══════════════════════════════════════════ */}
-      <div className="mx-auto w-full max-w-[760px] pb-20 pt-2">
-        {tab === "Posts" && (
-          <div className="space-y-4">
-            {postsLoading ? (
-              <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-            ) : filteredPosts.length > 0 ? (
-              filteredPosts.map((post: any) => (
-                <PostCard 
-                  key={post.id} 
-                  post={post} 
-                  currentUser={currentUser} 
-                  onCommentClick={setCommentPost} 
-                />
-              ))
-            ) : (
-              <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  
-                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
-                    <Pen className="h-6 w-6 text-muted-foreground/60" />
-                  </div>
-                </div>
-                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No posts yet</h3>
-                <p className="text-sm text-muted-foreground mb-8 max-w-[260px] mx-auto leading-relaxed">
-                  {getFirstName(profile)} hasn't posted anything yet.
-                </p>
-              </div>
-            )}
+            ))}
           </div>
+        </section>
+
+        {tab === "Posts" && (
+          postsLoading ? (
+            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : filteredPosts.length > 0 ? (
+            filteredPosts.map((post: any) => (
+              <PostCard key={post.id} post={post} currentUser={currentUser} onCommentClick={setCommentPost} />
+            ))
+          ) : (
+            emptyState(Pen, "No posts yet", isOwnProfile ? "Share what you're building with the Zero Club community." : `${getFirstName(profile)} hasn't posted anything yet.`)
+          )
         )}
 
         {tab === "Ships" && (
-          <div className="space-y-4">
-            {postsLoading ? (
-              <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-            ) : filteredShips.length > 0 ? (
-              filteredShips.map((post: any) => (
-                <PostCard 
-                  key={post.id} 
-                  post={post} 
-                  currentUser={currentUser} 
-                  onCommentClick={setCommentPost} 
-                />
-              ))
-            ) : (
-              <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  
-                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
-                    <Zap className="h-6 w-6 text-muted-foreground/60" />
-                  </div>
-                </div>
-                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No ships yet</h3>
-                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
-                  {getFirstName(profile)} hasn't shared any shipped projects yet.
-                </p>
-              </div>
-            )}
-          </div>
+          postsLoading ? (
+            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : filteredShips.length > 0 ? (
+            filteredShips.map((post: any) => (
+              <PostCard key={post.id} post={post} currentUser={currentUser} onCommentClick={setCommentPost} />
+            ))
+          ) : (
+            emptyState(Rocket, "No ships yet", isOwnProfile ? "Ship your first project and show what you're building." : `${getFirstName(profile)} hasn't shared any shipped projects yet.`)
+          )
         )}
 
         {tab === "Media" && (
-          <div>
-            {posts.filter(p => p.media_urls?.[0]).length > 0 ? (
-              <div className="grid grid-cols-3 gap-1.5">
-                {posts.filter(p => p.media_urls?.[0]).map((post) => {
-                  const url = post.media_urls[0];
-                  const isVideo = isVideoUrl(url);
-                  return (
-                    <Link 
-                      key={post.id} 
-                      to="/app/post/$id" 
-                      params={{ id: post.id }}
-                      className="relative aspect-square rounded-2xl overflow-hidden bg-muted hover:opacity-90 transition cursor-pointer group"
-                    >
-                      {isVideo ? (
-                        <>
-                          <video src={url} className="w-full h-full object-cover" muted playsInline />
-                          <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
-                            <Play className="h-6 w-6 text-white drop-shadow-md fill-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition duration-300" />
-                          </div>
-                        </>
-                      ) : (
-                        <img src={url} alt="Post media" className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  
-                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
-                    <Play className="h-6 w-6 text-muted-foreground/60" />
-                  </div>
-                </div>
-                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No media yet</h3>
-                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
-                  Photos and videos from {getFirstName(profile)}'s posts will appear here.
-                </p>
-              </div>
-            )}
-          </div>
+          posts.filter((p: any) => p.media_urls?.[0]).length > 0 ? (
+            <div className="mt-2 grid grid-cols-3 gap-0.5 bg-card md:overflow-hidden md:rounded-xl">
+              {posts.filter((p: any) => p.media_urls?.[0]).map((post: any) => {
+                const url = post.media_urls[0];
+                return (
+                  <Link key={post.id} to="/app/post/$id" params={{ id: post.id }} className="group relative aspect-square overflow-hidden bg-foreground/[0.05]">
+                    {isVideoUrl(url) ? (
+                      <>
+                        <video src={url} className="h-full w-full object-cover" muted playsInline />
+                        <span className="absolute inset-0 grid place-items-center bg-black/20">
+                          <Play className="h-6 w-6 fill-white text-white" />
+                        </span>
+                      </>
+                    ) : (
+                      <img src={url} alt="" className="h-full w-full object-cover transition-opacity group-hover:opacity-90" loading="lazy" decoding="async" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            emptyState(Play, "No media yet", `Photos and videos from ${isOwnProfile ? "your" : `${getFirstName(profile)}'s`} posts will appear here.`)
+          )
         )}
 
         {tab === "Likes" && (
-          <div className="space-y-4">
-            {likedPostsLoading ? (
-              <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-            ) : likedPostsData && likedPostsData.length > 0 ? (
-              likedPostsData.map((post: any) => (
-                <PostCard 
-                  key={post.id} 
-                  post={post} 
-                  currentUser={currentUser} 
-                  onCommentClick={setCommentPost} 
-                />
-              ))
-            ) : (
-              <div className="py-20 text-center">
-                <div className="relative mx-auto mb-6 w-fit">
-                  
-                  <div className="relative h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mx-auto">
-                    <Heart className="h-6 w-6 text-muted-foreground/60" />
-                  </div>
-                </div>
-                <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">No likes yet</h3>
-                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
-                  {getFirstName(profile)} hasn't liked any posts yet.
-                </p>
-              </div>
-            )}
-          </div>
+          likedPostsLoading ? (
+            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : likedPostsData && likedPostsData.length > 0 ? (
+            likedPostsData.map((post: any) => (
+              <PostCard key={post.id} post={post} currentUser={currentUser} onCommentClick={setCommentPost} />
+            ))
+          ) : (
+            emptyState(Heart, "No likes yet", isOwnProfile ? "Posts you like will appear here." : `${getFirstName(profile)} hasn't liked any posts yet.`)
+          )
         )}
       </div>
 
       {commentPost && (
-        <CommentDrawer 
-          post={commentPost} 
-          isOpen={!!commentPost} 
+        <CommentDrawer
+          post={commentPost}
+          isOpen={!!commentPost}
           onOpenChange={(open) => !open && setCommentPost(null)}
           onCommentAdded={() => {
             queryClient.invalidateQueries({ queryKey: ['profilePosts', profile.id] });
@@ -854,20 +770,23 @@ function ProfileDetail() {
       )}
 
       {isAvatarOpen && profile?.avatar_url && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-zoom-out animate-in fade-in duration-200"
           onClick={() => setIsAvatarOpen(false)}
         >
-          <button 
-            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full transition-all"
+          <button
+            aria-label="Close"
+            className="absolute right-4 top-4 rounded-full bg-black/20 p-2 text-white/70 transition-all hover:bg-black/40 hover:text-white"
             onClick={(e) => { e.stopPropagation(); setIsAvatarOpen(false); }}
           >
-            <X className="w-6 h-6" />
+            <X className="h-6 w-6" />
           </button>
-          <img loading="lazy" decoding="async" 
-            src={profile.avatar_url} 
-            className="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl" 
-            alt="Full Avatar" 
+          <img
+            loading="lazy"
+            decoding="async"
+            src={profile.avatar_url}
+            className="max-h-[95vh] max-w-[95vw] rounded-lg object-contain shadow-2xl"
+            alt="Full avatar"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

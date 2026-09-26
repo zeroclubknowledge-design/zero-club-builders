@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, Edit3, Circle, MoreHorizontal, ChevronLeft, MessageSquare, Users as UsersIcon, ChevronDown, Check, Settings, MessageCircle, User, MessageSquarePlus, BadgeCheck, Headphones, Pin } from "@/components/icons/glyphs";
+import { Search, Edit3, MoreHorizontal, ArrowLeft, CheckCheck, Settings, MessageCircle, BadgeCheck, Headphones, Loader2 } from "@/components/icons/glyphs";
+import { useGoBack } from "@/hooks/useGoBack";
 import { getConversations } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo, useEffect } from "react";
@@ -7,13 +8,7 @@ import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { directMessagePreview } from "@/lib/directMessage";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/app/chat/")({
   component: ChatInboxPage,
@@ -21,6 +16,7 @@ export const Route = createFileRoute("/app/chat/")({
 
 function ChatInboxPage() {
   const navigate = useNavigate();
+  const goBack = useGoBack("/app");
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<'All' | 'Unread'>('All');
@@ -114,215 +110,181 @@ function ChatInboxPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-140px)] items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-card">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-primary/20 border-t-primary" />
-          <span className="text-[11px] text-muted-foreground animate-pulse">Loading messages</span>
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <span className="text-[13px] text-muted-foreground">Loading messages</span>
         </div>
       </div>
     );
   }
 
+  const preview = (chat: any) =>
+    directMessagePreview(chat.lastMessage, { sentByCurrentUser: chat.lastSenderId === currentUser?.id });
+  const unreadCount = conversations.filter(
+    (c: any) => c.unread && !c.isSupport && !c.lastMessage?.startsWith('CLUB_REQUEST:') && c.lastMessage !== 'DISMISSED_CLUB_REQUEST',
+  ).length;
+
   return (
-    <div className="relative flex min-h-screen flex-col bg-background pb-20">
-      {/* Premium Frosted Glass Header */}
-      <header className={`fixed left-1/2 top-0 z-20 w-full max-w-md -translate-x-1/2 bg-background px-5 pb-3 pt-[calc(1.5rem+env(safe-area-inset-top))] transition-all duration-300 md:sticky md:left-0 md:max-w-full md:translate-x-0 md:px-8 md:pt-6`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* User Avatar */}
-            <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-border/30 shadow-sm shrink-0 transition-all duration-300 active:scale-95 hover:ring-primary/40 hover:shadow-md cursor-pointer">
-              {currentUser?.avatar_url ? (
-                <img src={currentUser.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-              ) : (
-                <div className="h-full w-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[11px] font-semibold text-white">
-                  {currentUser?.username?.[0].toUpperCase() || "U"}
-                </div>
-              )}
-            </button>
-            <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Messages</h1>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              to="/app/chat/new"
-              className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[12.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
-            >
-              <MessageSquarePlus className="h-3.5 w-3.5" />
-              New chat
-            </Link>
-            {/* Filter Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 transition active:scale-95 hover:bg-accent/50">
-                  <span className="text-[11px]">{activeTab}</span>
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52 rounded-lg border-border/60 bg-background p-1.5 shadow-[0_16px_40px_-18px_rgba(0,0,0,0.35)]">
-                <DropdownMenuItem onClick={() => setActiveTab('All')} className="gap-3 py-3 rounded-xl transition-all duration-200">
-                  <MessageSquare className="h-4 w-4 text-muted-foreground" /> 
-                  <span className="text-sm font-semibold">All Messages</span>
-                  {activeTab === 'All' && <Check className="ml-auto h-3.5 w-3.5 text-primary" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveTab('Unread')} className="gap-3 py-3 rounded-xl transition-all duration-200">
-                  <Circle className="h-4 w-4 fill-primary text-primary" /> 
-                  <span className="text-sm font-semibold">Unread</span>
-                  {activeTab === 'Unread' && <Check className="ml-auto h-3.5 w-3.5 text-primary" />}
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator className="bg-border/30 my-1" />
-                <DropdownMenuItem onClick={handleMarkAllAsRead} className="gap-3 py-3 rounded-xl text-primary focus:text-primary cursor-pointer transition-all duration-200">
-                  <Check className="h-4 w-4" /> 
-                  <span className="text-sm font-bold">Mark all as read</span>
-                </DropdownMenuItem>
-                <Link to="/app/chat/settings" className="w-full">
-                  <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer transition-all duration-200">
-                    <Settings className="h-4 w-4 text-muted-foreground" /> 
-                    <span className="text-sm font-semibold">Settings</span>
-                  </DropdownMenuItem>
-                </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+    <div className="relative flex min-h-screen flex-col bg-card pb-28">
+      <header className="sticky top-0 z-20 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="flex h-14 items-center gap-1 px-2 md:px-6">
+          <button
+            onClick={goBack}
+            aria-label="Back"
+            className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04] md:hidden"
+          >
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[20px] font-semibold text-foreground">Messages</h1>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button aria-label="Message options" className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+                <MoreHorizontal className="h-[22px] w-[22px]" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onClick={handleMarkAllAsRead} className="gap-3 py-2.5">
+                <CheckCheck className="h-4 w-4" />
+                <span className="text-sm font-medium">Mark all as read</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/app/chat/settings" })} className="gap-3 py-2.5">
+                <Settings className="h-4 w-4" />
+                <span className="text-sm font-medium">Message settings</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Link to="/app/chat/new" aria-label="New message" className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <Edit3 className="h-[22px] w-[22px]" />
+          </Link>
         </div>
 
+        <div className="px-4 pb-3 md:px-6">
+          <label className="flex h-9 items-center gap-2 rounded-lg bg-foreground/[0.05] px-3">
+            <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search messages"
+              aria-label="Search messages"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+          <div className="mt-2.5 flex gap-2">
+            {(['All', 'Unread'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`h-8 rounded-full px-3.5 text-[14px] font-semibold tap ${
+                  activeTab === tab ? 'bg-foreground text-background' : 'border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]'
+                }`}
+              >
+                {tab}
+                {tab === 'Unread' && unreadCount > 0 ? ` · ${unreadCount}` : ''}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
-      {/* Premium Search Bar */}
-      <div className="w-full px-5 pb-2 pt-[calc(5.5rem+env(safe-area-inset-top))] md:max-w-[880px] md:px-8 md:pt-5 lg:px-10">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-          <input 
-            type="text"
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-border/60 bg-card px-5 py-3.5 pl-11 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary/35 focus:ring-2 focus:ring-primary/10"
-          />
-        </div>
-      </div>
-
-      {/* Conversation List */}
-      <div className="flex flex-1 flex-col md:mx-8 md:mb-16 md:mt-3 md:max-w-[820px] md:flex-none md:overflow-hidden md:rounded-lg md:border md:border-border/60 md:bg-card lg:mx-10">
-        {supportConversation && (
+      <div className="flex flex-1 flex-col border-t border-border md:mx-6 md:max-w-[820px]">
+        {supportConversation && activeTab === 'All' && !searchQuery && (
           <Link
             to="/app/chat/$id"
             params={{ id: supportConversation.id }}
-            className={`group relative flex items-center gap-4 border-b border-primary/15 bg-primary/[0.055] px-5 py-4 transition hover:bg-primary/[0.085] active:bg-primary/[0.1] md:px-6 md:py-[18px] ${supportConversation.unread ? "bg-primary/[0.09]" : ""}`}
+            className="group flex items-center gap-3 px-4 transition-colors hover:bg-foreground/[0.02] md:px-6"
           >
-            <div className="relative shrink-0">
-              <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-primary/10 text-primary ring-2 ring-primary/15 shadow-sm transition group-active:scale-95">
-                {supportConversation.user?.avatar_url ? (
-                  <img src={supportConversation.user.avatar_url} alt="Zero Club Support" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                ) : (
-                  <Headphones className="h-5 w-5" />
-                )}
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground ring-2 ring-background">
-                <Headphones className="h-2.5 w-2.5" />
-              </span>
+            <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground text-background">
+              {supportConversation.user?.avatar_url ? (
+                <img src={supportConversation.user.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+              ) : (
+                <Headphones className="h-6 w-6" />
+              )}
             </div>
-
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 border-b border-border py-3">
               <div className="flex items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-1.5">
-                  <span className="truncate text-[14px] font-semibold leading-none tracking-tight text-foreground">Zero Club Support</span>
-                  <BadgeCheck className="h-4 w-4 shrink-0 fill-primary text-primary-foreground" />
+                  <span className={`truncate text-[15px] text-foreground ${supportConversation.unread ? 'font-bold' : 'font-semibold'}`}>Zero Club Support</span>
+                  <span className="shrink-0 rounded bg-foreground/[0.06] px-1.5 py-px text-[11px] font-semibold text-foreground/70">Official</span>
                 </span>
-                <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-primary">
-                  <Pin className="h-2.5 w-2.5 fill-current" /> Official
-                </span>
+                {supportConversation.unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-label="Unread" />}
               </div>
-              <div className="mt-1 flex items-center justify-between gap-4">
-                <p className={`truncate text-xs leading-relaxed md:text-[12.5px] ${supportConversation.unread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-                  {supportConversation.lastMessage
-                    ? directMessagePreview(supportConversation.lastMessage, { sentByCurrentUser: supportConversation.lastSenderId === currentUser?.id })
-                    : "Message the Zero Club team for help"}
-                </p>
-                {supportConversation.unread && <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />}
-              </div>
+              <p className={`mt-0.5 truncate text-[14px] ${supportConversation.unread ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                {supportConversation.lastMessage ? preview(supportConversation) : "Message the Zero Club team for help"}
+              </p>
             </div>
           </Link>
         )}
 
         {filteredConversations.map((chat: any) => (
-          <Link 
-            key={chat.id} 
+          <Link
+            key={chat.id}
             to="/app/chat/$id"
             params={{ id: chat.id }}
-            className={`flex items-center gap-4 px-5 py-4 md:px-6 md:py-[18px] hover:bg-accent/30 transition-all duration-200 cursor-pointer border-b border-border/10 last:border-b-0 active:bg-accent/20 group ${chat.unread ?"bg-primary/[0.03]" : ""}`}
+            className="group flex items-center gap-3 px-4 transition-colors hover:bg-foreground/[0.02] md:px-6"
           >
-            {/* Avatar with Online Status */}
-            <div className="relative shrink-0" onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate({ to: '/app/profile/$id', params: { id: chat.user?.id } }); }}>
-              <div className="h-12 w-12 rounded-full bg-muted overflow-hidden ring-2 ring-background shadow-sm group-active:scale-95 transition-all duration-200 cursor-pointer hover:shadow-md">
+            <div
+              className="relative shrink-0"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate({ to: '/app/profile/$id', params: { id: chat.user?.id } }); }}
+            >
+              <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[17px] font-semibold text-muted-foreground">
                 {chat.user?.avatar_url ? (
                   <img src={chat.user.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-muted-foreground/20 to-accent flex items-center justify-center font-semibold text-muted-foreground text-lg">
-                    {(chat.user?.full_name || chat.user?.username || 'U').substring(0, 1).toUpperCase()}
-                  </div>
+                  (chat.user?.full_name || chat.user?.username || 'U').substring(0, 1).toUpperCase()
                 )}
               </div>
-              {/* Online Status Dot */}
               {chat.status === 'online' && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-background" />
+                <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-[2.5px] border-card bg-success" aria-label="Online" />
               )}
             </div>
 
-            {/* Conversation Details */}
-            <div className="flex flex-1 flex-col justify-center min-w-0 gap-0.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 truncate">
-                  <span className="text-[14px] font-semibold text-foreground truncate leading-none tracking-tight">
+            <div className="min-w-0 flex-1 border-b border-border py-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-1">
+                  <span className={`truncate text-[15px] text-foreground ${chat.unread ? 'font-bold' : 'font-semibold'}`}>
                     {chat.user?.full_name || chat.user?.username}
                   </span>
-                  {chat.user?.verified && <Check className="h-3.5 w-3.5 text-primary fill-primary shrink-0" />}
-                </div>
-                <div className="flex items-center gap-2.5 shrink-0 ml-3">
-                  <span className="text-[10px] text-muted-foreground/70 font-medium">{chat.time || '4h'}</span>
-                  {chat.unread && <div className="h-2 w-2 rounded-full bg-primary" />}
-                </div>
+                  {chat.user?.verified && <BadgeCheck className="h-4 w-4 shrink-0 fill-current text-accent" />}
+                </span>
+                <span className={`shrink-0 text-[12px] ${chat.unread ? 'font-semibold text-accent' : 'text-muted-foreground'}`}>{chat.time}</span>
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <p className={`text-xs md:text-[12.5px] truncate max-w-[200px] md:max-w-[420px] leading-relaxed ${chat.unread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-                  {directMessagePreview(chat.lastMessage, { sentByCurrentUser: chat.lastSenderId === currentUser?.id })}
+              <div className="mt-0.5 flex items-center gap-2">
+                <p className={`min-w-0 flex-1 truncate text-[14px] ${chat.unread ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                  {preview(chat)}
                 </p>
+                {chat.unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-label="Unread" />}
               </div>
             </div>
           </Link>
         ))}
 
-        {/* Premium Empty State */}
-        {filteredConversations.length === 0 && !supportConversation && (
-          <div className="flex flex-1 flex-col items-center justify-center py-32 text-center px-10 animate-in fade-in duration-700">
-            <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
-              <MessageCircle className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
+        {filteredConversations.length === 0 && !(supportConversation && activeTab === 'All' && !searchQuery) && (
+          <div className="flex flex-1 flex-col items-center justify-center px-10 py-24 text-center">
+            <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
+              <MessageCircle className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="text-[17px] font-semibold tracking-tight mb-1.5 text-foreground">
-              {searchQuery ? 'No matches found' : 'No conversations yet'}
+            <h3 className="mb-1.5 font-display text-[18px] font-semibold text-foreground">
+              {searchQuery ? 'No matches' : activeTab === 'Unread' ? 'All caught up' : 'No conversations yet'}
             </h3>
-            <p className="text-[13.5px] text-muted-foreground leading-relaxed max-w-[260px] mb-7">
-              {searchQuery 
-                ? 'Try searching for someone else or adjust your filters.' 
-                : 'Start a new conversation to connect with someone.'}
+            <p className="max-w-[260px] text-[14px] leading-relaxed text-muted-foreground">
+              {searchQuery
+                ? 'Try a different name or word.'
+                : activeTab === 'Unread'
+                ? 'You have read every message.'
+                : 'Start a conversation with someone you follow.'}
             </p>
-            <Link 
-              to="/app/chat/new" 
-              className="rounded-full bg-foreground text-background px-6 py-2.5 font-semibold tracking-tight text-[13px] inline-flex items-center gap-2 transition-all duration-300 hover:opacity-90 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] active:scale-95"
-            >
-              <MessageSquarePlus className="h-4 w-4" />
-              New Message
-            </Link>
           </div>
         )}
       </div>
 
-      {/* Premium Floating Action Button */}
-      <Link 
-        to="/app/chat/new" 
-        className="fixed bottom-24 right-6 z-50 h-14 w-14 rounded-full bg-foreground text-background shadow-[0_4px_24px_-4px_rgba(0,0,0,0.3)] flex items-center justify-center transition-all duration-300 active:scale-90 hover:shadow-[0_6px_32px_-4px_rgba(0,0,0,0.4)] hover:scale-105 md:hidden"
+      <Link
+        to="/app/chat/new"
+        className="fixed bottom-24 right-4 z-40 flex h-[52px] items-center gap-2 rounded-full bg-foreground pl-4 pr-5 text-[15px] font-semibold text-background shadow-[0_10px_28px_-10px_rgba(0,0,0,0.5)] tap hover:opacity-90 md:hidden"
       >
-        <MessageSquarePlus className="h-6 w-6" />
+        <Edit3 className="h-5 w-5" />
+        New message
       </Link>
     </div>
   );
