@@ -53,6 +53,7 @@ async function getZeroGames(profileId?: string) {
         .from("zero_game_competitions")
         .select(competitionSelect)
         .eq("creator_id", profileId)
+        .in("status", ["open", "countdown", "active"])
         .order("created_at", { ascending: false })
         .limit(8)
       : Promise.resolve({ data: [], error: null }),
@@ -93,6 +94,7 @@ function ZeroGamesHome() {
   const liveGames = games.filter((competition) => competition.status === "active" || competition.status === "countdown");
   const openGames = games.filter((competition) => competition.status === "open");
   const completedGames = games.filter((competition) => competition.status === "completed").slice(0, 4);
+  const myActiveGames = (data?.myGames || []).filter((competition) => competition.status === "open" || competition.status === "active" || competition.status === "countdown");
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-10">
@@ -160,7 +162,7 @@ function ZeroGamesHome() {
           <>
             {liveGames.length > 0 && <CompetitionSection title="Live now" detail="Races already on the clock" competitions={liveGames} format={format} live />}
             <CompetitionSection title="Open competitions" detail="Join freely and wait for the host to begin" competitions={openGames} format={format} />
-            {data?.myGames && data.myGames.length > 0 && <CompetitionSection title="Created by you" detail="Manage the races you are hosting" competitions={data.myGames} format={format} />}
+            {myActiveGames.length > 0 && <CompetitionSection title="Created by you" detail="Manage the races you are hosting" competitions={myActiveGames} format={format} />}
             {completedGames.length > 0 && <CompetitionSection title="Recent finishes" detail="Completed races from the community" competitions={completedGames} format={format} />}
           </>
         )}
