@@ -78,7 +78,7 @@ function Leaderboard({ currentUserId }: { currentUserId?: string }) {
         .from("posts")
         .select("author_id")
         .order("created_at", { ascending: false })
-        .limit(3000);
+        .limit(300);
 
       const tally = new Map<string, number>();
       for (const post of posts || []) {
@@ -296,6 +296,8 @@ function Feed() {
   const queryClient = useQueryClient();
   const { data: postsData, isLoading } = useQuery({ 
     queryKey: ['feed_posts'], 
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
     queryFn: () => getPosts() 
   });
   const posts = postsData || [];
@@ -314,6 +316,7 @@ function Feed() {
   const { data: liveClubs = [], isLoading: liveClubsLoading } = useQuery({
     queryKey: ['feed_live_clubs', currentUser?.id],
     enabled: Boolean(currentUser?.id),
+    staleTime: 1000 * 60 * 3,
     queryFn: async () => {
       const [ownedResult, membershipsResult] = await Promise.all([
         supabase.from('clubs').select('*').eq('creator_id', currentUser!.id),

@@ -145,6 +145,8 @@ function Clubs() {
   // Move heavy data fetching to React Query to prevent route blocking
   const { data: clubData, isLoading: isClubsLoading } = useQuery({
     queryKey: ['clubs_data'],
+    staleTime: 1000 * 60 * 3,
+    gcTime: 1000 * 60 * 15,
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {

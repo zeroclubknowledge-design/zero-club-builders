@@ -960,8 +960,6 @@ function AppLayout() {
           .eq("is_read", false),
       ]);
 
-      void supabase.from("profiles").update({ updated_at: new Date().toISOString() }).eq("id", userId);
-
       return {
         messages: pm.count || 0,
         notifications: notif.count || 0,
