@@ -11,7 +11,7 @@ export const Route = createFileRoute("/app/wallet/withdraw")({ component: Withdr
 function WithdrawPage() {
   const navigate = useNavigate();
   const { data: profile } = useUser();
-  const { details, format, toBaseAmount } = useWalletCurrency();
+  const { details, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const [amount, setAmount] = useState("");
   const numericAmount = toBaseAmount(Number(amount) || 0);
 
@@ -39,40 +39,88 @@ function WithdrawPage() {
   const withdrawable = split ? Number(split.withdrawable) : balance;
   const overBalance = numericAmount > withdrawable;
 
+  const hasBank = Boolean(profile?.bank_name && profile?.account_number);
+  const lastFour = String(profile?.account_number || "").slice(-4);
+
   return (
-    <div className="min-h-screen bg-background pb-20 text-foreground">
-      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[760px] items-center gap-3">
-          <button onClick={() => navigate({ to: "/app/wallet" })} className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"><ArrowLeft className="h-[18px] w-[18px]" /></button>
-          <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold tracking-tight">Withdraw</h1></div>
+    <div className="flex min-h-screen flex-col bg-canvas text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button onClick={() => navigate({ to: "/app/wallet" })} aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Withdraw</h1>
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[760px] gap-5 px-4 py-6 md:grid-cols-[minmax(0,1fr)_250px] md:px-7 md:py-8">
-        <section className="rounded-lg border border-border bg-card p-5 sm:p-7">
-          <div className="text-center">
-            <label className="text-[11px] font-medium uppercase text-muted-foreground">Amount to withdraw</label>
-            <div className="mt-4 flex items-baseline justify-center gap-1"><span className="text-[26px] text-muted-foreground">{details.symbol}</span><input type="number" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" autoFocus className="w-auto min-w-[80px] max-w-[240px] bg-transparent text-center text-[48px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:text-[56px]" style={{ width: `${Math.max(1, amount.length)}ch` }} /></div>
-            <div className={`mx-auto mt-2 h-[2px] w-16 rounded-full ${overBalance ? "bg-destructive" : "bg-primary/60"}`} />
-            <p className={`mt-3 text-[12px] tabular-nums ${overBalance ? "font-medium text-destructive" : "text-muted-foreground"}`}>{overBalance ? "More than you have earned" : `Available to withdraw · ${format(withdrawable)}`}</p>
-            {split && Number(split.balance) > withdrawable && (
-              <p className="mx-auto mt-2 max-w-[280px] text-[11px] leading-relaxed text-muted-foreground">
-                Your balance is {format(Number(split.balance))}, but only earnings can be
-                withdrawn. Money you added is for spending on Zero Club.
-              </p>
-            )}
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+        <section className="bg-card px-4 pb-5 pt-6 text-center md:rounded-xl md:border md:border-border">
+          <p className="text-[13px] font-semibold text-muted-foreground">Available to withdraw</p>
+          <p className="mt-0.5 text-[15px] font-semibold tabular-nums">{format(withdrawable)}</p>
+          <div className="mt-4 flex items-baseline justify-center gap-1">
+            <span className="font-display text-[30px] font-semibold text-muted-foreground">{details.symbol}</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              aria-label="Amount to withdraw"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              placeholder="0"
+              autoFocus
+              className="min-w-[70px] max-w-[260px] bg-transparent text-center font-display text-[44px] font-semibold tracking-[-0.02em] tabular-nums outline-none placeholder:text-muted-foreground/35 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              style={{ width: `${Math.max(1, amount.length)}ch` }}
+            />
           </div>
-
-          <button disabled={numericAmount <= 0 || overBalance} className="mt-9 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground disabled:opacity-40">{numericAmount > 0 && !overBalance ? `Withdraw ${format(numericAmount)}` : "Confirm withdrawal"}<ArrowRight className="h-4 w-4" /></button>
+          {overBalance ? (
+            <p className="mt-1 text-[13px] font-semibold text-destructive">More than you've earned</p>
+          ) : (
+            <button type="button" onClick={() => setAmount(String(withdrawable > 0 ? fromBaseAmount(withdrawable) : ""))} className="mt-1 text-[14px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+              Withdraw all
+            </button>
+          )}
+          {split && Number(split.balance) > withdrawable && (
+            <p className="mx-auto mt-3 max-w-[300px] text-[13px] leading-relaxed text-muted-foreground">
+              Your balance is {format(Number(split.balance))}, but only earnings can be withdrawn. Money you added is for spending on Zero Club.
+            </p>
+          )}
         </section>
 
-        <aside className="space-y-3">
-          <div className="overflow-hidden rounded-lg border border-border bg-card divide-y divide-border">
-            <Link to="/app/wallet/settings" className="flex items-start gap-3 p-4 hover:bg-muted/50"><Landmark className="mt-0.5 h-[18px] w-[18px] shrink-0 text-primary" /><div><p className="text-[13px] font-semibold">Linked bank account</p><p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">Review payout details in wallet settings.</p></div></Link>
-            <div className="flex items-start gap-3 p-4"><Clock className="mt-0.5 h-[18px] w-[18px] shrink-0 text-primary" /><div><p className="text-[13px] font-semibold">Within 24 hours</p><p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">Most verified payouts arrive sooner.</p></div></div>
-          </div>
-          <div className="flex items-start gap-3 rounded-lg bg-[#171218] p-4 text-white"><ShieldCheck className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#f06ac3]" /><p className="text-[11.5px] leading-relaxed text-white/60">Withdrawals are protected by your wallet security and payout verification.</p></div>
-        </aside>
+        <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+          <h2 className="px-4 pb-2 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">To</h2>
+          <Link to="/app/wallet/settings" className="flex items-center gap-3 border-t border-border/60 px-4 py-3.5 hover:bg-foreground/[0.02]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-foreground/[0.06]"><Landmark className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1">
+              {hasBank ? (
+                <>
+                  <span className="block truncate text-[15px] font-semibold">{profile.bank_name} ···· {lastFour}</span>
+                  <span className="block truncate text-[13px] text-muted-foreground">{profile.account_name || "Payout account"}</span>
+                </>
+              ) : (
+                <>
+                  <span className="block text-[15px] font-semibold">Add a bank account</span>
+                  <span className="block text-[13px] text-muted-foreground">Where your earnings should be paid</span>
+                </>
+              )}
+            </span>
+            <span className="shrink-0 text-[14px] font-semibold text-muted-foreground">{hasBank ? "Change" : "Add"}</span>
+          </Link>
+        </section>
+
+        <section className="flex flex-1 flex-col bg-card px-4 pb-28 pt-4 md:flex-none md:rounded-xl md:border md:border-border md:pb-4">
+          <button
+            disabled={numericAmount <= 0 || overBalance || !hasBank}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition hover:opacity-90 disabled:opacity-40"
+          >
+            {numericAmount > 0 && !overBalance ? `Withdraw ${format(numericAmount)}` : "Withdraw"}
+            {numericAmount > 0 && !overBalance && <ArrowRight className="h-4 w-4" />}
+          </button>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-[13px] text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" /> Arrives within 24 hours
+          </p>
+          <p className="mt-1 flex items-center justify-center gap-1.5 text-center text-[12px] text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0" /> Protected by your wallet security and payout checks
+          </p>
+        </section>
       </main>
     </div>
   );

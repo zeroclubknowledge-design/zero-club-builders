@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Gift, Loader2, ShieldCheck } from "@/components/icons/glyphs";
+import { ArrowRight, Check, Gift, Loader2, ShieldCheck, X } from "@/components/icons/glyphs";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -38,27 +38,97 @@ function ClaimGiftPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  if (isLoading) return <div className="grid min-h-screen place-items-center bg-background"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>;
-  if (isError || !data?.card) return <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center"><div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10"><Gift className="h-5 w-5 text-primary" /></div><h1 className="mt-4 text-[18px] font-semibold">Gift unavailable</h1><p className="mt-2 max-w-sm text-[13px] text-muted-foreground">This gift link is invalid, expired, or has already been claimed.</p><Link to="/app/wallet" className="mt-5 rounded-lg bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground">Open wallet</Link></div>;
-
-  const card = claimedCard || data.card;
-  const service = giftServices.find((item) => item.id === card.service);
-  const alreadyClaimed = data.card.status === "claimed";
-
-  if (claimedCard || alreadyClaimed) {
+  if (isLoading) return <div className="grid min-h-screen place-items-center bg-[#17181b]"><Loader2 className="h-7 w-7 animate-spin text-white/60" /></div>;
+  if (isError || !data?.card) {
     return (
-      <div className="min-h-screen bg-background px-4 py-[calc(3rem+env(safe-area-inset-top))] text-center md:px-7">
-        <main className="mx-auto flex max-w-[760px] flex-col items-center"><div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600"><Check className="h-6 w-6" /></div><p className="mt-4 text-[10px] font-semibold uppercase text-primary">Gift claimed</p><h1 className="mt-2 font-display text-[28px] font-semibold tracking-tight">You now have access to {service?.label || card.service}.</h1><p className="mt-3 max-w-lg text-[13.5px] leading-relaxed text-muted-foreground">Your {format(Number(card.amount))} gift entitlement is locked to {service?.description?.toLowerCase() || card.service}. It cannot be spent elsewhere.</p><div className="mt-7 w-full max-w-[520px]"><GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} /></div><Link to={card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : "/app"} className="mt-7 flex h-12 w-full max-w-[520px] items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground">Use your gift<ArrowRight className="h-4 w-4" /></Link></main>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-6 text-center">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.06]"><Gift className="h-5 w-5" /></div>
+        <h1 className="mt-4 font-display text-[20px] font-semibold">Zero Card unavailable</h1>
+        <p className="mt-2 max-w-sm text-[14px] text-muted-foreground">This link is invalid, has expired, or the card has already been claimed.</p>
+        <Link to="/app/wallet" className="mt-5 flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">Open wallet</Link>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-background px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] md:px-7 md:pt-10">
-      <main className="mx-auto grid min-w-0 max-w-[920px] gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
-        <section className="min-w-0"><p className="text-[10px] font-semibold uppercase text-primary">A Zero Card for you</p><h1 className="mt-3 font-display text-[27px] font-semibold leading-tight tracking-tight sm:text-[40px]">Someone is backing your next step.</h1><p className="mt-3 max-w-xl text-[13px] leading-relaxed text-muted-foreground sm:text-[14px]">{data.creator?.full_name || data.creator?.username || "A Zero Club member"} sent you {card.service === "support" || card.service === "custom" ? "a Zero Card. Claim it and the amount lands in your wallet to spend freely." : `Zero Club credit for ${service?.label || card.service}. Claim it once and use it for that.`}</p><div className="mt-5 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-3.5 sm:mt-6 sm:p-4"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><p className="text-[11.5px] leading-relaxed text-muted-foreground sm:text-[12px]">{card.service === "support" || card.service === "custom" ? "Once claimed, this is ordinary wallet balance — spend it anywhere on Zero Club." : "This claim is tied to your current Zero Club account and cannot be transferred after claiming."}</p></div></section>
-        <aside className="w-full min-w-0 border-t border-border pt-6 lg:border-0 lg:pt-0"><div className="mx-auto w-full max-w-[520px]"><GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} /><button onClick={() => claimGift.mutate()} disabled={claimGift.isPending} className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-[14px] font-semibold text-primary-foreground disabled:opacity-50 sm:mt-4">{claimGift.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Claim gift card<ArrowRight className="h-4 w-4" /></>}</button></div></aside>
-      </main>
+  const card = claimedCard || data.card;
+  const service = giftServices.find((item) => item.id === card.service);
+  const alreadyClaimed = data.card.status === "claimed";
+  const senderName = data.creator?.full_name || data.creator?.username || "A Zero Club member";
+  const walletBacked = card.service === "support" || card.service === "custom";
+  const useHref = card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : walletBacked ? "/app/wallet" : "/app";
+
+  const shell = (children: React.ReactNode) => (
+    <div className="flex min-h-screen flex-col items-center bg-[#17181b] text-white">
+      <header className="flex h-14 w-full max-w-[680px] items-center px-2 pt-[env(safe-area-inset-top)]">
+        <Link to="/app/wallet" aria-label="Close" className="grid h-11 w-11 place-items-center rounded-full text-white hover:bg-white/10">
+          <X className="h-[22px] w-[22px]" />
+        </Link>
+      </header>
+      <main className="flex w-full max-w-[420px] flex-1 flex-col items-center px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-center md:pb-10">{children}</main>
     </div>
+  );
+
+  const sender = (
+    <div className="mt-4 grid h-[72px] w-[72px] place-items-center overflow-hidden rounded-full bg-white/10 text-[22px] font-semibold ring-4 ring-white/10">
+      {data.creator?.avatar_url ? <img src={data.creator.avatar_url} alt="" className="h-full w-full object-cover" /> : senderName.charAt(0).toUpperCase()}
+    </div>
+  );
+
+  if (claimedCard || alreadyClaimed) {
+    return shell(
+      <>
+        <span className="mt-6 grid h-12 w-12 place-items-center rounded-full bg-[#1a7f4b] text-white"><Check className="h-6 w-6" /></span>
+        <h1 className="mt-4 font-display text-[24px] font-semibold leading-tight">
+          {walletBacked ? `${format(Number(card.amount))} is in your wallet` : `You now have ${service?.label || card.service} credit`}
+        </h1>
+        <p className="mt-2 text-[14px] leading-relaxed text-white/65">
+          {walletBacked
+            ? "Spend it anywhere on Zero Club."
+            : `Your ${format(Number(card.amount))} is locked to ${service?.description?.toLowerCase() || card.service} and can't be spent elsewhere.`}
+        </p>
+        <div className="mt-7 w-full">
+          <GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} />
+        </div>
+        <div className="mt-auto w-full pt-8">
+          <Link to={useHref} className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-[#17181b]">
+            {walletBacked ? "Open wallet" : "Use it now"} <ArrowRight className="h-4 w-4" />
+          </Link>
+          {data.creator?.id && (
+            <Link to="/app/chat/$id" params={{ id: data.creator.id }} className="mt-2.5 flex h-11 w-full items-center justify-center rounded-full text-[15px] font-semibold text-white/75 hover:text-white">
+              Say thanks to {senderName.split(" ")[0]}
+            </Link>
+          )}
+        </div>
+      </>,
+    );
+  }
+
+  return shell(
+    <>
+      {sender}
+      <p className="mt-3 text-[15px] text-white/70">{senderName} sent you a Zero Card</p>
+      <div className="mt-7 w-full -rotate-2">
+        <GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} />
+      </div>
+      <div className="mt-8 flex flex-wrap justify-center gap-2 text-[13px]">
+        <span className="flex h-7 items-center rounded-full bg-white/10 px-3">Use for: {service?.label || card.service}</span>
+      </div>
+      <p className="mt-4 flex items-start gap-2 text-left text-[13px] leading-relaxed text-white/55">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+        {walletBacked
+          ? "Once claimed, this is ordinary wallet balance — spend it anywhere on Zero Club."
+          : "This claim is tied to your account and can't be transferred after you claim it."}
+      </p>
+      <div className="mt-auto w-full pt-8">
+        <button onClick={() => claimGift.mutate()} disabled={claimGift.isPending} className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-[#17181b] disabled:opacity-60">
+          {claimGift.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : `Claim ${format(Number(card.amount))}`}
+        </button>
+        {data.creator?.id && (
+          <Link to="/app/chat/$id" params={{ id: data.creator.id }} className="mt-2.5 flex h-11 w-full items-center justify-center rounded-full text-[15px] font-semibold text-white/75 hover:text-white">
+            Say thanks first
+          </Link>
+        )}
+      </div>
+    </>,
   );
 }

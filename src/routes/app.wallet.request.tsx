@@ -1,15 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  ChevronLeft,
-  Check,
-  Copy,
-  HandCoins,
-  Loader2,
-  Plus,
-  X,
-} from "@/components/icons/glyphs";
+import { ArrowLeft, Check, Copy, Link2, Loader2, Plus } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -118,188 +110,163 @@ function RequestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[640px] items-center gap-3">
-          <Link to="/app/wallet" aria-label="Back to wallet" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
-            <ChevronLeft className="h-5 w-5" />
+    <div className="flex min-h-screen flex-col bg-canvas text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <Link to="/app/wallet" aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </Link>
-          <div>
-            <p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p>
-            <h1 className="text-[18px] font-semibold tracking-tight">Request money</h1>
-          </div>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Request money</h1>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[640px] px-4 py-5 md:px-7 md:py-7">
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         {createdSlug ? (
           /* Straight to the link. Nobody creates a request in order to admire
              the form afterwards. */
-          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#241a2b] via-[#17131b] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-40px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-6">
-            <div className="pointer-events-none absolute -left-16 -top-20 h-48 w-48 rounded-full bg-[#cc208f]/25 blur-[70px]" />
-            <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full border-[18px] border-white opacity-[0.045]" />
-
-            <div className="relative">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-300">
-                <Check className="h-3 w-3" strokeWidth={3} /> Ready to send
-              </span>
-              <h2 className="mt-3 text-[19px] font-semibold tracking-tight">Your request link</h2>
-              <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">
-                Anyone can open this and pay you — a card is enough, they do not need a Zero Club account.
-                Your wallet is credited the moment the payment clears.
-              </p>
-
-              <p className="mt-4 break-all rounded-lg bg-black/30 px-3 py-2.5 font-mono text-[11.5px] text-white/80 ring-1 ring-white/10">
-                {shareUrl}
-              </p>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <ShareMenu
-                  url={shareUrl}
-                  title="Fund my Zero Club wallet"
-                  text="Here is my Zero Club request link"
-                  label="Share"
-                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[12.5px] font-semibold text-[#12101a] transition active:scale-95"
-                />
-                <button
-                  onClick={() => copyToClipboard(shareUrl, "Request link copied")}
-                  className="inline-flex h-10 items-center gap-1.5 rounded-full border border-white/20 px-4 text-[12.5px] font-semibold text-white transition hover:bg-white/10 active:scale-95"
-                >
-                  <Copy className="h-3.5 w-3.5" /> Copy
-                </button>
-                <button
-                  onClick={() => setCreatedSlug(null)}
-                  className="inline-flex h-10 items-center gap-1.5 px-3 text-[12.5px] font-semibold text-white/55 transition hover:text-white"
-                >
-                  <Plus className="h-3.5 w-3.5" /> New request
-                </button>
-              </div>
+          <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a7f4b]/10 px-2.5 py-1 text-[12px] font-semibold text-[#1a7f4b]">
+              <Check className="h-3.5 w-3.5" /> Ready to send
+            </span>
+            <h2 className="mt-2.5 font-display text-[18px] font-semibold">Your request link</h2>
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+              Anyone can pay this by card — they don't need a Zero Club account. Your wallet is credited the moment it clears.
+            </p>
+            <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-[#cc208f]/[0.06] p-3">
+              <Link2 className="h-[18px] w-[18px] shrink-0 text-[#cc208f]" />
+              <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{shareUrl.replace(/^https?:\/\//, "")}</span>
+              <button
+                onClick={() => copyToClipboard(shareUrl, "Request link copied")}
+                className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3 text-[13px] font-semibold text-background"
+              >
+                <Copy className="h-3.5 w-3.5" /> Copy
+              </button>
+            </div>
+            <div className="mt-2.5 flex gap-2">
+              <ShareMenu
+                url={shareUrl}
+                title="Fund my Zero Club wallet"
+                text="Here is my Zero Club request link"
+                label="Share"
+                className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-foreground/20 text-[14px] font-semibold text-foreground transition hover:bg-foreground/[0.04]"
+              />
+              <button
+                onClick={() => setCreatedSlug(null)}
+                className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-foreground/20 text-[14px] font-semibold text-foreground transition hover:bg-foreground/[0.04]"
+              >
+                <Plus className="h-4 w-4" /> New request
+              </button>
             </div>
           </section>
         ) : (
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_14px_34px_-24px_rgba(0,0,0,0.18)] sm:p-6">
-            <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/[0.08] text-primary ring-1 ring-primary/15">
-              <HandCoins className="h-5 w-5" strokeWidth={1.9} />
-            </span>
-            <h2 className="mt-3.5 text-[17px] font-semibold tracking-tight">Ask anyone to pay you</h2>
-            <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
-              Create a link, send it to whoever owes you. They can pay by card without an account,
-              and the money arrives in your wallet automatically.
+          <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
+            <p className="text-[14px] leading-relaxed text-muted-foreground">
+              Create a link anyone can use to fund your wallet — for a bootcamp, a laptop or your next build. They can pay by card without an account.
             </p>
-
-            <div className="mt-5 space-y-4">
-              <div>
-                <label htmlFor="request-amount" className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  Amount ({details.symbol})
-                </label>
+            <div className="mt-4 flex flex-col gap-3.5">
+              <label className="block">
+                <span className={LABEL}>Amount ({details.symbol})</span>
                 <input
                   id="request-amount"
                   inputMode="decimal"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ""))}
                   placeholder="Leave blank to let them decide"
-                  className="mt-1.5 h-12 w-full rounded-lg border border-border bg-background px-3.5 text-[15px] font-semibold tabular-nums outline-none transition focus:border-primary/50"
+                  className={`${FIELD} font-semibold tabular-nums`}
                 />
-              </div>
-
-              <div>
-                <label htmlFor="request-note" className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  What is it for
-                </label>
+              </label>
+              <label className="block">
+                <span className={LABEL}>What's it for?</span>
                 <input
                   id="request-note"
                   value={note}
                   maxLength={120}
                   onChange={(event) => setNote(event.target.value)}
-                  placeholder="Design work, cohort fee, split bill…"
-                  className="mt-1.5 h-12 w-full rounded-lg border border-border bg-background px-3.5 text-[14px] outline-none transition focus:border-primary/50"
+                  placeholder="Bootcamp fee, design work, split bill…"
+                  className={FIELD}
                 />
-              </div>
+              </label>
+              <button
+                onClick={createRequest}
+                disabled={creating}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition active:scale-[0.98] disabled:opacity-60"
+              >
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create link"}
+              </button>
             </div>
-
-            <button
-              onClick={createRequest}
-              disabled={creating}
-              className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[14px] font-semibold text-background transition active:scale-[0.98] disabled:opacity-60"
-            >
-              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create request link"}
-            </button>
           </section>
         )}
 
-        <section className="mt-6">
-          <h3 className="px-1 text-[13px] font-semibold tracking-tight">Your requests</h3>
-
+        <section className="flex-1 bg-card pb-28 md:flex-none md:overflow-hidden md:rounded-xl md:border md:border-border md:pb-2">
+          <h2 className="px-4 pb-2 pt-4 font-display text-[18px] font-semibold">Your requests</h2>
           {isLoading ? (
-            <div className="mt-3 grid min-h-28 place-items-center rounded-xl border border-border bg-card">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
+            <div className="grid min-h-28 place-items-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
           ) : links.length === 0 ? (
-            <p className="mt-3 rounded-xl border border-dashed border-border px-4 py-8 text-center text-[12.5px] text-muted-foreground">
-              Nothing yet. Your requests and what they have collected will show up here.
+            <p className="border-t border-border/60 px-4 py-8 text-center text-[14px] text-muted-foreground">
+              Nothing yet. Your requests and what they've collected show up here.
             </p>
           ) : (
-            <div className="mt-3 space-y-2.5">
-              {links.map((link) => {
-                const collected = received[link.id] || { total: 0, count: 0 };
-                const closed = link.status !== "active";
-                return (
-                  <div key={link.id} className="rounded-xl border border-border bg-card p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-[15px] font-semibold tracking-tight tabular-nums">
-                          {link.amount ? format(Number(link.amount)) : "Any amount"}
-                        </p>
-                        <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                          {link.note || "No description"}
-                        </p>
-                      </div>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide ${closed ? "bg-foreground/[0.06] text-muted-foreground" : "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"}`}>
-                        {closed ? "Closed" : "Active"}
-                      </span>
-                    </div>
-
-                    <p className="mt-2.5 text-[11.5px] text-muted-foreground">
-                      {collected.count > 0
-                        ? <>Received <strong className="font-semibold text-foreground tabular-nums">{format(collected.total)}</strong> from {collected.count} {collected.count === 1 ? "payment" : "payments"}</>
-                        : "No payments yet"}
+            links.map((link) => {
+              const collected = received[link.id] || { total: 0, count: 0 };
+              const closed = link.status !== "active";
+              const target = Number(link.amount) || 0;
+              const percent = target > 0 ? Math.min(100, Math.round((collected.total / target) * 100)) : 0;
+              return (
+                <div key={link.id} className="border-t border-border/60 px-4 py-3.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="min-w-0 truncate text-[15px] font-semibold">{link.note || "Request"}</p>
+                    <p className={`shrink-0 text-[14px] font-semibold tabular-nums ${closed && collected.total > 0 ? "text-[#1a7f4b]" : ""}`}>
+                      {target > 0 ? `${format(collected.total)} of ${format(target)}` : collected.total > 0 ? format(collected.total) : "Any amount"}
                     </p>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+                  </div>
+                  {target > 0 && (
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/[0.08]">
+                      <div className="h-full rounded-full bg-[#1a7f4b] transition-[width] duration-500" style={{ width: `${percent}%` }} />
+                    </div>
+                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground">
+                    <span>
+                      {collected.count > 0 ? `${collected.count} ${collected.count === 1 ? "person" : "people"} paid` : "No payments yet"}
+                      {" · "}
+                      <span className={closed ? "" : "font-semibold text-[#1a7f4b]"}>{closed ? "Closed" : "Open"}</span>
+                    </span>
+                    <span className="ml-auto flex items-center gap-1">
                       <button
                         onClick={() => copyToClipboard(fundLinkUrl(link.slug), "Request link copied")}
-                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[11.5px] font-semibold text-foreground transition hover:bg-accent/40"
+                        aria-label="Copy link"
+                        className="grid h-8 w-8 place-items-center rounded-full hover:bg-foreground/[0.05] hover:text-foreground"
                       >
-                        <Copy className="h-3 w-3" /> Copy link
+                        <Copy className="h-4 w-4" />
                       </button>
                       <ShareMenu
                         url={fundLinkUrl(link.slug)}
                         title="Fund my Zero Club wallet"
                         text={link.note ? `Zero Club request: ${link.note}` : "Here is my Zero Club request link"}
                         label="Share"
-                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[11.5px] font-semibold text-foreground transition hover:bg-accent/40"
+                        className="inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold text-foreground hover:bg-foreground/[0.05]"
                       />
                       {!closed && (
                         <button
                           onClick={() => closeRequest(link.slug)}
-                          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] font-semibold text-muted-foreground transition hover:text-destructive"
+                          className="inline-flex h-8 items-center rounded-full px-2.5 text-[13px] font-semibold hover:text-destructive"
                         >
-                          <X className="h-3 w-3" /> Close
+                          Close
                         </button>
                       )}
-                    </div>
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })
           )}
+          <p className="border-t border-border/60 px-4 py-3 text-[12px] leading-relaxed text-muted-foreground">
+            Money received through a request can be spent anywhere on Zero Club, but it isn't earnings, so it can't be withdrawn to a bank.
+          </p>
         </section>
-
-        <p className="mt-6 text-center text-[11px] leading-relaxed text-muted-foreground">
-          Money received through a request is float, not earnings, so it can be spent anywhere on
-          Zero Club but is not withdrawable to a bank account.
-        </p>
       </main>
     </div>
   );
 }
+
+const LABEL = "mb-1.5 block text-[13px] font-semibold text-muted-foreground";
+const FIELD = "h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 placeholder:font-normal focus:border-foreground/40";
