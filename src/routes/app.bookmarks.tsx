@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bookmark, Search, ChevronLeft, X, Loader2 } from "@/components/icons/glyphs";
+import { ArrowLeft, Bookmark, Search, X, Loader2 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { enrichPosts } from "@/api";
 import { useState, useEffect } from "react";
@@ -76,68 +76,82 @@ function BookmarksPage() {
     initUser();
   }, []);
 
+  const [kind, setKind] = useState<"all" | "posts" | "ships">("all");
+  const visibleBookmarks = filteredBookmarks.filter((post: any) =>
+    kind === "all" ? true : kind === "ships" ? Boolean(post?.is_build_post) : !post?.is_build_post,
+  );
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-background pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex w-full max-w-[860px] items-center gap-3 px-4 py-4 sm:px-6">
-          <Link to="/app" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:opacity-60 lg:hidden">
-            <ChevronLeft className="h-6 w-6" />
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <Link to="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </Link>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold">Bookmarks</h1>
-            <p className="text-xs text-muted-foreground">Posts and builds saved for later</p>
-          </div>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Saved</h1>
+          {bookmarks.length > 0 && <span className="pr-3 text-[13px] text-muted-foreground">{bookmarks.length} saved</span>}
         </div>
-        <div className="mx-auto w-full max-w-[860px] px-4 pb-4 sm:px-6">
-          <label className="flex h-11 w-full items-center gap-3 rounded-lg border border-border bg-card px-3 focus-within:border-primary">
-            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="mx-auto w-full max-w-[680px] px-3 pb-2">
+          <label className="flex h-[38px] w-full items-center gap-2 rounded-full bg-foreground/[0.06] px-3">
+            <Search className="h-[17px] w-[17px] shrink-0 text-muted-foreground" />
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search saved posts, people, or bootcamps"
-              className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              placeholder="Search saved posts, people or bootcamps"
+              className="h-full min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
             />
             {searchQuery && (
-              <button type="button" onClick={() => setSearchQuery("")} className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Clear search">
+              <button type="button" onClick={() => setSearchQuery("")} className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:text-foreground" aria-label="Clear search">
                 <X className="h-4 w-4" />
               </button>
             )}
           </label>
         </div>
+        <div className="mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
+          {([["all", "All"], ["posts", "Posts"], ["ships", "Ships"]] as const).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setKind(value)}
+              className={`h-8 rounded-full px-3.5 text-[14px] font-semibold transition ${kind === value ? "bg-foreground text-background" : "border border-foreground/30 text-muted-foreground hover:border-foreground/50"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[860px] px-4 py-6 sm:px-6">
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col md:py-2">
         {isLoading ? (
-          <div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : filteredBookmarks.length > 0 ? (
-          <div className="space-y-4">
-            {filteredBookmarks.map((post: any) => {
+          <div className="flex flex-1 justify-center bg-card py-20"><Loader2 className="h-7 w-7 animate-spin text-muted-foreground" /></div>
+        ) : visibleBookmarks.length > 0 ? (
+          <div className="flex flex-1 flex-col gap-2 pt-2">
+            {visibleBookmarks.map((post: any) => {
               if (!post) return null;
-              
               return (
-                <PostCard 
-                  key={post.id} 
-                  post={{ ...post, isBookmarked: true }} 
-                  currentUser={currentUser} 
-                  onCommentClick={setCommentPost} 
+                <PostCard
+                  key={post.id}
+                  post={{ ...post, isBookmarked: true }}
+                  currentUser={currentUser}
+                  onCommentClick={setCommentPost}
                 />
               );
             })}
+            <div aria-hidden className="min-h-24 flex-1 bg-card md:hidden" />
           </div>
         ) : (
-          <div className="flex min-h-[52vh] flex-col items-center justify-center px-6 text-center">
-            <div className="mb-5 grid h-16 w-16 place-items-center rounded-lg border border-border bg-card text-muted-foreground">
-              {searchQuery ? <Search className="h-7 w-7" /> : <Bookmark className="h-7 w-7" />}
+          <div className="mt-2 flex flex-1 flex-col items-center justify-center bg-card px-6 py-20 text-center md:rounded-xl md:border md:border-border">
+            <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
+              {searchQuery ? <Search className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}
             </div>
-            <h2 className="text-xl font-semibold">{searchQuery ? "No matching bookmarks" : "No bookmarks yet"}</h2>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-              {searchQuery
-                ? "Try another name, phrase, or bootcamp title."
-                : "When you find a build that inspires you, save it here for later reference."}
+            <h2 className="font-display text-[18px] font-semibold">{searchQuery || kind !== "all" ? "Nothing matches" : "Nothing saved yet"}</h2>
+            <p className="mt-1.5 max-w-sm text-[14px] leading-relaxed text-muted-foreground">
+              {searchQuery || kind !== "all"
+                ? "Try another name, phrase or filter."
+                : "Tap the bookmark on any post or ship to keep it here for later."}
             </p>
-            {!searchQuery && (
-              <Link to="/app" className="mt-7 rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-95">
-                Discover builds
+            {!searchQuery && kind === "all" && (
+              <Link to="/app" className="mt-6 flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background transition hover:opacity-90">
+                Explore the feed
               </Link>
             )}
           </div>
@@ -152,4 +166,3 @@ function BookmarksPage() {
     </div>
   );
 }
-

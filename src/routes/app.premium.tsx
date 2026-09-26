@@ -7,7 +7,8 @@ import {
   Building2,
   CalendarDays,
   Check,
-  ChevronLeft,
+  ArrowLeft,
+  Crown,
   GraduationCap,
   LifeBuoy,
   Loader2,
@@ -26,6 +27,7 @@ import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingD
 import { formatNaira, resolvePlanKey } from "@/features/membership/plans";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 import { useGoBack } from "@/hooks/useGoBack";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
@@ -216,44 +218,6 @@ function featureIcon(text: string) {
   return Check;
 }
 
-/** Fixed positions, so the field is the same every render — no re-layout flicker. */
-const STARS = [
-  { top: "12%", left: "9%", size: 3, delay: "0s" },
-  { top: "22%", left: "84%", size: 4, delay: "0.7s" },
-  { top: "38%", left: "16%", size: 2, delay: "1.4s" },
-  { top: "8%", left: "62%", size: 2, delay: "2.1s" },
-  { top: "44%", left: "91%", size: 3, delay: "0.4s" },
-  { top: "30%", left: "44%", size: 2, delay: "1.8s" },
-  { top: "17%", left: "31%", size: 2, delay: "2.6s" },
-];
-
-function AnimatedBrandMark() {
-  return (
-    <div className="relative mx-auto grid h-[118px] w-[118px] place-items-center">
-      {/* Glow first, so the mark sits inside its own light. */}
-      <span
-        aria-hidden
-        className="zc-pro-halo absolute inset-[-14px] rounded-full bg-[radial-gradient(circle,rgba(204,32,143,0.55)_0%,rgba(204,32,143,0.12)_45%,transparent_70%)] blur-[10px]"
-      />
-
-      {/* A bare rotating ring reads as a spinner; the travelling dot is what
-          makes it read as an orbit. */}
-      <span aria-hidden className="zc-pro-spin absolute inset-0 rounded-full border border-white/12">
-        <span className="absolute left-1/2 top-0 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f06ac3] shadow-[0_0_12px_rgba(240,106,195,0.95)]" />
-      </span>
-      <span aria-hidden className="zc-pro-spin-reverse absolute inset-[13px] rounded-full border border-dashed border-white/[0.09]">
-        <span className="absolute bottom-0 left-1/2 h-1 w-1 -translate-x-1/2 translate-y-1/2 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-      </span>
-
-      <img
-        src="/logo.png"
-        alt="Zero Club"
-        className="zc-pro-float relative h-[54px] w-[54px] object-contain drop-shadow-[0_12px_30px_rgba(204,32,143,0.55)]"
-      loading="lazy" decoding="async" />
-    </div>
-  );
-}
-
 function MembershipPage() {
   const queryClient = useQueryClient();
   const goBack = useGoBack("/app");
@@ -414,231 +378,183 @@ function MembershipPage() {
   const ctaBusy = subscribeMutation.isPending && subscribeMutation.variables?.id === selectedPlan?.id;
 
   return (
-    <div className="min-h-screen bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[680px] items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <button type="button" onClick={goBack} aria-label="Back" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <div className="min-w-0">
-              <p className="text-[11px] font-medium uppercase text-muted-foreground">Zero Club</p>
-              <h1 className="truncate text-[19px] font-semibold tracking-tight">Go PRO</h1>
-            </div>
-          </div>
-          <div className="hidden items-center gap-2 text-[12px] text-muted-foreground sm:flex">
-            <Wallet className="h-4 w-4 text-primary" />
-            <span>Balance</span>
-            <strong className="font-semibold tabular-nums text-foreground">{Number(profile?.coins || 0).toLocaleString()} coins</strong>
-          </div>
+    <div className="flex min-h-screen flex-col bg-[#f6f1e6] text-foreground dark:bg-background">
+      <header className="sticky top-0 z-40 bg-[#f6f1e6]/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl dark:bg-background/95">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.05]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Go PRO</h1>
+          <span className="flex items-center gap-1.5 pr-3 text-[13px] text-muted-foreground">
+            <Wallet className="h-4 w-4" />
+            <strong className="font-semibold tabular-nums text-foreground">{Number(profile?.coins || 0).toLocaleString()}</strong> coins
+          </span>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[680px] px-4 py-5 md:px-7 md:py-8">
-        {/* One committed dark stage, whichever theme the app is in — the same
-            decision the wallet card makes. Membership should feel like the
-            expensive room, not another settings page. */}
-        <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(125%_95%_at_50%_-15%,#33203a_0%,#1b1520_42%,#0c0a0e_100%)] px-4 pb-6 pt-8 text-white shadow-[0_30px_80px_-40px_rgba(0,0,0,0.85)] sm:px-6">
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            {STARS.map((star, index) => (
-              <span
-                key={index}
-                className="zc-pro-twinkle absolute rounded-full bg-[#7cc8ff]"
-                style={{ top: star.top, left: star.left, height: star.size, width: star.size, animationDelay: star.delay }}
-              />
-            ))}
-            <span className="absolute -right-24 -top-28 h-72 w-72 rounded-full border-[64px] border-white/[0.03]" />
-          </div>
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-28 pt-2 md:pb-10">
+        <span className="inline-flex h-[26px] w-fit items-center gap-1.5 rounded-full bg-foreground px-2.5 text-[12px] font-bold tracking-[0.04em] text-[#e9c46a]">
+          <Crown className="h-3.5 w-3.5" /> MEMBERSHIP
+        </span>
+        <h2 className="mt-3 font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em]">{copy.title}</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{copy.description}</p>
 
-          <div className="relative">
-            <AnimatedBrandMark />
+        {/* Audience tabs — underlined, one row, scrollable rather than
+            wrapping, so the row never changes height. */}
+        <div role="tablist" aria-label="Choose your pathway" className="no-scrollbar mt-5 flex gap-5 overflow-x-auto border-b border-foreground/10 text-[14px] font-semibold">
+          {(["Learner", "Creator", "Tutor", "Institution"] as Audience[]).map((item) => {
+            const active = audience === item;
+            return (
+              <button
+                key={item}
+                role="tab"
+                aria-selected={active}
+                onClick={() => { setAudience(item); setSelectedPlanId(null); }}
+                className={`flex h-10 shrink-0 items-center transition-colors ${active ? "text-foreground shadow-[inset_0_-2px_0_currentColor]" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {item}
+              </button>
+            );
+          })}
+        </div>
 
-            <h2 className="mx-auto mt-5 max-w-[19ch] text-center font-display text-[25px] font-semibold leading-[1.15] tracking-tight sm:text-[29px]">
-              {copy.title.split(" ").slice(0, -1).join(" ")}{" "}
-              <span className="text-[#f06ac3]">{copy.title.split(" ").slice(-1)}</span>
-            </h2>
-            <p className="mx-auto mt-2.5 max-w-[36ch] text-center text-[12.5px] leading-relaxed text-white/55">
-              {copy.description}
-            </p>
-
-            {/* Audience tabs — underlined, one row, scrollable rather than
-                wrapping, so the row never changes height. */}
-            <div
-              role="tablist"
-              aria-label="Choose your pathway"
-              className="no-scrollbar mt-6 flex gap-1 overflow-x-auto border-b border-white/10"
-            >
-              {(["Learner", "Creator", "Tutor", "Institution"] as Audience[]).map((item) => {
-                const active = audience === item;
-                return (
-                  <button
-                    key={item}
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => { setAudience(item); setSelectedPlanId(null); }}
-                    className={`relative shrink-0 px-4 pb-3 pt-1 text-[14px] font-semibold tracking-tight transition-colors ${active ? "text-white" : "text-white/45 hover:text-white/75"}`}
-                  >
-                    {item}
-                    <span
-                      className={`absolute inset-x-2 bottom-0 h-[2.5px] rounded-full bg-white transition-opacity ${active ? "opacity-100" : "opacity-0"}`}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* What you get. */}
-            <div className="mt-5 rounded-xl bg-white/[0.045] p-4 ring-1 ring-white/[0.08] sm:p-5">
-              <ul className="space-y-[15px]">
-                {selectedPlan?.features.map((feature) => {
-                  const Icon = featureIcon(feature);
-                  return (
-                    <li key={feature} className="flex items-start gap-3.5">
-                      <Icon className="mt-[1px] h-[18px] w-[18px] shrink-0 text-white/85" strokeWidth={1.8} />
-                      <span className="text-[13.5px] leading-snug text-white/90">{feature}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {selectedPlan?.limitations && selectedPlan.limitations.length > 0 && (
-                <div className="mt-5 border-t border-white/10 pt-4">
-                  <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Not included</p>
-                  <ul className="space-y-2.5">
-                    {selectedPlan.limitations.map((limitation) => (
-                      <li key={limitation} className="flex items-start gap-3.5 text-[12.5px] text-white/45">
-                        <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-current" />
-                        <span>{limitation}</span>
-                      </li>
-                    ))}
-                  </ul>
+        <div className="mt-5 flex flex-col gap-3">
+          {visiblePlans.map((plan) => {
+            const active = plan.id === selectedPlan?.id;
+            const current = isCurrentPlan(plan);
+            return (
+              <div
+                key={plan.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={active}
+                onClick={() => setSelectedPlanId(plan.id)}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedPlanId(plan.id); } }}
+                className={`relative cursor-pointer rounded-2xl bg-card p-4 text-left transition ${active ? "border-2 border-foreground" : "border border-foreground/12 hover:border-foreground/30"}`}
+              >
+                {(current || plan.featured) && (
+                  <span className={`absolute -top-[11px] right-4 flex h-[22px] items-center rounded-full px-2.5 text-[11px] font-bold ${current ? "bg-[#1a7f4b] text-white" : "bg-[#cc208f] text-white"}`}>
+                    {current ? "CURRENT" : "POPULAR"}
+                  </span>
+                )}
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-display text-[20px] font-semibold">{plan.name}</span>
+                  <span className="shrink-0 text-[20px] font-semibold tabular-nums">
+                    {plan.priceValue === null ? "Custom" : plan.priceValue === 0 ? "Free" : formatNaira(plan.priceValue)}
+                    {plan.priceValue !== null && plan.priceValue > 0 && (
+                      <span className="ml-0.5 text-[13px] font-medium text-muted-foreground">{plan.billingLabel}</span>
+                    )}
+                  </span>
                 </div>
-              )}
-            </div>
-
-            {/* Price selector. The chosen tile is outlined in white and the
-                others recede — the same read as the reference. */}
-            <div className="mt-5 grid grid-cols-2 gap-2.5">
-              {visiblePlans.map((plan, index) => {
-                const active = plan.id === selectedPlan?.id;
-                const current = isCurrentPlan(plan);
-                const spanFull = visiblePlans.length % 2 === 1 && index === visiblePlans.length - 1;
-                return (
-                  <button
-                    key={plan.id}
-                    onClick={() => setSelectedPlanId(plan.id)}
-                    aria-pressed={active}
-                    className={`${spanFull ? "col-span-2" : ""} rounded-xl border p-3.5 text-left transition ${
-                      active
-                        ? "border-white bg-white/[0.07] shadow-[0_0_0_1px_rgba(255,255,255,0.35)]"
-                        : "border-white/12 hover:border-white/25"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`text-[14px] font-semibold tracking-tight ${active ? "text-white" : "text-white/55"}`}>
-                        {plan.name}
-                      </span>
-                      {current ? (
-                        <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-emerald-300">Current</span>
-                      ) : plan.featured ? (
-                        <span className={`text-[11px] font-semibold ${active ? "text-[#f06ac3]" : "text-[#f06ac3]/55"}`}>Popular</span>
-                      ) : null}
-                    </div>
-                    <p className={`mt-1.5 text-[17px] font-semibold tracking-tight tabular-nums ${active ? "text-white" : "text-white/45"}`}>
-                      {plan.priceValue === null ? "Custom" : plan.priceValue === 0 ? "Free" : formatNaira(plan.priceValue)}
-                      <span className={`ml-1 text-[11px] font-medium ${active ? "text-white/50" : "text-white/30"}`}>{plan.billingLabel}</span>
-                    </p>
-                    <p className={`mt-1 text-[11px] leading-snug ${active ? "text-white/50" : "text-white/30"}`}>{plan.eyebrow}</p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Zero Card credit, if any is waiting. Hides itself when there is
-                none, so this space is normally empty. */}
-            <div className="mt-3">
-              <ZeroGiftPaymentOption
-                service="membership"
-                amount={selectedPlan?.priceValue || 0}
-                applied={applyZeroGift}
-                onAppliedChange={setApplyZeroGift}
-                formatAmount={formatNaira}
-                dark
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handlePlanAction(selectedPlan)}
-              disabled={ctaBusy || isLoading || (selectedIsCurrent && !selectedIsInstitution)}
-              className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-white text-[15px] font-semibold tracking-tight text-[#12101a] transition hover:bg-white/92 active:scale-[0.985] disabled:cursor-default disabled:bg-white/25 disabled:text-white/60"
-            >
-              {ctaBusy ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : selectedIsCurrent && !selectedIsInstitution ? (
-                "Your current membership"
-              ) : selectedIsInstitution ? (
-                <>Start institution onboarding <ArrowRight className="h-4 w-4" /></>
-              ) : selectedPlan?.priceValue === 0 ? (
-                "Switch to Basic"
-              ) : (
-                <>Subscribe &amp; Pay</>
-              )}
-            </button>
-
-            {/* Membership is the payment people most often come back to later
-                because they were short on the day. */}
-            {!selectedIsCurrent && !selectedIsInstitution && (selectedPlan?.priceValue || 0) > 0 && (
-              <div className="mt-3">
-                <RequestFundsButton
-                  amount={selectedPlan!.priceValue as number}
-                  purpose={`Zero Club ${selectedPlan?.name} membership`}
-                  label="Ask someone to cover this"
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/20 text-[13px] font-semibold text-white transition hover:bg-white/10 active:scale-[0.99]"
-                />
+                <p className="mt-0.5 text-[14px] text-muted-foreground">{plan.eyebrow}</p>
+                {active && (
+                  <>
+                    <ul className="mt-3 grid gap-2 border-t border-foreground/10 pt-3 text-[14px]">
+                      {plan.features.map((feature) => {
+                        const Icon = featureIcon(feature);
+                        return (
+                          <li key={feature} className="flex items-start gap-2.5">
+                            <Icon className="mt-px h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" />
+                            <span className="leading-snug">{feature}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {plan.limitations && plan.limitations.length > 0 && (
+                      <div className="mt-3 border-t border-foreground/10 pt-3">
+                        <p className="mb-1.5 text-[12px] font-semibold text-muted-foreground">Not included</p>
+                        <ul className="grid gap-1.5 text-[13px] text-muted-foreground">
+                          {plan.limitations.map((limitation) => (
+                            <li key={limitation} className="flex items-start gap-2.5">
+                              <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-current" />
+                              <span>{limitation}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-            )}
+            );
+          })}
+        </div>
 
-            <p className="mt-3 text-center text-[11.5px] text-white/45">
-              {selectedIsInstitution
-                ? "A 30-day trial starts once your organisation is verified."
-                : selectedPlan?.priceValue === 0
-                  ? "No payment needed. Basic stays free."
-                  : `${priceText} ${selectedPlan?.billingLabel}, paid from your Zero Club wallet.`}
-            </p>
+        {/* Zero Card credit, if any is waiting. Hides itself when there is
+            none, so this space is normally empty. */}
+        <div className="mt-3">
+          <ZeroGiftPaymentOption
+            service="membership"
+            amount={selectedPlan?.priceValue || 0}
+            applied={applyZeroGift}
+            onAppliedChange={setApplyZeroGift}
+            formatAmount={formatNaira}
+          />
+        </div>
 
-            <p className="mt-4 rounded-lg border border-white/10 p-3 text-[10.5px] italic leading-relaxed text-white/40">
-              By subscribing you agree to the Zero Club <Link to="/docs" className="underline underline-offset-2 hover:text-white/70">Terms</Link>.
-              Membership is charged from your Zero Club wallet and does not renew by itself unless you switch auto-renew on.
-              You can change plan or cancel at any time; prices are subject to change.
-            </p>
+        <button
+          type="button"
+          onClick={() => handlePlanAction(selectedPlan)}
+          disabled={ctaBusy || isLoading || (selectedIsCurrent && !selectedIsInstitution)}
+          className="mt-4 flex h-[50px] w-full items-center justify-center gap-2 rounded-full bg-foreground text-[16px] font-semibold text-background transition hover:opacity-90 active:scale-[0.985] disabled:cursor-default disabled:opacity-40"
+        >
+          {ctaBusy ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : selectedIsCurrent && !selectedIsInstitution ? (
+            "Your current membership"
+          ) : selectedIsInstitution ? (
+            <>Start institution onboarding <ArrowRight className="h-4 w-4" /></>
+          ) : selectedPlan?.priceValue === 0 ? (
+            "Switch to Basic"
+          ) : (
+            `Get ${selectedPlan?.name}`
+          )}
+        </button>
+
+        {/* Membership is the payment people most often come back to later
+            because they were short on the day. */}
+        {!selectedIsCurrent && !selectedIsInstitution && (selectedPlan?.priceValue || 0) > 0 && (
+          <div className="mt-2">
+            <RequestFundsButton
+              amount={selectedPlan!.priceValue as number}
+              purpose={`Zero Club ${selectedPlan?.name} membership`}
+              label="Ask someone to cover this"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-foreground/25 text-[14px] font-semibold text-foreground transition hover:bg-foreground/[0.04] active:scale-[0.99]"
+            />
           </div>
-        </section>
+        )}
+
+        <p className="mt-3 text-center text-[13px] text-muted-foreground">
+          {selectedIsInstitution
+            ? "A 30-day trial starts once your organisation is verified."
+            : selectedPlan?.priceValue === 0
+              ? "No payment needed. Basic stays free."
+              : `${priceText} ${selectedPlan?.billingLabel}, paid from your Zero Club wallet.`}
+        </p>
 
         {activeSubscription && (
-          <section className="mt-4 grid gap-4 rounded-xl border border-border bg-card px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center sm:px-5">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><CalendarDays className="h-4 w-4" /></span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Current membership</p>
-                <p className="mt-1 text-[14px] font-semibold">{membershipDashboard?.plan?.name || String(currentPlanKey).replaceAll("_", " ")}</p>
-                <p className="mt-1 text-[10.5px] text-muted-foreground">
-                  Status: <span className="capitalize text-foreground">{String(activeSubscription.status).replaceAll("_", " ")}</span>
-                  {activeSubscription.renewal_date && <> · Renewal {new Date(activeSubscription.renewal_date).toLocaleDateString()}</>}
-                </p>
-              </div>
+          <section className="mt-5 rounded-2xl bg-card p-4">
+            <p className="text-[13px] text-muted-foreground">Current membership</p>
+            <p className="mt-0.5 text-[16px] font-semibold">{membershipDashboard?.plan?.name || String(currentPlanKey).replaceAll("_", " ")}</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              <span className="capitalize">{String(activeSubscription.status).replaceAll("_", " ")}</span>
+              {activeSubscription.renewal_date && <> · Renews {new Date(activeSubscription.renewal_date).toLocaleDateString()}</>}
+            </p>
+            <div className="mt-3 flex items-center gap-3 border-t border-foreground/10 pt-3">
+              <span className="flex-1 text-[15px] font-medium">Auto-renew</span>
+              <Switch checked={Boolean(activeSubscription.auto_renew)} onCheckedChange={(checked) => autoRenewMutation.mutate(checked)} disabled={autoRenewMutation.isPending} />
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => autoRenewMutation.mutate(!activeSubscription.auto_renew)} disabled={autoRenewMutation.isPending} className={`h-9 rounded-lg border px-3 text-[10.5px] font-semibold ${activeSubscription.auto_renew ? "border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-700 dark:text-emerald-400" : "border-border text-muted-foreground"}`}>
-                Auto-renew {activeSubscription.auto_renew ? "On" : "Off"}
-              </button>
-              <button type="button" onClick={() => renewMutation.mutate()} disabled={renewMutation.isPending} className="h-9 rounded-lg bg-foreground px-3 text-[10.5px] font-semibold text-background disabled:opacity-50">
-                {renewMutation.isPending ? "Renewing..." : "Renew now"}
-              </button>
-            </div>
+            <button type="button" onClick={() => renewMutation.mutate()} disabled={renewMutation.isPending} className="mt-3 h-10 w-full rounded-full border-[1.5px] border-foreground text-[14px] font-semibold disabled:opacity-50">
+              {renewMutation.isPending ? "Renewing…" : "Renew now"}
+            </button>
           </section>
         )}
 
+        <p className="mt-5 text-[12px] leading-relaxed text-muted-foreground">
+          By subscribing you agree to the Zero Club <Link to="/docs" className="underline underline-offset-2 hover:text-foreground">Terms</Link>.
+          Membership is charged from your Zero Club wallet and does not renew by itself unless you switch auto-renew on.
+          You can change plan or cancel at any time; prices are subject to change.
+        </p>
       </main>
 
       <InstitutionOnboardingDrawer

@@ -1,13 +1,11 @@
 import { useLoaderData, createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { 
-  BadgeCheck, ChevronLeft, Users, Loader2, Hash, CheckCircle2, Shield, X
-} from "@/components/icons/glyphs";
+import { ArrowLeft, BadgeCheck, Users, Loader2, Hash, Search, Shield } from "@/components/icons/glyphs";
+import { useFollow } from "@/hooks/useFollow";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { getProfile } from "@/api";
 import { getFirstName } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { LinkifiedText } from "@/components/LinkifiedText";
 
 export const Route = createFileRoute("/app/profile_/$id/network")({
   loader: async ({ params: { id } }) => {
@@ -33,7 +31,8 @@ export const Route = createFileRoute("/app/profile_/$id/network")({
 function ProfileNetwork() {
   const navigate = useNavigate();
   const { profile, currentUser } = useLoaderData({ from: "/app/profile_/$id/network" });
-  const [activeTab, setActiveTab] = useState<"following" | "followers" | "clubs">("following");
+  const [activeTab, setActiveTab] = useState<"following" | "followers" | "clubs">("followers");
+  const [search, setSearch] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
   useEffect(() => {
     async function checkFollow() {
@@ -111,135 +110,157 @@ function ProfileNetwork() {
 
   const displayName = profile.full_name || profile.username;
   const isOwnProfile = currentUser?.id === profile.id;
-  const visibleUsers = activeTab === "following" ? (following ?? []) : (followers ?? []);
-  const visibleClubs = clubs ?? [];
+  const needle = search.trim().toLowerCase();
+  const matches = (user: any) =>
+    !needle || [user.full_name, user.username].filter(Boolean).join(" ").toLowerCase().includes(needle);
+  const visibleUsers = (activeTab === "following" ? (following ?? []) : (followers ?? [])).filter(matches);
+  const visibleClubs = (clubs ?? []).filter((club: any) => !needle || String(club.name || "").toLowerCase().includes(needle));
+  const tabs = [
+    { id: "followers" as const, label: "Followers", count: followers?.length },
+    { id: "following" as const, label: "Following", count: following?.length },
+    { id: "clubs" as const, label: "Clubs", count: clubs?.length },
+  ];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="fixed left-1/2 top-0 z-50 h-[calc(4rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
-        <div className="relative z-20 mx-auto flex h-full max-w-[820px] items-center gap-3 px-4 md:px-6">
-          <button 
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button
             onClick={() => navigate({ to: "/app/profile/$id", params: { id: profile.username || profile.id } })}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card text-foreground transition hover:bg-accent active:scale-95"
+            aria-label="Back to profile"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
           >
-            <ChevronLeft className="h-[18px] w-[18px]" />
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          
-          <div>
-            <h1 className="font-display max-w-[16rem] truncate text-[15px] font-semibold leading-tight text-foreground">
-              {displayName}
-            </h1>
-            <p className="text-[10px] text-muted-foreground">
-              Network
-            </p>
-          </div>
+          <h1 className="min-w-0 flex-1 truncate font-display text-[18px] font-semibold text-foreground">{displayName}</h1>
         </div>
-      </header>
-
-      <main className="mx-auto max-w-md pt-[calc(4rem+env(safe-area-inset-top))] md:max-w-[820px] md:px-6 md:pt-6">
-        {/* Tabs */}
-        <div className="mx-4 mt-4 grid grid-cols-3 gap-1 rounded-lg border border-border/60 bg-card p-1 md:mx-0 md:mt-0">
-          {["following", "followers", "clubs"].map((t) => (
-            <button 
-              key={t}
-              onClick={() => setActiveTab(t as any)}
-              className={`relative flex h-10 min-w-0 items-center justify-center rounded-md px-2 text-[12px] font-semibold tracking-tight transition capitalize ${
-                activeTab === t 
-                  ? "bg-primary/[0.09] text-primary"
-                  : "text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
+        <div className="mx-auto grid w-full max-w-[680px] grid-cols-3 border-b border-border text-center text-[14px] font-semibold">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex h-11 items-center justify-center gap-1 transition-colors ${
+                activeTab === tab.id ? "text-foreground shadow-[inset_0_-2px_0_currentColor]" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t}
+              {typeof tab.count === "number" && <span className="tabular-nums">{tab.count.toLocaleString()}</span>}
+              {tab.label}
             </button>
           ))}
         </div>
+        <div className="mx-auto w-full max-w-[680px] px-3 py-2.5">
+          <label className="flex h-[38px] items-center gap-2 rounded-full bg-foreground/[0.06] px-3">
+            <Search className="h-[17px] w-[17px] shrink-0 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={`Search ${activeTab}`}
+              className="h-full min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+        </div>
+      </header>
 
-        <div className="space-y-2.5 p-4 pb-20 md:px-0">
-          {activeTab === "following" || activeTab === "followers" ? (
-            // Users List
-            (activeTab === "following" ? followingLoading : followersLoading) ? (
-              <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-            ) : visibleUsers.length > 0 ? (
-              visibleUsers.map((user: any) => (
-                <Link key={user.id} to="/app/profile/$id" params={{ id: user.username || user.id }} className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3.5 transition hover:border-primary/20 hover:bg-accent/20 active:scale-[0.98]">
-                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-accent border border-border/20 flex items-center justify-center font-bold text-muted-foreground text-xs">
+      <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
+        {activeTab === "following" || activeTab === "followers" ? (
+          (activeTab === "following" ? followingLoading : followersLoading) ? (
+            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : visibleUsers.length > 0 ? (
+            visibleUsers.map((user: any) => (
+              <div key={user.id} className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
+                <Link to="/app/profile/$id" params={{ id: user.username || user.id }} className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[15px] font-semibold text-muted-foreground">
                     {user.avatar_url ? (
                       <img src={user.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
-                      user.username?.charAt(0).toUpperCase() || "U"
+                      (user.full_name || user.username || "U").charAt(0).toUpperCase()
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-foreground text-[14px] truncate">{user.full_name || user.username}</span>
-                      {user.tier === 'Premium' && <BadgeCheck className="h-3.5 w-3.5 fill-[#cc208f] text-white shrink-0" />}
-                      {user.tier === 'Premium+' && <BadgeCheck className="h-3.5 w-3.5 fill-[#ffcf00] text-black shrink-0" />}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1">
+                      <span className="truncate text-[15px] font-semibold text-foreground">{user.full_name || user.username}</span>
+                      {user.tier === 'Premium' && <BadgeCheck className="h-4 w-4 shrink-0 fill-[#cc208f] text-white" />}
+                      {user.tier === 'Premium+' && <BadgeCheck className="h-4 w-4 shrink-0 fill-[#e0a800] text-white" />}
                     </div>
-                    <div className="text-[12px] text-muted-foreground">@{user.username || user.id.substring(0, 8)}</div>
-                    {user.bio && <div className="text-[12px] text-muted-foreground/80 mt-0.5 line-clamp-1"><LinkifiedText text={user.bio} /></div>}
+                    <p className="truncate text-[13px] text-muted-foreground">
+                      {user.bio ? String(user.bio).replace(/\s+/g, " ") : `@${user.username || user.id.substring(0, 8)}`}
+                    </p>
                   </div>
                 </Link>
-              ))
-            ) : (
-              <div className="py-12 text-center">
-                <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  {activeTab === "following" ? "Not following anyone yet" : "No followers yet"}
-                </p>
+                <RowFollowButton userId={user.id} followsYou={isOwnProfile && activeTab === "followers"} />
               </div>
-            )
+            ))
           ) : (
-            // Clubs List
-            clubsLoading ? (
-              <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-            ) : profile?.hide_clubs_unless_following && !isFollowing && !isOwnProfile ? (
-              <div className="py-12 text-center">
-                <Shield className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  Follow {getFirstName(profile)} to see their clubs
+            <div className="px-6 py-16 text-center">
+              <Users className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
+              <p className="text-[15px] font-semibold text-foreground">
+                {needle ? "No one matches that" : activeTab === "following" ? "Not following anyone yet" : "No followers yet"}
+              </p>
+            </div>
+          )
+        ) : clubsLoading ? (
+          <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        ) : profile?.hide_clubs_unless_following && !isFollowing && !isOwnProfile ? (
+          <div className="px-6 py-16 text-center">
+            <Shield className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
+            <p className="text-[15px] font-semibold text-foreground">Follow {getFirstName(profile)} to see their clubs</p>
+          </div>
+        ) : visibleClubs.length > 0 ? (
+          visibleClubs.map((c: any) => (
+            <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 hover:bg-foreground/[0.02]">
+              <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-muted">
+                {c.logo_url || c.banner_url ? (
+                  <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                ) : (
+                  <Hash className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="truncate text-[15px] font-semibold text-foreground">{c.name}</h4>
+                <p className="truncate text-[13px] text-muted-foreground">
+                  {Number(c.members_count || 0).toLocaleString()} {Number(c.members_count) === 1 ? "member" : "members"}
+                  {c.description ? ` · ${c.description}` : ""}
                 </p>
               </div>
-            ) : visibleClubs.length > 0 ? (
-              visibleClubs.map((c: any) => (
-                <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="block transition active:scale-[0.98]">
-                  <article className="flex items-center gap-3.5 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/20 hover:bg-accent/20">
-                    <div className="shrink-0">
-                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-accent/30">
-                        {c.logo_url || c.banner_url ? (
-                          <img src={c.logo_url || c.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                        ) : (
-                          <Hash className="h-5 w-5 text-primary" />
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <h4 className="truncate text-[14px] font-bold text-foreground tracking-tight">{c.name}</h4>
-                        <CheckCircle2 className="h-3.5 w-3.5 text-primary fill-primary/20 shrink-0" />
-                      </div>
-                      <p className="truncate text-[12px] text-muted-foreground">{c.description || "Welcome to the club!"}</p>
-                    </div>
-
-                    <div className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-accent/40 rounded-full px-2.5 py-1 border border-border/20">
-                      <Users className="h-3 w-3" />
-                      {Number(c.members_count || 0).toLocaleString()}
-                    </div>
-                  </article>
-                </Link>
-              ))
-            ) : (
-              <div className="py-12 text-center">
-                <Hash className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  Not a member of any clubs
-                </p>
-              </div>
-            )
-          )}
-        </div>
+            </Link>
+          ))
+        ) : (
+          <div className="px-6 py-16 text-center">
+            <Hash className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
+            <p className="text-[15px] font-semibold text-foreground">{needle ? "No clubs match that" : "Not a member of any clubs"}</p>
+          </div>
+        )}
       </main>
     </div>
+  );
+}
+
+/**
+ * Follow straight from the list, through the same hook every other follow
+ * button uses, so the state agrees with the rest of the app.
+ */
+function RowFollowButton({ userId, followsYou }: { userId: string; followsYou: boolean }) {
+  const { isFollowing, isSelf, loading, toggleFollow, currentUser } = useFollow(userId);
+  if (!currentUser || isSelf) return null;
+
+  return (
+    <button
+      type="button"
+      disabled={loading}
+      onClick={async () => {
+        try {
+          await toggleFollow();
+        } catch (error: any) {
+          toast.error(error?.message || "Could not update follow");
+        }
+      }}
+      className={`h-8 shrink-0 rounded-full px-3.5 text-[14px] font-semibold transition disabled:opacity-60 ${
+        isFollowing
+          ? "border border-foreground/30 text-muted-foreground hover:border-foreground/50"
+          : "border-[1.5px] border-foreground text-foreground hover:bg-foreground/[0.04]"
+      }`}
+    >
+      {isFollowing ? "Following" : followsYou ? "Follow back" : "Follow"}
+    </button>
   );
 }

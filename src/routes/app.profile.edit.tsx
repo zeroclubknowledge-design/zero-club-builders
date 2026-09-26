@@ -1,5 +1,5 @@
 import { useNavigate, createFileRoute, useRouter } from "@tanstack/react-router";
-import { ChevronLeft, Camera, X, Loader2 } from "@/components/icons/glyphs";
+import { Camera, X, Loader2 } from "@/components/icons/glyphs";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
@@ -90,9 +90,12 @@ function EditProfile() {
       }
 
       // Update directly via Supabase client to bypass Vercel Server Function duplex error
+      // Removing the cover only ever cleared it on screen: the form never sent
+      // it, so the old picture came back on the next load.
+      const coverRemoved = !banner && Boolean(profile.banner_url);
       const { error } = await supabase
         .from('profiles')
-        .update(formData)
+        .update(coverRemoved ? { ...formData, banner_url: null } : formData)
         .eq('id', profile.id);
 
       if (error) throw error;
@@ -168,171 +171,137 @@ function EditProfile() {
 
   if (isProfileLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-4 text-sm text-muted-foreground font-medium">Loading profile...</p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-canvas py-20">
+        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
+  const initial = (profile?.full_name || profile?.username || 'A').charAt(0).toUpperCase();
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-background/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={goBack} 
-            className="grid h-8 w-8 place-items-center rounded-full transition active:bg-accent/50"
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button
+            onClick={goBack}
+            aria-label="Close"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
             disabled={loading}
           >
-            <ChevronLeft className="h-5 w-5" />
+            <X className="h-[22px] w-[22px]" />
           </button>
-          <h1 className="font-display text-lg font-bold">Edit profile</h1>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Edit profile</h1>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="flex h-9 items-center gap-2 rounded-full bg-foreground px-4 text-[15px] font-semibold text-background transition active:opacity-80 disabled:opacity-50"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save
+          </button>
         </div>
-        <button 
-          onClick={handleSave}
-          disabled={loading}
-          className="rounded-full bg-foreground px-5 py-1.5 text-sm font-bold text-background transition active:opacity-80 flex items-center gap-2 disabled:opacity-50"
-        >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          Save
-        </button>
       </header>
 
-      <main>
-        {/* Banner Edit */}
-        <div className="relative h-[calc(200px+env(safe-area-inset-top))] sm:h-[240px] w-full bg-black overflow-hidden flex items-center justify-center">
-          {banner ? (
-            <img src={banner} className="h-full w-full object-cover" alt="Banner" loading="lazy" decoding="async" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#FF1E3F] via-[#FF1E3F]/80 to-black/90" />
-          )}
-          <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/30">
-            <button 
-              onClick={() => bannerInputRef.current?.click()}
-              disabled={loading}
-              className="grid h-12 w-12 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95 disabled:opacity-50"
-            >
-              <Camera className="h-6 w-6" />
-            </button>
-            <input 
-              type="file" 
-              ref={bannerInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={(e) => onFileChange(e, 'banner')} 
-            />
-            {banner && (
-              <button 
-                onClick={() => setBanner("")}
-                className="grid h-12 w-12 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Profile Pic Edit */}
-        <div className="relative px-6 pb-6">
-          <div className="absolute -top-[55px] left-6 z-20">
-            <div className="relative h-[110px] w-[110px] cursor-pointer overflow-hidden rounded-[28px] border-[6px] border-background bg-zinc-900 shadow-xl flex items-center justify-center">
-              {avatar ? (
-                <img src={avatar} alt="Avatar" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-              ) : (
-                <span className="text-4xl font-display font-black text-[#FF1E3F]">
-                  {(profile?.full_name || profile?.username || 'A').charAt(0).toUpperCase()}
-                </span>
-              )}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                <button 
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={loading}
-                  className="grid h-10 w-10 place-items-center rounded-full bg-black/60 text-white backdrop-blur-md transition active:scale-95 disabled:opacity-50"
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 md:py-2">
+        <section className="bg-card pb-4 md:overflow-hidden md:rounded-xl md:border md:border-border">
+          <div className="relative h-[110px] w-full overflow-hidden bg-[#221d22] sm:h-[150px]">
+            {banner && <img src={banner} className="h-full w-full object-cover" alt="" loading="lazy" decoding="async" />}
+            <div className="absolute right-3 top-3 flex gap-2">
+              {banner && (
+                <button
+                  onClick={() => setBanner("")}
+                  aria-label="Remove cover"
+                  className="grid h-[30px] w-[30px] place-items-center rounded-full bg-black/55 text-white transition active:scale-95"
                 >
-                  <Camera className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </button>
-                <input 
-                  type="file" 
-                  ref={avatarInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={(e) => onFileChange(e, 'avatar')} 
-                />
-              </div>
+              )}
+              <button
+                onClick={() => bannerInputRef.current?.click()}
+                disabled={loading}
+                className="flex h-[30px] items-center gap-1.5 rounded-full bg-black/55 px-3 text-[12px] font-semibold text-white transition active:scale-95 disabled:opacity-50"
+              >
+                <Camera className="h-3.5 w-3.5" /> Change cover
+              </button>
+            </div>
+            <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={(e) => onFileChange(e, 'banner')} />
+          </div>
+
+          <div className="-mt-10 flex items-end gap-3 px-4">
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={loading}
+              aria-label="Change profile photo"
+              className="relative h-[84px] w-[84px] shrink-0 rounded-full border-4 border-card bg-card disabled:opacity-60"
+            >
+              <span className="block h-full w-full overflow-hidden rounded-full">
+                {avatar ? (
+                  <img src={avatar} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                ) : (
+                  <span className="grid h-full w-full place-items-center bg-accent/10 font-display text-[26px] font-semibold text-accent">{initial}</span>
+                )}
+              </span>
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-7 w-7 place-items-center rounded-full border-2 border-card bg-foreground text-background">
+                <Camera className="h-3.5 w-3.5" />
+              </span>
+            </button>
+            <input type="file" ref={avatarInputRef} className="hidden" accept="image/*" onChange={(e) => onFileChange(e, 'avatar')} />
+            <div className="min-w-0 pb-1">
+              <button onClick={() => avatarInputRef.current?.click()} disabled={loading} className="text-[14px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+                Edit photo
+              </button>
+              {profile?.username && <p className="truncate text-[13px] text-muted-foreground">@{profile.username}</p>}
             </div>
           </div>
-          {/* Spacer to push content down because avatar is absolute */}
-          <div className="h-[55px]" />
-        </div>
+        </section>
 
-        {/* Form Fields */}
-        <div className="mt-8 space-y-6 px-5 pb-10">
-          <div className="space-y-1.5 border-b border-border pb-2 focus-within:border-primary transition-colors">
-            <label className="text-xs font-bold text-muted-foreground ml-1">Name</label>
-            <input 
+        <section className="flex flex-1 flex-col gap-4 bg-card px-4 pb-28 pt-4 md:flex-none md:rounded-xl md:border md:border-border md:pb-5">
+          <h2 className="font-display text-[18px] font-semibold">About you</h2>
+          <label className="block">
+            <span className={LABEL}>Full name</span>
+            <input
               value={formData.full_name}
               onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-              className="w-full bg-transparent px-1 text-lg font-medium outline-none"
+              className={FIELD}
               placeholder="Your full name"
               disabled={loading}
             />
-          </div>
-
-          <div className="space-y-1.5 border-b border-border pb-2 focus-within:border-primary transition-colors">
-            <label className="text-xs font-bold text-muted-foreground ml-1">Bio</label>
-            <textarea 
+          </label>
+          <label className="block">
+            <span className={LABEL}>Bio</span>
+            <textarea
               value={formData.bio}
               onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-              rows={3}
-              className="w-full resize-none bg-transparent px-1 text-base leading-relaxed outline-none"
-              placeholder="Tell us about yourself"
+              rows={4}
+              className={`${FIELD} h-auto resize-none py-2.5 leading-relaxed`}
+              placeholder="What do you build? What are you learning?"
               disabled={loading}
             />
-          </div>
-
-          <div className="space-y-1.5 border-b border-border pb-2 focus-within:border-primary transition-colors">
-            <label className="text-xs font-bold text-muted-foreground ml-1">Location</label>
-            <input 
+            <span className="mt-1 block text-[12px] text-muted-foreground">Shows under your name on your profile.</span>
+          </label>
+          <label className="block">
+            <span className={LABEL}>Location</span>
+            <input
               value={formData.location}
               onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-              className="w-full bg-transparent px-1 text-base outline-none"
-              placeholder="Where are you based?"
+              className={FIELD}
+              placeholder="City, country"
               disabled={loading}
             />
-          </div>
-
-          <div className="space-y-1.5 border-b border-border pb-2 focus-within:border-primary transition-colors">
-            <label className="text-xs font-bold text-muted-foreground ml-1">Website</label>
-            <input 
+          </label>
+          <label className="block">
+            <span className={LABEL}>Website</span>
+            <input
               value={formData.website}
               onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-              className="w-full bg-transparent px-1 text-base text-primary outline-none"
-              placeholder="Your website URL"
+              className={FIELD}
+              placeholder="yourname.dev"
+              inputMode="url"
               disabled={loading}
             />
-          </div>
-
-          <div className="space-y-1.5 border-b border-border pb-2 focus-within:border-primary transition-colors">
-            <label className="text-xs font-bold text-muted-foreground ml-1">Birth date</label>
-            <button className="w-full text-left bg-transparent px-1 text-base outline-none text-foreground/50">
-              Add your date of birth
-            </button>
-          </div>
-
-          <div className="pt-4">
-            <button className="w-full rounded-full border border-border py-3 text-sm font-bold transition hover:bg-accent/10 active:scale-[0.98]">
-              Switch to Professional
-            </button>
-          </div>
-
-          <div className="pt-6 border-t border-border">
-            <h3 className="text-lg font-bold mb-1">Tips</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              How your profile appears to others. Make sure your bio and location are up to date to help other builders find you.
-            </p>
-          </div>
-        </div>
+          </label>
+        </section>
       </main>
 
       {cropImage && (
@@ -353,3 +322,6 @@ function EditProfile() {
     </div>
   );
 }
+
+const LABEL = "mb-1.5 block text-[13px] font-semibold text-muted-foreground";
+const FIELD = "h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-foreground/40 disabled:opacity-60";
