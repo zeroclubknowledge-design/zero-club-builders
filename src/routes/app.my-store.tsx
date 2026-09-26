@@ -1,8 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ChevronLeft, Plus, Loader2, Trash2, Edit3, UploadCloud, FileArchive,
-  Tag, TicketPercent, Gift, ChevronDown, ExternalLink, X, Share2,
-} from "@/components/icons/glyphs";
+import { ArrowLeft, Plus, Loader2, Trash2, Edit3, UploadCloud, FileArchive, TicketPercent, Gift, ChevronDown, Share2 } from "@/components/icons/glyphs";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,7 +8,6 @@ import { uploadFile } from "@/lib/storage";
 import { useUser } from "@/hooks/useUser";
 import { clampPercent, formatPercent } from "@/lib/utils";
 import { shareOrCopy, storeProductUrl } from "@/lib/share";
-import { IconStore } from "@/components/icons/nav";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { STORE_CATEGORIES, CATEGORY_BY_ID, categoryIdFor, typeLabelFor } from "@/features/store/catalogue";
 import { MediaCropper } from "@/components/MediaCropper";
@@ -25,8 +21,6 @@ import { useGoBack } from "@/hooks/useGoBack";
 export const Route = createFileRoute("/app/my-store")({
   component: MyStorePage,
 });
-
-
 
 interface ProductForm {
   name: string;
@@ -239,192 +233,141 @@ function MyStorePage() {
     "w-full bg-card rounded-lg px-4 py-3 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/50";
   const labelClass = "text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1";
 
+  const couponProducts = products.filter((item: any) => item.coupon_code);
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-3.5 md:px-6">
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={goBack}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 bg-card tap hover:bg-foreground/[0.04]"
-            >
-              <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
-            </button>
-            <div>
-              <h1 className="text-[17px] font-semibold tracking-tight text-foreground">My Store</h1>
-              <p className="text-[11px] text-muted-foreground">Your digital products on Zero Store</p>
-            </div>
-          </div>
-          <button
-            onClick={openCreate}
-            className="flex h-10 items-center gap-1.5 rounded-lg bg-foreground px-4 text-[12.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" /> New product
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
+          <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">My store</h1>
+          <Link to="/app/store" className="flex h-9 items-center gap-1 rounded-full px-3 text-[14px] font-semibold text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground">
+            View as buyer
+          </Link>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1180px] space-y-5 px-5 pt-5 md:px-6 md:pt-8 lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-8 lg:space-y-0">
-        {/* Seller summary — premium dark card */}
-        <section className="relative overflow-hidden rounded-lg border-t-2 border-primary bg-[#141117] p-6 text-white ring-1 ring-white/[0.06] lg:sticky lg:top-24">
-          <div className="relative z-10">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">Seller dashboard</p>
-              <IconStore className="h-5 w-5 text-white/40" />
+      <main className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-[10px] bg-foreground/[0.04] px-1 py-2.5">
+              <p className="text-[18px] font-semibold tabular-nums">{products.length}</p>
+              <p className="text-[12px] text-muted-foreground">Products</p>
             </div>
-            <div className="mt-4 grid grid-cols-3 divide-x divide-white/[0.08]">
-              <div className="pr-4">
-                <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/60">Products</p>
-                <p className="mt-2 text-[26px] font-semibold tracking-tight tabular-nums leading-none">{products.length}</p>
-              </div>
-              <div className="px-4">
-                <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/60">Catalog value</p>
-                <p className="mt-2 text-[26px] font-semibold tracking-tight tabular-nums leading-none">
-                  <span className="text-[15px] font-normal text-white/50 mr-0.5">{currencyDetails.symbol}</span>
-                  {coinValue.toLocaleString()}
-                </p>
-              </div>
-              <div className="pl-4">
-                <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/60">Coupons</p>
-                <p className="mt-2 text-[26px] font-semibold tracking-tight tabular-nums leading-none">{activeCoupons}</p>
-              </div>
+            <div className="rounded-[10px] bg-foreground/[0.04] px-1 py-2.5">
+              <p className="truncate text-[18px] font-semibold tabular-nums">
+                <span className="text-[13px] font-normal text-muted-foreground">{currencyDetails.symbol}</span>{coinValue.toLocaleString()}
+              </p>
+              <p className="text-[12px] text-muted-foreground">Catalogue value</p>
+            </div>
+            <div className="rounded-[10px] bg-foreground/[0.04] px-1 py-2.5">
+              <p className="text-[18px] font-semibold tabular-nums">{activeCoupons}</p>
+              <p className="text-[12px] text-muted-foreground">Coupons</p>
             </div>
           </div>
         </section>
 
-        {/* Product list */}
-        <section>
-          <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Your products</h2>
-            <Link to="/app/store" className="flex items-center gap-1 text-[11.5px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
-              View store <ExternalLink className="h-3 w-3" />
-            </Link>
+        <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+          <div className="flex items-center justify-between px-4 pb-2 pt-4">
+            <h2 className="font-display text-[18px] font-semibold">Products</h2>
+            <button
+              onClick={openCreate}
+              className="flex h-8 items-center gap-1 rounded-full bg-foreground px-3 text-[13px] font-semibold text-background tap hover:opacity-90"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add product
+            </button>
           </div>
 
           {isLoading ? (
-            <div className="space-y-3">
-              {[0, 1].map((i) => (
-                <div key={i} className="h-24 rounded-lg bg-foreground/[0.05] shimmer" />
-              ))}
+            <div className="space-y-2 px-4 pb-4">
+              {[0, 1].map((i) => <div key={i} className="shimmer h-16 rounded-lg bg-foreground/[0.05]" />)}
             </div>
           ) : products.length === 0 ? (
-            <div className="flex flex-col items-center rounded-lg bg-card p-12 text-center ring-1 ring-border">
-              <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
-                <Gift className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
-              </div>
-              <h3 className="text-[17px] font-semibold tracking-tight mb-1.5">Nothing for sale yet</h3>
-              <p className="text-[13.5px] text-muted-foreground max-w-[280px] mb-7 leading-relaxed">
+            <div className="flex flex-col items-center border-t border-border/60 px-8 py-12 text-center">
+              <span className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]"><Gift className="h-5 w-5 text-muted-foreground" /></span>
+              <h3 className="mb-1.5 font-display text-[18px] font-semibold">Nothing for sale yet</h3>
+              <p className="mb-6 max-w-[300px] text-[14px] leading-relaxed text-muted-foreground">
                 Templates, prompt packs, AI tool access, ebooks, code, design assets — set a price and start earning.
               </p>
-              <button
-                onClick={openCreate}
-                className="flex items-center gap-1.5 rounded-full bg-foreground px-6 py-2.5 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90"
-              >
-                <Plus className="h-4 w-4" /> Upload your first product
+              <button onClick={openCreate} className="flex h-10 items-center gap-1.5 rounded-full bg-foreground px-5 text-[14px] font-semibold text-background tap hover:opacity-90">
+                <Plus className="h-4 w-4" /> Add your first product
               </button>
             </div>
           ) : (
-            /* Two columns once there is room. A single stack of full-width rows
-               across a 1200px workspace leaves a product name floating alone
-               with half a metre of empty space beside it. */
-            <div className="space-y-3 xl:grid xl:grid-cols-2 xl:gap-3 xl:space-y-0">
-              {products.map((item: any) => {
-                const sale = effectivePrice(item.price, item.discount_percent || 0);
-                return (
-                  <div key={item.id} className="overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)]">
-                    {/* The cover leads, as it does on the storefront, so a
-                        seller sees their listing the way a buyer will rather
-                        than as a filing-cabinet row. */}
-                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-primary/15 via-accent/20 to-background">
-                      {item.cover_url ? (
-                        <img src={item.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                      ) : (
-                        <span className="grid h-full w-full place-items-center text-primary/40">
-                          <Gift className="h-8 w-8" strokeWidth={1.75} />
-                        </span>
-                      )}
-                      <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.08em] text-foreground backdrop-blur-sm">
-                        {typeLabelFor(item.category, item.product_type)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3.5 p-4">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-[15px] font-semibold tracking-tight text-foreground">{item.name}</h3>
-                        <p className="mt-0.5 line-clamp-1 text-[11.5px] text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <button
-                          onClick={() => shareOrCopy({
-                            title: item.name || "Zero Store",
-                            text: `${item.name || "This product"} on Zero Store`,
-                            url: storeProductUrl(item.id),
-                            copiedMessage: "Product link copied",
-                          })}
-                          title="Share product link"
-                          aria-label={`Share ${item.name}`}
-                          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.04] text-muted-foreground hover:bg-primary/10 hover:text-primary tap"
-                        >
-                          <Share2 className="h-[15px] w-[15px]" />
-                        </button>
-                        <button
-                          onClick={() => openEdit(item)}
-                          title="Edit product"
-                          aria-label={`Edit ${item.name}`}
-                          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.04] text-muted-foreground hover:text-foreground tap"
-                        >
-                          <Edit3 className="h-[15px] w-[15px]" />
-                        </button>
-                        <button
-                          onClick={() => setDeleting(item)}
-                          title="Delete product"
-                          aria-label={`Delete ${item.name}`}
-                          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.04] text-muted-foreground hover:bg-destructive/10 hover:text-destructive tap"
-                        >
-                          <Trash2 className="h-[15px] w-[15px]" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Price row: its own band with a rule above it. The two
-                        numbers sit in one baseline group on the left and the
-                        badges wrap to their own line on a narrow screen, so
-                        they can never end up touching. */}
-                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 bg-foreground/[0.02] px-4 py-3">
-                      <div className="flex items-baseline gap-2.5">
-                        <span className="text-[16px] font-semibold tracking-tight text-foreground tabular-nums">
-                          {formatPrice(sale, item.price_type)}
-                        </span>
-                        {(item.discount_percent || 0) > 0 && (
-                          <span className="text-[12px] text-muted-foreground/70 line-through tabular-nums">
-                            {formatPrice(item.price, item.price_type)}
-                          </span>
-                        )}
-                      </div>
-
-                      {((item.discount_percent || 0) > 0 || item.coupon_code) && (
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {(item.discount_percent || 0) > 0 && (
-                            <span className="flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[10.5px] font-semibold text-success ring-1 ring-success/20">
-                              <Tag className="h-2.5 w-2.5" /> {formatPercent(item.discount_percent)}% off
-                            </span>
-                          )}
-                          {item.coupon_code && (
-                            <span className="flex max-w-full items-center gap-1 rounded-full bg-primary/8 px-2.5 py-1 text-[10.5px] font-semibold text-primary ring-1 ring-primary/15">
-                              <TicketPercent className="h-2.5 w-2.5 shrink-0" />
-                              <span className="truncate">{item.coupon_code}</span>
-                              <span className="shrink-0">· −{formatPercent(item.coupon_discount_percent)}%</span>
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+            products.map((item: any) => {
+              const sale = effectivePrice(item.price, item.discount_percent || 0);
+              return (
+                <div key={item.id} className="flex items-center gap-3 border-t border-border/60 px-4 py-3">
+                  <div className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-[10px] bg-muted">
+                    {item.cover_url ? (
+                      <img src={item.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-muted-foreground/50"><Gift className="h-5 w-5" /></span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-[15px] font-semibold text-foreground">{item.name}</h3>
+                    <p className="truncate text-[13px] text-muted-foreground">
+                      <span className="font-semibold text-foreground tabular-nums">{formatPrice(sale, item.price_type)}</span>
+                      {(item.discount_percent || 0) > 0 && <span className="ml-1 line-through tabular-nums">{formatPrice(item.price, item.price_type)}</span>}
+                      {" · "}{typeLabelFor(item.category, item.product_type)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      onClick={() => shareOrCopy({
+                        title: item.name || "Zero Store",
+                        text: `${item.name || "This product"} on Zero Store`,
+                        url: storeProductUrl(item.id),
+                        copiedMessage: "Product link copied",
+                      })}
+                      aria-label={`Share ${item.name}`}
+                      className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground tap"
+                    >
+                      <Share2 className="h-[17px] w-[17px]" />
+                    </button>
+                    <button
+                      onClick={() => openEdit(item)}
+                      aria-label={`Edit ${item.name}`}
+                      className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground tap"
+                    >
+                      <Edit3 className="h-[17px] w-[17px]" />
+                    </button>
+                    <button
+                      onClick={() => setDeleting(item)}
+                      aria-label={`Delete ${item.name}`}
+                      className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive tap"
+                    >
+                      <Trash2 className="h-[17px] w-[17px]" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </section>
+
+        <section className="flex-1 bg-card pb-28 md:flex-none md:overflow-hidden md:rounded-xl md:border md:border-border md:pb-2">
+          <h2 className="px-4 pb-1 pt-4 font-display text-[18px] font-semibold">Coupons</h2>
+          <p className="px-4 pb-2 text-[13px] text-muted-foreground">Each product can carry one coupon. Add or change it when you edit the product.</p>
+          {couponProducts.length === 0 ? (
+            <p className="border-t border-border/60 px-4 py-6 text-center text-[14px] text-muted-foreground">No coupons yet.</p>
+          ) : (
+            couponProducts.map((item: any) => (
+              <button
+                key={item.id}
+                onClick={() => openEdit(item)}
+                className="mx-4 mb-2 flex w-[calc(100%-2rem)] items-center gap-3 rounded-xl border-[1.5px] border-dashed border-[#cc208f]/40 px-3 py-2.5 text-left hover:bg-[#cc208f]/[0.03]"
+              >
+                <span className="font-mono text-[15px] font-bold text-[#a3186f]">{item.coupon_code}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
+                  {formatPercent(item.coupon_discount_percent)}% off · {item.name}
+                </span>
+                <TicketPercent className="h-4 w-4 shrink-0 text-[#cc208f]" />
+              </button>
+            ))
           )}
         </section>
       </main>
@@ -696,21 +639,21 @@ function MyStorePage() {
       {/* ── Delete confirmation ── */}
       {deleting && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm animate-in rounded-lg bg-background p-6 shadow-lift ring-1 ring-border duration-200 zoom-in-95">
-            <h3 className="text-[19px] font-semibold mb-2 tracking-tight">Remove this product?</h3>
-            <p className="text-[13.5px] text-muted-foreground mb-7 leading-relaxed">
+          <div className="w-full max-w-sm animate-in rounded-2xl bg-card p-6 shadow-2xl ring-1 ring-border duration-200 zoom-in-95">
+            <h3 className="mb-2 text-[18px] font-semibold">Remove this product?</h3>
+            <p className="mb-6 text-[14px] leading-relaxed text-muted-foreground">
               "{deleting.name}" will be taken off Zero Store. Buyers who already purchased keep their download.
             </p>
             <div className="flex flex-col gap-2.5">
               <button
                 onClick={handleDelete}
-                className="w-full py-3.5 bg-destructive text-destructive-foreground font-semibold tracking-tight rounded-full tap hover:opacity-90"
+                className="h-11 w-full rounded-full bg-destructive text-[15px] font-semibold text-destructive-foreground tap hover:opacity-90"
               >
                 Yes, remove it
               </button>
               <button
                 onClick={() => setDeleting(null)}
-                className="w-full py-3.5 ring-1 ring-border text-foreground font-semibold tracking-tight rounded-full tap hover:bg-foreground/[0.03]"
+                className="h-11 w-full rounded-full border border-foreground/25 text-[15px] font-semibold text-foreground tap hover:bg-foreground/[0.03]"
               >
                 Keep selling
               </button>

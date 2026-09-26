@@ -1,49 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  Banknote,
-  BellRing,
-  Check,
-  Clock3,
-  Copy,
-  Crown,
-  Gamepad2,
-  Gift,
-  Link2,
-  Loader2,
-  LockKeyhole,
-  Medal,
-  MoreHorizontal,
-  Play,
-  Radio,
-  Send,
-  Share2,
-  ShieldCheck,
-  Sparkles,
-  Trophy,
-  UserMinus,
-  UserPlus,
-  Users,
-  WalletCards,
-  X,
-} from "@/components/icons/glyphs";
+import { ArrowLeft, Banknote, BellRing, Check, Clock3, Copy, Crown, Gamepad2, Gift, Loader2, MoreHorizontal, Play, Send, Share2, ShieldCheck, Trophy, UserMinus, UserPlus, X } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { SudokuRaceBoard } from "@/features/games/SudokuRaceBoard";
 import { WordsRaceBoard } from "@/features/games/WordsRaceBoard";
-import {
-  formatGameTime,
-  getGameName,
-  profileName,
-  secondsUntil,
-  type ZeroGameCompetition,
-  type ZeroGamePlayer,
-  type ZeroGamePresence,
-  type ZeroGameReward,
-} from "@/features/games/zeroGames";
+import { formatGameTime, getGameName, profileName, type ZeroGameCompetition, type ZeroGamePlayer, type ZeroGamePresence, type ZeroGameReward } from "@/features/games/zeroGames";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/games/$id")({
@@ -335,60 +299,103 @@ function ZeroGameCompetitionPage() {
     return <ResultsScreen competition={competition} players={players} reward={reward || null} profileId={profile?.id} format={format} onRedeemed={() => queryClient.invalidateQueries({ queryKey: ["zero-game", id] })} />;
   }
 
+  const accessLabel = competition.visibility === "link" ? "Link only" : competition.visibility === "followers" ? "Followers" : "Public";
+  const openSpots = Math.max(0, Math.min(4, competition.max_players - players.length));
+
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-10">
-      <header className="sticky top-0 z-40 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1080px] items-center gap-3">
-          <button onClick={() => navigate({ to: "/app/games" })} className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1"><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">{getGameName(competition.game_type)}</p><h1 className="truncate text-[17px] font-semibold tracking-tight">Competition lobby</h1></div>
-          <button onClick={share} className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card"><Share2 className="h-4 w-4 fill-current" /></button>
-          <button onClick={() => setMoreOpen(true)} className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card"><MoreHorizontal className="h-4 w-4" /></button>
+    <div className="flex min-h-screen flex-col bg-[#141217] text-white">
+      <header className="sticky top-0 z-40 bg-[#141217]/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button onClick={() => navigate({ to: "/app/games" })} aria-label="Back to Zero Games" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-white hover:bg-white/10">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Waiting room</h1>
+          <button onClick={share} aria-label="Share" className="grid h-10 w-10 place-items-center rounded-full text-white/85 hover:bg-white/10"><Share2 className="h-5 w-5" /></button>
+          <button onClick={() => setMoreOpen(true)} aria-label="More" className="grid h-10 w-10 place-items-center rounded-full text-white/85 hover:bg-white/10"><MoreHorizontal className="h-5 w-5" /></button>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-[1080px] gap-6 px-4 py-5 md:grid-cols-[minmax(0,1fr)_330px] md:px-7 md:py-8">
-        <div>
-          <section className="border-b border-border pb-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-sm bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-700 dark:text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Open</span>
-              <span className="rounded-sm bg-foreground/[0.055] px-2 py-1 text-[9px] font-semibold capitalize text-muted-foreground">{competition.difficulty}</span>
-              {competition.profession && <span className="rounded-sm bg-foreground/[0.055] px-2 py-1 text-[9px] font-semibold text-muted-foreground">{competition.profession}</span>}
-            </div>
-            <h2 className="mt-4 max-w-2xl text-[clamp(25px,6vw,38px)] font-semibold leading-tight tracking-tight">{competition.title}</h2>
-            <div className="mt-5 flex items-center gap-3">
-              <button type="button" onClick={() => messagePlayer(competition.creator_id)} disabled={isHost} className="flex min-w-0 items-center gap-3 text-left disabled:cursor-default" aria-label={isHost ? "You are the host" : `Message ${profileName(competition.creator)}`}>
-                <Avatar profile={competition.creator} size="md" />
-                <span><span className="block text-[11px] text-muted-foreground">Hosted by</span><span className="block text-[13px] font-semibold">{profileName(competition.creator)}</span></span>
-              </button>
-              {isHost && <span className="rounded-sm bg-primary/10 px-2 py-1 text-[9px] font-semibold text-primary">You are hosting</span>}
-            </div>
-          </section>
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-[calc(9rem+env(safe-area-inset-bottom))] pt-2">
+        <div className="text-center">
+          <p className="text-[13px] capitalize text-white/60">
+            {getGameName(competition.game_type)} · {competition.difficulty}{competition.profession ? ` · ${competition.profession}` : ""}
+          </p>
+          <h2 className="mx-auto mt-1 max-w-[520px] font-display text-[22px] font-semibold leading-tight">{competition.title}</h2>
 
-          <section className="mt-6">
-            <div className="flex items-end justify-between gap-3"><div><p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-primary">Waiting room</p><h3 className="mt-1 text-[16px] font-semibold">Players</h3></div><span className="text-[11px] font-semibold tabular-nums text-muted-foreground">{players.length}/{competition.max_players}</span></div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {players.map((player, index) => <PlayerLobbyCard key={player.id} player={player} hostId={competition.creator_id} currentProfileId={profile?.id} index={index} isHost={isHost} isLive={liveProfileIds.has(player.profile_id)} presenceReady={presenceReady} canBuzz={Boolean(isHost || isJoined)} buzzing={working === `buzz:${player.profile_id}`} buzzCooling={(buzzCooldowns[player.profile_id] || 0) > now} removing={working === `remove:${player.profile_id}`} onMessage={messagePlayer} onBuzz={buzzPlayer} onRemove={removePlayer} />)}
-              {Array.from({ length: Math.max(0, Math.min(4, competition.max_players - players.length)) }, (_, index) => <div key={`empty-${index}`} className="flex h-[66px] items-center gap-3 rounded-md border border-dashed border-border px-3 text-muted-foreground"><span className="grid h-9 w-9 place-items-center rounded-full bg-muted"><UserPlus className="h-4 w-4" /></span><span className="text-[10.5px] font-medium">Open player spot</span></div>)}
-            </div>
-          </section>
+          <p className="mt-5 text-[12px] font-semibold tracking-[0.08em] text-white/55">{competition.reward_type === "cash" ? "PRIZE" : "WINNER GETS"}</p>
+          <p className={`font-display font-semibold text-[#f39ad3] ${competition.reward_type === "cash" ? "text-[44px] leading-tight" : "mx-auto mt-1 max-w-[460px] text-[22px] leading-snug"}`}>
+            {competition.reward_type === "cash" ? format(competition.prize_amount) : competition.offer_label}
+          </p>
+          {competition.reward_type === "cash" && (
+            <span className="mt-1.5 inline-flex h-[26px] items-center gap-1.5 rounded-full bg-[#1a7f4b]/25 px-2.5 text-[12px] font-semibold text-[#6fd49f]">
+              <ShieldCheck className="h-3.5 w-3.5" /> Prize secured by Zero Club
+            </span>
+          )}
+
+          <button type="button" onClick={() => messagePlayer(competition.creator_id)} disabled={isHost} className="mx-auto mt-5 flex items-center gap-2.5 text-left disabled:cursor-default" aria-label={isHost ? "You are the host" : `Message ${profileName(competition.creator)}`}>
+            <Avatar profile={competition.creator} size="sm" ring />
+            <span>
+              <span className="block text-[12px] text-white/55">Hosted by</span>
+              <span className="block text-[14px] font-semibold">{isHost ? "You" : profileName(competition.creator)}</span>
+            </span>
+          </button>
         </div>
 
-        <aside className="md:sticky md:top-24 md:self-start">
-          <div className="rounded-md border border-border bg-card p-5">
-            <div className={`flex items-start gap-3 rounded-md p-3 ${competition.reward_type === "cash" ? "bg-emerald-500/[0.07]" : "bg-primary/[0.055]"}`}>
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-md ${competition.reward_type === "cash" ? "bg-emerald-600 text-white" : "bg-primary text-primary-foreground"}`}>{competition.reward_type === "cash" ? <Banknote className="h-[18px] w-[18px] fill-current" /> : <Gift className="h-[18px] w-[18px] fill-current" />}</span>
-              <div className="min-w-0"><p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Winner reward</p><p className="mt-1 text-[12px] font-semibold leading-5">{competition.reward_type === "cash" ? format(competition.prize_amount) : competition.offer_label}</p>{competition.reward_type === "cash" && <p className="mt-1 flex items-center gap-1 text-[9px] font-semibold text-emerald-700 dark:text-emerald-400"><ShieldCheck className="h-3 w-3 fill-current" />Prize secured by Zero Club</p>}</div>
-            </div>
-            <div className="mt-4 divide-y divide-border border-y border-border text-[11px]"><LobbyRow Icon={Clock3} label="Starts" value={new Date(competition.starts_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} /><LobbyRow Icon={Users} label="Players" value={`${players.length} of ${competition.max_players}`} /><LobbyRow Icon={Radio} label="Duration" value={`${Math.round(competition.duration_seconds / 60)} minutes`} /><LobbyRow Icon={Link2} label="Access" value={competition.visibility === "link" ? "Link only" : competition.visibility === "followers" ? "Followers" : "Public"} /></div>
-
-            {!isJoined && !isHost && <button onClick={join} disabled={working === "join"} className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground text-[12px] font-semibold text-background disabled:opacity-50">{working === "join" ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4 fill-current" />}Join free</button>}
-            {isJoined && !isHost && <button onClick={toggleReady} disabled={working === "ready"} className={`mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-md text-[12px] font-semibold ${isReady ? "border border-primary bg-primary/[0.07] text-primary" : "bg-foreground text-background"}`}>{working === "ready" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}{isReady ? "Ready" : "I am ready"}</button>}
-            {isHost && <button onClick={startRace} disabled={working === "start" || !everyPlayerReady} className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground text-[12px] font-semibold text-background disabled:cursor-not-allowed disabled:opacity-35">{working === "start" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}Start race</button>}
-            {isHost && !everyPlayerReady && <p className="mt-2 text-center text-[9.5px] text-muted-foreground">At least two players must be ready.</p>}
-            <button onClick={share} className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border text-[11px] font-semibold"><Share2 className="h-4 w-4 fill-current" />Invite players</button>
+        <section className="mt-6 rounded-[18px] bg-white/[0.05] p-3">
+          <div className="flex items-center justify-between px-1 pb-2 text-[13px] font-semibold">
+            <span>Players</span>
+            <span className="tabular-nums text-white/60">{players.length} of {competition.max_players}</span>
           </div>
-        </aside>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {players.map((player, index) => <PlayerLobbyCard key={player.id} player={player} hostId={competition.creator_id} currentProfileId={profile?.id} index={index} isHost={isHost} isLive={liveProfileIds.has(player.profile_id)} presenceReady={presenceReady} canBuzz={Boolean(isHost || isJoined)} buzzing={working === `buzz:${player.profile_id}`} buzzCooling={(buzzCooldowns[player.profile_id] || 0) > now} removing={working === `remove:${player.profile_id}`} onMessage={messagePlayer} onBuzz={buzzPlayer} onRemove={removePlayer} />)}
+            {Array.from({ length: openSpots }, (_, index) => (
+              <div key={`empty-${index}`} className="flex h-[60px] items-center gap-3 rounded-xl border-[1.5px] border-dashed border-white/20 px-3 text-white/45">
+                <span className="grid h-9 w-9 place-items-center rounded-full border-[1.5px] border-dashed border-white/25"><UserPlus className="h-4 w-4" /></span>
+                <span className="text-[13px] font-medium">Open spot</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-3 grid grid-cols-3 gap-2 text-center">
+          {[
+            { label: "Starts", value: new Date(competition.starts_at).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) },
+            { label: "Duration", value: `${Math.round(competition.duration_seconds / 60)} min` },
+            { label: "Access", value: accessLabel },
+          ].map((tile) => (
+            <div key={tile.label} className="rounded-xl bg-white/[0.05] px-1 py-2.5">
+              <p className="text-[14px] font-semibold leading-tight">{tile.value}</p>
+              <p className="mt-0.5 text-[11px] text-white/55">{tile.label}</p>
+            </div>
+          ))}
+        </section>
       </main>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 bg-[#141217] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3">
+        <div className="mx-auto max-w-[680px]">
+          {isHost && !everyPlayerReady && <p className="mb-2.5 text-center text-[13px] text-white/60">At least two players must be ready to start.</p>}
+          <div className="flex gap-2.5">
+            <button onClick={share} className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-full border border-white/25 text-[15px] font-semibold text-white">
+              Invite
+            </button>
+            {!isJoined && !isHost && (
+              <button onClick={join} disabled={working === "join"} className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-full bg-white text-[15px] font-semibold text-[#17181b] disabled:opacity-50">
+                {working === "join" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Join free"}
+              </button>
+            )}
+            {isJoined && !isHost && (
+              <button onClick={toggleReady} disabled={working === "ready"} className={`flex h-[50px] flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-semibold ${isReady ? "bg-[#1a7f4b] text-white" : "bg-white text-[#17181b]"}`}>
+                {working === "ready" ? <Loader2 className="h-4 w-4 animate-spin" /> : isReady ? <><Check className="h-4 w-4" /> Ready</> : "I'm ready"}
+              </button>
+            )}
+            {isHost && (
+              <button onClick={startRace} disabled={working === "start" || !everyPlayerReady} className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-full bg-white text-[15px] font-semibold text-[#17181b] disabled:cursor-not-allowed disabled:opacity-35">
+                {working === "start" ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Play className="h-4 w-4 fill-current" /> Start race</>}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {moreOpen && <ActionOverlay onClose={() => setMoreOpen(false)} isHost={isHost} working={working} onFeed={shareToFeed} onCopy={async () => { const { text, url } = competitionShareDetails(); await navigator.clipboard.writeText(`${text}\n\n${url}`); toast.success("Reward invitation copied"); setMoreOpen(false); }} onCancel={cancelRace} />}
     </div>
@@ -450,30 +457,26 @@ function PlayerLobbyCard({ player, hostId, currentProfileId, index, isHost, isLi
   const canRemove = isHost && player.profile_id !== hostId && presenceReady && !isLive;
   const canSendBuzz = canBuzz && !isCurrentPlayer && presenceReady && !isLive;
   return (
-    <div className="flex min-h-[72px] items-center gap-3 rounded-md border border-border bg-card px-3 py-2.5">
+    <div className="flex min-h-[60px] items-center gap-3 rounded-xl bg-white/[0.06] px-3 py-2">
       <button type="button" onClick={() => onMessage(player.profile_id)} disabled={isCurrentPlayer} className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:cursor-default" aria-label={isCurrentPlayer ? "You" : `Message ${profileName(player.profile)}`}>
         <span className="relative shrink-0">
           <Avatar profile={player.profile} size="sm" />
-          <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card ${isLive ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+          <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#262329] ${isLive ? "bg-emerald-400" : "bg-white/30"}`} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5"><span className="truncate text-[11.5px] font-semibold">{isCurrentPlayer ? "You" : profileName(player.profile)}</span>{player.profile_id === hostId && <Crown className="h-3.5 w-3.5 fill-[#ffcf00] text-[#ffcf00]" />}</span>
-          <span className="mt-0.5 block text-[9px] text-muted-foreground">Player {index + 1} · {presenceReady ? (isLive ? "Live" : "Away") : "Checking seat"}</span>
+          <span className="flex items-center gap-1.5"><span className="truncate text-[14px] font-semibold">{isCurrentPlayer ? "You" : profileName(player.profile)}</span>{player.profile_id === hostId && <Crown className="h-3.5 w-3.5 fill-[#ffcf00] text-[#ffcf00]" />}</span>
+          <span className="mt-0.5 block text-[12px] text-white/55">Player {index + 1} · {presenceReady ? (isLive ? "Live" : "Away") : "Checking seat"}</span>
         </span>
       </button>
-      <span className={`inline-flex shrink-0 items-center gap-1 text-[9px] font-semibold ${ready ? "text-emerald-600" : "text-muted-foreground"}`}>{ready && <Check className="h-3 w-3" strokeWidth={3} />}{ready ? "Ready" : "Waiting"}</span>
-      {canSendBuzz && <button type="button" onClick={() => onBuzz(player)} disabled={buzzing || buzzCooling} className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-amber-400/15 text-amber-700 transition hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-40 dark:text-amber-300" title={buzzCooling ? "Buzz sent. Try again shortly" : `Buzz ${profileName(player.profile)}`} aria-label={`Buzz ${profileName(player.profile)} to join the game`}>{buzzing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BellRing className="h-3.5 w-3.5 fill-current" />}</button>}
-      {canRemove && <button type="button" onClick={() => onRemove(player)} disabled={removing} className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-destructive/8 text-destructive transition hover:bg-destructive/15 disabled:opacity-50" title={`Remove ${profileName(player.profile)}`} aria-label={`Remove ${profileName(player.profile)} from competition`}>{removing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserMinus className="h-3.5 w-3.5 fill-current" />}</button>}
+      <span className={`inline-flex shrink-0 items-center gap-1 text-[12px] font-semibold ${ready ? "text-[#6fd49f]" : "text-white/55"}`}>{ready && <Check className="h-3 w-3" strokeWidth={3} />}{ready ? "Ready" : "Waiting"}</span>
+      {canSendBuzz && <button type="button" onClick={() => onBuzz(player)} disabled={buzzing || buzzCooling} className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-amber-400/15 text-amber-300 transition hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-40" title={buzzCooling ? "Buzz sent. Try again shortly" : `Buzz ${profileName(player.profile)}`} aria-label={`Buzz ${profileName(player.profile)} to join the game`}>{buzzing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BellRing className="h-3.5 w-3.5 fill-current" />}</button>}
+      {canRemove && <button type="button" onClick={() => onRemove(player)} disabled={removing} className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-red-500/15 text-red-300 transition hover:bg-red-500/25 disabled:opacity-50" title={`Remove ${profileName(player.profile)}`} aria-label={`Remove ${profileName(player.profile)} from competition`}>{removing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserMinus className="h-3.5 w-3.5 fill-current" />}</button>}
     </div>
   );
 }
 
 function PlayerProgress({ player, rank, active, onMessage }: { player: ZeroGamePlayer; rank: number; active: boolean; onMessage: (profileId: string) => void }) {
   return <div className={`min-w-[190px] rounded-md border p-3 lg:min-w-0 ${active ? "border-primary bg-primary/[0.045]" : "border-border bg-card"}`}><div className="flex items-center gap-2.5"><span className="grid h-6 w-6 place-items-center rounded-sm bg-foreground/[0.06] text-[9px] font-semibold tabular-nums">{rank}</span><button type="button" onClick={() => onMessage(player.profile_id)} disabled={active} className="flex min-w-0 flex-1 items-center gap-2.5 text-left disabled:cursor-default" aria-label={active ? "You" : `Message ${profileName(player.profile)}`}><Avatar profile={player.profile} size="xs" /><span className="min-w-0 flex-1 truncate text-[10.5px] font-semibold">{active ? "You" : profileName(player.profile)}</span></button><span className="text-[9px] font-semibold tabular-nums text-muted-foreground">{player.progress}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/[0.06]"><div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${player.progress}%` }} /></div></div>;
-}
-
-function LobbyRow({ Icon, label, value }: any) {
-  return <div className="flex items-start justify-between gap-4 py-3"><span className="flex items-center gap-2 text-muted-foreground"><Icon className="mt-px h-3.5 w-3.5" />{label}</span><span className="max-w-[180px] text-right font-semibold leading-4">{value}</span></div>;
 }
 
 function Avatar({ profile, size, ring = false }: { profile?: any; size: "xs" | "sm" | "md" | "lg"; ring?: boolean }) {
