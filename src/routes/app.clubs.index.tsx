@@ -281,15 +281,17 @@ function Clubs() {
   // Group and deduplicate pending requests by sender_id and club_id
   const pendingRequestsGrouped = useMemo(() => {
     const pendingRaw = incomingRequests.filter((r: any) => {
-      const parts = r.content?.split(':') || [];
-      return parts[3] === 'pending';
+      if (!r || !r.content) return false;
+      const str = String(r.content);
+      return str.startsWith('CLUB_REQUEST:') && str.endsWith(':pending');
     });
 
     const map = new Map<string, { request: any; allIds: string[] }>();
     for (const req of pendingRaw) {
       const parts = req.content.split(':');
       const clubId = parts[1];
-      const key = `${req.sender_id}:${clubId}`;
+      const senderId = req.sender_id || req.sender?.id || 'unknown';
+      const key = `${senderId}:${clubId}`;
       if (!map.has(key)) {
         map.set(key, { request: req, allIds: [req.id] });
       } else {

@@ -77,3 +77,14 @@ end;
 $$;
 
 grant execute on function public.join_club(uuid) to authenticated;
+
+/* One-time cleanup for existing duplicate pending club join request messages in database */
+update public.messages m
+set content = 'DISMISSED_CLUB_REQUEST'
+where m.content like 'CLUB_REQUEST:%:pending'
+  and m.id not in (
+    select distinct on (sender_id, split_part(content, ':', 2)) id
+    from public.messages
+    where content like 'CLUB_REQUEST:%:pending'
+    order by sender_id, split_part(content, ':', 2), created_at desc
+  );
