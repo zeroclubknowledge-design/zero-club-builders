@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
   Check,
-  ChevronLeft,
+  ArrowLeft,
   Loader2,
   Rocket,
   Share2,
@@ -85,7 +85,7 @@ function TasksPage() {
     }
   };
 
-  const QuestCard = ({ quest }: { quest: any }) => {
+  const QuestRow = ({ quest }: { quest: any }) => {
     const Icon = QUEST_ICONS[quest.icon_name] || Rocket;
     const target = Math.max(1, Number(quest.criteria_count) || 1);
     const progress = Math.min(Number(quest.progress) || 0, target);
@@ -93,155 +93,117 @@ function TasksPage() {
     const isReady = quest.isCompleted && !quest.isClaimed;
 
     return (
-      <article className={`rounded-2xl p-4 transition ${quest.isClaimed ? "bg-card opacity-60" : "bg-card"}`}>
-        <div className="flex items-start gap-3.5">
+      <article className={`border-t border-border/60 px-4 py-3.5 ${quest.isClaimed ? "opacity-60" : ""}`}>
+        <div className="flex items-center gap-3">
           <span
-            className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-[10px] ${
               quest.isClaimed
-                ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
+                ? "bg-[#1a7f4b]/10 text-[#1a7f4b]"
                 : isReady
                   ? "bg-[#cc208f] text-white"
-                  : "bg-primary/[0.08] text-primary"
+                  : "bg-foreground/[0.05] text-foreground"
             }`}
           >
-            {quest.isClaimed ? <Check className="h-5 w-5" strokeWidth={2.5} /> : <Icon className="h-5 w-5" />}
+            {quest.isClaimed ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
           </span>
-
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-[14.5px] font-semibold leading-snug tracking-tight">{quest.title}</h3>
-              <span className="shrink-0 rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-foreground">
-                +{quest.reward_xp} ZP
-              </span>
-            </div>
-            <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{quest.description}</p>
-
-            {/* The bar is the honest part: it shows what the database counted,
-                not what anybody claims to have done. */}
-            {target > 1 && !quest.isClaimed && (
-              <div className="mt-3">
-                <div className="h-1.5 overflow-hidden rounded-full bg-foreground/[0.07]">
-                  <div
-                    className="h-full rounded-full bg-primary transition-[width] duration-500"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-                <p className="mt-1.5 text-[10.5px] text-muted-foreground tabular-nums">
-                  {progress} of {target}
-                </p>
-              </div>
-            )}
-
-            {isReady && (
-              <button
-                onClick={() => claim(quest)}
-                disabled={claiming === quest.id}
-                className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-foreground text-[13px] font-semibold text-background transition active:scale-[0.98] disabled:opacity-60"
-              >
-                {claiming === quest.id ? <Loader2 className="h-4 w-4 animate-spin" /> : `Claim ${quest.reward_xp} ZP`}
-              </button>
-            )}
+            <h3 className={`text-[15px] font-medium leading-snug ${quest.isClaimed ? "line-through" : ""}`}>{quest.title}</h3>
+            {quest.description && <p className="text-[13px] leading-snug text-muted-foreground">{quest.description}</p>}
           </div>
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[13px] font-bold tabular-nums ${quest.isClaimed ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-[#cc208f]/10 text-[#a3186f]"}`}>
+            +{quest.reward_xp}
+          </span>
         </div>
+
+        {/* The bar is the honest part: it shows what the database counted,
+            not what anybody claims to have done. */}
+        {target > 1 && !quest.isClaimed && !isReady && (
+          <div className="ml-[52px] mt-2">
+            <div className="h-1 overflow-hidden rounded-full bg-foreground/[0.08]">
+              <div className="h-full rounded-full bg-[#cc208f] transition-[width] duration-500" style={{ width: `${percent}%` }} />
+            </div>
+            <p className="mt-1 text-[12px] text-muted-foreground tabular-nums">{progress} of {target}</p>
+          </div>
+        )}
+
+        {isReady && (
+          <button
+            onClick={() => claim(quest)}
+            disabled={claiming === quest.id}
+            className="ml-[52px] mt-2.5 flex h-9 w-[calc(100%-52px)] items-center justify-center gap-2 rounded-full bg-foreground text-[14px] font-semibold text-background transition active:scale-[0.98] disabled:opacity-60"
+          >
+            {claiming === quest.id ? <Loader2 className="h-4 w-4 animate-spin" /> : `Claim ${quest.reward_xp} ZP`}
+          </button>
+        )}
       </article>
     );
   };
 
+  const group = (title: string, items: any[], tone = "text-muted-foreground", last = false) =>
+    items.length > 0 && (
+      <section className={`bg-card md:overflow-hidden md:rounded-xl md:border md:border-border ${last ? "flex-1 pb-28 md:flex-none md:pb-0" : ""}`}>
+        <h2 className={`px-4 pb-2 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] ${tone}`}>{title} · {items.length}</h2>
+        {items.map((quest) => <QuestRow key={quest.id} quest={quest} />)}
+      </section>
+    );
+
+  const lastGroup = done.length ? "done" : active.length ? "active" : "ready";
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background pb-28 text-foreground">
-      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[720px] items-center gap-3">
-          <button type="button" onClick={goBack}
-            aria-label="Back"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"
-          >
-            <ChevronLeft className="h-5 w-5" />
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-canvas text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          <div className="min-w-0">
-            <p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Club</p>
-            <h1 className="truncate text-[18px] font-semibold tracking-tight">Tasks</h1>
-          </div>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Tasks</h1>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[720px] px-4 py-5 md:px-7 md:py-7">
-        <section className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#241a2b] via-[#17131b] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-40px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-6">
-          <div className="pointer-events-none absolute -left-16 -top-20 h-48 w-48 rounded-full bg-[#cc208f]/22 blur-[70px]" />
-          <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
-
-          <div className="relative">
-            {/* ZP, not XP. XP is the record of what someone has done and is
-                deliberately not spendable; ZP is the balance quests pay into,
-                which is why it is the number worth showing here. */}
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">Your ZP</p>
-            <h2 className="mt-2 text-[34px] font-semibold leading-none tracking-tight tabular-nums">
-              {Number(profile?.zp || 0).toLocaleString()}
-            </h2>
-            <p className="mt-3 text-[12.5px] leading-relaxed text-white/55">
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+        {/* ZP, not XP. XP is the record of what someone has done and is
+            deliberately not spendable; ZP is the balance tasks pay into. */}
+        <section className="flex items-center gap-3 bg-card p-4 md:rounded-xl md:border md:border-border">
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] text-muted-foreground">Zero Points</p>
+            <p className="font-display text-[30px] font-semibold leading-tight tabular-nums">
+              {Number(profile?.zp || 0).toLocaleString()} <span className="text-[16px] text-[#a3186f]">ZP</span>
+            </p>
+            <p className="text-[13px] text-muted-foreground">
               {claimable > 0
-                ? `${claimable} ZP waiting to be claimed.`
+                ? `${claimable} ZP waiting to be claimed`
                 : active.length > 0
-                  ? "Finish a task below to earn more."
-                  : "Nothing outstanding right now."}
+                  ? "Finish a task below to earn more"
+                  : "Nothing outstanding right now"}
             </p>
           </div>
+          <Link to="/app/wallet/add-money" className="flex h-9 shrink-0 items-center rounded-full border-[1.5px] border-foreground px-3.5 text-[14px] font-semibold hover:bg-foreground/[0.04]">
+            Convert
+          </Link>
         </section>
 
         {error ? (
-          <div className="mt-5 rounded-2xl bg-card p-8 text-center">
-            <h2 className="text-[15px] font-semibold tracking-tight text-destructive">Tasks could not load</h2>
-            <p className="mx-auto mt-2 max-w-[44ch] text-[12.5px] leading-relaxed text-muted-foreground">
+          <div className="flex-1 bg-card px-6 py-14 text-center md:rounded-xl md:border md:border-border">
+            <h2 className="text-[16px] font-semibold text-destructive">Tasks could not load</h2>
+            <p className="mx-auto mt-2 max-w-[44ch] text-[14px] leading-relaxed text-muted-foreground">
               {(error as any)?.message || "Something went wrong."}
             </p>
           </div>
         ) : isLoading ? (
-          <div className="mt-8 grid place-items-center">
+          <div className="grid flex-1 place-items-center bg-card py-14">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : quests.length === 0 ? (
-          <p className="mt-5 rounded-2xl bg-card px-4 py-12 text-center text-[12.5px] text-muted-foreground">
-            No tasks are set at the moment. Check back.
+          <p className="flex-1 bg-card px-4 py-14 text-center text-[14px] text-muted-foreground md:rounded-xl md:border md:border-border">
+            No tasks are set at the moment. Check back soon.
           </p>
         ) : (
           <>
-            {ready.length > 0 && (
-              <section className="mt-6">
-                <h3 className="px-1 text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#cc208f]">
-                  Ready to claim · {ready.length}
-                </h3>
-                <div className="mt-2.5 space-y-2.5">
-                  {ready.map((quest) => <QuestCard key={quest.id} quest={quest} />)}
-                </div>
-              </section>
-            )}
-
-            {active.length > 0 && (
-              <section className="mt-6">
-                <h3 className="px-1 text-[12.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  In progress · {active.length}
-                </h3>
-                <div className="mt-2.5 space-y-2.5">
-                  {active.map((quest) => <QuestCard key={quest.id} quest={quest} />)}
-                </div>
-              </section>
-            )}
-
-            {done.length > 0 && (
-              <section className="mt-6">
-                <h3 className="px-1 text-[12.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  Claimed · {done.length}
-                </h3>
-                <div className="mt-2.5 space-y-2.5">
-                  {done.map((quest) => <QuestCard key={quest.id} quest={quest} />)}
-                </div>
-              </section>
-            )}
+            {group("Ready to claim", ready, "text-[#cc208f]", lastGroup === "ready")}
+            {group("In progress", active, "text-muted-foreground", lastGroup === "active")}
+            {group("Claimed", done, "text-muted-foreground", lastGroup === "done")}
           </>
         )}
-
-        <p className="mt-6 text-center text-[11px] leading-relaxed text-muted-foreground">
-          Tasks are set by Zero Club. Progress is counted from what you actually do.
-        </p>
       </main>
     </div>
   );

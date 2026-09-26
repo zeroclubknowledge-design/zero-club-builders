@@ -1,18 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Bell, Mail, Smartphone, Settings2, ChevronRight, Check, Loader2 } from "@/components/icons/glyphs";
-import type { ReactNode } from "react";
+import { ArrowLeft, Mail, Smartphone, Settings2, Loader2 } from "@/components/icons/glyphs";
+import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { vapidKeyProblem, vapidApplicationServerKey } from "@/lib/webPush";
 
-type NotificationSettingsItem = {
-  icon: typeof Bell;
-  label: string;
-  desc: string;
-  action: (() => void | Promise<void>) | null;
-  rightElement?: ReactNode;
-};
 
 export const Route = createFileRoute("/app/settings/notifications")({
   component: NotificationsSettings,
@@ -172,74 +165,58 @@ function NotificationsSettings() {
     }
   };
 
-  const sections: { title: string; items: NotificationSettingsItem[] }[] = [
-    {
-      title: "Filters",
-      items: [
-        { icon: Settings2, label: "Quality filter", desc: "Filter lower-quality content from your notifications", action: null },
-      ]
-    },
-    {
-      title: "Preferences",
-      items: [
-        { 
-          icon: Smartphone, 
-          label: "Push notifications", 
-          desc: pushStatus,
-          action: handlePushToggle,
-          rightElement: loading
-            ? <Loader2 className="mt-1 h-4 w-4 animate-spin text-primary" />
-            : isPushEnabled
-              ? <Check className="h-4 w-4 text-primary" />
-              : <ChevronRight className="h-4 w-4 text-muted-foreground mt-1" />
-        },
-        { 
-          icon: Mail, 
-          label: "Email notifications", 
-          desc: "Choose which notifications you want in your inbox", 
-          action: null,
-          rightElement: <ChevronRight className="h-4 w-4 text-muted-foreground mt-1" />
-        },
-      ]
-    }
-  ];
-
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center">
-        <Link to="/app/settings" className="mr-6 p-2 rounded-full transition active:bg-accent/10">
-          <ChevronLeft className="h-5 w-5 text-foreground" />
-        </Link>
-        <h1 className="text-lg font-bold text-foreground">Notifications</h1>
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <Link to="/app/settings" aria-label="Back to settings" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </Link>
+          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">Notifications</h1>
+        </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar">
-        {sections.map((section) => (
-          <div key={section.title} className="mt-4">
-            <h2 className="px-5 py-3 text-sm text-muted-foreground">{section.title}</h2>
-            <div className="flex flex-col border-b border-border">
-              {section.items.map((item) => (
-                <button 
-                  type="button"
-                  key={item.label} 
-                  onClick={item.action || undefined}
-                  disabled={loading && item.label === "Push notifications"}
-                  className={`flex items-start gap-5 px-5 py-4 transition active:bg-accent/10 text-left group ${loading && item.label ==="Push notifications" ? "opacity-50" : ""}`}
-                >
-                  <div className="mt-1 shrink-0">
-                    <item.icon className={`h-5 w-5 ${isPushEnabled && item.label ==="Push notifications" ? "text-primary" : "text-muted-foreground"}`} strokeWidth={1.5} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-[15px] font-bold text-foreground">{item.label}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                  </div>
-                  {item.rightElement}
-                </button>
-              ))}
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+        <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+          <h2 className={SECTION_TITLE}>Push notifications</h2>
+          <div className="flex items-center gap-3.5 border-t border-border/60 px-4 py-3.5">
+            <Smartphone className={`h-5 w-5 shrink-0 ${isPushEnabled ? "text-[#1a7f4b]" : "text-foreground"}`} />
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] text-foreground">On this device</p>
+              <p className="text-[13px] text-muted-foreground">{pushStatus}</p>
             </div>
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            ) : (
+              <Switch checked={isPushEnabled} onCheckedChange={() => void handlePushToggle()} aria-label="Push notifications on this device" />
+            )}
           </div>
-        ))}
-      </div>
+          <p className="border-t border-border/60 px-4 py-3 text-[13px] leading-relaxed text-muted-foreground">
+            Covers messages, mentions, replies, new followers, club live classes and wallet activity. Each phone or computer is switched on separately.
+          </p>
+        </section>
+
+        {/* Not wired to anything yet, so they say so instead of looking like
+            settings that silently do nothing. */}
+        <section className="flex-1 bg-card pb-28 md:flex-none md:overflow-hidden md:rounded-xl md:border md:border-border md:pb-0">
+          <h2 className={SECTION_TITLE}>More controls</h2>
+          {[
+            { icon: Settings2, label: "Quality filter", desc: "Hide lower-quality content from your notifications" },
+            { icon: Mail, label: "Email notifications", desc: "Choose which notifications reach your inbox" },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-3.5 border-t border-border/60 px-4 py-3.5">
+              <item.icon className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] text-foreground">{item.label}</p>
+                <p className="text-[13px] text-muted-foreground">{item.desc}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-foreground/[0.06] px-2.5 py-0.5 text-[12px] font-semibold text-muted-foreground">Soon</span>
+            </div>
+          ))}
+        </section>
+      </main>
     </div>
   );
 }
+
+const SECTION_TITLE = "px-4 pb-2 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground";

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
-  ArrowLeft, ShieldCheck, ArrowRight, WalletCards, Loader2,
-  Link2 as LinkIcon, Share2, Copy, Search, Send, Check, X, Coins,
+  ArrowLeft, ShieldCheck, ArrowRight, ChevronRight, Loader2,
+  Link2 as LinkIcon, Share2, Copy, Search, Send, Check, X,
 } from "@/components/icons/glyphs";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
-import { openPaystackCheckout, buildReference, paystackPublicKey, paystackKeyProblem, describeVerifyFailure } from "@/lib/paystack";
+import { openPaystackCheckout, buildReference, paystackKeyProblem, describeVerifyFailure } from "@/lib/paystack";
 import { fundLinkUrl, copyToClipboard, shareOrCopy } from "@/lib/share";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
@@ -337,166 +337,184 @@ function AddMoneyPage() {
     }
   };
 
+  const balance = Number(profile?.coins || 0);
+
   return (
-    <div className="min-h-screen bg-background pb-20 text-foreground">
-      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[760px] items-center gap-3">
-          <button onClick={() => navigate({ to: "/app/wallet" })} className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"><ArrowLeft className="h-[18px] w-[18px]" /></button>
-          <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Wallet</p><h1 className="text-[18px] font-semibold tracking-tight">Add money</h1></div>
+    <div className="flex min-h-screen flex-col bg-canvas text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button onClick={() => navigate({ to: "/app/wallet" })} aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Add money</h1>
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[760px] gap-5 px-4 py-6 md:grid-cols-[minmax(0,1fr)_250px] md:px-7 md:py-8">
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         {/* A payment already in flight. Shown for real rather than only
             auto-checked in the background, so that if the transfer lands late
             there is something on screen to press. */}
         {pending && (
-          <div className="rounded-lg bg-amber-500/[0.08] p-4 ring-1 ring-amber-500/25 md:col-span-2">
+          <section className="bg-amber-500/[0.08] px-4 py-3.5 ring-1 ring-amber-500/25 md:rounded-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[13px] font-semibold text-amber-700">
-                  {format(pending.amount)} waiting to be confirmed
-                </p>
-                <p className="mt-0.5 text-[11.5px] leading-5 text-muted-foreground">
-                  Sent the transfer? This checks with Paystack and adds it to your wallet.
-                </p>
+                <p className="text-[14px] font-semibold text-amber-800 dark:text-amber-400">{format(pending.amount)} waiting to be confirmed</p>
+                <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">Sent the transfer? This checks with Paystack and adds it to your wallet.</p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <button
                   onClick={() => confirmPending(pending)}
                   disabled={checking}
-                  className="flex h-9 items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 text-[12px] font-semibold text-white tap hover:opacity-90 disabled:opacity-50"
+                  className="flex h-9 items-center gap-1.5 rounded-full bg-amber-600 px-3.5 text-[13px] font-semibold text-white tap hover:opacity-90 disabled:opacity-50"
                 >
                   {checking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
                   Confirm payment
                 </button>
                 <button
                   onClick={() => { writePending(null); setPending(null); }}
-                  title="Dismiss"
                   aria-label="Dismiss"
-                  className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground tap hover:bg-foreground/[0.05]"
+                  className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground tap hover:bg-foreground/[0.05]"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             </div>
-          </div>
+          </section>
         )}
 
-        <section className="rounded-lg border border-border bg-card p-5 sm:p-7">
-          <div className="text-center">
-            <label className="text-[11px] font-medium uppercase text-muted-foreground">Amount to add</label>
-            <div className="mt-4 flex items-baseline justify-center gap-1">
-              <span className="text-[26px] text-muted-foreground">{details.symbol}</span>
-              <input type="number" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} disabled={busy} placeholder="0" autoFocus className="w-auto min-w-[80px] max-w-[240px] bg-transparent text-center text-[48px] font-semibold tracking-tight tabular-nums outline-none placeholder:text-muted-foreground/30 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:text-[56px]" style={{ width: `${Math.max(1, amount.length)}ch` }} />
-            </div>
-            <div className="mx-auto mt-2 h-[2px] w-16 rounded-full bg-primary/60" />
+        <section className="bg-card px-4 pb-5 pt-6 text-center md:rounded-xl md:border md:border-border">
+          <label htmlFor="topup-amount" className="text-[13px] font-semibold text-muted-foreground">Amount</label>
+          <div className="mt-1.5 flex items-baseline justify-center gap-1">
+            <span className="font-display text-[30px] font-semibold text-muted-foreground">{details.symbol}</span>
+            <input
+              id="topup-amount"
+              type="number"
+              inputMode="decimal"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              disabled={busy}
+              placeholder="0"
+              autoFocus
+              className="min-w-[70px] max-w-[260px] bg-transparent text-center font-display text-[44px] font-semibold tracking-[-0.02em] tabular-nums outline-none placeholder:text-muted-foreground/35 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              style={{ width: `${Math.max(1, amount.length)}ch` }}
+            />
           </div>
-
-          <div className="mt-9 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {QUICK_AMOUNTS.map((quick) => <button key={quick} disabled={busy} onClick={() => setAmount(String(fromBaseAmount(quick)))} className={`rounded-lg py-2.5 text-[12px] font-semibold tabular-nums disabled:opacity-50 ${numericAmount === quick ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>{format(quick)}</button>)}
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {numericAmount > 0 ? `Balance after: ${format(balance + numericAmount)}` : `Balance: ${format(balance)}`}
+          </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {QUICK_AMOUNTS.map((quick) => (
+              <button
+                key={quick}
+                disabled={busy}
+                onClick={() => setAmount(String(fromBaseAmount(quick)))}
+                className={`h-9 rounded-full px-3.5 text-[14px] font-semibold tabular-nums transition disabled:opacity-50 ${
+                  numericAmount === quick ? "bg-foreground text-background" : "border border-foreground/20 text-muted-foreground hover:border-foreground/40"
+                }`}
+              >
+                {format(quick)}
+              </button>
+            ))}
           </div>
-
-          <button onClick={handlePay} disabled={numericAmount <= 0 || busy} className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[14px] font-semibold text-primary-foreground disabled:opacity-40">
-            {status === "verifying" ? (<><Loader2 className="h-4 w-4 animate-spin" />Confirming payment</>)
-              : status === "paying" ? (<><Loader2 className="h-4 w-4 animate-spin" />Waiting for Paystack</>)
-              : (<>{numericAmount > 0 ? `Pay ${format(numericAmount)} with Paystack` : "Pay with Paystack"}<ArrowRight className="h-4 w-4" /></>)}
-          </button>
-
-          {/* The amount typed above, asked for rather than paid. */}
-          {numericAmount > 0 && (
-            <div className="mt-2.5">
-              <RequestFundsButton
-                amount={numericAmount}
-                purpose="Top up my Zero Club wallet"
-                label={`Ask someone for ${format(numericAmount)}`}
-              />
-            </div>
-          )}
-
-          {paystackKeyProblem() && (
-            <p className="mt-3 rounded-lg bg-amber-500/[0.08] px-3 py-2.5 text-[11px] leading-relaxed text-amber-700 ring-1 ring-amber-500/20">
-              {paystackKeyProblem()}
-            </p>
-          )}
-
-          {/* ── Second way in: have someone else pay ── */}
-          <div className="mt-7 border-t hairline pt-6">
-            <div className="flex items-start gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
-                <LinkIcon className="h-[18px] w-[18px]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-[14.5px] font-semibold tracking-tight">Ask someone to fund you</h2>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                  Generate a link anyone can pay — Zero Club members pay from their wallet, everyone
-                  else pays by card. The money arrives in your wallet either way.
-                </p>
-                <button
-                  onClick={() => setLinkOpen(true)}
-                  disabled={busy}
-                  className="mt-3.5 flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-[13px] font-semibold ring-1 ring-border tap hover:bg-foreground/[0.04] disabled:opacity-40"
-                >
-                  <LinkIcon className="h-4 w-4" /> Generate a fund link
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Third way in: points you already have ── */}
-          {zpBalance >= ZP_PER_NAIRA && (
-            <div className="mt-7 border-t hairline pt-6">
-              <div className="flex items-start gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/8 text-primary ring-1 ring-primary/15">
-                  <Coins className="h-[18px] w-[18px]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-[14.5px] font-semibold tracking-tight">Top up with your ZP</h2>
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                    {ZP_PER_NAIRA * 100} ZP is worth {format(100)}. Convert what you need to cover a
-                    payment — converted points can be spent anywhere on Zero Club, but are not
-                    withdrawable to a bank.
-                  </p>
-
-                  <p className="mt-3 text-[12px] text-muted-foreground">
-                    You have <strong className="font-semibold tabular-nums text-foreground">{zpBalance.toLocaleString()} ZP</strong>
-                    {" "}· worth <strong className="font-semibold tabular-nums text-foreground">{format(Math.floor(zpBalance / ZP_PER_NAIRA))}</strong>
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <input
-                      inputMode="numeric"
-                      value={zpAmount}
-                      onChange={(event) => setZpAmount(event.target.value.replace(/\D/g, ""))}
-                      placeholder="ZP to convert"
-                      disabled={converting}
-                      className="h-11 w-[150px] rounded-lg border border-border bg-background px-3 text-[14px] font-semibold tabular-nums outline-none transition focus:border-primary/50 disabled:opacity-50"
-                    />
-                    <button
-                      onClick={() => setZpAmount(String(Math.floor(zpBalance / ZP_PER_NAIRA) * ZP_PER_NAIRA))}
-                      disabled={converting}
-                      className="h-11 rounded-lg px-3 text-[12px] font-semibold text-muted-foreground ring-1 ring-border tap hover:bg-foreground/[0.04] disabled:opacity-50"
-                    >
-                      Max
-                    </button>
-                    <button
-                      onClick={handleConvertZp}
-                      disabled={converting || zpCredit < 1}
-                      className="flex h-11 items-center gap-2 rounded-lg bg-foreground px-4 text-[13px] font-semibold text-background tap disabled:opacity-40"
-                    >
-                      {converting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Convert{zpCredit >= 1 ? ` to ${format(zpCredit)}` : ""}</>}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
 
-        <aside className="space-y-3">
-          <div className="rounded-lg bg-[#171218] p-5 text-white"><WalletCards className="h-5 w-5 text-[#f06ac3]" /><h2 className="mt-4 text-[16px] font-semibold">Fund your wallet</h2><p className="mt-1.5 text-[12px] leading-relaxed text-white/60">Use your balance for memberships, bootcamps, products, and builder transactions.</p></div>
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-4"><ShieldCheck className="mt-0.5 h-[18px] w-[18px] shrink-0 text-primary" /><p className="text-[12px] leading-relaxed text-muted-foreground">Processed securely by Paystack. Successful payments arrive instantly.</p></div>
-        </aside>
+        <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+          <h2 className="px-4 pb-2 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Pay with</h2>
+
+          <div className="border-t border-border/60 px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#0ba4db] text-[15px] font-bold text-white">P</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-semibold">Paystack</p>
+                <p className="text-[13px] text-muted-foreground">Card, bank transfer or USSD</p>
+              </div>
+            </div>
+            <button
+              onClick={handlePay}
+              disabled={numericAmount <= 0 || busy}
+              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition hover:opacity-90 disabled:opacity-40"
+            >
+              {status === "verifying" ? (<><Loader2 className="h-4 w-4 animate-spin" />Confirming payment</>)
+                : status === "paying" ? (<><Loader2 className="h-4 w-4 animate-spin" />Waiting for Paystack</>)
+                : (<>{numericAmount > 0 ? `Pay ${format(numericAmount)}` : "Enter an amount"}{numericAmount > 0 && <ArrowRight className="h-4 w-4" />}</>)}
+            </button>
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5" /> Secured by Paystack. Successful payments arrive instantly.
+            </p>
+            {paystackKeyProblem() && (
+              <p className="mt-2 rounded-lg bg-amber-500/[0.08] px-3 py-2.5 text-[12px] leading-relaxed text-amber-700 ring-1 ring-amber-500/20">
+                {paystackKeyProblem()}
+              </p>
+            )}
+          </div>
+
+          {/* ── Points you already have ── */}
+          {zpBalance >= ZP_PER_NAIRA && (
+            <div className="border-t border-border/60 px-4 py-3.5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#cc208f]/10 text-[13px] font-bold text-[#cc208f]">ZP</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-semibold">Convert Zero Points</p>
+                  <p className="text-[13px] text-muted-foreground">
+                    You have {zpBalance.toLocaleString()} ZP · worth {format(Math.floor(zpBalance / ZP_PER_NAIRA))}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <input
+                  inputMode="numeric"
+                  value={zpAmount}
+                  onChange={(event) => setZpAmount(event.target.value.replace(/\D/g, ""))}
+                  placeholder="ZP to convert"
+                  disabled={converting}
+                  className="h-10 min-w-0 flex-1 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] font-semibold tabular-nums outline-none focus:border-foreground/40 disabled:opacity-50"
+                />
+                <button
+                  onClick={() => setZpAmount(String(Math.floor(zpBalance / ZP_PER_NAIRA) * ZP_PER_NAIRA))}
+                  disabled={converting}
+                  className="h-10 rounded-full px-3 text-[13px] font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
+                >
+                  Max
+                </button>
+                <button
+                  onClick={handleConvertZp}
+                  disabled={converting || zpCredit < 1}
+                  className="flex h-10 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-foreground px-3.5 text-[14px] font-semibold disabled:opacity-40"
+                >
+                  {converting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Convert{zpCredit >= 1 ? ` to ${format(zpCredit)}` : ""}</>}
+                </button>
+              </div>
+              <p className="mt-1.5 text-[12px] text-muted-foreground">
+                {ZP_PER_NAIRA * 100} ZP = {format(100)}. Converted points can be spent anywhere on Zero Club, but can't be withdrawn to a bank.
+              </p>
+            </div>
+          )}
+
+          {/* ── Have someone else pay ── */}
+          <button
+            onClick={() => setLinkOpen(true)}
+            disabled={busy}
+            className="flex w-full items-center gap-3 border-t border-border/60 px-4 py-3.5 text-left hover:bg-foreground/[0.02] disabled:opacity-40"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-foreground/[0.06]"><LinkIcon className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-semibold">Ask someone to fund you</span>
+              <span className="block text-[13px] text-muted-foreground">Share a link anyone can pay, by wallet or card</span>
+            </span>
+            <ChevronRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+          </button>
+        </section>
+
+        {/* The amount typed above, asked for rather than paid. */}
+        <section className="flex-1 bg-card px-4 pb-28 pt-3.5 md:flex-none md:rounded-xl md:border md:border-border md:pb-4">
+          {numericAmount > 0 ? (
+            <RequestFundsButton amount={numericAmount} purpose="Top up my Zero Club wallet" label={`Ask someone for ${format(numericAmount)}`} />
+          ) : (
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              Use your balance for memberships, bootcamps, products and payments to other builders.
+            </p>
+          )}
+        </section>
       </main>
 
       {/* ── Fund link drawer ── */}

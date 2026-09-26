@@ -1,122 +1,207 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { 
-  ChevronLeft, Search, User, Lock, Zap, ShieldCheck, 
-  Bell, Info, ChevronRight, CreditCard 
+import {
+  Accessibility, ArrowLeft, Bell, ChevronRight, Crown, Info, Lock, LogOut, Search, ShieldCheck, User, X,
 } from "@/components/icons/glyphs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getFirstName } from "@/lib/utils";
+import { useUser } from "@/hooks/useUser";
+import { logoutCurrentAccount } from "@/lib/multiAccount";
+import { getLevelFromXp } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/settings/")({
   component: SettingsIndex,
 });
 
-const settingsItems = [
+type SettingsItem = {
+  id: string;
+  icon: typeof User;
+  title: string;
+  description: string;
+  to: string;
+};
+
+const settingsGroups: { title: string; items: SettingsItem[] }[] = [
   {
-    id: "account",
-    icon: User,
     title: "Your account",
-    description: "See information about your account, download an archive of your data, or learn about your account deactivation options.",
-    to: "/app/settings/account",
+    items: [
+      {
+        id: "account",
+        icon: User,
+        title: "Account information",
+        description: "Your details, a copy of your data and deactivation options",
+        to: "/app/settings/account",
+      },
+      {
+        id: "premium",
+        icon: Crown,
+        title: "Premium",
+        description: "What's included in Premium and your membership settings",
+        to: "/app/settings/premium",
+      },
+    ],
   },
   {
-    id: "security",
-    icon: Lock,
-    title: "Security and account access",
-    description: "Manage your account's security and keep track of your account's usage including apps that you have connected to your account.",
-    to: "/app/settings/security",
+    title: "Security and privacy",
+    items: [
+      {
+        id: "security",
+        icon: Lock,
+        title: "Password and sign-in",
+        description: "Keep your account secure and see where you're signed in",
+        to: "/app/settings/security",
+      },
+      {
+        id: "privacy",
+        icon: ShieldCheck,
+        title: "Privacy and safety",
+        description: "What you see and share on Zero Club",
+        to: "/app/settings/privacy",
+      },
+    ],
   },
   {
-    id: "premium",
-    icon: Zap,
-    title: "Premium",
-    description: "See what's included in Premium and manage your settings",
-    to: "/app/settings/premium",
+    title: "Preferences",
+    items: [
+      {
+        id: "notifications",
+        icon: Bell,
+        title: "Notifications",
+        description: "Push alerts on this device and what you hear about",
+        to: "/app/settings/notifications",
+      },
+      {
+        id: "accessibility",
+        icon: Accessibility,
+        title: "Accessibility",
+        description: "Display, motion and reading options",
+        to: "/app/settings/accessibility",
+      },
+    ],
   },
   {
-    id: "privacy",
-    icon: ShieldCheck,
-    title: "Privacy and safety",
-    description: "Manage what information you see and share on Zero Club.",
-    to: "/app/settings/privacy",
-  },
-  {
-    id: "notifications",
-    icon: Bell,
-    title: "Notifications",
-    description: "Select the kinds of notifications you get about your activities, interests, and recommendations.",
-    to: "/app/settings/notifications",
-  },
-  {
-    id: "resources",
-    icon: Info,
     title: "Additional resources",
-    description: "Check out other places for helpful information and more about Zero Club.",
-    to: "/app/settings/resources",
+    items: [
+      {
+        id: "resources",
+        icon: Info,
+        title: "Help and resources",
+        description: "Help centre, terms and more about Zero Club",
+        to: "/app/settings/resources",
+      },
+    ],
   },
 ];
 
 function SettingsIndex() {
-  const [profile, setProfile] = useState<any>(null);
+  const { data: profile } = useUser();
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase.from('profiles').select('username').eq('id', user.id).single()
-          .then(({ data }) => setProfile(data));
-      }
-    });
-  }, []);
+  // The search box used to be decoration. It now narrows the list, matching
+  // either the title or the line under it.
+  const groups = settingsGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !needle || `${item.title} ${item.description}`.toLowerCase().includes(needle)),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  const name = profile?.full_name || profile?.username || "Your account";
+
+  const signOut = async () => {
+    if (profile?.id) {
+      await logoutCurrentAccount(profile.id);
+    } else {
+      await supabase.auth.signOut();
+      window.location.href = "/signin";
+    }
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl backdrop-saturate-150 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center">
-        <Link to="/app" className="mr-4 grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap hover:bg-foreground/[0.04]">
-          <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
-        </Link>
-        <div>
-          <h1 className="text-[17px] font-semibold tracking-tight text-foreground">Settings</h1>
-          <p className="text-[12px] text-muted-foreground">{getFirstName(profile)}</p>
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <Link to="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </Link>
+          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">Settings</h1>
+        </div>
+        <div className="mx-auto w-full max-w-[680px] px-3 pb-3">
+          <label className="flex h-[38px] items-center gap-2 rounded-full bg-foreground/[0.06] px-3">
+            <Search className="h-[17px] w-[17px] shrink-0 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search settings"
+              className="h-full min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
+            />
+            {query && (
+              <button type="button" onClick={() => setQuery("")} aria-label="Clear search" className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </label>
         </div>
       </header>
 
-      {/* Search */}
-      <div className="mx-auto w-full max-w-[980px] px-4 py-4 md:px-6 md:py-6">
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search settings"
-            className="w-full bg-foreground/[0.04] rounded-full py-2.5 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground outline-none ring-1 ring-transparent focus:ring-primary/40 focus:bg-background transition-all"
-          />
-        </div>
-      </div>
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+        {!needle && (
+          <section className="flex items-center gap-3 bg-card px-4 py-3.5 md:rounded-xl md:border md:border-border">
+            <div className="grid h-[52px] w-[52px] shrink-0 place-items-center overflow-hidden rounded-full bg-accent/10 text-[17px] font-semibold text-accent">
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : name.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[16px] font-semibold">{name}</p>
+              <p className="truncate text-[13px] text-muted-foreground">
+                {profile?.username ? `@${profile.username} · ` : ""}Level {getLevelFromXp(Number(profile?.xp || 0))}
+              </p>
+            </div>
+            {profile?.id && (
+              <Link to="/app/profile/$id" params={{ id: profile.username || profile.id }} className="shrink-0 text-[14px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+                View profile
+              </Link>
+            )}
+          </section>
+        )}
 
-      {/* Settings List */}
-      <div className="mx-auto w-full max-w-[980px] flex-1 overflow-y-auto px-0 pb-20 md:px-6 no-scrollbar">
-        <div className="flex flex-col divide-y divide-hairline md:grid md:grid-cols-2 md:gap-3 md:divide-y-0">
-          {settingsItems.map((item) => (
-            <Link
-              key={item.id}
-              to={item.to}
-              className="group flex items-start gap-4 px-5 py-4 text-left tap hover:bg-foreground/[0.02] md:min-h-[132px] md:rounded-lg md:border md:border-border md:bg-card"
+        {groups.map((group) => (
+          <section key={group.title} className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+            <h2 className="px-4 pb-2 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">{group.title}</h2>
+            {group.items.map((item) => (
+              <Link
+                key={item.id}
+                to={item.to}
+                className="group flex items-center gap-3.5 border-t border-border/60 px-4 py-3 hover:bg-foreground/[0.02]"
+              >
+                <item.icon className="h-5 w-5 shrink-0 text-foreground" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] text-foreground">{item.title}</span>
+                  <span className="block truncate text-[13px] text-muted-foreground">{item.description}</span>
+                </span>
+                <ChevronRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground/60 transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+              </Link>
+            ))}
+          </section>
+        ))}
+
+        {needle && groups.length === 0 && (
+          <div className="bg-card px-6 py-14 text-center md:rounded-xl md:border md:border-border">
+            <p className="text-[15px] font-semibold">No settings match "{query}"</p>
+          </div>
+        )}
+
+        {!needle && (
+          <section className="flex flex-1 flex-col bg-card pb-28 md:flex-none md:rounded-xl md:border md:border-border md:pb-0">
+            <button
+              type="button"
+              onClick={signOut}
+              className="flex items-center gap-3.5 px-4 py-3.5 text-left text-[15px] font-semibold text-[#cc208f] hover:bg-[#cc208f]/[0.04]"
             >
-              <div className="mt-0.5 shrink-0 grid h-9 w-9 place-items-center rounded-full ring-1 ring-border bg-card">
-                <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.75} />
-              </div>
-              <div className="flex-1 pr-4">
-                <h3 className="text-[14.5px] font-semibold tracking-tight text-foreground">{item.title}</h3>
-                <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed line-clamp-2">{item.description}</p>
-              </div>
-              <div className="mt-2.5">
-                <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
-              </div>
-            </Link>
-          ))}
-
-        </div>
-      </div>
+              <LogOut className="h-5 w-5" /> Sign out
+            </button>
+          </section>
+        )}
+      </main>
     </div>
   );
 }
