@@ -36,6 +36,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastScrollTop = useRef(0);
   const [headerHidden, setHeaderHidden] = useState(false);
+  const [readProgress, setReadProgress] = useState(0);
   const { data: profile } = useUser();
   const queryClient = useQueryClient();
   const { data: note, isLoading: loading } = useQuery({
@@ -64,6 +65,8 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
     if (!element) return;
 
     const current = element.scrollTop;
+    const scrollable = element.scrollHeight - element.clientHeight;
+    setReadProgress(scrollable > 0 ? Math.min(1, current / scrollable) : 0);
     const delta = current - lastScrollTop.current;
     if (current <= 16) {
       setHeaderHidden(false);
@@ -185,24 +188,24 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
 
   if (loading) {
     return (
-      <div className="flex h-full w-full flex-col bg-background overflow-hidden relative items-center justify-center">
-        <div className="w-10 h-10 border-4 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+      <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-card">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-foreground/15 border-t-foreground" />
       </div>
     );
   }
 
   if (!note) {
     return (
-      <div className="flex h-full w-full flex-col bg-background overflow-hidden relative items-center justify-center p-6 text-center">
-        <h2 className="text-3xl font-black tracking-tight mb-3">Story not found</h2>
-        <p className="text-muted-foreground/70 mb-8 max-w-[250px] leading-relaxed">
+      <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-card p-6 text-center">
+        <h2 className="mb-2 font-display text-[22px] font-semibold">Note not found</h2>
+        <p className="mb-6 max-w-[280px] text-[14px] leading-relaxed text-muted-foreground">
           The article you are looking for has been removed or is unavailable.
         </p>
         <button
           onClick={() => navigate({ to: profile?.id ? "/app/notes" : "/" })}
-          className="bg-foreground text-background px-8 py-3.5 rounded-full font-bold shadow-lg hover:bg-foreground/90 transition-colors"
+          className="flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background transition hover:opacity-90"
         >
-          Return Home
+          Back to ZeroNotes
         </button>
       </div>
     );
@@ -221,22 +224,22 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
              section breaks and highlight treatment it had while being written.
              Without it the reader rendered the tags with prose defaults, and a
              writer's H1 and H3 came out nearly the same size. */
-          <div className="zc-note-prose whitespace-pre-wrap text-[17px] leading-[1.8] text-foreground/90 md:text-lg">
+          <div className="zc-note-prose whitespace-pre-wrap text-[17px] leading-[1.65] text-foreground/90 md:text-lg">
             <LinkifiedText text={cleanContent} className="zc-note-prose" />
           </div>
         );
       case "heading":
         return (
-          <h2 className="mb-5 mt-12 text-2xl font-semibold text-foreground md:text-3xl">
+          <h2 className="mb-2 mt-8 font-display text-[21px] font-semibold text-foreground md:text-[26px]">
             {block.content}
           </h2>
         );
       case "image":
         return (
-          <div className="my-8 overflow-hidden rounded-lg border border-border bg-muted">
+          <div className="my-6 overflow-hidden rounded-xl bg-muted">
             <img
               src={block.content}
-              className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-500"
+              className="h-auto w-full object-cover"
               loading="lazy"
               decoding="async"
             />
@@ -244,7 +247,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
         );
       case "video":
         return (
-          <div className="group relative my-8 overflow-hidden rounded-lg border border-border bg-black">
+          <div className="group relative my-6 overflow-hidden rounded-xl bg-black">
             <video
               src={block.content}
               controls
@@ -254,13 +257,13 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
         );
       case "audio":
         return (
-          <div className="my-8 flex flex-col gap-5 rounded-lg border border-border bg-card p-5">
+          <div className="my-6 flex flex-col gap-4 rounded-xl bg-foreground/[0.04] p-4">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Mic className="h-6 w-6" />
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+                <Mic className="h-5 w-5" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-lg tracking-tight">Audio Insight</span>
+                <span className="text-[15px] font-semibold">Audio</span>
                 <span className="text-sm text-muted-foreground font-medium">
                   Press play to listen
                 </span>
@@ -285,138 +288,109 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
     }
   };
 
+  const readMinutes = Math.max(
+    1,
+    Math.ceil(
+      (note.blocks
+        ?.filter((b: any) => b.type === "text")
+        .reduce((acc: number, b: any) => acc + (String(b.content || "").replace(/<[^>]*>?/gm, " ").split(/\s+/).filter(Boolean).length || 0), 0) || 0) / 200,
+    ),
+  );
+  const authorName = note.profiles?.full_name || note.profiles?.username || "ZeroNotes writer";
+  const isOwner = profile?.id === note.author_id;
+
   return (
-    <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-background selection:bg-foreground selection:text-background">
+    <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-card selection:bg-foreground selection:text-background">
       <header
-        className={`absolute inset-x-0 top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top)] shadow-sm transition-transform duration-300 ease-out ${
+        className={`absolute inset-x-0 top-0 z-50 bg-card pt-[env(safe-area-inset-top)] transition-transform duration-300 ease-out ${
           headerHidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >
-        <div className="mx-auto flex h-16 w-full max-w-[920px] items-center gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: profile?.id ? "/app/notes" : "/" })}
             aria-label={profile?.id ? "Back to ZeroNotes" : "Back to Zero Club"}
-            className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-muted-foreground">ZeroNotes</p>
-            <p className="truncate text-sm font-semibold">{note.title}</p>
-          </div>
+          <span className="flex-1" />
           <button
             onClick={handleBookmark}
-            className={`grid h-10 w-10 place-items-center rounded-lg border bg-card transition hover:bg-accent ${isBookmarked ? "border-primary text-primary" : "border-border text-foreground"}`}
-            aria-label="Save note"
+            className="grid h-11 w-11 place-items-center rounded-full text-foreground transition hover:bg-foreground/[0.04]"
+            aria-label={isBookmarked ? "Remove from saved" : "Save note"}
+            aria-pressed={isBookmarked}
           >
-            <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
+            <Bookmark className={`h-[21px] w-[21px] ${isBookmarked ? "fill-current" : ""}`} />
           </button>
           <button
             onClick={handleShare}
-            className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent"
+            className="grid h-11 w-11 place-items-center rounded-full text-foreground transition hover:bg-foreground/[0.04]"
             aria-label="Share note"
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-5 w-5" />
           </button>
+        </div>
+        <div className="h-[3px] bg-foreground/[0.06]">
+          <div className="h-full bg-[#cc208f] transition-[width] duration-150" style={{ width: `${Math.round(readProgress * 100)}%` }} />
         </div>
       </header>
 
       <div
         ref={scrollRef}
         onScroll={handleReaderScroll}
-        className="flex h-full w-full flex-1 flex-col overflow-y-auto pt-[calc(4rem+env(safe-area-inset-top))]"
+        className="flex h-full w-full flex-1 flex-col overflow-y-auto pt-[calc(3.6rem+env(safe-area-inset-top))]"
       >
-        {/* Cover Image */}
-        {note.cover_url && (
-          <div className="mx-auto w-full max-w-[1100px] px-4 pt-5 sm:px-6 sm:pt-7">
-            <div className="aspect-[16/9] overflow-hidden rounded-lg border border-border bg-muted md:aspect-[21/9]">
-              <img
-                src={note.cover_url}
-                className="h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Article Content */}
-        <article className="relative z-10 mx-auto flex w-full max-w-[760px] flex-1 flex-col px-4 pb-10 pt-8 sm:px-6 sm:pt-10">
-          <h1 className="mb-7 text-3xl font-semibold leading-tight text-foreground sm:text-4xl md:text-[44px]">
+        <article className="relative z-10 mx-auto flex w-full max-w-[680px] flex-1 flex-col px-5 pb-10 pt-6">
+          <span className="text-[12px] font-semibold text-[#a3186f]">ZeroNotes · {readMinutes} min read</span>
+          <h1 className="mt-1.5 font-display text-[28px] font-semibold leading-[1.15] text-foreground md:text-[36px]">
             {note.title}
           </h1>
 
-          {/* Author Section: Larger author avatar with border ring. Name + "Follow" button row. Published date + reading time. Subtle bottom border separator */}
-          <div className="mb-10 flex flex-col justify-between gap-4 border-b border-border pb-6 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3.5">
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full overflow-hidden bg-muted border border-primary/20 shadow-sm shrink-0">
-                {note.profiles?.avatar_url ? (
-                  <img
-                    src={note.profiles.avatar_url}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-foreground text-background flex items-center justify-center font-bold text-lg">
-                    {note.profiles?.username?.[0]?.toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-base font-semibold text-foreground">
-                    {note.profiles?.full_name || note.profiles?.username}
-                  </span>
-                  {/* Never on your own notes — subscribing to yourself is
-                      meaningless, and the database rejects it too. */}
-                  {profile?.id && profile.id !== note.author_id && (
-                    <button
-                      onClick={handleSubscribe}
-                      disabled={subscribeMutation.isPending}
-                      title={isSubscribed ? "Stop getting their new notes" : "Get their new notes"}
-                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${isSubscribed ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
-                    >
-                      {isSubscribed ? <Check className="h-3 w-3" /> : <Bell className="h-3 w-3" />}
-                      {isSubscribed ? "Subscribed" : "Subscribe"}
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mt-0.5">
-                  <span>
-                    {note.created_at
-                      ? formatDistanceToNow(new Date(note.created_at), { addSuffix: true })
-                      : "Just now"}
-                  </span>
-                  <span className="h-1 w-1 rounded-full bg-muted-foreground/50" />
-                  <span>
-                    {Math.max(
-                      1,
-                      Math.ceil(
-                        note.blocks
-                          ?.filter((b: any) => b.type === "text")
-                          .reduce(
-                            (acc: number, b: any) => acc + (b.content?.split(" ").length || 0),
-                            0,
-                          ) / 200,
-                      ),
-                    )}{" "}
-                    min read
-                  </span>
-                </div>
-              </div>
+          <div className="mt-4 flex items-center gap-2.5">
+            <Link
+              to="/app/profile/$id"
+              params={{ id: note.profiles?.username || note.author_id }}
+              className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-muted"
+            >
+              {note.profiles?.avatar_url ? (
+                <img src={note.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+              ) : (
+                <span className="grid h-full w-full place-items-center text-[13px] font-semibold text-muted-foreground">
+                  {authorName.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </Link>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[14px] font-semibold text-foreground">{authorName}</p>
+              <p className="text-[12px] text-muted-foreground">
+                {note.created_at ? formatDistanceToNow(new Date(note.created_at), { addSuffix: true }) : "Just now"}
+              </p>
             </div>
-            {profile?.id === note.author_id && (
-              <div className="flex items-center gap-2">
+            {/* Never on your own notes — subscribing to yourself is
+                meaningless, and the database rejects it too. */}
+            {profile?.id && !isOwner && (
+              <button
+                onClick={handleSubscribe}
+                disabled={subscribeMutation.isPending}
+                title={isSubscribed ? "Stop getting their new notes" : "Get their new notes"}
+                className={`flex h-[30px] shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition disabled:opacity-50 ${isSubscribed ? "border border-foreground/25 text-muted-foreground" : "border-[1.5px] border-foreground text-foreground"}`}
+              >
+                {isSubscribed ? <Check className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
+                {isSubscribed ? "Subscribed" : "Subscribe"}
+              </button>
+            )}
+            {isOwner && (
+              <div className="flex shrink-0 items-center gap-1">
                 <button
                   onClick={() => navigate({ to: "/app/notes/$id/edit", params: { id: note.id } })}
-                  className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold hover:bg-accent"
+                  className="flex h-[30px] items-center gap-1.5 rounded-full border-[1.5px] border-foreground px-3 text-[13px] font-semibold"
                 >
                   <Edit3 className="h-3.5 w-3.5" /> Edit
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="grid h-9 w-9 place-items-center rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10"
+                  className="grid h-[30px] w-[30px] place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   aria-label="Delete note"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -425,63 +399,35 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
             )}
           </div>
 
-          <div className="space-y-6">
+          {note.cover_url && (
+            <div className="mt-5 overflow-hidden rounded-xl bg-muted">
+              <img src={note.cover_url} alt="" className="aspect-[16/9] h-full w-full object-cover" loading="lazy" decoding="async" />
+            </div>
+          )}
+
+          <div className="mt-6 space-y-6">
             {note.blocks?.map((block: any, i: number) => (
               <div key={block.id || i}>{renderBlock(block)}</div>
             ))}
           </div>
 
-          <div className="mb-10 mt-14 flex flex-wrap items-center gap-3 border-y border-border py-5">
-            <button
-              onClick={handleLike}
-              className={`group flex h-10 items-center justify-center gap-2 rounded-lg border px-4 transition-colors ${isLiked ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-foreground hover:bg-accent"}`}
-            >
-              <ThumbsUp
-                className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${isLiked ? "fill-primary" : ""}`}
-              />
-              <span className="text-sm font-semibold">{isLiked ? "Liked" : "Like"}</span>
-            </button>
-            <button
-              onClick={handleBookmark}
-              className={`group flex h-10 items-center justify-center gap-2 rounded-lg border px-4 transition-colors ${isBookmarked ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-foreground hover:bg-accent"}`}
-            >
-              <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
-              <span className="text-sm font-semibold">{isBookmarked ? "Saved" : "Save"}</span>
-            </button>
-            <button
-              onClick={handleShare}
-              className="group flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-foreground transition-colors hover:bg-accent"
-            >
-              <Share2 className="h-5 w-5 transition-transform duration-300 group-hover:-rotate-12" />
-              <span className="text-sm font-semibold">Share</span>
-            </button>
-          </div>
-
           {/* Guests can read the complete note without an account. Account
               actions remain optional and are offered only after the article. */}
-          <div className="mt-auto pb-24">
+          <div className="mt-12 border-t border-border pt-6">
             {profile?.id ? (
               <CommentDrawer post={note} type="note" inline={true} />
             ) : (
-              <div className="rounded-xl border border-border bg-card p-5 text-center sm:p-7">
-                <p className="text-base font-semibold text-foreground">Enjoyed this ZeroNote?</p>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                  Reading is open to everyone. Sign in only if you want to save, react, comment, or
+              <div className="rounded-xl bg-foreground/[0.04] p-5 text-center">
+                <p className="text-[16px] font-semibold text-foreground">Enjoyed this ZeroNote?</p>
+                <p className="mx-auto mt-2 max-w-md text-[14px] leading-6 text-muted-foreground">
+                  Reading is open to everyone. Sign in only if you want to save, react, comment or
                   publish your own note.
                 </p>
-                <div className="mt-5 flex flex-wrap justify-center gap-3">
-                  <Link
-                    to="/signin"
-                    search={{ ref: "", club: "" }}
-                    className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
-                  >
+                <div className="mt-5 flex flex-wrap justify-center gap-2">
+                  <Link to="/signin" search={{ ref: "", club: "" }} className="flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">
                     Sign in
                   </Link>
-                  <Link
-                    to="/signup"
-                    search={{ ref: "", club: "" }}
-                    className="rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground"
-                  >
+                  <Link to="/signup" search={{ ref: "", club: "" }} className="flex h-10 items-center rounded-full border border-foreground/25 px-5 text-[14px] font-semibold text-foreground">
                     Create account
                   </Link>
                 </div>
@@ -491,27 +437,51 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
         </article>
       </div>
 
+      <footer className="shrink-0 border-t border-border bg-card pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2">
+        <div className="mx-auto flex w-full max-w-[680px] items-center gap-1 px-3 text-[14px] font-semibold text-muted-foreground">
+          <button
+            onClick={handleLike}
+            aria-pressed={isLiked}
+            className={`flex h-10 items-center gap-1.5 rounded-full px-3 transition hover:bg-foreground/[0.04] ${isLiked ? "text-[#cc208f]" : ""}`}
+          >
+            <ThumbsUp className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} /> {isLiked ? "Liked" : "Like"}
+          </button>
+          <button
+            onClick={handleBookmark}
+            aria-pressed={isBookmarked}
+            className={`flex h-10 items-center gap-1.5 rounded-full px-3 transition hover:bg-foreground/[0.04] ${isBookmarked ? "text-foreground" : ""}`}
+          >
+            <Bookmark className={`h-5 w-5 ${isBookmarked ? "fill-current" : ""}`} /> {isBookmarked ? "Saved" : "Save"}
+          </button>
+          <button
+            onClick={handleShare}
+            className="ml-auto flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-background transition hover:opacity-90"
+          >
+            <Share2 className="h-4 w-4" /> Share
+          </button>
+        </div>
+      </footer>
+
       {/* Delete Confirmation Modal */}
       {isDeleteDialogOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-lg border border-border bg-background p-6 shadow-xl animate-in zoom-in-95 duration-200 md:p-8">
-            <h3 className="mb-3 text-xl font-semibold">Delete this note?</h3>
-            <p className="text-muted-foreground mb-8 leading-relaxed">
-              Are you sure you want to delete this note? This action cannot be undone and it will be
-              permanently removed.
+          <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-2xl ring-1 ring-border animate-in zoom-in-95 duration-200">
+            <h3 className="mb-2 text-[18px] font-semibold">Delete this note?</h3>
+            <p className="mb-6 text-[14px] leading-relaxed text-muted-foreground">
+              This can't be undone — the note will be removed for good.
             </p>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2.5">
               <button
                 onClick={handleDelete}
-                className="w-full rounded-lg bg-red-500 py-3.5 font-semibold text-white transition-colors hover:bg-red-600 active:scale-[0.98]"
+                className="h-11 w-full rounded-full bg-destructive text-[15px] font-semibold text-destructive-foreground transition hover:opacity-90 active:scale-[0.98]"
               >
-                Yes, delete note
+                Delete note
               </button>
               <button
                 onClick={() => setIsDeleteDialogOpen(false)}
-                className="w-full rounded-lg bg-muted py-3.5 font-semibold text-foreground transition-colors hover:bg-muted/80 active:scale-[0.98]"
+                className="h-11 w-full rounded-full border border-foreground/25 text-[15px] font-semibold text-foreground transition hover:bg-foreground/[0.03] active:scale-[0.98]"
               >
-                No, cancel
+                Cancel
               </button>
             </div>
           </div>

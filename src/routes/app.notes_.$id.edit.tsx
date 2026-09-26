@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, Trash2, Heading1, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette, Check } from "@/components/icons/glyphs";
+import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette } from "@/components/icons/glyphs";
 import { Highlighter, NOTE_TEXT_COLORS, NOTE_HIGHLIGHTS } from "@/features/notes/editorMarks";
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -12,15 +12,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerClose,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import {
   Popover,
   PopoverContent,
@@ -553,27 +545,34 @@ function NotesEditPage() {
     }
   };
 
+  const wordCount = blocks.reduce(
+    (total: number, block: any) =>
+      total + (block.type === 'text' || block.type === 'heading'
+        ? String(block.content || '').replace(/<[^>]*>?/gm, ' ').split(/\s+/).filter(Boolean).length
+        : 0),
+    0,
+  );
+
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background selection:bg-foreground selection:text-background">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-card selection:bg-foreground selection:text-background">
       
       {/* Minimal Header */}
-      <header className="sticky top-0 z-50 bg-background pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center gap-3 px-4 sm:px-6">
-        <button onClick={() => noteData?.slug ? navigate({ to: '/notes/$slug', params: { slug: noteData.slug } }) : navigate({ to: '/app/notes/$id', params: { id: noteId } })} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground transition hover:bg-accent active:scale-95">
-          <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
+      <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
+        <button onClick={() => noteData?.slug ? navigate({ to: '/notes/$slug', params: { slug: noteData.slug } }) : navigate({ to: '/app/notes/$id', params: { id: noteId } })} aria-label="Back to the note" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <ArrowLeft className="h-[22px] w-[22px]" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] text-muted-foreground">ZeroNotes</p>
-          <p className="truncate text-sm font-semibold">Edit note</p>
+          <p className="truncate text-[13px] text-muted-foreground">Editing · {wordCount} {wordCount === 1 ? "word" : "words"}</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setShowPublishModal(true)}
             disabled={isPublishing}
-            className="flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+            className="flex h-9 items-center gap-2 rounded-full bg-foreground px-4 text-[15px] font-semibold text-background transition hover:opacity-90 active:scale-95 disabled:opacity-50"
           >
             {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Changes
+            Save
           </button>
         </div>
         </div>
@@ -587,8 +586,8 @@ function NotesEditPage() {
       >
         
         {/* Cover Image Area */}
-        <div className="mx-auto max-w-[920px] px-4 pt-5 sm:px-6 sm:pt-7">
-          <div className="group relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-dashed border-border bg-card transition-colors hover:border-primary/50 hover:bg-muted/30 md:aspect-[21/9]">
+        <div className="mx-auto max-w-[760px] px-5 pt-4">
+          <div className={`group relative w-full overflow-hidden rounded-xl transition-colors ${coverPreview ? "aspect-[16/9] bg-muted md:aspect-[21/9]" : "h-[120px] border-[1.5px] border-dashed border-foreground/25 hover:border-foreground/45"}`}>
             {coverPreview ? (
               <>
                 <img src={coverPreview} className="w-full h-full object-cover" loading="lazy" decoding="async" />
@@ -606,12 +605,9 @@ function NotesEditPage() {
                 </button>
               </>
             ) : (
-              <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
-                <div className="pointer-events-none mb-4 flex h-14 w-14 items-center justify-center rounded-lg border border-border bg-background transition-colors group-hover:border-primary/40">
-                  <ImageIcon className="h-7 w-7 text-muted-foreground/60 pointer-events-none group-hover:text-foreground/80 transition-colors" strokeWidth={1.5} />
-                </div>
-                <span className="text-base font-medium text-muted-foreground/80 pointer-events-none group-hover:text-foreground/90 transition-colors">Add Cover Image</span>
-                <span className="text-xs text-muted-foreground/50 mt-2 pointer-events-none">Drag and drop or click to browse</span>
+              <label className="absolute inset-0 flex cursor-pointer items-center justify-center gap-2 text-[14px] font-semibold text-muted-foreground transition-colors hover:text-foreground">
+                <ImageIcon className="pointer-events-none h-5 w-5" />
+                <span className="pointer-events-none">Add a cover</span>
                 <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleCoverUpload} />
               </label>
             )}
@@ -619,7 +615,7 @@ function NotesEditPage() {
         </div>
 
         {/* Editor Area */}
-        <div className="mx-auto max-w-[760px] px-4 pt-10 sm:px-6 sm:pt-12">
+        <div className="mx-auto max-w-[760px] px-5 pt-6">
           <textarea
             value={title}
             onChange={e => {
@@ -630,11 +626,10 @@ function NotesEditPage() {
             maxLength={120}
             aria-label="Note title"
             placeholder="Title"
-            className="mb-2 w-full resize-none overflow-hidden bg-transparent text-3xl font-semibold leading-tight outline-none placeholder:text-muted-foreground/40 sm:text-4xl md:text-[44px]"
+            className="mb-1 w-full resize-none overflow-hidden bg-transparent font-display text-[26px] font-semibold leading-[1.2] outline-none placeholder:text-muted-foreground/40 md:text-[34px]"
             rows={1}
           />
-          <div className="mb-8 flex items-center justify-between border-b border-border/60 pb-4 text-xs text-muted-foreground sm:mb-10">
-            <span>Title</span>
+          <div className="mb-6 flex items-center justify-end text-[12px] text-muted-foreground">
             <span className="ml-4 shrink-0 tabular-nums">{title.length}/120</span>
           </div>
 
@@ -812,38 +807,38 @@ function NotesEditPage() {
       {/* Floating Formatting Toolbar (Appears when typing) */}
       {activeMentionBlockId && (
         <div
-          className={`formatting-toolbar fixed left-1/2 z-50 w-[calc(100%-2rem)] max-w-max -translate-x-1/2 animate-in slide-in-from-bottom-8 fade-in zoom-in-95 duration-200 ${keyboardInset > 0 ? '' : showIdlePublish ? 'bottom-[84px]' : 'bottom-4 sm:bottom-6'}`}
-          style={keyboardInset > 0 ? { bottom: keyboardInset + 8 } : undefined}
+          className={`formatting-toolbar fixed inset-x-0 z-50 border-t border-border bg-card animate-in fade-in duration-150 ${keyboardInset > 0 ? '' : showIdlePublish ? 'bottom-[calc(60px+env(safe-area-inset-bottom))]' : 'bottom-0 pb-[env(safe-area-inset-bottom)]'}`}
+          style={keyboardInset > 0 ? { bottom: keyboardInset } : undefined}
         >
-          <div className="flex items-center gap-1 overflow-x-auto rounded-lg border border-border bg-background p-2 shadow-xl">
+          <div className="no-scrollbar mx-auto flex max-w-[760px] items-center gap-0.5 overflow-x-auto px-2 py-1.5 text-muted-foreground">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
               title="Bold"
             >
               <Bold className="h-4 w-4" strokeWidth={2.5} />
             </button>
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('italic'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
               title="Italic"
             >
               <Italic className="h-4 w-4" strokeWidth={2} />
             </button>
-            <div className="w-px h-5 bg-border mx-1" />
+            <span className="mx-1 h-5 w-px shrink-0 bg-border" />
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bullet'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
               title="Bullet List"
             >
               <List className="h-4 w-4" strokeWidth={2} />
             </button>
-            <div className="w-px h-5 bg-border mx-1" />
+            <span className="mx-1 h-5 w-px shrink-0 bg-border" />
             {([1, 2, 3] as const).map((level) => (
               <button
                 key={level}
                 onMouseDown={(e) => { e.preventDefault(); applyHeading(level); }}
-                className="h-9 w-9 flex items-center justify-center rounded-full text-[12px] font-bold tracking-tight text-foreground transition hover:bg-accent active:scale-90"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[13px] font-bold transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
                 title={`Heading ${level}`}
               >
                 H{level}
@@ -851,17 +846,17 @@ function NotesEditPage() {
             ))}
             <button
               onMouseDown={(e) => { e.preventDefault(); insertSectionBreak(); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
               title="Section break"
             >
               <Minus className="h-4 w-4" strokeWidth={2} />
             </button>
-            <div className="w-px h-5 bg-border mx-1" />
+            <span className="mx-1 h-5 w-px shrink-0 bg-border" />
             <Popover modal={false}>
               <PopoverTrigger asChild>
                 <button 
                   onMouseDown={(e) => { e.preventDefault(); }}
-                  className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
                   title="Text Color"
                 >
                   <Palette className="h-4 w-4" />
@@ -936,10 +931,10 @@ function NotesEditPage() {
                 </div>
               </PopoverContent>
             </Popover>
-            <div className="w-px h-5 bg-border mx-1" />
+            <span className="mx-1 h-5 w-px shrink-0 bg-border" />
             <button 
               onMouseDown={(e) => { e.preventDefault(); addBlock('divider'); }}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-foreground hover:bg-accent transition active:scale-90"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
               title="Add Divider"
             >
               <Minus className="h-4 w-4" strokeWidth={2} />
@@ -948,7 +943,7 @@ function NotesEditPage() {
               <PopoverTrigger asChild>
                 <button 
                   onMouseDown={(e) => { e.preventDefault(); }}
-                  className="h-9 w-9 flex items-center justify-center rounded-full bg-[#22c55e] text-white shadow-md hover:bg-[#16a34a] transition active:scale-90 ml-1"
+                  className="ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground text-background transition hover:opacity-90 active:scale-90"
                   title="Add Media"
                 >
                   <Plus className="h-5 w-5" strokeWidth={2.5} />
@@ -1006,13 +1001,13 @@ function NotesEditPage() {
       )}
 
       {showIdlePublish && !showPublishModal && (
-        <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-[760px] -translate-x-1/2 animate-in slide-in-from-bottom-4 fade-in duration-200 sm:bottom-6">
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-2 shadow-[0_16px_48px_-20px_rgba(0,0,0,0.45)]">
-            <p className="hidden min-w-0 flex-1 px-2 text-sm text-muted-foreground sm:block">Finished making changes?</p>
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] animate-in slide-in-from-bottom-4 fade-in duration-200">
+          <div className="mx-auto flex h-[60px] max-w-[760px] items-center gap-3 px-4">
+            <p className="min-w-0 flex-1 truncate text-[14px] text-muted-foreground">Finished making changes?</p>
             <button
               onClick={() => setShowPublishModal(true)}
               disabled={isPublishing}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50 sm:flex-none"
+              className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
             >
               {isPublishing && <Loader2 className="h-4 w-4 animate-spin" />}
               Save changes

@@ -4,11 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
-import {
-  Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
-  MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2,
-  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings, Paperclip, Hand,
-} from "@/components/icons/glyphs";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users, MessageSquare, Send, X, Zap, Share2, Maximize2, Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings, Paperclip, Hand, ChevronDown, Eye } from "@/components/icons/glyphs";
 
 /** One tap, no search field — the six that actually get used in a class. */
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];
@@ -162,7 +158,7 @@ const appendLiveMessage = (messages: ChatMessage[], message: ChatMessage) => {
 };
 
 /** Keep the ticking clock isolated so it does not redraw every video tile. */
-function SessionElapsed() {
+function SessionElapsed({ className = "text-white/50 tabular-nums font-medium" }: { className?: string }) {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -181,7 +177,7 @@ function SessionElapsed() {
     ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
     : `${minutes}:${String(seconds).padStart(2, "0")}`;
 
-  return <span className="text-white/50 tabular-nums font-medium">{label}</span>;
+  return <span className={className}>{label}</span>;
 }
 
 /**
@@ -1779,53 +1775,45 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     <div className="fixed inset-0 z-[9999] flex h-[100dvh] select-none flex-col overflow-hidden bg-[#0A0A0C] text-white">
 
       {/* ═══ HEADER ═══ */}
-      <header className="shrink-0 flex items-center justify-between px-3 md:px-5 pb-2.5 pt-[calc(0.5rem+env(safe-area-inset-top))] md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))] z-20">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <button
-            onClick={handleMinimize}
-            className="h-9 w-9 shrink-0 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center hover:bg-white/[0.12] transition tap"
-            title="Minimize live session"
-          >
-            <Minimize2 className="w-4 h-4 text-white/80" />
-          </button>
-          <div className="min-w-0">
-            <h1 className="font-display font-semibold text-[15px] tracking-tight leading-tight text-white truncate">
-              {clubName || "Zero Club Live"}
-            </h1>
-            <div className="mt-0.5 flex items-center gap-2 text-[10px]">
-              <span className="flex items-center gap-1 bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                LIVE
-              </span>
-              <SessionElapsed />
-              <span className="flex items-center gap-1 text-white/50 font-medium">
-                <Users className="w-3 h-3" />
-                <span className="tabular-nums">{totalCount}</span>
-              </span>
-            </div>
-          </div>
+      <header className="z-20 flex shrink-0 items-center gap-1.5 pb-2 pl-1 pr-2 pt-[calc(0.25rem+env(safe-area-inset-top))] md:px-4 md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))]">
+        <button
+          onClick={handleMinimize}
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-white transition hover:bg-white/[0.08] tap"
+          title="Minimize live session"
+          aria-label="Minimize live session"
+        >
+          <ChevronDown className="h-[22px] w-[22px]" />
+        </button>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[15px] font-semibold leading-tight text-white">
+            {clubName || "Zero Club Live"}
+          </h1>
+          <p className="truncate text-[12px] text-white/60">Live class</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="hidden sm:flex items-center gap-1.5 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-2.5 py-1.5">
-            <Zap className="w-3 h-3 text-amber-400" />
-            <span className="font-semibold text-[10.5px] text-white/90">Live now</span>
-          </div>
-          <button
-            onClick={() => setShowSettings(true)}
-            title="Settings"
-            aria-label="Settings"
-            className="h-9 w-9 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center text-white/80 hover:bg-white/[0.12] transition tap"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleShare}
-            title="Copy invite link"
-            className="h-9 w-9 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center text-white/80 hover:bg-white/[0.12] transition tap"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
-        </div>
+        <span className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-[#e0245e] px-2 text-[12px] font-bold text-white">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+          LIVE <SessionElapsed className="tabular-nums" />
+        </span>
+        <span className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-white/[0.12] px-2 text-[12px] font-semibold text-white">
+          <Eye className="h-3.5 w-3.5" />
+          <span className="tabular-nums">{totalCount}</span>
+        </span>
+        <button
+          onClick={() => setShowSettings(true)}
+          title="Settings"
+          aria-label="Settings"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white/85 transition hover:bg-white/[0.08] tap"
+        >
+          <Settings className="h-[19px] w-[19px]" />
+        </button>
+        <button
+          onClick={handleShare}
+          title="Copy invite link"
+          aria-label="Copy invite link"
+          className="hidden h-10 w-10 shrink-0 place-items-center rounded-full text-white/85 transition hover:bg-white/[0.08] tap min-[380px]:grid"
+        >
+          <Share2 className="h-[19px] w-[19px]" />
+        </button>
       </header>
 
       {isAdmin && incomingQuestion && (
@@ -1839,7 +1827,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <span className="truncate text-[13px] font-semibold">{incomingQuestion.name} has a question</span>
         </div>
       )}
-
 
       {/* ═══ SETTINGS ═══ */}
       {showSettings && (
@@ -2034,8 +2021,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             </div>
           )}
 
-
-
           {/* Identify whichever remote participant owns the stage.
               Hidden while anyone is presenting, because the circle below is
               already that person with their name on it. Both were rendering
@@ -2165,9 +2150,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 disabled={isLeaving}
                 title="Leave the live room"
                 aria-label="Leave the live room"
-                className="grid h-12 w-[68px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 hover:bg-red-600 disabled:cursor-wait disabled:opacity-70"
+                className="flex h-12 shrink-0 items-center justify-center rounded-full bg-[#e0245e] px-5 text-[15px] font-semibold text-white transition-all tap active:scale-95 hover:bg-[#c81f53] disabled:cursor-wait disabled:opacity-70"
               >
-                {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneOff className="h-5 w-5" />}
+                {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Leave"}
               </button>
             </div>
           </div>
@@ -2189,7 +2174,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
-                {activeTab === "chat" && <span className="absolute bottom-0 inset-x-6 h-[2px] rounded-t-full bg-[#cc208f]" />}
+                {activeTab === "chat" && <span className="absolute bottom-0 inset-x-6 h-[2px] rounded-t-full bg-white" />}
               </button>
               <button
                 onClick={() => setActiveTab("learners")}
@@ -2197,7 +2182,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               >
                 <Users className="w-3.5 h-3.5" />
                 Learners · <span className="tabular-nums">{learnerCount}</span>
-                {activeTab === "learners" && <span className="absolute bottom-0 inset-x-6 h-[2px] rounded-t-full bg-[#cc208f]" />}
+                {activeTab === "learners" && <span className="absolute bottom-0 inset-x-6 h-[2px] rounded-t-full bg-white" />}
               </button>
             </div>
 
@@ -2590,9 +2575,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             disabled={isLeaving}
             title="Leave the live room"
             aria-label="Leave the live room"
-            className="grid h-10 w-[54px] shrink-0 place-items-center rounded-full bg-red-500 text-white transition-all tap active:scale-95 disabled:cursor-wait disabled:opacity-70 min-[360px]:h-11 min-[360px]:w-[60px]"
+            className="flex h-10 shrink-0 items-center justify-center rounded-full bg-[#e0245e] px-3.5 text-[14px] font-semibold text-white transition-all tap active:scale-95 disabled:cursor-wait disabled:opacity-70 min-[360px]:h-11 min-[360px]:px-4"
           >
-            {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneOff className="h-5 w-5" />}
+            {isLeaving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Leave"}
           </button>
         </div>
       </div>

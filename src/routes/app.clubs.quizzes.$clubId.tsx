@@ -2,10 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
+  ArrowLeft,
   BookOpenCheck,
   Check,
-  ChevronLeft,
   ClipboardCheck,
+  Clock,
+  HelpCircle,
   Loader2,
   Plus,
   Trash2,
@@ -68,10 +70,10 @@ function ClubQuizzesPage() {
     queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
       const me = session.session?.user.id;
-      if (!me) return { isAdmin: false };
+      if (!me) return { isAdmin: false, clubName: "" };
 
       const [{ data: club }, { data: membership }] = await Promise.all([
-        supabase.from("clubs").select("creator_id").eq("id", clubId).maybeSingle(),
+        supabase.from("clubs").select("creator_id, name").eq("id", clubId).maybeSingle(),
         supabase
           .from("club_members")
           .select("role")
@@ -82,6 +84,7 @@ function ClubQuizzesPage() {
 
       return {
         isAdmin: club?.creator_id === me || membership?.role === "Administrator",
+        clubName: String(club?.name || ""),
       };
     },
   });
@@ -156,33 +159,50 @@ function ClubQuizzesPage() {
     }
   };
 
+  const [filter, setFilter] = useState<"all" | "todo" | "done">("all");
+  const visibleQuizzes = quizzes.filter((quiz: any) => {
+    const taken = quiz.my_total > 0;
+    return filter === "all" || (filter === "done" ? taken : !taken);
+  });
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[760px] items-center gap-3">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-canvas text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: "/app/clubs/chat", search: { clubId } })}
             aria-label="Back to the club"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          <div className="min-w-0">
-            <p className="text-[10px] font-medium uppercase text-muted-foreground">Club</p>
-            <h1 className="truncate text-[18px] font-semibold tracking-tight">Quizzes</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-[18px] font-semibold leading-tight">Quizzes</h1>
+            {access?.clubName && <p className="truncate text-[12px] text-muted-foreground">{access.clubName}</p>}
           </div>
           {isAdmin && (
             <button
               onClick={() => { setDraft(EMPTY_DRAFT); setBuilderOpen(true); }}
-              className="ml-auto flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-foreground px-3.5 text-[12.5px] font-semibold text-background"
+              className="flex h-9 shrink-0 items-center gap-1 rounded-full bg-foreground px-3.5 text-[14px] font-semibold text-background tap"
             >
-              <Plus className="h-4 w-4" /> New
+              <Plus className="h-4 w-4" /> New quiz
             </button>
           )}
         </div>
+        <div className="mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
+          {([["all", "All"], ["todo", isAdmin ? "Not sat" : "To take"], ["done", "Completed"]] as const).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setFilter(value)}
+              className={`h-8 rounded-full px-3.5 text-[14px] font-semibold transition ${filter === value ? "bg-foreground text-background" : "border border-foreground/30 text-muted-foreground hover:border-foreground/50"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </header>
 
-      <main className="mx-auto max-w-[760px] px-4 py-5 md:px-7">
+      <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
         {isLoading ? (
           <div className="grid min-h-40 place-items-center">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -190,62 +210,77 @@ function ClubQuizzesPage() {
         ) : error ? (
           /* Said out loud rather than shown as an empty list. An empty list
              means "no quizzes"; this means "we could not ask". */
-          <div className="rounded-2xl bg-card p-8 text-center">
-            <h2 className="text-[15px] font-semibold tracking-tight text-destructive">Quizzes could not load</h2>
-            <p className="mx-auto mt-2 max-w-[44ch] text-[12.5px] leading-relaxed text-muted-foreground">
+          <div className="px-6 py-14 text-center">
+            <h2 className="text-[16px] font-semibold text-destructive">Quizzes could not load</h2>
+            <p className="mx-auto mt-2 max-w-[44ch] text-[14px] leading-relaxed text-muted-foreground">
               {(error as any)?.message || "Something went wrong."}
             </p>
-            <p className="mx-auto mt-3 max-w-[44ch] text-[11.5px] leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-3 max-w-[44ch] text-[13px] leading-relaxed text-muted-foreground">
               If this mentions a missing function, the club quizzes migration has not been run on the database yet.
             </p>
           </div>
-        ) : quizzes.length === 0 ? (
-          <div className="rounded-2xl bg-card p-10 text-center">
-            <ClipboardCheck className="mx-auto h-8 w-8 text-muted-foreground/40" />
-            <h2 className="mt-4 text-[15px] font-semibold tracking-tight">No quizzes yet</h2>
-            <p className="mx-auto mt-1.5 max-w-[38ch] text-[12.5px] leading-relaxed text-muted-foreground">
-              {isAdmin
-                ? "Set an assessment and every member of this club can sit it."
-                : "When your tutor sets an assessment it will appear here."}
+        ) : visibleQuizzes.length === 0 ? (
+          <div className="px-6 py-16 text-center">
+            <ClipboardCheck className="mx-auto h-8 w-8 text-muted-foreground/50" />
+            <h2 className="mt-4 text-[16px] font-semibold">{quizzes.length === 0 ? "No quizzes yet" : "Nothing here"}</h2>
+            <p className="mx-auto mt-1.5 max-w-[38ch] text-[14px] leading-relaxed text-muted-foreground">
+              {quizzes.length > 0
+                ? "Try another filter."
+                : isAdmin
+                  ? "Set an assessment and every member of this club can sit it."
+                  : "When your tutor sets an assessment it will appear here."}
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {quizzes.map((quiz: any) => {
-              const taken = quiz.my_total > 0;
-              const percent = taken ? Math.round((quiz.my_score / quiz.my_total) * 100) : 0;
-              const passed = taken && percent >= quiz.pass_mark;
-              return (
-                <article key={quiz.id} className="rounded-2xl bg-card p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-[15.5px] font-semibold tracking-tight">{quiz.title}</h3>
-                      {quiz.description && (
-                        <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{quiz.description}</p>
-                      )}
-                      <p className="mt-2 text-[11.5px] text-muted-foreground tabular-nums">
-                        {quiz.question_count} {quiz.question_count === 1 ? "question" : "questions"} · pass mark {quiz.pass_mark}%
-                        {isAdmin && <> · {quiz.attempt_count} sat</>}
-                      </p>
-                    </div>
-
+          visibleQuizzes.map((quiz: any) => {
+            const taken = quiz.my_total > 0;
+            const percent = taken ? Math.round((quiz.my_score / quiz.my_total) * 100) : 0;
+            const passed = taken && percent >= quiz.pass_mark;
+            return (
+              <article key={quiz.id} className="border-b border-border px-4 py-3.5 last:border-b-0">
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${
+                      !taken ? "bg-[#cc208f]/10 text-[#cc208f]" : passed ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-foreground/[0.06] text-muted-foreground"
+                    }`}
+                  >
+                    {!taken ? <HelpCircle className="h-[22px] w-[22px]" /> : passed ? <Check className="h-[22px] w-[22px]" /> : <Clock className="h-[22px] w-[22px]" />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-[16px] font-semibold leading-snug">{quiz.title}</h3>
+                    {quiz.description && (
+                      <p className="mt-0.5 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">{quiz.description}</p>
+                    )}
+                    <p className="mt-0.5 text-[13px] text-muted-foreground tabular-nums">
+                      {quiz.question_count} {quiz.question_count === 1 ? "question" : "questions"} · Pass mark {quiz.pass_mark}%
+                      {isAdmin && <> · {quiz.attempt_count} sat</>}
+                    </p>
                     {taken && (
-                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums ${passed ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400" : "bg-foreground/[0.06] text-muted-foreground"}`}>
-                        {percent}%
-                      </span>
+                      <p className={`mt-1.5 text-[13px] font-semibold tabular-nums ${passed ? "text-[#1a7f4b]" : "text-[#cc208f]"}`}>
+                        {passed ? `Passed · ${percent}%` : `Not passed yet · ${percent}%`}
+                      </p>
                     )}
                   </div>
-
+                  {taken && (
+                    <button
+                      onClick={() => setTakingId(quiz.id)}
+                      className="shrink-0 pt-0.5 text-[14px] font-semibold text-muted-foreground hover:text-foreground"
+                    >
+                      Review
+                    </button>
+                  )}
+                </div>
+                {!taken && (
                   <button
                     onClick={() => setTakingId(quiz.id)}
-                    className="mt-4 h-10 w-full rounded-lg bg-foreground text-[13px] font-semibold text-background transition active:scale-[0.99]"
+                    className="mt-3 h-10 w-full rounded-full bg-foreground text-[15px] font-semibold text-background transition active:scale-[0.99]"
                   >
-                    {taken ? "Review your answers" : isAdmin ? "Preview" : "Take the quiz"}
+                    {isAdmin ? "Preview" : "Start quiz"}
                   </button>
-                </article>
-              );
-            })}
-          </div>
+                )}
+              </article>
+            );
+          })
         )}
       </main>
 
