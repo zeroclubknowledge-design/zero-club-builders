@@ -88,3 +88,65 @@ where m.content like 'CLUB_REQUEST:%:pending'
     where content like 'CLUB_REQUEST:%:pending'
     order by sender_id, split_part(content, ':', 2), created_at desc
   );
+
+/* Update unread_summary RPC to exclude DISMISSED_CLUB_REQUEST and auto-mark club request messages as read */
+create or replace function public.unread_summary()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  caller uuid := auth.uid();
+  pm_count bigint := 0;
+  notif_count bigint := 0;
+  club_count bigint := 0;
+begin
+  if caller is null then
+    return jsonb_build_object('messages', 0, 'notifications', 0, 'club_messages', 0);
+  end if;
+
+  update public.profiles set updated_at = now() where id = caller;
+
+  -- Mark any pending/accepted/declined/dismissed club request messages as read for caller so they never count as unread DMs
+  update public.messages
+  set is_read = true
+  where receiver_id = caller
+    and is_read = false
+    and (content like 'CLUB_REQUEST:%' or content = 'DISMISSED_CLUB_REQUEST');
+
+  select count(*) into pm_count
+  from public.messages
+  where receiver_id = caller
+    and is_read = false
+    and content not like 'CLUB_REQUEST:%'
+    and content <> 'DISMISSED_CLUB_REQUEST';
+
+  begin
+    select count(*) into notif_count
+    from public.notifications
+    where recipient_id = caller and is_read = false;
+  exception when undefined_table or undefined_column then
+    notif_count := 0;
+  end;
+
+  begin
+    select count(*) into club_count
+    from public.club_messages cm
+    join public.club_members me
+      on me.club_id = cm.club_id and me.profile_id = caller
+    where cm.created_at > now() - interval '24 hours'
+      and cm.profile_id <> caller;
+  exception when undefined_table or undefined_column then
+    club_count := 0;
+  end;
+
+  return jsonb_build_object(
+    'messages', pm_count,
+    'notifications', notif_count,
+    'club_messages', club_count
+  );
+end;
+$$;
+
+grant execute on function public.unread_summary() to authenticated;

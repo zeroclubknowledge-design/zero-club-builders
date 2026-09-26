@@ -923,23 +923,13 @@ function AppLayout() {
      * and the self-heal below runs once rather than twice a minute.
      */
     const healOldClubRequests = async (userId: string) => {
-      // Once per session. These rows do not change on their own, so repeating
-      // the repair every cycle could only ever find nothing.
-      const healKey = `zc-healed-club-requests:${userId}`;
-      try {
-        if (sessionStorage.getItem(healKey)) return;
-        sessionStorage.setItem(healKey, "1");
-      } catch {
-        // Private mode. Healing twice is harmless; failing here is not.
-      }
-
       try {
         await supabase
           .from("messages")
           .update({ is_read: true })
           .eq("receiver_id", userId)
           .eq("is_read", false)
-          .or("content.like.CLUB_REQUEST:%accepted,content.like.CLUB_REQUEST:%declined");
+          .or("content.like.CLUB_REQUEST:%,content.eq.DISMISSED_CLUB_REQUEST");
       } catch (e) {
         console.error("Database self-heal error:", e);
       }
@@ -952,7 +942,8 @@ function AppLayout() {
           .select("*", { count: "exact", head: true })
           .eq("receiver_id", userId)
           .eq("is_read", false)
-          .not("content", "like", "CLUB_REQUEST:%"),
+          .not("content", "like", "CLUB_REQUEST:%")
+          .neq("content", "DISMISSED_CLUB_REQUEST"),
         supabase
           .from("notifications")
           .select("*", { count: "exact", head: true })

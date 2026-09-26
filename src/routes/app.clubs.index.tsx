@@ -465,7 +465,7 @@ function Clubs() {
 
             await supabase
               .from('messages')
-              .update({ content: newContent })
+              .update({ content: newContent, is_read: true })
               .eq('id', id);
           }
         }
@@ -495,7 +495,7 @@ function Clubs() {
 
             await supabase
               .from('messages')
-              .update({ content: newContent })
+              .update({ content: newContent, is_read: true })
               .eq('id', id);
           }
         }
@@ -516,7 +516,7 @@ function Clubs() {
       // Instead of DELETE which might fail silently due to RLS, we UPDATE the content so it no longer matches the CLUB_REQUEST prefix
       const { error } = await supabase
         .from('messages')
-        .update({ content: 'DISMISSED_CLUB_REQUEST' })
+        .update({ content: 'DISMISSED_CLUB_REQUEST', is_read: true })
         .in('id', idsToTarget);
         
       if (error) throw error;

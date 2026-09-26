@@ -38,6 +38,17 @@ function ChatInboxPage() {
   useEffect(() => {
     if (!currentUser?.id) return;
 
+    // Auto-mark any club requests or dismissed requests as read so taskbar message badge reflects clean PMs
+    supabase
+      .from("messages")
+      .update({ is_read: true })
+      .eq("receiver_id", currentUser.id)
+      .eq("is_read", false)
+      .or("content.like.CLUB_REQUEST:%,content.eq.DISMISSED_CLUB_REQUEST")
+      .then(() => {
+        void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      });
+
     const refreshInbox = () => {
       void queryClient.invalidateQueries({ queryKey: ["conversations"] });
     };
