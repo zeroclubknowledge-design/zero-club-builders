@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ClubCard } from "@/components/ClubCard";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
 import { toast } from "sonner";
@@ -278,6 +278,27 @@ function Clubs() {
     }
   }, [clubData]);
 
+  // Group and deduplicate pending requests by sender_id and club_id
+  const pendingRequestsGrouped = useMemo(() => {
+    const pendingRaw = incomingRequests.filter((r: any) => {
+      const parts = r.content?.split(':') || [];
+      return parts[3] === 'pending';
+    });
+
+    const map = new Map<string, { request: any; allIds: string[] }>();
+    for (const req of pendingRaw) {
+      const parts = req.content.split(':');
+      const clubId = parts[1];
+      const key = `${req.sender_id}:${clubId}`;
+      if (!map.has(key)) {
+        map.set(key, { request: req, allIds: [req.id] });
+      } else {
+        map.get(key)!.allIds.push(req.id);
+      }
+    }
+    return Array.from(map.values());
+  }, [incomingRequests]);
+
   useEffect(() => {
     if (!profile || myClubs.length === 0) return;
     
@@ -417,56 +438,66 @@ function Clubs() {
     }
   };
 
-  const handleDecideRequest = async (messageId: string, clubId: string, applicantId: string, decision: 'accept' | 'decline') => {
+  const handleDecideRequest = async (messageId: string, clubId: string, applicantId: string, decision: 'accept' | 'decline', allIds?: string[]) => {
     setDecidingId(messageId);
     try {
+      const idsToTarget = Array.from(new Set([
+        ...(allIds || [messageId]),
+        ...incomingRequests
+          .filter(m => {
+            const parts = m.content?.split(':') || [];
+            return m.sender_id === applicantId && parts[1] === clubId && parts[3] === 'pending';
+          })
+          .map(m => m.id)
+      ]));
+
       if (decision === 'accept') {
-        const msgToUpdate = incomingRequests.find(m => m.id === messageId);
-        if (msgToUpdate) {
-          const parts = msgToUpdate.content.split(':');
-          parts[3] = 'accepted';
-          const newContent = parts.join(':');
+        for (const id of idsToTarget) {
+          const msgToUpdate = incomingRequests.find(m => m.id === id);
+          if (msgToUpdate) {
+            const parts = msgToUpdate.content.split(':');
+            parts[3] = 'accepted';
+            const newContent = parts.join(':');
 
-          const { error: msgError } = await supabase
-            .from('messages')
-            .update({ content: newContent })
-            .eq('id', messageId);
-
-          if (msgError) throw msgError;
-
-          // Automatically add the accepted user to the club
-          const { error: memberError } = await supabase
-            .from('club_members')
-            .insert([{
-              club_id: clubId,
-              profile_id: applicantId,
-              role: 'Member'
-            }]);
-
-          if (memberError && memberError.code !== '23505') {
-            console.error("Error adding member to club:", memberError);
+            await supabase
+              .from('messages')
+              .update({ content: newContent })
+              .eq('id', id);
           }
-          
-          setIncomingRequests(prev => prev.filter(m => m.id !== messageId));
-          toast.success("Request approved! Builder added to your private club.");
         }
+
+        // Automatically add the accepted user to the club
+        const { error: memberError } = await supabase
+          .from('club_members')
+          .insert([{
+            club_id: clubId,
+            profile_id: applicantId,
+            role: 'Member'
+          }]);
+
+        if (memberError && memberError.code !== '23505') {
+          console.error("Error adding member to club:", memberError);
+        }
+        
+        setIncomingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
+        toast.success("Request approved! Builder added to your private club.");
       } else {
-        const msgToUpdate = incomingRequests.find(m => m.id === messageId);
-        if (msgToUpdate) {
-          const parts = msgToUpdate.content.split(':');
-          parts[3] = 'declined';
-          const newContent = parts.join(':');
+        for (const id of idsToTarget) {
+          const msgToUpdate = incomingRequests.find(m => m.id === id);
+          if (msgToUpdate) {
+            const parts = msgToUpdate.content.split(':');
+            parts[3] = 'declined';
+            const newContent = parts.join(':');
 
-          const { error: msgError } = await supabase
-            .from('messages')
-            .update({ content: newContent })
-            .eq('id', messageId);
-
-          if (msgError) throw msgError;
-
-          setIncomingRequests(prev => prev.filter(m => m.id !== messageId));
-          toast.error("Request declined.");
+            await supabase
+              .from('messages')
+              .update({ content: newContent })
+              .eq('id', id);
+          }
         }
+
+        setIncomingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
+        toast.error("Request declined.");
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to process request");
@@ -475,19 +506,20 @@ function Clubs() {
     }
   };
 
-  const handleDismissNotification = async (messageId: string, type: 'incoming' | 'outgoing') => {
+  const handleDismissNotification = async (messageId: string, type: 'incoming' | 'outgoing', allIds?: string[]) => {
     try {
+      const idsToTarget = allIds && allIds.length > 0 ? allIds : [messageId];
       // Instead of DELETE which might fail silently due to RLS, we UPDATE the content so it no longer matches the CLUB_REQUEST prefix
       const { error } = await supabase
         .from('messages')
         .update({ content: 'DISMISSED_CLUB_REQUEST' })
-        .eq('id', messageId);
+        .in('id', idsToTarget);
         
       if (error) throw error;
       if (type === 'incoming') {
-        setIncomingRequests(prev => prev.filter(m => m.id !== messageId));
+        setIncomingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
       } else {
-        setOutgoingRequests(prev => prev.filter(m => m.id !== messageId));
+        setOutgoingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to dismiss notification");
@@ -594,9 +626,9 @@ function Clubs() {
                 className="relative grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border/60 bg-card text-muted-foreground transition hover:border-border hover:bg-accent/50 hover:text-foreground active:scale-95"
               >
                 <Bell className="h-4 w-4" />
-                {((incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length) + unreadClubMessages.length) > 0 && (
+                {(pendingRequestsGrouped.length + unreadClubMessages.length) > 0 && (
                   <span className="absolute -top-1 -right-1 grid h-4.5 w-4.5 place-items-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground ring-2 ring-background">
-                    {(incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length) + unreadClubMessages.length}
+                    {pendingRequestsGrouped.length + unreadClubMessages.length}
                   </span>
                 )}
               </button>
@@ -1087,7 +1119,7 @@ function Clubs() {
             <div className="flex items-center gap-4">
               <div className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
                 <Bell className="h-5 w-5 text-primary" />
-              {(incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending').length + unreadClubMessages.length) > 0 && (
+              {(pendingRequestsGrouped.length + unreadClubMessages.length) > 0 && (
                   <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-background" />
                 )}
               </div>
@@ -1102,8 +1134,7 @@ function Clubs() {
 
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-3 no-scrollbar">
             {(() => {
-              const pendingRequests = incomingRequests.filter((r: any) => r.content.split(':')[3] === 'pending');
-              const hasNotifications = pendingRequests.length > 0 || unreadClubMessages.length > 0;
+              const hasNotifications = pendingRequestsGrouped.length > 0 || unreadClubMessages.length > 0;
 
               if (!hasNotifications) {
                 return (
@@ -1122,7 +1153,7 @@ function Clubs() {
               return (
                 <div className="flex flex-col gap-3">
                   {/* Pending Requests */}
-                  {pendingRequests.map((r: any) => {
+                  {pendingRequestsGrouped.map(({ request: r, allIds }) => {
                     const parts = r.content.split(':');
                     const clubId = parts[1];
                     const clubName = parts[2];
@@ -1130,7 +1161,7 @@ function Clubs() {
                     const isExpanded = expandedRequestId === r.id;
 
                     return (
-                      <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming')}>
+                      <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming', allIds)}>
                         <article 
                           className="flex cursor-pointer flex-col gap-3 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/20"
                           onClick={() => setExpandedRequestId(isExpanded ? null : r.id)}
@@ -1168,20 +1199,20 @@ function Clubs() {
                                 className="overflow-hidden flex items-center gap-2 pt-1"
                               >
                                 <button
-                                  disabled={decidingId === r.id}
+                                  disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDecideRequest(r.id, clubId, r.sender_id, 'decline');
+                                    handleDecideRequest(r.id, clubId, r.sender_id, 'decline', allIds);
                                   }}
                                   className="flex-1 h-9 rounded-full border border-border/40 bg-card text-muted-foreground transition-all duration-300 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 active:scale-95 disabled:opacity-50 flex items-center justify-center font-semibold text-xs"
                                 >
                                   Reject
                                 </button>
                                 <button
-                                  disabled={decidingId === r.id}
+                                  disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDecideRequest(r.id, clubId, r.sender_id, 'accept');
+                                    handleDecideRequest(r.id, clubId, r.sender_id, 'accept', allIds);
                                   }}
                                   className="h-9 flex-1 rounded-full bg-[#171218] text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 hover:opacity-90 active:scale-95 disabled:opacity-50"
                                 >
