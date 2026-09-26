@@ -7,32 +7,11 @@ import { useLiveSession } from "@/contexts/LiveSessionContext";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
   MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2,
-  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings, Paperclip,
+  Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings, Paperclip, Hand,
 } from "@/components/icons/glyphs";
 
 /** One tap, no search field — the six that actually get used in a class. */
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];
-
-/** A raised hand kept local to the live room so the control has no icon-bundle cost. */
-function QuestionHandIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M8 13V6.25a1.5 1.5 0 0 1 3 0V11" />
-      <path d="M11 10.5V4.75a1.5 1.5 0 0 1 3 0V11" />
-      <path d="M14 10.5V6.25a1.5 1.5 0 0 1 3 0V12" />
-      <path d="M17 11V8.75a1.5 1.5 0 0 1 3 0V14c0 4.4-2.65 7-7 7h-1.25c-2.2 0-3.85-.85-5-2.55l-3.1-4.55a1.7 1.7 0 0 1 2.7-2.05L8 14" />
-    </svg>
-  );
-}
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 
@@ -1856,7 +1835,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           aria-live="assertive"
           className="pointer-events-none absolute left-1/2 top-[calc(4.25rem+env(safe-area-inset-top))] z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2.5 rounded-full bg-[#cc208f] px-4 py-2.5 text-white shadow-[0_12px_40px_rgba(204,32,143,0.38)] ring-1 ring-white/25 animate-in fade-in slide-in-from-top-2 duration-200"
         >
-          <QuestionHandIcon className="h-5 w-5 shrink-0" />
+          <Hand className="h-5 w-5 shrink-0" />
           <span className="truncate text-[13px] font-semibold">{incomingQuestion.name} has a question</span>
         </div>
       )}
@@ -2132,7 +2111,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 aria-pressed={questionRaised}
                 className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_22px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
               >
-                <QuestionHandIcon className="h-5 w-5" />
+                <Hand className="h-5 w-5" />
               </button>
 
               <button
@@ -2557,7 +2536,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             aria-pressed={questionRaised}
             className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_20px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white"}`}
           >
-            <QuestionHandIcon className="h-[18px] w-[18px] min-[360px]:h-5 min-[360px]:w-5" />
+            <Hand className="h-[18px] w-[18px] min-[360px]:h-5 min-[360px]:w-5" />
           </button>
 
           <button

@@ -43,7 +43,7 @@ const GLYPHS = {
   EyeOff: "eye-slash", File: "file", FileArchive: "file-zip", FileStack: "files", FileText: "file-text",
   FileVideo: "file-video", FileWarning: "file-x", Film: "film-strip", Filter: "funnel-simple", Flag: "flag",
   Flame: "fire", Gamepad2: "game-controller", Gift: "gift", GitBranch: "git-branch", Globe: "globe-simple",
-  GraduationCap: "graduation-cap", GripVertical: "dots-six-vertical", HandCoins: "hand-coins", Hash: "hash",
+  GraduationCap: "graduation-cap", GripVertical: "dots-six-vertical", Hand: "hand", HandCoins: "hand-coins", Hash: "hash",
   Heading1: "text-h-one", Heading2: "text-h-two", Headphones: "headphones", Heart: "heart", HeartPulse: "heartbeat",
   HelpCircle: "question", History: "clock-counter-clockwise", Image: "image", Info: "info", Italic: "text-italic",
   Key: "key", KeyRound: "key", Landmark: "bank", Languages: "translate", Layers3: "stack", Layout: "layout",
