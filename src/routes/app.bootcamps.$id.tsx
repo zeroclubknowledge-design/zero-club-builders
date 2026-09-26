@@ -1,20 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Award,
+  ArrowLeft,
+  BadgeCheck,
   Bookmark,
   BookOpen,
+  Check,
   CheckCircle2,
-  ChevronDown,
-  ChevronLeft,
   FileText,
-  Layers3,
   Loader2,
-  PlayCircle,
   Pencil,
+  Play,
   ShieldCheck,
   Share2,
-  Sparkles,
-  Star,
   Users,
   Video,
 } from "@/components/icons/glyphs";
@@ -101,6 +98,7 @@ function BootcampDetail() {
   const [applyZeroGift, setApplyZeroGift] = useState(false);
   const [viewerChecked, setViewerChecked] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [couponOpen, setCouponOpen] = useState(false);
 
   useEffect(() => {
     if (bootcamp?.id) void checkEnrollment();
@@ -290,8 +288,8 @@ function BootcampDetail() {
 
   if (isBootcampLoading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen flex-col items-center justify-center bg-canvas py-20">
+        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
         <p className="mt-4 text-sm font-medium text-muted-foreground">Loading bootcamp details...</p>
       </div>
     );
@@ -299,11 +297,11 @@ function BootcampDetail() {
 
   if (bootcampFailed || !bootcamp) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
-        <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10"><BookOpen className="h-5 w-5 text-primary" /></div>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-6 text-center">
+        <div className="grid h-12 w-12 place-items-center rounded-xl bg-foreground/[0.06]"><BookOpen className="h-5 w-5" /></div>
         <h1 className="mt-4 text-[18px] font-semibold">Bootcamp unavailable</h1>
         <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted-foreground">We could not load this bootcamp. It may still be publishing, or your connection may have been interrupted.</p>
-        <div className="mt-5 flex gap-2"><Link to="/app/bootcamps" className="rounded-lg border border-border px-4 py-2.5 text-[13px] font-semibold">Back to bootcamps</Link><button onClick={() => refetch()} className="rounded-lg bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground">Try again</button></div>
+        <div className="mt-5 flex gap-2"><Link to="/app/bootcamps" className="flex h-10 items-center rounded-full border border-foreground/30 px-4 text-[14px] font-semibold">Back to bootcamps</Link><button onClick={() => refetch()} className="h-10 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background">Try again</button></div>
       </div>
     );
   }
@@ -328,291 +326,164 @@ function BootcampDetail() {
   const descriptionText = String(bootcamp.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const descriptionCanExpand = descriptionText.length > 180 || /<(ul|ol|h2|h3|blockquote)\b/i.test(String(bootcamp.description || ""));
 
+  const creatorName = bootcamp.profiles?.full_name || bootcamp.profiles?.username || "Zero Club";
+  const isInstitution = bootcamp.profiles?.account_type === "Institution";
+  const shareBootcamp = async () => {
+    const url = `${window.location.origin}/app/bootcamps/${bootcamp.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: bootcamp.title || "Zero Club bootcamp", url });
+        return;
+      } catch { /* dismissed */ }
+    }
+    await navigator.clipboard.writeText(url);
+    toast.success("Bootcamp link copied");
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="relative h-48 w-full shrink-0">
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-background to-transparent" />
-        <div className="h-full w-full overflow-hidden bg-muted">
-          {bootcamp.banner_url ? (
-            <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-          ) : (
-            <div className="h-full w-full bg-gradient-primary" style={{ background: "linear-gradient(135deg,#cc208f,#a78bfa)" }} />
-          )}
-        </div>
-        <button type="button" onClick={goBack}
-          className="absolute left-4 top-4 z-20 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition active:scale-95"
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#221d22] md:mx-auto md:mt-2 md:max-w-[680px] md:rounded-t-xl">
+        {bootcamp.banner_url ? (
+          <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+        ) : (
+          <div className="h-full w-full" style={{ background: "linear-gradient(135deg,#cc208f,#6b2a8f 55%,#1d1b3a)" }} />
+        )}
+        <button
+          type="button"
+          onClick={goBack}
+          aria-label="Back"
+          className="absolute left-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-black/45 text-white transition active:scale-95"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={shareBootcamp}
+          aria-label="Share"
+          className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-black/45 text-white transition active:scale-95"
+        >
+          <Share2 className="h-[18px] w-[18px]" />
         </button>
       </div>
 
-      <div className="relative z-20 flex flex-1 flex-col px-5 pt-5">
-        <div className="space-y-3">
-          <div className="inline-flex rounded-full border border-primary/20 bg-primary/15 px-2.5 py-1 text-[10px] font-bold uppercase text-primary">
-            {bootcamp.category}
-          </div>
-          <h1 className="font-display text-2xl font-bold leading-tight">{bootcamp.title}</h1>
-          <div>
-            <div className="relative">
-              <div
-                id="bootcamp-description"
-                className={`text-sm leading-relaxed text-muted-foreground ${descriptionCanExpand && !descriptionExpanded ? "max-h-28 overflow-hidden" : ""}`}
-              >
-                {/* Formatted descriptions render with their headings and bullets;
-                    plain older ones keep their line breaks and clickable links. */}
-                {looksFormatted(bootcamp.description)
-                  ? <RichText content={bootcamp.description} />
-                  : <LinkifiedText text={bootcamp.description || ""} />}
-              </div>
-              {descriptionCanExpand && !descriptionExpanded && (
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent" />
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2">
+        <section className="bg-card p-4 md:rounded-b-xl md:border md:border-t-0 md:border-border">
+          {bootcamp.category && <span className="text-[12px] font-semibold text-[#a3186f]">{bootcamp.category}</span>}
+          <h1 className="mt-1 font-display text-[24px] font-semibold leading-[1.15] text-foreground">{bootcamp.title}</h1>
+          <div className="mt-3 flex items-center gap-2.5">
+            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-muted">
+              {bootcamp.profiles?.avatar_url ? (
+                <img src={bootcamp.profiles.avatar_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="grid h-full w-full place-items-center text-[12px] font-semibold text-muted-foreground">{creatorName.charAt(0).toUpperCase()}</span>
               )}
             </div>
-            {descriptionCanExpand && (
-              <button
-                type="button"
-                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
-                aria-expanded={descriptionExpanded}
-                aria-controls="bootcamp-description"
-                className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-primary transition hover:opacity-80"
-              >
-                {descriptionExpanded ? "Show less" : "Read full description"}
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${descriptionExpanded ? "rotate-180" : ""}`} />
-              </button>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-            <div className="flex items-center gap-1">
-              <span className="font-bold text-warning">5.0</span>
-              <div className="flex text-warning">
-                <Star className="h-3 w-3 fill-current" />
-                <Star className="h-3 w-3 fill-current" />
-                <Star className="h-3 w-3 fill-current" />
-                <Star className="h-3 w-3 fill-current" />
-                <Star className="h-3 w-3 fill-current" />
-              </div>
-              <span className="text-muted-foreground">(New)</span>
+            <div className="min-w-0 flex-1">
+              {bootcamp.profiles?.id ? (
+                <Link to="/app/profile/$id" params={{ id: bootcamp.profiles.id }} className="flex items-center gap-1 text-[14px] font-semibold text-foreground hover:underline">
+                  <span className="truncate">{creatorName}</span>
+                  {isInstitution && <BadgeCheck className="h-4 w-4 shrink-0 text-[#cc208f]" />}
+                </Link>
+              ) : (
+                <p className="text-[14px] font-semibold">{creatorName}</p>
+              )}
+              <p className="text-[12px] text-muted-foreground">{isInstitution ? "Institution" : "Tutor"}</p>
             </div>
           </div>
-
-          <div className="text-xs text-muted-foreground flex items-center gap-2">
-            <div>Created by <span className="font-bold text-primary">{bootcamp.profiles?.full_name || bootcamp.profiles?.username}</span></div>
-            {bootcamp.profiles?.account_type === "Institution" && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/10 text-primary uppercase tracking-wide">
-                Institution
-              </span>
-            )}
-          </div>
-
-          <div className="mt-5 grid grid-cols-3 rounded-lg border border-border bg-card/70 text-center shadow-soft">
-            <div className="px-3 py-3">
-              <div className="flex items-center justify-center gap-1 text-warning">
-                <Star className="h-3.5 w-3.5 fill-current" />
-                <span className="text-sm font-black text-foreground">5.0</span>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">Rating</p>
-            </div>
-            <div className="border-x border-border px-3 py-3">
-              <Layers3 className="mx-auto h-4 w-4 text-primary" />
-              <p className="mt-1 text-sm font-black text-foreground">{modules.length}</p>
-              <p className="text-[11px] text-muted-foreground">Sections</p>
-            </div>
-            <div className="px-3 py-3">
-              <Users className="mx-auto h-4 w-4 text-primary" />
-              <p className="mt-1 text-sm font-black text-foreground">Live</p>
-              <p className="text-[11px] text-muted-foreground">Cohort</p>
-            </div>
-          </div>
-        </div>
-
-        <section className="mt-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold">Bootcamp content</h2>
-            <span className="text-xs text-muted-foreground">{modules.length} sections</span>
-          </div>
-          <p className="mb-3 text-xs text-muted-foreground">
-            {modules.length} sections / {totalLessons} lessons / Live projects and tutor guidance
-          </p>
-
-          <Accordion type="single" collapsible className="overflow-hidden rounded-lg border border-border bg-card/30">
-            {modules.map((module: any, i: number) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border-border px-4 last:border-b-0">
-                <AccordionTrigger className="py-4 text-left text-sm font-semibold hover:no-underline">
-                  <span className="flex flex-col items-start gap-1">
-                    <span>{module.title}</span>
-                    <span className="text-[11px] font-medium text-muted-foreground">{module.lessons?.length || 0} lessons</span>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4 pb-4 pt-1">
-                  {module.lessons?.sort((a: any, b: any) => a.order_index - b.order_index).map((lesson: any, j: number) => (
-                    <div key={j} className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        {lesson.content_type === "video" ? (
-                          <PlayCircle className="h-4 w-4 text-primary" />
-                        ) : (
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                        )}
-                        <span className="text-xs leading-snug">{lesson.title}</span>
-                      </div>
-                      <span className="shrink-0 text-[10px] text-muted-foreground">{lesson.duration || "5m"}</span>
-                    </div>
-                  ))}
-                  {(!module.lessons || module.lessons.length === 0) && (
-                    <p className="text-xs italic text-muted-foreground">No lessons in this module yet.</p>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </section>
-
-        {/* Each item is a card rather than a bare icon and label, and the
-            section carries its own bottom padding — previously the footer's
-            border sat directly under the last row with nothing between them.
-
-            The fifth item spans both columns on purpose: five things in a
-            two-column grid leaves one stranded beside an empty cell, which is
-            the sort of gap that reads as a bug rather than a layout. */}
-        <section className="mt-10 pb-10">
-          <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            What you get
-          </h2>
-          <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-foreground">
-            This bootcamp includes
-          </p>
-
-          <div className="mt-4 grid grid-cols-2 gap-2.5">
-            {[
-              { icon: Award, label: "Proof of Work Certificate", note: "Verifiable on your profile" },
-              { icon: BookOpen, label: "Proof of Knowledge", note: "Assessed, not assumed" },
-              { icon: FileText, label: "ZeroNotes", note: "Notes you keep for good" },
-              { icon: Sparkles, label: "Earn XP", note: "Progress that compounds" },
-              { icon: Users, label: "Tutor Access", note: "Ask questions as you build" },
-            ].map((item, index, all) => (
-              <div
-                key={item.label}
-                className={`flex items-start gap-3 rounded-lg border border-border/60 bg-card p-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_20px_-16px_rgba(0,0,0,0.16)] ${
-                  index === all.length - 1 && all.length % 2 === 1 ? "col-span-2" : ""
-                }`}
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary ring-1 ring-primary/15">
-                  <item.icon className="h-[17px] w-[17px]" strokeWidth={1.9} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-[12.5px] font-semibold leading-tight tracking-tight text-foreground">
-                    {item.label}
-                  </span>
-                  <span className="mt-0.5 block text-[10.5px] leading-4 text-muted-foreground">
-                    {item.note}
-                  </span>
-                </span>
-              </div>
-            ))}
+          <div className="mt-3.5 grid grid-cols-3 border-t border-border pt-3 text-center">
+            <div><p className="text-[16px] font-semibold">{modules.length}</p><p className="text-[12px] text-muted-foreground">Sections</p></div>
+            <div><p className="text-[16px] font-semibold">{totalLessons}</p><p className="text-[12px] text-muted-foreground">Lessons</p></div>
+            <div><p className="text-[16px] font-semibold">Live</p><p className="text-[12px] text-muted-foreground">Cohort</p></div>
           </div>
         </section>
 
-        <footer className="mt-auto -mx-5 border-t border-border bg-card/60 px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-8">
+        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           {!viewerChecked ? (
             <div className="space-y-3" aria-label="Checking bootcamp access">
-              <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
-              <div className="h-7 w-56 max-w-full animate-pulse rounded-md bg-muted" />
-              <div className="h-20 w-full animate-pulse rounded-xl bg-muted" />
+              <div className="h-6 w-32 animate-pulse rounded-md bg-muted" />
+              <div className="h-12 w-full animate-pulse rounded-full bg-muted" />
             </div>
           ) : canManageBootcamp ? (
-            <div className="overflow-hidden rounded-2xl border border-primary/20 bg-background shadow-[0_18px_50px_-32px_rgba(204,32,143,0.65)]">
-              <div className="bg-gradient-to-br from-primary/[0.16] via-primary/[0.06] to-transparent p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-primary">
-                      <ShieldCheck className="h-3.5 w-3.5" /> Instructor view
-                    </span>
-                    <h2 className="mt-3 text-xl font-black tracking-tight text-foreground">You’re teaching this bootcamp</h2>
-                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                      Manage the programme, teach your live class, and guide learners from here.
-                    </p>
-                  </div>
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                </div>
-
-                <div className="mt-5 grid grid-cols-3 divide-x divide-border/70 rounded-xl border border-border/70 bg-card/80 py-3 text-center backdrop-blur-sm">
-                  <div className="px-2">
-                    <p className="text-sm font-black text-foreground">{modules.length}</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">Sections</p>
-                  </div>
-                  <div className="px-2">
-                    <p className="text-sm font-black text-foreground">{totalLessons}</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">Lessons</p>
-                  </div>
-                  <div className="px-2">
-                    <p className="truncate text-sm font-black text-foreground">{formatPrice(basePrice)}</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">Listed price</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 p-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[12px] font-semibold text-[#a3186f]">
+                <ShieldCheck className="h-3.5 w-3.5" /> Instructor view
+              </span>
+              <h2 className="mt-2.5 font-display text-[18px] font-semibold">You're teaching this bootcamp</h2>
+              <p className="mt-1 text-[14px] text-muted-foreground">
+                Listed at {formatPrice(basePrice)}. Manage the programme, teach your live class and guide learners from here.
+              </p>
+              <Link
+                to="/app/bootcamps/$id/edit"
+                params={{ id: bootcamp.id }}
+                search={{ source: currentUser?.account_type === "Institution" ? "institution" : "tutor" }}
+                className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
+              >
+                <Pencil className="h-4 w-4" /> Edit bootcamp
+              </Link>
+              <div className={`mt-2 grid gap-2 ${club ? "grid-cols-2" : "grid-cols-1"}`}>
                 <Link
-                  to="/app/bootcamps/$id/edit"
-                  params={{ id: bootcamp.id }}
-                  search={{ source: currentUser?.account_type === "Institution" ? "institution" : "tutor" }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:brightness-95 active:scale-[0.98]"
+                  to="/app/live/$classId"
+                  params={{ classId: bootcamp.id }}
+                  className="flex h-10 items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground text-[14px] font-semibold text-foreground transition active:scale-[0.98]"
                 >
-                  <Pencil className="h-4 w-4" /> Edit bootcamp
+                  <Video className="h-4 w-4" /> Start live class
                 </Link>
-                <div className={`grid gap-3 ${club ? "grid-cols-2" : "grid-cols-1"}`}>
+                {club && (
                   <Link
-                    to="/app/live/$classId"
-                    params={{ classId: bootcamp.id }}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-3 text-xs font-bold text-red-500 transition active:scale-[0.98]"
+                    to="/app/clubs/chat"
+                    search={{ clubId: club.id, showRules: "false" }}
+                    className="flex h-10 items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground text-[14px] font-semibold text-foreground transition active:scale-[0.98]"
                   >
-                    <Video className="h-4 w-4" /> Start live class
+                    <Users className="h-4 w-4" /> Manage club
                   </Link>
-                  {club && (
-                    <Link
-                      to="/app/clubs/chat"
-                      search={{ clubId: club.id, showRules: "false" }}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/[0.07] px-3 py-3 text-xs font-bold text-primary transition active:scale-[0.98]"
-                    >
-                      <Users className="h-4 w-4" /> Manage club
-                    </Link>
-                  )}
-                </div>
-                <BootcampShareAction bootcamp={bootcamp} />
+                )}
+              </div>
+              <BootcampShareAction bootcamp={bootcamp} />
+            </div>
+          ) : isEnrolled ? (
+            <div>
+              <p className="flex items-center gap-2 text-[15px] font-semibold text-[#1a7f4b]"><CheckCircle2 className="h-5 w-5" /> You're enrolled</p>
+              <div className={`mt-3 grid gap-2 ${club ? "grid-cols-2" : "grid-cols-1"}`}>
+                <Link to="/app/live/$classId" params={{ classId: bootcamp.id }} className="flex h-11 items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition active:scale-[0.98]">
+                  <Video className="h-[18px] w-[18px]" /> Join live class
+                </Link>
+                {club && (
+                  <Link to="/app/clubs/chat" search={{ clubId: club.id, showRules: "false" }} className="flex h-11 items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground text-[15px] font-semibold text-foreground transition active:scale-[0.98]">
+                    <Users className="h-[18px] w-[18px]" /> Enter club
+                  </Link>
+                )}
               </div>
             </div>
           ) : (
-            <div className="space-y-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Ready to join?</p>
-                  <h2 className="mt-1 text-xl font-black text-foreground">Enroll in this bootcamp</h2>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    Get the curriculum, live class access, ZeroNotes, XP rewards, and the cohort club.
-                  </p>
-                </div>
-                <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
-              </div>
-
-              <div className="flex flex-wrap items-end gap-2">
-                <span className="font-display text-3xl font-black text-foreground">{formatPrice(couponPrice)}</span>
-                {(discountPct > 0 || appliedCoupon) && (
-                  <>
-                    <span className="pb-1 text-sm font-bold text-muted-foreground/60 line-through">{formatPrice(appliedCoupon ? finalPrice : basePrice)}</span>
-                    {discountPct > 0 && <span className="mb-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary">{discountPct * 100}% {tier} OFF</span>}
-                    {appliedCoupon && <span className="mb-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-500">{couponDiscountPct}% COUPON OFF</span>}
-                  </>
-                )}
-              </div>
-
-              {!isEnrolled && basePrice > 0 && (
-                <div className="border-t border-border/50 pt-5">
-                  <div className="mb-3 flex items-center justify-between">
-                    <p className="text-sm font-black text-foreground">Apply Coupon</p>
-                    {couponMessage && <span className={`text-[11px] font-bold ${appliedCoupon ? "text-emerald-500" : "text-muted-foreground"}`}>{couponMessage}</span>}
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-[22px] font-semibold text-foreground">{couponPrice > 0 ? formatPrice(couponPrice) : "Free"}</span>
+                    {(discountPct > 0 || appliedCoupon) && (
+                      <span className="text-[14px] text-muted-foreground line-through">{formatPrice(appliedCoupon ? finalPrice : basePrice)}</span>
+                    )}
                   </div>
+                  {basePrice > 0 && (
+                    <button type="button" onClick={() => setCouponOpen((open) => !open)} className="text-[13px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+                      {appliedCoupon ? `${couponDiscountPct}% coupon applied` : "Have a coupon?"}
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={handleEnroll}
+                  disabled={loading}
+                  className="flex h-12 shrink-0 items-center gap-2 rounded-full bg-foreground px-7 text-[16px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />} Enroll
+                </button>
+              </div>
+              {discountPct > 0 && (
+                <p className="mt-2 text-[13px] font-semibold text-[#a3186f]">{discountPct * 100}% {tier} discount included</p>
+              )}
+
+              {couponOpen && basePrice > 0 && (
+                <div className="mt-3 animate-in fade-in slide-in-from-top-1">
                   <div className="flex gap-2">
                     <input
                       value={couponInput}
@@ -621,46 +492,120 @@ function BootcampDetail() {
                         setCouponMessage("");
                         setAppliedCoupon(false);
                       }}
-                      placeholder="Enter Coupon"
-                      className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold tracking-wide text-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      placeholder="Coupon code"
+                      className="h-11 min-w-0 flex-1 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] font-semibold tracking-wide outline-none focus:border-foreground/40"
                     />
-                    <button onClick={handleApplyCoupon} className="rounded-xl border border-primary/50 px-5 py-3 text-sm font-black text-primary transition active:scale-[0.98]">Apply</button>
+                    <button onClick={handleApplyCoupon} className="h-11 rounded-full border-[1.5px] border-foreground px-5 text-[14px] font-semibold transition active:scale-[0.98]">Apply</button>
                   </div>
-                  {appliedCoupon && <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm"><span className="font-bold text-foreground">{couponInput}</span><span className="font-bold text-emerald-500">Applied!</span></div>}
+                  {couponMessage && (
+                    <p className={`mt-1.5 text-[13px] font-semibold ${appliedCoupon ? "text-[#1a7f4b]" : "text-muted-foreground"}`}>{couponMessage}</p>
+                  )}
                 </div>
               )}
 
-              {!isEnrolled && couponPrice > 0 && (
-                <ZeroGiftPaymentOption service="bootcamps" amount={couponPrice} applied={applyZeroGift} onAppliedChange={setApplyZeroGift} formatAmount={formatPrice} />
+              {couponPrice > 0 && (
+                <div className="mt-3">
+                  <ZeroGiftPaymentOption service="bootcamps" amount={couponPrice} applied={applyZeroGift} onAppliedChange={setApplyZeroGift} formatAmount={formatPrice} />
+                </div>
               )}
 
-              {isEnrolled ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 py-3.5 text-sm font-bold text-success"><CheckCircle2 className="h-5 w-5" />You are enrolled</div>
-                  <Link to="/app/live/$classId" params={{ classId: bootcamp.id }} className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition active:scale-[0.98]"><Video className="h-5 w-5" />Join Live Class</Link>
-                  {club && <Link to="/app/clubs/chat" search={{ clubId: club.id, showRules: "false" }} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 py-3.5 text-sm font-bold text-primary shadow-sm transition active:scale-[0.98]"><Users className="h-5 w-5" />Enter Club</Link>}
-                </div>
-              ) : (
-                <button onClick={handleEnroll} disabled={loading} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-[0_10px_28px_-12px_rgba(204,32,143,0.75)] transition hover:brightness-95 active:scale-[0.98] disabled:opacity-70">
-                  {loading && <Loader2 className="h-4 w-4 animate-spin" />} Enroll Now
+              <div className="mt-3 grid grid-cols-1 gap-2 border-t border-border pt-3">
+                {couponPrice > 0 && (
+                  <RequestFundsButton amount={couponPrice} purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`} label="Ask someone to sponsor this" />
+                )}
+                <button
+                  type="button"
+                  onClick={handleWishlist}
+                  disabled={wishlistLoading}
+                  aria-pressed={isWishlisted}
+                  className="flex h-10 items-center justify-center gap-2 rounded-full text-[14px] font-semibold text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground disabled:opacity-60"
+                >
+                  {wishlistLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current text-foreground" : ""}`} />}
+                  {isWishlisted ? "Saved to your wishlist" : "Save for later"}
                 </button>
-              )}
-
-              {!isEnrolled && couponPrice > 0 && <div className="mt-2.5"><RequestFundsButton amount={couponPrice} purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`} label="Ask someone to sponsor this" /></div>}
-
-              <button
-                type="button"
-                onClick={handleWishlist}
-                disabled={wishlistLoading}
-                aria-pressed={isWishlisted}
-                className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${isWishlisted ? "border-primary/30 bg-primary/[0.08] text-primary" : "border-border text-foreground active:bg-accent/30"}`}
-              >
-                {wishlistLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current" : ""}`} />}
-                {isWishlisted ? "Saved to Wishlist" : "Add to Wishlist"}
-              </button>
+              </div>
             </div>
           )}
-        </footer>
+        </section>
+
+        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
+          <h2 className="font-display text-[18px] font-semibold">About this bootcamp</h2>
+          <div className="relative mt-2">
+            <div
+              id="bootcamp-description"
+              className={`text-[14px] leading-relaxed text-foreground/85 ${descriptionCanExpand && !descriptionExpanded ? "max-h-28 overflow-hidden" : ""}`}
+            >
+              {/* Formatted descriptions render with their headings and bullets;
+                  plain older ones keep their line breaks and clickable links. */}
+              {looksFormatted(bootcamp.description)
+                ? <RichText content={bootcamp.description} />
+                : <LinkifiedText text={bootcamp.description || ""} />}
+            </div>
+            {descriptionCanExpand && !descriptionExpanded && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent" />
+            )}
+          </div>
+          {descriptionCanExpand && (
+            <button
+              type="button"
+              onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+              aria-expanded={descriptionExpanded}
+              aria-controls="bootcamp-description"
+              className="mt-1 text-[13px] font-semibold text-muted-foreground hover:text-foreground"
+            >
+              {descriptionExpanded ? "Show less" : "See more"}
+            </button>
+          )}
+
+          <h3 className="mt-5 text-[15px] font-semibold">What you get</h3>
+          <ul className="mt-2 grid gap-2.5 text-[14px]">
+            {["Proof of Work certificate", "Proof of Knowledge — assessed, not assumed", "Live classes and a cohort club", "Direct tutor access", "XP for every lesson and ship", "ZeroNotes you keep for good"].map((item) => (
+              <li key={item} className="flex items-center gap-2.5">
+                <Check className="h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" /> {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="flex-1 bg-card p-4 pb-28 md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-4">
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-display text-[18px] font-semibold">Syllabus</h2>
+            <span className="text-[13px] text-muted-foreground">{modules.length} sections · {totalLessons} lessons</span>
+          </div>
+          {modules.length === 0 ? (
+            <p className="mt-3 text-[14px] text-muted-foreground">The tutor is still putting the syllabus together.</p>
+          ) : (
+            <Accordion type="single" collapsible className="mt-3 overflow-hidden rounded-xl border border-foreground/10">
+              {modules.map((module: any, i: number) => (
+                <AccordionItem key={i} value={`item-${i}`} className="border-foreground/10 last:border-b-0">
+                  <AccordionTrigger className="gap-2.5 px-3 py-3 text-left hover:no-underline data-[state=open]:bg-foreground/[0.03]">
+                    <span className="w-5 shrink-0 text-[12px] font-semibold text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="flex-1">
+                      <span className="block text-[15px] font-semibold">{module.title}</span>
+                      <span className="block text-[12px] font-normal text-muted-foreground">{module.lessons?.length || 0} lessons</span>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0">
+                    {module.lessons?.sort((a: any, b: any) => a.order_index - b.order_index).map((lesson: any, j: number) => (
+                      <div key={j} className="flex items-center gap-2.5 border-t border-foreground/[0.06] py-2.5 pl-[42px] pr-3">
+                        {lesson.content_type === "video" ? (
+                          <Play className="h-3.5 w-3.5 shrink-0 fill-current text-muted-foreground" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        )}
+                        <span className="flex-1 text-[14px] leading-snug">{lesson.title}</span>
+                        {lesson.duration && <span className="shrink-0 text-[12px] text-muted-foreground">{lesson.duration}</span>}
+                      </div>
+                    ))}
+                    {(!module.lessons || module.lessons.length === 0) && (
+                      <p className="border-t border-foreground/[0.06] py-2.5 pl-[42px] pr-3 text-[13px] text-muted-foreground">No lessons in this section yet.</p>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </section>
       </div>
     </div>
   );
@@ -708,13 +653,13 @@ function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
     <div className="mt-3">
       <button
         onClick={handleShare}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card py-3.5 text-sm font-bold transition active:scale-[0.98]"
+        className="flex h-10 w-full items-center justify-center gap-2 rounded-full text-[14px] font-semibold text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98]"
       >
         <Share2 className="h-4 w-4" />
         {label}
       </button>
       {usesZeroForm && (
-        <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
+        <p className="mt-1 text-center text-[12px] leading-4 text-muted-foreground">
           Learners register early at your Zero Form price. This switches to the bootcamp link automatically on launch day.
         </p>
       )}

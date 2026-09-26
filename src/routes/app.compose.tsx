@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1, FileStack } from "@/components/icons/glyphs";
+import { X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1, Globe, GraduationCap } from "@/components/icons/glyphs";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadMedia } from "@/lib/storage";
@@ -170,7 +170,7 @@ function ComposePage() {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1] }, codeBlock: false }),
-      Placeholder.configure({ placeholder: 'Body Text (Optional)' }),
+      Placeholder.configure({ placeholder: 'What did you build, learn or ship today?' }),
       TextStyle,
       Color,
       MentionMark
@@ -433,94 +433,111 @@ function ComposePage() {
 
   const canPost = (hasBodyText || images.length > 0) && !uploading;
 
+  const selectedBootcamp = enrolledBootcamps.find((bc) => bc.id === selectedBootcampId);
+  const authorName = profile?.full_name || profile?.username || "You";
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-background md:relative md:inset-auto md:z-0 md:min-h-screen">
-      {/* Header */}
-      <header className="relative z-50 flex w-full items-center justify-between bg-background px-4 py-3 sm:px-6 md:sticky md:top-0">
-        <div className="mx-auto flex w-full max-w-[860px] items-center justify-between">
-        <button 
-          onClick={() => navigate({ to: "/app" })}
-          className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent active:scale-95"
-        >
-          <ArrowLeft className="h-5 w-5 text-foreground" />
-        </button>
-        <span className="absolute left-1/2 -translate-x-1/2 font-semibold text-foreground">
-          Create Post
-        </span>
-        {/* Reaching drafts used to require saving the post you were writing
-            first, which is a strange price to pay for looking at a list. */}
-        <Link
-          to="/app/drafts"
-          className="flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[12px] font-semibold text-foreground transition hover:bg-accent active:scale-95"
-        >
-          <FileStack className="h-4 w-4 text-muted-foreground" /> Drafts
-        </Link>
+    <div className="fixed inset-0 z-[100] flex flex-col bg-card md:relative md:inset-auto md:z-0 md:min-h-screen">
+      <header className="relative z-50 w-full shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)] md:sticky md:top-0">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button
+            onClick={() => navigate({ to: "/app" })}
+            aria-label="Close"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            <X className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">
+            {editId ? "Edit post" : "Create post"}
+          </h1>
+          {/* Reaching drafts used to require saving the post you were writing
+              first, which is a strange price to pay for looking at a list. */}
+          <Link
+            to="/app/drafts"
+            className="flex h-9 items-center rounded-full px-3 text-[14px] font-semibold text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground"
+          >
+            Drafts
+          </Link>
+          <button
+            onClick={handlePost}
+            disabled={!canPost}
+            className="flex h-9 min-w-[72px] items-center justify-center rounded-full bg-foreground px-4 text-[15px] font-semibold text-background tap hover:opacity-90 disabled:opacity-40"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : editId ? "Save" : "Post"}
+          </button>
         </div>
       </header>
 
-      {/* Main Form Area */}
       {/* The gap above the format bar has to follow the bar. It pins itself to
-          the top of the keyboard while you type, so a fixed 8rem of padding
-          stopped being enough the moment the keyboard opened — the next line
-          of text was written behind the toolbar. */}
+          the top of the keyboard while you type, so a fixed padding stopped
+          being enough the moment the keyboard opened — the next line of text
+          was written behind the toolbar. */}
       <div
-        className="no-scrollbar mx-auto w-full max-w-[860px] flex-1 overflow-y-auto px-4 pt-4 sm:px-6 sm:pt-6"
-        style={{ paddingBottom: `calc(8rem + ${toolbarPinned ? keyboardInset : 0}px)` }}
+        className="no-scrollbar mx-auto w-full max-w-[680px] flex-1 overflow-y-auto px-4 pt-4"
+        style={{ paddingBottom: `calc(5.5rem + ${toolbarPinned ? keyboardInset : 0}px)` }}
       >
-        {/* No card. Writing a post is the whole purpose of this screen, so the
-            bordered panel was drawing a box around the page itself — and the
-            padding on all four sides made the writing column narrower than it
-            needed to be. The caret now sits straight on the background. */}
-        <div className="relative flex min-h-[calc(100dvh-10.5rem)] flex-col">
+        <div className="flex items-center gap-2.5">
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-muted">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="grid h-full w-full place-items-center text-[14px] font-semibold text-muted-foreground">
+                {authorName.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-semibold text-foreground">{authorName}</p>
+            <span className="mt-0.5 inline-flex h-[22px] items-center gap-1 rounded-full border border-foreground/25 px-2 text-[12px] font-semibold text-muted-foreground">
+              <Globe className="h-3 w-3" /> Everyone
+            </span>
+          </div>
+        </div>
+
+        <div className="relative mt-4 flex min-h-[calc(100dvh-14rem)] flex-col">
           {/* The writing area grows with what is written, rather than always
-              reserving 380px and pushing the media far down the page. With no
-              text at all, an attachment now sits at the top where it was just
-              added — before, it appeared below most of a blank screen and
-              looked like it had gone somewhere else. */}
-          <div className="relative w-full shrink-0 text-lg">
+              reserving a screen's height and pushing the media far down the
+              page. With no text at all, an attachment sits at the top where
+              it was just added. */}
+          <div className="relative w-full shrink-0 text-[19px]">
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
 
-          {/* Previews */}
           {previews.length > 0 && (
             <div className="mt-3 flex flex-col gap-3">
                {previews.map((src, i) => {
                  const isVideo = images[i] ? images[i]?.type.startsWith('video/') : (src.includes('.mp4') || src.includes('.mov') || src.includes('.webm'));
-                 
+
                  return (
-                   <div 
-                     key={i} 
-                     className="relative overflow-hidden rounded-lg border border-border bg-black/5"
-                   >
+                   <div key={i} className="relative overflow-hidden rounded-xl bg-foreground/[0.04]">
                      {isVideo ? (
                        <video src={src} className="w-full h-auto max-h-[600px] object-contain" muted playsInline controls />
                      ) : (
                        <img src={src} className="w-full h-auto max-h-[600px] object-contain" alt="" loading="lazy" decoding="async" />
                      )}
-                     
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-                     <button 
+                     <button
                        onClick={() => {
                          setImages(prev => prev.filter((_, idx) => idx !== i));
                          setPreviews(prev => prev.filter((_, idx) => idx !== i));
                        }}
-                       className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition active:scale-90 ring-1 ring-white/15 z-10 hover:bg-black/70"
+                       aria-label="Remove"
+                       className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white transition active:scale-90 hover:bg-black/75"
                      >
                        <X className="h-4 w-4" />
                      </button>
                      {!isVideo && (
-                       <button 
+                       <button
                          onClick={() => setCroppingInfo(i)}
-                         className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition active:scale-90 ring-1 ring-white/15 z-10 hover:bg-black/70"
+                         className="absolute bottom-2 left-2 z-10 flex h-8 items-center gap-1.5 rounded-full bg-black/60 px-3 text-[12px] font-semibold text-white transition active:scale-90 hover:bg-black/75"
                        >
-                         <Crop className="h-4 w-4" />
+                         <Crop className="h-3.5 w-3.5" /> Crop
                        </button>
                      )}
                      {isVideo && (
-                       <button 
+                       <button
                          onClick={() => setTrimmingInfo(i)}
-                         className="absolute bottom-3 right-3 flex items-center justify-center gap-1.5 px-3.5 h-8 rounded-full bg-black/60 text-white backdrop-blur-md transition active:scale-90 ring-1 ring-white/20 z-10 hover:bg-black/80 text-[10px]"
+                         className="absolute bottom-2 left-2 z-10 flex h-8 items-center gap-1.5 rounded-full bg-black/60 px-3 text-[12px] font-semibold text-white transition active:scale-90 hover:bg-black/75"
                        >
                          <Wand2 className="h-3.5 w-3.5" /> Edit
                        </button>
@@ -531,11 +548,65 @@ function ComposePage() {
             </div>
           )}
 
-          {/* Room to keep writing, and a way back to the caret.
-              The editor no longer reserves the height itself, so this takes
-              the leftover space and hands a tap anywhere in it back to the
-              text — otherwise, once something was attached, the empty area
-              below it was dead and there was nowhere to press to resume. */}
+          {/* Tagging a bootcamp makes this a build post the tutor can verify.
+              The picker existed but nothing on the page ever opened it. */}
+          {enrolledBootcamps.length > 0 && (
+            <div className="mt-4">
+              {selectedBootcamp ? (
+                <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#cc208f]/10 pl-3 pr-1.5 text-[13px] font-semibold text-[#a3186f]">
+                  <GraduationCap className="h-4 w-4" /> {selectedBootcamp.title}
+                  <button
+                    type="button"
+                    aria-label="Remove bootcamp tag"
+                    onClick={() => { setSelectedBootcampId(null); setIsBuild(false); }}
+                    className="grid h-6 w-6 place-items-center rounded-full hover:bg-[#cc208f]/15"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsBuild((open) => !open)}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed border-foreground/35 px-3 text-[13px] font-semibold text-muted-foreground tap hover:text-foreground"
+                >
+                  <GraduationCap className="h-4 w-4" /> Tag a bootcamp
+                </button>
+              )}
+              {isBuild && !selectedBootcamp && (
+                <div className="mt-3 flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1">
+                  {enrolledBootcamps.map(bc => (
+                    <button
+                      key={bc.id}
+                      onClick={() => setSelectedBootcampId(bc.id)}
+                      className="h-8 rounded-full border border-foreground/25 px-3 text-[13px] font-semibold text-foreground tap hover:border-foreground/50"
+                    >
+                      {bc.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {quotedPost && (
+            <div className="relative mt-4 rounded-xl border border-border p-4">
+              <button onClick={() => setQuotedPost(null)} aria-label="Remove quote" className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05]"><X className="h-4 w-4" /></button>
+              <div className="mb-2 flex items-center gap-2">
+                <div className="h-6 w-6 overflow-hidden rounded-full bg-muted">
+                  {quotedPost.profiles?.avatar_url && <img src={quotedPost.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />}
+                </div>
+                <span className="text-sm font-semibold">{quotedPost.profiles?.full_name || quotedPost.profiles?.username}</span>
+                <span className="text-xs text-muted-foreground">{getFirstName(quotedPost.profiles)}</span>
+              </div>
+              <div className="line-clamp-3 text-sm text-foreground/80">
+                <LinkifiedText text={quotedPost.content} />
+              </div>
+            </div>
+          )}
+
+          {/* Room to keep writing, and a way back to the caret: a tap anywhere
+              in the empty space below hands focus back to the text. */}
           <button
             type="button"
             tabIndex={-1}
@@ -544,149 +615,77 @@ function ComposePage() {
             className="min-h-[140px] w-full flex-1 cursor-text"
           />
 
-          {/* Mention Suggestions */}
-      {showMentions && mentionSuggestions.length > 0 && (
-            <div className="absolute left-4 right-4 top-16 z-50 max-h-[250px] overflow-y-auto rounded-lg border border-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-200 sm:left-6 sm:right-6">
+          {showMentions && mentionSuggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-12 z-50 max-h-[250px] overflow-y-auto rounded-xl border border-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-200">
               {mentionSuggestions.map((prof) => (
                 <button
                   key={prof.id}
                   onClick={() => insertMention(prof.username)}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors border-b border-border/30 last:border-0"
+                  className="flex w-full items-center gap-3 border-b border-border/40 px-4 py-3 transition-colors last:border-0 hover:bg-foreground/[0.04]"
                 >
-                  <div className="h-8 w-8 rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-[10px]">
+                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold">
                     {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : prof.username[0].toUpperCase()}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold tracking-tight text-foreground">{prof.full_name || prof.username}</p>
+                    <p className="text-sm font-semibold text-foreground">{prof.full_name || prof.username}</p>
                     <p className="text-xs text-muted-foreground">{getFirstName(prof)}</p>
                   </div>
                 </button>
               ))}
             </div>
           )}
-
         </div>
-
-        {/* Bootcamps Modal/Dropdown equivalent */}
-        {isBuild && enrolledBootcamps.length > 0 && (
-          <div className="mt-4 rounded-lg border border-border bg-card p-4 animate-in fade-in slide-in-from-top-2">
-            <h4 className="text-xs text-muted-foreground mb-3 px-2">Select a Bootcamp to tag</h4>
-            <div className="flex flex-wrap gap-2">
-              {enrolledBootcamps.map(bc => (
-                <button 
-                  key={bc.id}
-                  onClick={() => setSelectedBootcampId(bc.id)}
-                  className={`rounded-lg border px-4 py-2 text-[13px] font-semibold tap transition ${selectedBootcampId === bc.id ? "border-transparent bg-foreground text-background" : "border-border bg-card hover:border-foreground/30"}`}
-                >
-                  {bc.title}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Quoted Post */}
-        {quotedPost && (
-          <div className="relative mt-4 rounded-lg border border-border bg-card p-4">
-            <button onClick={() => setQuotedPost(null)} className="absolute top-3 right-3 p-1 rounded-full bg-accent text-foreground transition hover:bg-muted"><X className="h-4 w-4" /></button>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-6 w-6 rounded-full overflow-hidden bg-muted">
-                {quotedPost.profiles?.avatar_url && <img src={quotedPost.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />}
-              </div>
-              <span className="text-sm font-semibold tracking-tight">{quotedPost.profiles?.full_name || quotedPost.profiles?.username}</span>
-              <span className="text-xs text-muted-foreground">{getFirstName(quotedPost.profiles)}</span>
-            </div>
-            <div className="text-sm line-clamp-3 text-foreground/80">
-              <LinkifiedText text={quotedPost.content} />
-            </div>
-          </div>
-        )}
-
       </div>
 
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 md:sticky md:left-auto md:right-auto md:w-full">
-        {/* The toolbar lives in the footer, directly above Save and Post —
-            where a writing app keeps its controls.
-
-            While the keyboard is open it detaches and pins itself just above
-            it. `sticky` cannot do that: it is measured against the layout
-            viewport, which the keyboard covers rather than shrinks, so the
-            toolbar ended up underneath the keyboard exactly when it was
-            needed. The Save and Post buttons stay at the bottom; they are not
-            what you reach for mid-sentence. */}
-        <div
-          className={
-            toolbarPinned
-              ? "formatting-toolbar fixed inset-x-0 z-50 flex justify-center px-4"
-              : "formatting-toolbar mb-3 flex justify-center px-4"
-          }
-          style={toolbarPinned ? { bottom: keyboardInset } : undefined}
-        >
-          <div className={`flex items-center justify-center gap-1 rounded-lg border bg-background/95 p-2 backdrop-blur-md transition-shadow ${isEditorFocused ? 'border-foreground/20 shadow-lg' : 'border-border shadow-sm'}`}>
-            <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a photo">
-              <ImageIcon className="h-4 w-4" />
-              <input type="file" className="hidden" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-            </label>
-            <label className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-foreground transition hover:bg-accent active:scale-90" title="Add a video">
-              <FileVideo className="h-4 w-4" />
-              <input type="file" className="hidden" accept="video/*" multiple onChange={handleMediaUpload} disabled={uploading} />
-            </label>
-            <div className="mx-1 h-5 w-px bg-border" />
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bold'); }}
-              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bold') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Bold"
-              aria-label="Bold"
-            >
-              <Bold className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('italic'); }}
-              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('italic') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Italic"
-              aria-label="Italic"
-            >
-              <Italic className="h-4 w-4" strokeWidth={2} />
-            </button>
-            <div className="mx-1 h-5 w-px bg-border" />
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('bullet'); }}
-              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('bulletList') ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Bullet list"
-              aria-label="Bullet list"
-            >
-              <List className="h-4 w-4" strokeWidth={2} />
-            </button>
-            <div className="mx-1 h-5 w-px bg-border" />
-            <button
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); insertFormatting('heading'); }}
-              className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-90 ${editor?.isActive('heading', { level: 1 }) ? 'bg-foreground text-background' : 'text-foreground hover:bg-accent'}`}
-              title="Heading"
-              aria-label="Heading"
-            >
-              <Heading1 className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-        <div className="mx-auto flex w-full max-w-[860px] gap-3 px-4 sm:px-6">
-        <button 
-          onClick={saveDraft}
-          className="flex-1 rounded-lg border border-border bg-card py-3 text-[14px] font-semibold text-foreground tap hover:bg-accent"
-        >
-          Save as Draft
-        </button>
-        <button 
-          onClick={handlePost}
-          disabled={!canPost}
-          className="flex-1 rounded-lg bg-foreground py-3 text-[14px] font-semibold text-background tap disabled:opacity-40 hover:opacity-90"
-        >
-          {uploading ? <Loader2 className="h-5 w-5 animate-spin mx-auto text-background" /> : "Post"}
-        </button>
+      {/* The toolbar sits along the bottom edge, where a writing app keeps
+          its controls. While the keyboard is open it detaches and pins itself
+          just above it: `sticky` is measured against the layout viewport,
+          which the keyboard covers rather than shrinks. */}
+      <div
+        className={
+          toolbarPinned
+            ? "formatting-toolbar fixed inset-x-0 z-50 border-t border-border bg-card"
+            : "formatting-toolbar fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card pb-[max(env(safe-area-inset-bottom),0.75rem)] md:sticky"
+        }
+        style={toolbarPinned ? { bottom: keyboardInset } : undefined}
+      >
+        <div className="mx-auto flex w-full max-w-[680px] items-center gap-0.5 px-2 pt-1.5 text-muted-foreground">
+          <label className="grid h-11 w-11 cursor-pointer place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90" title="Add a photo">
+            <ImageIcon className="h-[22px] w-[22px]" />
+            <input type="file" className="hidden" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />
+          </label>
+          <label className="grid h-11 w-11 cursor-pointer place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90" title="Add a video">
+            <FileVideo className="h-[22px] w-[22px]" />
+            <input type="file" className="hidden" accept="video/*" multiple onChange={handleMediaUpload} disabled={uploading} />
+          </label>
+          <span className="mx-1 h-[22px] w-px bg-border" />
+          {([
+            ["bold", "Bold", <Bold key="b" className="h-5 w-5" />, "bold"],
+            ["italic", "Italic", <Italic key="i" className="h-5 w-5" />, "italic"],
+            ["heading", "Heading", <Heading1 key="h" className="h-5 w-5" />, "heading"],
+            ["bullet", "Bullet list", <List key="l" className="h-5 w-5" />, "bulletList"],
+          ] as const).map(([format, label, icon, mark]) => {
+            const active = mark === "heading" ? editor?.isActive("heading", { level: 1 }) : editor?.isActive(mark);
+            return (
+              <button
+                key={format}
+                type="button"
+                onMouseDown={(event) => { event.preventDefault(); insertFormatting(format); }}
+                className={`grid h-10 w-10 place-items-center rounded-full transition active:scale-90 ${active ? "bg-foreground text-background" : "hover:bg-foreground/[0.05] hover:text-foreground"}`}
+                title={label}
+                aria-label={label}
+              >
+                {icon}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={saveDraft}
+            className="ml-auto h-10 rounded-full px-3 text-[13px] font-semibold text-muted-foreground tap hover:bg-foreground/[0.05] hover:text-foreground"
+          >
+            Save draft
+          </button>
         </div>
       </div>
 

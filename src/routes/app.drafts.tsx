@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, Trash } from "@/components/icons/glyphs";
+import { ArrowLeft } from "@/components/icons/glyphs";
+import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { toPlainText } from "@/lib/contentPreview";
@@ -61,73 +62,69 @@ function DraftsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex min-h-[68px] w-full max-w-[980px] items-center justify-between gap-4 px-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              onClick={() => navigate({ to: "/app" })}
-              aria-label="Back to feed"
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card transition hover:bg-accent"
-            >
-              <ArrowLeft className="h-[18px] w-[18px]" />
-            </button>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Your writing</p>
-              <h1 className="font-display text-[18px] font-semibold tracking-tight">Drafts</h1>
-            </div>
-          </div>
-          <Link to="/app/compose" className="hidden h-10 items-center rounded-lg bg-foreground px-4 text-[12.5px] font-semibold text-background transition hover:opacity-90 sm:inline-flex">
-            New post
-          </Link>
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button
+            onClick={() => navigate({ to: "/app" })}
+            aria-label="Back"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">Drafts</h1>
+          {savedDrafts.length > 0 && (
+            <span className="pr-3 text-[13px] text-muted-foreground">{savedDrafts.length} saved</span>
+          )}
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[980px] px-4 py-6 sm:px-6 md:py-8">
+      <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
         {savedDrafts.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card px-6 py-20 text-center">
-            <h2 className="text-[18px] font-semibold tracking-tight">No drafts saved</h2>
-            <p className="mx-auto mb-6 mt-2 max-w-sm text-[13px] leading-6 text-muted-foreground">Posts you save while composing will stay here until you publish or delete them.</p>
-            <Link to="/app/compose" className="inline-flex h-11 items-center rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition hover:opacity-90">
+          <div className="flex flex-1 flex-col items-center justify-center px-6 py-20 text-center">
+            <h2 className="font-display text-[18px] font-semibold">No drafts saved</h2>
+            <p className="mx-auto mb-6 mt-2 max-w-sm text-[14px] leading-6 text-muted-foreground">Posts you save while writing stay here until you publish or delete them.</p>
+            <Link to="/app/compose" className="inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background transition hover:opacity-90">
               Start writing
             </Link>
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {savedDrafts.map((draft: any) => (
-              <article
-                key={draft.id} 
-                onClick={() => loadDraft(draft)}
-                className="group flex min-h-[150px] cursor-pointer items-start justify-between rounded-lg border border-border bg-card p-5 transition hover:border-primary/25 hover:bg-accent/20"
-              >
-                <div className="flex-1 min-w-0 pr-4">
-                  {/* Drafts arrive in two shapes — ZeroNotes writes blocks, the
-                      post composer writes bodyText — and this only ever read
-                      the first, so every post draft claimed to be empty.
-                      draftTitle handles both, and still calls a genuinely
-                      blank draft blank. */}
-                  <p className="line-clamp-2 text-[15px] font-semibold leading-snug tracking-tight text-foreground">
-                    {draftTitle(draft) || <span className="font-normal italic text-muted-foreground">Empty draft</span>}
+          savedDrafts.map((draft: any) => {
+            const isNote = !draft?.bodyText && Array.isArray(draft?.blocks);
+            return (
+              <article key={draft.id} className="border-b border-border px-4 py-3.5 last:border-b-0">
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <span className="rounded-full bg-foreground/[0.06] px-2 py-px font-semibold text-foreground/75">{isNote ? "Note" : "Post"}</span>
+                  Edited {formatDistanceToNow(new Date(draft.updatedAt), { addSuffix: true })}
+                </div>
+                {/* Drafts arrive in two shapes — ZeroNotes writes blocks, the
+                    post composer writes bodyText. draftTitle handles both, and
+                    still calls a genuinely blank draft blank. */}
+                <button type="button" onClick={() => loadDraft(draft)} className="mt-2 block w-full text-left">
+                  <p className="line-clamp-2 text-[15px] leading-snug text-foreground">
+                    {draftTitle(draft) || <span className="italic text-muted-foreground">Empty draft</span>}
                   </p>
                   {draftPreview(draft) && (
-                    <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-relaxed text-muted-foreground">
-                      {draftPreview(draft)}
-                    </p>
+                    <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">{draftPreview(draft)}</p>
                   )}
-                  <p className="mt-4 text-[11px] text-muted-foreground">
-                    {new Date(draft.updatedAt).toLocaleString()}
-                  </p>
-                </div>
-                <button 
-                  onClick={(e) => deleteDraft(draft.id, e)}
-                  aria-label="Delete draft"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash className="h-4 w-4" />
                 </button>
+                <div className="mt-2.5 flex gap-2">
+                  <button
+                    onClick={() => loadDraft(draft)}
+                    className="h-8 rounded-full bg-foreground px-3.5 text-[14px] font-semibold text-background tap hover:opacity-90"
+                  >
+                    Continue
+                  </button>
+                  <button
+                    onClick={(e) => deleteDraft(draft.id, e)}
+                    className="h-8 rounded-full border border-foreground/30 px-3.5 text-[14px] font-semibold text-muted-foreground tap hover:border-foreground/50 hover:text-foreground"
+                  >
+                    Delete
+                  </button>
+                </div>
               </article>
-            ))}
-          </div>
+            );
+          })
         )}
       </main>
     </div>

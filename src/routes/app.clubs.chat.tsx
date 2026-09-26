@@ -1,16 +1,16 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/glyphs";
+import { ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 import { decodeChatMedia, encodeChatMedia, getChatMediaType, useVoiceRecorder } from "@/hooks/useVoiceRecorder";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
@@ -267,7 +267,6 @@ function ClubChat() {
   const descRef = useRef<HTMLTextAreaElement>(null);
   const rulesRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [showRoomSwitcher, setShowRoomSwitcher] = useState(false);
   const [squadSearch, setSquadSearch] = useState("");
   const [showGiveaway, setShowGiveaway] = useState(false);
@@ -279,12 +278,6 @@ function ClubChat() {
     endsAt: "",
     winners: 1,
   });
-
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      setIsScrolled(scrollRef.current.scrollTop > 100);
-    }
-  };
 
   const toggleVoiceRecording = async () => {
     if (isRecording) {
@@ -331,7 +324,6 @@ function ClubChat() {
 
   const [viewportHeight, setViewportHeight] = useState("100dvh");
   const [viewportTop, setViewportTop] = useState("0px");
-
 
   useEffect(() => {
     const visualViewport = window.visualViewport;
@@ -1077,7 +1069,7 @@ function ClubChat() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'Administrator': return 'text-primary bg-primary/8 ring-1 ring-primary/20';
+      case 'Administrator': return 'bg-foreground text-background';
       case 'Investor': return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/8 ring-1 ring-emerald-500/20';
       case 'Product Lead': return 'text-blue-600 dark:text-blue-400 bg-blue-500/8 ring-1 ring-blue-500/20';
       case 'Tech Lead': return 'text-violet-600 dark:text-violet-400 bg-violet-500/8 ring-1 ring-violet-500/20';
@@ -1141,119 +1133,115 @@ function ClubChat() {
     );
   }
 
+  const clubRooms = getClubRooms(club?.rooms);
+  const liveNow = liveAdminsCount > 0;
+  const memberCount = members.length > 0 ? members.length : (club?.members_count || 1);
+
   return (
     <div 
-      className="zc-keep-width fixed inset-x-0 z-40 mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-gradient-to-b from-accent/5 via-background to-background dark:bg-background md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
+      className="zc-keep-width fixed inset-x-0 z-40 mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-card md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
-
-
-      {/* NEW FIXED DYNAMIC HEADER */}
-      <header className={`absolute top-0 inset-x-0 z-50 flex items-center justify-between px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-3 transition-all duration-300 ${
-        isScrolled ? "bg-background/80 backdrop-blur-md border-b border-border/40 shadow-sm" : "bg-gradient-to-b from-black/60 to-transparent pointer-events-none"
-      }`}>
-        <div className={`flex items-center gap-3 ${!isScrolled ? "pointer-events-auto" : ""}`}>
-          <button type="button" onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-90">
-            <ChevronLeft className="h-5 w-5" />
+      <header className="relative z-50 shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
+        <div className="flex h-[52px] items-center gap-1.5 pl-1 pr-1.5">
+          <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          <div className={`flex items-center gap-2 transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="h-9 w-9 shrink-0 overflow-hidden rounded-[10px] bg-muted">
             {club?.logo_url ? (
-              <img src={club.logo_url} className="h-7 w-7 rounded-full object-cover border border-border/50" loading="lazy" decoding="async" />
+              <img src={club.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
-              <div className="h-7 w-7 rounded-full bg-accent flex items-center justify-center border border-border/50">
-                <Hash className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
+              <span className="grid h-full w-full place-items-center text-[13px] font-semibold text-muted-foreground">
+                {(club?.name || "#").charAt(0).toUpperCase()}
+              </span>
             )}
-            <span className="font-bold text-sm truncate max-w-[120px]">{club?.name}</span>
           </div>
-        </div>
-        <div className={`flex items-center gap-2 ${!isScrolled ? "pointer-events-auto" : ""}`}>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-semibold text-foreground">{club?.name || "Loading…"}</p>
+            <p className="truncate text-[12px] font-medium text-muted-foreground">
+              <span className="text-[#1a7f4b]">{onlineMembersCount} online</span> · {memberCount} {memberCount === 1 ? "member" : "members"}
+            </p>
+          </div>
           {/* Live is the one thing here that is time-sensitive: a session is
-              happening now or it is not. That belongs in the header where it is
-              always visible, rather than two taps inside a menu. Assessments
-              moved the other way — they are a place you go, so they sit with
-              the other sections. */}
+              happening now or it is not, so it sits in the header where it is
+              always visible. An admin opens the live tools (go live now or
+              schedule a space); anyone can walk straight into a session that
+              is already running. */}
+          {liveNow ? (
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/app/live/$classId", params: { classId: club?.id || clubId || "unknown" } })}
+              className="flex h-[34px] shrink-0 items-center gap-1.5 rounded-full bg-[#e0245e] px-3 text-[13px] font-semibold text-white transition active:scale-95"
+            >
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> {isAdmin ? "Live" : "Join live"}
+            </button>
+          ) : isAdmin ? (
+            <button
+              type="button"
+              onClick={() => { setShowScheduleForm(false); setShowLiveMenu(true); }}
+              className="flex h-[34px] shrink-0 items-center gap-1.5 rounded-full bg-[#cc208f] px-3 text-[13px] font-semibold text-white transition hover:bg-[#b01c7b] active:scale-95"
+            >
+              <Radio className="h-[15px] w-[15px]" /> Go live
+            </button>
+          ) : null}
           <button
-            onClick={() => {
-              if (!isAdmin && liveAdminsCount === 0) return;
-              /* Straight into the room. This opened the live *menu*, which put
-                 a screen of choices between the button and the thing it is
-                 named after — and for a learner joining a session already in
-                 progress there was only ever one choice on it. Scheduling
-                 still lives on the Go Live button further down the club. */
-              navigate({ to: "/app/live/$classId", params: { classId: club?.id || clubId || "unknown" } });
-            }}
-            disabled={!isAdmin && liveAdminsCount === 0}
-            title={isAdmin ? "Go live" : liveAdminsCount > 0 ? "Join the live session" : "Nobody is live right now"}
-            aria-label={isAdmin ? "Go live" : liveAdminsCount > 0 ? "Join the live session" : "Nobody is live right now"}
-            className={`relative flex h-9 w-9 items-center justify-center rounded-full border shadow-sm transition active:scale-95 ${
-              liveAdminsCount > 0
-                ? "border-red-500/40 bg-red-500 text-white hover:bg-red-600"
-                : isAdmin
-                  ? "border-foreground/10 bg-foreground text-background hover:opacity-90"
-                  : "border-border bg-card text-muted-foreground"
-            }`}
-          >
-            <Video className="h-4 w-4" />
-            {liveAdminsCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-red-400 ring-2 ring-background" />
-            )}
-          </button>
-          <button
+            type="button"
             onClick={() => setShowMembers(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95"
+            aria-label="Members"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
           >
-            <Users className="h-4 w-4" />
+            <Users className="h-[21px] w-[21px]" />
           </button>
           {club?.creator_id === currentUser?.id && (
-            <button 
+            <button
+              type="button"
               onClick={() => setShowSettings(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95"
+              aria-label="Club settings"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-[21px] w-[21px]" />
             </button>
           )}
         </div>
+        <div className="flex items-center">
+          <div className="no-scrollbar flex min-w-0 flex-1 gap-5 overflow-x-auto px-3 text-[14px] font-semibold">
+            {clubRooms.map((room: any) => (
+              <button
+                key={room.id}
+                onClick={() => setActiveRoom(room.id)}
+                className={`flex h-10 flex-none items-center whitespace-nowrap transition-colors ${
+                  activeRoom === room.id
+                    ? "text-foreground shadow-[inset_0_-2px_0_currentColor]"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {room.id === "general" ? `# ${room.name}` : room.name}
+              </button>
+            ))}
+            <button
+              onClick={() => navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } })}
+              className="flex h-10 flex-none items-center whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Quizzes
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowRoomSwitcher(true)}
+            aria-label="All rooms"
+            className="grid h-10 w-10 shrink-0 place-items-center text-muted-foreground hover:text-foreground"
+          >
+            <ChevronDown className="h-[18px] w-[18px]" />
+          </button>
+        </div>
       </header>
 
-      {/* Dynamic Island: Room Switcher Pill */}
-      <div className={`absolute left-1/2 -translate-x-1/2 z-[60] pointer-events-auto transition-all duration-500 ease-out ${
-        isScrolled 
-          ? "top-[calc(5rem+env(safe-area-inset-top))] opacity-100 scale-100" 
-          : "top-[calc(4rem+env(safe-area-inset-top))] opacity-0 scale-95 pointer-events-none"
-      }`}>
-        <button 
-          onClick={() => setShowRoomSwitcher(true)}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-background/80 backdrop-blur-xl border border-border/50 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.15)] transition-all active:scale-95 group"
-        >
-          <Hash className="w-3.5 h-3.5 text-primary" />
-          <span className="text-[11px] font-bold text-foreground max-w-[100px] truncate">
-            {club?.rooms?.find((r: any) => r.id === activeRoom)?.name || activeRoom}
-          </span>
-          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors ml-0.5" />
-        </button>
-      </div>
-
       {/* Main scrolling container */}
-      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col relative pb-24" ref={scrollRef} onScroll={handleScroll}>
-        
-        {/* Profile-Style Header (Scrolls) */}
-        <div className="w-full shrink-0 z-10 bg-background pb-1">
-        
-        {/* Cover Banner with Nav Row overlaid */}
-        <div className="relative w-full overflow-hidden bg-accent/20 pb-2">
-          <div className="absolute inset-0">
-            {club?.banner_url ? (
-              <img src={club.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-            ) : (
-              <div className="h-full w-full bg-gradient-to-br from-primary via-purple-600 to-blue-500" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-transparent" />
-          </div>
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar pb-24" ref={scrollRef}>
 
-          {/* Invisible spacer to give the banner height without obscuring content */}
-          <div className="h-[calc(7rem+env(safe-area-inset-top))] w-full relative z-10"></div>
-        </div>
+        {/* The club's drawers live here; they render in portals, so where
+            they sit in the tree does not affect the layout. */}
+        <div className="contents">
 
             <Drawer open={showLiveMenu} onOpenChange={setShowLiveMenu}>
                   <DrawerContent className="mx-auto h-auto max-h-[88dvh] max-w-[680px] overflow-hidden rounded-t-lg border border-border bg-background p-0 shadow-2xl z-[90] [&>div:first-child]:hidden outline-none">
@@ -2366,125 +2354,33 @@ function ClubChat() {
               </DrawerContent>
             </Drawer>
 
-        <div className="px-5 relative z-10">
-          {/* Avatar + Go Live button */}
-          <div className="-mt-10 flex items-end justify-between">
-            <div className="grid h-20 w-20 place-items-center border-4 border-background overflow-hidden bg-muted rounded-[28%] transition-all duration-500 shadow-sm">
-              {club?.logo_url ? (
-                <img src={club.logo_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-              ) : (
-                <Hash className="h-8 w-8 text-muted-foreground" />
-              )}
-            </div>
-            
-            <div className="mb-1 flex items-center gap-2">
-              {isAdmin ? (
-                <button 
-                  onClick={() => {
-                    setShowScheduleForm(false);
-                    setShowLiveMenu(true);
-                  }} 
-                  className="flex items-center gap-1.5 h-8 px-4 rounded-full transition active:scale-95 shadow-sm border bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20"
-                >
-                  <Video className="h-4 w-4" />
-                  <span className="text-xs font-bold mt-0.5">Go Live</span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => {
-                    if (liveAdminsCount > 0) {
-                      setShowScheduleForm(false);
-                      setShowLiveMenu(true);
-                    }
-                  }} 
-                  disabled={liveAdminsCount === 0}
-                  className={`flex items-center gap-1.5 h-8 px-4 rounded-full transition active:scale-95 shadow-sm border ${
-                    liveAdminsCount > 0 
-                      ? "bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20 animate-pulse" 
-                      : "bg-accent border-border/50 text-muted-foreground cursor-not-allowed"
-                  }`}
-                >
-                  <Video className="h-4 w-4" />
-                  <span className="text-xs font-bold mt-0.5">
-                    {liveAdminsCount > 0 ? "Join Live" : "Offline"}
-                  </span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Identity */}
-          <div className="mt-2 pb-1">
-            <h2 className="font-display text-2xl font-bold tracking-tight text-foreground leading-tight">
-              {club?.name || "Loading..."}
-            </h2>
-
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1 text-success font-bold">
-                <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                {onlineMembersCount} online
-              </span>
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {members.length > 0 ? members.length : (club?.members_count || 1)} members
-              </span>
-              <span className="flex items-center gap-1">
-                <CalendarDays className="h-3 w-3" /> 
-                {club?.created_at ? new Date(club.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : 'Recently'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        </div>
-
-        {/* Tab Navigation - Sticky Header */}
-        <div className="sticky top-0 z-30 mt-1 flex shrink-0 gap-0.5 overflow-x-auto border-b border-border bg-background/95 px-1 pt-1 shadow-sm backdrop-blur-xl no-scrollbar sm:gap-2 sm:px-2">
-          {(club?.rooms?.length > 0 ? club.rooms : defaultRooms).map((room: any) => (
-            <button
-              key={room.id}
-              onClick={() => setActiveRoom(room.id)}
-              className={`flex-none whitespace-nowrap border-b-[3px] px-2 py-3 text-center text-[10.5px] font-semibold transition-all min-[390px]:text-xs sm:px-4 sm:text-sm ${
-                activeRoom === room.id 
-                  ?"border-primary text-foreground font-bold" 
-                  : "border-transparent text-muted-foreground hover:text-foreground/80"
-              }`}
-            >
-              {room.name}
-            </button>
-          ))}
-          <button
-            onClick={() => navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } })}
-            className="flex-none whitespace-nowrap border-b-[3px] border-transparent px-2 py-3 text-center text-[10.5px] font-semibold text-muted-foreground transition-all hover:text-foreground/80 min-[390px]:text-xs sm:px-4 sm:text-sm"
-          >
-            Quiz
-          </button>
         </div>
 
       {/* Pinned Rules */}
       <button 
         onClick={() => setShowRules(true)}
-        className="w-full shrink-0 flex items-center gap-2.5 px-4 py-2 bg-accent/5 border-b border-border text-left active:bg-accent/10 transition-colors"
+        className="mx-3 mt-3 flex shrink-0 items-start gap-2.5 rounded-xl bg-[#cc208f]/[0.06] px-3 py-2.5 text-left transition-colors active:bg-[#cc208f]/10"
       >
-        <Pin className="h-3 w-3 text-primary shrink-0" />
-        <p className="truncate text-[11px] text-muted-foreground flex-1">
-          <span className="font-bold text-primary mr-1.5">Pinned:</span>
-          {club?.rules || "Be respectful, help others, and share your work!"}
+        <Pin className="mt-px h-4 w-4 shrink-0 text-[#cc208f]" />
+        <p className="line-clamp-2 flex-1 text-[13px] leading-snug text-foreground">
+          <span className="font-semibold">Pinned · Club rules</span>
+          <br />
+          <span className="text-muted-foreground">{club?.rules || "Be respectful, help others, and share your work!"}</span>
         </p>
       </button>
 
       {/* Rules Modal */}
       {showRules && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="relative w-full max-w-sm bg-gradient-to-b from-card to-card/90 rounded-[28px] shadow-lift ring-1 ring-border overflow-hidden flex flex-col max-h-[70vh]">
+          <div className="relative flex max-h-[70vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-card shadow-2xl ring-1 ring-border">
             <div className="px-5 py-4 border-b hairline flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <ShieldAlert className="h-4 w-4 text-primary" />
+                <div className="grid h-9 w-9 place-items-center rounded-[10px] bg-[#cc208f]/10">
+                  <Pin className="h-4 w-4 text-[#cc208f]" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-foreground">Class Rules</h3>
-                  <p className="text-[9px] text-muted-foreground">{club?.name}</p>
+                  <h3 className="text-[16px] font-semibold text-foreground">Club rules</h3>
+                  <p className="text-[12px] text-muted-foreground">{club?.name}</p>
                 </div>
               </div>
               <button 
@@ -2495,18 +2391,18 @@ function ClubChat() {
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
-              <div className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+            <div className="flex-1 overflow-y-auto px-5 py-5 no-scrollbar">
+              <div className="whitespace-pre-wrap text-[14px] leading-relaxed text-foreground/85">
                 {club?.rules || "Be respectful, help others, and share your work!"}
               </div>
             </div>
             
-            <div className="p-4 bg-white/5">
+            <div className="p-4 pt-0">
               <button 
                 onClick={() => setShowRules(false)}
-                className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-2xl shadow-glow transition active:scale-95"
+                className="h-11 w-full rounded-full bg-foreground text-[15px] font-semibold text-background transition active:scale-95"
               >
-                I Understand
+                I understand
               </button>
             </div>
           </div>
@@ -2549,12 +2445,12 @@ function ClubChat() {
           />
         </main>
       ) : (
-        <main className="mt-auto flex w-full shrink-0 flex-col px-4 py-3">
+        <main className="mt-auto flex w-full shrink-0 flex-col gap-1 px-3 py-3">
           {messages.length === 0 && (
-            <div className="flex h-full flex-col items-center justify-center px-6 text-center opacity-60">
-              <Hash className="mb-3 h-10 w-10 text-muted-foreground" />
-              <p className="text-sm font-bold text-muted-foreground">No messages yet</p>
-              <p className="mt-1 text-xs text-muted-foreground">Be the first to post in #{activeRoom}</p>
+            <div className="flex h-full flex-col items-center justify-center px-6 py-16 text-center">
+              <Hash className="mb-3 h-9 w-9 text-muted-foreground" />
+              <p className="text-[15px] font-semibold text-foreground">No messages yet</p>
+              <p className="mt-1 text-[13px] text-muted-foreground">Be the first to post in this room.</p>
             </div>
           )}
           {messages.map((m) => (
@@ -3236,7 +3132,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               const id = message.profiles?.username || message.profile_id;
               if (id) navigate({ to: '/app/profile/$id', params: { id } });
             }}
-            className="mb-1 flex h-8 w-8 shrink-0 self-end items-center justify-center overflow-hidden rounded-full border border-border bg-accent/30 text-xs font-bold text-muted-foreground transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+            className="mt-0.5 flex h-8 w-8 shrink-0 self-start items-center justify-center overflow-hidden rounded-full border border-border bg-accent/30 text-xs font-bold text-muted-foreground transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
             aria-label={`View ${message.profiles?.full_name || message.profiles?.username || 'member'} profile`}
           >
             {message.profiles?.avatar_url ? (
@@ -3272,19 +3168,21 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
           )}
 
           {/* Bubble */}
-          <div className={`relative group px-3.5 py-2.5 ${isMe ?'rounded-[22px] rounded-br-sm border border-foreground/10 bg-foreground text-right text-background shadow-sm shadow-black/10' : 'rounded-[22px] rounded-bl-sm border border-border/50 bg-muted text-left'}`}>
-            
-            {/* Sender Name for Received */}
-            {!isMe && (
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-[12px] font-bold text-foreground">{message.profiles?.full_name || message.profiles?.username}</span>
-                {role !== 'Member' && (
-                  <span className={`text-[7px] font-bold uppercase px-1 py-0.5 rounded ${getRoleColor(role)}`}>
-                    {role}
-                  </span>
-                )}
-              </div>
-            )}
+          {/* Sender name and time sit above a received bubble, so the
+              bubble itself holds only what was said. */}
+          {!isMe && (
+            <div className="mb-1 flex items-center gap-1.5 text-[13px]">
+              <span className="font-semibold text-foreground">{message.profiles?.full_name || message.profiles?.username}</span>
+              {role !== 'Member' && (
+                <span className={`rounded px-1.5 text-[11px] font-semibold ${getRoleColor(role)}`}>
+                  {role}
+                </span>
+              )}
+              <span className="text-muted-foreground">· {time}</span>
+            </div>
+          )}
+
+          <div className={`relative group px-3 py-2 ${isMe ? 'rounded-[16px_16px_4px_16px] bg-foreground text-right text-background' : 'rounded-[4px_16px_16px_16px] bg-foreground/[0.06] text-left'}`}>
 
             {/* Room badges */}
             {room === 'assignments' && (
@@ -3417,9 +3315,9 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               );
             })() : (
               <>
-                <p className={`text-[14px] leading-relaxed whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
+                <p className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
                   <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
-                  {!message.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
+                  {isMe && !message.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
                 </p>
                 
                 {message.content.includes('$$MEDIA$$') && (
@@ -3451,10 +3349,10 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               </>
             )}
             
-            {message.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
-            {giveaway && <div className="h-4" />}
+            {isMe && message.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
+            {isMe && giveaway && <div className="h-4" />}
             
-            <span className={`text-[10px] absolute bottom-2 right-3 ${isMe ?'text-background/70' : 'text-muted-foreground'}`}>{time}</span>
+            {isMe && <span className="absolute bottom-1.5 right-3 text-[10px] text-background/70">{time}</span>}
 
             {/* Tap outside overlay */}
             {(showEmojiPicker || showFullPicker) && (

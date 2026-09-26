@@ -1,7 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { 
-  ArrowLeft, UploadCloud, X, Plus, Rocket, Link as LinkIcon, 
-  Code, Loader2, Wand2, Globe, Lock, Coins, CheckCircle2, GitBranch, ShieldCheck
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  X, Plus, Link as LinkIcon, Loader2, Coins, Image as ImageIcon, GraduationCap, UserPlus
 } from "@/components/icons/glyphs";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -360,57 +359,103 @@ function ShipPage() {
   };
 
   const canShip = projectName.trim().length > 0 && !uploading;
+  const toolList = tools.split(',').map((tool) => tool.trim()).filter(Boolean);
+  const addTool = (raw: string) => {
+    const next = raw.replace(/,/g, ' ').trim();
+    if (!next || toolList.some((tool) => tool.toLowerCase() === next.toLowerCase())) return;
+    setTools([...toolList, next].join(', '));
+  };
+  const [toolDraft, setToolDraft] = useState("");
+  const shipLabel = isNewVersion ? `Release ${versionLabel || 'update'}` : editId ? "Save" : "Publish";
 
   return (
-    <div className="min-h-screen bg-background pb-10">
-      {/* Header */}
-      <header className="sticky top-0 z-50 h-[calc(72px+env(safe-area-inset-top))] bg-background pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-[72px] max-w-[900px] items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => navigate({ to: "/app" })}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card tap hover:bg-accent"
-            >
-              <ArrowLeft className="h-[18px] w-[18px] text-foreground" />
-            </button>
-            <div>
-              <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
-                {isNewVersion ? "Release a new version" : editId ? "Edit shipped project" : "Ship Work"}
-              </h1>
-              <p className="text-[11px] text-muted-foreground">
-                {isNewVersion ? "Publish the latest work above the previous release." : "What did you ship today?"}
-              </p>
-            </div>
-          </div>
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button
+            onClick={() => navigate({ to: "/app" })}
+            aria-label="Close"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            <X className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="min-w-0 flex-1 truncate font-display text-[18px] font-semibold text-foreground">
+            {isNewVersion ? "Release a new version" : editId ? "Edit project" : "Ship a project"}
+          </h1>
+          <button
+            onClick={handleShip}
+            disabled={!canShip}
+            className="flex h-9 min-w-[84px] items-center justify-center rounded-full bg-[#cc208f] px-4 text-[15px] font-semibold text-white tap hover:bg-[#b01c7b] disabled:opacity-40"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : shipLabel}
+          </button>
         </div>
       </header>
 
-      <div className="mx-auto max-w-[900px] space-y-4 p-4 sm:space-y-5 sm:p-6">
-        
-        {/* Basic Info */}
-        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
-          <div>
-            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Project Name *</label>
-            <input 
+      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 md:py-2">
+        <section className={SECTION}>
+          <p className="text-[14px] text-muted-foreground">
+            {isNewVersion ? "Publish the latest work above the previous release." : "Proof of work — show what you built, how, and with what."}
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {previews.map((src, i) => {
+              const isVideo = images[i] ? images[i]?.type.startsWith('video/') : (src.includes('.mp4') || src.includes('.mov') || src.includes('.webm'));
+              return (
+                <div key={i} className="relative aspect-video overflow-hidden rounded-xl bg-muted">
+                  {isVideo ? (
+                    <video src={src} className="h-full w-full object-cover" />
+                  ) : (
+                    <img src={src} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                  )}
+                  {i === 0 && (
+                    <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white">Cover</span>
+                  )}
+                  <button
+                    onClick={() => {
+                      setImages(prev => prev.filter((_, idx) => idx !== i));
+                      setPreviews(prev => prev.filter((_, idx) => idx !== i));
+                    }}
+                    aria-label="Remove"
+                    className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white transition active:scale-90"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed border-foreground/25 text-muted-foreground transition-colors hover:border-foreground/45 hover:text-foreground ${previews.length === 0 ? "col-span-2 h-[180px]" : "aspect-video"}`}
+            >
+              <ImageIcon className="h-7 w-7" />
+              <span className="text-[15px] font-semibold text-foreground">{previews.length === 0 ? "Add screenshots or a demo video" : "Add more"}</span>
+              {previews.length === 0 && <span className="text-[13px]">The first one becomes the cover</span>}
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleMediaUpload} />
+          </div>
+        </section>
+
+        <section className={`${SECTION} flex flex-col gap-4`}>
+          <h2 className="font-display text-[18px] font-semibold">The project</h2>
+          <label className="block">
+            <span className={LABEL}>Project name</span>
+            <input
               type="text"
               placeholder="E.g., Zero Club Builder App"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3.5 text-[15px] font-medium text-foreground outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary"
+              className={FIELD}
             />
-          </div>
-
+          </label>
           <div>
-            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Category</label>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <span className={LABEL}>Category</span>
+            <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`rounded-lg border px-4 py-2 text-[12px] font-semibold tap transition-all ${
-                    category === cat 
-                      ? "bg-foreground text-background border-transparent"
-                      : "bg-background border-border text-muted-foreground hover:border-foreground/30"
+                  className={`h-8 rounded-full px-3.5 text-[13px] font-semibold tap transition ${
+                    category === cat ? "bg-foreground text-background" : "border border-foreground/25 text-muted-foreground hover:border-foreground/45"
                   }`}
                 >
                   {cat}
@@ -418,250 +463,214 @@ function ShipPage() {
               ))}
             </div>
           </div>
-
-          <div>
-            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Description</label>
-            <textarea 
+          <label className="block">
+            <span className={LABEL}>Description</span>
+            <textarea
               placeholder="What did you build? How does it work?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="mt-1 w-full resize-none rounded-lg border border-border bg-background px-4 py-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary"
+              className={`${FIELD} h-auto resize-none py-2.5 leading-relaxed`}
             />
-          </div>
-        </section>
-
-        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
-              <GitBranch className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-[15px] font-semibold tracking-tight">Release details</h2>
-              <p className="text-[11.5px] text-muted-foreground">Keep every update attached to the same shipped project.</p>
-            </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-[160px_minmax(0,1fr)]">
-            <div>
-              <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Version</label>
-              <input
-                value={versionLabel}
-                onChange={(event) => setVersionLabel(event.target.value)}
-                placeholder="1.0.0"
-                className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
-              />
-            </div>
-            <div>
-              <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">What changed</label>
-              <input
-                value={releaseNotes}
-                onChange={(event) => setReleaseNotes(event.target.value)}
-                placeholder="New features, fixes, or improvements"
-                className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Proof of Work */}
-        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-[16px] font-semibold tracking-tight">Proof of work</h2>
-          </div>
-          <p className="text-xs text-muted-foreground -mt-3">Upload screenshots, videos, or demos of what you shipped.</p>
-          
-          <div className="grid grid-cols-2 gap-4">
-            {previews.map((src, i) => {
-              const isVideo = images[i] ? images[i]?.type.startsWith('video/') : (src.includes('.mp4') || src.includes('.mov') || src.includes('.webm'));
-              return (
-                <div key={i} className="group relative aspect-video overflow-hidden rounded-lg border border-border bg-muted">
-                  {isVideo ? (
-                    <video src={src} className="w-full h-full object-cover" />
-                  ) : (
-                    <img src={src} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                  )}
-                  <button 
-                    onClick={() => {
-                      setImages(prev => prev.filter((_, idx) => idx !== i));
-                      setPreviews(prev => prev.filter((_, idx) => idx !== i));
-                    }}
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md transition active:scale-90"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              );
-            })}
-            
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className="flex aspect-video flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
-            >
-              <UploadCloud className="h-6 w-6" />
-              <span className="text-xs font-bold">Upload Media</span>
-            </button>
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              accept="image/*,video/*" 
-              multiple 
-              className="hidden" 
-              onChange={handleMediaUpload} 
-            />
-          </div>
-        </section>
-
-        {/* Project Details */}
-        <section className="space-y-6 rounded-lg border border-border bg-card p-4 sm:p-5">
+          </label>
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Project Links</label>
+            <span className={LABEL}>Tools used</span>
+            <div className="flex flex-wrap gap-2">
+              {toolList.map((tool) => (
+                <span key={tool} className="flex h-8 items-center gap-1 rounded-full bg-foreground/[0.06] pl-3 pr-1.5 text-[14px] font-medium">
+                  {tool}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${tool}`}
+                    onClick={() => setTools(toolList.filter((item) => item !== tool).join(', '))}
+                    className="grid h-6 w-6 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.08] hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              ))}
+              <input
+                value={toolDraft}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.includes(',')) { addTool(value); setToolDraft(""); } else setToolDraft(value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); addTool(toolDraft); setToolDraft(""); }
+                  if (e.key === 'Backspace' && !toolDraft && toolList.length) setTools(toolList.slice(0, -1).join(', '));
+                }}
+                onBlur={() => { if (toolDraft) { addTool(toolDraft); setToolDraft(""); } }}
+                placeholder={toolList.length ? "Add" : "React, Figma, Supabase…"}
+                className="h-8 min-w-[110px] flex-1 rounded-full border border-dashed border-foreground/30 bg-transparent px-3 text-[14px] outline-none placeholder:text-muted-foreground focus:border-foreground/50"
+              />
             </div>
-            <div className="space-y-3">
+          </div>
+          <div>
+            <span className={LABEL}>Project links</span>
+            <div className="overflow-hidden rounded-[10px] border border-foreground/15">
               {links.map((link, i) => (
-                <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input 
+                <div key={i} className="flex items-center gap-2 border-b border-border px-3 py-1.5">
+                  <LinkIcon className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+                  <input
                     type="text"
-                    placeholder="Link Title (e.g., Live URL, GitHub)"
+                    placeholder="Title"
                     value={link.title}
                     onChange={(e) => {
                       const newLinks = [...links];
                       newLinks[i].title = e.target.value;
                       setLinks(newLinks);
                     }}
-                    className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary sm:w-1/3"
+                    className="h-9 w-[92px] shrink-0 bg-transparent text-[14px] font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground"
                   />
-                  <div className="relative flex-1">
-                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input 
-                      type="url"
-                      placeholder="https://"
-                      value={link.url}
-                      onChange={(e) => {
-                        const newLinks = [...links];
-                        newLinks[i].url = e.target.value;
-                        setLinks(newLinks);
-                      }}
-                      className="w-full rounded-lg border border-border bg-background px-4 py-3 pl-9 text-sm outline-none focus:border-primary"
-                    />
-                  </div>
+                  <input
+                    type="url"
+                    placeholder="https://"
+                    value={link.url}
+                    onChange={(e) => {
+                      const newLinks = [...links];
+                      newLinks[i].url = e.target.value;
+                      setLinks(newLinks);
+                    }}
+                    className="h-9 min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
+                  />
                   {links.length > 1 && (
-                    <button 
+                    <button
                       onClick={() => setLinks(links.filter((_, idx) => idx !== i))}
-                      className="p-2 text-muted-foreground hover:text-destructive transition"
+                      aria-label="Remove link"
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   )}
                 </div>
               ))}
-              <button 
+              <button
                 onClick={() => setLinks([...links, { title: "", url: "" }])}
-                className="text-xs font-bold text-primary flex items-center gap-1 hover:underline"
+                className="flex h-12 w-full items-center gap-2.5 px-3 text-[14px] font-semibold text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
               >
-                <Plus className="h-3 w-3" /> Add Link
+                <Plus className="h-[18px] w-[18px]" /> Add a link (GitHub, Figma, demo)
               </button>
             </div>
           </div>
-
-          <div className="pt-2 border-t border-border/40">
-            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Tools Used</label>
-            <div className="relative mt-2">
-              <Code className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input 
-                type="text"
-                placeholder="React, Next.js, Figma, Tailwind (comma separated)"
-                value={tools}
-                onChange={(e) => setTools(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background px-4 py-3.5 pl-11 text-sm outline-none transition-colors focus:border-primary"
-              />
-            </div>
-          </div>
-          
-          <div className="pt-2 border-t border-border/40">
-            <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Collaborators</label>
-            <p className="ml-1 mt-1 text-[11px] text-muted-foreground">
-              Credit the people who built this with you. They have to be on Zero Club, so the
-              credit links to a real profile.
-            </p>
-            <div className="mt-2">
-              <CollaboratorPicker
-                value={collaborators}
-                onChange={setCollaborators}
-                excludeId={profile?.id}
-              />
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-border/40">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-bold text-foreground">AI Assistance</label>
-                <p className="text-xs text-muted-foreground mt-0.5">Did you use AI (Cursor, ChatGPT) to build this?</p>
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-[15px] font-medium">Did you use AI to build this?</p>
+                <p className="text-[13px] text-muted-foreground">Share the tools and prompts that helped</p>
               </div>
               <Switch checked={usedAi} onCheckedChange={setUsedAi} />
             </div>
-            
             {usedAi && (
-              <div className="mt-4 animate-in fade-in slide-in-from-top-2">
-                <div className="relative">
-                  <Wand2 className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
-                  <textarea 
-                    placeholder="What prompts or tools did you use? Share your AI workflow..."
-                    value={prompts}
-                    onChange={(e) => setPrompts(e.target.value)}
-                    rows={3}
-                    className="w-full resize-none rounded-lg border border-border bg-background px-4 py-3.5 pl-11 text-sm outline-none transition-colors focus:border-primary"
-                  />
-                </div>
-              </div>
+              <textarea
+                placeholder="What prompts or tools did you use? Share your AI workflow…"
+                value={prompts}
+                onChange={(e) => setPrompts(e.target.value)}
+                rows={3}
+                className={`${FIELD} mt-3 h-auto resize-none py-2.5 animate-in fade-in slide-in-from-top-1`}
+              />
             )}
           </div>
         </section>
 
-        <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                <ShieldCheck className="h-5 w-5" />
+        <section className={SECTION}>
+          <h2 className="font-display text-[18px] font-semibold">Where it goes</h2>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {([
+              ["Public", "Public feed", "Everyone on Zero Club"],
+              ["Club Only", "Club only", "Members of one club"],
+            ] as const).map(([value, title, hint]) => (
+              <button
+                key={value}
+                onClick={() => setVisibility(value)}
+                aria-pressed={visibility === value}
+                className={`rounded-xl p-3 text-left transition ${visibility === value ? "border-2 border-foreground" : "border border-foreground/15 hover:border-foreground/30"}`}
+              >
+                <p className="text-[15px] font-semibold">{title}</p>
+                <p className="mt-0.5 text-[13px] text-muted-foreground">{hint}</p>
+              </button>
+            ))}
+          </div>
+          {enrolledBootcamps.length > 0 && (
+            <label className="mt-3 flex items-center gap-3 border-t border-border py-3">
+              <GraduationCap className="h-5 w-5 shrink-0" />
+              <span className="flex-1">
+                <span className="block text-[15px] font-medium">Submit to a bootcamp</span>
+                <span className="block text-[13px] text-muted-foreground">Your tutor can verify it as proof</span>
+              </span>
+              <select
+                value={selectedBootcampId || ""}
+                onChange={(e) => setSelectedBootcampId(e.target.value || null)}
+                className="max-w-[150px] truncate bg-transparent text-right text-[14px] font-semibold text-muted-foreground outline-none"
+              >
+                <option value="">None</option>
+                {enrolledBootcamps.map(bc => (
+                  <option key={bc.id} value={bc.id}>{bc.title}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <div className="border-t border-border pt-3">
+            <div className="flex items-center gap-3">
+              <UserPlus className="h-5 w-5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-[15px] font-medium">Collaborators</p>
+                <p className="text-[13px] text-muted-foreground">Credit the people who built it with you</p>
               </div>
-              <div>
-                <h2 className="text-[15px] font-semibold tracking-tight">Allow others to use this work</h2>
-                <p className="text-[11.5px] leading-relaxed text-muted-foreground">Offer clear usage rights for free or for Zero Club Coins.</p>
-              </div>
+            </div>
+            <div className="mt-2">
+              <CollaboratorPicker value={collaborators} onChange={setCollaborators} excludeId={profile?.id} />
+            </div>
+          </div>
+        </section>
+
+        <section className={`${SECTION} flex-1 pb-28 md:flex-none md:pb-4`}>
+          <h2 className="font-display text-[18px] font-semibold">Release details</h2>
+          <div className="mt-3 grid grid-cols-[110px_minmax(0,1fr)] gap-2.5">
+            <label className="block">
+              <span className={LABEL}>Version</span>
+              <input value={versionLabel} onChange={(event) => setVersionLabel(event.target.value)} placeholder="1.0.0" className={FIELD} />
+            </label>
+            <label className="block">
+              <span className={LABEL}>What changed</span>
+              <input value={releaseNotes} onChange={(event) => setReleaseNotes(event.target.value)} placeholder="New features, fixes, or improvements" className={FIELD} />
+            </label>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-[15px] font-medium">Allow others to use this work</p>
+              <p className="text-[13px] text-muted-foreground">Offer usage rights for free or for Coins</p>
             </div>
             <Switch checked={availableForUse} onCheckedChange={setAvailableForUse} />
           </div>
-
           {availableForUse && (
-            <div className="grid gap-3 border-t border-border/60 pt-4 sm:grid-cols-[minmax(0,1fr)_180px]">
-              <div>
-                <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Rights offered</label>
+            <div className="mt-3 grid gap-2.5 border-t border-border pt-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+              <label className="block">
+                <span className={LABEL}>Rights offered</span>
                 <select
                   value={licenseType}
                   onChange={(event) => setLicenseType(event.target.value as typeof licenseType)}
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                  className={FIELD}
                 >
                   <option value="standard">Standard use</option>
                   <option value="commercial">Commercial use</option>
                   <option value="full_ownership">Full ownership transfer</option>
                 </select>
-              </div>
-              <div>
-                <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Price</label>
-                <div className="relative mt-1">
-                  <Coins className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              </label>
+              <label className="block">
+                <span className={LABEL}>Price</span>
+                <div className="relative">
+                  <Coins className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="number"
                     min="0"
                     value={licensePrice}
                     onChange={(event) => setLicensePrice(event.target.value)}
                     placeholder="Free"
-                    className="w-full rounded-lg border border-border bg-background py-3 pl-10 pr-4 text-sm outline-none focus:border-primary"
+                    className={`${FIELD} pl-9`}
                   />
                 </div>
-              </div>
-              <p className="text-[11px] leading-relaxed text-muted-foreground sm:col-span-2">
+              </label>
+              <p className="text-[13px] leading-relaxed text-muted-foreground sm:col-span-2">
                 {licenseType === 'full_ownership'
                   ? 'The buyer receives ownership rights to use and adapt this release as they choose.'
                   : licenseType === 'commercial'
@@ -671,80 +680,11 @@ function ShipPage() {
             </div>
           )}
         </section>
-
-        {/* Club Selection & Visibility */}
-        <section className="space-y-2">
-          {enrolledBootcamps.length > 0 && (
-            <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">Ship into a Club</span>
-                <span className="text-xs text-muted-foreground">Submit this as part of a Bootcamp</span>
-              </div>
-              <select 
-                value={selectedBootcampId || ""}
-                onChange={(e) => setSelectedBootcampId(e.target.value || null)}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium outline-none sm:max-w-[240px]"
-              >
-                <option value="">None (Global)</option>
-                {enrolledBootcamps.map(bc => (
-                  <option key={bc.id} value={bc.id}>{bc.title}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="flex flex-col divide-y divide-border rounded-lg border border-border bg-card p-1">
-            <button 
-              onClick={() => setVisibility("Public")}
-              className={`flex items-center justify-between rounded-lg p-4 transition ${visibility === "Public" ?"bg-accent/60" : "hover:bg-accent/30"}`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <Globe className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-foreground">Public Feed</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Visible to everyone in Zero Club</p>
-                </div>
-              </div>
-              {visibility === "Public" && <CheckCircle2 className="h-5 w-5 text-primary" />}
-            </button>
-            <button 
-              onClick={() => setVisibility("Club Only")}
-              className={`flex items-center justify-between rounded-lg p-4 transition ${visibility === "Club Only" ?"bg-accent/60" : "hover:bg-accent/30"}`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-muted-foreground">
-                  <Lock className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-foreground">Club Only</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Visible only within selected club</p>
-                </div>
-              </div>
-              {visibility === "Club Only" && <CheckCircle2 className="h-5 w-5 text-foreground" />}
-            </button>
-          </div>
-        </section>
-
-        {/* Bottom Ship Button */}
-        <div className="mt-6 px-1">
-          <button 
-            onClick={handleShip}
-            disabled={!canShip}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-4 text-[16px] font-semibold text-primary-foreground tap hover:bg-primary/90 disabled:opacity-40"
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" /> Shipping...
-              </>
-            ) : (
-              isNewVersion ? `Release ${versionLabel || 'new version'}` : editId ? "Save changes" : "Ship Project"
-            )}
-          </button>
-        </div>
-
       </div>
     </div>
   );
 }
+
+const SECTION = "bg-card px-4 py-4 md:rounded-xl md:border md:border-border";
+const LABEL = "mb-1.5 block text-[13px] font-semibold text-muted-foreground";
+const FIELD = "h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-foreground/40";
