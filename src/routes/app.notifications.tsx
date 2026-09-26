@@ -309,7 +309,7 @@ function NotificationsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas pb-24">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-20 bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-14 w-full max-w-[680px] items-center justify-between px-4">
           <h1 className="font-display text-[20px] font-semibold text-foreground">Notifications</h1>
@@ -384,6 +384,9 @@ function NotificationsPage() {
           post={commentPost}
         />
       )}
+      {/* The last card runs to the bottom of the screen, so the page never
+          ends in a strip of bare background under the tab bar. */}
+      <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
     </div>
   );
 }

@@ -122,7 +122,7 @@ function SearchPage() {
   const limit = (items: any[], f: Filter) => (filter === f ? items : items.slice(0, 3));
 
   return (
-    <div className="min-h-screen bg-canvas pb-24">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="flex h-14 items-center gap-1 px-2">
           <button onClick={goBack} aria-label="Back" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
@@ -246,6 +246,9 @@ function SearchPage() {
       </main>
 
       <CommentDrawer post={commentPost} isOpen={!!commentPost} onOpenChange={(open) => !open && setCommentPost(null)} />
+      {/* The last card runs to the bottom of the screen, so the page never
+          ends in a strip of bare background under the tab bar. */}
+      <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
     </div>
   );
 }

@@ -471,7 +471,7 @@ function ProfileDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-canvas pb-24">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <header className="fixed left-1/2 top-0 z-50 flex h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 items-center gap-1 bg-card px-2 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
         <button onClick={() => navigate({ to: '/app' })} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
           <ArrowLeft className="h-[22px] w-[22px]" />
@@ -791,6 +791,9 @@ function ProfileDetail() {
           />
         </div>
       )}
+      {/* The last card runs to the bottom of the screen, so the page never
+          ends in a strip of bare background under the tab bar. */}
+      <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
     </div>
   );
 }

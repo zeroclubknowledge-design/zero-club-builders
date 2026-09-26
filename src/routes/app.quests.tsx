@@ -246,7 +246,7 @@ function GigMarketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-canvas pb-24 text-foreground">
+    <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-14 max-w-[900px] items-center gap-1 px-2">
           <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
@@ -364,6 +364,9 @@ function GigMarketplace() {
           />
         </DrawerContent>
       </Drawer>
+      {/* The last card runs to the bottom of the screen, so the page never
+          ends in a strip of bare background under the tab bar. */}
+      <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
     </div>
   );
 }

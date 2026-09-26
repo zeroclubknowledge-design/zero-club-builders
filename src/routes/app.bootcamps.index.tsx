@@ -67,7 +67,7 @@ function Bootcamps() {
   const catalogue = featured ? filteredCamps.slice(1) : filteredCamps;
 
   return (
-    <div className="min-h-screen bg-canvas pb-24 md:pb-12">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-[900px] px-4 pb-3 pt-3 md:px-6">
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">Learn</h1>
@@ -199,6 +199,9 @@ function Bootcamps() {
           </>
         )}
       </main>
+      {/* The last card runs to the bottom of the screen, so the page never
+          ends in a strip of bare background under the tab bar. */}
+      <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
     </div>
   );
 }

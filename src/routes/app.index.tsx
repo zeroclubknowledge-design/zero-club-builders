@@ -388,7 +388,7 @@ function Feed() {
   }, [filteredPosts, currentUser]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas pb-24 md:pb-12">
+    <div className="flex min-h-screen flex-col bg-canvas">
       {/* Pinned a pixel under the app header rather than exactly at its edge.
           The header sits above this one, so the overlap is invisible — and it
           means no rounding difference can ever reopen a gap for posts to
@@ -417,14 +417,18 @@ function Feed() {
         </div>
       </header>
 
-      <main className="flex-1 md:mx-auto md:mb-12 md:w-full md:max-w-[680px]">
+      <main className="md:mx-auto md:w-full md:max-w-[680px]">
           <>
             {activeTab === 'Leaderboard' ? (
-              <Leaderboard currentUserId={currentUser?.id} />
+              <div className="mt-2 bg-card md:rounded-xl md:border md:border-border">
+                <Leaderboard currentUserId={currentUser?.id} />
+              </div>
             ) : activeTab === 'Institution' ? (
-              <InstitutionDirectory />
+              <div className="mt-2 bg-card md:rounded-xl md:border md:border-border">
+                <InstitutionDirectory />
+              </div>
             ) : activeTab === 'Live' ? (
-              <div className="space-y-5 p-3 sm:p-5">
+              <div className="mt-2 space-y-5 bg-card p-3 sm:p-5 md:rounded-xl md:border md:border-border">
                 {/* Built from the same material as the wallet card: dark
                     gradient base, soft colour washes for depth, and thick
                     low-opacity rings that read as embossing rather than as
@@ -655,6 +659,9 @@ function Feed() {
           </div>
         </DrawerContent>
       </Drawer>
+      {/* The last card runs to the bottom of the screen, so the page never
+          ends in a strip of bare background under the tab bar. */}
+      <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
     </div>
   );
 }

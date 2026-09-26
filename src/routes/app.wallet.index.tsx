@@ -211,7 +211,7 @@ function WalletPage() {
   };
 
   return (
-    <div className="min-h-screen bg-canvas pb-24 text-foreground">
+    <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       <header className="sticky top-0 z-20 bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-14 max-w-[680px] items-center gap-1 px-2">
           <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
@@ -226,19 +226,24 @@ function WalletPage() {
 
       <div className="mx-auto w-full max-w-[680px]">
         <section className="bg-card px-4 pb-5 pt-1 md:rounded-b-xl">
-          <div className="rounded-2xl bg-[#17181b] p-5 text-white">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] text-white/70">Available balance</span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setShowBalance(!showBalance)}
-                  aria-label={showBalance ? "Hide wallet balances" : "Show wallet balances"}
-                  className="grid h-8 w-8 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
-                >
-                  {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+          {/* The Zero Wallet card as it was designed: dark gradient base, soft
+              pink and violet washes for depth, and thick low-opacity rings that
+              read as embossing on the material. Currency and ZP now live on it
+              too, since the header above no longer carries them. */}
+          <div className="relative flex min-h-[228px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:min-h-[252px] sm:p-6">
+            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
+            <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
+            <div className="pointer-events-none absolute -bottom-14 right-20 h-28 w-28 rotate-12 border-[16px] border-white opacity-[0.035]" />
+
+            <div className="relative z-10 flex flex-1 flex-col">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" loading="lazy" decoding="async" />
+                  <span className="text-[13px] font-semibold text-white/85">Zero Wallet</span>
+                </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex h-8 items-center gap-1.5 rounded-full bg-white/[0.12] px-2.5 text-[13px] font-semibold text-white outline-none hover:bg-white/[0.18]">
+                  <DropdownMenuTrigger className="flex h-8 items-center gap-1.5 rounded-full bg-white/[0.08] px-2.5 text-[13px] font-semibold text-white outline-none ring-1 ring-white/10 hover:bg-white/[0.12]">
                     <img src={currentCurrency.iconUrl} alt="" className="h-4 w-4 rounded-full object-cover" loading="lazy" decoding="async" />
                     {currency}
                     <ChevronDown className="h-3.5 w-3.5 opacity-70" />
@@ -258,19 +263,35 @@ function WalletPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            </div>
-            <p className="mt-2 font-display text-[36px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-              <span className="mr-1 text-[22px] font-medium text-white/60">{currentCurrency.symbol}</span>
-              {showBalance ? displayBalance : "••••"}
-            </p>
-            <div className="mt-4 space-y-2 border-t border-white/[0.12] pt-3 text-[13px]">
-              <div className="flex items-center justify-between">
-                <span className="text-white/70">Withdrawable earnings</span>
-                <span className="font-semibold tabular-nums">{showBalance ? (split ? format(withdrawable) : "—") : "••••"}</span>
+
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-white/50">Available balance</p>
+                  <h2 className="mt-2.5 flex items-start text-[40px] font-semibold leading-none tracking-[-0.045em] tabular-nums sm:text-[46px]">
+                    <span className="mr-2 mt-1 text-[20px] font-medium tracking-normal text-white/55 sm:text-[23px]">{currentCurrency.symbol}</span>
+                    <span>{showBalance ? displayBalance : "••••"}</span>
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowBalance(!showBalance)}
+                  aria-label={showBalance ? "Hide wallet balances" : "Show wallet balances"}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/[0.065] text-white/60 ring-1 ring-white/[0.08] transition hover:bg-white/10 hover:text-white tap"
+                >
+                  {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/70">Zero Points</span>
-                <span className="font-semibold tabular-nums">{Number(profile?.zp || 0).toLocaleString()} ZP</span>
+
+              <div className="mt-auto space-y-1.5 pt-6">
+                <div className="flex items-baseline justify-between gap-4">
+                  <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-white/50">Withdrawable earnings</p>
+                  <p className="shrink-0 text-[17px] font-semibold tracking-tight tabular-nums text-white">
+                    {showBalance ? (split ? format(withdrawable) : "—") : "••••"}
+                  </p>
+                </div>
+                <div className="flex items-baseline justify-between gap-4">
+                  <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-white/50">Zero Points</p>
+                  <p className="shrink-0 text-[15px] font-semibold tabular-nums text-white/90">{Number(profile?.zp || 0).toLocaleString()} ZP</p>
+                </div>
               </div>
             </div>
           </div>
@@ -424,6 +445,9 @@ function WalletPage() {
           )}
         </section>
       </div>
+      {/* The last card runs to the bottom of the screen, so the page never
+          ends in a strip of bare background under the tab bar. */}
+      <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
     </div>
   );
 }

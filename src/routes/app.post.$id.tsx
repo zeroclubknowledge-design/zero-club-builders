@@ -829,9 +829,9 @@ function PostDetail() {
         </div>
       </header>
 
-      {/* Room at the bottom for the floating composer, so the last reply can
-          be scrolled clear of it rather than ending underneath. */}
-      <div className="no-scrollbar flex-1 overflow-y-auto pb-28">
+      {/* The replies card stretches to the bottom and carries the room for
+          the floating composer, so the last reply scrolls clear of it. */}
+      <div className="no-scrollbar flex flex-1 flex-col overflow-y-auto">
         {!post ? (
           <div className="flex flex-col items-center justify-center py-20">
             {isError ? (
@@ -847,7 +847,7 @@ function PostDetail() {
             )}
           </div>
         ) : (
-          <div className="mx-auto w-full max-w-[680px] animate-in fade-in duration-300">
+          <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col animate-in fade-in duration-300">
             <article className="bg-card md:mt-2 md:overflow-hidden md:rounded-xl md:border md:border-border">
               <header className="flex items-start gap-2.5 px-4 pt-3">
                 <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex min-w-0 flex-1 items-start gap-2.5">
@@ -1048,7 +1048,7 @@ function PostDetail() {
               </div>
             </article>
 
-            <section className="mt-2 bg-card px-4 pb-40 pt-3 md:rounded-xl md:border md:border-border">
+            <section className="mt-2 flex-1 bg-card px-4 pb-40 pt-3 md:rounded-xl md:border md:border-border">
               <h2 className="font-display text-[16px] font-semibold text-foreground">
                 Replies{comments.length > 0 && <span className="ml-1.5 text-muted-foreground">{comments.length}</span>}
               </h2>
