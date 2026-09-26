@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, ChevronLeft, Loader2, Mail, ShieldCheck } from "@/components/icons/solar";
+import { ArrowRight, ChevronLeft, Loader2, Mail, ShieldCheck } from "@/components/icons/glyphs";
 import { IconClubs, IconNotes, IconWallet } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";

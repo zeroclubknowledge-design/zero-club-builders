@@ -8,7 +8,7 @@ import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users,
   MessageSquare, Send, X, Zap, Share2, Minimize2, Maximize2,
   Expand, Shrink, GraduationCap, Radio, Loader2, Smile, Reply, Settings, Paperclip,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 
 /** One tap, no search field — the six that actually get used in a class. */
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];

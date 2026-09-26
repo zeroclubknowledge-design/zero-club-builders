@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft, Gift, ArrowUpRight, Search, Loader2, ShoppingBag, PackagePlus,
   TicketPercent, Check, ShieldCheck, Tag, Share2, Copy,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { STORE_CATEGORIES, categoryIdFor, categoryLabelFor } from "@/features/store/catalogue";
 import { ProductCard } from "@/features/store/ProductCard";

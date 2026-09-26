@@ -28,7 +28,7 @@ import {
   Save,
   Loader2,
   X,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";

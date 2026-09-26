@@ -8,7 +8,7 @@ import {
   Menu,
   Search,
   X,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useEffect, useMemo, useState } from "react";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { docPages, getDocPage } from "@/features/docs/content";

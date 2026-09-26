@@ -1,6 +1,6 @@
 import * as React from "react";
 import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
-import { ArrowLeft, ArrowRight } from "@/components/icons/solar";
+import { ArrowLeft, ArrowRight } from "@/components/icons/glyphs";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

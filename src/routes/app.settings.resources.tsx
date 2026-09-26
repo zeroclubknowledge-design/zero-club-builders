@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Info, HelpCircle, ShieldAlert, FileText, ChevronRight } from "@/components/icons/solar";
+import { ChevronLeft, Info, HelpCircle, ShieldAlert, FileText, ChevronRight } from "@/components/icons/glyphs";
 
 export const Route = createFileRoute("/app/settings/resources")({
   component: ResourcesSettings,

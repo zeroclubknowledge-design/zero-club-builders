@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Eye, MessageSquare, UserMinus, Shield, ChevronRight } from "@/components/icons/solar";
+import { ChevronLeft, Eye, MessageSquare, UserMinus, Shield, ChevronRight } from "@/components/icons/glyphs";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Gift } from "@/components/icons/solar";
+import { Gift } from "@/components/icons/glyphs";
 import { typeLabelFor } from "./catalogue";
 
 /**

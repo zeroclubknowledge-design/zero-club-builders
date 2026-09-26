@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ChevronLeft, Plus, Loader2, Trash2, Edit3, UploadCloud, FileArchive,
   Tag, TicketPercent, Gift, ChevronDown, ExternalLink, X, Share2,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

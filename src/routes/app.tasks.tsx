@@ -11,7 +11,7 @@ import {
   Trophy,
   Users,
   Zap,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { getQuests, claimQuestRewardAction } from "@/services/api";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";

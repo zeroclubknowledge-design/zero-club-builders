@@ -18,7 +18,7 @@ import {
   Trash2,
   Bell,
   Check,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";

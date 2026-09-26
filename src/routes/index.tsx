@@ -23,7 +23,7 @@ import {
   Search,
   X,
   Zap,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { usePublicTheme } from "@/hooks/usePublicTheme";

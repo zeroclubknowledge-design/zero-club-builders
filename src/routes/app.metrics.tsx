@@ -17,7 +17,7 @@ import {
   Sparkles,
   Users,
   Zap,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useMemo, useState, type ElementType } from "react";
 import { IconClubs, IconLearn, IconMetrics, IconProfile } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";

@@ -20,7 +20,7 @@ import {
   Volume2,
   VolumeX,
   Wallet,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";

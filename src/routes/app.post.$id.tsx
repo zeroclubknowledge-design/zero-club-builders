@@ -4,7 +4,7 @@ import {
   Repeat, Share2, Send, CheckCircle2, TrendingUp, UserPlus, UserMinus, Loader2, Bookmark,
   MessageSquare, Mail, Flag, EyeOff, ShieldCheck, Award, Zap, Trash2, Link as LinkIcon,
   VolumeX, Volume2, Pencil, Edit3, Rocket, MapPin
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";

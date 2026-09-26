@@ -1,4 +1,4 @@
-import { GripVertical } from "@/components/icons/solar";
+import { GripVertical } from "@/components/icons/glyphs";
 import { Group, Panel, Separator } from "react-resizable-panels";
 
 import { cn } from "@/lib/utils";

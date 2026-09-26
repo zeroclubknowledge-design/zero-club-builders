@@ -11,8 +11,8 @@ import {
   Store,
   UsersRound,
   WalletCards,
-} from "@/components/icons/solar";
-import type { LucideIcon } from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
+import type { LucideIcon } from "@/components/icons/glyphs";
 import { PublicHeader } from "@/components/public/PublicHeader";
 
 type ProductPage = {

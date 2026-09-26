@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Hash, Lock } from "@/components/icons/solar";
+import { Hash, Lock } from "@/components/icons/glyphs";
 import { toPlainText } from "@/lib/contentPreview";
 
 /**

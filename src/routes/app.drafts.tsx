@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { ArrowLeft, Trash } from "@/components/icons/solar";
+import { ArrowLeft, Trash } from "@/components/icons/glyphs";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { toPlainText } from "@/lib/contentPreview";

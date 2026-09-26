@@ -11,7 +11,7 @@ import {
   Quote,
   Redo2,
   Undo2,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 
 /**
  * A small rich text editor for descriptions.

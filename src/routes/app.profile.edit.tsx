@@ -1,5 +1,5 @@
 import { useNavigate, createFileRoute, useRouter } from "@tanstack/react-router";
-import { ChevronLeft, Camera, X, Loader2 } from "@/components/icons/solar";
+import { ChevronLeft, Camera, X, Loader2 } from "@/components/icons/glyphs";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";

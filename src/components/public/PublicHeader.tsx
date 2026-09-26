@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X, Sun, Moon } from "@/components/icons/solar";
+import { Menu, X, Sun, Moon } from "@/components/icons/glyphs";
 import { useState } from "react";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
 

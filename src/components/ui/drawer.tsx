@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
-import { X } from "@/components/icons/solar";
+import { X } from "@/components/icons/glyphs";
 
 import { cn } from "@/lib/utils";
 

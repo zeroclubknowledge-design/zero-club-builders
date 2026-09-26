@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Mail, MessageCircle, Send, Share2, X } from "@/components/icons/solar";
+import { Copy, Mail, MessageCircle, Send, Share2, X } from "@/components/icons/glyphs";
 import { copyToClipboard } from "@/lib/share";
 
 /**

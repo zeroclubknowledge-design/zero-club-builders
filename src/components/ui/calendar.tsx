@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@/components/icons/solar";
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@/components/icons/glyphs";
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
 
 import { cn } from "@/lib/utils";

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ArrowRight, Gift, ShieldCheck, Tag } from "@/components/icons/solar";
+import { ArrowRight, Gift, ShieldCheck, Tag } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount, useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { formatPercent } from "@/lib/utils";

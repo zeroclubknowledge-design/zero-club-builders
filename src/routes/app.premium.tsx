@@ -16,7 +16,7 @@ import {
   Users,
   Wallet,
   Zap,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";

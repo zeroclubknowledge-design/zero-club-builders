@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { Check, RotateCcw, Send } from "@/components/icons/solar";
+import { Check, RotateCcw, Send } from "@/components/icons/glyphs";
 import { getSelectionPath } from "@/features/games/zeroGames";
 
 type WordsRaceBoardProps = {

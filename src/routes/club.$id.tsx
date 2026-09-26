@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ArrowRight, Users } from "@/components/icons/solar";
+import { ArrowRight, Users } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { toPlainText } from "@/lib/contentPreview";
 

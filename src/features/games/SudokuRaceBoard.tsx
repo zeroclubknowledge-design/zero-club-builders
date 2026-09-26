@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eraser, Pencil, RotateCcw, Send } from "@/components/icons/solar";
+import { Eraser, Pencil, RotateCcw, Send } from "@/components/icons/glyphs";
 import { hasSudokuConflict } from "@/features/games/zeroGames";
 
 type SudokuRaceBoardProps = {

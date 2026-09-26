@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
-import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/solar";
+import { ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, Sliders, UserX, Copy, Plus, Smile, Video, Radio, Zap, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";

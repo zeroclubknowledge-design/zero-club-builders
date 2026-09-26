@@ -19,7 +19,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Users,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";

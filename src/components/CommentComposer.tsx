@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Film, Image, Loader2, Mic, Paperclip, Send, Square, X } from "@/components/icons/solar";
+import { Film, Image, Loader2, Mic, Paperclip, Send, Square, X } from "@/components/icons/glyphs";
 import {
   DropdownMenu,
   DropdownMenuContent,

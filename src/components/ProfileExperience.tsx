@@ -1,4 +1,4 @@
-import { Award } from "@/components/icons/solar";
+import { Award } from "@/components/icons/glyphs";
 import { getLevelFromXp, getLevelProgress } from "@/lib/utils";
 
 type ProfileExperienceProps = {

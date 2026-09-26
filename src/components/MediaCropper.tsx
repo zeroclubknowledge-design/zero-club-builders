@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { RotateCw, X, Check, Loader2, RefreshCw } from "@/components/icons/solar";
+import { RotateCw, X, Check, Loader2, RefreshCw } from "@/components/icons/glyphs";
 import { getCroppedImg } from "@/lib/cropImage";
 
 /**

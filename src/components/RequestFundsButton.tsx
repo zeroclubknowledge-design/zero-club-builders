@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HandCoins, Loader2, Copy, Check } from "@/components/icons/solar";
+import { HandCoins, Loader2, Copy, Check } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { copyToClipboard, fundLinkUrl } from "@/lib/share";
 import { ShareMenu } from "@/components/ShareMenu";

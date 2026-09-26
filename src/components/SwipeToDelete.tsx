@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Trash2 } from "@/components/icons/solar";
+import { Trash2 } from "@/components/icons/glyphs";
 
 /**
  * Swipe a card left or right to reveal a Delete action.

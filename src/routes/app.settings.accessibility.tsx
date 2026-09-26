@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Accessibility, Languages, Eye, Type, ChevronRight } from "@/components/icons/solar";
+import { ChevronLeft, Accessibility, Languages, Eye, Type, ChevronRight } from "@/components/icons/glyphs";
 
 export const Route = createFileRoute("/app/settings/accessibility")({
   component: AccessibilitySettings,

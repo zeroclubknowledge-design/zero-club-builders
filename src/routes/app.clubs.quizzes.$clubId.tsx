@@ -10,7 +10,7 @@ import {
   Plus,
   Trash2,
   X,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { toast } from "sonner";

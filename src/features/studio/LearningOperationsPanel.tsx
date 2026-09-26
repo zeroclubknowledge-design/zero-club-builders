@@ -7,7 +7,7 @@ import {
   Activity, BarChart3, Calendar, Check, ChevronRight, ClipboardList,
   Clock, GraduationCap, LayoutGrid, Loader2, Megaphone, Plus, Search,
   Trash2, UserPlus, Users, Video, X,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 
 type StudioMode = "tutor" | "institution";
 type OperationsTab = "cohorts" | "learners" | "schedule" | "announcements" | "assessments";

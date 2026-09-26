@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { 
   ArrowLeft, UploadCloud, X, Plus, Rocket, Link as LinkIcon, 
   Code, Loader2, Wand2, Globe, Lock, Coins, CheckCircle2, GitBranch, ShieldCheck
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadMedia } from "@/lib/storage";

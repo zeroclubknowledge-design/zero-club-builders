@@ -1,6 +1,6 @@
 import { useLoaderData, createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "@/components/icons/solar";
+import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Loader2, Bell, Check, X, Radio, Zap, SlidersHorizontal, ChevronDown, CheckCircle2, Flame, Mic2, MoreHorizontal, LayoutGrid, ChevronRight, Trash2, Award } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";

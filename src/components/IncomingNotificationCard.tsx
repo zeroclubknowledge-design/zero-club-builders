@@ -11,7 +11,7 @@ import {
   UserPlus,
   X,
   Zap,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 
 type IncomingNotification = {

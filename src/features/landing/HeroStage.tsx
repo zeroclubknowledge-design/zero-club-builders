@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "@/components/icons/solar";
+import { ArrowRight } from "@/components/icons/glyphs";
 import { PartnerMarquee } from "./PartnerMarquee";
 
 /**

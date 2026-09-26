@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Users, X } from "@/components/icons/solar";
+import { Loader2, Users, X } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 
 /**

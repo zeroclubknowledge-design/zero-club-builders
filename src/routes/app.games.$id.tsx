@@ -28,7 +28,7 @@ import {
   Users,
   WalletCards,
   X,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";

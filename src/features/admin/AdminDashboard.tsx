@@ -36,7 +36,7 @@ import {
   UsersRound,
   WalletCards,
   X,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import {
   Area,
   AreaChart,

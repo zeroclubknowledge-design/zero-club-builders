@@ -5,7 +5,7 @@ import {
   Search, MoreHorizontal, Hash, Users, MessageCircle, Heart, 
   UserPlus, UserMinus, Loader2, Share2, Copy, Flag, X, Send, Link2,
   Bell, BellRing, Star, Play, CheckCircle2, Settings, Shield, Sparkles, Edit3, Mail, Pen, Zap
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { getProfile, enrichPosts } from "@/api";
 import { toast } from "sonner";

@@ -17,7 +17,7 @@ import {
   Star,
   Users,
   Video,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";

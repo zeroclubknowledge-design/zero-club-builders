@@ -9,7 +9,7 @@ import {
   RotateCcw,
   Sparkles,
   Trophy,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { SudokuRaceBoard } from "@/features/games/SudokuRaceBoard";
 import { WordsRaceBoard } from "@/features/games/WordsRaceBoard";
 import {

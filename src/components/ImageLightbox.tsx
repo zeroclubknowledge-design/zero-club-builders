@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { X } from "@/components/icons/solar";
+import { X } from "@/components/icons/glyphs";
 
 interface ImageLightboxProps {
   mediaUrls: string[];

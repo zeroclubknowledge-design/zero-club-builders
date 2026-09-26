@@ -2,7 +2,7 @@ import { useLoaderData, createFileRoute, Link, redirect, useNavigate } from "@ta
 import { useState, useEffect } from "react";
 import { 
   BadgeCheck, ChevronLeft, Users, Loader2, Hash, CheckCircle2, Shield, X
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { getProfile } from "@/api";
 import { getFirstName } from "@/lib/utils";

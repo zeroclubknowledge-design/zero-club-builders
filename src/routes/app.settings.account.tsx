@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, User, Mail, Phone, Globe, Trash2, ChevronRight, AlertCircle, Check, Loader2 } from "@/components/icons/solar";
+import { ChevronLeft, User, Mail, Phone, Globe, Trash2, ChevronRight, AlertCircle, Check, Loader2 } from "@/components/icons/glyphs";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
-import { Users, LogOut, PlusCircle } from "@/components/icons/solar";
+import { Users, LogOut, PlusCircle } from "@/components/icons/glyphs";
 import { getSavedAccounts, switchAccount, prepareAddAccount, removeSavedAccount, SavedAccount } from "@/lib/multiAccount";
 
 export const Route = createFileRoute("/app/settings/account")({

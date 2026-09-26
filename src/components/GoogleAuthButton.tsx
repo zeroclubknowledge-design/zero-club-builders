@@ -1,4 +1,4 @@
-import { Loader2 } from "@/components/icons/solar";
+import { Loader2 } from "@/components/icons/glyphs";
 
 function GoogleMark() {
   return (

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/solar";
+import { ChevronLeft, Info, Send, Paperclip, MoreHorizontal, CheckCheck, Lock, Check, Trash2, Flag, Pencil, X as CloseIcon, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/glyphs";
 import { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { ComposerOverlay } from "@/components/ComposerOverlay";

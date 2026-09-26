@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Loader2 } from "@/components/icons/solar";
+import { Loader2 } from "@/components/icons/glyphs";
 
 export const Route = createFileRoute("/app/institution-studio")({
   component: InstitutionStudioLayout,

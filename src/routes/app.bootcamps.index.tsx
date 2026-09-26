@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight, Bell, BookOpen, Building2, CalendarClock, Search, Users, X,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { useMemo, useState } from "react";
 import { getBootcamps } from "@/api";
 import { useQuery } from "@tanstack/react-query";

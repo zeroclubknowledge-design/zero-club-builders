@@ -1,6 +1,6 @@
 import * as React from "react";
 import { OTPInput, OTPInputContext } from "input-otp";
-import { Minus } from "@/components/icons/solar";
+import { Minus } from "@/components/icons/glyphs";
 
 import { cn } from "@/lib/utils";
 

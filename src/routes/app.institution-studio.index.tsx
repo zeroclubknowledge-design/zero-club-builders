@@ -15,7 +15,7 @@ import {
   UploadCloud, UserPlus, Activity, ArrowUpRight,
   Calendar, Hash, Video, Check, X, Edit3,
   ChevronLeft, MoreHorizontal, Shield, Star, Clock
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";

@@ -6,7 +6,7 @@ import {
   UserMinus, Star, LayoutGrid, Sparkles, ArrowRight, ChevronDown, Search,
   BookOpen, Wallet, TrendingUp, Zap, Eye, GraduationCap, Megaphone, Lock, UsersRound,
   ClipboardList
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 
 import { useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";

@@ -10,7 +10,7 @@ import {
   Loader2,
   MapPin,
   Users,
-} from "@/components/icons/solar";
+} from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useGoBack } from "@/hooks/useGoBack";
