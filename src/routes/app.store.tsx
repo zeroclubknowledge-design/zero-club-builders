@@ -1,8 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft, Gift, ArrowUpRight, Search, Loader2, ShoppingBag, PackagePlus,
-  TicketPercent, Check, ShieldCheck, Tag, Share2, Copy,
-} from "@/components/icons/glyphs";
+import { ArrowLeft, Gift, ArrowUpRight, Search, Loader2, PackagePlus, TicketPercent, Check, ShieldCheck, Tag, Share2, Copy } from "@/components/icons/glyphs";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { STORE_CATEGORIES, categoryIdFor, categoryLabelFor } from "@/features/store/catalogue";
 import { ProductCard } from "@/features/store/ProductCard";
@@ -230,100 +227,75 @@ function StorePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-16 text-foreground">
-      {/* Sticky Header Section */}
-      <div className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto w-full max-w-[1180px]">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
-              <Link
-                to="/app/wallet"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card text-foreground tap hover:bg-muted"
-              >
-                <ArrowLeft className="h-[18px] w-[18px]" />
-              </Link>
-              <div><p className="text-[10px] font-medium uppercase text-muted-foreground">Marketplace</p><h1 className="text-[19px] font-semibold tracking-tight text-foreground">Zero Store</h1></div>
-            </div>
-
-            {/* Balances capsule */}
-            <div className="flex items-center rounded-lg border border-border bg-card p-0.5">
-              <div className="flex items-center gap-1.5 px-3 py-1.5">
-                <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">ZP</span>
-                <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">{Number(profile?.zp || 0).toLocaleString()}</span>
-              </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1.5 px-3 py-1.5">
-                <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">
-                  {currentCurrency.symbol}{((profile?.coins || 0) / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-          </div>
-
+    <div className="min-h-screen bg-card pb-24 text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[1180px] items-center gap-1 px-2 md:px-5">
+          <Link to="/app/wallet" aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </Link>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Zero Store</h1>
+          <span className="mr-1 hidden items-center gap-2 text-[13px] text-muted-foreground sm:flex">
+            <b className="font-semibold tabular-nums text-foreground">{Number(profile?.zp || 0).toLocaleString()}</b> ZP
+            <span aria-hidden>·</span>
+            <b className="font-semibold tabular-nums text-foreground">
+              {currentCurrency.symbol}{((profile?.coins || 0) / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </b>
+          </span>
+          <Link to="/app/my-store" className="mr-2 flex h-9 items-center rounded-full border-[1.5px] border-foreground px-4 text-[14px] font-semibold text-foreground tap hover:bg-foreground/[0.04]">
+            Sell
+          </Link>
         </div>
-      </div>
-
-      <div className="mx-auto w-full max-w-[1180px] px-4 py-6 md:px-7 md:py-8">
-        {/* On a phone this was a full screen of manifesto — a headline, a
-            subtitle, a second panel and a button — before a single thing you
-            could buy. The pitch is for desktop, where there is room beside the
-            products; the phone gets one line and the sell button, and starts
-            shopping immediately. */}
-        <section className="grid overflow-hidden rounded-xl bg-[#171218] text-white md:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="flex items-center gap-3 p-4 sm:p-7 md:block">
-            <ShoppingBag className="h-6 w-6 shrink-0 text-[#f06ac3]" />
-            <div className="min-w-0 md:mt-5">
-              <p className="hidden text-[10px] font-semibold uppercase text-white/45 md:block">Built by the Zero Club network</p>
-              <h2 className="max-w-xl text-[15px] font-semibold tracking-tight md:mt-2 md:text-[31px]">
-                Tools, assets, and perks for people building real work.
-              </h2>
-              <p className="mt-3 hidden max-w-lg text-[13px] leading-relaxed text-white/60 md:block">Use your wallet or ZP to access useful products from builders across the Club.</p>
-            </div>
+        <div className="mx-auto max-w-[1180px] px-4 pb-3 md:px-6">
+          <label className="flex h-9 items-center gap-2 rounded-lg bg-foreground/[0.05] px-3">
+            <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search tools, templates and guides"
+              aria-label="Search the store"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+          <div className="no-scrollbar mt-2.5 flex gap-2 overflow-x-auto">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                className={`h-8 shrink-0 rounded-full px-3.5 text-[14px] font-semibold tap ${
+                  activeCategory === category.id ? "bg-foreground text-background" : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
+                }`}
+              >
+                {category.short}
+              </button>
+            ))}
           </div>
-          <div className="border-t border-white/10 px-4 pb-4 md:border-l md:border-t-0 md:p-5">
-            <p className="mt-4 hidden text-[10px] font-medium uppercase text-white/45 md:mt-0 md:block">Sell on Zero Store</p>
-            <p className="mt-2 hidden text-[13px] leading-relaxed text-white/65 md:block">List templates, digital products, resources, and builder services.</p>
-            <Link to="/app/my-store" className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg bg-white text-[12px] font-semibold text-black md:mt-5"><PackagePlus className="h-4 w-4" />Manage my store</Link>
-          </div>
-        </section>
+        </div>
+      </header>
 
-        <section className="mt-4 space-y-3 md:mt-5">
-          <div className="relative"><Search className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" /><input type="text" placeholder="Search tools, digital products, and perks" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-12 w-full rounded-lg border border-border bg-card pl-11 pr-4 text-[14px] outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10" /></div>
-          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">{categories.map((category) => <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`h-9 shrink-0 rounded-lg px-3.5 text-[11.5px] font-semibold shadow-[var(--shadow-card)] transition ${activeCategory === category.id ? "bg-foreground text-background" : "bg-card text-muted-foreground hover:text-foreground"}`}>{category.short}</button>)}</div>
-        </section>
-
-        {/* There was a grid of all nine categories here, shown before any
-            product. It was designed for a stocked shop and met an empty one:
-            with three listings, seven cards read "Nothing yet" and a customer
-            had to scroll a screen and a half of dead aisles to reach anything
-            they could buy. A shop window shows stock, not a directory of
-            departments — the chip row above already filters, and it only
-            offers groups that actually have something in them. */}
-
-        {/* Catalog */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto w-full max-w-[1180px] px-4 pt-3 md:px-6">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 lg:grid-cols-4">
           {loading ? (
             <div className="col-span-full flex justify-center py-14">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : filteredItems.length === 0 ? (
             /* An early shop is mostly empty, so this is the screen people
                will actually see. It invites them to fill it rather than
                reporting a failed query. */
-            <div className="col-span-full rounded-xl bg-card px-6 py-14 text-center shadow-[var(--shadow-card)]">
-              <Gift className="mx-auto mb-3 h-10 w-10 text-primary/30" />
-              <p className="text-[15px] font-semibold tracking-tight text-foreground">
+            <div className="col-span-full px-6 py-14 text-center">
+              <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]">
+                <Gift className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="font-display text-[17px] font-semibold text-foreground">
                 {searchQuery.trim() ? "Nothing matches that" : "Nothing here yet"}
               </p>
-              <p className="mx-auto mt-1.5 max-w-[280px] text-[12.5px] leading-relaxed text-muted-foreground">
+              <p className="mx-auto mt-1.5 max-w-[280px] text-[14px] leading-relaxed text-muted-foreground">
                 {searchQuery.trim()
                   ? "Try another word, or clear the search to see everything on sale."
                   : "Be the first to sell here — templates, prompt packs, AI tool access, ebooks, anything you have made."}
               </p>
-              <Link
-                to="/app/my-store"
-                className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background transition active:scale-[0.98]"
-              >
+              <Link to="/app/my-store" className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background tap">
                 <PackagePlus className="h-4 w-4" /> List a product
               </Link>
             </div>
@@ -337,41 +309,29 @@ function StorePage() {
                   ? `${currentCurrency.symbol}${(n / currentCurrency.rate).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
                   : n.toLocaleString();
               const mine = item.seller_id === profile?.id;
+              const seller = sellers[item.seller_id];
 
               return (
                 <ProductCard
                   key={item.id}
                   item={item}
                   onClick={() => openItem(item)}
+                  seller={seller ? <p className="truncate text-[12px] text-muted-foreground">{seller.full_name || seller.username}</p> : undefined}
                   price={
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-[15px] font-semibold tabular-nums tracking-tight text-foreground">{fmt(effective)}</span>
+                      <span className="text-[15px] font-semibold tabular-nums text-foreground">{fmt(effective)}</span>
+                      {item.price_type !== "Coins" && <span className="text-[12px] font-semibold text-foreground">{item.price_type}</span>}
                       {item.discount_percent > 0 && (
-                        <span className="text-[11px] tabular-nums text-muted-foreground line-through">{fmt(item.price)}</span>
-                      )}
-                      {item.price_type !== "Coins" && (
-                        <span className="text-[10px] font-semibold text-primary">{item.price_type}</span>
+                        <span className="text-[12px] tabular-nums text-muted-foreground line-through">{fmt(item.price)}</span>
                       )}
                     </div>
                   }
-                  action={
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-[11.5px] font-semibold ${
-                        mine ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
-                      }`}
-                    >
-                      {mine ? "Yours" : <>View <ArrowUpRight className="h-3 w-3" /></>}
-                    </span>
-                  }
+                  action={mine ? <span className="shrink-0 text-[12px] font-semibold text-muted-foreground">Yours</span> : undefined}
                 />
               );
             })
           )}
         </div>
-
-        <p className="mt-10 text-center text-[11px] text-muted-foreground">
-          Zero Store Marketplace
-        </p>
       </div>
 
       {/* ── Product detail ── */}

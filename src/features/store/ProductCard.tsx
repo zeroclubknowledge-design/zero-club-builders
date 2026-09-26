@@ -1,17 +1,15 @@
 import type { ReactNode } from "react";
-import { Gift } from "@/components/icons/glyphs";
 import { typeLabelFor } from "./catalogue";
 
 /**
- * A listing, shown the way a shop shows one.
+ * A listing, shown the way a shop shows one: a square cover, the name, who
+ * made it, and the price last.
  *
- * The old card led with a 48px thumbnail beside two lines of text, which made
- * a template, an ebook and a Figma kit look identical — the only thing telling
- * them apart was a word in the corner. In a shop the picture is the product,
- * so the cover leads at full width and the price is the last thing read rather
- * than something tucked behind a rule.
+ * Most listings have no cover yet, and an empty tinted block made the shop
+ * look unfinished. Without a cover the card sets the product's own name as
+ * its cover, on ink or on a pink tint depending on the listing, so every card
+ * still reads as a product rather than a placeholder.
  */
-
 export function ProductCard({
   item,
   price,
@@ -27,13 +25,14 @@ export function ProductCard({
   onClick?: () => void;
 }) {
   const label = typeLabelFor(item?.category, item?.product_type);
+  const dark = String(item?.id || item?.name || "").length % 2 === 0;
 
   return (
     <article
       onClick={onClick}
-      className={`group flex min-w-0 flex-col overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)] ${onClick ? "cursor-pointer active:scale-[0.99]" : ""}`}
+      className={`group flex min-w-0 flex-col ${onClick ? "cursor-pointer" : ""}`}
     >
-      <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-gradient-to-br from-primary/15 via-accent/20 to-background">
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-foreground/[0.05]">
         {item?.cover_url ? (
           <img
             src={item.cover_url}
@@ -43,38 +42,26 @@ export function ProductCard({
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
-          <span className="grid h-full w-full place-items-center text-primary/40">
-            <Gift className="h-8 w-8" />
-          </span>
+          <div className={`flex h-full w-full flex-col justify-between p-3.5 ${dark ? "bg-[#221d22] text-white" : "bg-accent/[0.08] text-foreground"}`}>
+            <span className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${dark ? "text-[#f28fd0]" : "text-accent"}`}>{label}</span>
+            <span className="line-clamp-4 font-display text-[19px] font-semibold leading-[1.1] tracking-[-0.01em]">{item?.name}</span>
+          </div>
         )}
-
-        <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.08em] text-foreground backdrop-blur-sm">
-          {label}
-        </span>
-
+        {item?.cover_url && (
+          <span className="absolute left-2 top-2 rounded-full bg-card/95 px-2 py-0.5 text-[11px] font-semibold text-foreground">{label}</span>
+        )}
         {item?.badge && (
-          <span className="absolute right-2.5 top-2.5 rounded-full bg-primary px-2 py-0.5 text-[9.5px] font-semibold text-primary-foreground">
-            {item.badge}
-          </span>
+          <span className="absolute right-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-accent-foreground">{item.badge}</span>
         )}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col p-3.5">
-        <h3 className="line-clamp-1 text-[14px] font-semibold tracking-tight text-foreground">
-          {item?.name}
-        </h3>
-        <p className="mt-1 line-clamp-2 text-[12px] leading-[1.5] text-muted-foreground">
-          {item?.description}
-        </p>
-
-        {seller && <div className="mt-2.5 min-w-0">{seller}</div>}
-
-        {/* mt-auto so price and action land on the bottom edge whatever length
-            the description runs to, and a row of cards stays aligned. */}
-        <div className="mt-auto flex items-end justify-between gap-3 pt-3">
-          <div className="min-w-0">{price}</div>
-          {action}
-        </div>
+      <h3 className="mt-2 line-clamp-2 text-[14px] font-semibold leading-snug tracking-normal text-foreground [font-family:inherit] group-hover:underline">
+        {item?.name}
+      </h3>
+      {seller && <div className="mt-0.5 min-w-0">{seller}</div>}
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <div className="min-w-0">{price}</div>
+        {action}
       </div>
     </article>
   );

@@ -1,25 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  ArrowUpRight,
-  BadgeCheck,
-  Banknote,
-  BriefcaseBusiness,
-  CalendarDays,
-  Check,
-  ChevronLeft,
-  Clock3,
-  Loader2,
-  MapPin,
-  Plus,
-  Search,
-  Send,
-  SlidersHorizontal,
-  Sparkles,
-  Users,
-} from "@/components/icons/glyphs";
+import { ArrowLeft, BadgeCheck, Banknote, BriefcaseBusiness, CalendarDays, Check, Clock3, Loader2, Plus, Search, Send, SlidersHorizontal, Sparkles } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -264,109 +246,88 @@ function GigMarketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 text-foreground">
-      <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <button type="button" onClick={goBack} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted">
-              <ChevronLeft className="h-[18px] w-[18px]" />
-            </button>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Opportunities</p>
-              <h1 className="truncate font-display text-[18px] font-semibold tracking-tight md:text-[20px]">Gig marketplace</h1>
-            </div>
-          </div>
+    <div className="min-h-screen bg-canvas pb-24 text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 max-w-[900px] items-center gap-1 px-2">
+          <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 truncate font-display text-[18px] font-semibold">Opportunities</h1>
           {canPostGig && (
             <button
               onClick={() => setPostOpen(true)}
-              className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-[12px] font-semibold text-primary-foreground hover:opacity-90"
+              className="mr-2 flex h-9 shrink-0 items-center gap-1 rounded-full bg-foreground px-3.5 text-[14px] font-semibold text-background tap hover:opacity-90"
             >
-              <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Post a gig</span><span className="sm:hidden">Post</span>
+              <Plus className="h-4 w-4" /> Post a gig
             </button>
           )}
         </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-[1080px] px-4 py-5 md:px-7 md:py-7">
-        <section className="border-b border-border/70 pb-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-xl">
-              <h2 className="font-display text-[24px] font-semibold leading-tight tracking-tight md:text-[28px]">Find serious work. Hire proven builders.</h2>
-              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">Paid opportunities from builders, teams, tutors, and institutions across Zero Club.</p>
-            </div>
-            <div className="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-card lg:w-[360px]">
-              <MarketStat label="Open gigs" value={gigs.filter((gig) => gig.status === "open").length} />
-              <MarketStat label="Remote" value={gigs.filter((gig) => gig.status === "open" && gig.location_type === "Remote").length} />
-              <MarketStat label="Applied" value={gigs.filter((gig) => gig.viewer_application).length} />
-            </div>
-          </div>
-        </section>
-
-        <div className="mt-5 flex gap-1 overflow-x-auto border-b border-border no-scrollbar">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex h-11 shrink-0 items-center gap-2 px-3 text-[12px] font-semibold transition ${activeTab === tab.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {tab.label}
-              <span className="rounded-full bg-foreground/[0.06] px-1.5 py-0.5 text-[9px] tabular-nums">{tab.count}</span>
-              {activeTab === tab.id && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-primary" />}
-            </button>
-          ))}
-        </div>
-
-        <section className="mt-4">
-          <div className="grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <label className="relative block w-full">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
+        <div className="mx-auto max-w-[900px] px-4 pb-3">
+          <div className="flex gap-2">
+            <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg bg-foreground/[0.05] px-3">
+              <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search roles, skills, or industries"
-                className="h-12 w-full rounded-lg border border-border/60 bg-card px-5 pl-11 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary/35 focus:ring-2 focus:ring-primary/10"
+                aria-label="Search gigs"
+                className="min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
               />
             </label>
             <button
               onClick={() => setShowFilters((value) => !value)}
-              className={`flex h-12 w-full items-center justify-center gap-2 rounded-lg border px-4 text-[12px] font-semibold sm:w-auto ${showFilters ? "border-primary/30 bg-primary/[0.06] text-primary" : "border-border bg-card text-foreground"}`}
+              aria-pressed={showFilters}
+              aria-label="Filters"
+              className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${showFilters ? "bg-foreground text-background" : "bg-foreground/[0.05] text-foreground"}`}
             >
-              <SlidersHorizontal className="h-4 w-4" /> Filters
+              <SlidersHorizontal className="h-[18px] w-[18px]" />
             </button>
           </div>
-
           {showFilters && (
-            <div className="mt-3 grid gap-3 rounded-lg border border-border bg-card p-3 sm:grid-cols-3">
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
               <FilterSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} />
               <FilterSelect label="Work type" value={workType} onChange={setWorkType} options={WORK_TYPES} />
               <label className="space-y-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Minimum budget</span>
-                <div className="flex h-10 items-center rounded-lg border border-border bg-background px-3">
-                  <span className="mr-2 text-[11px] font-semibold text-muted-foreground">{currency.symbol}</span>
-                  <input type="number" min="0" value={budgetFloor} onChange={(event) => setBudgetFloor(event.target.value)} placeholder="Any" className="min-w-0 flex-1 bg-transparent text-[12px] outline-none" />
+                <span className="text-[12px] font-semibold text-muted-foreground">Minimum budget</span>
+                <div className="flex h-10 items-center rounded-lg border border-border bg-card px-3">
+                  <span className="mr-2 text-[14px] text-muted-foreground">{currency.symbol}</span>
+                  <input type="number" min="0" value={budgetFloor} onChange={(event) => setBudgetFloor(event.target.value)} placeholder="Any" className="min-w-0 flex-1 bg-transparent text-[14px] outline-none" />
                 </div>
               </label>
             </div>
           )}
+        </div>
+        <div className="mx-auto flex max-w-[900px] gap-[22px] overflow-x-auto border-b border-border px-4 no-scrollbar">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex h-11 shrink-0 items-center gap-1.5 text-[14px] font-semibold ${activeTab === tab.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {tab.label}
+              {Number(tab.count) > 0 && <span className="text-[12px] font-medium tabular-nums text-muted-foreground">{tab.count}</span>}
+              {activeTab === tab.id && <span className="absolute inset-x-0 bottom-0 h-[2px] bg-foreground" />}
+            </button>
+          ))}
+        </div>
+      </header>
 
-          <div className="mt-5">
-            {isLoading ? (
-              <GigListSkeleton />
-            ) : isError ? (
-              <div className="rounded-lg border border-border bg-card px-5 py-14 text-center">
-                <BriefcaseBusiness className="mx-auto h-7 w-7 text-muted-foreground" />
-                <h3 className="mt-3 text-[15px] font-semibold">The marketplace could not load</h3>
-                <button onClick={() => refetch()} className="mt-4 rounded-lg border border-border px-4 py-2 text-[12px] font-semibold hover:bg-muted">Try again</button>
-              </div>
-            ) : filteredGigs.length ? (
-              <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-                {filteredGigs.map((gig) => <GigRow key={gig.id} gig={gig} format={format} viewerId={viewerId} onOpen={() => openGig(gig)} />)}
-              </div>
-            ) : (
-              <MarketplaceEmptyState tab={activeTab} canPost={canPostGig} onPost={() => setPostOpen(true)} />
-            )}
+      <main className="mx-auto w-full max-w-[900px]">
+        {isLoading ? (
+          <GigListSkeleton />
+        ) : isError ? (
+          <div className="mt-2 bg-card px-5 py-14 text-center md:rounded-xl">
+            <BriefcaseBusiness className="mx-auto h-7 w-7 text-muted-foreground" />
+            <h3 className="mt-3 font-display text-[17px] font-semibold">The marketplace could not load</h3>
+            <button onClick={() => refetch()} className="mt-4 h-9 rounded-full border border-foreground/30 px-4 text-[14px] font-semibold hover:bg-foreground/[0.04]">Try again</button>
           </div>
-        </section>
+        ) : filteredGigs.length ? (
+          <section className="mt-2 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+            {filteredGigs.map((gig) => <GigRow key={gig.id} gig={gig} format={format} viewerId={viewerId} onOpen={() => openGig(gig)} />)}
+          </section>
+        ) : (
+          <MarketplaceEmptyState tab={activeTab} canPost={canPostGig} onPost={() => setPostOpen(true)} />
+        )}
       </main>
 
       <Drawer open={Boolean(selectedGig)} onOpenChange={(open) => { if (!open) { setSelectedGig(null); setDetailMode("details"); } }}>
@@ -407,10 +368,6 @@ function GigMarketplace() {
   );
 }
 
-function MarketStat({ label, value }: { label: string; value: number }) {
-  return <div className="px-2 py-3 text-center"><p className="text-[16px] font-semibold tabular-nums">{value}</p><p className="mt-0.5 text-[9px] font-medium text-muted-foreground">{label}</p></div>;
-}
-
 function FilterSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
   return (
     <label className="space-y-1.5">
@@ -425,35 +382,49 @@ function FilterSelect({ label, value, onChange, options }: { label: string; valu
 function GigRow({ gig, format, viewerId, onOpen }: { gig: Gig; format: (value: number) => string; viewerId: string | null; onOpen: () => void }) {
   const clientName = gig.client?.full_name || gig.client?.username || "Zero Club client";
   const isOwner = viewerId === gig.client_id;
+  const isInstitution = gig.client?.account_type === "Institution";
   return (
-    <button onClick={onOpen} className="group w-full p-4 text-left transition hover:bg-foreground/[0.025] sm:p-5">
-      <div className="flex items-start gap-3.5">
-        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
-          {gig.client?.avatar_url ? <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center bg-primary/10 text-[13px] font-semibold text-primary">{clientName.charAt(0).toUpperCase()}</div>}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1 font-semibold text-foreground">{clientName}{gig.client?.account_type === "Institution" && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}</span>
-            <span>{relativeDate(gig.created_at)}</span>
-            {isOwner && <span className="rounded-full bg-primary/10 px-1.5 py-0.5 font-semibold text-primary">Your listing</span>}
-            {gig.viewer_application && <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-600">Applied</span>}
+    <button onClick={onOpen} className="group grid w-full grid-cols-[48px_minmax(0,1fr)] gap-3 border-b border-border px-4 py-3.5 text-left transition-colors last:border-b-0 hover:bg-foreground/[0.02]">
+      <div className={`h-12 w-12 overflow-hidden bg-foreground/[0.06] ${isInstitution ? "rounded-xl" : "rounded-full"}`}>
+        {gig.client?.avatar_url ? (
+          <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-[15px] font-semibold text-muted-foreground">{clientName.charAt(0).toUpperCase()}</div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-[16px] font-semibold leading-snug tracking-normal text-foreground [font-family:inherit] group-hover:underline">{gig.title}</h3>
+        <p className="mt-0.5 flex items-center gap-1 truncate text-[14px] text-foreground">
+          {clientName}
+          {isInstitution && <BadgeCheck className="h-4 w-4 shrink-0 fill-current text-accent" />}
+        </p>
+        <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+          {format(gig.budget_min)} – {format(gig.budget_max)}{gig.budget_type === "hourly" ? "/hr" : ""} · {gig.location_type}
+        </p>
+        {gig.skills.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {gig.skills.slice(0, 4).map((skill) => (
+              <span key={skill} className="rounded-md bg-foreground/[0.05] px-2 py-0.5 text-[12px] font-medium text-foreground/80">{skill}</span>
+            ))}
           </div>
-          <div className="mt-2 flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h3 className="text-[15px] font-semibold leading-snug tracking-tight group-hover:text-primary">{gig.title}</h3>
-              <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-relaxed text-muted-foreground">{gig.description}</p>
-            </div>
-            <ArrowUpRight className="mt-0.5 hidden h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-primary sm:block" />
-          </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {gig.skills.slice(0, 4).map((skill) => <span key={skill} className="rounded-md border border-border bg-background px-2 py-1 text-[9.5px] font-medium text-muted-foreground">{skill}</span>)}
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/60 pt-3 text-[10.5px] text-muted-foreground">
-            <span className="flex items-center gap-1.5 font-semibold text-foreground"><Banknote className="h-3.5 w-3.5 text-primary" />{format(gig.budget_min)} - {format(gig.budget_max)}{gig.budget_type === "hourly" ? "/hr" : ""}</span>
-            <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{gig.location_type}</span>
-            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{gig.applications_count || 0} proposals</span>
-          </div>
-        </div>
+        )}
+        <p className="mt-2 flex flex-wrap items-center gap-x-1.5 text-[12px] text-muted-foreground">
+          <span>{relativeDate(gig.created_at)}</span>
+          <span aria-hidden>·</span>
+          <span>{gig.applications_count || 0} {(gig.applications_count || 0) === 1 ? "proposal" : "proposals"}</span>
+          {isOwner && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="font-semibold text-accent">Your listing</span>
+            </>
+          )}
+          {gig.viewer_application && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="flex items-center gap-1 font-semibold text-success"><Check className="h-3.5 w-3.5" /> Proposal sent</span>
+            </>
+          )}
+        </p>
       </div>
     </button>
   );
@@ -567,9 +538,29 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
 
 function MarketplaceEmptyState({ tab, canPost, onPost }: { tab: MarketplaceTab; canPost: boolean; onPost: () => void }) {
   const content = tab === "applications" ? { title: "No proposals sent", detail: "Your applications will appear here." } : tab === "posted" ? { title: "No gigs posted", detail: "Post a gig when you are ready to hire." } : { title: "No matching gigs", detail: "Try another search or adjust the filters." };
-  return <div className="rounded-lg border border-border bg-card px-5 py-16 text-center"><div className="mx-auto grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary"><BriefcaseBusiness className="h-5 w-5" /></div><h3 className="mt-4 text-[15px] font-semibold">{content.title}</h3><p className="mt-1 text-[12px] text-muted-foreground">{content.detail}</p>{tab === "posted" && canPost && <button onClick={onPost} className="mt-5 rounded-lg bg-primary px-4 py-2.5 text-[12px] font-semibold text-primary-foreground">Post a gig</button>}</div>;
+  return (
+    <div className="mt-2 bg-card px-5 py-16 text-center md:rounded-xl">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground"><BriefcaseBusiness className="h-5 w-5" /></div>
+      <h3 className="mt-4 font-display text-[17px] font-semibold">{content.title}</h3>
+      <p className="mt-1 text-[14px] text-muted-foreground">{content.detail}</p>
+      {tab === "posted" && canPost && <button onClick={onPost} className="mt-5 h-10 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background">Post a gig</button>}
+    </div>
+  );
 }
 
 function GigListSkeleton() {
-  return <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{[1, 2, 3].map((item) => <div key={item} className="p-5"><div className="flex gap-3"><div className="h-10 w-10 animate-pulse rounded-lg bg-muted" /><div className="flex-1"><div className="h-3 w-32 animate-pulse rounded bg-muted" /><div className="mt-3 h-4 w-2/3 animate-pulse rounded bg-muted" /><div className="mt-2 h-3 w-full animate-pulse rounded bg-muted" /><div className="mt-4 h-7 w-1/2 animate-pulse rounded bg-muted" /></div></div></div>)}</div>;
+  return (
+    <div className="mt-2 bg-card md:rounded-xl">
+      {[1, 2, 3].map((item) => (
+        <div key={item} className="flex gap-3 border-b border-border px-4 py-4 last:border-b-0">
+          <div className="h-12 w-12 animate-pulse rounded-full bg-foreground/[0.06]" />
+          <div className="flex-1">
+            <div className="h-4 w-2/3 animate-pulse rounded bg-foreground/[0.06]" />
+            <div className="mt-2 h-3 w-1/3 animate-pulse rounded bg-foreground/[0.06]" />
+            <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-foreground/[0.06]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }

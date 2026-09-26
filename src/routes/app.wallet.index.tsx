@@ -1,42 +1,22 @@
-import { useLoaderData, createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { describeVerifyFailure } from "@/lib/paystack";
 import { useUser } from "@/hooks/useUser";
-import {
-  ArrowUpRight, Store, HandCoins, TrendingUp,
-  History, Star, Plus, Gift,
-  Loader2, ArrowDownLeft,
-  EyeOff, Eye, Check, RefreshCw, ChevronDown, Settings, Landmark, X
-} from "@/components/icons/glyphs";
+import { ArrowUpRight, Store, HandCoins, TrendingUp, History, Plus, Gift, Loader2, ArrowDownLeft, EyeOff, Eye, Check, RefreshCw, ChevronDown, Landmark, X, ArrowLeft, SlidersHorizontal, Receipt } from "@/components/icons/glyphs";
 import { useState, useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { useGoBack } from "@/hooks/useGoBack";
 
 export const Route = createFileRoute("/app/wallet/")({
   component: WalletPage,
 });
 
-const CustomWalletIcon = ({ className, ...props }: React.ComponentProps<"div">) => (
-  <div
-    className={`bg-current ${className}`}
-    style={{
-      WebkitMaskImage: "url('/wallet_icon.png')",
-      WebkitMaskSize: "contain",
-      WebkitMaskRepeat: "no-repeat",
-      WebkitMaskPosition: "center",
-      maskImage: "url('/wallet_icon.png')",
-      maskSize: "contain",
-      maskRepeat: "no-repeat",
-      maskPosition: "center",
-    }}
-    {...props}
-  />
-);
-
 function WalletPage() {
   const { data: profile, refetch, isFetching } = useUser();
+  const goBack = useGoBack("/app");
 
   const handleRefresh = async () => {
     await refetch();
@@ -157,7 +137,6 @@ function WalletPage() {
   const legacyActivities = (walletHistory?.legacy || []) as any[];
   const activities = legacyActivities;
 
-
   // Robust, fail-safe programmatic referral auto-claim and follow resolver
   useEffect(() => {
     if (profile && profile.referred_by && !profile.referral_reward_claimed) {
@@ -221,330 +200,229 @@ function WalletPage() {
     }
   }, [profile, refetch, refetchActivities]);
 
+  const dayHeading = (iso: string) => {
+    const d = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return "Today";
+    if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+    return d.toLocaleDateString([], { day: "numeric", month: "short", ...(d.getFullYear() !== today.getFullYear() ? { year: "numeric" } : {}) });
+  };
 
   return (
-    <div className="min-h-screen bg-background pb-20 text-foreground">
-      {/* ── Header ── */}
-      <header className="fixed left-1/2 top-0 z-20 flex w-full max-w-md -translate-x-1/2 items-center justify-between bg-background px-5 pb-3 pt-[calc(1.25rem+env(safe-area-inset-top))] md:sticky md:left-0 md:max-w-full md:translate-x-0 md:px-8 md:pt-5">
-        <div className="flex items-center gap-3">
-          <button onClick={() => window.dispatchEvent(new CustomEvent('open-sidebar'))} className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-border/30 shadow-sm shrink-0 transition-all duration-300 active:scale-95 hover:ring-primary/40 hover:shadow-md cursor-pointer">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-            ) : (
-              <div className="h-full w-full bg-gradient-primary flex items-center justify-center font-bold text-white uppercase text-lg">
-                {profile?.username?.substring(0, 1) || "U"}
-              </div>
-            )}
+    <div className="min-h-screen bg-canvas pb-24 text-foreground">
+      <header className="sticky top-0 z-20 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 max-w-[680px] items-center gap-1 px-2">
+          <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          <div className="min-w-0">
-            <h1 className="text-[18px] font-semibold leading-tight tracking-tight">Wallet</h1>
-            <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
-              <Star className="h-3 w-3 fill-[#eab308] text-[#eab308]" />
-              <span className="tabular-nums">{Number(profile?.zp || 0).toLocaleString()} ZP available</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-2.5 text-[11px] font-bold text-foreground outline-none transition active:scale-95 hover:bg-accent/70">
-              <img src={currentCurrency.iconUrl} alt={currency} className="w-3.5 h-3.5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
-              <span>{currency}</span>
-              <ChevronDown className="h-3 w-3 opacity-50" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-lg border-border/60 bg-background p-2 shadow-xl">
-              <DropdownMenuItem onClick={() => setCurrency("NGN")} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold cursor-pointer transition-colors ${currency ==="NGN" ? "bg-primary/10 text-primary" : "hover:bg-accent/60"}`}>
-                <img src="https://flagcdn.com/ng.svg" alt="NGN" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
-                <span>Naira (NGN)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setCurrency("USD")} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold cursor-pointer transition-colors ${currency ==="USD" ? "bg-primary/10 text-primary" : "hover:bg-accent/60"}`}>
-                <img src="https://flagcdn.com/us.svg" alt="USD" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
-                <span>Dollar (USD)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setCurrency("GHS")} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold cursor-pointer transition-colors ${currency ==="GHS" ? "bg-primary/10 text-primary" : "hover:bg-accent/60"}`}>
-                <img src="https://flagcdn.com/gh.svg" alt="GHS" className="w-5 h-5 rounded-full object-cover shadow-sm ring-1 ring-border/50" loading="lazy" decoding="async" />
-                <span>Cedi (GHS)</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Link to="/app/wallet/settings" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card transition active:scale-95 hover:bg-accent/60">
-            <Settings className="h-4 w-4 text-foreground" />
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Wallet</h1>
+          <Link to="/app/wallet/settings" aria-label="Wallet settings" className="grid h-11 w-10 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <SlidersHorizontal className="h-[22px] w-[22px]" />
           </Link>
         </div>
       </header>
 
-      {/* ── Main Content Container ── */}
-      <div className="mx-auto w-full md:max-w-[880px] md:px-8 md:pb-16 md:pt-8">
-      <div className="md:mx-auto md:w-full md:min-w-0">
-      <section className="px-5 pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pt-0 flex flex-col w-full">
-
-          {/* One continuous premium surface: light, spacing and dividers carry
-              the hierarchy without the old card-inside-a-card treatment. */}
-          <div className="relative mb-4 flex min-h-[228px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:min-h-[252px] sm:p-6 md:p-7">
-            {/* The pink hairline along the top and the tilted outlined square
-                have gone. Both were decoration pretending to be structure,
-                which is what read as cheap. The two soft colour washes stay —
-                they give the card depth without drawing a shape on it. */}
-            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
-            <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
-
-            {/* The same device the Zero Card card uses: thick-bordered
-                rings in the current colour at very low opacity. They read as
-                embossing on the material rather than as drawn lines, which is
-                why they add texture where the old hairline rule looked cheap. */}
-            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
-            <div className="pointer-events-none absolute -bottom-14 right-20 h-28 w-28 rotate-12 border-[16px] border-white opacity-[0.035]" />
-
-            <div className="relative z-10 flex flex-1 flex-col">
-              {/* Brand line, as on the gift card. It gives the extra height
-                  something to hold rather than just more empty space. */}
-              <div className="mb-5 flex items-center gap-2">
-                <img src="/logo.png" alt="" className="h-6 w-6 shrink-0 object-contain" loading="lazy" decoding="async" />
-                <span className="text-[11.5px] font-semibold tracking-tight text-white/85">Zero Wallet</span>
-              </div>
-
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-white/45">Available balance</p>
-                  <h2 className="mt-2.5 flex items-start text-[40px] font-semibold leading-none tracking-[-0.045em] tabular-nums sm:text-[46px] md:text-[52px]">
-                    <span className="mr-2 mt-1 text-[20px] font-medium tracking-normal text-white/55 sm:text-[23px]">{currentCurrency.symbol}</span>
-                    <span>{showBalance ? displayBalance : "••••"}</span>
-                  </h2>
-                </div>
-
+      <div className="mx-auto w-full max-w-[680px]">
+        <section className="bg-card px-4 pb-5 pt-1 md:rounded-b-xl">
+          <div className="rounded-2xl bg-[#17181b] p-5 text-white">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[13px] text-white/70">Available balance</span>
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setShowBalance(!showBalance)}
                   aria-label={showBalance ? "Hide wallet balances" : "Show wallet balances"}
-                  className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.065] text-white/55 ring-1 ring-white/[0.08] transition hover:bg-white/10 hover:text-white tap"
+                  className="grid h-8 w-8 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
                 >
                   {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex h-8 items-center gap-1.5 rounded-full bg-white/[0.12] px-2.5 text-[13px] font-semibold text-white outline-none hover:bg-white/[0.18]">
+                    <img src={currentCurrency.iconUrl} alt="" className="h-4 w-4 rounded-full object-cover" loading="lazy" decoding="async" />
+                    {currency}
+                    <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {[
+                      { code: "NGN", label: "Naira (NGN)", flag: "https://flagcdn.com/ng.svg" },
+                      { code: "USD", label: "Dollar (USD)", flag: "https://flagcdn.com/us.svg" },
+                      { code: "GHS", label: "Cedi (GHS)", flag: "https://flagcdn.com/gh.svg" },
+                    ].map((option) => (
+                      <DropdownMenuItem key={option.code} onClick={() => setCurrency(option.code as any)} className="flex cursor-pointer items-center gap-3 py-2.5">
+                        <img src={option.flag} alt="" className="h-5 w-5 rounded-full object-cover" loading="lazy" decoding="async" />
+                        <span className="flex-1 text-sm font-medium">{option.label}</span>
+                        {currency === option.code && <Check className="h-4 w-4" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              {/* Withdrawable earnings sits on the bottom line now, where the
-                  ZC reference code used to be. That code was a truncated
-                  profile id — not an account number anyone could pay into and
-                  not something support ever asked for, so copying it achieved
-                  nothing. This is the second figure people actually want. */}
-              <div className="mt-auto flex items-baseline justify-between gap-4 pt-6">
-                <p className="text-[9.5px] font-medium uppercase tracking-[0.15em] text-white/45">
-                  Withdrawable earnings
-                </p>
-                <p className="shrink-0 text-[17px] font-semibold tracking-tight tabular-nums text-white">
-                  {showBalance ? (split ? format(withdrawable) : "—") : "••••"}
-                </p>
+            </div>
+            <p className="mt-2 font-display text-[36px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
+              <span className="mr-1 text-[22px] font-medium text-white/60">{currentCurrency.symbol}</span>
+              {showBalance ? displayBalance : "••••"}
+            </p>
+            <div className="mt-4 space-y-2 border-t border-white/[0.12] pt-3 text-[13px]">
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Withdrawable earnings</span>
+                <span className="font-semibold tabular-nums">{showBalance ? (split ? format(withdrawable) : "—") : "••••"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Zero Points</span>
+                <span className="font-semibold tabular-nums">{Number(profile?.zp || 0).toLocaleString()} ZP</span>
               </div>
             </div>
           </div>
 
-          {/* The two things people come to a wallet to do: put money in, take
-              money out. Send used to hold this second slot, which gave the most
-              prominent position on the page to the least-used action. */}
-          <div className="flex gap-3 w-full mt-2">
-            <Link to="/app/wallet/add-money" className="flex flex-1 flex-row items-center justify-center gap-2.5 rounded-lg bg-card px-2 py-4 ring-1 ring-border transition-all tap hover:ring-foreground/15">
-              <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
-                <Plus className="h-4 w-4 text-primary" strokeWidth={2.25} />
-              </div>
-              <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Add money</span>
+          {/* The two things people come to a wallet to do come first. */}
+          <div className="mt-5 grid grid-cols-4 text-center">
+            {[
+              { to: "/app/wallet/add-money", label: "Add money", Icon: Plus, primary: true },
+              { to: "/app/wallet/withdraw", label: "Withdraw", Icon: Landmark },
+              { to: "/app/wallet/request", label: "Request", Icon: HandCoins },
+              { to: "/app/gifts", label: "Gifts", Icon: Gift },
+            ].map(({ to, label, Icon, primary }) => (
+              <Link key={to} to={to} className="group flex flex-col items-center gap-1.5 tap">
+                <span className={`grid h-[52px] w-[52px] place-items-center rounded-full transition-colors ${primary ? "bg-accent text-accent-foreground" : "bg-foreground/[0.06] text-foreground group-hover:bg-foreground/[0.09]"}`}>
+                  <Icon className="h-[22px] w-[22px]" />
+                </span>
+                <span className="text-[12px] font-semibold text-foreground">{label}</span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-4 flex gap-2">
+            <Link to="/app/store" className="flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-foreground/20 text-[14px] font-semibold text-foreground tap hover:bg-foreground/[0.04]">
+              <Store className="h-[18px] w-[18px]" /> Zero Store
             </Link>
-
-            <Link to="/app/wallet/withdraw" className="flex flex-1 flex-row items-center justify-center gap-2.5 rounded-lg bg-card px-2 py-4 ring-1 ring-border transition-all tap hover:ring-foreground/15">
-              <div className="h-8 w-8 rounded-full bg-primary/8 ring-1 ring-primary/15 flex items-center justify-center">
-                <Landmark className="h-4 w-4 text-primary" strokeWidth={2} />
-              </div>
-              <span className="text-[13.5px] font-semibold tracking-tight text-foreground">Withdraw</span>
+            <Link to="/app/quests" className="flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-foreground/20 text-[14px] font-semibold text-foreground tap hover:bg-foreground/[0.04]">
+              <TrendingUp className="h-[18px] w-[18px]" /> Earn
             </Link>
           </div>
-      </section>
+        </section>
 
-      {/* ── Quick Actions Grid (Under Add Money & Send) ── */}
-      <section className="px-6 mt-6 md:px-0 md:mt-8">
-        {/* One definition for all four, so they cannot drift apart again.
-            Withdraw was a masked PNG and Gifts was a filled glyph, while Store
-            and Earn were line icons — three different weights in one row. All
-            four are now lucide strokes at the same size.
+        <section id="transactions" className="mt-2 scroll-mt-24 bg-card pb-3 pt-4 md:rounded-xl md:border md:border-border">
+          <h2 className="px-4 font-display text-[18px] font-semibold text-foreground">History</h2>
 
-            On the cream theme these tiles used bg-secondary, which sits almost
-            on top of the page background, so the row read as four floating
-            icons with no container. bg-card with a real ring and a soft shadow
-            gives them an actual surface in both themes. */}
-        <div className="grid grid-cols-4 gap-2.5 md:gap-3">
-          {[
-            { to: "/app/store", label: "Store", Icon: Store },
-            { to: "/app/quests", label: "Earn", Icon: TrendingUp },
-            { to: "/app/wallet/request", label: "Request", Icon: HandCoins },
-            { to: "/app/gifts", label: "Gifts", Icon: Gift },
-          ].map(({ to, label, Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              className="group flex flex-col items-center gap-2 rounded-lg bg-card px-1.5 py-3 ring-1 ring-border shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_20px_-14px_rgba(0,0,0,0.14)] transition-all active:scale-[0.97] hover:ring-foreground/15 md:flex-row md:justify-start md:gap-3 md:px-4 md:py-3.5"
-            >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary ring-1 ring-primary/15 md:h-9 md:w-9 md:rounded-lg">
-                <Icon className="h-[18px] w-[18px] md:h-4 md:w-4" strokeWidth={1.9} />
-              </span>
-              <span className="truncate text-[11px] font-semibold tracking-tight text-foreground md:text-[13.5px]">
-                {label}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      </div>
-
-      {/* ── Transaction History ── */}
-      <section id="transactions" className="mt-12 scroll-mt-24 px-6 md:mx-auto md:mt-8 md:w-full md:min-w-0 md:rounded-lg md:bg-card md:px-7 md:py-7 md:ring-1 md:ring-border">
-        <div className="flex justify-between items-center mb-8 md:mb-5 md:pb-4 md:border-b md:hairline">
-          <h3 className="text-[19px] md:text-[17px] font-semibold text-foreground tracking-tight">History</h3>
-          <button className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
-            View all →
-          </button>
-        </div>
-
-        {/* Money that has been paid but is still being confirmed.
-            Paying by bank transfer means leaving the app, and the checkout page
-            is gone when you come back — so there has to be a way to say "I paid,
-            check again" rather than only waiting on the webhook. */}
-        {pendingTopups.length > 0 && (
-          <div className="relative mb-4 rounded-lg bg-amber-500/[0.07] p-3.5 ring-1 ring-amber-500/20">
-            {/* Dismiss, not cancel. This hides the card on this device; the
-                payment is untouched and the webhook still credits it if the
-                money lands. */}
-            <button
-              onClick={() => dismissPending(pendingTopups.map((t: any) => t.reference))}
-              title="Dismiss"
-              aria-label="Dismiss this notice"
-              className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-amber-700/60 transition hover:bg-amber-500/10 hover:text-amber-700 tap"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-            <p className="pr-8 text-[12px] font-semibold text-amber-700">
-              {pendingTopups.length === 1 ? "A payment is waiting to be confirmed" : `${pendingTopups.length} payments are waiting to be confirmed`}
-            </p>
-            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
-              Card payments clear in seconds. A bank transfer can take longer — if you have
-              already sent it, check now.
-            </p>
-            <div className="mt-2.5 space-y-1.5">
-              {pendingTopups.map((topup: any) => (
-                <div key={topup.reference} className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold tabular-nums text-foreground">
-                      {format(Number(topup.amount) || 0)}
-                    </p>
-                    <p className="truncate text-[10.5px] text-muted-foreground">
-                      Started {new Date(topup.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => checkPendingPayment(topup.reference)}
-                    disabled={checkingReference !== null}
-                    className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-amber-600 px-3.5 text-[11.5px] font-semibold text-white tap hover:opacity-90 disabled:opacity-50"
-                  >
-                    {checkingReference === topup.reference ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-3 w-3" />
-                    )}
-                    Check now
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {transactions.length > 0 ? (
-          <div className="space-y-5 md:space-y-0 md:divide-y md:divide-border/30">
-            {transactions.map((entry) => {
-              const credit = entry.direction === "credit";
-              return (
-                <Link
-                  key={entry.id}
-                  to="/app/wallet/transaction/$id"
-                  params={{ id: entry.id }}
-                  className="flex items-center justify-between gap-3 rounded-lg transition-colors hover:bg-foreground/[0.03] md:py-3.5 md:first:pt-0 md:last:pb-0"
-                >
-                  <div className="flex min-w-0 items-center gap-4 md:gap-3">
-                    <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full md:h-10 md:w-10 ${credit ? "bg-emerald-500/10 text-emerald-600" : "bg-foreground/[0.06] text-foreground"}`}>
-                      {credit ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
-                    </div>
+          {/* Money that has been paid but is still being confirmed.
+              Paying by bank transfer means leaving the app, and the checkout page
+              is gone when you come back — so there has to be a way to say "I paid,
+              check again" rather than only waiting on the webhook. */}
+          {pendingTopups.length > 0 && (
+            <div className="relative mx-4 mt-3 rounded-xl bg-warning/[0.08] p-3.5">
+              {/* Dismiss, not cancel. This hides the card on this device; the
+                  payment is untouched and the webhook still credits it if the
+                  money lands. */}
+              <button
+                onClick={() => dismissPending(pendingTopups.map((t: any) => t.reference))}
+                title="Dismiss"
+                aria-label="Dismiss this notice"
+                className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <p className="pr-8 text-[14px] font-semibold text-foreground">
+                {pendingTopups.length === 1 ? "A payment is waiting to be confirmed" : `${pendingTopups.length} payments are waiting to be confirmed`}
+              </p>
+              <p className="mt-1 text-[13px] leading-[1.45] text-muted-foreground">
+                Card payments clear in seconds. A bank transfer can take longer — if you have already sent it, check now.
+              </p>
+              <div className="mt-2.5 space-y-2">
+                {pendingTopups.map((topup: any) => (
+                  <div key={topup.reference} className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <h5 className="text-sm font-medium text-foreground md:text-[13px] md:leading-snug">
-                        {entry.description || (credit ? "Money in" : "Money out")}
-                      </h5>
-                      <p className="mt-0.5 text-xs capitalize text-muted-foreground">
-                        {String(entry.source || "").replaceAll("_", " ")} · {new Date(entry.created_at).toLocaleDateString()}
-                      </p>
+                      <p className="text-[14px] font-semibold tabular-nums text-foreground">{format(Number(topup.amount) || 0)}</p>
+                      <p className="truncate text-[12px] text-muted-foreground">Started {new Date(topup.created_at).toLocaleString()}</p>
                     </div>
+                    <button
+                      onClick={() => checkPendingPayment(topup.reference)}
+                      disabled={checkingReference !== null}
+                      className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3.5 text-[14px] font-semibold text-background tap hover:opacity-90 disabled:opacity-50"
+                    >
+                      {checkingReference === topup.reference ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                      Check now
+                    </button>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <p className={`whitespace-nowrap text-sm font-bold tabular-nums ${credit ? "text-emerald-500" : "text-foreground"}`}>
-                      {credit ? "+" : "-"}{format(Number(entry.amount) || 0)}
-                    </p>
-                    {entry.balance_after !== null && entry.balance_after !== undefined && (
-                      <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
-                        Balance {format(Number(entry.balance_after) || 0)}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : activities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center mt-6">
-            <div className="relative mb-10 w-full max-w-[280px]">
-              {/* Skeletons to mimic the uploaded UI */}
-              <div className="w-[200px] max-w-[71%] h-12 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-40 shadow-sm" />
-              <div className="w-[240px] max-w-[86%] h-14 bg-secondary border border-border/40 rounded-xl mx-auto -mb-6 opacity-70 shadow-sm" />
-              <div className="relative z-10 mx-auto flex w-[280px] max-w-full items-center gap-3 rounded-lg border border-border/40 bg-card p-4 shadow-sm">
-                <div className="h-10 w-10 rounded-full bg-primary/10" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-2.5 w-3/4 rounded-full bg-primary/10" />
-                  <div className="h-2 w-1/2 rounded-full bg-primary/10" />
-                </div>
+                ))}
               </div>
             </div>
-            <h4 className="text-xl font-medium text-foreground mb-2">No Transactions Yet</h4>
-            <p className="text-sm text-muted-foreground max-w-[250px] leading-relaxed mx-auto">
-              Your wallet activity will appear here once you've made a transaction.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-5 md:space-y-0 md:divide-y md:divide-border/30">
-            {activities.map((activity) => {
-              const isIncome = activity.content?.includes("Received") || activity.content?.includes("Earned") || activity.content?.includes("Claimed") || activity.content?.includes("reward");
-              const amountMatch = activity.content?.match(/(\d[\d,]*)\s*(?:ZP|XP)/i);
-              const amount = amountMatch ? amountMatch[1] : null;
-              return (
-                <div key={activity.id} className="flex items-center justify-between gap-3 md:py-3.5 md:first:pt-0 md:last:pb-0">
-                  <div className="flex items-center gap-4 md:gap-3 min-w-0">
-                    <div className="h-12 w-12 md:h-10 md:w-10 rounded-full overflow-hidden bg-secondary border border-border/40 shrink-0">
+          )}
+
+          {transactions.length > 0 ? (
+            <div className="mt-1">
+              {transactions.map((entry, index) => {
+                const credit = entry.direction === "credit";
+                const heading = dayHeading(entry.created_at);
+                const showHeading = index === 0 || dayHeading(transactions[index - 1].created_at) !== heading;
+                return (
+                  <div key={entry.id}>
+                    {showHeading && <p className="px-4 pb-1 pt-3 text-[12px] font-semibold text-muted-foreground">{heading}</p>}
+                    <Link
+                      to="/app/wallet/transaction/$id"
+                      params={{ id: entry.id }}
+                      className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-foreground/[0.02]"
+                    >
+                      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${credit ? "bg-success/10 text-success" : "bg-foreground/[0.06] text-foreground"}`}>
+                        {credit ? <ArrowDownLeft className="h-[18px] w-[18px]" /> : <ArrowUpRight className="h-[18px] w-[18px]" />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[15px] font-medium text-foreground">
+                          {entry.description || (credit ? "Money in" : "Money out")}
+                        </span>
+                        <span className="block truncate text-[12px] capitalize text-muted-foreground">
+                          {new Date(entry.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {entry.source ? ` · ${String(entry.source).replaceAll("_", " ")}` : ""}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-right">
+                        <span className={`block whitespace-nowrap text-[15px] font-semibold tabular-nums ${credit ? "text-success" : "text-foreground"}`}>
+                          {credit ? "+" : "−"}{format(Number(entry.amount) || 0)}
+                        </span>
+                        {entry.balance_after !== null && entry.balance_after !== undefined && (
+                          <span className="block text-[12px] tabular-nums text-muted-foreground">Balance {format(Number(entry.balance_after) || 0)}</span>
+                        )}
+                      </span>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="flex flex-col items-center px-8 py-12 text-center">
+              <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]">
+                <Receipt className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <h3 className="font-display text-[17px] font-semibold text-foreground">No transactions yet</h3>
+              <p className="mt-1 max-w-[250px] text-[14px] leading-relaxed text-muted-foreground">Your wallet activity will appear here once you've made a transaction.</p>
+            </div>
+          ) : (
+            <div className="mt-1">
+              {activities.map((activity) => {
+                const isIncome = activity.content?.includes("Received") || activity.content?.includes("Earned") || activity.content?.includes("Claimed") || activity.content?.includes("reward");
+                const amountMatch = activity.content?.match(/(\d[\d,]*)\s*(?:ZP|XP)/i);
+                const amount = amountMatch ? amountMatch[1] : null;
+                return (
+                  <div key={activity.id} className="flex items-center gap-3 px-4 py-2.5">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[14px] font-semibold text-muted-foreground">
                       {activity.actor?.avatar_url ? (
-                        <img src={activity.actor.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                        <img src={activity.actor.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-muted-foreground font-bold">
-                          {activity.actor?.username?.[0]?.toUpperCase()}
-                        </div>
+                        activity.actor?.username?.[0]?.toUpperCase()
                       )}
-                    </div>
-                    <div className="min-w-0">
-                      <h5 className="text-sm font-medium text-foreground md:text-[13px] md:leading-snug md:line-clamp-2">{activity.content}</h5>
-                      <p className="text-xs text-muted-foreground mt-0.5">{new Date(activity.created_at).toLocaleDateString()}</p>
-                    </div>
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-2 block text-[14px] text-foreground">{activity.content}</span>
+                      <span className="block text-[12px] text-muted-foreground">{new Date(activity.created_at).toLocaleDateString()}</span>
+                    </span>
+                    <span className={`shrink-0 whitespace-nowrap text-[15px] font-semibold tabular-nums ${isIncome ? "text-success" : "text-foreground"}`}>
+                      {amount ? `${isIncome ? "+" : "−"}${amount} ZP` : "—"}
+                    </span>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className={`text-sm font-bold tabular-nums whitespace-nowrap ${isIncome ?'text-emerald-500' : 'text-foreground'}`}>
-                      {amount ? `${isIncome ? '+' : '-'}${amount} ZP` : '—'}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

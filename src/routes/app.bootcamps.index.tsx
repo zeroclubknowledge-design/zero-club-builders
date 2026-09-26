@@ -1,7 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowRight, Bell, BookOpen, Building2, CalendarClock, Search, Users, X,
-} from "@/components/icons/glyphs";
+import { BookOpen, Building2, CalendarClock, Search, X } from "@/components/icons/glyphs";
 import { useMemo, useState } from "react";
 import { getBootcamps } from "@/api";
 import { useQuery } from "@tanstack/react-query";
@@ -17,20 +15,20 @@ export const Route = createFileRoute("/app/bootcamps/")({
 const relationCount = (value: any) => Number(Array.isArray(value) ? value[0]?.count : value?.count) || 0;
 function BootcampCover({ bootcamp, className = '', compact = false }: { bootcamp: any; className?: string; compact?: boolean }) {
   return (
-    <div className={`relative overflow-hidden bg-[#171318] ${className}`}>
+    <div className={`relative overflow-hidden bg-foreground/[0.06] ${className}`}>
       {bootcamp.banner_url ? (
         <img src={bootcamp.banner_url} alt={`${bootcamp.title} bootcamp`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
       ) : (
-        <div className="grid h-full w-full place-items-center bg-primary/[0.08]">
-          <BookOpen className={`text-primary/60 ${compact ? 'h-5 w-5' : 'h-9 w-9'}`} />
+        <div className="grid h-full w-full place-items-center bg-foreground/[0.06]">
+          <BookOpen className={`text-muted-foreground ${compact ? 'h-5 w-5' : 'h-9 w-9'}`} />
         </div>
       )}
       {/* The badge is wider than a 64px thumbnail, so at that size it says
           "Institution" by spilling over the artwork. The row beside it already
           names the tutor or institution, so it is simply dropped there. */}
       {!compact && bootcamp.profiles?.account_type === 'Institution' && (
-        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-md bg-background/95 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground shadow-sm backdrop-blur-sm">
-          <Building2 className="h-3 w-3" /> Institution
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-card/95 px-2.5 py-1 text-[12px] font-semibold text-foreground">
+          <Building2 className="h-3.5 w-3.5" /> Institution
         </span>
       )}
     </div>
@@ -67,121 +65,122 @@ function Bootcamps() {
   const showFeatured = activeCategory === 'All' && !searchQuery.trim() && filteredCamps.length > 0;
   const featured = showFeatured ? filteredCamps[0] : null;
   const catalogue = featured ? filteredCamps.slice(1) : filteredCamps;
-  const totalLearners = bootcamps.reduce((total: number, camp: any) => total + relationCount(camp.enrollments), 0);
-  const institutionCount = bootcamps.filter((camp: any) => camp.profiles?.account_type === 'Institution').length;
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-12">
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-4 py-3.5 md:px-7">
-          <div>
-            <h1 className="text-[18px] font-semibold tracking-tight md:text-[20px]">Bootcamps</h1>
-            <p className="mt-0.5 hidden text-[11px] text-muted-foreground sm:block">Structured learning led by working tutors and institutions</p>
+    <div className="min-h-screen bg-canvas pb-24 md:pb-12">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto max-w-[900px] px-4 pb-3 pt-3 md:px-6">
+          <h1 className="font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">Learn</h1>
+          <p className="mt-0.5 text-[14px] text-muted-foreground">Learn with a cohort. Leave with proof.</p>
+          <label className="mt-3 flex h-9 w-full items-center gap-2 rounded-lg bg-foreground/[0.05] px-3">
+            <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Skills, bootcamps, tutors or institutions"
+              aria-label="Search bootcamps"
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} aria-label="Clear search" className="grid h-6 w-6 place-items-center rounded-full text-muted-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </label>
+          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`h-8 shrink-0 rounded-full px-3.5 text-[14px] font-semibold tap ${
+                  activeCategory === category ? 'bg-foreground text-background' : 'border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
-          <Link to="/app/notifications" aria-label="Notifications" className="relative grid h-9 w-9 place-items-center rounded-lg bg-card text-foreground shadow-[var(--shadow-card)] transition hover:bg-accent">
-            <Bell className="h-[17px] w-[17px]" />
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-background" />
-          </Link>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1180px] px-4 py-5 md:px-7 md:py-7">
+      <main className="mx-auto w-full max-w-[900px]">
         <UpcomingRegistrations />
 
-        <section className="pb-6 md:flex md:items-end md:justify-between md:gap-8 md:pb-8">
-          <div className="max-w-xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">Learning catalogue</p>
-            <h2 className="mt-2 text-[24px] font-semibold leading-tight tracking-tight text-foreground md:text-[30px]">Learn with a cohort. Leave with proof.</h2>
-            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground md:text-[14px]">Find live, structured programmes where lessons lead to shipped work, feedback, and visible progress.</p>
-          </div>
-          <div className="mt-5 grid grid-cols-3 rounded-xl bg-card py-3.5 shadow-[var(--shadow-card)] md:mt-0 md:min-w-[330px]">
-            <div className="px-3 text-center"><p className="text-[17px] font-semibold tabular-nums">{bootcamps.length}</p><p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">Cohorts</p></div>
-            <div className="px-3 text-center"><p className="text-[17px] font-semibold tabular-nums">{totalLearners}</p><p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">Learners</p></div>
-            <div className="px-3 text-center"><p className="text-[17px] font-semibold tabular-nums">{institutionCount}</p><p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">Institutions</p></div>
-          </div>
-        </section>
-
-        <section className="py-5">
-          <div className="space-y-3">
-            <label className="flex h-12 w-full items-center gap-3 rounded-xl bg-card px-4 shadow-[var(--shadow-card)] transition focus-within:ring-2 focus-within:ring-primary/25 md:h-[52px]">
-              <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-              <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search skills, bootcamps, tutors or institutions" className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground" />
-              {searchQuery && <button onClick={() => setSearchQuery('')} aria-label="Clear search" className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-accent"><X className="h-3.5 w-3.5" /></button>}
-            </label>
-            <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-0.5">
-              {categories.map((category) => (
-                <button key={category} onClick={() => setActiveCategory(category)} className={`h-9 shrink-0 rounded-lg px-3.5 text-[11.5px] font-semibold transition ${activeCategory === category ? 'bg-foreground text-background shadow-[var(--shadow-card)]' : 'bg-card text-muted-foreground shadow-[var(--shadow-card)] hover:text-foreground'}`}>
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="mt-3 flex items-center justify-between px-0.5 text-[10.5px] text-muted-foreground">
-            <span>{isLoading ? 'Loading programmes...' : `${filteredCamps.length} ${filteredCamps.length === 1 ? 'programme' : 'programmes'} found`}</span>
-            {(activeCategory !== 'All' || searchQuery) && <button onClick={() => { setActiveCategory('All'); setSearchQuery(''); }} className="font-semibold text-foreground">Reset filters</button>}
-          </div>
-        </section>
-
         {isLoading ? (
-          <div className="grid gap-2.5 md:grid-cols-2">
-            {[0, 1, 2, 3, 4, 5].map((item) => <div key={item} className="flex items-start gap-3.5 rounded-xl bg-card p-3.5 shadow-[var(--shadow-card)]"><div className="h-16 w-16 shrink-0 rounded-lg shimmer bg-foreground/[0.05]" /><div className="flex-1 space-y-2.5 py-1"><div className="h-3 w-16 rounded shimmer bg-foreground/[0.05]" /><div className="h-4 w-4/5 rounded shimmer bg-foreground/[0.05]" /><div className="h-3 w-2/3 rounded shimmer bg-foreground/[0.05]" /></div></div>)}
-          </div>
+          <section className="mt-2 bg-card px-4 py-2 md:rounded-xl">
+            {[0, 1, 2, 3].map((item) => (
+              <div key={item} className="flex gap-3 border-b border-border py-3 last:border-b-0">
+                <div className="h-16 w-24 shrink-0 rounded-lg bg-foreground/[0.05] shimmer" />
+                <div className="flex-1 space-y-2 py-1">
+                  <div className="h-4 w-4/5 rounded bg-foreground/[0.05] shimmer" />
+                  <div className="h-3 w-2/3 rounded bg-foreground/[0.05] shimmer" />
+                </div>
+              </div>
+            ))}
+          </section>
         ) : isError ? (
-          <div className="rounded-xl bg-card px-6 py-12 text-center shadow-[var(--shadow-card)]"><BookOpen className="mx-auto h-7 w-7 text-primary" /><h3 className="mt-4 text-[16px] font-semibold">We could not load the catalogue</h3><p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">The Bootcamp service did not respond correctly. Your programs are safe; try loading them again.</p><button onClick={() => refetch()} className="mt-5 rounded-lg bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground">Try again</button></div>
+          <div className="mt-2 bg-card px-6 py-14 text-center md:rounded-xl">
+            <BookOpen className="mx-auto h-7 w-7 text-muted-foreground" />
+            <h3 className="mt-4 font-display text-[17px] font-semibold">We could not load the catalogue</h3>
+            <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-muted-foreground">Your programmes are safe; try loading them again.</p>
+            <button onClick={() => refetch()} className="mt-5 h-10 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background">Try again</button>
+          </div>
         ) : (
           <>
             {featured && (
-              <section className="mb-6">
-                <div className="mb-3 flex items-center justify-between"><h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Featured programme</h3><span className="text-[10.5px] text-muted-foreground">Newest active cohort</span></div>
-                <Link to="/app/bootcamps/$id" params={{ id: featured.id }} className="grid overflow-hidden rounded-2xl bg-card shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)] md:grid-cols-[42%_minmax(0,1fr)]">
-                  <BootcampCover bootcamp={featured} className="aspect-[16/9] md:aspect-auto md:min-h-[245px]" />
-                  <div className="flex min-w-0 flex-col p-5 md:p-7">
-                    <div className="flex items-center justify-between gap-4"><span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">{featured.category}</span><span className="text-[13px] font-semibold tabular-nums">{formatPrice(featured.price)}</span></div>
-                    <h3 className="mt-3 text-[21px] font-semibold leading-tight tracking-tight md:text-[25px]">{featured.title}</h3>
-                    <p className="mt-2 line-clamp-3 text-[12.5px] leading-relaxed text-muted-foreground md:text-[13.5px]">{richTextToPlain(featured.description) || 'A structured learning experience built around practical work and community feedback.'}</p>
-                    <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11.5px] text-muted-foreground">
-                      <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {relationCount(featured.enrollments)} learners</span>
-                      <span className="flex items-center gap-1.5"><BookOpen className="h-3.5 w-3.5" /> {relationCount(featured.modules)} sections</span>
-                      <span>By {featured.profiles?.full_name || featured.profiles?.username}</span>
-                    </div>
-                    <div className="mt-auto pt-6"><span className="inline-flex h-10 items-center gap-2 rounded-lg bg-foreground px-4 text-[12px] font-semibold text-background">View programme <ArrowRight className="h-4 w-4" /></span></div>
+              <section className="mt-2 bg-card p-4 md:rounded-xl md:border md:border-border">
+                <p className="text-[12px] font-semibold text-accent">Featured programme</p>
+                <Link to="/app/bootcamps/$id" params={{ id: featured.id }} className="group mt-2.5 block">
+                  <div className="relative overflow-hidden rounded-xl">
+                    <BootcampCover bootcamp={featured} className="aspect-[16/9]" />
+                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-card/95 px-2.5 py-1 text-[12px] font-semibold text-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                      {relationCount(featured.enrollments)} {relationCount(featured.enrollments) === 1 ? 'learner' : 'learners'} enrolled
+                    </span>
+                  </div>
+                  <h2 className="mt-3 font-display text-[20px] font-semibold leading-tight tracking-[-0.01em] text-foreground group-hover:underline">{featured.title}</h2>
+                  <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[13px] text-muted-foreground">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-md bg-foreground/[0.06] text-[11px] font-semibold">
+                      {featured.profiles?.avatar_url ? <img src={featured.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : (featured.profiles?.full_name || featured.profiles?.username || 'T').substring(0, 1).toUpperCase()}
+                    </span>
+                    <span className="truncate">
+                      {featured.profiles?.full_name || featured.profiles?.username}
+                      {featured.category ? ` · ${featured.category}` : ''} · {relationCount(featured.modules)} {relationCount(featured.modules) === 1 ? 'module' : 'modules'}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-[17px] font-semibold tabular-nums text-foreground">{formatPrice(featured.price)}</span>
+                    <span className="inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[15px] font-semibold text-background">View programme</span>
                   </div>
                 </Link>
               </section>
             )}
 
             {catalogue.length > 0 && (
-              <section>
-                <div className="mb-3 flex items-center justify-between"><h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{activeCategory === 'All' ? 'All programmes' : activeCategory}</h3><span className="text-[10.5px] text-muted-foreground">{catalogue.length} available</span></div>
-                {/* The shape "Your upcoming bootcamps" uses: cover on the left,
-                    everything worth reading in one column beside it. A grid of
-                    tall cover cards made every programme look the same and put
-                    three titles on a phone screen; this puts eight, and the
-                    title is the first thing read rather than a stock image. */}
-                <div className="grid gap-2.5 md:grid-cols-2">
+              <section className="mt-2 bg-card px-4 pb-1 pt-3 md:rounded-xl md:border md:border-border">
+                <div className="flex items-baseline justify-between">
+                  <h2 className="font-display text-[18px] font-semibold text-foreground">{activeCategory === 'All' ? 'Catalogue' : activeCategory}</h2>
+                  <span className="text-[13px] text-muted-foreground">{catalogue.length} {catalogue.length === 1 ? 'programme' : 'programmes'}</span>
+                </div>
+                <div className="md:grid md:grid-cols-2 md:gap-x-6">
                   {catalogue.map((camp: any) => (
                     <Link
                       key={camp.id}
                       to="/app/bootcamps/$id"
                       params={{ id: camp.id }}
-                      className="group flex w-full min-w-0 items-start gap-3.5 rounded-xl bg-card p-3.5 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)] active:scale-[0.99]"
+                      className="group flex min-w-0 gap-3 border-b border-border py-3 last:border-b-0"
                     >
-                      <BootcampCover bootcamp={camp} compact className="h-16 w-16 shrink-0 overflow-hidden rounded-lg" />
-                      {/* min-w-0 on a flex child, or a long title stops the
-                          truncation working and pushes the price off-screen. */}
+                      <BootcampCover bootcamp={camp} compact className="h-16 w-24 shrink-0 rounded-lg" />
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-3">
-                          <span className="truncate text-[9.5px] font-semibold uppercase tracking-[0.1em] text-primary">{camp.category}</span>
-                          <span className="shrink-0 text-[12px] font-semibold tabular-nums">{formatPrice(camp.price)}</span>
-                        </div>
-                        <h4 className="mt-1 line-clamp-2 text-[13.5px] font-semibold leading-snug tracking-tight transition-colors group-hover:text-primary">{camp.title}</h4>
-                        <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-muted-foreground">{richTextToPlain(camp.description) || 'Structured lessons, feedback, and practical work.'}</p>
-                        <div className="mt-2 flex min-w-0 items-center gap-2 text-[10px] text-muted-foreground">
-                          <span className="grid h-5 w-5 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[8px] font-semibold">{camp.profiles?.avatar_url ? <img src={camp.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : (camp.profiles?.full_name || camp.profiles?.username || 'T').substring(0, 1).toUpperCase()}</span>
-                          <span className="min-w-0 flex-1 truncate">{camp.profiles?.full_name || camp.profiles?.username}</span>
-                          <span className="flex shrink-0 items-center gap-1"><Users className="h-3 w-3" /> {relationCount(camp.enrollments)}</span>
-                          <span className="flex shrink-0 items-center gap-1"><BookOpen className="h-3 w-3" /> {relationCount(camp.modules)}</span>
-                        </div>
+                        <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug tracking-normal text-foreground [font-family:inherit] group-hover:underline">{camp.title}</h3>
+                        <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                          By {camp.profiles?.full_name || camp.profiles?.username}
+                          {camp.profiles?.account_type === 'Institution' ? ' · Institution' : ''}
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-muted-foreground">
+                          {relationCount(camp.modules)} {relationCount(camp.modules) === 1 ? 'module' : 'modules'} · {relationCount(camp.enrollments)} {relationCount(camp.enrollments) === 1 ? 'learner' : 'learners'} ·{' '}
+                          <b className={`font-semibold ${Number(camp.price || 0) > 0 ? 'text-foreground' : 'text-success'}`}>{formatPrice(camp.price)}</b>
+                        </p>
                       </div>
                     </Link>
                   ))}
@@ -190,11 +189,11 @@ function Bootcamps() {
             )}
 
             {filteredCamps.length === 0 && (
-              <div className="flex min-h-72 flex-col items-center justify-center rounded-xl bg-card px-6 text-center shadow-[var(--shadow-card)]">
-                <div className="grid h-12 w-12 place-items-center rounded-xl bg-accent/40"><Search className="h-5 w-5 text-muted-foreground" /></div>
-                <h3 className="mt-4 text-[16px] font-semibold tracking-tight">No matching bootcamps</h3>
-                <p className="mt-1.5 max-w-xs text-[12.5px] leading-relaxed text-muted-foreground">Try another skill, tutor, institution, or reset the current category.</p>
-                <button onClick={() => { setActiveCategory('All'); setSearchQuery(''); }} className="mt-5 rounded-lg bg-foreground px-4 py-2.5 text-[12px] font-semibold text-background">Reset search</button>
+              <div className="mt-2 flex flex-col items-center bg-card px-6 py-14 text-center md:rounded-xl">
+                <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]"><Search className="h-5 w-5 text-muted-foreground" /></div>
+                <h3 className="mt-4 font-display text-[17px] font-semibold">No matching bootcamps</h3>
+                <p className="mt-1.5 max-w-xs text-[14px] leading-relaxed text-muted-foreground">Try another skill, tutor or institution.</p>
+                <button onClick={() => { setActiveCategory('All'); setSearchQuery(''); }} className="mt-5 h-10 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background">Reset search</button>
               </div>
             )}
           </>
@@ -226,46 +225,36 @@ function UpcomingRegistrations() {
   if (!data.length) return null;
 
   return (
-    <section className="mb-6 overflow-hidden rounded-2xl bg-primary/[0.045] p-4 shadow-[var(--shadow-card)] sm:p-5">
-      {/* shrink-0 on the icon and min-w-0 on the heading keep this row inside
-          the card on narrow phones; without them the row can overflow. */}
+    <section className="mt-2 bg-card px-4 pb-1 pt-3 md:rounded-xl md:border md:border-border">
       <div className="flex min-w-0 items-center gap-2">
-        <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
-        <h2 className="min-w-0 flex-1 text-[13.5px] font-semibold leading-snug tracking-tight">
-          Your upcoming bootcamps
-        </h2>
+        <CalendarClock className="h-5 w-5 shrink-0 text-accent" />
+        <h2 className="min-w-0 flex-1 font-display text-[16px] font-semibold text-foreground">Your upcoming bootcamps</h2>
       </div>
-      <div className="mt-3 grid min-w-0 gap-2.5 sm:grid-cols-2">
+      <div className="mt-1">
         {data.map((registration: any) => {
           const live = registration.registration_status === "enrolled"
             || (registration.starts_at && new Date(registration.starts_at) <= new Date());
           const countdown = formatCountdown(registration.starts_at);
           return (
             /* min-w-0 on the link itself matters as much as on the text inside
-               it. A grid item defaults to min-width:auto, so without this a
-               long bootcamp name stretches the card past the screen edge and
-               the status badge disappears off-screen. */
+               it, or a long bootcamp name stretches the row past the screen. */
             <Link
               key={registration.id}
               to="/app/bootcamps/$id"
               params={{ id: registration.bootcamp_id }}
-              className="flex w-full min-w-0 items-start gap-3 overflow-hidden rounded-xl bg-card p-3 shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-lift)]"
+              className="flex w-full min-w-0 items-center gap-3 border-b border-border py-3 last:border-b-0"
             >
-              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
+              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-foreground/[0.06]">
                 {registration.banner_url && <img src={registration.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
               </div>
               <div className="min-w-0 flex-1">
-                {/* Two lines rather than one truncated line: bootcamp names are
-                    descriptive, and "Vibe Coding Bootcamp: From Idea to
-                    Produc…" hides the part that distinguishes one cohort from
-                    another. */}
-                <p className="line-clamp-2 text-[12.5px] font-semibold leading-snug">{registration.title}</p>
-                <p className="mt-1 truncate text-[10.5px] text-muted-foreground">
+                <p className="line-clamp-2 text-[14px] font-semibold leading-snug text-foreground">{registration.title}</p>
+                <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
                   {live ? "Available now" : countdown ? `Starts in ${countdown}` : "Starting soon"}
                   {Number(registration.amount) > 0 && ` · ${format(registration.amount)} paid`}
                 </p>
               </div>
-              <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[9.5px] font-semibold ${live ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"}`}>
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${live ? "bg-success/10 text-success" : "bg-accent/10 text-accent"}`}>
                 {live ? "Active" : "Registered"}
               </span>
             </Link>
