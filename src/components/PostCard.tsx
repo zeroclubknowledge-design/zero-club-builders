@@ -1,11 +1,10 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { 
-  MoreHorizontal, CheckCircle2, Bookmark, Zap,
-  UserPlus, UserMinus, VolumeX, Volume2, Ban, Flag, Link as LinkIcon,
-  ExternalLink, X, ThumbsUp, MessageSquare, Share2, Repeat, Mail, EyeOff, Send, Trash2, Quote, Clock, Edit3, Rocket, MapPin, Play
+  MoreHorizontal, CheckCircle2, Bookmark, BadgeCheck, Plus,
+  UserMinus, VolumeX, Volume2, Flag, ThumbsUp, MessageSquare, Repeat, Mail, Send, Trash2, Quote, Edit3, Rocket, Play
 } from "@/components/icons/glyphs";
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +15,6 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageLightbox } from './ImageLightbox';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { likePostAction, unlikePostAction } from "@/api";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
@@ -52,7 +50,7 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
 
   if (isVideoUrl(url)) {
     return (
-      <div className="mt-3 flex w-full justify-center">
+      <div className="mt-3 w-full bg-black">
         <div
           role="button"
           tabIndex={0}
@@ -67,12 +65,12 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
             event.stopPropagation();
             onOpen();
           }}
-          className="group/media relative inline-flex max-w-full cursor-zoom-in overflow-hidden rounded-[10px] border border-border/70 bg-black shadow-sm"
+          className="group/media relative mx-auto flex max-w-full cursor-zoom-in justify-center"
         >
           <video
             ref={videoRef}
             src={url}
-            className="block h-auto max-h-[380px] w-auto max-w-full object-contain [clip-path:inset(0_round_10px)] sm:max-h-[420px] md:max-h-[440px]"
+            className="block h-auto max-h-[520px] w-auto max-w-full object-contain"
             muted={isMuted}
             loop
             playsInline
@@ -98,7 +96,7 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
   }
 
   return (
-    <div className="mt-3 flex w-full justify-center">
+    <div className="mt-3 w-full bg-foreground/[0.03]">
       <img
         src={url}
         alt="Post media"
@@ -109,7 +107,7 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
           event.stopPropagation();
           onOpen();
         }}
-        className="block h-auto max-h-[380px] w-auto max-w-full cursor-zoom-in rounded-[10px] border border-border/70 object-contain shadow-sm transition-opacity hover:opacity-[0.98] sm:max-h-[420px] md:max-h-[440px]"
+        className="mx-auto block h-auto max-h-[560px] w-full cursor-zoom-in object-cover transition-opacity hover:opacity-[0.98]"
       />
     </div>
   );
@@ -125,7 +123,7 @@ function FeedMediaGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: numbe
       : "grid-cols-2 grid-rows-2 h-[260px] sm:h-[320px] md:h-[360px]";
 
   return (
-    <div className={`mt-3 grid w-full gap-0.5 overflow-hidden rounded-[10px] border border-border/70 bg-border/40 ${gridClass}`}>
+    <div className={`mt-3 grid w-full gap-0.5 overflow-hidden bg-card ${gridClass}`}>
       {visibleUrls.map((url, index) => (
         <div
           key={`${url}-${index}`}
@@ -413,310 +411,311 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
     }
   };
 
+  const timeAgo = post.created_at
+    ? formatDistanceToNow(new Date(post.created_at)).replace('about ', '').replace(' minutes', 'm').replace(' minute', 'm').replace(' hours', 'h').replace(' hour', 'h').replace(' days', 'd').replace(' day', 'd').replace(' months', 'mo').replace(' month', 'mo').replace(' years', 'y').replace(' year', 'y').replace('less than am', '<1m')
+    : 'now';
+  const authorRole =
+    post.profiles?.account_type === 'Institution' ? 'Institution' : post.profiles?.account_type === 'Tutor' ? 'Tutor' : 'Builder';
+  const repostCount = Math.max(0,
+    (post.computed_reposts_count ?? post.reposts_count ?? 0) + (hasReposted && !post.hasReposted ? 1 : (!hasReposted && post.hasReposted ? -1 : 0)) +
+    (post.computed_quotes_count ?? 0) + (hasQuoted && !post.hasQuoted ? 1 : (!hasQuoted && post.hasQuoted ? -1 : 0))
+  );
+  const openMedia = (urls: string[], index: number) => {
+    setLightboxUrls(urls);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+  const actionClass = "flex h-full flex-col items-center justify-center gap-0.5 text-[12px] font-semibold tap transition-colors hover:bg-foreground/[0.03]";
+
   return (
-    <article className="border-b border-border bg-background transition-colors duration-200 hover:bg-foreground/[0.015] md:mx-3 md:my-3 md:rounded-lg md:border">
-      <div className="px-4 py-4 sm:px-5 sm:py-5">
-        {post.type === 'repost' && (
-          <div className="flex items-center gap-2 mb-2.5 pl-[52px] text-muted-foreground">
-            <Repeat className="h-3 w-3 opacity-60" />
-            <span className="text-[11px] font-medium tracking-tight text-muted-foreground/70">{post.reposted_by} reposted</span>
+    <article className="mt-2 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+      {post.type === 'repost' && (
+        <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-[12px] text-muted-foreground">
+          <Repeat className="h-3.5 w-3.5" />
+          <span className="truncate"><span className="font-semibold text-foreground">{post.reposted_by}</span> reposted this</span>
+        </div>
+      )}
+
+      <header className="flex items-start gap-2.5 px-4 pt-3">
+        <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex min-w-0 flex-1 items-start gap-2.5 tap">
+          <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
+            {post.profiles?.avatar_url ? (
+              <img src={post.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+            ) : (
+              (post.profiles?.full_name || post.profiles?.username || 'U').substring(0, 1).toUpperCase()
+            )}
           </div>
-        )}
-        <header className="flex items-start justify-between mb-3">
-          <Link
-            to="/app/profile/$id"
-            params={{ id: post.author_id }}
-            className="flex items-center gap-3 tap min-w-0"
+          <div className="min-w-0">
+            <div className="flex items-center gap-1">
+              <span className="truncate text-[15px] font-semibold text-foreground">{post.profiles?.full_name || post.profiles?.username}</span>
+              {(post.profiles?.tier === 'Premium' || post.profiles?.tier === 'Premium+') && (
+                <BadgeCheck
+                  aria-label={post.profiles.tier}
+                  className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === 'Premium+' ? 'text-[#e0a800]' : 'text-accent'}`}
+                />
+              )}
+            </div>
+            <p className="truncate text-[13px] leading-snug text-muted-foreground">
+              {authorRole}{post.profiles?.username ? ` · @${post.profiles.username}` : ''}
+            </p>
+            <p className="flex items-center gap-1 text-[12px] leading-snug text-muted-foreground">
+              <span className="tabular-nums">{timeAgo}</span>
+              {post.is_build_post && (
+                <>
+                  <span aria-hidden>·</span>
+                  <Rocket className="h-3.5 w-3.5" />
+                  <span>Shipped a project</span>
+                </>
+              )}
+              {post.location && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="truncate">{post.location}</span>
+                </>
+              )}
+            </p>
+          </div>
+        </Link>
+
+        {!isOwnPost && currentUser && !isFollowingAuthor && (
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                const next = await toggleFollowAuthor();
+                if (next) toast.success(`Now following ${getFirstName(post.profiles)}`);
+              } catch (error: any) {
+                toast.error(error.message || "Could not follow");
+              }
+            }}
+            className="flex h-8 shrink-0 items-center gap-0.5 text-[14px] font-semibold text-accent tap hover:opacity-80"
           >
-            <div className="relative shrink-0">
-              <div className="h-10 w-10 rounded-full bg-muted overflow-hidden flex items-center justify-center font-semibold text-muted-foreground text-xs ring-1 ring-border">
-                {post.profiles?.avatar_url ? (
-                  <img src={post.profiles.avatar_url} alt={post.profiles.username} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                ) : (
-                  (post.profiles?.full_name || post.profiles?.username || 'U').substring(0, 1).toUpperCase()
-                )}
-              </div>
-              {post.profiles?.tier === 'Premium' && (
-                <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-primary ring-2 ring-background">
-                  <CheckCircle2 className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
-                </span>
-              )}
-              {post.profiles?.tier === 'Premium+' && (
-                <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#ffcf00] ring-2 ring-background">
-                  <CheckCircle2 className="h-2.5 w-2.5 text-black" strokeWidth={3} />
-                </span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[15px] font-semibold tracking-tight text-foreground leading-tight">{post.profiles?.full_name || post.profiles?.username}</span>
-                {post.is_build_post && (
-                  <div className="flex items-center gap-1">
-                    <span className="flex items-center gap-1 rounded-full bg-primary/8 px-2 py-0.5 text-[10px] font-medium text-primary ring-1 ring-primary/15">
-                      <Rocket className="h-2.5 w-2.5" /> Ship
-                    </span>
-                    {post.is_verified_build && (
-                      <span className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success ring-1 ring-success/20">
-                        <CheckCircle2 className="h-2.5 w-2.5" /> Proof
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <span className="text-[12px] text-muted-foreground mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-tight">
-                <span className="truncate max-w-[110px] sm:max-w-[160px] font-medium">@{post.profiles?.username}</span>
-                <span className="opacity-40 shrink-0">·</span>
-                <span className="shrink-0 tabular-nums">
-                  {post.created_at ? formatDistanceToNow(new Date(post.created_at)).replace('about ', '').replace(' minutes', 'm').replace(' minute', 'm').replace(' hours', 'h').replace(' hour', 'h').replace(' days', 'd').replace(' day', 'd').replace(' months', 'mo').replace(' month', 'mo').replace(' years', 'y').replace(' year', 'y').replace('less than am', '<1m') : 'now'}
-                </span>
-                {post.location && (
-                  <>
-                    <span className="opacity-40 shrink-0 hidden sm:inline">·</span>
-                    <span className="flex items-center gap-1 shrink-0 truncate max-w-[120px] hidden sm:inline-flex">
-                      <MapPin className="h-3 w-3 opacity-60" />
-                      {post.location}
-                    </span>
-                  </>
-                )}
-              </span>
-            </div>
-          </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="grid h-8 w-8 place-items-center -mr-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-foreground/5 transition-colors">
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
-              <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleShare}>
-                <Send className="h-4 w-4" />
-                <span className="font-medium text-sm">Send</span>
-              </DropdownMenuItem>
-              {!isOwnPost && (
-                <DropdownMenuItem 
-                  className="flex items-center gap-3 py-2.5 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.navigate({ to: `/app/chat/${post.author_id}` });
-                  }}
-                >
-                  <Mail className="h-4 w-4" />
-                  <span className="font-medium text-sm">Message {getFirstName(post.profiles)}</span>
-                </DropdownMenuItem>
-              )}
-              {!isOwnPost && (
-                <DropdownMenuItem 
-                  className="flex items-center gap-3 py-2.5 cursor-pointer"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if (!currentUser) return;
-                    try {
-                      const next = await toggleFollowAuthor();
-                      if (next !== null) {
-                        toast.success(next ? `Now following ${getFirstName(post.profiles)}!` : `Unfollowed ${getFirstName(post.profiles)}`);
-                      }
-                    } catch (error: any) {
-                      toast.error(error.message || "Could not update follow");
-                    }
-                  }}
-                >
-                  {isFollowingAuthor ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                  <span className="font-medium text-sm">{isFollowingAuthor ? "Unfollow" : "Follow"} {getFirstName(post.profiles)}</span>
-                </DropdownMenuItem>
-              )}
-              {isEditable && (
-                <DropdownMenuItem 
-                  onClick={handleEditClick}
-                  className="cursor-pointer text-blue-500 hover:text-blue-600 focus:text-blue-600"
-                >
-                  <Edit3 className="mr-2 h-4 w-4" />
-                  <span className="text-sm">Edit Post</span>
-                </DropdownMenuItem>
-              )}
-              {isOwnPost && (
-                <DropdownMenuItem 
-                  className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive font-bold"
-                  onClick={handleDeletePost}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="text-sm">Delete Post</span>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem 
-                className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive"
+            <Plus className="h-4 w-4" />
+            Follow
+          </button>
+        )}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button aria-label="More options" className="-mr-2 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
+            <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleBookmark}>
+              <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
+              <span className="font-medium text-sm">{isBookmarked ? 'Saved' : 'Save'}</span>
+            </DropdownMenuItem>
+            {!isOwnPost && (
+              <DropdownMenuItem
+                className="flex items-center gap-3 py-2.5 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  toast.success("Post reported. Thank you for keeping the club safe!");
+                  router.navigate({ to: `/app/chat/${post.author_id}` });
                 }}
               >
-                <Flag className="h-4 w-4" />
-                <span className="font-medium text-sm">Report post</span>
+                <Mail className="h-4 w-4" />
+                <span className="font-medium text-sm">Message {getFirstName(post.profiles)}</span>
               </DropdownMenuItem>
+            )}
+            {!isOwnPost && isFollowingAuthor && (
+              <DropdownMenuItem
+                className="flex items-center gap-3 py-2.5 cursor-pointer"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const next = await toggleFollowAuthor();
+                    if (next === false) toast.success(`Unfollowed ${getFirstName(post.profiles)}`);
+                  } catch (error: any) {
+                    toast.error(error.message || "Could not update follow");
+                  }
+                }}
+              >
+                <UserMinus className="h-4 w-4" />
+                <span className="font-medium text-sm">Unfollow {getFirstName(post.profiles)}</span>
+              </DropdownMenuItem>
+            )}
+            {isEditable && (
+              <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleEditClick}>
+                <Edit3 className="h-4 w-4" />
+                <span className="font-medium text-sm">Edit post</span>
+              </DropdownMenuItem>
+            )}
+            {isOwnPost && (
+              <DropdownMenuItem
+                className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive"
+                onClick={handleDeletePost}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="font-medium text-sm">Delete post</span>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              className="flex items-center gap-3 py-2.5 cursor-pointer text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.success("Post reported. Thank you for keeping the club safe!");
+              }}
+            >
+              <Flag className="h-4 w-4" />
+              <span className="font-medium text-sm">Report post</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </header>
 
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </header>
+      <Link to="/app/post/$id" params={{ id: postId }} className="block">
+        <div className="px-4 pt-2.5">
+          <div className="line-clamp-3 whitespace-pre-wrap text-[14.5px] leading-[1.5] text-foreground">
+            <LinkifiedText text={displayContent} />
+            {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
+              <span className="ml-1.5 text-[12px] text-muted-foreground">· edited</span>
+            )}
+          </div>
+          {displayContent?.length > 150 && (
+            <span className="text-[14px] text-muted-foreground">…more</span>
+          )}
+          {post.is_build_post && post.is_verified_build && (
+            <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[12px] font-semibold text-success">
+              <CheckCircle2 className="h-3.5 w-3.5 fill-current" /> Verified proof
+            </span>
+          )}
+        </div>
 
-        <Link
-          to="/app/post/$id"
-          params={{ id: postId }}
-          className="block group"
-        >
-          <div className="space-y-3">
-            <div className="relative">
-              <div className="text-[15px] text-foreground/90 leading-[1.55] tracking-[-0.005em] whitespace-pre-wrap line-clamp-3">
-                <LinkifiedText text={displayContent} />
-                {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
-                  <span className="text-[10px] text-muted-foreground/60 ml-1.5 font-medium">· edited</span>
+        {post.media_urls && post.media_urls.length > 0 && (
+          <AdaptiveFeedMedia urls={post.media_urls} onOpen={(index) => openMedia(post.media_urls, index)} />
+        )}
+
+        {post.quoted_posts && (
+          <div
+            className="mx-4 mt-3 cursor-pointer rounded-xl border border-border p-3.5 transition-colors hover:bg-foreground/[0.02]"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.navigate({ to: '/app/post/$id', params: { id: post.quoted_posts.id } });
+            }}
+          >
+            <div className="mb-1.5 flex items-center gap-2">
+              <div className="grid h-6 w-6 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[12px] font-semibold text-muted-foreground">
+                {post.quoted_posts.profiles?.avatar_url ? (
+                  <img src={post.quoted_posts.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                ) : (
+                  (post.quoted_posts.profiles?.username || 'U')[0].toUpperCase()
                 )}
               </div>
-              {displayContent?.length > 150 && (
-                <span className="text-muted-foreground hover:text-foreground text-[13px] font-medium mt-1.5 inline-block transition-colors">Read more →</span>
-              )}
+              <span className="truncate text-[14px] font-semibold">{post.quoted_posts.profiles?.full_name || post.quoted_posts.profiles?.username}</span>
             </div>
-
-            {post.media_urls && post.media_urls.length > 0 && (
-              <AdaptiveFeedMedia
-                urls={post.media_urls}
-                onOpen={(index) => {
-                  setLightboxUrls(post.media_urls);
-                  setLightboxIndex(index);
-                  setLightboxOpen(true);
-                }}
-              />
-              )}
-
-            {/* Quoted Post Mini-Card */}
-            {post.quoted_posts && (
+            <div className="line-clamp-2 text-[14px] leading-[1.45] text-foreground/85">
+              <LinkifiedText text={quotedDisplayContent} />
+            </div>
+            {post.quoted_posts.media_urls?.[0] && (
               <div
-                className="mt-3 cursor-pointer rounded-lg border border-border bg-card/50 p-3.5 transition-colors hover:bg-card"
+                className="mt-3 overflow-hidden rounded-lg"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  router.navigate({ to: '/app/post/$id', params: { id: post.quoted_posts.id } });
+                  openMedia(post.quoted_posts.media_urls, 0);
                 }}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-5 w-5 rounded-full overflow-hidden bg-muted flex items-center justify-center text-[10px] font-semibold text-muted-foreground">
-                    {post.quoted_posts.profiles?.avatar_url ? (
-                      <img src={post.quoted_posts.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                    ) : (
-                      (post.quoted_posts.profiles?.username || 'U')[0].toUpperCase()
-                    )}
-                  </div>
-                  <span className="text-[13px] font-semibold tracking-tight truncate">{post.quoted_posts.profiles?.full_name || post.quoted_posts.profiles?.username}</span>
-                  <span className="text-[11px] text-muted-foreground truncate">@{post.quoted_posts.profiles?.username}</span>
-                </div>
-                <div className="text-[13px] line-clamp-2 text-foreground/85 leading-[1.55] mb-1">
-                  <LinkifiedText text={quotedDisplayContent} />
-                </div>
-                {post.quoted_posts.media_urls?.[0] && (
-                  <div
-                    className="relative mt-3 flex w-full cursor-pointer items-center justify-center"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setLightboxUrls(post.quoted_posts.media_urls);
-                      setLightboxIndex(0);
-                      setLightboxOpen(true);
-                    }}
-                  >
-                    {isVideoUrl(post.quoted_posts.media_urls[0]) ? (
-                      <video src={post.quoted_posts.media_urls[0]} className="block h-auto max-h-[180px] w-auto max-w-full rounded-[8px] border border-border/70 bg-black object-contain sm:max-h-[200px]" muted playsInline preload="metadata" />
-                    ) : (
-                      <img src={post.quoted_posts.media_urls[0]} alt="Quoted post media" loading="lazy" decoding="async" className="block h-auto max-h-[180px] w-auto max-w-full rounded-[8px] border border-border/70 object-contain sm:max-h-[200px]" />
-                    )}
-                  </div>
+                {isVideoUrl(post.quoted_posts.media_urls[0]) ? (
+                  <video src={post.quoted_posts.media_urls[0]} className="block max-h-[200px] w-full bg-black object-contain" muted playsInline preload="metadata" />
+                ) : (
+                  <img src={post.quoted_posts.media_urls[0]} alt="Quoted post media" loading="lazy" decoding="async" className="block max-h-[200px] w-full object-cover" />
                 )}
               </div>
             )}
           </div>
-        </Link>
+        )}
+      </Link>
 
-        <footer className="mt-4 -ml-2 flex max-w-md items-center justify-between md:mx-auto md:grid md:w-full md:max-w-[620px] md:grid-cols-5 md:border-t md:border-border/60 md:pt-3">
+      {/* Who reacted, and how much conversation there is — above the actions,
+          so the buttons themselves carry no numbers. */}
+      {(likesCount > 0 || commentsCount > 0 || repostCount > 0) && (
+        <div className="flex items-center justify-between gap-3 px-4 pt-2.5 text-[12px] text-muted-foreground">
+          <span className="flex min-w-0 items-center gap-1.5">
+            {likesCount > 0 && (
+              <>
+                <span className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
+                  <ThumbsUp className="h-2.5 w-2.5 fill-current" />
+                </span>
+                <span className="truncate tabular-nums">
+                  {liked ? (likesCount > 1 ? `You and ${likesCount - 1} other${likesCount - 1 === 1 ? '' : 's'}` : 'You') : likesCount}
+                </span>
+              </>
+            )}
+          </span>
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               onCommentClick?.(post);
             }}
-            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
+            className="shrink-0 tabular-nums hover:text-foreground hover:underline"
           >
-            <MessageSquare className="h-[17px] w-[17px]" />
-            <span className="text-[12px] font-medium tabular-nums">{commentsCount || ''}</span>
+            {[commentsCount > 0 && `${commentsCount} comment${commentsCount === 1 ? '' : 's'}`, repostCount > 0 && `${repostCount} repost${repostCount === 1 ? '' : 's'}`]
+              .filter(Boolean)
+              .join(' · ')}
           </button>
-          <button
-            onClick={handleLike}
-            className="group/btn flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
-          >
-            <ThumbsUp className={`h-[17px] w-[17px] transition-colors ${liked ? "fill-primary text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`} strokeWidth={liked ? 2 : 1.75} />
-            <span className={`text-[12px] font-medium tabular-nums transition-colors ${liked ? "text-primary" : "text-muted-foreground group-hover/btn:text-primary"}`}>
-              {likesCount || ''}
-            </span>
-          </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3 ${hasReposted || hasQuoted ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
-              >
-                <Repeat className="h-[17px] w-[17px]" />
-                <span className="text-[12px] font-medium tabular-nums">
-                  {(() => {
-                    const n = Math.max(0,
-                      (post.computed_reposts_count ?? post.reposts_count ?? 0) + (hasReposted && !post.hasReposted ? 1 : (!hasReposted && post.hasReposted ? -1 : 0)) +
-                      (post.computed_quotes_count ?? 0) + (hasQuoted && !post.hasQuoted ? 1 : (!hasQuoted && post.hasQuoted ? -1 : 0))
-                    );
-                    return n || '';
-                  })()}
-                </span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
-              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={handleRepost}>
-                <Repeat className="h-4 w-4" />
-                <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="gap-3 py-2.5 cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  router.navigate({
-                    to: '/app/compose',
-                    search: { quote: postId }
-                  });
-                }}
-              >
-                <Quote className="h-4 w-4" />
-                <span className="font-medium text-sm">Quote</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <button
-            onClick={handleBookmark}
-            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-primary/8 md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3 ${isBookmarked ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
-          >
-            <Bookmark className={`h-[17px] w-[17px] ${isBookmarked ? 'fill-current' : ''}`} strokeWidth={isBookmarked ? 2 : 1.75} />
-          </button>
+        </div>
+      )}
 
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 tap hover:bg-foreground/[0.04] text-muted-foreground hover:text-foreground md:mx-auto md:h-9 md:min-w-[76px] md:justify-center md:px-3"
-          >
-            <Share2 className="h-[17px] w-[17px]" />
-          </button>
-        </footer>
-      </div>
+      <div className="mx-4 mt-2.5 h-px bg-border" />
+      <footer className="grid h-[52px] grid-cols-4 text-muted-foreground">
+        <button onClick={handleLike} aria-pressed={liked} className={`${actionClass} ${liked ? 'text-accent' : 'hover:text-foreground'}`}>
+          <ThumbsUp className={`h-5 w-5 ${liked ? 'fill-current' : ''}`} />
+          {liked ? 'Liked' : 'Like'}
+        </button>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onCommentClick?.(post);
+          }}
+          className={`${actionClass} hover:text-foreground`}
+        >
+          <MessageSquare className="h-5 w-5" />
+          Comment
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              className={`${actionClass} ${hasReposted || hasQuoted ? 'text-accent' : 'hover:text-foreground'}`}
+            >
+              <Repeat className="h-5 w-5" />
+              {hasReposted ? 'Reposted' : 'Repost'}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="w-48 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
+            <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={handleRepost}>
+              <Repeat className="h-4 w-4" />
+              <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="gap-3 py-2.5 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.navigate({ to: '/app/compose', search: { quote: postId } });
+              }}
+            >
+              <Quote className="h-4 w-4" />
+              <span className="font-medium text-sm">Quote</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <button onClick={handleShare} className={`${actionClass} hover:text-foreground`}>
+          <Send className="h-5 w-5" />
+          Send
+        </button>
+      </footer>
 
-      <ImageLightbox 
-        mediaUrls={lightboxUrls} 
-        initialIndex={lightboxIndex} 
-        isOpen={lightboxOpen} 
-        onClose={() => setLightboxOpen(false)} 
+      <ImageLightbox
+        mediaUrls={lightboxUrls}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
       />
     </article>
   );

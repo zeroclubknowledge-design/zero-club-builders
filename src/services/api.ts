@@ -161,12 +161,12 @@ export const getPosts = async () => {
     const [{ data: posts, error: postsError }, { data: reposts, error: repostsError }] = await Promise.all([
       supabase
         .from('posts')
-        .select('*, profiles(username, full_name, avatar_url), quoted_posts:quoted_post_id(*, profiles(username, full_name, avatar_url))')
+        .select('*, profiles(username, full_name, avatar_url, account_type, tier), quoted_posts:quoted_post_id(*, profiles(username, full_name, avatar_url))')
         .order('created_at', { ascending: false })
         .limit(50),
       supabase
         .from('reposts')
-        .select('*, posts(*, profiles(username, full_name, avatar_url)), profiles(username, full_name)')
+        .select('*, posts(*, profiles(username, full_name, avatar_url, account_type, tier)), profiles(username, full_name)')
         .order('created_at', { ascending: false })
         .limit(50)
     ]);
@@ -901,36 +901,41 @@ export const editMessageAction = async ({ messageId, content }: { messageId: str
 
 // Search across posts, bootcamps, and tutors
 export const searchEverything = async (query: string) => {
-  if (!query || query.length < 2) return { posts: [], bootcamps: [], profiles: [] };
-  
+  if (!query || query.length < 2) return { posts: [], bootcamps: [], profiles: [], clubs: [] };
+
   const q = `%${query}%`;
-  
-  // 1. Search Posts
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('*, profiles(username, full_name, avatar_url)')
-    .or(`content.ilike.${q}`)
-    .order('created_at', { ascending: false })
-    .limit(20);
 
-  // 2. Search Bootcamps
-  const { data: bootcamps } = await supabase
-    .from('bootcamps')
-    .select('*, profiles!bootcamps_creator_id_fkey(username, full_name, avatar_url)')
-    .or(`title.ilike.${q},description.ilike.${q},category.ilike.${q}`)
-    .eq('status', 'active')
-    .limit(10);
-
-  // 3. Search Profiles (Tutors & Builders)
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('*')
-    .or(`username.ilike.${q},full_name.ilike.${q},bio.ilike.${q}`)
-    .limit(10);
+  // Four independent lookups, so they run side by side rather than one after
+  // another — the search page shows whichever sections come back non-empty.
+  const [posts, bootcamps, profiles, clubs] = await Promise.all([
+    supabase
+      .from('posts')
+      .select('*, profiles(username, full_name, avatar_url, account_type, tier)')
+      .or(`content.ilike.${q}`)
+      .order('created_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('bootcamps')
+      .select('*, profiles!bootcamps_creator_id_fkey(username, full_name, avatar_url)')
+      .or(`title.ilike.${q},description.ilike.${q},category.ilike.${q}`)
+      .eq('status', 'active')
+      .limit(10),
+    supabase
+      .from('profiles')
+      .select('*')
+      .or(`username.ilike.${q},full_name.ilike.${q},bio.ilike.${q}`)
+      .limit(10),
+    supabase
+      .from('clubs')
+      .select('*')
+      .or(`name.ilike.${q},category.ilike.${q}`)
+      .limit(8),
+  ]);
 
   return {
-    posts: posts || [],
-    bootcamps: bootcamps || [],
-    profiles: profiles || []
+    posts: posts.data || [],
+    bootcamps: bootcamps.data || [],
+    profiles: profiles.data || [],
+    clubs: clubs.data || [],
   };
 };

@@ -1,23 +1,26 @@
-import { useLoaderData, createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Heart, MessageCircle, Share2, Plus, Bell, Repeat, Search, MoreHorizontal, CheckCircle2, Flame, Send, X, Zap, Bookmark, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck } from "@/components/icons/glyphs";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { Plus, Flame, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck } from "@/components/icons/glyphs";
 import { useState, useEffect, useMemo } from "react";
-import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
-import { getPosts, searchEverything } from "@/api";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { getPosts } from "@/api";
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
-import { Star, Users, Rocket, UserPlus, FileText, Pencil, Sparkles } from "@/components/icons/glyphs";
+import { Rocket } from "@/components/icons/glyphs";
 import { getCachedSession } from "@/lib/auth";
-import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getFirstName } from "@/lib/utils";
-import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
 export const Route = createFileRoute("/app/")({
+  /* ?create=1 is how the Post tab opens the create sheet from anywhere.
+     ?club and ?ref arrive from sign-in and invite links and are read by the
+     app shell, so they pass through untouched. */
+  validateSearch: (search: Record<string, unknown>): { create?: 1; club?: string; ref?: string } => ({
+    ...(search.create === 1 || search.create === "1" ? { create: 1 as const } : {}),
+    ...(typeof search.club === "string" ? { club: search.club } : {}),
+    ...(typeof search.ref === "string" ? { ref: search.ref } : {}),
+  }),
   component: Feed,
 });
 
@@ -291,7 +294,6 @@ function InstitutionDirectory() {
 }
 
 function Feed() {
-  const { format } = useWalletCurrency();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: postsData, isLoading } = useQuery({ 
@@ -305,12 +307,17 @@ function Feed() {
   
   const [activeTab, setActiveTab] = useState("Discover");
   const [followingIds, setFollowingIds] = useState<string[]>([]);
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [commentPost, setCommentPost] = useState<any>(null);
-  const [searchResults, setSearchResults] = useState<{ posts: any[], bootcamps: any[], profiles: any[] }>({ posts: [], bootcamps: [], profiles: [] });
-  const [isSearching, setIsSearching] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const { create } = Route.useSearch();
+
+  // The Post tab lands here with ?create=1. Open the sheet, then drop the
+  // flag so a refresh or a back navigation does not open it again.
+  useEffect(() => {
+    if (!create) return;
+    setCreateOpen(true);
+    router.navigate({ to: "/app", search: {}, replace: true });
+  }, [create]);
   const [livePickerOpen, setLivePickerOpen] = useState(false);
 
   const { data: liveClubs = [], isLoading: liveClubsLoading } = useQuery({
@@ -344,26 +351,6 @@ function Feed() {
     fetchFollowing();
   }, []);
 
-  useEffect(() => {
-    const handler = setTimeout(async () => {
-      if (searchQuery.length >= 2) {
-        setIsSearching(true);
-        try {
-          const results = await searchEverything(searchQuery);
-          setSearchResults(results);
-        } catch (error) {
-          console.error("Search error:", error);
-        } finally {
-          setIsSearching(false);
-        }
-      } else {
-        setSearchResults({ posts: [], bootcamps: [], profiles: [] });
-      }
-    }, 400);
-
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
-
   async function fetchFollowing() {
     const { data: { session } } = await getCachedSession();
     if (!session) return;
@@ -379,19 +366,6 @@ function Feed() {
   }
 
   const filteredPosts = (posts || []).filter((post: any) => {
-    // Search filter
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const contentMatch = post.content?.toLowerCase().includes(q);
-      const usernameMatch = post.profiles?.username?.toLowerCase().includes(q);
-      const fullNameMatch = post.profiles?.full_name?.toLowerCase().includes(q);
-      
-      if (!contentMatch && !usernameMatch && !fullNameMatch) {
-        return false;
-      }
-    }
-
-    // Tab filter
     if (activeTab === "Following") {
       // Show if user is the author OR if it's a repost from someone the user follows
       const isOriginalFromFollowed = followingIds.includes(post.author_id);
@@ -414,193 +388,36 @@ function Feed() {
   }, [filteredPosts, currentUser]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-20 md:pb-12">
-      {/* Top Header Tabs */}
+    <div className="flex min-h-screen flex-col bg-canvas pb-24 md:pb-12">
       {/* Pinned a pixel under the app header rather than exactly at its edge.
           The header sits above this one, so the overlap is invisible — and it
           means no rounding difference can ever reopen a gap for posts to
           scroll through. */}
-      <header className="sticky top-[calc(var(--zc-header-h)-1px)] z-40 bg-background md:mx-auto md:w-full md:max-w-[780px] md:border-x">
-        <div className="flex min-h-[52px] items-center justify-between px-4 py-1">
-          {!showSearch ? (
-            <>
-              <div className="no-scrollbar flex min-w-0 flex-1 gap-5 overflow-x-auto">
-                {["Discover", "Following", "Live", "Leaderboard", "Institution"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`relative py-3 text-[13.5px] font-semibold tracking-tight transition-colors whitespace-nowrap ${activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"}`}
-                  >
-                    {tab}
-                    {activeTab === tab && (
-                      <div className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t-full bg-foreground" />
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 pl-4">
-                <button
-                  onClick={() => setShowSearch(true)}
-                  className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground tap hover:bg-accent hover:text-foreground"
-                >
-                  <Search className="h-[18px] w-[18px]" />
-                </button>
-                <button
-                  onClick={() => setCreateOpen(true)}
-                  className="hidden items-center gap-1.5 rounded-lg bg-foreground px-4 py-2 text-[12.5px] font-semibold text-background tap hover:opacity-90 md:inline-flex"
-                >
-                  <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Create
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center gap-2 py-2 animate-in fade-in slide-in-from-right-2 duration-200">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Search builders, bootcamps, topics"
-                  className="w-full rounded-lg border border-border bg-card py-2.5 pl-10 pr-4 text-[14px] text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+      <header className="sticky top-[calc(var(--zc-header-h)-1px)] z-40 border-b border-border bg-card md:mx-auto md:w-full md:max-w-[680px] md:border-x">
+        <div className="flex h-11 items-stretch justify-between px-4">
+          <div className="no-scrollbar flex min-w-0 flex-1 gap-[22px] overflow-x-auto">
+            {["Discover", "Following", "Live", "Leaderboard", "Institution"].map((tab) => (
               <button
-                onClick={() => { setShowSearch(false); setSearchQuery(""); }}
-                className="text-sm font-semibold text-foreground px-2 tap"
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative whitespace-nowrap text-[14px] font-semibold transition-colors ${activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"}`}
               >
-                Cancel
+                {tab}
+                {activeTab === tab && <span className="absolute inset-x-0 bottom-0 h-[2px] bg-foreground" />}
               </button>
-            </div>
-          )}
+            ))}
+          </div>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="my-auto ml-4 hidden h-8 items-center gap-1.5 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background tap hover:opacity-90 md:inline-flex"
+          >
+            <Plus className="h-4 w-4" />
+            Create
+          </button>
         </div>
-
       </header>
 
-      <main className="flex-1 bg-background md:mx-auto md:mb-12 md:w-full md:max-w-[780px] md:border-x md:border-b md:border-border/60">
-        {isSearching ? (
-          <div className="flex flex-col items-center justify-center pt-20">
-            <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-              <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
-            </div>
-            <p className="mt-4 text-[13px] text-muted-foreground">Searching the Club</p>
-          </div>
-        ) : searchQuery.length >= 2 ? (
-          <div className="flex flex-col gap-8 pb-10">
-            {/* Profiles/Tutors Section */}
-            {searchResults.profiles.length > 0 && (
-              <section className="px-5 pt-6">
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-4">Builders & Tutors</h3>
-                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                  {searchResults.profiles.map((profile) => (
-                    <Link
-                      key={profile.id}
-                      to="/app/profile/$id"
-                      params={{ id: profile.id }}
-                      className="flex flex-col items-center gap-2 shrink-0 group"
-                    >
-                      <div className="h-16 w-16 rounded-2xl overflow-hidden ring-1 ring-border group-active:scale-95 transition-transform">
-                        {profile.avatar_url ? (
-                          <img src={profile.avatar_url} alt={profile.username} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                        ) : (
-                          <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-xl font-semibold text-white">
-                            {profile.username?.substring(0,1).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[11.5px] font-semibold tracking-tight text-foreground line-clamp-1 w-16">
-                          {profile.full_name || profile.username}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">@{profile.username}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Bootcamps Section */}
-            {searchResults.bootcamps.length > 0 && (
-              <section className="px-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Active Bootcamps</h3>
-                  <Link to="/app/bootcamps" className="text-[11px] font-semibold text-foreground hover:text-primary transition-colors">View all →</Link>
-                </div>
-                <div className="grid gap-3">
-                  {searchResults.bootcamps.map((camp) => (
-                    <Link key={camp.id} to="/app/bootcamps/$id" params={{ id: camp.id }} className="block tap">
-                      <article className="flex gap-4 overflow-hidden rounded-lg bg-card p-3 ring-1 ring-border transition-colors hover:ring-foreground/15">
-                        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted ring-1 ring-border">
-                          {camp.banner_url ? (
-                            <img src={camp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                          ) : (
-                            <div className="h-full w-full bg-gradient-to-br from-primary/15 to-purple-500/10 flex items-center justify-center">
-                              <Rocket className="h-6 w-6 text-primary/50" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 py-1 flex flex-col justify-between min-w-0">
-                          <div>
-                            <h4 className="text-[14px] font-semibold tracking-tight line-clamp-1">{camp.title}</h4>
-                            <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">by {camp.profiles?.full_name || camp.profiles?.username}</p>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[13px] font-semibold text-foreground tabular-nums">{format(Number(camp.price))}</span>
-                            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                              <Users className="h-3 w-3" /> 0 enrolled
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Posts Section */}
-            <section className="px-5">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-4">Posts & Shipped Work</h3>
-              <div className="flex flex-col -mx-5">
-                {searchResults.posts.length > 0 ? (
-                  searchResults.posts.map((post) => (
-                    <PostCard 
-                      key={post.id} 
-                      post={post} 
-                      currentUser={currentUser} 
-                      onCommentClick={setCommentPost} 
-                    />
-                  ))
-                ) : (
-                  <div className="py-10 text-center px-10">
-                    <p className="text-sm text-muted-foreground">No posts matching "{searchQuery}"</p>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {searchResults.profiles.length === 0 && searchResults.bootcamps.length === 0 && searchResults.posts.length === 0 && (
-              <div className="flex flex-col items-center justify-center pt-24 px-8 text-center max-w-sm mx-auto">
-                <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
-                  <Search className="h-6 w-6 text-muted-foreground/60" />
-                </div>
-                <h3 className="text-[17px] font-semibold tracking-tight text-foreground mb-1.5">Nothing matched</h3>
-                <p className="text-[13.5px] text-muted-foreground leading-relaxed">
-                  We couldn't find builders, bootcamps, or posts for <span className="font-medium text-foreground/80">"{searchQuery}"</span>
-                </p>
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="mt-6 text-[13px] font-semibold text-foreground underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground tap"
-                >
-                  Clear search
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
+      <main className="flex-1 md:mx-auto md:mb-12 md:w-full md:max-w-[680px]">
           <>
             {activeTab === 'Leaderboard' ? (
               <Leaderboard currentUserId={currentUser?.id} />
@@ -665,36 +482,37 @@ function Feed() {
               </div>
             ) : (
               <>
-            {/* Desktop inline composer */}
-            <div className="m-3 hidden items-center gap-3.5 rounded-lg border border-border bg-card px-4 py-3 md:flex">
-              <div className="h-10 w-10 rounded-full overflow-hidden ring-1 ring-border shrink-0">
+            {/* The composer strip. Tapping it opens the same create sheet as
+                the Post tab; the rocket goes straight to shipping a project. */}
+            <div className="mt-2 flex items-center gap-3 bg-card px-4 py-3 md:rounded-xl md:border md:border-border">
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
                 {currentUser?.avatar_url ? (
                   <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                 ) : (
-                  <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-[12px] font-semibold text-white uppercase">
+                  <div className="grid h-full w-full place-items-center bg-accent/10 text-[14px] font-semibold uppercase text-accent">
                     {currentUser?.username?.substring(0, 1) || "U"}
                   </div>
                 )}
               </div>
               <button
                 onClick={() => setCreateOpen(true)}
-                className="flex-1 rounded-lg border border-border bg-background px-4 py-3 text-left text-[14px] text-muted-foreground transition-colors tap hover:bg-accent"
+                className="h-11 min-w-0 flex-1 truncate rounded-full border border-foreground/20 px-4 text-left text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.03]"
               >
-                Share what you're building…
+                Share what you shipped
               </button>
               <Link
                 to="/app/ship"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-[12.5px] font-semibold text-foreground tap hover:bg-accent"
+                aria-label="Ship a project"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground"
               >
-                <Rocket className="h-3.5 w-3.5 text-[#cc208f]" strokeWidth={1.75} />
-                Ship
+                <Rocket className="h-[22px] w-[22px]" />
               </Link>
             </div>
 
             {isLoading ? (
-              <div className="flex flex-col pt-2">
+              <div className="flex flex-col">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className="border-b hairline px-5 py-5">
+                  <div key={i} className="mt-2 bg-card px-4 py-4 md:rounded-xl md:border md:border-border">
                     <div className="flex items-start gap-3">
                       <div className="h-10 w-10 rounded-full bg-foreground/[0.05] shimmer" />
                       <div className="flex-1 space-y-2 py-1">
@@ -715,17 +533,17 @@ function Feed() {
                 {memoizedPostCards}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center pt-24 px-8 text-center max-w-sm mx-auto">
-                <div className="h-14 w-14 rounded-full ring-1 ring-border flex items-center justify-center mb-5">
-                  <Flame className="h-6 w-6 text-muted-foreground/60" />
+              <div className="mt-2 flex flex-col items-center bg-card px-8 py-16 text-center md:rounded-xl md:border md:border-border">
+                <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
+                  <Flame className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <h3 className="text-[17px] font-semibold tracking-tight text-foreground mb-1.5">A quiet feed</h3>
-                <p className="text-[13.5px] text-muted-foreground leading-relaxed">
+                <h3 className="mb-1.5 font-display text-[18px] font-semibold text-foreground">A quiet feed</h3>
+                <p className="max-w-xs text-[14px] leading-relaxed text-muted-foreground">
                   Be the first to share your shipped work — it's how the Club rewards proof.
                 </p>
                 <Link
                   to="/app/ship"
-                  className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-[13px] font-semibold tracking-tight text-background tap"
+                  className="mt-6 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[15px] font-semibold text-background tap"
                 >
                   Ship your work
                 </Link>
@@ -734,7 +552,6 @@ function Feed() {
               </>
             )}
           </>
-        )}
       </main>
 
       <CommentDrawer 
@@ -746,13 +563,9 @@ function Feed() {
         }}
       />
 
-      {/* Floating Action Button Action Sheet */}
+      {/* The create sheet, opened by the Post tab, the composer strip and the
+          desktop Create button. */}
       <Drawer open={createOpen} onOpenChange={setCreateOpen}>
-        <DrawerTrigger asChild>
-          <button className="fixed bottom-24 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lift tap hover:opacity-90 md:hidden">
-            <Plus className="h-6 w-6" strokeWidth={2} />
-          </button>
-        </DrawerTrigger>
         <DrawerContent className="mx-auto max-h-[72dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] focus:ring-0">
           {/* One shape for every option, so nothing looks like an
               afterthought — the Go live tile was previously built by hand with

@@ -1,17 +1,6 @@
-import {
-  useLoaderData,
-  createFileRoute,
-  Outlet,
-  Link,
-  useNavigate,
-  useLocation,
-  useRouter,
-} from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
 import {
   MoreHorizontal,
-  SlidersHorizontal,
-  LifeBuoy,
   Zap,
   Palette,
   Check,
@@ -22,7 +11,6 @@ import {
   BarChart3,
   Settings,
   ChevronLeft,
-  Building2,
   UserPlus,
   LogIn,
   LogOut,
@@ -30,28 +18,11 @@ import {
   ClipboardList,
   Calendar,
   Lock,
-  X,
+  Search,
 } from "@/components/icons/glyphs";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  IconHome, IconLearn, IconClubs, IconWallet, IconMessages, IconGames,
-  IconProfile, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics,
-  IconPresentation, IconInstitution, IconStore,
-  IconBell, IconRocket, IconSpark, IconShield, IconMenu,
-} from "@/components/icons/nav";
+import { IconHome, IconLearn, IconClubs, IconWallet, IconMessages, IconGames, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics, IconPresentation, IconInstitution, IconStore, IconBell, IconRocket, IconSpark, IconShield, IconPost } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import {
   prepareAddAccount,
@@ -67,7 +38,7 @@ import { useOrientationLock } from "@/hooks/useOrientationLock";
 import { useIdlePreload } from "@/hooks/useIdlePreload";
 import { isGuestReadablePath } from "@/lib/guestAccess";
 import { toast } from "sonner";
-import { getFirstName, displayName } from "@/lib/utils";
+import { getFirstName, displayName, getLevelFromXp } from "@/lib/utils";
 import { directMessagePreview } from "@/lib/directMessage";
 import { IncomingNotificationCard } from "@/components/IncomingNotificationCard";
 
@@ -75,35 +46,14 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
+/* The tab bar. Post is not a destination — it opens the create sheet on the
+   feed — so it has no route of its own. */
 const tabs = [
-  { to: "/app/", label: "Feed", Icon: IconHome, exact: true },
+  { to: "/app/", label: "Home", Icon: IconHome, exact: true },
   { to: "/app/bootcamps", label: "Learn", Icon: IconLearn },
+  { to: null, label: "Post", Icon: IconPost },
   { to: "/app/clubs", label: "Clubs", Icon: IconClubs },
-  // Not a destination — opens the menu card. Kept in this list so it keeps the
-  // same slot, size and spacing as the tabs either side of it.
-  { to: null, label: "Menu", Icon: IconMenu },
-  { to: "/app/chat", label: "Messages", Icon: IconMessages },
-];
-
-/**
- * What lives on the menu card.
- *
- * These are all destinations you go to occasionally and deliberately, rather
- * than the four you move between constantly. Everything here is hidden from
- * the sidebar on mobile so the same link never appears in two places at once.
- */
-const MENU_ITEMS = [
-  // A shield with a tick, because a Task is something you complete. It also
-  // has to differ from Opportunities below, which had the same rocket and made
-  // two unrelated destinations look like one feature.
-  { to: "/app/tasks", label: "Tasks", note: "Earn ZP from Zero Club quests", Icon: IconShield },
-  { to: "/app/wallet", label: "Wallet", note: "Balance, top-ups, payouts", Icon: IconWallet },
-  { to: "/app/quests", label: "Opportunities", note: "Gigs, briefs and open calls", Icon: IconRocket },
-  { to: "/app/store", label: "Zero Store", note: "Buy from builders", Icon: IconStore },
-  { to: "/app/zerohub", label: "ZeroHub", note: "Explore the network", Icon: IconCompass },
-  { to: "/app/notes", label: "ZeroNotes", note: "Your notes and drafts", Icon: IconNotes },
-  { to: "/app/games", label: "Games", note: "Play and earn ZP", Icon: IconGames },
-  { to: "/app/zero-ai", label: "Zero AI", note: "Ask, draft, summarise", Icon: IconSpark },
+  { to: "/app/notifications", label: "Alerts", Icon: IconBell },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -182,9 +132,66 @@ function SidebarContent({
     return () => window.removeEventListener("institution-tab-change", handler);
   }, [isInstitutionStudio]);
 
+  const level = getLevelFromXp(Number(profile?.xp || 0));
+  const role =
+    profile?.account_type === "Institution" ? "Institution" : profile?.account_type === "Tutor" ? "Tutor" : "Builder";
+
+  /* Everything reachable from the shell that is not already on the tab bar.
+     On mobile the tab bar carries Home, Learn, Post, Clubs and Alerts, and
+     the top bar carries Messages, so those five and Messages are desktop-only
+     here. Desktop has no tab bar, so it gets them all. */
+  const primaryLinks: any[] = [
+    { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
+    { Icon: IconLearn, label: "Learn", to: "/app/bootcamps", desktopOnly: true },
+    { Icon: IconClubs, label: "Clubs", to: "/app/clubs", desktopOnly: true },
+    { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true, badge: unreadNotificationsCount },
+    { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true, badge: unreadMessagesCount },
+    { Icon: IconShield, label: "Tasks", to: "/app/tasks" },
+    { Icon: IconWallet, label: "Wallet", to: "/app/wallet" },
+    { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
+    { Icon: IconStore, label: "Zero Store", to: "/app/store" },
+    { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
+    { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
+    { Icon: IconGames, label: "Games", to: "/app/games" },
+    { Icon: IconSpark, label: "Zero AI", to: "/app/zero-ai" },
+    { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
+  ];
+  const workspaceLinks: any[] = [
+    { Icon: IconStore, label: "My Store", to: "/app/my-store" },
+    { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
+    ...(String(profile?.tier || "").toLowerCase() === "creator"
+      ? [{ Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" }]
+      : []),
+    ...(profile?.account_type === "Tutor" ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
+    ...(profile?.account_type === "Institution" ? [{ Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" }] : []),
+    ...(profile?.is_admin ? [{ Icon: IconShield, label: "Admin Control Center", to: "/app/admin" }] : []),
+  ];
+
+  const renderLink = (item: any) => (
+    <Link
+      key={item.label}
+      to={item.to}
+      activeOptions={{ exact: !!item.exact }}
+      activeProps={{ className: "bg-foreground/[0.06] !font-semibold !text-foreground" }}
+      className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} h-12 items-center gap-3.5 rounded-[10px] px-3 text-[16px] font-medium text-foreground/85 tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground md:h-11 md:text-[15px]`}
+    >
+      {({ isActive }: { isActive: boolean }) => (
+        <>
+          <item.Icon active={isActive} className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
+          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+          {item.badge > 0 && (
+            <span className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-semibold tabular-nums text-accent-foreground">
+              {item.badge > 99 ? "99+" : item.badge}
+            </span>
+          )}
+        </>
+      )}
+    </Link>
+  );
+
   return (
     <div
-      className="flex h-full flex-col p-4"
+      className="flex h-full flex-col"
       onClick={(e) => {
         // Close sidebar if user clicked a link (navigation)
         const target = e.target as HTMLElement;
@@ -194,67 +201,18 @@ function SidebarContent({
         }
       }}
     >
-      {/* No rule under the workspace title. The sidebar is one continuous
-          surface, so the name at the top reads as its heading without a line
-          drawn beneath it — the spacing already separates it from the card. */}
-      <div className="mb-4 flex h-11 shrink-0 items-center justify-between px-1 pb-3">
-        <Link to="/app" className="flex items-center gap-2.5" aria-label="Zero Club feed">
-          <img src="/logo.png" alt="" className="h-7 w-7 object-contain" loading="lazy" decoding="async" />
-          <span className="font-display text-[17px] font-semibold tracking-tight text-foreground">
-            Zero <span className="text-primary">Club</span>
-          </span>
-        </Link>
-        <span className="rounded-full bg-primary/[0.08] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-primary">
-          Workspace
-        </span>
-      </div>
-
-      <div className="flex shrink-0 items-start justify-between rounded-lg border border-border/60 bg-card p-3.5 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.4)]">
-        <Link to="/app/profile" className="group block min-w-0 flex-1 transition active:opacity-70">
-          {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt={profile.username}
-              className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
-            loading="lazy" decoding="async" />
-          ) : (
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-semibold text-primary-foreground">
-              {profile?.username?.substring(0, 1).toUpperCase() || "U"}
-            </div>
-          )}
-          <div className="mt-2.5 min-w-0">
-            <div
-              className="h-5 w-32 bg-foreground/[0.04] rounded animate-pulse mb-1"
-              style={{ display: profile?.username ? "none" : "block" }}
-            />
-            <h2
-              className="truncate font-display text-[15px] font-semibold tracking-tight group-hover:text-primary transition-colors"
-              style={{ display: profile?.username ? "block" : "none" }}
-            >
-              {displayName(profile)}
-            </h2>
-            <div className="mt-0.5 flex min-w-0 items-center gap-2">
-              <p className="truncate text-[12px] text-muted-foreground">
-                {profile?.username ? `@${profile.username}` : "Fetching identity..."}
-              </p>
-              {profile?.xp !== undefined && (
-                <span className="flex items-center gap-0.5 rounded-full bg-primary/8 px-1.5 py-0.5 text-[10px] font-semibold text-primary ring-1 ring-primary/15 tabular-nums animate-in fade-in duration-500">
-                  <Zap className="h-2.5 w-2.5" /> {formatCompactNumber(profile.xp)}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="mt-2.5 flex min-w-0 w-full flex-wrap gap-x-3 gap-y-1 text-[11px]">
-            <div className="flex gap-1 items-center shrink-0 min-w-0">
-              <span className="font-semibold text-foreground tabular-nums">{profile?.following_count || 0}</span>
-              <span className="text-muted-foreground">Following</span>
-            </div>
-            <div className="flex gap-1 items-center shrink-0 min-w-0">
-              <span className="font-semibold text-foreground tabular-nums">{profile?.followers_count || 0}</span>
-              <span className="text-muted-foreground">Followers</span>
-            </div>
-          </div>
-        </Link>
+      {/* Who you are, first — the same order as the profile it links to. */}
+      <div className="shrink-0 border-b border-border px-5 pb-4 pt-5">
+        <div className="flex items-start justify-between">
+          <Link to="/app/profile" aria-label="Your profile" className="tap">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="h-16 w-16 rounded-full object-cover" loading="lazy" decoding="async" />
+            ) : (
+              <div className="grid h-16 w-16 place-items-center rounded-full bg-accent/10 font-display text-[22px] font-semibold text-accent">
+                {profile?.username?.substring(0, 1).toUpperCase() || "U"}
+              </div>
+            )}
+          </Link>
         <Drawer>
           <DrawerTrigger asChild>
             <button className="mt-0.5 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95">
@@ -358,19 +316,36 @@ function SidebarContent({
             </div>
           </DrawerContent>
         </Drawer>
+        </div>
+        <Link to="/app/profile" className="mt-3 block min-w-0">
+          {profile?.username ? (
+            <h2 className="truncate font-display text-[20px] font-semibold tracking-[-0.01em] text-foreground">{displayName(profile)}</h2>
+          ) : (
+            <div className="h-6 w-36 animate-pulse rounded bg-foreground/[0.05]" />
+          )}
+          <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+            {role} · Level {level}
+          </p>
+          <span className="mt-1.5 inline-block text-[14px] font-semibold text-accent">View profile</span>
+        </Link>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Link to="/app/tasks" className="rounded-xl bg-foreground/[0.04] px-3 py-2.5 tap hover:bg-foreground/[0.06]">
+            <span className="block text-[12px] text-muted-foreground">Zero Points</span>
+            <span className="mt-0.5 block text-[17px] font-semibold tabular-nums text-foreground">{Number(profile?.zp || 0).toLocaleString()} ZP</span>
+          </Link>
+          <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || "me" }} className="rounded-xl bg-foreground/[0.04] px-3 py-2.5 tap hover:bg-foreground/[0.06]">
+            <span className="block text-[12px] text-muted-foreground">Followers</span>
+            <span className="mt-0.5 block text-[17px] font-semibold tabular-nums text-foreground">{formatCompactNumber(profile?.followers_count)}</span>
+          </Link>
+        </div>
       </div>
 
-      <div className="-mr-2 mt-4 flex flex-1 flex-col overflow-y-auto pr-2 no-scrollbar">
+      <div className="flex flex-1 flex-col overflow-y-auto px-2 py-2 no-scrollbar">
         {isInstitutionStudio ? (
           /* ── Digital Hub sidebar: replaces regular nav when on institution-studio ── */
-          <div className="flex flex-col flex-1">
-            <div className="flex items-center gap-2 px-3 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-primary/8 ring-1 ring-primary/15 text-primary flex items-center justify-center">
-                <Building2 className="h-4 w-4" strokeWidth={1.75} />
-              </div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Digital Hub</p>
-            </div>
-            <nav className="flex flex-col gap-1 flex-1">
+          <div className="flex flex-1 flex-col">
+            <p className="px-3 pb-2 pt-2 text-[12px] font-semibold text-muted-foreground">Digital Hub</p>
+            <nav className="flex flex-1 flex-col">
               {INSTITUTION_SIDEBAR_TABS.map(({ key, label, Icon }) => {
                 const isActive = institutionActiveTab === key;
                 return (
@@ -381,120 +356,51 @@ function SidebarContent({
                       window.dispatchEvent(new CustomEvent("institution-tab-change", { detail: key }));
                       onClose?.();
                     }}
-                    className={`group flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-tight tap transition-colors ${
-                      isActive
-                        ? "bg-foreground/[0.05] text-foreground [&_svg]:text-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
+                    className={`flex h-12 items-center gap-3.5 rounded-[10px] px-3 text-[16px] font-medium tap transition-colors md:h-11 md:text-[15px] ${
+                      isActive ? "bg-foreground/[0.06] font-semibold text-foreground" : "text-foreground/85 hover:bg-foreground/[0.04]"
                     }`}
                   >
-                    <Icon className={`h-[20px] w-[20px] transition-colors ${isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`} strokeWidth={1.75} />
+                    <Icon className={`h-5 w-5 ${isActive ? "fill-current" : ""}`} />
                     <span>{label}</span>
                   </button>
                 );
               })}
             </nav>
-            <div className="mt-auto pb-2">
-              <Link
-                to="/app"
-                className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] tap transition-colors"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Back to app</span>
-              </Link>
-            </div>
+            <Link to="/app" className="mt-auto flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+              <ChevronLeft className="h-4 w-4" />
+              <span>Back to app</span>
+            </Link>
           </div>
         ) : (
-          /* ── Regular app sidebar nav ── */
-          <nav className="flex flex-1 flex-col gap-1">
-            {[
-              // Desktop-only: mirror the mobile bottom nav (hidden on md+)
-              { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
-              { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true, badge: unreadNotificationsCount },
-              { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true, badge: unreadMessagesCount },
-              { Icon: IconProfile, label: "Profile", to: "/app/profile" },
-              { Icon: IconClubs, label: "Clubs", to: "/app/clubs", learnerDesktopOnly: isLearnerAccount },
-              { Icon: IconGames, label: "Zero Games", to: "/app/games", desktopOnly: true },
-              { Icon: IconGem, label: "Go PRO", to: "/app/premium" },
-              ...(String(profile?.tier || "").toLowerCase() === "creator"
-                ? [{ Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" }]
-                : []),
-              { Icon: IconStore, label: "My Store", to: "/app/my-store" },
-              { Icon: IconWallet, label: "Wallet", to: "/app/wallet" },
-              { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
-              { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
-              // desktopOnly: these five live on the mobile menu card instead,
-              // so listing them here as well would repeat them. Desktop has no
-              // bottom nav and therefore no menu card, so it keeps them.
-              { Icon: IconRocket, label: "Opportunities", to: "/app/quests", desktopOnly: true },
-              { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes", desktopOnly: true },
-              { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub", desktopOnly: true },
-              { Icon: IconSpark, label: "Zero AI", to: "/app/zero-ai", desktopOnly: true },
-              ...(profile?.account_type === "Tutor"
-                ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }]
-                : []),
-              ...(profile?.account_type === "Institution"
-                ? [{ Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" }]
-                : []),
-              ...(profile?.is_admin
-                ? [{ Icon: IconShield, label: "Admin Control Center", to: "/app/admin" }]
-                : []),
-            ].map((item: any) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                activeOptions={{ exact: !!item.exact }}
-                activeProps={{ className: "bg-primary/[0.08] !font-semibold !text-foreground" }}
-                className={`group ${item.desktopOnly || item.learnerDesktopOnly ? "hidden md:flex" : "flex"} items-center gap-3.5 rounded-lg px-3 py-3.5 text-[17px] font-medium tracking-tight text-muted-foreground tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground active:scale-[0.98] md:py-2.5 md:text-[15px]`}
-              >
-                {({ isActive }: { isActive: boolean }) => (
-                  <>
-                    <item.Icon
-                      active={isActive}
-                      className={`h-[22.5px] w-[22.5px] shrink-0 transition-all duration-200 md:h-[20px] md:w-[20px] ${isActive ? "scale-110 text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
-                    />
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                    {item.badge > 0 && (
-                      <span className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-primary px-1.5 text-[10px] font-bold tabular-nums text-primary-foreground">
-                        {item.badge > 99 ? "99+" : item.badge}
-                      </span>
-                    )}
-                  </>
-                )}
-              </Link>
-            ))}
+          <nav className="flex flex-col">
+            {primaryLinks.map(renderLink)}
+            <div className="mx-3 my-2 h-px bg-border" />
+            {workspaceLinks.map(renderLink)}
+            <Link
+              to="/app/premium"
+              className="mx-1 mt-3 flex items-center gap-3 rounded-xl border border-accent/25 bg-accent/[0.06] p-3 tap hover:bg-accent/[0.09]"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-accent text-accent-foreground">
+                <IconGem active className="h-5 w-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[15px] font-semibold text-foreground">Go PRO</span>
+                <span className="block truncate text-[12px] text-muted-foreground">More clubs, Zero AI help, verified badge</span>
+              </span>
+            </Link>
           </nav>
         )}
+      </div>
 
-        <div className="mt-auto pb-2 pt-2">
-          <Accordion type="single" collapsible className="w-full border-none">
-            <AccordionItem value="settings" className="border-none">
-              <AccordionTrigger className="px-2.5 py-3 text-[13px] font-bold hover:no-underline text-muted-foreground">
-                Settings & Support
-              </AccordionTrigger>
-              <AccordionContent className="flex flex-col gap-1 pb-2">
-                <Link
-                  to="/app/settings"
-                  className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-medium transition active:bg-accent/50"
-                >
-                  <SlidersHorizontal className="h-[18px] w-[18px] opacity-80" />
-                  <span>Settings and privacy</span>
-                </Link>
-                <button className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-medium transition active:bg-accent/50">
-                  <LifeBuoy className="h-[18px] w-[18px] opacity-80" />
-                  <span>Help Center</span>
-                </button>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
-          <button
-            onClick={onOpenTheme}
-            className="flex w-full items-center gap-3 rounded-xl px-2.5 py-3 text-[13px] font-bold text-muted-foreground transition active:bg-accent/50"
-          >
-            <Palette className="h-[18px] w-[18px] opacity-80" />
-            <span>Display Settings</span>
-          </button>
-        </div>
+      <div className="flex shrink-0 items-center gap-1 border-t border-border px-2 py-2">
+        <Link to="/app/settings" className="flex h-11 flex-1 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+          <Settings className="h-5 w-5" />
+          <span>Settings</span>
+        </Link>
+        <button onClick={onOpenTheme} className="flex h-11 flex-1 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+          <Palette className="h-5 w-5" />
+          <span>Display</span>
+        </button>
       </div>
     </div>
   );
@@ -506,19 +412,21 @@ type BottomNavProps = {
   isChat: boolean;
   isDetail: boolean;
   unreadCount: number;
-  onOpenMenu: () => void;
-  menuOpen: boolean;
+  onPost: () => void;
 };
 
-function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onOpenMenu, menuOpen }: BottomNavProps) {
+/* The floating tab bar. Its shape, its fade on scroll and its label type are
+   deliberate and fixed; only what sits in the five slots is chosen here. The
+   labels keep Montserrat even though the rest of the app moved on, because the
+   bar is meant to look exactly as it always has. */
+const TAB_BAR_FONT = '"Montserrat", system-ui, sans-serif';
+
+function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }: BottomNavProps) {
   return (
     <nav
       data-zc-bottom-nav
-      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 ${
-        // Above the menu backdrop while the card is open, so the nav stays
-        // sharp and the Menu tab can be tapped again to close.
-        menuOpen ? "z-[90]" : "z-50"
-      } w-[calc(100%-20px)] max-w-md -translate-x-1/2 transition-all duration-300 md:hidden ${
+      style={{ fontFamily: TAB_BAR_FONT, "--font-button": TAB_BAR_FONT } as React.CSSProperties}
+      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-20px)] max-w-md -translate-x-1/2 transition-all duration-300 md:hidden ${
         visible &&
         !isDetail &&
         !pathname.includes("/app/live") &&
@@ -532,7 +440,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onOpenMen
         {tabs.map((t) => {
           const normalize = (p: string) => p.replace(/\/$/, "");
           const active = !t.to
-            ? menuOpen
+            ? pathname.startsWith("/app/compose")
             : t.exact
             ? normalize(pathname) === normalize(t.to)
             : pathname.startsWith(t.to);
@@ -543,35 +451,8 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onOpenMen
               : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
           }`;
 
-          // The menu slot is a button, not a link: it opens a card rather than
-          // navigating anywhere.
-          if (!t.to) {
-            return (
-              <button
-                key={t.label}
-                type="button"
-                onClick={onOpenMenu}
-                aria-haspopup="dialog"
-                aria-expanded={menuOpen}
-                className={tabClass}
-              >
-                <t.Icon
-                  className={`h-[20px] w-[20px] shrink-0 transition-transform duration-300 ease-out ${active ? "-translate-y-px scale-110" : ""}`}
-                  active={active}
-                />
-                <span className="max-w-full truncate px-0.5 text-[9px] font-semibold leading-none tracking-tight">
-                  {t.label}
-                </span>
-              </button>
-            );
-          }
-
-          return (
-            <Link
-              key={t.to}
-              to={t.to}
-              className={tabClass}
-            >
+          const inner = (
+            <>
               <t.Icon
                 className={`h-[20px] w-[20px] shrink-0 transition-transform duration-300 ease-out ${active ? "-translate-y-px scale-110" : ""}`}
                 active={active}
@@ -579,9 +460,24 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onOpenMen
               <span className="max-w-full truncate px-0.5 text-[9px] font-semibold leading-none tracking-tight">
                 {t.label}
               </span>
-              {t.label === "Messages" && unreadCount > 0 && (
+            </>
+          );
+
+          // Post opens the create sheet rather than navigating anywhere.
+          if (!t.to) {
+            return (
+              <button key={t.label} type="button" onClick={onPost} aria-haspopup="dialog" className={tabClass}>
+                {inner}
+              </button>
+            );
+          }
+
+          return (
+            <Link key={t.to} to={t.to} className={tabClass}>
+              {inner}
+              {t.label === "Alerts" && unreadCount > 0 && (
                 <span className="absolute right-2 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground ring-2 ring-background">
-                  {unreadCount}
+                  {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
             </Link>
@@ -816,7 +712,7 @@ function AppLayout() {
      enforces that, so the shell asks for it — and the live room releases it. */
   useOrientationLock("portrait");
 
-  /* Warm the code for the tab bar and the menu card once the app goes quiet,
+  /* Warm the code for the tab bar and the sidebar once the app goes quiet,
      so tapping one of them does not start with a download. */
   useIdlePreload();
 
@@ -829,23 +725,13 @@ function AppLayout() {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMenuClosing, setIsMenuClosing] = useState(false);
   const sidebarCloseTimer = useRef<number | null>(null);
-  const menuCloseTimer = useRef<number | null>(null);
 
   const closeSidebarImmediately = () => {
     if (sidebarCloseTimer.current !== null) window.clearTimeout(sidebarCloseTimer.current);
     sidebarCloseTimer.current = null;
     setIsSidebarOpen(false);
     setIsSidebarClosing(false);
-  };
-
-  const closeMenuImmediately = () => {
-    if (menuCloseTimer.current !== null) window.clearTimeout(menuCloseTimer.current);
-    menuCloseTimer.current = null;
-    setIsMenuOpen(false);
-    setIsMenuClosing(false);
   };
 
   const handleCloseSidebar = () => {
@@ -856,36 +742,15 @@ function AppLayout() {
     }, 450);
   };
 
-  const handleCloseMenu = () => {
-    if (menuCloseTimer.current !== null) window.clearTimeout(menuCloseTimer.current);
-    setIsMenuClosing(true);
-    menuCloseTimer.current = window.setTimeout(() => {
-      closeMenuImmediately();
-    }, 260);
-  };
-
-  // Any navigation closes the card. Without this it would still be sitting
-  // there, over the page it just sent you to.
+  // Any navigation closes the sidebar. Without this it would still be
+  // sitting there, over the page it just sent you to.
   useEffect(() => {
     closeSidebarImmediately();
-    closeMenuImmediately();
   }, [pathname]);
 
   useEffect(() => () => {
     if (sidebarCloseTimer.current !== null) window.clearTimeout(sidebarCloseTimer.current);
-    if (menuCloseTimer.current !== null) window.clearTimeout(menuCloseTimer.current);
   }, []);
-
-  // The card is a layer over the page, so the hardware back button should
-  // dismiss it rather than leaving the app — this is running inside a TWA.
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleCloseMenu();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [isMenuOpen]);
 
   useEffect(() => {
     const handleOpenSidebar = () => setIsSidebarOpen(true);
@@ -1167,7 +1032,6 @@ function AppLayout() {
   }, []);
   const router = useRouter();
 
-
   // Theme State
   const [darkMode, setDarkMode] = useState<AppThemeMode>(getStoredAppThemeMode);
   const [darkTheme, setDarkTheme] = useState<AppDarkTheme>(getStoredAppDarkTheme);
@@ -1274,7 +1138,7 @@ function AppLayout() {
   // 2. Handle Club Invites from URL
   useEffect(() => {
     if (!session) return;
-    const search = new URLSearchParams(location.search);
+    const search = new URLSearchParams(location.search as Record<string, string>);
     const clubId = search.get("club");
     if (clubId) {
       const openInvite = async () => {
@@ -1440,54 +1304,44 @@ function AppLayout() {
         {!hideHeader && (
           <header
             ref={headerRef}
-            /* The header shares the page's background and carries no rule
-               beneath it, so it reads as the top of the page rather than a
-               separate bar sitting on it. It is still a real header: same
-               height, same position, still fixed on mobile and sticky on
-               desktop — only the dividing line is gone. */
-            className="fixed left-1/2 top-0 z-50 flex h-[calc(66px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center justify-between bg-background px-5 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[66px] md:max-w-full md:translate-x-0 md:pt-0"
+            /* You, search, messages — the three things you reach for from
+               every top-level page. The bell moved to the tab bar as Alerts. */
+            className="fixed left-1/2 top-0 z-50 flex h-[calc(56px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[60px] md:max-w-full md:translate-x-0 md:pt-0"
           >
-            <div className="flex w-10 items-center md:hidden">
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="h-9 w-9 overflow-hidden rounded-full ring-1 ring-border tap"
-              >
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.username}
-                    className="h-full w-full object-cover"
-                  loading="lazy" decoding="async" />
-                ) : (
-                  <div className="h-full w-full bg-gradient-primary flex items-center justify-center text-[10px] font-semibold text-white uppercase">
-                    {profile?.username?.substring(0, 1) || "U"}
-                  </div>
-                )}
-              </button>
-            </div>
-
-            <div className="flex flex-1 items-center justify-center gap-2.5 md:justify-start">
-              {isFeed ? (
-                <>
-                  <img src="/logo.png" alt="Zero Club" className="h-8 w-auto object-contain" loading="lazy" decoding="async" />
-                  <span className="hidden font-display text-[17px] font-semibold tracking-tight md:inline">Feed</span>
-                </>
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open your menu"
+              className="h-8 w-8 shrink-0 overflow-hidden rounded-full tap md:hidden"
+            >
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
-                <h1 className="font-display text-[17px] font-semibold tracking-tight">{getPageTitle}</h1>
+                <div className="grid h-full w-full place-items-center bg-accent/10 text-[13px] font-semibold uppercase text-accent">
+                  {profile?.username?.substring(0, 1) || "U"}
+                </div>
               )}
-            </div>
+            </button>
 
-            <div className="flex w-10 items-center justify-end">
-              <Link
-                to="/app/notifications"
-                className={`grid h-9 w-9 place-items-center rounded-full ring-1 ring-border tap transition-colors hover:bg-foreground/[0.04] relative ${pathname.startsWith("/app/notifications") ? "bg-primary/[0.1] text-primary ring-primary/30" : "text-foreground"}`}
-              >
-                <IconBell className="h-[18px] w-[18px]" active={pathname.startsWith("/app/notifications")} />
-                {unreadNotificationsCount > 0 && (
-                  <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
-                )}
-              </Link>
-            </div>
+            <Link
+              to="/app/search"
+              className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg bg-foreground/[0.05] px-3 text-[14px] text-muted-foreground tap hover:bg-foreground/[0.07] md:max-w-md"
+            >
+              <Search className="h-[18px] w-[18px] shrink-0" />
+              <span className="truncate">Search people, clubs, notes</span>
+            </Link>
+
+            <Link
+              to="/app/chat"
+              aria-label={unreadMessagesCount > 0 ? `Messages, ${unreadMessagesCount} unread` : "Messages"}
+              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04] md:ml-auto"
+            >
+              <IconMessages className="h-6 w-6" active={pathname.startsWith("/app/chat")} />
+              {unreadMessagesCount > 0 && (
+                <span className="absolute right-0 top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-accent px-1 text-[11px] font-semibold tabular-nums text-accent-foreground ring-2 ring-card">
+                  {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+                </span>
+              )}
+            </Link>
           </header>
         )}
 
@@ -1517,70 +1371,6 @@ function AppLayout() {
               />
             </div>
           </>
-        )}
-
-        {/* ── Menu card (mobile) ──
-            Opened from the Menu slot in the bottom nav. Mobile only, because
-            the bottom nav itself is mobile only — on desktop these same
-            destinations stay in the sidebar. */}
-        {(isMenuOpen || isMenuClosing) && (
-          <div className="md:hidden">
-            <div
-              className={`fixed inset-0 z-[70] bg-black/45 ${isMenuClosing ? "animate-out fade-out duration-250 ease-in fill-mode-forwards" : "animate-in fade-in duration-250 ease-out"}`}
-              onClick={handleCloseMenu}
-            />
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Menu"
-              // Sits above the bottom nav rather than over it, so the Menu tab
-              // stays visible and lit while the card is open — and tapping it
-              // again closes the card.
-              className={`zc-noir-surface fixed inset-x-3 bottom-[calc(max(10px,env(safe-area-inset-bottom))+74px)] z-[80] overflow-hidden rounded-2xl border border-border/70 bg-background shadow-[0_24px_70px_-20px_rgba(0,0,0,0.6)] ${isMenuClosing ? "animate-out fade-out slide-out-to-bottom-4 duration-250 ease-in fill-mode-forwards" : "animate-in fade-in slide-in-from-bottom-4 duration-250 ease-out"}`}
-            >
-              <div className="flex items-center justify-between px-5 pb-1 pt-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Menu
-                </p>
-                <button
-                  onClick={handleCloseMenu}
-                  aria-label="Close menu"
-                  className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground tap hover:bg-foreground/[0.05] hover:text-foreground"
-                >
-                  <X className="h-[18px] w-[18px]" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 px-3 pb-4 pt-2">
-                {MENU_ITEMS.map((item) => {
-                  const active = pathname.startsWith(item.to);
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={closeMenuImmediately}
-                      className={`flex min-w-0 flex-col gap-2.5 rounded-xl p-3.5 tap transition-colors ${
-                        active
-                          ? "bg-primary/[0.1] ring-1 ring-primary/20"
-                          : "bg-foreground/[0.03] hover:bg-foreground/[0.06]"
-                      }`}
-                    >
-                      <item.Icon
-                        active={active}
-                        className={`h-[21px] w-[21px] shrink-0 ${active ? "text-primary" : "text-foreground"}`}
-                      />
-                      <div className="min-w-0">
-                        <div className={`truncate text-[13.5px] font-semibold tracking-tight ${active ? "text-primary" : "text-foreground"}`}>
-                          {item.label}
-                        </div>
-                        <div className="truncate text-[11px] text-muted-foreground">{item.note}</div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
         )}
 
         {/* Theme Selection Sheet */}
@@ -1676,9 +1466,8 @@ function AppLayout() {
             visible={visible}
             isChat={isChat}
             isDetail={isDetail}
-            unreadCount={unreadMessagesCount}
-            onOpenMenu={() => (isMenuOpen ? handleCloseMenu() : setIsMenuOpen(true))}
-            menuOpen={isMenuOpen && !isMenuClosing}
+            unreadCount={unreadNotificationsCount}
+            onPost={() => navigate({ to: "/app", search: { create: 1 } })}
           />
         )}
       </div>

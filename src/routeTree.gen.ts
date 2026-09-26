@@ -30,6 +30,7 @@ import { Route as AppTasksRouteImport } from './routes/app.tasks'
 import { Route as AppStoreRouteImport } from './routes/app.store'
 import { Route as AppShipRouteImport } from './routes/app.ship'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppSearchRouteImport } from './routes/app.search'
 import { Route as AppQuestsRouteImport } from './routes/app.quests'
 import { Route as AppPremiumRouteImport } from './routes/app.premium'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
@@ -203,6 +204,11 @@ const AppShipRoute = AppShipRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => AppRoute,
 } as any)
 const AppQuestsRoute = AppQuestsRouteImport.update({
@@ -577,6 +583,7 @@ export interface FileRoutesByFullPath {
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
@@ -665,6 +672,7 @@ export interface FileRoutesByTo {
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
@@ -756,6 +764,7 @@ export interface FileRoutesById {
   '/app/notifications': typeof AppNotificationsRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
@@ -850,6 +859,7 @@ export interface FileRouteTypes {
     | '/app/notifications'
     | '/app/premium'
     | '/app/quests'
+    | '/app/search'
     | '/app/settings'
     | '/app/ship'
     | '/app/store'
@@ -938,6 +948,7 @@ export interface FileRouteTypes {
     | '/app/notifications'
     | '/app/premium'
     | '/app/quests'
+    | '/app/search'
     | '/app/ship'
     | '/app/store'
     | '/app/tasks'
@@ -1028,6 +1039,7 @@ export interface FileRouteTypes {
     | '/app/notifications'
     | '/app/premium'
     | '/app/quests'
+    | '/app/search'
     | '/app/settings'
     | '/app/ship'
     | '/app/store'
@@ -1267,6 +1279,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/search': {
+      id: '/app/search'
+      path: '/search'
+      fullPath: '/app/search'
+      preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/quests': {
@@ -1861,6 +1880,7 @@ interface AppRouteChildren {
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppPremiumRoute: typeof AppPremiumRoute
   AppQuestsRoute: typeof AppQuestsRoute
+  AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppShipRoute: typeof AppShipRoute
   AppStoreRoute: typeof AppStoreRoute
@@ -1917,6 +1937,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppNotificationsRoute: AppNotificationsRoute,
   AppPremiumRoute: AppPremiumRoute,
   AppQuestsRoute: AppQuestsRoute,
+  AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppShipRoute: AppShipRoute,
   AppStoreRoute: AppStoreRoute,
