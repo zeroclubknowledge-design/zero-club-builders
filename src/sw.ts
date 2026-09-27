@@ -100,12 +100,17 @@ self.addEventListener('push', (event) => {
     renotify?: boolean;
   } = {
     body: payload.body,
-    icon: '/logo.png', // Uses your app icon
-    badge: '/logo.png', // Small monochrome icon for Android status bar
+    // The sender's photo for messages, like chat apps; the app icon otherwise.
+    icon: payload.icon || '/icons/icon-192.png',
+    // Android's status bar draws the badge as a white silhouette, so it
+    // needs the monochrome icon (a full-colour logo shows as a white square).
+    badge: '/icons/icon-monochrome-512.png',
     vibrate: payload.type === 'game_buzz' ? [250, 80, 250, 80, 400] : [100, 50, 100],
     requireInteraction: payload.type === 'game_buzz',
-    tag: payload.type === 'game_buzz' ? `zero-game-buzz:${payload.url || ''}` : undefined,
-    renotify: payload.type === 'game_buzz',
+    // One notification per conversation that updates as new messages arrive,
+    // and still buzzes each time (renotify), the way WhatsApp behaves.
+    tag: payload.type === 'game_buzz' ? `zero-game-buzz:${payload.url || ''}` : payload.tag || undefined,
+    renotify: payload.type === 'game_buzz' || Boolean(payload.tag),
     data: {
       url: payload.url || '/app',
     },
@@ -122,27 +127,47 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Handle user clicking the notification
+// Handle user clicking the notification: open exactly what it was about.
+//
+// This used to call client.navigate() without waiting for it. navigate() only
+// works on a page this worker controls, and throws otherwise, so a tap often
+// just brought the app forward wherever it already was instead of opening the
+// chat. Now the running app is asked to route there itself (instant, no
+// reload), with a full navigation and then a new window as fallbacks.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || '/app';
+  const target = new URL(event.notification.data?.url || '/app', self.location.origin).href;
 
-  // Check if we already have a window open to the app
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // If there is an existing window, navigate it to the URL and focus
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        if (client.url.includes(self.registration.scope) && 'focus' in client) {
-          client.navigate(targetUrl);
-          return client.focus();
-        }
+  const askAppToRoute = (client: WindowClient) =>
+    new Promise<boolean>((resolve) => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => resolve(false), 1500);
+      channel.port1.onmessage = () => {
+        clearTimeout(timer);
+        resolve(true);
+      };
+      client.postMessage({ type: 'NOTIFICATION_NAVIGATE', url: target }, [channel.port2]);
+    });
+
+  event.waitUntil((async () => {
+    const windows = (await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) as WindowClient[];
+    const sameOrigin = windows.filter((c) => new URL(c.url).origin === self.location.origin);
+    // Prefer the window the person was last looking at.
+    const client = sameOrigin.find((c) => c.focused) || sameOrigin.find((c) => c.visibilityState === 'visible') || sameOrigin[0];
+
+    if (client) {
+      // Focus first, while the tap still counts as a user gesture.
+      const focused = await client.focus().catch(() => client);
+      if (await askAppToRoute(focused)) return;
+      try {
+        if (await focused.navigate(target)) return;
+      } catch {
+        /* Not controlled by this worker; open a fresh window instead. */
       }
-      // If no window exists, open a new one
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(targetUrl);
-      }
-    })
-  );
+    }
+
+    await self.clients.openWindow(target);
+  })());
 });
+

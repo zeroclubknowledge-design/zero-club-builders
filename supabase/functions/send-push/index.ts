@@ -1,11 +1,48 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import webPush from "npm:web-push@3.6.4";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { createECDH } from "node:crypto";
+import { Buffer } from "node:buffer";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+/**
+ * Only the database trigger (and other server code) may call this function.
+ *
+ * It used to compare the bearer token to SUPABASE_SERVICE_ROLE_KEY as a plain
+ * string. Supabase now injects a different service key into Edge Functions
+ * than the legacy service_role JWT stored in the Vault for the trigger, so
+ * every call was answered 401 and no phone ever got a push.
+ *
+ * verify_jwt stays on for this function, so the gateway has already checked
+ * the token's signature before we run. Here we only check that the verified
+ * token belongs to the service role (not a signed-in user), or that it is
+ * exactly the key this function was given.
+ */
+function isTrustedCaller(authorization: string | null, serviceKey: string) {
+  const token = authorization?.replace(/^Bearer\s+/i, "").trim();
+  if (!token) return false;
+  if (token === serviceKey) return true;
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+  try {
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const claims = JSON.parse(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4)));
+    return claims?.role === "service_role";
+  } catch {
+    return false;
+  }
+}
+
+/** The public key the private key actually belongs to (base64url). */
+function publicKeyForPrivate(privateKey: string) {
+  const ecdh = createECDH("prime256v1");
+  ecdh.setPrivateKey(Buffer.from(privateKey.replace(/-/g, "+").replace(/_/g, "/"), "base64"));
+  return ecdh.getPublicKey("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -25,18 +62,33 @@ serve(async (req) => {
       throw new Error("Missing environment variables.");
     }
 
-    if (req.headers.get("Authorization") !== `Bearer ${supabaseKey}`) {
+    if (!isTrustedCaller(req.headers.get("Authorization"), supabaseKey)) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
 
-    webPush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+    // Sign with the public key that really belongs to the private key. The
+    // VAPID_PUBLIC_KEY secret was found holding a key from a different pair,
+    // which made Google reject every push with "invalid JWT provided".
+    webPush.setVapidDetails(vapidSubject, publicKeyForPrivate(vapidPrivateKey), vapidPrivateKey);
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Read payload from the trigger/webhook or client request
     const payload = await req.json();
+
+    // Health check for the key pair. Push services reject every message with
+    // "invalid JWT" when the VAPID keys here differ from the public key the
+    // app subscribed phones with (VITE_VAPID_PUBLIC_KEY), so make it visible.
+    if (payload.diagnose) {
+      const derived = publicKeyForPrivate(vapidPrivateKey);
+      return new Response(JSON.stringify({
+        vapidPublicKey,
+        derivedFromPrivate: derived,
+        pairMatches: derived === vapidPublicKey.trim(),
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    }
     
     let receiverId = payload.record?.receiver_id || payload.record?.recipient_id;
     let title = "Zero Club";

@@ -325,6 +325,26 @@ import { setupMultiAccountSync } from "@/lib/multiAccount";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  // A tapped phone notification: the service worker asks the open app to go
+  // to the chat / post / profile it was about, and waits for this reply.
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type !== 'NOTIFICATION_NAVIGATE' || typeof event.data.url !== 'string') return;
+      try {
+        const url = new URL(event.data.url, window.location.origin);
+        if (url.origin !== window.location.origin) return;
+        router.history.push(url.pathname + url.search + url.hash);
+        event.ports?.[0]?.postMessage('ok');
+      } catch {
+        /* No reply: the worker falls back to a full navigation. */
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [router]);
 
   useEffect(() => {
     let stopUpdateChecks: (() => void) | undefined;
