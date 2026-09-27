@@ -700,11 +700,11 @@ function ZeroFormPublicPage() {
                 <div className="mb-5 space-y-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Your contact details</p>
                   <Field label="Full name" required value={guest.name} placeholder="Ada Obi"
-                    onChange={(v) => setGuest((g) => ({ ...g, name: v }))} />
+                    onChange={(v: string) => setGuest((g) => ({ ...g, name: v }))} />
                   <Field label="Email" required type="email" value={guest.email} placeholder="you@email.com"
-                    onChange={(v) => setGuest((g) => ({ ...g, email: v }))} />
+                    onChange={(v: string) => setGuest((g) => ({ ...g, email: v }))} />
                   <Field label="Phone number" type="tel" value={guest.phone} placeholder="+234 800 000 0000"
-                    onChange={(v) => setGuest((g) => ({ ...g, phone: v }))} />
+                    onChange={(v: string) => setGuest((g) => ({ ...g, phone: v }))} />
                   <p className="text-[11.5px] leading-5 text-muted-foreground">
                     No account needed. Already on Zero Club?{" "}
                     <Link to="/signin" className="font-semibold text-foreground underline">Sign in</Link> to use your wallet.

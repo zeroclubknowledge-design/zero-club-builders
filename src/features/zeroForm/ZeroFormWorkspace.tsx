@@ -235,9 +235,9 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
     if (existing || !bootcampId) return;
     const picked = (bootcamps.data || []).find((b: any) => b.id === bootcampId);
     if (!picked) return;
-    setTitle((current) => current || `${picked.title} — early registration`);
-    setRegular((current) => current || String(picked.price ?? ""));
-    if (picked.starts_at) setStartsAt((current) => current || toLocalInput(picked.starts_at));
+    setTitle((current: string) => current || `${picked.title} — early registration`);
+    setRegular((current: string) => current || String(picked.price ?? ""));
+    if (picked.starts_at) setStartsAt((current: string) => current || toLocalInput(picked.starts_at));
   }, [bootcampId, bootcamps.data, existing]);
 
   const applyTemplate = (id: string) => {
