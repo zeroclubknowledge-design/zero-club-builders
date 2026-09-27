@@ -49,7 +49,9 @@ registerRoute(
   new NavigationRoute(
     new NetworkFirst({
       cacheName: 'zc-pages',
-      networkTimeoutSeconds: 4,
+      // Short: past this the cached page shows at once and the fresh one is
+      // saved for next time. 4s left phones staring at a blank screen.
+      networkTimeoutSeconds: 2,
       plugins: [new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 7 })],
     }),
     { denylist: [/^\/api\//, /^\/_serverFn/] },
@@ -64,6 +66,15 @@ registerRoute(
   new CacheFirst({
     cacheName: 'zc-assets',
     plugins: [new ExpirationPlugin({ maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 })],
+  }),
+);
+
+// Google Fonts stylesheet: from cache on every launch after the first.
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.googleapis.com',
+  new StaleWhileRevalidate({
+    cacheName: 'zc-font-css',
+    plugins: [new ExpirationPlugin({ maxEntries: 8, maxAgeSeconds: 60 * 60 * 24 * 30 })],
   }),
 );
 

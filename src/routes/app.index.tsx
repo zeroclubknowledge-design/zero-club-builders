@@ -26,7 +26,9 @@ export const Route = createFileRoute("/app/")({
 
 function LiveClubCard({ club, currentUserId, onOpen }: { club: any; currentUserId?: string; onOpen: (clubId: string) => void }) {
   const { presenceState } = useSharedPresence(club?.id ? `live-presence-${club.id}` : '');
-  const liveHosts = Object.values(presenceState).flat().filter((person: any) => person?.isAdmin).length;
+  // Live while anyone is still inside, not only while a host is.
+  const inRoom = Object.values(presenceState).flat().filter((person: any) => person?.agora_uid != null);
+  const liveHosts = inRoom.length;
   const isHost = club.creator_id === currentUserId || ['administrator', 'admin', 'moderator'].includes((club.member_role || '').toLowerCase());
   const canEnter = isHost || liveHosts > 0;
 
@@ -43,7 +45,7 @@ function LiveClubCard({ club, currentUserId, onOpen }: { club: any; currentUserI
       <div className="flex items-center gap-3 p-3.5">
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-[14px] font-semibold tracking-tight">{club.name}</h3>
-          <p className="mt-0.5 text-[11.5px] text-muted-foreground">{liveHosts > 0 ? `${liveHosts} host${liveHosts === 1 ? '' : 's'} on stage` : isHost ? 'Your community is ready' : 'The host has not started yet'}</p>
+          <p className="mt-0.5 text-[11.5px] text-muted-foreground">{liveHosts > 0 ? `${liveHosts} ${liveHosts === 1 ? 'person' : 'people'} in the room` : isHost ? 'Your community is ready' : 'The host has not started yet'}</p>
         </div>
         <button
           onClick={() => canEnter && onOpen(club.id)}

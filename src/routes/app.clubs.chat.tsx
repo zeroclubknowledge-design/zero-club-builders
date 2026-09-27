@@ -299,13 +299,16 @@ function ClubChat() {
   const { presenceState } = useSharedPresence(club?.id ? `live-presence-${club.id}` : "");
 
   useEffect(() => {
-    let adminCount = 0;
+    // Live while ANYONE is still in the room (people inside track an
+    // agora_uid; onlookers like this screen don't). A host dropping out no
+    // longer takes the room offline for the members still in it.
+    let inRoom = 0;
     Object.values(presenceState).forEach((users: any[]) => {
       users.forEach(u => {
-        if (u.isAdmin) adminCount++;
+        if (u?.agora_uid != null) inRoom++;
       });
     });
-    setLiveAdminsCount(adminCount);
+    setLiveAdminsCount(inRoom);
   }, [presenceState]);
   const [spaceTitle, setSpaceTitle] = useState("");
   const [spaceDate, setSpaceDate] = useState("");
@@ -1342,7 +1345,7 @@ function ClubChat() {
                                   {liveAdminsCount > 0 ? "Join live space" : "Space is offline"}
                                 </h3>
                                 <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
-                                  {liveAdminsCount > 0 ? "An admin is live right now. Join the interactive space." : "Wait for an admin to start a live session."}
+                                  {liveAdminsCount > 0 ? "A live session is running right now. Join the interactive space." : "Wait for an admin to start a live session."}
                                 </p>
                               </div>
                               {liveAdminsCount > 0 && <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />}

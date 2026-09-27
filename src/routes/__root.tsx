@@ -255,7 +255,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700&display=swap" },
+      // Preloaded, then applied by the inline head script below. As a plain
+      // stylesheet it blocked the first paint until Google answered, which on
+      // a slow mobile connection left the app blank for seconds at launch.
+      { rel: "preload", as: "style", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700&display=swap" },
     ],
   }),
   shellComponent: RootShell,
@@ -272,6 +275,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              try {
+                var fontCss = document.createElement('link');
+                fontCss.rel = 'stylesheet';
+                fontCss.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700&display=swap';
+                document.head.appendChild(fontCss);
+              } catch(e) {}
               try {
                 var root = document.documentElement;
                 root.classList.remove('dark', 'dim', 'lights-out', 'rose-noir', 'premium');

@@ -896,12 +896,15 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   const { presenceState } = useSharedPresence(`live-presence-${channel}`, presencePayload);
 
-  const hasSeenAdmin = useRef(false);
-  const confirmAdminTimer = useRef<any>(null);
+  const hasSeenOthers = useRef(false);
+  const hadAdmin = useRef(false);
+  const emptyRoomTimer = useRef<any>(null);
+  // handleLeave is declared further down; the presence effect reaches it here.
+  const leaveRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     return () => {
-      if (confirmAdminTimer.current) clearTimeout(confirmAdminTimer.current);
+      if (emptyRoomTimer.current) clearTimeout(emptyRoomTimer.current);
     };
   }, []);
 
@@ -939,29 +942,50 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     setAdminUids(newAdminUids);
     setPresenceUsers(people);
 
-    // Auto-leave logic for members when the tutor leaves
-    if (!isAdmin) {
-      if (adminCount > 0) {
-        if (!hasSeenAdmin.current && !confirmAdminTimer.current) {
-          // Wait 10 seconds before locking in that we've seen an admin
-          // This prevents cached presence from immediately triggering the leave logic
-          confirmAdminTimer.current = setTimeout(() => {
-            hasSeenAdmin.current = true;
-          }, 10000);
-        }
-      } else if (adminCount === 0) {
-        if (confirmAdminTimer.current) {
-          clearTimeout(confirmAdminTimer.current);
-          confirmAdminTimer.current = null;
-        }
-        if (hasSeenAdmin.current) {
-          toast.info("The tutor has ended the live session.");
-          liveSession.endSession();
-          navigate({ to: "/app/clubs/chat", search: { clubId: channel }, replace: true });
-        }
+    /*
+     * The room belongs to whoever is in it, not to the host.
+     *
+     * Members used to be sent out the moment no tutor/admin was present, so a
+     * host with a bad connection ended the class for everyone. Now the class
+     * carries on while anyone is still in it; it only closes when the last
+     * person leaves (Supabase presence empties, and the club shows it as
+     * offline again until an admin goes live).
+     *
+     * What is still enforced: a member cannot open a room nobody has started.
+     * If a member arrives and, after presence has had time to settle, has
+     * never seen anyone else in the room, they are sent back to wait.
+     */
+    const myUid = client?.uid == null ? "" : String(client.uid);
+    const others = people.filter((person) => person.uid !== myUid);
+    if (others.length > 0) {
+      if (!hasSeenOthers.current) hasSeenOthers.current = true;
+      if (emptyRoomTimer.current) {
+        clearTimeout(emptyRoomTimer.current);
+        emptyRoomTimer.current = null;
       }
     }
-  }, [presenceState, isAdmin]);
+
+    if (!isAdmin && myUid) {
+      if (others.length === 0 && !hasSeenOthers.current && !emptyRoomTimer.current) {
+        emptyRoomTimer.current = setTimeout(() => {
+          emptyRoomTimer.current = null;
+          if (hasSeenOthers.current || leaveStartedRef.current || isAdminRef.current) return;
+          toast.info("This live hasn't started yet. You'll be able to join once an admin goes live.");
+          leaveRef.current?.();
+        }, 8000);
+      }
+    }
+
+    // Tell the room when its host drops, so nobody thinks the class is over.
+    if (!isAdmin) {
+      if (adminCount > 0) {
+        hadAdmin.current = true;
+      } else if (hadAdmin.current && others.length > 0) {
+        hadAdmin.current = false;
+        toast.info("The host left the room. The class stays open, and they can rejoin anytime.");
+      }
+    }
+  }, [presenceState, isAdmin, client?.uid]);
 
   /* ── Auto-scroll chat ── */
   useEffect(() => {
@@ -1016,6 +1040,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   };
 
+  leaveRef.current = () => { void handleLeave(); };
+
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/app/live/${channel}`);
@@ -1039,7 +1065,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       return;
     }
     if (!screenShareSupported) {
-      toast.error("Screen sharing is unavailable on this device. Join from a desktop browser to present.");
+      toast.error("Phones can't share their screen from the Zero Club app yet. To present, join this class from a computer (Chrome or Edge).");
       return;
     }
     if (!isAdmin && !presentationRequests.canStart()) {
