@@ -13,9 +13,17 @@ export const UNTRUSTED_EMAIL_MESSAGE =
 
 /** Obvious typos of the big providers, so we can suggest the fix. */
 const TYPO_FIXES: Record<string, string> = {
-  "gmai.com": "gmail.com", "gmial.com": "gmail.com", "gamil.com": "gmail.com", "gmail.co": "gmail.com",
-  "gmail.con": "gmail.com", "gnail.com": "gmail.com", "yahoo.co": "yahoo.com", "yaho.com": "yahoo.com",
-  "hotmail.co": "hotmail.com", "outlok.com": "outlook.com", "icloud.co": "icloud.com",
+  "gmai.com": "gmail.com",
+  "gmial.com": "gmail.com",
+  "gamil.com": "gmail.com",
+  "gmail.co": "gmail.com",
+  "gmail.con": "gmail.com",
+  "gnail.com": "gmail.com",
+  "yahoo.co": "yahoo.com",
+  "yaho.com": "yahoo.com",
+  "hotmail.co": "hotmail.com",
+  "outlok.com": "outlook.com",
+  "icloud.co": "icloud.com",
 };
 
 export function suggestEmailFix(email: string): string | null {

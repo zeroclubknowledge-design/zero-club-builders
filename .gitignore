@@ -71,3 +71,6 @@ dev-dist
 /ts_errors*.txt
 /temp.tsx
 /*.log
+
+# Local preview bundles made during Claude sessions
+.claude-preview/

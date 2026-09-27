@@ -1214,3 +1214,16 @@ body::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .zc-join-banner, .zc-join-pop, .zc-join-rise { animation: none; }
 }
+
+/* Sign-in / sign-up: the page, html and body are one colour, and the page
+   does not rubber-band, so resizing browser chrome never reveals anything. */
+html.zc-auth-page,
+html.zc-auth-page body {
+  background: #f8f6f1;
+  background-image: none;
+  overscroll-behavior-y: none;
+}
+html.dark.zc-auth-page,
+html.dark.zc-auth-page body {
+  background: #0b0a0d;
+}

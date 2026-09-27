@@ -50,11 +50,17 @@ export function OtpInput({
   };
 
   return (
-    <div className="flex justify-between gap-2 sm:gap-2.5" role="group" aria-label="Confirmation code">
+    <div
+      className="flex justify-between gap-2 sm:gap-2.5"
+      role="group"
+      aria-label="Confirmation code"
+    >
       {digits.map((digit, index) => (
         <input
           key={index}
-          ref={(el) => { refs.current[index] = el; }}
+          ref={(el) => {
+            refs.current[index] = el;
+          }}
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
@@ -63,7 +69,10 @@ export function OtpInput({
           aria-label={`Digit ${index + 1}`}
           disabled={disabled}
           value={digit}
-          onFocus={(e) => { setFocused(index); e.target.select(); }}
+          onFocus={(e) => {
+            setFocused(index);
+            e.target.select();
+          }}
           onBlur={() => setFocused((current) => (current === index ? null : current))}
           onChange={(e) => setAt(index, e.target.value)}
           onPaste={(e) => {
@@ -125,7 +134,10 @@ export function ResendRow({
       <button
         type="button"
         disabled={disabled || remaining > 0}
-        onClick={async () => { await onResend(); setRemaining(cooldownSeconds); }}
+        onClick={async () => {
+          await onResend();
+          setRemaining(cooldownSeconds);
+        }}
         className="font-medium text-[#9d176d] transition hover:text-[#cc208f] disabled:text-[#8c8187] dark:text-[#f2a8dc] dark:disabled:text-white/40"
       >
         {remaining > 0 ? `Resend code in 0:${String(remaining).padStart(2, "0")}` : "Resend code"}

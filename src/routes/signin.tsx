@@ -41,6 +41,13 @@ function SignInPage() {
   const [code, setCode] = useState("");
   const codeFormRef = useRef<HTMLFormElement>(null);
 
+  // The app's tinted body background showed as a strip under this page
+  // whenever the phone's address bar resized the viewport. Match it here.
+  useEffect(() => {
+    document.documentElement.classList.add("zc-auth-page");
+    return () => document.documentElement.classList.remove("zc-auth-page");
+  }, []);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const searchParams = new URLSearchParams(window.location.search);
@@ -170,7 +177,7 @@ function SignInPage() {
        stacked a full marketing column above the form, which is what made it so
        tall on a phone — here the panel simply does not render below lg, and
        the form is the whole screen. */
-    <div className="min-h-dvh bg-[#f8f6f1] px-4 py-4 text-[#171417] dark:bg-[#0b0a0d] dark:text-white sm:px-6 sm:py-6">
+    <div className="flex min-h-dvh flex-col bg-[#f8f6f1] px-4 py-4 text-[#171417] dark:bg-[#0b0a0d] dark:text-white sm:px-6 sm:py-6">
       <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between pb-4">
         <Link
           to="/"
@@ -188,7 +195,7 @@ function SignInPage() {
         </Link>
       </div>
 
-      <main className="zc-glow-card mx-auto grid w-full max-w-[1120px] overflow-hidden rounded-[26px] bg-white dark:bg-[#100c11] lg:grid-cols-2">
+      <main className="zc-glow-card mx-auto grid w-full flex-1 content-start lg:flex-none lg:content-normal max-w-[1120px] overflow-hidden rounded-[26px] bg-white dark:bg-[#100c11] lg:grid-cols-2">
         {/* The identity panel. A single soft bloom of brand light falling to
             near-black at the edges, with the mark and the line that goes with
             it sitting at the bottom — exactly the shape of the reference. */}

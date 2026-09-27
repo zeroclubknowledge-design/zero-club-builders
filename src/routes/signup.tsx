@@ -40,6 +40,13 @@ function SignUpPage() {
   const [step, setStep] = useState<"info" | "code">(() => (localStorage.getItem("signup_step") as "info" | "code") || "info");
   const [code, setCode] = useState("");
   const codeFormRef = useRef<HTMLFormElement>(null);
+
+  // The app's tinted body background showed as a strip under this page
+  // whenever the phone's address bar resized the viewport. Match it here.
+  useEffect(() => {
+    document.documentElement.classList.add("zc-auth-page");
+    return () => document.documentElement.classList.remove("zc-auth-page");
+  }, []);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
@@ -244,7 +251,7 @@ function SignUpPage() {
        than two designs. The panel carries the numbered steps from the
        reference; on a phone it does not render at all and the form is the
        whole screen. */
-    <div className="min-h-dvh overflow-x-hidden bg-[#f8f6f1] px-4 py-4 text-[#171417] dark:bg-[#0b0a0d] dark:text-white sm:px-6 sm:py-6">
+    <div className="flex min-h-dvh flex-col overflow-x-hidden bg-[#f8f6f1] px-4 py-4 text-[#171417] dark:bg-[#0b0a0d] dark:text-white sm:px-6 sm:py-6">
       <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between pb-4">
         {/* Home, not sign in. The arrow beside a page's title reads as "leave
             this flow", and the flow someone is leaving here is signing up —
@@ -265,7 +272,7 @@ function SignUpPage() {
         </Link>
       </div>
 
-      <main className="zc-glow-card mx-auto grid w-full max-w-[1180px] overflow-hidden rounded-[26px] bg-white dark:bg-[#100c11] lg:grid-cols-[1fr_minmax(430px,480px)]">
+      <main className="zc-glow-card mx-auto grid w-full flex-1 content-start lg:flex-none lg:content-normal max-w-[1180px] overflow-hidden rounded-[26px] bg-white dark:bg-[#100c11] lg:grid-cols-[1fr_minmax(430px,480px)]">
         <section className="relative hidden overflow-hidden rounded-[20px] bg-[#0a070a] p-8 lg:m-3 lg:flex lg:flex-col xl:p-10">
           <div
             aria-hidden
