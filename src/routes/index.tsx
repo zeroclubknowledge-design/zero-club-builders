@@ -5,7 +5,6 @@ import { HeroStage } from "@/features/landing/HeroStage";
 import { useReveal } from "@/hooks/useReveal";
 import { usePointerGlow, useParallax, usePrefersReducedMotion } from "@/hooks/useLandingMotion";
 import { Bloom, Seam, Spotlight } from "@/features/landing/LandingKit";
-import { AudienceGrid, ClubsVisual, FeaturesGrid, FinalCallToAction, SiteFooter } from "@/features/landing/PremiumSections";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -193,7 +192,47 @@ const platformHighlights = [
   },
 ];
 
+const audienceCards = [
+  {
+    title: "For builders",
+    copy: "Share what you're learning, document your work, join clubs, and build a profile that compounds.",
+    art: "/audience/builders.webp",
+  },
+  {
+    title: "For tutors",
+    copy: "Run live bootcamps, manage curriculum, teach communities, and earn from your knowledge.",
+    art: "/audience/tutors.webp",
+  },
+  {
+    title: "For institutions",
+    copy: "Create structured learning spaces, support cohorts, and track real learner participation.",
+    art: "/audience/institutions.webp",
+  },
+  {
+    title: "For teams",
+    copy: "Find people through proof of work, contribution history, and community signal.",
+    art: "/audience/teams.webp",
+  },
+];
 
+const footerGroups = [
+  {
+    title: "Explore",
+    links: ["People", "Posts", "Bootcamps", "Clubs", "Store", "Wallet"],
+  },
+  {
+    title: "Community",
+    links: ["Student builders", "Tutors", "Institutions", "Creators", "Startup teams"],
+  },
+  {
+    title: "Business",
+    links: ["Post a bootcamp", "Create a club", "Sell products", "Find builders"],
+  },
+  {
+    title: "Company",
+    links: ["About", "Help Center", "Privacy", "Terms", "Contact"],
+  },
+];
 
 function BrandMark({ light = false }: { light?: boolean }) {
   return (
@@ -815,10 +854,16 @@ function ClubsSection() {
         {/* The visual arrives from the side it sits on and drifts a little
             against the text as you pass, so the row assembles toward its own
             centre instead of everything sliding the same way. */}
-        {/* The real Clubs screen in a phone. This used to be a stock image
-            that still carried the stock site's watermark. */}
         <div data-reveal="left" className="order-2 lg:order-1">
-          <ClubsVisual />
+          <div data-parallax="0.10" className="zc-parallax relative">
+            <Bloom className="-left-10 top-1/3 h-56 w-56" />
+            <img
+              decoding="async"
+              src="/landing-communities-purpose.png"
+              alt="Zero Club private clubs"
+              className="relative h-[360px] w-full rounded-lg bg-[#f7f5f2] dark:bg-[#16131a] object-cover ring-1 ring-[#171717]/[0.08] dark:ring-white/10"
+            />
+          </div>
         </div>
         <div data-reveal="right" className="order-1 lg:order-2">
           <p className="zc-eyebrow">Communities with a purpose</p>
@@ -850,16 +895,49 @@ function ClubsSection() {
 function OpportunitiesSection() {
   return (
     <section id="opportunities" className="bg-[#f4f2ef] dark:bg-[#0f0d12]">
-      <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
         <div>
           <p className="zc-eyebrow">Open doors through proof</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
             A network for people who want to be known by what they build.
           </h2>
         </div>
-        {/* One clean grid instead of four stacked illustrations in four
-            different art styles sliding over each other. */}
-        <AudienceGrid />
+        <div className="pb-5">
+          {audienceCards.map((card, index) => (
+            /* The illustration is the card now, so the icon has gone — a small
+               mark above a full piece of art was the art competing with a
+               thumbnail of itself. The 3:2 ratio is the artwork's own, so
+               nothing is cropped at any width. */
+            <article
+              key={card.title}
+              className="sticky mb-5 overflow-hidden rounded-lg bg-white ring-1 ring-[#171717]/[0.08] dark:bg-[#141118] dark:ring-white/10"
+              style={{ top: "4.75rem", zIndex: index + 1 }}
+            >
+              <img
+                src={card.art}
+                alt=""
+                width={1200}
+                height={800}
+                loading="lazy"
+                decoding="async"
+                className="aspect-[3/2] w-full bg-[#f4f2ef] object-cover dark:bg-[#0f0d12]"
+              />
+              {/* The words sit on the same gradient the stacking cards use,
+                  rather than a flat fill. It runs top-left to bottom-right so
+                  the lighter end meets the illustration above it and the block
+                  settles as it goes down — a flat panel under a full piece of
+                  art reads as a caption bolted on. */}
+              <div className="bg-gradient-to-br from-white via-[#fbfaf8] to-[#f2f0ec] p-6 dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016]">
+                <h3 className="text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">
+                  {card.title}
+                </h3>
+                <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#666a70] dark:text-white/55">
+                  {card.copy}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -982,8 +1060,30 @@ function FeaturesSection() {
           </p>
         </div>
 
-        {/* A grid, not a stack of sticky cards: all six tools visible at a glance. */}
-        <FeaturesGrid features={zeroClubFeatures} />
+        <div className="mx-auto mt-10 max-w-[900px] pb-5">
+          {zeroClubFeatures.map((feature, index) => (
+            <article
+              key={feature.title}
+              className="zc-glow-card sticky mb-5 min-h-[190px] rounded-[20px] bg-white p-6 dark:bg-[#141118] md:min-h-[205px] md:p-7"
+              style={{ top: "4.75rem", zIndex: index + 1 }}
+            >
+              <div className="flex items-start">
+                {/* The icon is the small light source each card is built
+                    around, the way every card in the reference has one glowing
+                    object in it. */}
+                <div className="grid h-11 w-11 place-items-center rounded-[13px] bg-gradient-to-br from-[#cc208f]/20 to-[#cc208f]/[0.04] text-[#cc208f] ring-1 ring-[#cc208f]/25 shadow-[0_0_24px_-6px_rgba(204,32,143,0.55)]">
+                  {feature.icon}
+                </div>
+              </div>
+              <h3 className="mt-5 text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white md:text-[20px]">
+                {feature.title}
+              </h3>
+              <p className="mt-2 max-w-[680px] text-[13px] leading-relaxed text-[#666a70] dark:text-white/55 md:text-[13.5px]">
+                {feature.copy}
+              </p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -1190,7 +1290,7 @@ function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="scroll-mt-20 bg-[#fbfaf8] dark:bg-[#16131a]">
+    <section className="bg-[#fbfaf8] dark:bg-[#16131a]">
       <div className="mx-auto max-w-[1320px] px-4 py-12 md:px-6 lg:py-20">
         <div className="mb-10 text-center md:mb-14">
           <p className="zc-eyebrow">Questions</p>
@@ -1250,11 +1350,87 @@ function FaqSection() {
 }
 
 function FinalCta({ referralCode }: ReferralProps) {
-  return <FinalCallToAction referralCode={referralCode} spotlight={<Spotlight />} />;
+  return (
+    <section className="bg-white dark:bg-[#141118] px-4 py-12 md:px-6 md:py-16">
+      <div className="mx-auto max-w-[1320px]">
+        {/* The closing band is the one place the page raises its voice: a cone
+            of light falling from the top edge onto the mark, the way the
+            reference lights its final call. The two existing blooms stay —
+            they fill the corners the cone does not reach. */}
+        <div className="zc-glow-card relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] px-6 py-12 text-center md:px-16 md:py-16">
+          <Spotlight />
+          <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
+          <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
+          <div className="relative">
+            {/* Lit from above, so the mark reads as sitting under the cone
+                rather than pasted onto it. */}
+            <img
+              decoding="async"
+              src="/logo.png"
+              alt="Zero Club"
+              className="mx-auto h-12 w-12 object-contain drop-shadow-[0_0_28px_rgba(204,32,143,0.65)]"
+            />
+            <h2 className="mx-auto mt-4 max-w-[680px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] text-white md:text-[52px]">
+              Built for the next generation of builders.
+            </h2>
+            <p className="mx-auto mt-4 max-w-[440px] text-[15px] leading-relaxed text-white/55">
+              Your profile, your proof, your people, your income — one platform.
+            </p>
+            <Link
+              to="/signup"
+              search={{ ref: referralCode, club: undefined }}
+              className="mt-9 inline-flex items-center gap-2 rounded-full bg-white dark:bg-[#141118] px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#171717] dark:text-white transition hover:opacity-90 active:scale-[0.98]"
+              preload={false}
+            >
+              Get started free <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function Footer() {
-  return <SiteFooter brand={<BrandMark />} />;
+  return (
+    <footer className="bg-[#f4f2ef] dark:bg-[#0f0d12] px-4 py-12 md:px-6">
+      <div className="mx-auto max-w-[1320px]">
+        <div className="mb-10 flex flex-wrap items-center justify-between gap-5">
+          <BrandMark />
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">
+            The social network for builders.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          {footerGroups.map((group) => (
+            <div key={group.title}>
+              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#171717] dark:text-white">
+                {group.title}
+              </h3>
+              <ul className="grid gap-2.5">
+                {group.links.map((link) => (
+                  <li key={link}>
+                    <a
+                      href={link === "Contact" ? "#contact" : "#people"}
+                      className="text-[13px] font-medium text-[#666a70] dark:text-white/55 transition-colors hover:text-[#171717]"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="mt-12 flex items-center justify-between pt-6">
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">Zero Club © 2026</p>
+          <p className="text-[12px] text-[#666a70] dark:text-white/55">
+            Made for builders, by builders.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
 }
 
 function Landing() {

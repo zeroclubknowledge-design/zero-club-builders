@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "@/components/icons/glyphs";
 import { PartnerMarquee } from "./PartnerMarquee";
-import { HeroDevices, HeroTrust } from "./PremiumSections";
 
 /**
  * The front door.
@@ -98,12 +97,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           </Link>
         </div>
 
-        {/* Social proof from the real member count, then the real product. */}
-        <HeroTrust />
-
         <PartnerMarquee />
-
-        <HeroDevices />
       </div>
 
       {/* No reserved height any more.
