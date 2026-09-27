@@ -61,21 +61,48 @@ export const getTutorBootcamps = async () => {
   const creatorIds = [...new Set(bootcamps.map((bootcamp: any) => bootcamp.creator_id).filter(Boolean))];
   const bootcampIds = bootcamps.map((bootcamp: any) => bootcamp.id);
 
-  const [{ data: creators }, { data: enrollments }] = await Promise.all([
+  const [{ data: creators }, { data: enrollments }, { data: clubsData }] = await Promise.all([
     supabase.from('profiles').select('id, username, full_name, avatar_url, account_type').in('id', creatorIds),
-    supabase.from('enrollments').select('bootcamp_id').in('bootcamp_id', bootcampIds),
+    supabase.from('enrollments').select('bootcamp_id, profile_id').in('bootcamp_id', bootcampIds),
+    supabase.from('clubs').select('id, bootcamp_id').in('bootcamp_id', bootcampIds),
   ]);
 
+  const clubIds = (clubsData || []).map((c: any) => c.id);
+  const { data: clubMembersData } = clubIds.length
+    ? await supabase.from('club_members').select('club_id, profile_id').in('club_id', clubIds)
+    : { data: [] as any[] };
+
   const creatorMap = new Map((creators || []).map((creator: any) => [creator.id, creator]));
-  const enrollmentCounts = new Map<string, number>();
-  (enrollments || []).forEach((row: any) =>
-    enrollmentCounts.set(row.bootcamp_id, (enrollmentCounts.get(row.bootcamp_id) || 0) + 1),
-  );
+  const clubToBootcampMap = new Map((clubsData || []).map((c: any) => [c.id, c.bootcamp_id]));
+  const bootcampCreatorMap = new Map((bootcamps || []).map((b: any) => [b.id, b.creator_id]));
+  const bootcampTutorMap = new Map((bootcamps || []).map((b: any) => [b.id, b.assigned_tutor_id]));
+
+  const learnerSets = new Map<string, Set<string>>();
+  bootcampIds.forEach((id: string) => learnerSets.set(id, new Set<string>()));
+
+  (enrollments || []).forEach((row: any) => {
+    const creatorId = bootcampCreatorMap.get(row.bootcamp_id);
+    const tutorId = bootcampTutorMap.get(row.bootcamp_id);
+    if (row.profile_id && row.profile_id !== creatorId && row.profile_id !== tutorId && row.profile_id !== session.user.id) {
+      learnerSets.get(row.bootcamp_id)?.add(row.profile_id);
+    }
+  });
+
+  (clubMembersData || []).forEach((row: any) => {
+    const bootcampId = clubToBootcampMap.get(row.club_id);
+    if (bootcampId) {
+      const creatorId = bootcampCreatorMap.get(bootcampId);
+      const tutorId = bootcampTutorMap.get(bootcampId);
+      if (row.profile_id && row.profile_id !== creatorId && row.profile_id !== tutorId && row.profile_id !== session.user.id) {
+        learnerSets.get(bootcampId)?.add(row.profile_id);
+      }
+    }
+  });
 
   return bootcamps.map((bootcamp: any) => ({
     ...bootcamp,
     profiles: creatorMap.get(bootcamp.creator_id) || null,
-    enrollments: [{ count: enrollmentCounts.get(bootcamp.id) || 0 }],
+    enrollments: [{ count: learnerSets.get(bootcamp.id)?.size || 0 }],
   }));
 };
 
@@ -393,17 +420,75 @@ export const enrollUserAction = createServerFn({ method: 'POST' }).inputValidato
 
 // Fetch learners for a bootcamp
 export const getBootcampLearners = async (bootcampId: string) => {
-  const { data, error } = await supabase
-    .from('enrollments')
-    .select('enrolled_at, profiles(*)')
-    .eq('bootcamp_id', bootcampId)
-    .order('enrolled_at', { ascending: false });
-  
-  if (error) {
+  try {
+    const { data: { session } } = await getCachedSession();
+    const currentUserId = session?.user?.id;
+
+    const { data: bootcamp } = await supabase
+      .from('bootcamps')
+      .select('creator_id, assigned_tutor_id')
+      .eq('id', bootcampId)
+      .maybeSingle();
+
+    const creatorId = bootcamp?.creator_id;
+    const assignedTutorId = bootcamp?.assigned_tutor_id;
+
+    const { data: enrollments } = await supabase
+      .from('enrollments')
+      .select('enrolled_at, profile_id, profiles(*)')
+      .eq('bootcamp_id', bootcampId)
+      .order('enrolled_at', { ascending: false });
+
+    const { data: club } = await supabase
+      .from('clubs')
+      .select('id')
+      .eq('bootcamp_id', bootcampId)
+      .maybeSingle();
+
+    let clubMembers: any[] = [];
+    if (club?.id) {
+      const { data: members } = await supabase
+        .from('club_members')
+        .select('joined_at, profile_id, profiles(*)')
+        .eq('club_id', club.id);
+      clubMembers = members || [];
+    }
+
+    const isOwnerOrTutor = (pid?: string) => {
+      if (!pid) return true;
+      if (pid === creatorId) return true;
+      if (pid === assignedTutorId) return true;
+      if (currentUserId && pid === currentUserId) return true;
+      return false;
+    };
+
+    const learnerMap = new Map<string, any>();
+
+    for (const item of enrollments || []) {
+      if (item.profile_id && !isOwnerOrTutor(item.profile_id) && item.profiles) {
+        learnerMap.set(item.profile_id, {
+          enrolled_at: item.enrolled_at,
+          created_at: item.enrolled_at,
+          profiles: item.profiles,
+        });
+      }
+    }
+
+    for (const item of clubMembers) {
+      if (item.profile_id && !isOwnerOrTutor(item.profile_id) && item.profiles && !learnerMap.has(item.profile_id)) {
+        learnerMap.set(item.profile_id, {
+          enrolled_at: item.joined_at,
+          created_at: item.joined_at,
+          profiles: item.profiles,
+        });
+      }
+    }
+
+    return Array.from(learnerMap.values());
+  } catch (error) {
     console.error("Error fetching learners:", error);
     return [];
   }
-  return data || [];
 };
 
 // Create a new post

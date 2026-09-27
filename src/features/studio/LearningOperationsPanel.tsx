@@ -99,33 +99,93 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
   const selectedBootcamp = bootcamps.find((item) => item.id === selectedCohort?.bootcamp_id) || null;
 
   const membersQuery = useQuery({
-    queryKey: ["learning-cohort-members", selectedCohortId],
+    queryKey: ["learning-cohort-members", selectedCohortId, profileId],
     enabled: Boolean(selectedCohortId),
     retry: false,
     queryFn: async () => {
+      const { data: bootcamp } = await supabase
+        .from("bootcamps")
+        .select("creator_id, assigned_tutor_id")
+        .eq("id", selectedCohort?.bootcamp_id)
+        .maybeSingle();
+
+      const creatorId = bootcamp?.creator_id;
+      const assignedTutorId = bootcamp?.assigned_tutor_id;
+
       const { data, error } = await supabase
         .from("learning_cohort_members")
         .select("id, cohort_id, profile_id, status, progress_percent, joined_at, completed_at, last_activity_at, profiles(id, username, full_name, avatar_url)")
         .eq("cohort_id", selectedCohortId)
         .order("joined_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+
+      return (data || []).filter(
+        (m: any) => m.profile_id !== creatorId && m.profile_id !== assignedTutorId && m.profile_id !== profileId
+      );
     },
   });
   const members = membersQuery.data || [];
 
   const enrollmentsQuery = useQuery({
-    queryKey: ["operations-enrollments", selectedCohort?.bootcamp_id],
+    queryKey: ["operations-enrollments", selectedCohort?.bootcamp_id, profileId],
     enabled: Boolean(selectedCohort?.bootcamp_id),
     retry: false,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: bootcamp } = await supabase
+        .from("bootcamps")
+        .select("creator_id, assigned_tutor_id")
+        .eq("id", selectedCohort.bootcamp_id)
+        .maybeSingle();
+
+      const creatorId = bootcamp?.creator_id;
+      const assignedTutorId = bootcamp?.assigned_tutor_id;
+
+      const isOwnerOrTutor = (pid?: string) => {
+        if (!pid) return true;
+        if (pid === creatorId) return true;
+        if (pid === assignedTutorId) return true;
+        if (pid === profileId) return true;
+        return false;
+      };
+
+      const { data: enrollmentsData } = await supabase
         .from("enrollments")
         .select("profile_id, enrolled_at, profiles(id, username, full_name, avatar_url)")
         .eq("bootcamp_id", selectedCohort.bootcamp_id)
         .order("enrolled_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
+
+      const { data: club } = await supabase
+        .from("clubs")
+        .select("id")
+        .eq("bootcamp_id", selectedCohort.bootcamp_id)
+        .maybeSingle();
+
+      let clubMembers: any[] = [];
+      if (club?.id) {
+        const { data: membersData } = await supabase
+          .from("club_members")
+          .select("profile_id, joined_at, profiles(id, username, full_name, avatar_url)")
+          .eq("club_id", club.id);
+        clubMembers = membersData || [];
+      }
+
+      const map = new Map<string, any>();
+      for (const item of enrollmentsData || []) {
+        if (item.profile_id && !isOwnerOrTutor(item.profile_id) && item.profiles) {
+          map.set(item.profile_id, item);
+        }
+      }
+      for (const item of clubMembers) {
+        if (item.profile_id && !isOwnerOrTutor(item.profile_id) && item.profiles && !map.has(item.profile_id)) {
+          map.set(item.profile_id, {
+            profile_id: item.profile_id,
+            enrolled_at: item.joined_at,
+            profiles: item.profiles,
+          });
+        }
+      }
+
+      return Array.from(map.values());
     },
   });
   const enrollments = enrollmentsQuery.data || [];
