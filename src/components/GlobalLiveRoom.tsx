@@ -10,6 +10,7 @@ import { Mic, MicOff, Video, VideoOff, PhoneOff, MonitorUp, MonitorOff, Users, M
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
+import { usePresentationRequests } from "@/hooks/usePresentationRequests";
 
 import { displayName } from "@/lib/utils";
 import { useOrientationLock } from "@/hooks/useOrientationLock";
@@ -436,6 +437,15 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [cameraOn, setCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenTrack, setScreenTrack] = useState<any>(null);
+  const [startingPresentation, setStartingPresentation] = useState(false);
+  const captureBusy = useRef(false);
+  const presentationReceiver = useRef<(payload: any) => void>(() => {});
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useEffect(() => () => { screenTrack?.close(); }, [screenTrack]);
 
   /* ── Settings ──
      Real device switching, not a list that only looks like one. The browser
@@ -642,7 +652,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const { videoTracks } = useRemoteVideoTracks(remoteUsers);
 
   /* ── Remote presenter tracking (broadcast + heartbeat, expires when stale) ── */
-  const [remotePresenter, setRemotePresenter] = useState<{ uid: string; at: number } | null>(null);
+  const [remotePresenters, setRemotePresenters] = useState<Record<string, number>>({});
 
   /*
    * ── Reactions ──
@@ -783,7 +793,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* ── Chat + presenting broadcast channel ── */
   useEffect(() => {
     const ch = supabase.channel(`live-chat-${channel}`, {
-      config: { broadcast: { self: false } },
+      config: { broadcast: { self: false, ack: true } },
     });
     ch.on("broadcast", { event: "chat" }, ({ payload }: any) => {
       setChatMessages((prev) => appendLiveMessage(prev, payload as ChatMessage));
@@ -819,12 +829,15 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       }
     });
     ch.on("broadcast", { event: "presenting" }, ({ payload }: any) => {
-      if (payload?.presenting && payload?.uid != null) {
-        setRemotePresenter({ uid: String(payload.uid), at: Date.now() });
-      } else {
-        setRemotePresenter((cur) => (cur && cur.uid === String(payload?.uid) ? null : cur));
-      }
+      if (payload?.uid == null) return;
+      setRemotePresenters(current => {
+        const next = { ...current };
+        if (payload.presenting) next[String(payload.uid)] = Date.now();
+        else delete next[String(payload.uid)];
+        return next;
+      });
     });
+    ch.on("broadcast", { event: "presentation-request" }, ({ payload }: any) => presentationReceiver.current(payload));
     ch.subscribe();
 
     chatChannelRef.current = ch;
@@ -854,7 +867,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   useEffect(() => {
     const id = setInterval(() => {
-      setRemotePresenter((cur) => (cur && Date.now() - cur.at > 10000 ? null : cur));
+      setRemotePresenters(current => Object.fromEntries(Object.entries(current).filter(([, at]) => Date.now() - at <= 10000)));
     }, 5000);
     return () => clearInterval(id);
   }, []);
@@ -865,6 +878,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [adminUids, setAdminUids] = useState<Set<string>>(new Set());
   const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
   const [userProfileIds, setUserProfileIds] = useState<Record<string, string>>({});
+  const presentationRequests = usePresentationRequests({
+    uid: client?.uid == null ? "" : String(client.uid),
+    isAdmin, peers: presenceUsers, channelRef: chatChannelRef,
+  });
+  presentationReceiver.current = presentationRequests.receive;
 
   const presencePayload = profile?.id && client?.uid ? {
     agora_uid: client.uid,
@@ -1013,26 +1031,23 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     typeof (navigator.mediaDevices as any).getDisplayMedia === "function";
 
   const toggleScreenShare = async () => {
+    if (captureBusy.current || leaveStartedRef.current) return;
     if (isScreenSharing) {
       if (screenTrack) screenTrack.close();
       setScreenTrack(null);
       setIsScreenSharing(false);
       return;
     }
-    if (remotePresenter) {
-      const presenterName = userNames[remotePresenter.uid] || "Someone else";
-      toast.info(`${presenterName} is presenting. You can share when they finish.`);
-      return;
-    }
     if (!screenShareSupported) {
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      toast.error(
-        isIOS
-          ? "iOS browsers don't allow web screen capture yet. Use Chrome or Edge on Android, or a desktop browser, to present."
-          : "This browser doesn't support screen sharing. Try Chrome or Edge."
-      );
+      toast.error("Screen sharing is unavailable on this device. Join from a desktop browser to present.");
       return;
     }
+    if (!isAdmin && !presentationRequests.canStart()) {
+      await presentationRequests.askOrCancel();
+      return;
+    }
+    captureBusy.current = true;
+    setStartingPresentation(true);
     try {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       let video;
@@ -1047,10 +1062,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           bitrateMax: 1500
         });
         
-        mediaStreamTrack.onended = () => {
-          setIsScreenSharing(false);
-          setScreenTrack(null);
-        };
       } else {
         const track = await AgoraRTC.createScreenVideoTrack({
           encoderConfig: {
@@ -1065,11 +1076,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         video = Array.isArray(track) ? track[0] : track;
       }
 
-      video.on("track-ended", () => {
+      if (!mounted.current || leaveStartedRef.current || (!isAdmin && !presentationRequests.canStart())) {
+        video.close();
+        return;
+      }
+      const stop = () => {
+        video.close();
         setIsScreenSharing(false);
         setScreenTrack(null);
-      });
+      };
+      video.on("track-ended", stop);
+      video.getMediaStreamTrack().onended = stop;
       
+      presentationRequests.consume();
       setScreenTrack(video);
       setIsScreenSharing(true);
     } catch (err: any) {
@@ -1077,8 +1096,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       if (err?.code === "PERMISSION_DENIED" || err?.name === "NotAllowedError") return;
       console.error("Screen share error:", err);
       toast.error("Could not start screen sharing on this device.");
+    } finally {
+      captureBusy.current = false;
+      if (mounted.current) setStartingPresentation(false);
     }
   };
+  const presentLabel = isScreenSharing ? "Stop presenting" : presentationRequests.request?.approved
+    ? "Start presenting" : presentationRequests.request ? "Cancel presentation request"
+    : isAdmin ? "Present your screen" : "Request to present";
 
   useEffect(() => {
     if (!showSettings) return;
@@ -1462,9 +1487,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const initial = (liveSession.userName || "U")[0].toUpperCase();
 
   /* ══════════ STAGE COMPOSITION ══════════ */
-  const remotePresenterUser = remotePresenter
-    ? remoteUsers.find((u) => String(u.uid) === remotePresenter.uid)
-    : undefined;
+  const remotePresenterUsers = remoteUsers.filter(u => remotePresenters[String(u.uid)] != null && u.hasVideo);
+  const remotePresenterUser = remotePresenterUsers[0];
+  const multiplePresentations = remotePresenterUsers.length + (isScreenSharing ? 1 : 0) > 1;
   const remoteTutor = remoteUsers.find((u) => adminUids.has(String(u.uid)));
   const tutorName = isAdmin
     ? (profile?.username || "You")
@@ -1486,7 +1511,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   // Everyone who is not currently on the stage remains in the learner panel.
   // A learner presenting their screen is the stage user just like a tutor is.
   const stageUid = remotePresenterUser?.uid ?? (!isAdmin ? remoteTutor?.uid ?? null : null);
-  const audienceRemote = remoteUsers.filter((u) => u.uid !== stageUid);
+  const audienceRemote = remoteUsers.filter((u) => u.uid !== stageUid && !remotePresenterUsers.includes(u));
   const cameraOnUsers = audienceRemote.filter((u) => u.hasVideo);
   const audioOnlyUsers = audienceRemote.filter((u) => !u.hasVideo);
   const selfHasCamera = cameraOn && !isScreenSharing && !!localCameraTrack;
@@ -1525,7 +1550,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       const isStageVideo = stageUid != null && userId === String(stageUid);
       const isTutor = adminUids.has(userId);
       const isSpeaking = activeSpeaker != null && userId === String(activeSpeaker);
-      const wantsHigh = isStageVideo || isTutor || isSpeaking;
+      const wantsHigh = isStageVideo || isTutor || isSpeaking || remotePresenters[userId] != null;
       const streamType = !isMinimized && wantsHigh ? 0 : 1;
       if (appliedStreamPolicy.current.get(userId) === streamType) return;
 
@@ -1542,7 +1567,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         client.setStreamFallbackOption(user.uid, 1),
       ]);
     });
-  }, [client, isMinimized, remoteUsers, stageUid, adminUids, activeSpeaker]);
+  }, [client, isMinimized, remoteUsers, stageUid, adminUids, activeSpeaker, remotePresenters]);
 
   /*
    * A shared screen is a different shape from a face.
@@ -1579,16 +1604,34 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const waitingExtra = Math.max(0, presenceUsers.filter((p) => !p.isAdmin).length - 3);
 
   const renderStage = () => {
+    if (multiplePresentations) {
+      return (
+        <div className="grid h-full w-full grid-cols-2 auto-rows-fr gap-2 overflow-auto pb-16 pt-8">
+          {isScreenSharing && screenTrack && (
+            <div className="relative min-h-0 overflow-hidden bg-black">
+              <LocalVideoTrack track={screenTrack} play className="h-full w-full" videoPlayerConfig={{ fit: "contain", mirror: false }} />
+              <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">Your screen</span>
+            </div>
+          )}
+          {remotePresenterUsers.map(user => (
+            <div key={user.uid} className="relative min-h-0 overflow-hidden bg-black">
+              {findVideo(user.uid) && <RemoteVideoTrack track={findVideo(user.uid)!} play className="h-full w-full" videoPlayerConfig={{ fit: "contain" }} />}
+              <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">{userNames[user.uid] || "Presenter"}’s screen</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
     // A local share wins on the presenter's own device, regardless of role.
     if (isScreenSharing && screenTrack) {
-      return <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain" />;
+      return <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full" videoPlayerConfig={{ fit: "contain", mirror: false }} />;
     }
 
     // A remote share wins for tutors and learners alike.
     if (remotePresenterUser) {
       const track = findVideo(remotePresenterUser.uid);
       return track
-        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full object-contain" />
+        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full" videoPlayerConfig={{ fit: "contain" }} />
         : null;
     }
 
@@ -1816,6 +1859,25 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         </button>
       </header>
 
+      {(isAdmin ? presentationRequests.incoming.length > 0 : !!presentationRequests.request) && (
+        <div role="status" aria-live="polite" className="z-40 max-h-[30dvh] shrink-0 space-y-2 overflow-auto px-3 py-2 text-sm text-white">
+          {isAdmin ? presentationRequests.incoming.map(request => (
+            <div key={request.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-[#29202e] p-3">
+              <MonitorUp className="h-5 w-5 shrink-0" />
+              <span className="min-w-0 flex-1">{userNames[request.uid] || "A learner"} wants to present their screen</span>
+              <button disabled={presentationRequests.busy} onClick={() => void presentationRequests.decide(request, true)} className="rounded-lg bg-emerald-600 px-3 py-2 font-semibold disabled:opacity-50">Accept</button>
+              <button disabled={presentationRequests.busy} onClick={() => void presentationRequests.decide(request, false)} className="rounded-lg bg-white/10 px-3 py-2 disabled:opacity-50">Decline</button>
+            </div>
+          )) : (
+            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#29202e] p-3">
+              <span className="flex-1">{presentationRequests.request?.approved ? "Your tutor approved your screen sharing." : "Waiting for your tutor to approve screen sharing…"}</span>
+              {presentationRequests.request?.approved && <button disabled={startingPresentation || isLeaving} onClick={() => void toggleScreenShare()} className="rounded-lg bg-emerald-600 px-3 py-2 font-semibold disabled:opacity-50">{startingPresentation ? "Opening…" : "Start presenting"}</button>}
+              <button disabled={presentationRequests.busy || startingPresentation} onClick={() => void presentationRequests.askOrCancel()} className="rounded-lg bg-white/10 px-3 py-2 disabled:opacity-50">Cancel</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {isAdmin && incomingQuestion && (
         <div
           key={incomingQuestion.id}
@@ -2026,7 +2088,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               already that person with their name on it. Both were rendering
               into the same bottom-left corner — the circle over the strip —
               so the presenter was labelled twice, on top of themselves. */}
-          {remoteStageUser && !selfPresenting && (
+          {remoteStageUser && !selfPresenting && !multiplePresentations && (
             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3.5 pb-3 pt-10 z-10 pointer-events-none">
               <div className="flex items-center gap-2">
                 <Avatar
@@ -2134,13 +2196,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
               <button
                 onClick={toggleScreenShare}
-                disabled={isLeaving}
-                title={isScreenSharing ? "Stop presenting" : "Present your screen"}
-                aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
+                disabled={isLeaving || startingPresentation || presentationRequests.busy}
+                title={presentLabel}
+                aria-label={presentLabel}
                 aria-pressed={isScreenSharing}
                 className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
               >
-                {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
+                {startingPresentation || (presentationRequests.request && !presentationRequests.request.approved) ? <Loader2 className="h-5 w-5 animate-spin" /> : isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className={`h-5 w-5 ${presentationRequests.request?.approved ? "text-emerald-400" : ""}`} />}
               </button>
 
               <div className="h-6 w-px shrink-0 bg-white/10" />
@@ -2559,13 +2621,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
           <button
             onClick={toggleScreenShare}
-            disabled={isLeaving}
-            title={isScreenSharing ? "Stop presenting" : "Present your screen"}
-            aria-label={isScreenSharing ? "Stop presenting" : "Present your screen"}
+            disabled={isLeaving || startingPresentation || presentationRequests.busy}
+            title={presentLabel}
+            aria-label={presentLabel}
             aria-pressed={isScreenSharing}
             className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${isScreenSharing ? "bg-emerald-500 text-white" : "bg-white/[0.1] text-white"}`}
           >
-            {isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className="h-5 w-5" />}
+            {startingPresentation || (presentationRequests.request && !presentationRequests.request.approved) ? <Loader2 className="h-5 w-5 animate-spin" /> : isScreenSharing ? <MonitorOff className="h-5 w-5" /> : <MonitorUp className={`h-5 w-5 ${presentationRequests.request?.approved ? "text-emerald-400" : ""}`} />}
           </button>
 
           <div className="h-6 w-px shrink-0 bg-white/10" />
