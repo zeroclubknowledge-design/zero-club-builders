@@ -7,7 +7,7 @@ import {
   Clock3,
   Gamepad2,
   RotateCcw,
-  Sparkles,
+  TextAa,
   Trophy,
 } from "@/components/icons/glyphs";
 import { SudokuRaceBoard } from "@/features/games/SudokuRaceBoard";
@@ -124,7 +124,7 @@ function SoloGame() {
             </div>
             <div className="grid grid-cols-2 rounded-md border border-border bg-card p-1">
               <ModeButton active={gameType === "sudoku"} onClick={() => changeGame("sudoku")} Icon={Brain} label="Sudoku" />
-              <ModeButton active={gameType === "words"} onClick={() => changeGame("words")} Icon={Sparkles} label="Words" />
+              <ModeButton active={gameType === "words"} onClick={() => changeGame("words")} Icon={TextAa} label="Words" />
             </div>
           </div>
         </section>

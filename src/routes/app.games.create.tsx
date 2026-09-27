@@ -15,7 +15,7 @@ import {
   Link2,
   Loader2,
   LockKeyhole,
-  Sparkles,
+  TextAa,
   Users,
   WalletCards,
 } from "@/components/icons/glyphs";
@@ -152,7 +152,7 @@ function CreateZeroGame() {
           <FormSection eyebrow="01 · Game" title="Choose the race">
             <div className="grid gap-3 sm:grid-cols-2">
               <GameChoice selected={gameType === "sudoku"} onClick={() => setGameType("sudoku")} Icon={Brain} title="Zero Sudoku" detail="The first correct logic grid wins." />
-              <GameChoice selected={gameType === "words"} onClick={() => setGameType("words")} Icon={Sparkles} title="Zero Words" detail="Find every professional term first." />
+              <GameChoice selected={gameType === "words"} onClick={() => setGameType("words")} Icon={TextAa} title="Zero Words" detail="Find every professional term first." />
             </div>
           </FormSection>
 

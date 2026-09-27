@@ -7,7 +7,7 @@ import {
   Gamepad2,
   Loader2,
   Search,
-  Sparkles,
+  TextAa,
   Trophy,
   WalletCards,
 } from "@/components/icons/glyphs";
@@ -129,7 +129,7 @@ function ZeroGamesHome() {
               <span className="text-[12px] text-white/80">Set stakes, invite friends</span>
             </Link>
           </div>
-          <div className="mt-3 grid gap-2">
+          <div className="mt-3 grid grid-cols-1 gap-2">
             <GameRow type="sudoku" title="Zero Sudoku" description="A fresh logic grid, alone or against builders" />
             <GameRow type="words" title="Zero Words" description="Trace professional terms on a shared board" />
           </div>
@@ -176,15 +176,15 @@ function ZeroGamesHome() {
 
 function GameRow({ type, title, description }: { type: "sudoku" | "words"; title: string; description: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-foreground/10 p-3">
+    <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-foreground/10 p-3">
       <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[10px] ${type === "sudoku" ? "bg-foreground/[0.06] text-foreground" : "bg-[#cc208f]/10 text-[#cc208f]"}`}>
-        {type === "sudoku" ? <Brain className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+        {type === "sudoku" ? <Brain className="h-5 w-5" /> : <TextAa className="h-5 w-5" />}
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[15px] font-semibold">{title}</p>
-        <p className="truncate text-[13px] text-muted-foreground">{description}</p>
+        <p className="line-clamp-2 text-[13px] leading-snug text-muted-foreground">{description}</p>
       </div>
-      <Link to="/app/games/solo" search={{ game: type, difficulty: "easy", profession: "Web Developer" }} className="shrink-0 px-1.5 text-[14px] font-semibold text-muted-foreground hover:text-foreground">
+      <Link to="/app/games/solo" search={{ game: type, difficulty: "easy", profession: "Web Developer" }} className="shrink-0 px-1 text-[14px] font-semibold text-muted-foreground hover:text-foreground">
         Solo
       </Link>
       <Link to="/app/games/create" search={{ game: type }} className="flex h-8 shrink-0 items-center rounded-full border-[1.5px] border-foreground px-3 text-[13px] font-semibold">
@@ -220,7 +220,7 @@ function CompetitionRow({ competition, format, live, done }: { competition: Zero
   return (
     <Link to="/app/games/$id" params={{ id: competition.id }} className="flex items-center gap-3 border-t border-border/60 px-4 py-3 hover:bg-foreground/[0.02]">
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${isSudoku ? "bg-foreground/[0.06] text-foreground" : "bg-[#cc208f]/10 text-[#cc208f]"}`}>
-        {isSudoku ? <Brain className="h-[22px] w-[22px]" /> : <Sparkles className="h-[22px] w-[22px]" />}
+        {isSudoku ? <Brain className="h-[22px] w-[22px]" /> : <TextAa className="h-[22px] w-[22px]" />}
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-[15px] font-semibold">{competition.title}</p>
