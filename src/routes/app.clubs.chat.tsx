@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
-import { ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, Clock, Sparkles, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, ShieldCheck } from "@/components/icons/glyphs";
+import { ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
@@ -1257,28 +1257,20 @@ function ClubChat() {
                     <div className="overflow-y-auto bg-background outline-none">
 
                       {/* Drag Handle */}
-                      <div className="flex justify-center pt-4 pb-2">
+                      <div className="flex justify-center pb-2 pt-3">
                         <div className="h-1 w-10 rounded-full bg-border" />
                       </div>
 
                       {/* Header */}
-                      <div className="px-6 pt-2 pb-5">
-                        <div className="mb-1.5 flex items-center gap-3">
-                          {/* A video camera, not a lightning bolt. These are
-                              live rooms — the icon should say what the tool
-                              does rather than gesture at energy. */}
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                            <Video className="h-[18px] w-[18px] text-primary-foreground" strokeWidth={1.9} />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase text-primary">Live club tools</p>
-                            <h2 className="text-[19px] font-semibold tracking-tight text-foreground">Interactive Spaces</h2>
-                          </div>
-                        </div>
-                      </div>
+                      <DrawerHeader className="gap-0 sm:gap-0 px-5 pb-4 pt-1 text-left sm:px-6 sm:pt-2">
+                        <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Interactive spaces</DrawerTitle>
+                        <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+                          Live club tools. Sessions open inside the club and keep members in context.
+                        </DrawerDescription>
+                      </DrawerHeader>
 
                       {!showScheduleForm ? (
-                        <div className="px-5 pb-10 space-y-3 animate-in fade-in duration-200">
+                        <div className="space-y-2.5 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] animate-in fade-in duration-200 sm:px-6">
 
                           {isAdmin ? (
                             <>
@@ -1288,34 +1280,37 @@ function ClubChat() {
                                   setShowLiveMenu(false);
                                   navigate({ to: "/app/live/$classId", params: { classId: club?.id || "unknown" } });
                                 }}
-                                className="group flex w-full items-center gap-4 rounded-lg border border-red-500/20 bg-red-500/[0.06] p-4 text-left transition-all hover:bg-red-500/10 active:scale-[0.99]"
+                                className="flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] border-foreground/12 p-4 text-left transition hover:bg-foreground/[0.03] active:scale-[0.99]"
                               >
-                                <div className="relative">
-                                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-red-500 text-white">
-                                    <Radio className="w-6 h-6" />
+                                <div className="relative shrink-0">
+                                  {/* A video camera, not a lightning bolt. These are
+                                      live rooms — the icon should say what the tool
+                                      does rather than gesture at energy. */}
+                                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#e0245e] text-white">
+                                    <Radio className="h-[22px] w-[22px]" />
                                   </div>
-                                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-card animate-pulse" />
+                                  <span className="absolute -right-0.5 -top-0.5 h-3 w-3 animate-pulse rounded-full border-2 border-background bg-[#e0245e]" />
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="font-semibold text-foreground text-[15px] tracking-tight group-hover:text-red-400 transition-colors">Go Live Now</h3>
-                                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Start an instant video session with your community</p>
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="text-[15px] font-semibold text-foreground">Go live now</h3>
+                                  <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">Start an instant video session with your community</p>
                                 </div>
-                                <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-red-400 group-hover:translate-x-1 transition-all shrink-0" />
+                                <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                               </button>
 
                               {/* ── Schedule Space Card (Admin) ── */}
                               <button
                                 onClick={() => setShowScheduleForm(true)}
-                                className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/40 hover:bg-accent/30 active:scale-[0.99]"
+                                className="flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] border-foreground/12 p-4 text-left transition hover:bg-foreground/[0.03] active:scale-[0.99]"
                               >
-                                <div className="flex h-12 w-12 items-center justify-center rounded-md border border-primary/15 bg-primary/10">
-                                  <CalendarDays className="w-6 h-6 text-primary" />
+                                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#a3186f]">
+                                  <CalendarDays className="h-[22px] w-[22px]" />
                                 </div>
-                                <div className="flex-1 min-w-0 text-left">
-                                  <h3 className="font-semibold text-foreground text-[15px] tracking-tight group-hover:text-primary transition-colors">Schedule Space</h3>
-                                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Plan a future live class, event, or discussion</p>
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="text-[15px] font-semibold text-foreground">Schedule a space</h3>
+                                  <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">Plan a future live class, event, or discussion</p>
                                 </div>
-                                <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                                <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                               </button>
                             </>
                           ) : (
@@ -1328,87 +1323,82 @@ function ClubChat() {
                                 }
                               }}
                               disabled={liveAdminsCount === 0}
-                              className={`group flex w-full items-center gap-4 p-4 text-left outline-none transition-all ${
+                              className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 text-left outline-none transition ${
                                 liveAdminsCount > 0
-                                  ?"rounded-lg bg-red-500/[0.06] border border-red-500/20 hover:bg-red-500/10 active:scale-[0.99]"
-                                  : "rounded-lg bg-muted/30 border border-border opacity-60 cursor-not-allowed"
+                                  ?"border-[#e0245e]/30 bg-[#e0245e]/[0.05] hover:bg-[#e0245e]/[0.08] active:scale-[0.99]"
+                                  : "cursor-not-allowed border-foreground/12 opacity-60"
                               }`}
                             >
-                              <div className="relative">
-                                <div className={`flex h-12 w-12 items-center justify-center rounded-md text-white ${
-                                  liveAdminsCount > 0 ?"bg-red-500" : "bg-muted-foreground/30"
+                              <div className="relative shrink-0">
+                                <div className={`grid h-11 w-11 place-items-center rounded-xl ${
+                                  liveAdminsCount > 0 ?"bg-[#e0245e] text-white" : "bg-foreground/[0.06] text-muted-foreground"
                                 }`}>
-                                  <Video className="w-6 h-6" />
+                                  <Video className="h-[22px] w-[22px]" />
                                 </div>
-                                {liveAdminsCount > 0 && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-card animate-pulse" />}
+                                {liveAdminsCount > 0 && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 animate-pulse rounded-full border-2 border-background bg-[#e0245e]" />}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className={`font-semibold text-[15px] tracking-tight transition-colors ${liveAdminsCount > 0 ?"text-foreground group-hover:text-red-400" : "text-muted-foreground"}`}>
-                                  {liveAdminsCount > 0 ? "Join Live Space" : "Space is Offline"}
+                              <div className="min-w-0 flex-1">
+                                <h3 className={`text-[15px] font-semibold ${liveAdminsCount > 0 ?"text-foreground" : "text-muted-foreground"}`}>
+                                  {liveAdminsCount > 0 ? "Join live space" : "Space is offline"}
                                 </h3>
-                                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                                  {liveAdminsCount > 0 ? "An admin is currently live! Join the interactive space." : "Wait for an admin to start a live session."}
+                                <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
+                                  {liveAdminsCount > 0 ? "An admin is live right now. Join the interactive space." : "Wait for an admin to start a live session."}
                                 </p>
                               </div>
-                              {liveAdminsCount > 0 && <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-red-400 group-hover:translate-x-1 transition-all shrink-0" />}
+                              {liveAdminsCount > 0 && <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />}
                             </button>
                           )}
-
-                          <p className="px-1 pt-2 text-center text-[11px] text-muted-foreground">Live sessions open inside the club and keep members in context.</p>
                         </div>
                       ) : (
                         /* ── Schedule Space Form ── */
-                        <div className="px-5 pb-10 animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div className="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] animate-in fade-in slide-in-from-right-4 duration-300 sm:px-6">
 
                           {/* Back row */}
                           <button
                             onClick={() => setShowScheduleForm(false)}
-                            className="flex items-center gap-1.5 text-primary/60 hover:text-primary transition mb-5 group"
+                            className="-ml-1 mb-4 flex h-9 items-center gap-1 text-[14px] font-semibold text-muted-foreground transition hover:text-foreground"
                           >
-                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-                            <span className="text-xs">Back to options</span>
+                            <ChevronLeft className="h-[18px] w-[18px]" />
+                            Back to options
                           </button>
 
-                          <div className="space-y-5">
+                          <div className="space-y-4">
                             {/* Title input */}
-                            <div className="space-y-2">
-                              <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground ml-1">
-                                <Sparkles className="w-3 h-3" />
-                                Space Topic
+                            <div>
+                              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
+                                Space topic
                               </label>
                               <input
                                 type="text"
                                 placeholder="e.g. Mastering React State Management"
                                 value={spaceTitle}
                                 onChange={(e) => setSpaceTitle(e.target.value)}
-                                className="w-full rounded-md border border-border bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary"
+                                className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                               />
                             </div>
 
                             {/* Date & Time row */}
                             <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-2">
-                                <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground ml-1">
-                                  <CalendarDays className="w-3 h-3" />
+                              <div className="min-w-0">
+                                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
                                   Date
                                 </label>
                                 <input
                                   type="date"
                                   value={spaceDate}
                                   onChange={(e) => setSpaceDate(e.target.value)}
-                                  className="w-full rounded-md border border-border bg-card px-3 py-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary"
+                                  className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition focus:border-foreground/40"
                                 />
                               </div>
-                              <div className="space-y-2">
-                                <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground ml-1">
-                                  <Clock className="w-3 h-3" />
+                              <div className="min-w-0">
+                                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
                                   Time
                                 </label>
                                 <input
                                   type="time"
                                   value={spaceTime}
                                   onChange={(e) => setSpaceTime(e.target.value)}
-                                  className="w-full rounded-md border border-border bg-card px-3 py-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary"
+                                  className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition focus:border-foreground/40"
                                 />
                               </div>
                             </div>
@@ -1416,10 +1406,10 @@ function ClubChat() {
                             {/* Submit button */}
                             <button
                               onClick={handleScheduleSpaceSubmit}
-                              className="mt-2 flex w-full items-center justify-center gap-2.5 rounded-md bg-foreground py-3.5 font-semibold tracking-tight text-background transition hover:opacity-90 active:scale-[0.99]"
+                              className="!mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[16px] font-semibold text-background transition hover:opacity-90 active:scale-[0.99]"
                             >
-                              <CalendarDays className="w-4.5 h-4.5" />
-                              Schedule Space
+                              <CalendarDays className="h-5 w-5" />
+                              Schedule space
                             </button>
                           </div>
                         </div>
@@ -1430,27 +1420,28 @@ function ClubChat() {
                 {club?.creator_id === currentUser?.id && (
                   <Drawer open={showSettings} onOpenChange={setShowSettings}>
                   <DrawerContent desktopVariant="panel" className="mx-auto h-[92%] max-w-[760px] border-none bg-background px-4 pb-4 pt-1 sm:p-6 sm:pt-8">
-                      <DrawerHeader className="mb-3 p-0 text-left sm:mb-6 sm:p-4">
-                        <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Club Settings</DrawerTitle>
-                        <p className="text-[11px] text-muted-foreground">Manage your community workspace</p>
+                      <DrawerHeader className="gap-0 sm:gap-0 shrink-0 p-0 pb-4 pr-10 pt-1 text-left sm:p-0 sm:pb-6 sm:pr-10">
+                        <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Club settings</DrawerTitle>
+                        <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Manage your community workspace</p>
                       </DrawerHeader>
 
-                      <div className="space-y-6 overflow-y-auto h-full pb-20 no-scrollbar">
-                        <div className="flex flex-col mb-2">
-                          <div className="group relative h-32 w-full overflow-visible rounded-lg border-2 border-dashed border-border bg-accent/20">
-                            <div className="absolute inset-0 overflow-hidden rounded-xl">
+                      <div className="space-y-8 overflow-y-auto h-full pb-20 no-scrollbar">
+                        <div className="flex flex-col">
+                          <div className="group relative h-32 w-full overflow-visible rounded-2xl border border-dashed border-foreground/15 bg-foreground/[0.04]">
+                            <div className="absolute inset-0 overflow-hidden rounded-2xl">
                               {editClub.banner_url ? (
                                 <img src={editClub.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                               ) : (
-                                <div className="flex flex-col items-center justify-center h-full">
-                                  <span className="text-xs text-muted-foreground">Club Banner</span>
+                                <div className="flex h-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
+                                  <Image className="h-[22px] w-[22px]" />
+                                  <span className="text-[13px] font-medium">Club banner</span>
                                 </div>
                               )}
                             </div>
                             
                             {uploading && (
-                              <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-30 rounded-xl">
-                                <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                              <div className="absolute inset-0 z-30 flex items-center justify-center rounded-2xl bg-background/70 backdrop-blur-sm">
+                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                               </div>
                             )}
 
@@ -1459,15 +1450,16 @@ function ClubChat() {
                                 fileInputRef.current?.setAttribute('data-target', 'banner_url');
                                 fileInputRef.current?.click();
                               }}
-                              className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/50 backdrop-blur-md text-white shadow-glow flex items-center justify-center hover:scale-110 transition-transform z-20"
+                              aria-label="Change banner"
+                              className="absolute right-2.5 top-2.5 z-20 grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur-md transition active:scale-95"
                             >
-                              <Camera className="h-4 w-4" />
+                              <Camera className="h-[18px] w-[18px]" />
                             </button>
 
                             {/* Logo overlapping the banner */}
-                            <div className="absolute -bottom-6 left-4 z-40">
-                              <div className="relative group">
-                                <div className="h-16 w-16 rounded-xl bg-accent/20 border-4 border-background overflow-hidden flex items-center justify-center shadow-lg">
+                            <div className="absolute -bottom-7 left-4 z-40">
+                              <div className="relative">
+                                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card">
                                   {editClub.logo_url || editClub.banner_url ? (
                                     <img src={editClub.logo_url || editClub.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                   ) : (
@@ -1480,7 +1472,8 @@ function ClubChat() {
                                     fileInputRef.current?.setAttribute('data-target', 'logo_url');
                                     fileInputRef.current?.click();
                                   }}
-                                  className="absolute -right-2 -bottom-2 h-7 w-7 rounded-full bg-primary text-primary-foreground shadow-glow flex items-center justify-center hover:scale-110 transition-transform z-50"
+                                  aria-label="Change logo"
+                                  className="absolute -bottom-1.5 -right-1.5 z-50 grid h-7 w-7 place-items-center rounded-full border-2 border-background bg-foreground text-background transition active:scale-95"
                                 >
                                   <Camera className="h-3.5 w-3.5" />
                                 </button>
@@ -1502,26 +1495,26 @@ function ClubChat() {
                         </div>
 
                         <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-muted-foreground ml-1">Club Name</label>
+                          <div>
+                            <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Club name</label>
                             <input 
                               value={editClub.name}
                               onChange={e => setEditClub({...editClub, name: e.target.value})}
-                              className="w-full rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                              className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                             />
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-muted-foreground ml-1">Description</label>
+                          <div>
+                            <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Description</label>
                             <textarea 
                               ref={descRef}
                               value={editClub.description}
                               onChange={e => setEditClub({...editClub, description: e.target.value})}
                               placeholder="What is this club about?"
-                              className="min-h-[80px] w-full resize-none rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition no-scrollbar focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                              className="min-h-[88px] w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed text-foreground outline-none transition no-scrollbar placeholder:text-muted-foreground focus:border-foreground/40"
                             />
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-muted-foreground ml-1">Categories</label>
+                          <div>
+                            <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Categories</label>
                             <div className="flex flex-wrap gap-2">
                               {["Tech", "AI", "Design", "Startup", "Writing", "Marketing", "Campus"].map(cat => {
                                 const isSelected = editClub.category?.includes(cat);
@@ -1540,7 +1533,7 @@ function ClubChat() {
                                       }
                                       setEditClub({...editClub, category: currentCats.length > 0 ? currentCats.join(', ') : "All"});
                                     }}
-                                    className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${isSelected ?'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-background text-muted-foreground border-border/40 hover:border-border'}`}
+                                    className={`h-9 rounded-full border-[1.5px] px-3.5 text-[13px] font-semibold transition ${isSelected ?'border-[#cc208f] bg-[#cc208f]/[0.08] text-[#a3186f]' : 'border-foreground/12 text-foreground hover:bg-foreground/[0.04]'}`}
                                   >
                                     {cat}
                                   </button>
@@ -1548,30 +1541,28 @@ function ClubChat() {
                               })}
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-muted-foreground ml-1">Class Rules</label>
+                          <div>
+                            <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Class rules</label>
                             <textarea 
                               ref={rulesRef}
                               value={editClub.rules}
                               onChange={e => setEditClub({...editClub, rules: e.target.value})}
                               placeholder="Set the standards for your squad..."
-                              className="min-h-[120px] w-full resize-none rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-medium text-foreground outline-none transition no-scrollbar focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                              className="min-h-[128px] w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed text-foreground outline-none transition no-scrollbar placeholder:text-muted-foreground focus:border-foreground/40"
                             />
                           </div>
                         </div>
 
                         {/* ── Access ──────────────────────────────────── */}
-                        <div className="space-y-4 pt-4 border-t border-border/50">
-                          <h3 className="text-[11px] font-bold text-foreground flex items-center gap-2">
-                            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Who gets in
-                          </h3>
+                        <div className="space-y-3">
+                          <h3 className="text-[13px] font-semibold text-muted-foreground">Who gets in</h3>
 
                           {/* Being findable and being open are different
                               things. A private club is by request either way,
                               so the switch is only offered where it changes
                               something. */}
                           {editClub.is_private ? (
-                            <p className="rounded-lg bg-card px-4 py-3.5 text-[11px] leading-relaxed text-muted-foreground">
+                            <p className="rounded-2xl bg-foreground/[0.04] px-4 py-3.5 text-[14px] leading-relaxed text-muted-foreground">
                               This club is private, so every join is a request you approve. Make it
                               public if you want people to find it on their own.
                             </p>
@@ -1581,29 +1572,27 @@ function ClubChat() {
                               onClick={() =>
                                 setEditClub({ ...editClub, requires_approval: !editClub.requires_approval })
                               }
-                              className="flex w-full items-center justify-between gap-3 rounded-lg bg-card px-4 py-3.5 text-left"
+                              className="flex w-full items-center justify-between gap-4 rounded-2xl bg-foreground/[0.04] px-4 py-3.5 text-left"
                             >
                               <span className="min-w-0">
-                                <span className="block text-[13px] font-semibold text-foreground">
+                                <span className="block text-[15px] font-semibold text-foreground">
                                   {editClub.requires_approval ? "Approve each member" : "Open to everyone"}
                                 </span>
-                                <span className="mt-0.5 block text-[10.5px] leading-relaxed text-muted-foreground">
+                                <span className="mt-0.5 block text-[13px] leading-relaxed text-muted-foreground">
                                   {editClub.requires_approval
                                     ? "People send a request and wait for you. The club stays public and findable."
                                     : "Anyone who finds the club can join straight away."}
                                 </span>
                               </span>
-                              <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.requires_approval ? "bg-primary" : "bg-accent"}`}>
-                                <span className={`block h-4 w-4 rounded-full bg-background transition-transform ${editClub.requires_approval ? "translate-x-5" : ""}`} />
+                              <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.requires_approval ? "bg-[#cc208f]" : "bg-foreground/15"}`}>
+                                <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${editClub.requires_approval ? "translate-x-5" : ""}`} />
                               </span>
                             </button>
                           )}
                         </div>
 
-                        <div className="space-y-4 pt-4 border-t border-border/50">
-                          <h3 className="text-[11px] font-bold text-foreground flex items-center gap-2">
-                            <Wallet className="h-3.5 w-3.5 text-primary" /> Membership
-                          </h3>
+                        <div className="space-y-3">
+                          <h3 className="text-[13px] font-semibold text-muted-foreground">Membership</h3>
 
                           {/* One switch, stated as what it turns ON. "Free
                               access" as a toggle read backwards: switching it
@@ -1612,27 +1601,27 @@ function ClubChat() {
                           <button
                             type="button"
                             onClick={() => setEditClub({ ...editClub, access_free: !editClub.access_free })}
-                            className="flex w-full items-center justify-between gap-3 rounded-lg bg-card px-4 py-3.5 text-left"
+                            className="flex w-full items-center justify-between gap-4 rounded-2xl bg-foreground/[0.04] px-4 py-3.5 text-left"
                           >
                             <span className="min-w-0">
-                              <span className="block text-[13px] font-semibold text-foreground">
+                              <span className="block text-[15px] font-semibold text-foreground">
                                 {editClub.access_free ? "Free access" : "Subscription on"}
                               </span>
-                              <span className="mt-0.5 block text-[10.5px] leading-relaxed text-muted-foreground">
+                              <span className="mt-0.5 block text-[13px] leading-relaxed text-muted-foreground">
                                 {editClub.access_free
                                   ? "Anyone can join without paying. Your fee is saved for when you switch it back on."
                                   : "Members pay to join. Switch off any time to open the doors without losing the fee."}
                               </span>
                             </span>
-                            <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.access_free ? "bg-accent" : "bg-primary"}`}>
-                              <span className={`block h-4 w-4 rounded-full bg-background transition-transform ${editClub.access_free ? "" : "translate-x-5"}`} />
+                            <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.access_free ? "bg-foreground/15" : "bg-[#cc208f]"}`}>
+                              <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${editClub.access_free ? "" : "translate-x-5"}`} />
                             </span>
                           </button>
 
                           {/* The amount only matters while the subscription is
                               on, so it steps back when it is not. */}
-                          <div className={`space-y-2 transition-opacity ${editClub.access_free ? "opacity-45" : ""}`}>
-                            <label className="ml-1 text-[10px] text-muted-foreground">
+                          <div className={`pt-1 transition-opacity ${editClub.access_free ? "opacity-45" : ""}`}>
+                            <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
                               What it costs to join ({walletCurrency.symbol})
                             </label>
                             <input
@@ -1645,19 +1634,17 @@ function ClubChat() {
                                 })
                               }
                               placeholder="0"
-                              className="w-full rounded-lg border border-border/60 bg-card px-4 py-3.5 text-sm font-semibold tabular-nums text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+                              className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] font-semibold tabular-nums text-foreground outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                             />
-                            <p className="ml-1 text-[10.5px] leading-relaxed text-muted-foreground">
+                            <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
                               Charged once from the member's Zero Club wallet and paid straight into
                               yours. Nobody gets in without paying — unless you add them by username.
                             </p>
                           </div>
                         </div>
 
-                        <div className="space-y-4 pt-4 border-t border-border/50">
-                          <h3 className="text-[11px] font-bold text-foreground flex items-center gap-2">
-                            <Hash className="h-3.5 w-3.5 text-primary" /> Club Sections
-                          </h3>
+                        <div className="space-y-3">
+                          <h3 className="text-[13px] font-semibold text-muted-foreground">Club sections</h3>
                           <div className="space-y-2">
                             {editRooms.map((r, i) => (
                               <div key={r.id} className="flex gap-2">
@@ -1668,13 +1655,14 @@ function ClubChat() {
                                     newRooms[i].name = e.target.value;
                                     setEditRooms(newRooms);
                                   }}
-                                  className="flex-1 rounded-lg border border-border/60 bg-card px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/50"
+                                  className="h-11 min-w-0 flex-1 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                                 />
                                 <button 
                                   onClick={() => setEditRooms(editRooms.filter((_, idx) => idx !== i))}
-                                  className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-lg bg-destructive/10 text-destructive transition hover:bg-destructive/20"
+                                  aria-label={`Remove ${r.name}`}
+                                  className="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] bg-[#e0245e]/10 text-[#e0245e] transition hover:bg-[#e0245e]/15"
                                 >
-                                  <X className="h-4 w-4" />
+                                  <X className="h-[18px] w-[18px]" />
                                 </button>
                               </div>
                             ))}
@@ -1683,26 +1671,26 @@ function ClubChat() {
                                 const newId = `room-${Math.random().toString(36).substr(2, 9)}`;
                                 setEditRooms([...editRooms, { id: newId, name: "New Section" }]);
                               }}
-                              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-primary/40 py-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
+                              className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full border-[1.5px] border-dashed border-foreground/25 text-[14px] font-semibold text-foreground transition hover:bg-foreground/[0.04]"
                             >
-                              <Plus className="h-3.5 w-3.5" /> Add Section
+                              <Plus className="h-[18px] w-[18px]" /> Add section
                             </button>
                           </div>
                         </div>
 
-                        <div className="pt-4 space-y-3">
+                        <div className="space-y-3 pt-2">
                           <button 
                             onClick={handleUpdateClub}
                             disabled={isUpdating}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-4 font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
+                            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[16px] font-semibold text-background transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
                           >
-                            <Save className="h-4 w-4" /> {isUpdating ? "Saving..." : "Save Changes"}
+                            {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />} {isUpdating ? "Saving..." : "Save changes"}
                           </button>
                           <button 
                             onClick={handleDeleteClub}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 py-4 font-semibold text-destructive transition active:bg-destructive/20"
+                            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#e0245e]/10 text-[16px] font-semibold text-[#e0245e] transition hover:bg-[#e0245e]/15 active:scale-[0.99]"
                           >
-                            <Trash2 className="h-4 w-4" /> Delete Club
+                            <Trash2 className="h-5 w-5" /> Delete club
                           </button>
                         </div>
                       </div>
@@ -1762,9 +1750,9 @@ function ClubChat() {
                       >
                         {/* PANEL 1: CLUB SQUAD MEMBER LIST */}
                         <div data-vaul-no-drag className="h-full w-1/3 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-1 no-scrollbar">
-                          <DrawerHeader className="mb-3 shrink-0 p-0 pr-10 text-left sm:mb-6 sm:p-4 sm:pr-10">
-                            <DrawerTitle className="text-[18px] font-semibold tracking-tight sm:text-2xl">Club Squad</DrawerTitle>
-                            <p className="text-xs text-muted-foreground">The team building {club?.name}</p>
+                          <DrawerHeader className="gap-0 sm:gap-0 shrink-0 p-0 pb-4 pr-10 pt-1 text-left sm:p-0 sm:pb-5 sm:pr-10">
+                            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Club squad</DrawerTitle>
+                            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">The team building {club?.name}</p>
                           </DrawerHeader>
 
                           {/* Sharing is for everyone in the squad. Any member
@@ -1772,25 +1760,25 @@ function ClubChat() {
                               that is how a club grows. Adding someone outright
                               stays with admins, below. */}
                           {club && (
-                            <div className="mb-6 shrink-0 rounded-lg border border-border/70 bg-card p-4">
-                              <p className="text-left text-sm font-bold text-foreground">Invite a friend</p>
-                              <p className="mt-0.5 text-left text-[10px] text-muted-foreground">
+                            <div className="mb-3 shrink-0 rounded-2xl bg-foreground/[0.04] p-4">
+                              <p className="text-left text-[15px] font-semibold text-foreground">Invite a friend</p>
+                              <p className="mt-0.5 text-left text-[13px] leading-relaxed text-muted-foreground">
                                 Share {club.name} with anyone — they can join from the link.
                               </p>
-                              <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                              <div className="mt-3 flex gap-2">
                                 <button
                                   onClick={handleShareInvite}
-                                  className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-bold text-primary-foreground transition hover:opacity-90 active:scale-[0.98]"
+                                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-foreground text-[14px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
                                 >
-                                  <Share2 className="h-3.5 w-3.5" /> Share link
+                                  <Share2 className="h-[18px] w-[18px]" /> Share link
                                 </button>
                                 <button
                                   onClick={handleCopyInvite}
                                   title="Copy invite link"
                                   aria-label="Copy invite link"
-                                  className="flex h-10 w-11 items-center justify-center rounded-lg border border-border bg-accent/30 text-foreground transition hover:bg-accent/50 active:scale-95"
+                                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-[1.5px] border-foreground/15 bg-background text-foreground transition hover:bg-foreground/[0.04] active:scale-95"
                                 >
-                                  <Copy className="h-3.5 w-3.5" />
+                                  <Copy className="h-[18px] w-[18px]" />
                                 </button>
                               </div>
                             </div>
@@ -1803,33 +1791,33 @@ function ClubChat() {
                           {isAdmin && (
                             <button
                               onClick={() => setShowAddPanel(true)}
-                              className="mb-4 flex w-full shrink-0 items-center gap-3 rounded-lg border border-border/70 bg-card p-4 text-left transition active:scale-[0.99] hover:bg-accent/30"
+                              className="mb-3 flex w-full shrink-0 items-center gap-3 rounded-2xl px-1 py-3 text-left transition hover:bg-foreground/[0.03] active:scale-[0.99]"
                             >
-                              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                                <UserPlus className="h-[18px] w-[18px]" />
+                              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#a3186f]">
+                                <UserPlus className="h-[22px] w-[22px]" />
                               </span>
                               <span className="min-w-0 flex-1">
-                                <span className="block text-sm font-bold text-foreground">Add a builder</span>
-                                <span className="block text-[10px] text-muted-foreground">
+                                <span className="block text-[15px] font-semibold text-foreground">Add a builder</span>
+                                <span className="block text-[13px] text-muted-foreground">
                                   Search anyone on Zero Club and add them
                                 </span>
                               </span>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                             </button>
                           )}
 
-                          <div className="relative mb-4 shrink-0">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <div className="relative mb-2 shrink-0">
+                            <Search className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" />
                             <input
                               type="text"
                               placeholder="Find a builder..."
                               value={squadSearch}
                               onChange={(e) => setSquadSearch(e.target.value)}
-                              className="h-10 w-full rounded-lg border border-border/60 bg-card pl-9 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                              className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card pl-10 pr-3 text-[15px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                             />
                           </div>
 
-                          <div className="space-y-3 pb-10 flex-1">
+                          <div className="flex-1 pb-10">
                             {[...members]
                               .filter(m => {
                                 if (!squadSearch) return true;
@@ -1858,24 +1846,26 @@ function ClubChat() {
                               return (
                                 <div
                                   key={m.profile_id}
-                                  className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-card p-3 transition hover:border-primary/40 hover:bg-accent/20 sm:p-4"
+                                  className="flex items-center justify-between gap-3 py-3"
                                 >
                                   <div className="flex min-w-0 flex-1 items-center gap-3">
                                       <button
                                         type="button"
                                         onClick={() => openMemberProfile(m.profiles, m.profile_id)}
-                                        className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/50 bg-muted shadow-sm transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+                                        className="relative h-11 w-11 shrink-0 rounded-full bg-foreground/[0.06] transition active:scale-95"
                                         aria-label={`View ${m.profiles?.full_name || m.profiles?.username || 'member'} profile`}
                                       >
-                                          {m.profiles?.avatar_url ? (
-                                            <img src={m.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                                          ) : (
-                                            <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                              {m.profiles?.username?.[0]?.toUpperCase()}
-                                            </div>
-                                          )}
+                                          <span className="block h-full w-full overflow-hidden rounded-full">
+                                            {m.profiles?.avatar_url ? (
+                                              <img src={m.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                                            ) : (
+                                              <span className="grid h-full w-full place-items-center text-[15px] font-semibold text-muted-foreground">
+                                                {m.profiles?.username?.[0]?.toUpperCase()}
+                                              </span>
+                                            )}
+                                          </span>
                                           {isUserOnline(m.profiles) && (
-                                            <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-[#0A0A0E]" />
+                                            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-[#1a7f4b]" />
                                           )}
                                       </button>
                                       <button
@@ -1884,10 +1874,10 @@ function ClubChat() {
                                         className="min-w-0 flex-1 text-left active:opacity-70"
                                       >
                                         <div className="min-w-0 text-left">
-                                          <div className="truncate text-sm font-bold text-foreground">
+                                          <div className="truncate text-[15px] font-semibold text-foreground">
                                             {m.profiles?.full_name || m.profiles?.username}
                                           </div>
-                                          <div className={`mt-1 inline-block px-2 py-0.5 rounded text-[8px] ${getRoleColor(m.role)}`}>
+                                          <div className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${getRoleColor(m.role)}`}>
                                             {m.role}
                                           </div>
                                         </div>
@@ -1896,7 +1886,7 @@ function ClubChat() {
 
                                   <div className="flex shrink-0 items-center gap-2">
                                         {m.profile_id === club?.creator_id ? (
-                                          <span className="text-[8px] text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full bg-amber-500/5">
+                                          <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[12px] font-semibold text-amber-600 dark:text-amber-400">
                                             Creator
                                           </span>
                                         ) : (
@@ -1906,7 +1896,7 @@ function ClubChat() {
                                                 e.stopPropagation();
                                                 setSelectedMember(m);
                                               }}
-                                              className="text-xs font-semibold text-primary hover:underline transition px-2.5 py-1 relative z-10"
+                                              className="relative z-10 h-8 rounded-full border-[1.5px] border-foreground/15 px-3.5 text-[13px] font-semibold text-foreground transition hover:bg-foreground/[0.04]"
                                             >
                                               Edit
                                             </button>
@@ -1921,41 +1911,41 @@ function ClubChat() {
 
                         {/* PANEL 2: MEMBER SETTINGS VIEW */}
                         <div data-vaul-no-drag className="h-full w-1/3 shrink-0 touch-pan-y overflow-y-auto overscroll-contain px-2 no-scrollbar">
-                          <div className="shrink-0 flex flex-col gap-4 mb-6 pr-10">
+                          <div className="mb-5 flex shrink-0 flex-col gap-3 pr-10">
                             <button 
                               onClick={() => setSelectedMember(null)}
-                              className="self-start flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition py-1 px-2.5 rounded-full bg-accent/20 border border-border"
+                              className="-ml-1 flex h-9 items-center gap-1 self-start text-[14px] font-semibold text-muted-foreground transition hover:text-foreground"
                             >
-                              <ChevronLeft className="h-3.5 w-3.5" /> Back to Squad
+                              <ChevronLeft className="h-[18px] w-[18px]" /> Back to squad
                             </button>
                             
                             <div className="text-left">
-                              <h3 className="text-[19px] font-semibold tracking-tight text-foreground">Member Settings</h3>
-                              <p className="text-xs text-muted-foreground">Modify squad privileges and roles</p>
+                              <h3 className="font-display text-[20px] font-semibold leading-tight text-foreground">Member settings</h3>
+                              <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Modify squad privileges and roles</p>
                             </div>
                           </div>
 
                           {selectedMember && (
-                            <div className="mb-6 flex shrink-0 items-center gap-4 rounded-lg border border-border/70 bg-card p-4">
+                            <div className="mb-6 flex shrink-0 items-center gap-3.5 rounded-2xl bg-foreground/[0.04] p-4">
                               <button
                                 type="button"
                                 onClick={() => openMemberProfile(selectedMember.profiles, selectedMember.profile_id)}
-                                className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-muted transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+                                className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06] transition active:scale-95"
                                 aria-label="View member profile"
                               >
                                 {selectedMember.profiles?.avatar_url ? (
                                   <img src={selectedMember.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                 ) : (
-                                  <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">
+                                  <span className="grid h-full w-full place-items-center text-[17px] font-semibold text-muted-foreground">
                                     {selectedMember.profiles?.username?.[0]?.toUpperCase()}
-                                  </div>
+                                  </span>
                                 )}
                               </button>
-                              <div className="text-left">
-                                <h4 className="text-sm font-bold text-foreground">{selectedMember.profiles?.full_name || selectedMember.profiles?.username}</h4>
-                                <p className="text-xs text-muted-foreground">{getFirstName(selectedMember.profiles)}</p>
+                              <div className="min-w-0 text-left">
+                                <h4 className="truncate text-[16px] font-semibold text-foreground">{selectedMember.profiles?.full_name || selectedMember.profiles?.username}</h4>
+                                <p className="truncate text-[13px] text-muted-foreground">{getFirstName(selectedMember.profiles)}</p>
                                 <div className="mt-1.5">
-                                  <span className={`inline-block px-2 py-0.5 rounded text-[8px] ${getRoleColor(selectedMember.role)}`}>
+                                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${getRoleColor(selectedMember.role)}`}>
                                     {selectedMember.role}
                                   </span>
                                 </div>
@@ -1964,7 +1954,7 @@ function ClubChat() {
                           )}
 
                           <div className="flex-1 space-y-2">
-                            <label className="text-[10px] text-muted-foreground block text-left ml-1 mb-2">Select Squad Role</label>
+                            <label className="mb-2 block text-left text-[13px] font-semibold text-muted-foreground">Squad role</label>
                             {[
                               { name: 'Member', desc: 'Standard squad member with access to all rooms.' },
                               { name: 'Administrator', desc: 'Full co-management rights, can edit settings.' },
@@ -1984,33 +1974,31 @@ function ClubChat() {
                                       handleRoleChange(selectedMember.profile_id, roleOption.name);
                                     }
                                   }}
-                                  className={`flex w-full items-center justify-between gap-3 rounded-lg border p-3.5 text-left transition ${
+                                  className={`flex w-full items-center justify-between gap-3 rounded-2xl border-[1.5px] p-4 text-left text-foreground transition ${
                                     isActive 
-                                      ?'bg-primary/10 border-primary text-foreground'
-                                      : 'bg-card border-border hover:bg-accent/20 text-foreground'
+                                      ?'border-[#cc208f] bg-[#cc208f]/[0.06]'
+                                      : 'border-foreground/12 hover:bg-foreground/[0.03]'
                                   }`}
                                 >
-                                  <div className="text-left">
-                                    <p className="text-xs font-bold">{roleOption.name}</p>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{roleOption.desc}</p>
+                                  <div className="min-w-0 text-left">
+                                    <p className="text-[15px] font-semibold">{roleOption.name}</p>
+                                    <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">{roleOption.desc}</p>
                                   </div>
-                                  {isActive && (
-                                    <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-                                      <Check className="h-3.5 w-3.5" />
-                                    </div>
-                                  )}
+                                  <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${isActive ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/20"}`}>
+                                    {isActive && <Check className="h-3 w-3" strokeWidth={3} />}
+                                  </span>
                                 </button>
                               );
                             })}
                           </div>
 
                           {selectedMember && (
-                            <div className="pt-6 border-t border-border/50 mt-6 pb-10 shrink-0">
+                            <div className="mt-6 shrink-0 pb-10">
                               <button
                                 onClick={() => handleRemoveMember(selectedMember.profile_id)}
-                                className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 py-3.5 text-xs font-semibold text-destructive transition hover:bg-destructive/20 active:scale-95"
+                                className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#e0245e]/10 text-[16px] font-semibold text-[#e0245e] transition hover:bg-[#e0245e]/15 active:scale-[0.99]"
                               >
-                                <UserX className="h-4 w-4" /> Remove From Squad
+                                <UserX className="h-5 w-5" /> Remove from squad
                               </button>
                             </div>
                           )}
@@ -2025,17 +2013,17 @@ function ClubChat() {
                           <div className="shrink-0 pr-10">
                             <button
                               onClick={() => { setShowAddPanel(false); setAddQuery(""); }}
-                              className="mb-4 flex items-center gap-1.5 self-start rounded-full border border-border bg-accent/20 px-2.5 py-1 text-xs font-bold text-muted-foreground transition hover:text-foreground"
+                              className="-ml-1 mb-3 flex h-9 items-center gap-1 self-start text-[14px] font-semibold text-muted-foreground transition hover:text-foreground"
                             >
-                              <ChevronLeft className="h-3.5 w-3.5" /> Back to Squad
+                              <ChevronLeft className="h-[18px] w-[18px]" /> Back to squad
                             </button>
-                            <h3 className="text-left text-lg font-bold tracking-tight">Add a builder</h3>
-                            <p className="mb-4 text-left text-xs text-muted-foreground">
+                            <h3 className="text-left font-display text-[20px] font-semibold leading-tight text-foreground">Add a builder</h3>
+                            <p className="mb-4 mt-1 text-left text-[14px] leading-relaxed text-muted-foreground">
                               They join {club?.name} straight away and get a notification.
                             </p>
 
-                            <div className="relative mb-3">
-                              <UserPlus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <div className="relative mb-2">
+                              <Search className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" />
                               <input
                                 type="text"
                                 inputMode="search"
@@ -2043,15 +2031,15 @@ function ClubChat() {
                                 placeholder="Search @username or name"
                                 value={addQuery}
                                 onChange={(e) => setAddQuery(e.target.value)}
-                                className="h-12 w-full rounded-lg border border-border/60 bg-card pl-9 pr-9 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                                className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card pl-10 pr-10 text-[15px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                               />
                               {addQuery && (
                                 <button
                                   onClick={() => setAddQuery("")}
                                   aria-label="Clear search"
-                                  className="absolute right-2.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition hover:bg-accent"
+                                  className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.06]"
                                 >
-                                  <X className="h-3.5 w-3.5" />
+                                  <X className="h-4 w-4" />
                                 </button>
                               )}
                             </div>
@@ -2061,50 +2049,57 @@ function ClubChat() {
                               last row so the keyboard cannot bury it. */}
                           <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-[40vh] no-scrollbar">
                             {addQuery.trim().length < 2 ? (
-                              <div className="pt-10 text-center">
-                                <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-accent/30 text-muted-foreground">
-                                  <UserPlus className="h-5 w-5" />
+                              <div className="flex flex-col items-center pt-12 text-center">
+                                <div className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
+                                  <UserPlus className="h-[22px] w-[22px]" />
                                 </div>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-[16px] font-semibold text-foreground">Find someone to add</p>
+                                <p className="mt-1 text-[14px] text-muted-foreground">
                                   Type at least 2 letters to search
                                 </p>
                               </div>
                             ) : addSearching ? (
                               /* Skeletons rather than a spinner, so the rows do
                                  not jump into place as results land. */
-                              <div className="space-y-2">
+                              <div>
                                 {[0, 1, 2].map((i) => (
-                                  <div key={i} className="flex items-center gap-3 rounded-lg bg-card p-3">
-                                    <div className="h-10 w-10 shrink-0 rounded-full bg-foreground/[0.06] shimmer" />
-                                    <div className="min-w-0 flex-1 space-y-1.5">
-                                      <div className="h-3 w-2/3 rounded bg-foreground/[0.06] shimmer" />
-                                      <div className="h-2.5 w-1/3 rounded bg-foreground/[0.05] shimmer" />
+                                  <div key={i} className="flex items-center gap-3 py-3">
+                                    <div className="h-11 w-11 shrink-0 rounded-full bg-foreground/[0.06] shimmer" />
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                      <div className="h-3.5 w-2/3 rounded bg-foreground/[0.06] shimmer" />
+                                      <div className="h-3 w-1/3 rounded bg-foreground/[0.05] shimmer" />
                                     </div>
                                   </div>
                                 ))}
                               </div>
                             ) : addError ? (
-                              <div className="pt-10 text-center">
-                                <p className="text-sm font-semibold text-destructive">Search could not run</p>
-                                <p className="mx-auto mt-1 max-w-[36ch] text-xs leading-relaxed text-muted-foreground">
+                              <div className="flex flex-col items-center pt-12 text-center">
+                                <div className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-[#e0245e]/10 text-[#e0245e]">
+                                  <Search className="h-[22px] w-[22px]" />
+                                </div>
+                                <p className="text-[16px] font-semibold text-foreground">Search could not run</p>
+                                <p className="mx-auto mt-1 max-w-[36ch] text-[14px] leading-relaxed text-muted-foreground">
                                   {addError}
                                 </p>
                               </div>
                             ) : addResults.length === 0 ? (
-                              <div className="pt-10 text-center">
-                                <p className="text-sm font-semibold text-foreground">No one new found</p>
-                                <p className="mt-1 text-xs text-muted-foreground">
+                              <div className="flex flex-col items-center pt-12 text-center">
+                                <div className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
+                                  <Users className="h-[22px] w-[22px]" />
+                                </div>
+                                <p className="text-[16px] font-semibold text-foreground">No one new found</p>
+                                <p className="mx-auto mt-1 max-w-[36ch] text-[14px] leading-relaxed text-muted-foreground">
                                   They may already be in the squad, or try a different spelling.
                                 </p>
                               </div>
                             ) : (
-                              <div className="space-y-2">
+                              <div>
                                 {addResults.map((person) => (
                                   <div
                                     key={person.id}
-                                    className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3"
+                                    className="flex items-center gap-3 py-3"
                                   >
-                                    <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
+                                    <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
                                       {person.avatar_url ? (
                                         <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                       ) : (
@@ -2112,20 +2107,20 @@ function ClubChat() {
                                       )}
                                     </div>
                                     <div className="min-w-0 flex-1 text-left">
-                                      <p className="truncate text-sm font-bold text-foreground">
+                                      <p className="truncate text-[15px] font-semibold text-foreground">
                                         {person.full_name || person.username}
                                       </p>
-                                      <p className="truncate text-[11px] text-muted-foreground">@{person.username}</p>
+                                      <p className="truncate text-[13px] text-muted-foreground">@{person.username}</p>
                                     </div>
                                     <button
                                       onClick={() => handleAddMember(person)}
                                       disabled={addingId !== null}
-                                      className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                                      className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background transition hover:opacity-90 active:scale-95 disabled:opacity-40"
                                     >
                                       {addingId === person.id ? (
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" />
                                       ) : (
-                                        <Plus className="h-3.5 w-3.5" />
+                                        <Plus className="h-4 w-4" />
                                       )}
                                       Add
                                     </button>
@@ -2139,55 +2134,55 @@ function ClubChat() {
 
                       {squadActionMember && (
                         <div
-                          className="absolute inset-0 z-50 flex items-end bg-background/55 backdrop-blur-sm"
+                          className="absolute inset-0 z-50 flex items-end bg-background/60 backdrop-blur-sm"
                           onClick={() => setSquadActionMember(null)}
                         >
                           <div
-                            className="w-full border-t border-border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl"
+                            className="w-full rounded-t-2xl border-t border-border/60 bg-background pb-[max(1rem,env(safe-area-inset-bottom))] pt-2"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            <div className="mb-4 flex items-center gap-3 border-b border-border pb-4">
+                            <div className="flex items-center gap-3 px-5 pb-3 pt-2">
                               <button
                                 type="button"
                                 onClick={() => openMemberProfile(squadActionMember.profiles, squadActionMember.profile_id)}
-                                className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-muted transition hover:ring-2 hover:ring-foreground/20 active:scale-95"
+                                className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06] transition active:scale-95"
                                 aria-label="View member profile"
                               >
                                 {squadActionMember.profiles?.avatar_url ? (
                                   <img src={squadActionMember.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                 ) : (
-                                  <div className="grid h-full w-full place-items-center bg-primary/10 text-sm font-bold text-primary">
+                                  <span className="grid h-full w-full place-items-center text-[15px] font-semibold text-muted-foreground">
                                     {squadActionMember.profiles?.username?.[0]?.toUpperCase()}
-                                  </div>
+                                  </span>
                                 )}
                               </button>
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-semibold text-foreground">{squadActionMember.profiles?.full_name || squadActionMember.profiles?.username}</p>
-                                <p className="truncate text-xs text-muted-foreground">{getFirstName(squadActionMember.profiles)}</p>
+                                <p className="truncate text-[15px] font-semibold text-foreground">{squadActionMember.profiles?.full_name || squadActionMember.profiles?.username}</p>
+                                <p className="truncate text-[13px] text-muted-foreground">{getFirstName(squadActionMember.profiles)}</p>
                               </div>
                               <button
                                 onClick={() => setSquadActionMember(null)}
-                                className="grid h-9 w-9 place-items-center rounded-md bg-accent text-muted-foreground"
+                                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground/[0.06] text-muted-foreground transition hover:text-foreground"
                                 aria-label="Close member actions"
                               >
-                                <X className="h-4 w-4" />
+                                <X className="h-[18px] w-[18px]" />
                               </button>
                             </div>
-                            <div className="space-y-2">
+                            <div className="pt-1">
                               <button
                                 onClick={() => navigate({ to: `/app/profile/${squadActionMember.profiles?.username}` })}
-                                className="flex h-12 w-full items-center gap-3 rounded-md bg-card px-4 text-sm font-semibold text-foreground transition active:bg-accent"
+                                className="flex w-full items-center gap-3.5 px-5 py-3.5 text-left text-[16px] font-medium text-foreground transition hover:bg-foreground/[0.04]"
                               >
-                                <User className="h-4 w-4 fill-current text-primary" />
-                                View Profile
+                                <User className="h-[22px] w-[22px] shrink-0" />
+                                View profile
                               </button>
                               {squadActionMember.profile_id !== currentUser?.id && (
                                 <button
                                   onClick={() => navigate({ to: `/app/chat/${squadActionMember.profile_id}` })}
-                                  className="flex h-12 w-full items-center gap-3 rounded-md bg-card px-4 text-sm font-semibold text-foreground transition active:bg-accent"
+                                  className="flex w-full items-center gap-3.5 px-5 py-3.5 text-left text-[16px] font-medium text-foreground transition hover:bg-foreground/[0.04]"
                                 >
-                                  <MessageSquare className="h-4 w-4 fill-current text-primary" />
-                                  Message Builder
+                                  <MessageSquare className="h-[22px] w-[22px] shrink-0" />
+                                  Message builder
                                 </button>
                               )}
                             </div>
@@ -2200,35 +2195,28 @@ function ClubChat() {
 
             <Drawer open={showGiveaway} onOpenChange={setShowGiveaway}>
               <DrawerContent desktopVariant="panel" className="mx-auto max-w-[680px] overflow-hidden border border-border bg-background p-0 shadow-2xl">
-                <DrawerHeader className="border-b border-border px-5 pb-3 pt-0 text-left sm:px-7 sm:pb-4 sm:pt-2">
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-foreground text-background">
-                      <Gift className="h-5 w-5 fill-current" />
-                    </div>
-                    <div className="min-w-0">
-                      <DrawerTitle className="text-[18px] font-semibold tracking-tight">Create a giveaway</DrawerTitle>
-                      <DrawerDescription className="mt-1 text-xs leading-5">The complete prize pool is reserved when you publish.</DrawerDescription>
-                    </div>
-                  </div>
+                <DrawerHeader className="gap-0 sm:gap-0 px-5 pb-3 pt-1 text-left sm:px-7 sm:pt-2">
+                  <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Create a giveaway</DrawerTitle>
+                  <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">The complete prize pool is reserved when you publish.</DrawerDescription>
                 </DrawerHeader>
 
-                <div className="space-y-3 px-5 py-4 sm:px-7 sm:py-5">
+                <div className="space-y-4 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-1 sm:px-7 sm:pb-6">
                   <label className="block">
-                    <span className="mb-1.5 block text-xs font-semibold text-foreground">Giveaway title</span>
+                    <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Giveaway title</span>
                     <input
                       value={giveaway.title}
                       onChange={(event) => setGiveaway((current) => ({ ...current, title: event.target.value }))}
                       maxLength={80}
                       placeholder="Community build challenge"
-                      className="h-10 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
+                      className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                     />
                   </label>
 
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block min-w-0">
-                      <span className="mb-1.5 block text-xs font-semibold text-foreground">Prize per winner</span>
-                      <div className="flex h-10 items-center rounded-md border border-border bg-card focus-within:border-foreground">
-                        <span className="border-r border-border px-3 text-xs font-semibold text-muted-foreground">{walletCurrency.symbol}</span>
+                      <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Prize per winner</span>
+                      <div className="flex h-11 items-center rounded-[10px] border border-foreground/15 bg-card transition focus-within:border-foreground/40">
+                        <span className="pl-3 text-[15px] font-semibold text-muted-foreground">{walletCurrency.symbol}</span>
                         <input
                           type="number"
                           min={walletCurrency.rate === 1 ? 1 : 0.01}
@@ -2236,66 +2224,66 @@ function ClubChat() {
                           value={giveaway.amountPerWinner ?? ""}
                           onChange={(event) => setGiveaway((current) => ({ ...current, amountPerWinner: event.target.value === "" ? undefined : Number(event.target.value) }))}
                           placeholder="25000"
-                          className="min-w-0 flex-1 bg-transparent px-3 text-sm tabular-nums outline-none"
+                          className="min-w-0 flex-1 bg-transparent px-2 text-[15px] tabular-nums outline-none placeholder:text-muted-foreground"
                         />
                       </div>
                     </label>
                     <label className="block min-w-0">
-                      <span className="mb-1.5 block text-xs font-semibold text-foreground">Winners</span>
+                      <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Winners</span>
                       <input
                         type="number"
                         min={1}
                         max={20}
                         value={giveaway.winners}
                         onChange={(event) => setGiveaway((current) => ({ ...current, winners: Number(event.target.value) }))}
-                        className="h-10 w-full rounded-md border border-border bg-card px-3.5 text-sm outline-none transition focus:border-foreground"
+                        className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] tabular-nums outline-none transition focus:border-foreground/40"
                       />
                     </label>
                   </div>
 
                   <label className="block">
-                    <span className="mb-1.5 block text-xs font-semibold text-foreground">Details</span>
+                    <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Details</span>
                     <textarea
                       value={giveaway.description}
                       onChange={(event) => setGiveaway((current) => ({ ...current, description: event.target.value }))}
                       maxLength={320}
                       rows={2}
                       placeholder="Explain how members qualify and what the winner receives."
-                      className="w-full resize-none rounded-md border border-border bg-card px-3.5 py-2.5 text-sm leading-5 outline-none transition focus:border-foreground"
+                      className="w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                     />
                   </label>
 
                   <label className="block">
-                    <span className="mb-1.5 block text-xs font-semibold text-foreground">Closes</span>
+                    <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Closes</span>
                     <input
                       type="datetime-local"
                       value={giveaway.endsAt}
                       min={new Date().toISOString().slice(0, 16)}
                       onChange={(event) => setGiveaway((current) => ({ ...current, endsAt: event.target.value }))}
-                      className="h-10 w-full rounded-md border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground"
+                      className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none transition focus:border-foreground/40"
                     />
                   </label>
 
-                  <div className={`flex items-center justify-between gap-4 rounded-md border px-3.5 py-3 ${giveawayTotalBase > 0 && !canFundGiveaway ? "border-destructive/30 bg-destructive/5" : "border-border bg-muted/40"}`}>
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <WalletCards className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-medium text-muted-foreground">Locked when published</p>
-                        <p className="truncate text-sm font-semibold tabular-nums">{formatWalletAmount(giveawayTotalBase)}</p>
-                      </div>
+                  <div className={`flex items-center justify-between gap-4 rounded-2xl px-4 py-3.5 ${giveawayTotalBase > 0 && !canFundGiveaway ? "bg-[#e0245e]/[0.07]" : "bg-foreground/[0.04]"}`}>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold text-muted-foreground">Locked when published</p>
+                      <p className="mt-0.5 truncate font-display text-[18px] font-semibold tabular-nums text-foreground">{formatWalletAmount(giveawayTotalBase)}</p>
                     </div>
-                    <p className={`shrink-0 text-right text-[10px] ${giveawayTotalBase > 0 && !canFundGiveaway ? "text-destructive" : "text-muted-foreground"}`}>
-                      Wallet<br /><strong className="font-semibold text-foreground">{formatWalletAmount(Number(currentUserProfile?.coins || 0))}</strong>
-                    </p>
+                    <div className="shrink-0 text-right">
+                      <p className={`flex items-center justify-end gap-1.5 text-[13px] font-semibold ${giveawayTotalBase > 0 && !canFundGiveaway ? "text-[#e0245e]" : "text-muted-foreground"}`}>
+                        <WalletCards className="h-4 w-4" /> Wallet
+                      </p>
+                      <p className="mt-0.5 text-[15px] font-semibold tabular-nums text-foreground">{formatWalletAmount(Number(currentUserProfile?.coins || 0))}</p>
+                    </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleCreateGiveaway}
                     disabled={isCreatingGiveaway || !giveaway.title.trim() || !giveaway.endsAt || !canFundGiveaway}
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-semibold text-background transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] px-5 text-[16px] font-semibold text-white transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
                   >
-                    {isCreatingGiveaway ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gift className="h-4 w-4 fill-current" />}
+                    {isCreatingGiveaway ? <Loader2 className="h-5 w-5 animate-spin" /> : <Gift className="h-5 w-5 fill-current" />}
                     {isCreatingGiveaway ? "Publishing..." : "Publish giveaway"}
                   </button>
                 </div>
@@ -2304,10 +2292,10 @@ function ClubChat() {
 
             <Drawer open={showRoomSwitcher} onOpenChange={setShowRoomSwitcher}>
               <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
-                <div className="px-4 pb-8 pt-1 sm:px-5 sm:pb-10 sm:pt-6">
-                  <DrawerHeader className="mb-3 px-0 pt-0 text-left sm:mb-6">
-                    <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[19px]">Channels</DrawerTitle>
-                    <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
+                <div className="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-1 sm:pt-4">
+                  <DrawerHeader className="gap-0 sm:gap-0 mb-2 px-0 pb-3 pt-0 text-left sm:p-0 sm:pb-4">
+                    <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Channels</DrawerTitle>
+                    <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
                       Switch to a different section
                     </DrawerDescription>
                   </DrawerHeader>
@@ -2321,44 +2309,44 @@ function ClubChat() {
                           setShowRoomSwitcher(false);
                           scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg border p-4 transition active:scale-[0.98] ${
+                        className={`flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-4 py-3.5 text-left transition active:scale-[0.99] ${
                           activeRoom === r.id
-                            ? "bg-primary/10 border-primary/20 shadow-sm"
-                            : "bg-card border-border/40 hover:bg-accent/40"
+                            ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                            : "border-foreground/12 hover:bg-foreground/[0.03]"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`grid h-8 w-8 place-items-center rounded-xl ${
-                            activeRoom === r.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                          }`}>
-                            <Hash className="h-4 w-4" />
-                          </div>
-                          <span className={`text-sm font-bold ${
-                            activeRoom === r.id ? "text-primary" : "text-foreground"
-                          }`}>
-                            {r.name}
-                          </span>
-                        </div>
-                        {activeRoom === r.id && <Check className="w-4 h-4 text-primary" />}
+                        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
+                          activeRoom === r.id ? "bg-[#cc208f]/10 text-[#a3186f]" : "bg-foreground/[0.05] text-muted-foreground"
+                        }`}>
+                          <Hash className="h-[18px] w-[18px]" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-foreground">
+                          {r.name}
+                        </span>
+                        <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                          activeRoom === r.id ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/20"
+                        }`}>
+                          {activeRoom === r.id && <Check className="h-3 w-3" strokeWidth={3} />}
+                        </span>
                       </button>
                     ))}
-                    <button
-                      onClick={() => {
-                        setShowRoomSwitcher(false);
-                        navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } });
-                      }}
-                      className="flex w-full items-center justify-between rounded-lg border border-border/40 bg-card p-4 transition hover:bg-accent/40 active:scale-[0.98]"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="grid h-8 w-8 place-items-center rounded-xl bg-muted text-muted-foreground">
-                          <ClipboardCheck className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm font-bold text-foreground">Quiz</span>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    </button>
                   </div>
 
+                  <button
+                    onClick={() => {
+                      setShowRoomSwitcher(false);
+                      navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } });
+                    }}
+                    className="mt-3 flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition hover:bg-foreground/[0.04] active:scale-[0.99]"
+                  >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-muted-foreground">
+                      <ClipboardCheck className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-semibold text-foreground">Quiz</span>
+                    </span>
+                    <ArrowRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+                  </button>
                 </div>
               </DrawerContent>
             </Drawer>
@@ -2837,21 +2825,32 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
             return (
               <div className="flex h-full min-h-0 flex-col">
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                <DrawerHeader className="border-b border-border px-4 pb-3 pt-1 text-left sm:px-6 sm:pb-5 sm:pt-7">
-                  <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-primary">
-                    {room === 'assignments' ? <BookOpenCheck className="h-4 w-4" /> : <HelpCircle className="h-4 w-4" />}
+                <DrawerHeader className="gap-0 sm:gap-0 px-5 pb-5 pt-1 text-left sm:px-6 sm:pb-6 sm:pt-4">
+                  <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
+                    {room === 'assignments' ? <BookOpenCheck className="h-3.5 w-3.5" /> : <HelpCircle className="h-3.5 w-3.5" />}
                     {room === 'assignments' ? 'Assignment details' : 'Question thread'}
-                  </div>
-                  <DrawerTitle className="break-words pr-8 text-[17px] font-semibold leading-6 [overflow-wrap:anywhere] sm:text-xl sm:leading-7">{card.title}</DrawerTitle>
-                  {card.dueDate && <p className="mt-1 text-xs font-medium text-muted-foreground">Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}</p>}
-                  <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{card.body}</p>
+                  </span>
+                  <DrawerTitle className="break-words pr-8 font-display text-[20px] font-semibold leading-tight [overflow-wrap:anywhere]">{card.title}</DrawerTitle>
+                  {card.dueDate && (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
+                      <CalendarDays className="h-4 w-4" />
+                      Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}
+                    </p>
+                  )}
+                  <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">{card.body}</p>
                 </DrawerHeader>
 
-                <div className="px-4 py-5 sm:px-6">
-                  <h5 className="mb-4 text-sm font-semibold text-foreground">{room === 'assignments' ? `Submissions (${replies.length})` : `Answers (${replies.length})`}</h5>
+                <div className="border-t border-border/60 px-5 py-5 sm:px-6">
+                  <h5 className="mb-3 text-[13px] font-semibold text-muted-foreground">{room === 'assignments' ? `Submissions (${replies.length})` : `Answers (${replies.length})`}</h5>
                   {replies.length === 0 ? (
-                    <div className="border border-dashed border-border px-5 py-10 text-center text-sm text-muted-foreground">
-                      {room === 'assignments' ? 'No submissions yet.' : 'No answers yet. Add the first useful response.'}
+                    <div className="flex flex-col items-center px-5 py-10 text-center">
+                      <div className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
+                        {room === 'assignments' ? <BookOpenCheck className="h-[22px] w-[22px]" /> : <MessageSquare className="h-[22px] w-[22px]" />}
+                      </div>
+                      <p className="text-[16px] font-semibold text-foreground">{room === 'assignments' ? 'No submissions yet' : 'No answers yet'}</p>
+                      <p className="mt-1 text-[14px] text-muted-foreground">
+                        {room === 'assignments' ? 'Submitted work will show up here.' : 'Add the first useful response.'}
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -2859,21 +2858,21 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                         const parsedReply = parseClubReply(reply);
                         const author = reply.profiles?.full_name || reply.profiles?.username || (reply.profile_id === currentUser?.id ? 'You' : 'Member');
                         return (
-                          <article key={reply.id} className="border-l-2 border-primary bg-card px-4 py-3">
+                          <article key={reply.id} className="rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
                             <div className="mb-2 flex items-center justify-between gap-3">
                               <Link
                                 to="/app/profile/$id"
                                 params={{ id: reply.profiles?.username || reply.profile_id }}
-                                className="flex min-w-0 items-center gap-2 text-xs font-semibold text-foreground transition hover:opacity-70"
+                                className="flex min-w-0 items-center gap-2.5 text-[14px] font-semibold text-foreground transition hover:opacity-70"
                               >
-                                <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[9px]">
+                                <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.08] text-[12px] text-muted-foreground">
                                   {reply.profiles?.avatar_url ? <img src={reply.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : author.substring(0, 1).toUpperCase()}
                                 </span>
                                 <span className="truncate">{author}</span>
                               </Link>
-                              <span className="text-[11px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                              <span className="shrink-0 text-[12px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
                             </div>
-                            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{parsedReply.body}</p>
+                            <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">{parsedReply.body}</p>
                           </article>
                         );
                       })}
@@ -2882,23 +2881,23 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                 </div>
                 </div>
 
-                <div className="border-t border-border bg-background p-4 sm:p-5">
-                  <label className="mb-2 block text-xs font-semibold text-foreground">{room === 'assignments' ? 'Submit your work' : 'Contribute an answer'}</label>
+                <div className="border-t border-border/60 bg-background px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:px-6">
+                  <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">{room === 'assignments' ? 'Submit your work' : 'Contribute an answer'}</label>
                   <div className="flex items-end gap-2">
                     <textarea
                       value={threadReply}
                       onChange={(event) => setThreadReply(event.target.value)}
                       placeholder={room === 'assignments' ? 'Add your submission, work link, or notes...' : 'Write a focused, helpful answer...'}
                       rows={2}
-                      className="min-h-12 flex-1 resize-none rounded-md border border-border bg-card px-3 py-2.5 text-sm outline-none transition focus:border-primary"
+                      className="min-h-12 flex-1 resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                     />
                     <button
                       onClick={submitThreadReply}
                       disabled={!threadReply.trim() || isSubmitting}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground transition active:scale-95 disabled:opacity-40"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground text-background transition active:scale-95 disabled:opacity-40"
                       aria-label={room === 'assignments' ? 'Submit assignment' : 'Post answer'}
                     >
-                      <Send className="h-4 w-4 fill-current" />
+                      <Send className="h-[18px] w-[18px] fill-current" />
                     </button>
                   </div>
                 </div>
@@ -3444,29 +3443,26 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
           {giveaway?.giveawayId && (
             <Drawer open={showAwardGiveaway} onOpenChange={setShowAwardGiveaway}>
               <DrawerContent desktopVariant="panel" className="mx-auto max-h-[88dvh] max-w-[620px] overflow-hidden border border-border bg-background p-0 shadow-2xl">
-                <DrawerHeader className="border-b border-border px-5 pb-4 pt-0 text-left sm:px-7 sm:pt-2">
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-foreground text-background">
-                      <Trophy className="h-5 w-5 fill-current" />
-                    </div>
-                    <div className="min-w-0">
-                      <DrawerTitle>Award giveaway</DrawerTitle>
-                      <DrawerDescription className="mt-1 text-xs">Select exactly {giveaway.winners} eligible {giveaway.winners === 1 ? "winner" : "winners"}.</DrawerDescription>
-                    </div>
-                  </div>
+                <DrawerHeader className="gap-0 sm:gap-0 px-5 pb-3 pt-1 text-left sm:px-7 sm:pt-2">
+                  <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Award giveaway</DrawerTitle>
+                  <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Select exactly {giveaway.winners} eligible {giveaway.winners === 1 ? "winner" : "winners"}.</DrawerDescription>
                 </DrawerHeader>
 
-                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-7">
-                  <div className="mb-4 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3.5 py-3">
-                    <div>
-                      <p className="text-[10px] font-medium text-muted-foreground">Automatic payout</p>
-                      <p className="mt-0.5 text-sm font-semibold tabular-nums">{formatWalletAmount(giveaway.amountPerWinner || 0)} each</p>
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 sm:px-7">
+                  <div className="mb-4 flex items-center justify-between gap-4 rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold text-muted-foreground">Automatic payout</p>
+                      <p className="mt-0.5 truncate font-display text-[18px] font-semibold tabular-nums text-foreground">
+                        {formatWalletAmount(giveaway.amountPerWinner || 0)} <span className="text-[14px] font-medium text-muted-foreground">each</span>
+                      </p>
                     </div>
-                    <p className="text-right text-[10px] text-muted-foreground">
-                      Selected<br /><strong className="text-sm font-semibold tabular-nums text-foreground">{selectedWinnerIds.length}/{giveaway.winners}</strong>
-                    </p>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[13px] font-semibold text-muted-foreground">Selected</p>
+                      <p className="mt-0.5 font-display text-[18px] font-semibold tabular-nums text-foreground">{selectedWinnerIds.length}/{giveaway.winners}</p>
+                    </div>
                   </div>
 
+                  <p className="mb-2 text-[13px] font-semibold text-muted-foreground">Eligible members</p>
                   <div className="space-y-2">
                     {securedEntries.map((entry: any) => {
                       const selected = selectedWinnerIds.includes(entry.profile_id);
@@ -3479,21 +3475,21 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                             ? current.filter((id) => id !== entry.profile_id)
                             : [...current, entry.profile_id])}
                           disabled={!selected && selectedWinnerIds.length >= giveaway.winners}
-                          className={`flex w-full items-center gap-3 rounded-md border p-3 text-left transition disabled:opacity-45 ${selected ? "border-primary/30 bg-primary/8" : "border-border bg-card hover:bg-muted/50"}`}
+                          className={`flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-3.5 py-3 text-left transition disabled:opacity-40 ${selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
                         >
-                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
+                          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">
                             {profile?.avatar_url ? (
                               <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                             ) : (
-                              <span className="grid h-full w-full place-items-center text-sm font-semibold">{(profile?.full_name || profile?.username || "U")[0].toUpperCase()}</span>
+                              <span className="grid h-full w-full place-items-center text-[15px] font-semibold text-muted-foreground">{(profile?.full_name || profile?.username || "U")[0].toUpperCase()}</span>
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold">{profile?.full_name || profile?.username || "Club member"}</p>
-                            <p className="truncate text-[11px] text-muted-foreground">@{profile?.username || "member"}</p>
+                            <p className="truncate text-[15px] font-semibold text-foreground">{profile?.full_name || profile?.username || "Club member"}</p>
+                            <p className="truncate text-[13px] text-muted-foreground">@{profile?.username || "member"}</p>
                           </div>
-                          <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border ${selected ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
-                            {selected && <Check className="h-3.5 w-3.5" />}
+                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/25"}`}>
+                            {selected && <Check className="h-3 w-3" strokeWidth={3} />}
                           </span>
                         </button>
                       );
@@ -3501,14 +3497,14 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                   </div>
                 </div>
 
-                <div className="shrink-0 border-t border-border bg-background px-5 py-4 sm:px-7">
+                <div className="shrink-0 border-t border-border/60 bg-background px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:px-7">
                   <button
                     type="button"
                     onClick={handleAwardGiveaway}
                     disabled={isAwardingGiveaway || selectedWinnerIds.length !== giveaway.winners}
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground text-sm font-semibold text-background transition active:scale-[0.99] disabled:opacity-40"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white transition active:scale-[0.99] disabled:opacity-40"
                   >
-                    {isAwardingGiveaway ? <Loader2 className="h-4 w-4 animate-spin" /> : <WalletCards className="h-4 w-4" />}
+                    {isAwardingGiveaway ? <Loader2 className="h-5 w-5 animate-spin" /> : <WalletCards className="h-5 w-5" />}
                     {isAwardingGiveaway ? "Transferring..." : "Confirm and pay winners"}
                   </button>
                 </div>

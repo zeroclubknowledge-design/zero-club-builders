@@ -487,31 +487,31 @@ function ProfileDetail() {
             </button>
           </DrawerTrigger>
           <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
-            <DrawerHeader className="mb-3 p-0 text-left sm:mb-6 sm:p-4">
-              <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Profile actions</DrawerTitle>
+            <DrawerHeader className="gap-0 p-0 pb-2 pt-1 text-left sm:gap-0 sm:p-0 sm:pb-2 sm:pt-1">
+              <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Profile actions</DrawerTitle>
             </DrawerHeader>
-            <div className="space-y-2">
-              <button 
+            <div className="-mx-4 flex flex-col sm:-mx-6">
+              <button
                 onClick={handleShare}
-                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
+                className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[16px] font-medium text-foreground tap hover:bg-foreground/[0.04] sm:px-6"
               >
-                <Share2 className="h-5 w-5 text-primary" /> Share Profile Link
+                <Share2 className="h-[22px] w-[22px] shrink-0" /> Share profile link
               </button>
-              <button 
+              <button
                 onClick={() => {
                   navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
                   toast.success("Profile link copied!");
                 }}
-                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold tap hover:bg-accent"
+                className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[16px] font-medium text-foreground tap hover:bg-foreground/[0.04] sm:px-6"
               >
-                <Copy className="h-5 w-5 text-primary" /> Copy URL
+                <Copy className="h-[22px] w-[22px] shrink-0" /> Copy URL
               </button>
               {!isOwnProfile && (
-                <button 
+                <button
                   onClick={() => toast.success("Report submitted. Thank you!")}
-                  className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-sm font-semibold text-destructive tap hover:bg-destructive/5"
+                  className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[16px] font-medium text-[#e0245e] tap hover:bg-[#e0245e]/[0.06] sm:px-6"
                 >
-                  <Flag className="h-5 w-5" /> Report Profile
+                  <Flag className="h-[22px] w-[22px] shrink-0" /> Report profile
                 </button>
               )}
             </div>

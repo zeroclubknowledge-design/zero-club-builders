@@ -1,18 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  ArrowLeft,
-  BookOpenCheck,
-  Check,
-  ClipboardCheck,
-  Clock,
-  HelpCircle,
-  Loader2,
-  Plus,
-  Trash2,
-  X,
-} from "@/components/icons/glyphs";
+import { ArrowLeft, BookOpenCheck, Check, ClipboardCheck, Clock, HelpCircle, Loader2, Plus, Trash2, X } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { toast } from "sonner";
@@ -295,51 +284,62 @@ function ClubQuizzesPage() {
       {/* ── Builder ─────────────────────────────────────────────── */}
       <Drawer open={builderOpen} onOpenChange={setBuilderOpen}>
         <DrawerContent className="mx-auto flex max-h-[92dvh] max-w-lg flex-col px-4 pb-4 pt-1 sm:p-6">
-          <DrawerTitle className="text-[17px] font-semibold tracking-tight">New quiz</DrawerTitle>
-          <p className="mt-1 text-[12.5px] text-muted-foreground">
-            Members see the questions, never the answers.
-          </p>
+          <div className="shrink-0 pb-3">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">New quiz</DrawerTitle>
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+              Members see the questions, never the answers.
+            </p>
+          </div>
 
-          <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto no-scrollbar">
-            <input
-              value={draft.title}
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              placeholder="Quiz title"
-              className="w-full rounded-lg bg-card px-4 py-3 text-[14px] font-semibold outline-none focus:ring-2 focus:ring-primary/30"
-            />
-            <input
-              value={draft.description}
-              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-              placeholder="What it covers (optional)"
-              className="w-full rounded-lg bg-card px-4 py-3 text-[13.5px] outline-none focus:ring-2 focus:ring-primary/30"
-            />
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto no-scrollbar pb-1">
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Title</label>
+              <input
+                value={draft.title}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                placeholder="Quiz title"
+                className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40 font-semibold"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Description</label>
+              <input
+                value={draft.description}
+                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                placeholder="What it covers (optional)"
+                className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+              />
+            </div>
 
-            <label className="flex items-center justify-between gap-3 rounded-lg bg-card px-4 py-3">
-              <span className="text-[13px] font-medium">Pass mark</span>
+            <label className="flex items-center justify-between gap-3 rounded-2xl bg-foreground/[0.04] px-4 py-3">
+              <span>
+                <span className="block text-[15px] font-semibold">Pass mark</span>
+                <span className="mt-0.5 block text-[13px] text-muted-foreground">Score needed to pass</span>
+              </span>
               <span className="flex items-center gap-2">
                 <input
                   inputMode="numeric"
                   value={draft.pass_mark}
                   onChange={(e) => setDraft({ ...draft, pass_mark: Math.min(100, Math.max(0, Number(e.target.value.replace(/\D/g, "")) || 0)) })}
-                  className="w-16 rounded-md bg-background px-2 py-1.5 text-right text-[13px] font-semibold tabular-nums outline-none"
+                  className="h-10 w-16 rounded-[10px] border border-foreground/15 bg-card px-2 text-right text-[15px] font-semibold tabular-nums outline-none focus:border-foreground/40"
                 />
-                <span className="text-[13px] text-muted-foreground">%</span>
+                <span className="text-[15px] text-muted-foreground">%</span>
               </span>
             </label>
 
             {draft.questions.map((question, qi) => (
-              <div key={qi} className="rounded-xl bg-card p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              <div key={qi} className="rounded-2xl border border-foreground/10 bg-card p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[13px] font-semibold text-muted-foreground">
                     Question {qi + 1}
                   </span>
                   {draft.questions.length > 1 && (
                     <button
                       onClick={() => setDraft({ ...draft, questions: draft.questions.filter((_, i) => i !== qi) })}
                       aria-label={`Remove question ${qi + 1}`}
-                      className="text-muted-foreground transition hover:text-destructive"
+                      className="-mr-1.5 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-[#e0245e]/10 hover:text-[#e0245e]"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-[18px] w-[18px]" />
                     </button>
                   )}
                 </div>
@@ -352,12 +352,13 @@ function ClubQuizzesPage() {
                     setDraft({ ...draft, questions });
                   }}
                   placeholder="Ask something"
-                  className="mt-2 w-full rounded-lg bg-background px-3.5 py-2.5 text-[13.5px] outline-none focus:ring-2 focus:ring-primary/30"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                 />
 
-                <div className="mt-3 space-y-2">
+                <p className="mt-4 text-[13px] font-semibold text-muted-foreground">Options · tap the circle to mark the answer</p>
+                <div className="mt-2 space-y-2">
                   {question.options.map((option, oi) => (
-                    <div key={oi} className="flex items-center gap-2">
+                    <div key={oi} className="flex items-center gap-2.5">
                       {/* Tapping the circle is how the answer is marked —
                           there is no separate "correct answer" field to forget
                           to fill in. */}
@@ -368,7 +369,7 @@ function ClubQuizzesPage() {
                           setDraft({ ...draft, questions });
                         }}
                         aria-label={`Mark option ${oi + 1} correct`}
-                        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full transition ${question.correct_index === oi ? "bg-emerald-500 text-white" : "border border-border"}`}
+                        className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors ${question.correct_index === oi ? "bg-[#1a7f4b] text-white" : "border-[1.5px] border-foreground/25"}`}
                       >
                         {question.correct_index === oi && <Check className="h-3 w-3" strokeWidth={3} />}
                       </button>
@@ -382,7 +383,7 @@ function ClubQuizzesPage() {
                           setDraft({ ...draft, questions });
                         }}
                         placeholder={`Option ${oi + 1}`}
-                        className="min-w-0 flex-1 rounded-lg bg-background px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-primary/30"
+                        className="h-11 min-w-0 flex-1 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                       />
                       {question.options.length > 2 && (
                         <button
@@ -397,9 +398,9 @@ function ClubQuizzesPage() {
                             setDraft({ ...draft, questions });
                           }}
                           aria-label={`Remove option ${oi + 1}`}
-                          className="shrink-0 text-muted-foreground transition hover:text-destructive"
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-[#e0245e]/10 hover:text-[#e0245e]"
                         >
-                          <X className="h-3.5 w-3.5" />
+                          <X className="h-4 w-4" />
                         </button>
                       )}
                     </div>
@@ -412,9 +413,9 @@ function ClubQuizzesPage() {
                     questions[qi] = { ...question, options: [...question.options, ""] };
                     setDraft({ ...draft, questions });
                   }}
-                  className="mt-2.5 text-[12px] font-semibold text-primary"
+                  className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#a3186f]"
                 >
-                  + Add option
+                  <Plus className="h-4 w-4" /> Add option
                 </button>
               </div>
             ))}
@@ -426,18 +427,18 @@ function ClubQuizzesPage() {
                   questions: [...draft.questions, { prompt: "", options: ["", ""], correct_index: 0 }],
                 })
               }
-              className="h-11 w-full rounded-lg border border-dashed border-border text-[13px] font-semibold text-muted-foreground transition hover:text-foreground"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-dashed border-foreground/25 text-[15px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
             >
-              + Add question
+              <Plus className="h-5 w-5" /> Add question
             </button>
           </div>
 
           <button
             onClick={saveQuiz}
             disabled={saving}
-            className="mt-4 flex h-12 w-full items-center justify-center rounded-full bg-foreground text-[14px] font-semibold text-background disabled:opacity-60"
+            className="mt-4 flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-[#cc208f] text-[16px] font-semibold text-white disabled:opacity-40"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Publish quiz"}
+            {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Publish quiz"}
           </button>
         </DrawerContent>
       </Drawer>
@@ -499,42 +500,48 @@ function QuizRunner({
       <DrawerContent className="mx-auto flex max-h-[92dvh] max-w-lg flex-col px-4 pb-4 pt-1 sm:p-6">
         {isLoading || !quiz ? (
           <div className="grid min-h-40 place-items-center">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : result ? (
-          <div className="py-8 text-center">
-            <span className={`mx-auto grid h-14 w-14 place-items-center rounded-full ${result.passed ? "bg-emerald-500/12 text-emerald-600" : "bg-foreground/[0.06] text-muted-foreground"}`}>
+          <div className="py-6 text-center">
+            <span className={`mx-auto grid h-12 w-12 place-items-center rounded-full ${result.passed ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-foreground/[0.06] text-muted-foreground"}`}>
               <BookOpenCheck className="h-6 w-6" />
             </span>
-            <h2 className="mt-4 text-[20px] font-semibold tracking-tight">
+            <DrawerTitle className="mt-4 font-display text-[40px] font-semibold leading-none tabular-nums">
               {result.percent}%
-            </h2>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              {result.score} of {result.total} · {result.passed ? "Passed" : `Pass mark is ${quiz.pass_mark}%`}
+            </DrawerTitle>
+            <p className="mt-2 text-[14px] text-muted-foreground tabular-nums">
+              {result.score} of {result.total} ·{" "}
+              <span className={result.passed ? "font-semibold text-[#1a7f4b]" : ""}>
+                {result.passed ? "Passed" : `Pass mark is ${quiz.pass_mark}%`}
+              </span>
             </p>
             <button
               onClick={onClose}
-              className="mt-6 h-11 w-full rounded-full bg-foreground text-[14px] font-semibold text-background"
+              className="mt-7 h-12 w-full rounded-full bg-foreground text-[16px] font-semibold text-background"
             >
               Done
             </button>
           </div>
         ) : (
           <>
-            <DrawerTitle className="text-[17px] font-semibold tracking-tight">{quiz.title}</DrawerTitle>
-            <p className="mt-1 text-[12.5px] text-muted-foreground">
-              {attempt
-                ? `You scored ${attempt.score} of ${attempt.total}`
-                : isAdmin
-                  ? "Preview — the correct answer is marked"
-                  : `${questions.length} questions · pass mark ${quiz.pass_mark}%`}
-            </p>
+            <div className="shrink-0 pb-3">
+              <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">{quiz.title}</DrawerTitle>
+              <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground tabular-nums">
+                {attempt
+                  ? `You scored ${attempt.score} of ${attempt.total}`
+                  : isAdmin
+                    ? "Preview — the correct answer is marked"
+                    : `${questions.length} questions · pass mark ${quiz.pass_mark}%`}
+              </p>
+            </div>
 
-            <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto no-scrollbar">
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto no-scrollbar pb-1">
               {questions.map((question, index) => (
-                <div key={question.id} className="rounded-xl bg-card p-4">
-                  <p className="text-[14px] font-semibold leading-snug">
-                    {index + 1}. {question.prompt}
+                <section key={question.id}>
+                  <p className="text-[13px] font-semibold text-muted-foreground">Question {index + 1}</p>
+                  <p className="mt-1 text-[15px] font-semibold leading-snug">
+                    {question.prompt}
                   </p>
                   <div className="mt-3 space-y-2">
                     {(question.options as string[]).map((option, oi) => {
@@ -542,28 +549,34 @@ function QuizRunner({
                         ? attempt?.answers?.[question.id] === oi
                         : answers[question.id] === oi;
                       const correct = question.correct_index === oi;
+                      const showCorrect = correct && readOnly;
                       return (
                         <button
                           key={oi}
                           disabled={readOnly}
                           onClick={() => setAnswers({ ...answers, [question.id]: oi })}
-                          className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-2.5 text-left text-[13.5px] transition ${
-                            correct && readOnly
-                              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                          className={`flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-4 py-3 text-left text-[15px] transition-colors ${
+                            showCorrect
+                              ? "border-[#1a7f4b] bg-[#1a7f4b]/[0.06] text-foreground"
                               : chosen
-                                ? "bg-primary/10 text-foreground"
-                                : "bg-background"
-                          }`}
+                                ? "border-[#cc208f] bg-[#cc208f]/[0.06] text-foreground"
+                                : "border-foreground/12 text-foreground"
+                          } ${readOnly ? "" : "hover:bg-foreground/[0.03]"}`}
                         >
-                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${chosen ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
+                          <span className="min-w-0 flex-1">{option}</span>
+                          {showCorrect && (
+                            <span className="shrink-0 rounded-full bg-[#1a7f4b]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#1a7f4b]">
+                              Correct
+                            </span>
+                          )}
+                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${chosen ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/25"}`}>
                             {chosen && <Check className="h-3 w-3" strokeWidth={3} />}
                           </span>
-                          <span className="min-w-0">{option}</span>
                         </button>
                       );
                     })}
                   </div>
-                </div>
+                </section>
               ))}
             </div>
 
@@ -571,9 +584,9 @@ function QuizRunner({
               <button
                 onClick={submit}
                 disabled={submitting}
-                className="mt-4 flex h-12 w-full items-center justify-center rounded-full bg-foreground text-[14px] font-semibold text-background disabled:opacity-60"
+                className="mt-4 flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-foreground text-[16px] font-semibold text-background disabled:opacity-40"
               >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit answers"}
+                {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Submit answers"}
               </button>
             )}
           </>

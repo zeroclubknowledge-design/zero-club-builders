@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Loader2, ShieldCheck, Wallet } from "@/components/icons/glyphs";
+import { Building2, Check, Loader2, ShieldCheck, Wallet } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { supabase } from "@/lib/supabase";
@@ -113,35 +113,42 @@ export function InstitutionOnboardingDrawer({
   const isActive = !!status.data?.is_active;
   const setupMissing = (status.error as any)?.code === "PGRST202";
 
-  const field = "h-11 w-full rounded-lg border border-border bg-background px-3 text-[13px] outline-none focus:border-primary/50";
-  const label = "text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground";
+  const field = "h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40";
+  const area = "w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40";
+  const label = "mb-1.5 block text-[13px] font-semibold text-muted-foreground";
+  const sectionTitle = "text-[15px] font-semibold text-foreground";
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="mx-auto max-h-[92dvh] max-w-2xl border-none bg-background p-0">
-        <div className="overflow-y-auto px-5 pb-8 pt-2 sm:px-7">
-          <DrawerHeader className="p-0 text-left">
-            <div className="grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary"><Building2 className="h-5 w-5" /></div>
-            <DrawerTitle className="mt-4 text-[20px] font-semibold tracking-tight">Digital Hub for institutions</DrawerTitle>
-            <DrawerDescription className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+        <div className="overflow-y-auto px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-1 sm:px-7">
+          <DrawerHeader className="p-0 pb-3 text-left">
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-foreground"><Building2 className="h-[22px] w-[22px]" /></div>
+            <DrawerTitle className="mt-3 font-display text-[20px] font-semibold leading-tight">Digital Hub for institutions</DrawerTitle>
+            <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
               Tell us about your organisation to start a free 30-day trial. After the trial, fund your wallet and activate the plan that matches your size.
             </DrawerDescription>
           </DrawerHeader>
 
           {setupMissing ? (
-            <div className="mt-6 rounded-lg border border-border bg-card p-5 text-center">
-              <ShieldCheck className="mx-auto h-6 w-6 text-muted-foreground" />
-              <p className="mt-3 text-[13px] font-semibold">Setup required</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">Run 20260730210000_institution_onboarding.sql in Supabase, then reopen this form.</p>
+            <div className="flex flex-col items-center px-4 py-10 text-center">
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]">
+                <ShieldCheck className="h-[22px] w-[22px] text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-[16px] font-semibold">Setup required</p>
+              <p className="mt-1 max-w-sm text-[14px] leading-relaxed text-muted-foreground">Run 20260730210000_institution_onboarding.sql in Supabase, then reopen this form.</p>
             </div>
           ) : (
             <>
               {hasApplication && (
-                <div className={`mt-5 rounded-lg p-4 ring-1 ${isActive ? "bg-emerald-500/[0.06] ring-emerald-500/20" : "bg-primary/[0.05] ring-primary/20"}`}>
-                  <p className="text-[12px] font-semibold">
+                <div className={`mt-3 rounded-2xl p-4 ${isActive ? "bg-[#1a7f4b]/[0.07]" : "bg-[#cc208f]/[0.06]"}`}>
+                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${isActive ? "bg-[#1a7f4b]/15 text-[#1a7f4b]" : trialDaysLeft > 0 ? "bg-[#cc208f]/12 text-[#a3186f]" : "bg-foreground/[0.08] text-muted-foreground"}`}>
+                    {isActive ? "Active" : trialDaysLeft > 0 ? "Trial" : "Trial ended"}
+                  </span>
+                  <p className="mt-2 text-[15px] font-semibold">
                     {isActive ? "Digital Hub is active" : trialDaysLeft > 0 ? `Trial active — ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left` : "Your trial has ended"}
                   </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
                     {isActive
                       ? "Your workspace is fully set up. Update your details below at any time."
                       : trialDaysLeft > 0
@@ -151,69 +158,79 @@ export function InstitutionOnboardingDrawer({
                 </div>
               )}
 
-              <div className="mt-6 space-y-6">
+              <div className="mt-6 space-y-8">
                 <section>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">Organisation</p>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="sm:col-span-2"><p className={label}>Institution name *</p><input value={form.institution_name} onChange={(e) => set("institution_name", e.target.value)} placeholder="Lagos Institute of Technology" className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Type</p><select value={form.institution_type} onChange={(e) => set("institution_type", e.target.value)} className={`${field} mt-1.5`}>{INSTITUTION_TYPES.map((type) => <option key={type}>{type}</option>)}</select></div>
-                    <div><p className={label}>Registration / RC number</p><input value={form.registration_number} onChange={(e) => set("registration_number", e.target.value)} placeholder="RC 123456" className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Website</p><input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://" className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Country *</p><input value={form.country} onChange={(e) => set("country", e.target.value)} placeholder="Nigeria" className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>City</p><input value={form.city} onChange={(e) => set("city", e.target.value)} className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Address</p><input value={form.address} onChange={(e) => set("address", e.target.value)} className={`${field} mt-1.5`} /></div>
+                  <p className={sectionTitle}>Organisation</p>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2"><label className={label}>Institution name *</label><input value={form.institution_name} onChange={(e) => set("institution_name", e.target.value)} placeholder="Lagos Institute of Technology" className={field} /></div>
+                    <div><label className={label}>Type</label><select value={form.institution_type} onChange={(e) => set("institution_type", e.target.value)} className={field}>{INSTITUTION_TYPES.map((type) => <option key={type}>{type}</option>)}</select></div>
+                    <div><label className={label}>Registration / RC number</label><input value={form.registration_number} onChange={(e) => set("registration_number", e.target.value)} placeholder="RC 123456" className={field} /></div>
+                    <div><label className={label}>Website</label><input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://" className={field} /></div>
+                    <div><label className={label}>Country *</label><input value={form.country} onChange={(e) => set("country", e.target.value)} placeholder="Nigeria" className={field} /></div>
+                    <div><label className={label}>City</label><input value={form.city} onChange={(e) => set("city", e.target.value)} className={field} /></div>
+                    <div><label className={label}>Address</label><input value={form.address} onChange={(e) => set("address", e.target.value)} className={field} /></div>
                   </div>
                 </section>
 
                 <section>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">Size and programs</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">Your plan is based on the size of your organisation.</p>
+                  <p className={sectionTitle}>Size and programs</p>
+                  <p className="mt-1 text-[14px] text-muted-foreground">Your plan is based on the size of your organisation.</p>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     {[
                       { key: "small", title: "Small organisation", detail: "Up to 500 learners", amount: 150000 },
                       { key: "large", title: "Large organisation", detail: "500+ learners, multiple campuses", amount: 400000 },
-                    ].map((option) => (
-                      <button
-                        key={option.key}
-                        type="button"
-                        onClick={() => set("organization_size", option.key)}
-                        className={`rounded-lg border p-4 text-left transition ${form.organization_size === option.key ? "border-primary bg-primary/[0.05]" : "border-border hover:bg-muted/60"}`}
-                      >
-                        <p className="text-[13px] font-semibold">{option.title}</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">{option.detail}</p>
-                         <p className="mt-2 text-[13px] font-semibold tabular-nums">{formatNaira(option.amount)} <span className="text-[10px] font-medium text-muted-foreground">/ year</span></p>
-                      </button>
-                    ))}
-                    <div><p className={label}>Learners</p><input type="number" value={form.learner_count} onChange={(e) => set("learner_count", e.target.value)} placeholder="450" className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Tutors or staff</p><input type="number" value={form.tutor_count} onChange={(e) => set("tutor_count", e.target.value)} placeholder="25" className={`${field} mt-1.5`} /></div>
-                    <div className="sm:col-span-2"><p className={label}>Programs you plan to run</p><textarea value={form.programs_planned} onChange={(e) => set("programs_planned", e.target.value)} rows={2} placeholder="Software engineering cohort, data analytics diploma…" className={`${field} h-auto resize-none py-2.5 mt-1.5`} /></div>
+                    ].map((option) => {
+                      const selected = form.organization_size === option.key;
+                      return (
+                        <button
+                          key={option.key}
+                          type="button"
+                          onClick={() => set("organization_size", option.key)}
+                          className={`flex items-start gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[15px] font-semibold">{option.title}</span>
+                            <span className="mt-0.5 block text-[13px] text-muted-foreground">{option.detail}</span>
+                            <span className="mt-2 block text-[15px] font-semibold tabular-nums">{formatNaira(option.amount)} <span className="text-[13px] font-medium text-muted-foreground">/ year</span></span>
+                          </span>
+                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+                            {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div><label className={label}>Learners</label><input type="number" value={form.learner_count} onChange={(e) => set("learner_count", e.target.value)} placeholder="450" className={field} /></div>
+                    <div><label className={label}>Tutors or staff</label><input type="number" value={form.tutor_count} onChange={(e) => set("tutor_count", e.target.value)} placeholder="25" className={field} /></div>
+                    <div className="sm:col-span-2"><label className={label}>Programs you plan to run</label><textarea value={form.programs_planned} onChange={(e) => set("programs_planned", e.target.value)} rows={2} placeholder="Software engineering cohort, data analytics diploma…" className={area} /></div>
                   </div>
                 </section>
 
                 <section>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">Primary contact</p>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div><p className={label}>Full name *</p><input value={form.contact_name} onChange={(e) => set("contact_name", e.target.value)} className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Role</p><input value={form.contact_role} onChange={(e) => set("contact_role", e.target.value)} placeholder="Director of Academics" className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Work email *</p><input type="email" value={form.contact_email} onChange={(e) => set("contact_email", e.target.value)} className={`${field} mt-1.5`} /></div>
-                    <div><p className={label}>Phone</p><input value={form.contact_phone} onChange={(e) => set("contact_phone", e.target.value)} className={`${field} mt-1.5`} /></div>
-                    <div className="sm:col-span-2"><p className={label}>What do you want to achieve on Zero Club?</p><textarea value={form.goals} onChange={(e) => set("goals", e.target.value)} rows={3} className={`${field} h-auto resize-none py-2.5 mt-1.5`} /></div>
-                    <div className="sm:col-span-2"><p className={label}>How did you hear about Zero Club?</p><input value={form.hear_about} onChange={(e) => set("hear_about", e.target.value)} className={`${field} mt-1.5`} /></div>
+                  <p className={sectionTitle}>Primary contact</p>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                    <div><label className={label}>Full name *</label><input value={form.contact_name} onChange={(e) => set("contact_name", e.target.value)} className={field} /></div>
+                    <div><label className={label}>Role</label><input value={form.contact_role} onChange={(e) => set("contact_role", e.target.value)} placeholder="Director of Academics" className={field} /></div>
+                    <div><label className={label}>Work email *</label><input type="email" value={form.contact_email} onChange={(e) => set("contact_email", e.target.value)} className={field} /></div>
+                    <div><label className={label}>Phone</label><input value={form.contact_phone} onChange={(e) => set("contact_phone", e.target.value)} className={field} /></div>
+                    <div className="sm:col-span-2"><label className={label}>What do you want to achieve on Zero Club?</label><textarea value={form.goals} onChange={(e) => set("goals", e.target.value)} rows={3} className={area} /></div>
+                    <div className="sm:col-span-2"><label className={label}>How did you hear about Zero Club?</label><input value={form.hear_about} onChange={(e) => set("hear_about", e.target.value)} className={field} /></div>
                   </div>
                 </section>
 
-                <section className="rounded-lg border border-border bg-card p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-[12px] font-semibold">{form.organization_size === "large" ? "Large organisation plan" : "Small organisation plan"}</p>
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">Paid from your Zero Club wallet · 12 months</p>
+                <section className="rounded-2xl border border-border/60 bg-card p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[15px] font-semibold">{form.organization_size === "large" ? "Large organisation plan" : "Small organisation plan"}</p>
+                      <p className="mt-0.5 text-[13px] text-muted-foreground">Paid from your Zero Club wallet · 12 months</p>
                     </div>
-                     <p className="shrink-0 text-[18px] font-semibold tabular-nums">{formatNaira(price)}</p>
+                    <p className="shrink-0 font-display text-[22px] font-semibold leading-none tabular-nums">{formatNaira(price)}</p>
                   </div>
-                  <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
-                    <Wallet className="h-3.5 w-3.5 text-primary" />
-                     Wallet balance <strong className="font-semibold text-foreground tabular-nums">{formatNaira(balance)}</strong>
-                     {balance < walletDue && <span className="text-amber-600">· fund {formatNaira(walletDue - balance)} more to activate</span>}
+                  <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border/60 pt-3 text-[13px] text-muted-foreground">
+                    <Wallet className="h-4 w-4 text-foreground/70" />
+                    Wallet balance <strong className="font-semibold text-foreground tabular-nums">{formatNaira(balance)}</strong>
+                    {balance < walletDue && <span className="text-[#e0245e]">· fund {formatNaira(walletDue - balance)} more to activate</span>}
                   </div>
                   <div className="mt-3">
                     <ZeroGiftPaymentOption
@@ -226,31 +243,33 @@ export function InstitutionOnboardingDrawer({
                   </div>
                 </section>
 
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <button
-                    onClick={() => submit.mutate()}
-                    disabled={submit.isPending}
-                    className="flex h-14 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-[13.5px] font-semibold text-primary-foreground disabled:opacity-50 sm:h-12"
-                  >
-                    {submit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {hasApplication ? "Save details" : "Start 30-day trial"}
-                  </button>
-                  {hasApplication && (
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-2.5 sm:flex-row">
                     <button
-                      onClick={() => activate.mutate()}
-                      disabled={activate.isPending || balance < walletDue}
-                      className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-[13.5px] font-semibold disabled:opacity-50"
-                      title={balance < walletDue ? "Fund your wallet to activate" : undefined}
+                      onClick={() => submit.mutate()}
+                      disabled={submit.isPending}
+                      className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-5 text-[16px] font-semibold disabled:opacity-40 ${hasApplication ? "border-[1.5px] border-foreground/25 text-foreground" : "bg-foreground text-background"}`}
                     >
-                      {activate.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                      Activate Digital Hub
+                      {submit.isPending && <Loader2 className="h-5 w-5 animate-spin" />}
+                      {hasApplication ? "Save details" : "Start 30-day trial"}
                     </button>
-                  )}
-                </div>
+                    {hasApplication && (
+                      <button
+                        onClick={() => activate.mutate()}
+                        disabled={activate.isPending || balance < walletDue}
+                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#cc208f] px-5 text-[16px] font-semibold text-white disabled:opacity-40"
+                        title={balance < walletDue ? "Fund your wallet to activate" : undefined}
+                      >
+                        {activate.isPending && <Loader2 className="h-5 w-5 animate-spin" />}
+                        Activate Digital Hub
+                      </button>
+                    )}
+                  </div>
 
-                <p className="text-center text-[10.5px] leading-relaxed text-muted-foreground">
-                  Need a guided setup or a custom arrangement? Submit this form and the Zero Club team will reach out to your primary contact.
-                </p>
+                  <p className="text-center text-[13px] leading-relaxed text-muted-foreground">
+                    Need a guided setup or a custom arrangement? Submit this form and the Zero Club team will reach out to your primary contact.
+                  </p>
+                </div>
               </div>
             </>
           )}

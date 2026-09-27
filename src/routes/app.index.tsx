@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Plus, Flame, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck } from "@/components/icons/glyphs";
+import { Plus, Flame, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck, ChevronRight } from "@/components/icons/glyphs";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -572,54 +572,58 @@ function Feed() {
       <Drawer open={createOpen} onOpenChange={setCreateOpen}>
         <DrawerContent className="mx-auto max-h-[72dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] focus:ring-0">
           {/* One shape for every option, so nothing looks like an
-              afterthought — the Go live tile was previously built by hand with
-              a different layout and a solid red chip, which made it read as a
-              warning rather than an invitation. */}
-          <DrawerTitle className="text-[19px] font-semibold tracking-tight text-foreground">Create something</DrawerTitle>
-          <p className="mb-4 mt-1 text-[12.5px] text-muted-foreground">Choose a format and get straight to work.</p>
+              afterthought — Go live sits in the same row as the rest rather
+              than as a hand-built tile with a warning-red chip. */}
+          <div className="pb-2 pt-1">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Create something</DrawerTitle>
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Choose a format and get straight to work.</p>
+          </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="-mx-4 flex flex-col">
             {[
               {
                 to: "/app/compose",
                 Icon: PenLine,
                 label: "Post",
                 copy: "Start a conversation",
-                tint: "bg-primary/[0.08] text-primary ring-primary/15",
+                tint: "bg-foreground/[0.06] text-foreground",
               },
               {
                 to: "/app/ship",
                 Icon: Rocket,
                 label: "Ship",
                 copy: "Share proof of work",
-                tint: "bg-[#cc208f]/[0.08] text-[#cc208f] ring-[#cc208f]/15",
+                tint: "bg-[#cc208f]/10 text-[#cc208f]",
               },
               {
                 to: "/app/notes/create",
                 Icon: NotebookPen,
                 label: "Note",
                 copy: "Write something longer",
-                tint: "bg-emerald-500/[0.08] text-emerald-600 dark:text-emerald-400 ring-emerald-500/15",
+                tint: "bg-[#1a7f4b]/10 text-[#1a7f4b]",
               },
               {
                 onClick: () => { setCreateOpen(false); window.setTimeout(() => setLivePickerOpen(true), 180); },
                 Icon: Radio,
                 label: "Go live",
                 copy: "Open a community room",
-                tint: "bg-red-500/[0.08] text-red-500 ring-red-500/15",
+                tint: "bg-[#e0245e]/10 text-[#e0245e]",
               },
             ].map(({ to, onClick, Icon, label, copy, tint }) => {
               const inner = (
                 <>
-                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ring-1 ${tint}`}>
-                    <Icon className="h-[19px] w-[19px]" strokeWidth={1.9} />
+                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${tint}`}>
+                    <Icon className="h-[22px] w-[22px]" />
                   </span>
-                  <span className="mt-3 block text-[15px] font-semibold tracking-tight text-foreground">{label}</span>
-                  <span className="mt-0.5 block text-[12px] leading-snug text-muted-foreground">{copy}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[16px] font-medium text-foreground">{label}</span>
+                    <span className="mt-0.5 block text-[13px] text-muted-foreground">{copy}</span>
+                  </span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                 </>
               );
               const className =
-                "flex min-h-[124px] flex-col items-start rounded-xl bg-card p-4 text-left ring-1 ring-border shadow-[0_1px_2px_rgba(0,0,0,0.03),0_10px_26px_-16px_rgba(0,0,0,0.18)] transition-all tap hover:-translate-y-0.5 hover:ring-foreground/15 active:scale-[0.98]";
+                "flex w-full items-center gap-3.5 px-4 py-3 text-left transition-colors hover:bg-foreground/[0.04] active:bg-foreground/[0.06]";
 
               return to ? (
                 <Link key={label} to={to} className={className}>{inner}</Link>
@@ -633,27 +637,37 @@ function Feed() {
 
       <Drawer open={livePickerOpen} onOpenChange={setLivePickerOpen}>
         <DrawerContent className="mx-auto max-h-[76dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-0 focus:ring-0">
-          <div className="border-b border-border/60 px-4 pb-3 pt-1 sm:px-5 sm:pb-4 sm:pt-5">
-            <DrawerTitle className="flex items-center gap-2 text-[18px] font-semibold tracking-tight"><Radio className="h-5 w-5 text-red-500" /> Go live</DrawerTitle>
-            <p className="mt-1 text-[12px] text-muted-foreground">Choose the community that will host this session.</p>
+          <div className="px-5 pb-3 pt-1">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Go live</DrawerTitle>
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Choose the community that will host this session.</p>
           </div>
-          <div className="max-h-[55dvh] space-y-2 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <div className="max-h-[55dvh] overflow-y-auto overscroll-contain px-5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             {liveClubsLoading ? (
-              <div className="grid min-h-32 place-items-center"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
-            ) : hostClubs.length > 0 ? hostClubs.map((club: any) => (
-              <button key={club.id} onClick={() => openLiveRoom(club.id)} className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left hover:bg-accent/40">
-                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-[#171318]">
-                  {club.banner_url ? <img src={club.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center"><Radio className="h-5 w-5 text-primary" /></div>}
+              <div className="grid min-h-32 place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+            ) : hostClubs.length > 0 ? (
+              <>
+                <p className="pb-1 text-[13px] font-semibold text-muted-foreground">Clubs you host</p>
+                {hostClubs.map((club: any) => (
+                  <button key={club.id} onClick={() => openLiveRoom(club.id)} className="-mx-5 flex w-[calc(100%+2.5rem)] items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-foreground/[0.04]">
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-foreground/[0.06]">
+                      {club.banner_url ? <img src={club.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center"><Radio className="h-5 w-5 text-[#e0245e]" /></div>}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold">{club.name}</p>
+                      <p className="mt-0.5 text-[13px] text-muted-foreground">Start an instant session</p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  </button>
+                ))}
+              </>
+            ) : (
+              <div className="flex flex-col items-center py-8 text-center">
+                <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
+                  <Radio className="h-6 w-6" />
                 </div>
-                <div className="min-w-0 flex-1"><p className="truncate text-[13.5px] font-semibold">{club.name}</p><p className="mt-0.5 text-[11px] text-muted-foreground">Start an instant session</p></div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-            )) : (
-              <div className="py-8 text-center">
-                <Radio className="mx-auto h-6 w-6 text-muted-foreground" />
-                <h3 className="mt-3 text-[14px] font-semibold">No community to host yet</h3>
-                <p className="mx-auto mt-1 max-w-xs text-[11.5px] leading-relaxed text-muted-foreground">Create a club or ask an administrator to make you an admin before starting a live room.</p>
-                <Link to="/app/clubs" className="mt-5 inline-flex text-[12px] font-semibold text-primary">Open Clubs</Link>
+                <h3 className="mt-4 text-[16px] font-semibold">No community to host yet</h3>
+                <p className="mx-auto mt-1 max-w-xs text-[14px] leading-relaxed text-muted-foreground">Create a club or ask an administrator to make you an admin before starting a live room.</p>
+                <Link to="/app/clubs" className="mt-5 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[15px] font-semibold text-background">Open Clubs</Link>
               </div>
             )}
           </div>

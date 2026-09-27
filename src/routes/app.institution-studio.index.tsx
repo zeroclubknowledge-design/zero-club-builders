@@ -8,14 +8,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
-import {
-  Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2,
-  BarChart3, Settings, Search, ChevronRight, Loader2,
-  TrendingUp, DollarSign, BookOpen, Zap, Eye,
-  UploadCloud, UserPlus, Activity, ArrowUpRight,
-  Calendar, Hash, Video, Check, X, Edit3,
-  ChevronLeft, MoreHorizontal, Shield, Star, Clock
-} from "@/components/icons/glyphs";
+import { Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2, BarChart3, Settings, Search, ChevronRight, Loader2, TrendingUp, DollarSign, BookOpen, Eye, UploadCloud, UserPlus, Activity, ArrowUpRight, Calendar, Check, X, Edit3, MoreHorizontal, Shield, Clock } from "@/components/icons/glyphs";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
@@ -1224,22 +1217,26 @@ function InstitutionHub() {
       {/* ═══ ASSIGN TUTOR DRAWER ═══ */}
       <Drawer open={!!assignDrawer} onOpenChange={(open) => { if (!open) setAssignDrawer(null); }}>
         <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
-          <div className="px-4 pb-8 pt-1 sm:px-5 sm:pb-10 sm:pt-6">
-            <DrawerHeader className="mb-3 px-0 pt-0 text-left sm:mb-6">
-              <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[19px]">
-                Assign a tutor
-              </DrawerTitle>
-              <p className="text-[12px] text-muted-foreground mt-1">
-                Select a tutor from your organization to teach this bootcamp.
-              </p>
-            </DrawerHeader>
+          <DrawerHeader className="px-5 pb-3 pt-1 text-left">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
+              Assign a tutor
+            </DrawerTitle>
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+              Select a tutor from your organization to teach this bootcamp.
+            </p>
+          </DrawerHeader>
 
+          <div className="max-h-[65vh] overflow-y-auto px-5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             {tutors.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border p-8 text-center text-[13px] text-muted-foreground">
-                No tutors in your organization. Add tutors first.
+              <div className="flex flex-col items-center px-4 py-10 text-center">
+                <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]">
+                  <Users className="h-[22px] w-[22px] text-muted-foreground" />
+                </div>
+                <p className="mt-3 text-[16px] font-semibold text-foreground">No tutors yet</p>
+                <p className="mt-1 text-[14px] text-muted-foreground">No tutors in your organization. Add tutors first.</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="-mx-2">
                 {tutors.map((t: any) => {
                   const bootcamp = allBootcamps.find((b: any) => b.id === assignDrawer);
                   const isCurrentlyAssigned = bootcamp?.assigned_tutor_id === t.tutor_id;
@@ -1253,33 +1250,31 @@ function InstitutionHub() {
                         }
                       }}
                       disabled={assigning || isCurrentlyAssigned}
-                      className={`flex w-full items-center gap-4 rounded-lg border p-4 transition-all tap ${
-                        isCurrentlyAssigned
-                          ? "bg-primary/10 border-primary/20"
-                          : "bg-card border-border hover:border-foreground/15"
+                      className={`flex w-full items-center gap-3 rounded-2xl px-2 py-3 text-left transition-colors tap ${
+                        isCurrentlyAssigned ? "bg-[#cc208f]/[0.06]" : "hover:bg-foreground/[0.04]"
                       }`}
                     >
                       {t.tutor?.avatar_url ? (
-                        <img src={t.tutor.avatar_url} className="h-11 w-11 rounded-xl object-cover ring-1 ring-border" loading="lazy" decoding="async" />
+                        <img src={t.tutor.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" loading="lazy" decoding="async" />
                       ) : (
-                        <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
+                        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06] font-display text-[16px] font-semibold text-muted-foreground">
                           {(t.tutor?.username || "T")[0].toUpperCase()}
                         </div>
                       )}
-                      <div className="flex-1 text-left min-w-0">
-                        <p className="text-[14px] font-semibold tracking-tight truncate">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[15px] font-semibold text-foreground">
                           {t.tutor?.full_name || t.tutor?.username}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">@{t.tutor?.username}</p>
+                        <p className="truncate text-[13px] text-muted-foreground">@{t.tutor?.username}</p>
                       </div>
                       {isCurrentlyAssigned ? (
-                        <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
                           <Check className="h-3.5 w-3.5" /> Assigned
                         </span>
                       ) : assigning ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <Loader2 className="h-5 w-5 shrink-0 animate-spin text-muted-foreground" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                       )}
                     </button>
                   );

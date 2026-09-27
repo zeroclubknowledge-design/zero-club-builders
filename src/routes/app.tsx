@@ -99,6 +99,27 @@ const INSTITUTION_SIDEBAR_TABS = [
   { key: "settings", label: "Settings", Icon: Settings },
 ] as const;
 
+/* Accounts drawer — 44px avatar and the trailing "selected" dot. */
+function AccountAvatar({ url, initial }: { url?: string | null; initial: string }) {
+  return (
+    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">
+      {url ? (
+        <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+      ) : (
+        <div className="grid h-full w-full place-items-center font-display text-[16px] font-semibold text-muted-foreground">{initial}</div>
+      )}
+    </div>
+  );
+}
+
+function AccountSelectedDot({ selected }: { selected: boolean }) {
+  return (
+    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+      {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+    </span>
+  );
+}
+
 function SidebarContent({
   profile,
   onOpenTheme,
@@ -223,99 +244,87 @@ function SidebarContent({
             </button>
           </DrawerTrigger>
           <DrawerContent className="z-[100] mx-auto max-w-lg border-border bg-background p-0 focus:ring-0">
-            <div className="border-b border-border px-4 pb-3 pt-1 text-left sm:px-5 sm:pb-4 sm:pt-5">
-              <p className="text-[10px] font-semibold uppercase text-primary">Zero Club identity</p>
-              <h2 className="mt-1 text-[21px] font-semibold tracking-tight text-foreground">Accounts</h2>
-              <p className="mt-1 text-[12px] text-muted-foreground">Switch profiles or start another Zero Club identity.</p>
+            <div className="px-5 pb-3 pt-1 text-left">
+              <h2 className="font-display text-[20px] font-semibold leading-tight text-foreground">Accounts</h2>
+              <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Switch profiles or start another Zero Club identity.</p>
             </div>
-            <div className="flex max-h-[72vh] flex-col gap-3 overflow-y-auto p-5">
-              {accounts.length === 0 && profile && (
-                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/[0.045] p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
-                      {profile?.avatar_url ? (
-                        <img src={profile.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center font-bold text-muted-foreground">
-                          {profile?.username?.charAt(0).toUpperCase() || "U"}
-                        </div>
-                      )}
+            <div className="flex max-h-[72vh] flex-col overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              <div className="px-5 pb-1 pt-2">
+                <p className="text-[13px] font-semibold text-muted-foreground">Signed in</p>
+              </div>
+              <div className="px-2">
+                {accounts.length === 0 && profile && (
+                  <div className="flex items-center gap-3 rounded-2xl px-3 py-3">
+                    <AccountAvatar url={profile?.avatar_url} initial={profile?.username?.charAt(0).toUpperCase() || "U"} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold text-foreground">{displayName(profile)}</p>
+                      <p className="truncate text-[13px] text-muted-foreground">{getFirstName(profile)}</p>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm">
-                        {displayName(profile)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{getFirstName(profile)}</span>
+                    <AccountSelectedDot selected />
+                  </div>
+                )}
+                {accounts.map((acc) => {
+                  const isActive = acc.id === profile?.id;
+                  return (
+                    <div
+                      key={acc.id}
+                      className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition-colors ${isActive ? "bg-[#cc208f]/[0.06]" : "hover:bg-foreground/[0.04]"}`}
+                      onClick={async () => {
+                        if (!isActive) {
+                          await switchAccount(acc);
+                        }
+                      }}
+                    >
+                      <AccountAvatar url={acc.avatar_url} initial={acc.username?.charAt(0).toUpperCase() || "U"} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[15px] font-semibold text-foreground">{displayName(acc)}</p>
+                        <p className="truncate text-[13px] text-muted-foreground">{getFirstName(acc)}</p>
+                      </div>
+                      {isActive && <AccountSelectedDot selected />}
                     </div>
-                  </div>
-                  <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center text-white">
-                    <Check className="h-3 w-3 text-white" />
-                  </div>
-                </div>
-              )}
-              {accounts.map((acc) => {
-                const isActive = acc.id === profile?.id;
-                return (
-                  <div
-                    key={acc.id}
-                    className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition ${isActive ? "border-primary/20 bg-primary/[0.045]" : "border-border hover:bg-muted"}`}
-                    onClick={async () => {
-                      if (!isActive) {
-                        await switchAccount(acc);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full overflow-hidden bg-muted">
-                        {acc.avatar_url ? (
-                          <img src={acc.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center font-bold text-muted-foreground">
-                            {acc.username?.charAt(0).toUpperCase() || "U"}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm">
-                          {displayName(acc)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{getFirstName(acc)}</span>
-                      </div>
-                    </div>
-                    {isActive && (
-                      <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center text-white">
-                        <Check className="h-3 w-3 text-white" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              <div className="mt-2 px-5 pb-1 pt-3">
+                <p className="text-[13px] font-semibold text-muted-foreground">Add another</p>
+              </div>
               <button
                 onClick={() => prepareAddAccount("/signup?add_account=true")}
-                className="mt-2 flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3.5 text-left hover:bg-muted"
+                className="flex w-full items-center gap-3.5 px-5 py-3.5 text-left text-[16px] font-medium text-foreground transition-colors hover:bg-foreground/[0.04]"
               >
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><UserPlus className="h-4 w-4" /></span><span><span className="block text-[13px] font-semibold">Create a new account</span><span className="mt-0.5 block text-[10.5px] text-muted-foreground">Keep this account saved and make another profile</span></span>
+                <UserPlus className="h-[22px] w-[22px] shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block">Create a new account</span>
+                  <span className="mt-0.5 block text-[13px] font-normal text-muted-foreground">Keep this account saved and make another profile</span>
+                </span>
               </button>
               <button
                 onClick={() => prepareAddAccount()}
-                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3.5 text-left hover:bg-muted"
+                className="flex w-full items-center gap-3.5 px-5 py-3.5 text-left text-[16px] font-medium text-foreground transition-colors hover:bg-foreground/[0.04]"
               >
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-muted text-foreground"><LogIn className="h-4 w-4" /></span><span><span className="block text-[13px] font-semibold">Add an existing account</span><span className="mt-0.5 block text-[10.5px] text-muted-foreground">Sign in and add it to the account switcher</span></span>
+                <LogIn className="h-[22px] w-[22px] shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block">Add an existing account</span>
+                  <span className="mt-0.5 block text-[13px] font-normal text-muted-foreground">Sign in and add it to the account switcher</span>
+                </span>
               </button>
 
-              <button
-                onClick={async () => {
-                  if (profile) {
-                    await logoutCurrentAccount(profile.id);
-                  } else {
-                    await supabase.auth.signOut();
-                    window.location.href = "/signin";
-                  }
-                }}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 py-3.5 text-[13px] font-semibold text-destructive hover:bg-destructive/15 tap"
-              >
-                <LogOut className="h-4 w-4" /> Log out of Zero Club
-              </button>
+              <div className="px-5 pt-4">
+                <button
+                  onClick={async () => {
+                    if (profile) {
+                      await logoutCurrentAccount(profile.id);
+                    } else {
+                      await supabase.auth.signOut();
+                      window.location.href = "/signin";
+                    }
+                  }}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#e0245e]/10 text-[16px] font-semibold text-[#e0245e] transition-colors hover:bg-[#e0245e]/15 tap"
+                >
+                  <LogOut className="h-5 w-5" /> Log out of Zero Club
+                </button>
+              </div>
             </div>
           </DrawerContent>
         </Drawer>
@@ -1389,10 +1398,12 @@ function AppLayout() {
         {/* Theme Selection Sheet */}
         <Drawer open={isThemeOpen} onOpenChange={setIsThemeOpen}>
           <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
-            <h2 className="mb-1 text-[17px] font-semibold tracking-tight sm:text-[22px]">Display</h2>
-            <p className="text-[13px] text-muted-foreground mb-6">Choose how Zero Club looks to you.</p>
+            <div className="pb-3 pt-1 text-left">
+              <h2 className="font-display text-[20px] font-semibold leading-tight text-foreground">Display</h2>
+              <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Choose how Zero Club looks to you.</p>
+            </div>
 
-            <div className="space-y-1">
+            <div className="mt-2 space-y-2.5">
               {[
                 { key: "standard", label: "Standard", desc: "Warm ivory, editorial", swatch: "bg-[#f4f2ef]", active: darkMode === "off", onClick: () => setDarkMode("off") },
                 { key: "black", label: "Black", desc: "Lights out — pure contrast", swatch: "bg-black", active: darkMode === "on" && darkTheme === "lights-out", onClick: () => { setDarkMode("on"); setDarkTheme("lights-out"); } },
@@ -1424,43 +1435,43 @@ function AppLayout() {
                 <button
                   key={opt.key}
                   onClick={opt.onClick}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 tap transition-colors ${opt.active ? "bg-primary/[0.06] ring-1 ring-primary/20" : "hover:bg-foreground/[0.03]"}`}
+                  className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 tap transition-colors ${opt.active ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
                 >
                   {/* A colour chip, because the names alone do not tell you what
                       you are choosing — least of all this new one. */}
-                  <span className={`h-9 w-9 shrink-0 rounded-lg ring-1 ring-border ${opt.swatch}`} />
+                  <span className={`h-11 w-11 shrink-0 rounded-xl border border-foreground/15 ${opt.swatch}`} />
 
                   <div className="min-w-0 flex-1 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="text-[15px] font-semibold tracking-tight">{opt.label}</span>
+                      <span className="text-[15px] font-semibold text-foreground">{opt.label}</span>
                       {opt.badge && (
-                        <span className={`rounded-full px-1.5 py-0.5 text-[8.5px] font-bold tracking-[0.08em] ${opt.locked ? "bg-foreground/10 text-muted-foreground" : "bg-[#cc208f]/15 text-[#cc208f]"}`}>
+                        <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${opt.locked ? "bg-foreground/[0.06] text-muted-foreground" : "bg-[#cc208f]/10 text-[#a3186f]"}`}>
                           {opt.badge}
                         </span>
                       )}
                     </div>
-                    <div className="mt-0.5 truncate text-[12px] text-muted-foreground">{opt.desc}</div>
+                    <div className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{opt.desc}</div>
                   </div>
 
                   {opt.locked ? (
-                    <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <Lock className="h-5 w-5 shrink-0 text-muted-foreground" />
                   ) : (
-                    <div className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors ${opt.active ? "bg-primary" : "ring-1 ring-border"}`}>
-                      {opt.active && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
+                    <div className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors ${opt.active ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+                      {opt.active && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                     </div>
                   )}
                 </button>
               ))}
             </div>
 
-            <p className="mt-6 border-t hairline pt-4 text-[11px] leading-relaxed text-muted-foreground">
+            <p className="mt-5 text-[13px] leading-relaxed text-muted-foreground">
               Standard uses the Zero Club editorial palette. Dark variants are personal display options.
               Rose Noir is free for a month on this device, then included with any paid membership.
             </p>
 
             <button
               onClick={() => setIsThemeOpen(false)}
-              className="mt-8 w-full rounded-full bg-foreground py-3.5 font-semibold tracking-tight text-background tap"
+              className="mt-6 h-12 w-full rounded-full bg-foreground text-[16px] font-semibold text-background tap"
             >
               Done
             </button>

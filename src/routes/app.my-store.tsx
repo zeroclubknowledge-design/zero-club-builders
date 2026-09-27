@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Loader2, Trash2, Edit3, UploadCloud, FileArchive, TicketPercent, Gift, ChevronDown, Share2 } from "@/components/icons/glyphs";
+import { ArrowLeft, Plus, Loader2, Trash2, Edit3, UploadCloud, FileArchive, TicketPercent, Gift, ChevronDown, Share2, Check } from "@/components/icons/glyphs";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -49,6 +49,12 @@ const EMPTY_FORM: ProductForm = {
   couponCode: "",
   couponPercent: "10",
 };
+
+/* Form styling for the create / edit drawer. */
+const fieldClass =
+  "w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40";
+const inputClass = `h-11 ${fieldClass}`;
+const labelClass = "mb-1.5 block text-[13px] font-semibold text-muted-foreground";
 
 const effectivePrice = (price: number, discount: number) =>
   discount > 0 ? Math.round(price * (100 - discount) / 100) : price;
@@ -229,9 +235,6 @@ function MyStorePage() {
     .reduce((sum: number, p: any) => sum + effectivePrice(p.price, p.discount_percent || 0), 0);
   const activeCoupons = products.filter((p: any) => p.coupon_code).length;
 
-  const inputClass =
-    "w-full bg-card rounded-lg px-4 py-3 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition text-foreground placeholder:text-muted-foreground/50";
-  const labelClass = "text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1";
 
   const couponProducts = products.filter((item: any) => item.coupon_code);
 
@@ -375,34 +378,37 @@ function MyStorePage() {
       {/* ── Create / Edit drawer ── */}
       <Drawer open={editing !== null} onOpenChange={(open) => !open && !saving && setEditing(null)}>
         <DrawerContent desktopVariant="panel" className="border-none bg-background p-0 focus:ring-0 max-w-lg mx-auto max-h-[92dvh] flex flex-col">
-          <div className="shrink-0 border-b px-4 pb-3 pt-1 hairline sm:px-6 sm:pb-4 sm:pt-5">
-            <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[20px]">
+          <div className="shrink-0 px-5 pb-3 pt-1">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground sm:text-[20px]">
               {editing === "new" ? "New product" : "Edit product"}
             </DrawerTitle>
-            <p className="mt-1 text-[13px] text-muted-foreground">
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
               {editing === "new" ? "Upload a digital file and set your price." : "Changes go live on Zero Store immediately."}
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 no-scrollbar">
+          <div className="flex-1 space-y-6 overflow-y-auto px-5 pb-6 pt-2 no-scrollbar">
             {/* Cover */}
-            <div className="space-y-2">
+            <div>
               <label className={labelClass}>Cover image</label>
               <button
                 onClick={() => coverInputRef.current?.click()}
-                className="group relative grid h-36 w-full place-items-center overflow-hidden rounded-lg border border-dashed border-border-strong text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                className="group relative grid aspect-[16/9] w-full place-items-center overflow-hidden rounded-2xl border-[1.5px] border-dashed border-foreground/15 bg-foreground/[0.03] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
               >
                 {coverPreview ? (
                   <>
                     <img src={coverPreview} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
-                    <span className="relative z-10 rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/60 px-3 py-1.5 text-[13px] font-semibold text-white backdrop-blur-sm">
                       Change cover
                     </span>
                   </>
                 ) : (
-                  <span className="flex flex-col items-center gap-2 text-[12.5px] font-medium">
-                    <UploadCloud className="h-6 w-6" strokeWidth={1.75} />
-                    Add a cover image
+                  <span className="flex flex-col items-center gap-2">
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.06]">
+                      <UploadCloud className="h-[22px] w-[22px]" strokeWidth={1.75} />
+                    </span>
+                    <span className="text-[14px] font-semibold text-foreground">Add a cover image</span>
+                    <span className="text-[13px] text-muted-foreground">Shown at 16:9 on the storefront</span>
                   </span>
                 )}
               </button>
@@ -410,30 +416,30 @@ function MyStorePage() {
             </div>
 
             {/* Product file */}
-            <div className="space-y-2">
+            <div>
               <label className={labelClass}>Product file</label>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex w-full items-center gap-3 rounded-lg bg-card p-4 text-left ring-1 ring-border transition-all tap hover:ring-primary/30"
+                className="flex w-full items-center gap-3 rounded-2xl border border-foreground/12 bg-card p-3.5 text-left transition-colors tap hover:bg-foreground/[0.03]"
               >
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/8 ring-1 ring-primary/15 text-primary">
-                  <FileArchive className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${productFile || existingFileUrl ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-foreground/[0.06] text-foreground"}`}>
+                  <FileArchive className="h-[22px] w-[22px]" strokeWidth={1.75} />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   {productFile ? (
                     <>
-                      <p className="text-[13.5px] font-semibold tracking-tight text-foreground truncate">{productFile.name}</p>
-                      <p className="text-[11.5px] text-muted-foreground">{(productFile.size / 1024 / 1024).toFixed(1)} MB · ready to upload</p>
+                      <p className="truncate text-[15px] font-semibold text-foreground">{productFile.name}</p>
+                      <p className="text-[13px] text-muted-foreground tabular-nums">{(productFile.size / 1024 / 1024).toFixed(1)} MB · ready to upload</p>
                     </>
                   ) : existingFileUrl ? (
                     <>
-                      <p className="text-[13.5px] font-semibold tracking-tight text-foreground">File attached</p>
-                      <p className="text-[11.5px] text-muted-foreground">Tap to replace the delivered file</p>
+                      <p className="text-[15px] font-semibold text-foreground">File attached</p>
+                      <p className="text-[13px] text-muted-foreground">Tap to replace the delivered file</p>
                     </>
                   ) : (
                     <>
-                      <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Choose a file</p>
-                      <p className="text-[11.5px] text-muted-foreground">ZIP, PDF, images, audio — delivered to buyers instantly</p>
+                      <p className="text-[15px] font-semibold text-foreground">Choose a file</p>
+                      <p className="text-[13px] text-muted-foreground">ZIP, PDF, images, audio — delivered to buyers instantly</p>
                     </>
                   )}
                 </div>
@@ -442,24 +448,26 @@ function MyStorePage() {
             </div>
 
             {/* Name / description */}
-            <div className="space-y-2">
-              <label className={labelClass}>Name</label>
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="e.g. Founder Pitch Deck Template"
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className={labelClass}>Description</label>
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="What does the buyer get?"
-                rows={3}
-                className={`${inputClass} resize-none`}
-              />
+            <div className="space-y-4">
+              <div>
+                <label className={labelClass}>Name</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Founder Pitch Deck Template"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Description</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="What does the buyer get?"
+                  rows={3}
+                  className={`${fieldClass} resize-none py-2.5 leading-relaxed`}
+                />
+              </div>
             </div>
 
             {/* Category + currency */}
@@ -467,22 +475,22 @@ function MyStorePage() {
                 A single flat dropdown of forty options is slower to use than
                 nine plus a handful, and it produced listings labelled
                 "Template" that could have said "Prompt pack". */}
-            <div className="space-y-2">
+            <div>
               <label className={labelClass}>What is it?</label>
               <div className="relative">
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value, productType: "" })}
-                  className={`${inputClass} appearance-none pr-10 cursor-pointer`}
+                  className={`${inputClass} cursor-pointer appearance-none pr-10`}
                 >
                   {STORE_CATEGORIES.map((entry) => (
                     <option key={entry.id} value={entry.id}>{entry.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" />
               </div>
 
-              <div className="flex flex-wrap gap-1.5 pt-1">
+              <div className="flex flex-wrap gap-2 pt-3">
                 {(CATEGORY_BY_ID.get(form.category)?.types || []).map((type) => {
                   const active = form.productType === type;
                   return (
@@ -490,10 +498,10 @@ function MyStorePage() {
                       key={type}
                       type="button"
                       onClick={() => setForm({ ...form, productType: active ? "" : type })}
-                      className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${
+                      className={`h-8 rounded-full px-3.5 text-[13px] font-semibold transition-colors ${
                         active
                           ? "bg-foreground text-background"
-                          : "bg-background text-muted-foreground ring-1 ring-border hover:text-foreground"
+                          : "border border-foreground/15 text-foreground/75 hover:bg-foreground/[0.04]"
                       }`}
                     >
                       {type}
@@ -505,26 +513,34 @@ function MyStorePage() {
 
             {/* No longer sharing a row with the category dropdown, so it takes
                 the full width rather than leaving half the row empty. */}
-            <div className="grid grid-cols-1 gap-3">
-              <div className="space-y-2">
-                <label className={labelClass}>Charge in</label>
-                <div className="flex rounded-lg bg-background p-1 ring-1 ring-border">
-                  {(["Coins", "ZP"] as const).map((t) => (
+            <div>
+              <label className={labelClass}>Charge in</label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {(["Coins", "ZP"] as const).map((t) => {
+                  const active = form.priceType === t;
+                  return (
                     <button
                       key={t}
                       onClick={() => setForm({ ...form, priceType: t })}
-                      className={`flex-1 rounded-xl py-2 text-[12.5px] font-semibold tracking-tight transition-colors ${form.priceType === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`flex items-center justify-between rounded-2xl border-[1.5px] px-4 py-3 text-left transition-colors ${
+                        active ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"
+                      }`}
                     >
-                      {t === "Coins" ? `${currencyDetails.symbol} Cash` : "ZP"}
+                      <span className="text-[15px] font-semibold text-foreground">
+                        {t === "Coins" ? `${currencyDetails.symbol} Cash` : "ZP"}
+                      </span>
+                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/25"}`}>
+                        {active && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                      </span>
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Price + discount */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
+              <div>
                 <label className={labelClass}>Price {form.priceType === "Coins" ? `(${currencyDetails.symbol})` : "(ZP)"}</label>
                 <input
                   type="number"
@@ -535,8 +551,8 @@ function MyStorePage() {
                   className={`${inputClass} tabular-nums`}
                 />
               </div>
-              <div className="space-y-2">
-                <label className={labelClass}>Discount %</label>
+              <div>
+                <label className={labelClass}>Discount</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -550,32 +566,36 @@ function MyStorePage() {
                     onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
                     className={`${inputClass} pr-8 tabular-nums`}
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">%</span>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-muted-foreground">%</span>
                 </div>
               </div>
             </div>
 
             {/* Coupon */}
-            <div className="space-y-4 rounded-lg bg-card p-4 ring-1 ring-border">
+            <div className="rounded-2xl border border-foreground/12 p-4">
               <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[13.5px] font-semibold tracking-tight text-foreground">Coupon code</p>
-                  <p className="text-[11.5px] text-muted-foreground mt-0.5">Buyers who enter this code get an extra discount.</p>
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold text-foreground">Coupon code</p>
+                  <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">Buyers who enter this code get an extra discount.</p>
                 </div>
                 <button
                   onClick={() => setForm({ ...form, couponEnabled: !form.couponEnabled })}
-                  className={`h-7 w-12 shrink-0 rounded-full p-1 transition ${form.couponEnabled ? "bg-primary" : "bg-foreground/[0.08]"}`}
+                  role="switch"
+                  aria-checked={form.couponEnabled}
+                  aria-label="Coupon code"
+                  className={`h-7 w-12 shrink-0 rounded-full p-1 transition-colors ${form.couponEnabled ? "bg-[#cc208f]" : "bg-foreground/[0.12]"}`}
                 >
-                  <span className={`block h-5 w-5 rounded-full bg-background shadow-sm transition ${form.couponEnabled ? "translate-x-5" : "translate-x-0"}`} />
+                  <span className={`block h-5 w-5 rounded-full bg-white transition-transform ${form.couponEnabled ? "translate-x-5" : "translate-x-0"}`} />
                 </button>
               </div>
               {form.couponEnabled && (
-                <div className="grid grid-cols-[1fr_88px] gap-3">
+                <div className="mt-4 grid grid-cols-[1fr_96px] gap-3">
                   <input
                     value={form.couponCode}
                     onChange={(e) => setForm({ ...form, couponCode: e.target.value.toUpperCase() })}
                     placeholder="LAUNCH20"
-                    className={`${inputClass} tracking-[0.08em]`}
+                    aria-label="Coupon code"
+                    className={`${inputClass} font-mono tracking-[0.06em]`}
                   />
                   <div className="relative">
                     <input
@@ -586,9 +606,10 @@ function MyStorePage() {
                       inputMode="decimal"
                       value={form.couponPercent}
                       onChange={(e) => setForm({ ...form, couponPercent: e.target.value })}
+                      aria-label="Coupon discount percent"
                       className={`${inputClass} pr-8 tabular-nums`}
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">%</span>
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-muted-foreground">%</span>
                   </div>
                 </div>
               )}
@@ -596,38 +617,38 @@ function MyStorePage() {
 
             {/* Buyer-pays preview */}
             {numericPrice > 0 && (
-              <div className="space-y-1.5 rounded-lg bg-primary/[0.04] px-4 py-3.5 ring-1 ring-primary/15">
-                <div className="flex items-center justify-between text-[12.5px]">
-                  <span className="text-muted-foreground">Buyers pay</span>
-                  <span className="font-semibold tracking-tight text-foreground tabular-nums">
-                    {formatPrice(salePrice, form.priceType)}
+              <div className="space-y-2 rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[14px] text-muted-foreground">Buyers pay</span>
+                  <span className="flex items-baseline gap-2 tabular-nums">
                     {numericDiscount > 0 && (
-                      <span className="ml-2 text-[11px] font-normal text-muted-foreground line-through">{formatPrice(numericPrice, form.priceType)}</span>
+                      <span className="text-[13px] text-muted-foreground line-through">{formatPrice(numericPrice, form.priceType)}</span>
                     )}
+                    <span className="font-display text-[18px] font-semibold text-foreground">{formatPrice(salePrice, form.priceType)}</span>
                   </span>
                 </div>
                 {form.couponEnabled && form.couponCode.trim().length >= 3 && (
-                  <div className="flex items-center justify-between text-[12.5px]">
-                    <span className="text-muted-foreground">With {form.couponCode.trim()}</span>
-                    <span className="font-semibold tracking-tight text-primary tabular-nums">{formatPrice(couponPrice, form.priceType)}</span>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[14px] text-muted-foreground">With <span className="font-mono font-semibold text-foreground">{form.couponCode.trim()}</span></span>
+                    <span className="text-[15px] font-semibold text-[#a3186f] tabular-nums">{formatPrice(couponPrice, form.priceType)}</span>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          <div className="shrink-0 px-6 py-4 border-t hairline flex gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex shrink-0 gap-2.5 border-t border-border/60 px-5 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <button
               onClick={() => setEditing(null)}
               disabled={saving}
-              className="flex-1 rounded-full ring-1 ring-border py-3 text-[13.5px] font-semibold tracking-tight text-foreground hover:bg-foreground/[0.03] tap disabled:opacity-50"
+              className="h-12 flex-1 rounded-full border-[1.5px] border-foreground/25 text-[16px] font-semibold text-foreground tap hover:bg-foreground/[0.04] disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={!canSave || saving}
-              className="flex-1 rounded-full bg-foreground py-3 text-[13.5px] font-semibold tracking-tight text-background tap hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2"
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
               {editing === "new" ? "List product" : "Save changes"}

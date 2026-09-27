@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, StopCircle, Wand2, Crown, Globe, Bold, Italic, List, Palette } from "@/components/icons/glyphs";
+import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, StopCircle, Wand2, Crown, Check, Globe, Bold, Italic, List, Palette } from "@/components/icons/glyphs";
 import { Highlighter, NOTE_TEXT_COLORS, NOTE_HIGHLIGHTS } from "@/features/notes/editorMarks";
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -1019,65 +1019,66 @@ function NotesEditPage() {
       {/* Publish Modal */}
       <Drawer open={showPublishModal} onOpenChange={setShowPublishModal}>
         <DrawerContent className="mx-auto max-w-[620px] border border-border bg-background p-0 shadow-xl">
-          <div className="mx-auto w-full max-w-md px-4 pb-4 pt-1 sm:p-6 sm:pt-8">
-            <DrawerHeader className="mb-3 px-0 pt-0 text-center sm:mb-4">
-              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Wand2 className="h-6 w-6 text-primary" />
-              </div>
-              <DrawerTitle className="text-xl font-semibold sm:text-2xl">Ready to publish?</DrawerTitle>
-              <DrawerDescription className="text-base text-muted-foreground mt-2">
+          <div className="mx-auto w-full max-w-md">
+            <DrawerHeader className="px-5 pb-3 pt-1 text-left sm:px-5">
+              <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Ready to publish?</DrawerTitle>
+              <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
                 Choose how you want to share your story.
               </DrawerDescription>
             </DrawerHeader>
-            
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <button
-                onClick={() => setIsPaid(false)}
-                className={`group flex flex-col items-center justify-center gap-4 rounded-lg border px-4 py-7 transition-colors ${!isPaid ?'border-primary bg-primary/5' : 'border-border bg-card hover:bg-accent/30'}`}
-              >
-                <div className={`p-3 rounded-2xl transition-colors ${!isPaid ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground group-hover:text-foreground'}`}>
-                  <Globe className="h-7 w-7" strokeWidth={2} />
-                </div>
-                <div className="text-center">
-                  <span className="block font-black text-lg text-foreground">Free</span>
-                  <span className="text-xs text-muted-foreground mt-1 font-medium">Available to all</span>
-                </div>
-              </button>
 
-              <button
-                onClick={() => setIsPaid(true)}
-                className={`group flex flex-col items-center justify-center gap-4 rounded-lg border px-4 py-7 transition-colors ${isPaid ?'border-[#ffcf00] bg-[#ffcf00]/10' : 'border-border bg-card hover:bg-accent/30'}`}
-              >
-                <div className={`p-3 rounded-2xl transition-colors ${isPaid ? 'bg-[#ffcf00] text-black' : 'bg-muted text-muted-foreground group-hover:text-foreground'}`}>
-                  <Crown className="h-7 w-7" strokeWidth={2} />
-                </div>
-                <div className="text-center">
-                  <span className="block font-black text-lg text-foreground">Premium</span>
-                  <span className="text-xs text-muted-foreground mt-1 font-medium">Monetize content</span>
-                </div>
-              </button>
+            <div className="px-5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              <p className="mb-2 mt-2 text-[13px] font-semibold text-muted-foreground">Access</p>
+              <div className="space-y-2.5">
+                {[
+                  { key: "free", paid: false, Icon: Globe, title: "Free", meta: "Available to all" },
+                  { key: "premium", paid: true, Icon: Crown, title: "Premium", meta: "Monetize content" },
+                ].map((opt) => {
+                  const selected = isPaid === opt.paid;
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setIsPaid(opt.paid)}
+                      className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
+                    >
+                      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? "bg-[#cc208f]/10 text-[#a3186f]" : "bg-foreground/[0.05] text-muted-foreground"}`}>
+                        <opt.Icon className="h-[22px] w-[22px]" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[15px] font-semibold text-foreground">{opt.title}</span>
+                        <span className="mt-0.5 block text-[13px] text-muted-foreground">{opt.meta}</span>
+                      </span>
+                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+                        {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <DrawerFooter className="px-0 pb-0 pt-5">
+                {isPaid ? (
+                  <div className="mb-3 flex items-start gap-3 rounded-2xl bg-foreground/[0.05] p-4 animate-in fade-in slide-in-from-bottom-2">
+                    <Crown className="mt-0.5 h-5 w-5 shrink-0 text-[#a3186f]" />
+                    <div className="min-w-0">
+                      <p className="text-[15px] font-semibold text-foreground">Coming soon</p>
+                      <p className="mt-0.5 text-[14px] leading-relaxed text-muted-foreground">Paid articles are an upcoming feature for Zero Club builders. For now, please publish as Free!</p>
+                    </div>
+                  </div>
+                ) : null}
+                <button
+                  onClick={() => {
+                    setShowPublishModal(false);
+                    executePublish();
+                  }}
+                  disabled={isPaid || isPublishing}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white transition active:scale-[0.98] disabled:opacity-40"
+                >
+                  {isPublishing ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Publish note'}
+                </button>
+              </DrawerFooter>
             </div>
-
-            <DrawerFooter className="px-0 pb-8 pt-4">
-              {isPaid ? (
-                <div className="mb-6 flex flex-col gap-2 rounded-lg border border-[#ffcf00]/20 bg-[#ffcf00]/10 p-5 animate-in fade-in slide-in-from-bottom-2">
-                  <span className="font-black flex items-center gap-2 text-[#ffcf00] text-lg">
-                    <Crown className="h-5 w-5" /> Coming soon!
-                  </span>
-                  <span className="text-sm font-medium leading-relaxed text-[#ffcf00]/80">Paid articles are an upcoming feature for Zero Club builders. For now, please publish as Free!</span>
-                </div>
-              ) : null}
-              <button
-                onClick={() => {
-                  setShowPublishModal(false);
-                  executePublish();
-                }}
-                disabled={isPaid || isPublishing}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-lg bg-foreground text-base font-semibold text-background transition hover:bg-foreground/90 active:scale-95 disabled:opacity-50"
-              >
-                {isPublishing ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Publish Note'}
-              </button>
-            </DrawerFooter>
           </div>
         </DrawerContent>
       </Drawer>

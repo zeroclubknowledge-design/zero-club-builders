@@ -436,27 +436,28 @@ function GigRow({ gig, format, viewerId, onOpen }: { gig: Gig; format: (value: n
 function GigDetail({ gig, viewerId, format, onApply }: { gig: Gig; viewerId: string | null; format: (value: number) => string; onApply: () => void }) {
   const clientName = gig.client?.full_name || gig.client?.username || "Zero Club client";
   const isOwner = gig.client_id === viewerId;
+  const isInstitution = gig.client?.account_type === "Institution";
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <DrawerHeader className="border-b border-border px-5 pb-4 pt-2 md:px-6 md:pt-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">{gig.category}</p>
-        <DrawerTitle className="pr-8 font-display text-[20px] leading-tight md:text-[23px]">{gig.title}</DrawerTitle>
-        <DrawerDescription className="flex flex-wrap items-center gap-2 text-[11px]">
-          <span>Posted {relativeDate(gig.created_at)}</span><span>·</span><span>{gig.location_type}</span><span>·</span><span>{gig.status}</span>
+      <DrawerHeader className="shrink-0 gap-0 px-5 pb-3 pt-1 sm:gap-0 sm:px-5 sm:pb-3 sm:pt-1 md:px-6 md:pt-5">
+        <span className="w-fit rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">{gig.category}</span>
+        <DrawerTitle className="mt-2 pr-8 font-display text-[20px] font-semibold leading-tight">{gig.title}</DrawerTitle>
+        <DrawerDescription className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[14px] leading-relaxed text-muted-foreground">
+          <span>Posted {relativeDate(gig.created_at)}</span><span aria-hidden>·</span><span>{gig.location_type}</span><span aria-hidden>·</span><span className="capitalize">{gig.status}</span>
         </DrawerDescription>
       </DrawerHeader>
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 md:px-6">
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3.5">
-          <div className="h-11 w-11 overflow-hidden rounded-lg bg-muted">
-            {gig.client?.avatar_url ? <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center bg-primary/10 font-semibold text-primary">{clientName.charAt(0).toUpperCase()}</div>}
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 md:px-6">
+        <div className="flex items-center gap-3 py-3">
+          <div className={`h-11 w-11 shrink-0 overflow-hidden bg-foreground/[0.06] ${isInstitution ? "rounded-xl" : "rounded-full"}`}>
+            {gig.client?.avatar_url ? <img src={gig.client.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center text-[15px] font-semibold text-muted-foreground">{clientName.charAt(0).toUpperCase()}</div>}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 truncate text-[13px] font-semibold">{clientName}{gig.client?.account_type === "Institution" && <BadgeCheck className="h-4 w-4 fill-primary text-primary-foreground" />}</p>
-            <p className="mt-0.5 text-[10.5px] text-muted-foreground">{gig.client?.account_type || "Builder"} · Zero Club profile</p>
+            <p className="flex items-center gap-1.5 truncate text-[15px] font-semibold">{clientName}{isInstitution && <BadgeCheck className="h-4 w-4 shrink-0 fill-[#cc208f] text-white" />}</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">{gig.client?.account_type || "Builder"} · Zero Club profile</p>
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
           <DetailMetric icon={Banknote} label="Budget" value={`${format(gig.budget_min)} - ${format(gig.budget_max)}${gig.budget_type === "hourly" ? "/hr" : ""}`} />
           <DetailMetric icon={Sparkles} label="Experience" value={gig.experience_level} />
           <DetailMetric icon={Clock3} label="Engagement" value={gig.budget_type === "hourly" ? "Hourly" : "Fixed price"} />
@@ -464,29 +465,29 @@ function GigDetail({ gig, viewerId, format, onApply }: { gig: Gig; viewerId: str
         </div>
 
         <section className="mt-6">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">About the work</h3>
-          <div className="mt-3 whitespace-pre-wrap text-[13px] leading-6 text-foreground/85">
+          <h3 className="text-[13px] font-semibold text-muted-foreground">About the work</h3>
+          <div className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
             <LinkifiedText text={gig.description} />
           </div>
         </section>
 
         <section className="mt-6">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Skills</h3>
-          <div className="mt-3 flex flex-wrap gap-2">{gig.skills.map((skill) => <span key={skill} className="rounded-md border border-border bg-card px-2.5 py-1.5 text-[10.5px] font-medium">{skill}</span>)}</div>
+          <h3 className="text-[13px] font-semibold text-muted-foreground">Skills</h3>
+          <div className="mt-2 flex flex-wrap gap-2">{gig.skills.map((skill) => <span key={skill} className="rounded-full bg-foreground/[0.05] px-3 py-1 text-[13px] font-medium text-foreground">{skill}</span>)}</div>
         </section>
 
-        <div className="mt-6 flex items-center justify-between border-y border-border py-4 text-[11px] text-muted-foreground">
-          <span>{gig.applications_count || 0} proposals received</span>
-          <span className="capitalize">{gig.status}</span>
+        <div className="mt-6 flex items-center justify-between rounded-2xl bg-foreground/[0.04] px-4 py-3">
+          <span className="text-[14px] text-muted-foreground"><span className="font-semibold tabular-nums text-foreground">{gig.applications_count || 0}</span> proposals received</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold capitalize ${gig.status === "open" ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-foreground/[0.06] text-muted-foreground"}`}>{gig.status}</span>
         </div>
       </div>
-      <div className="border-t border-border bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-5">
+      <div className="shrink-0 border-t border-border/60 bg-background px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 md:px-6 md:pb-5">
         {isOwner ? (
-          <div className="flex h-11 items-center justify-center rounded-lg border border-border bg-card text-[12px] font-semibold">You posted this gig</div>
+          <div className="flex h-12 items-center justify-center rounded-full bg-foreground/[0.05] text-[15px] font-semibold text-muted-foreground">You posted this gig</div>
         ) : gig.viewer_application ? (
-          <div className="flex h-11 items-center justify-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] text-[12px] font-semibold text-emerald-600"><Check className="h-4 w-4" /> Proposal sent</div>
+          <div className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#1a7f4b]/10 text-[15px] font-semibold text-[#1a7f4b]"><Check className="h-5 w-5" /> Proposal sent</div>
         ) : (
-          <button onClick={onApply} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground hover:opacity-90"><Send className="h-4 w-4" /> Send proposal</button>
+          <button onClick={onApply} className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[16px] font-semibold text-background transition-opacity hover:opacity-90"><Send className="h-5 w-5" /> Send proposal</button>
         )}
       </div>
     </div>
@@ -494,25 +495,36 @@ function GigDetail({ gig, viewerId, format, onApply }: { gig: Gig; viewerId: str
 }
 
 function DetailMetric({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
-  return <div className="rounded-lg border border-border bg-card p-3"><Icon className="h-4 w-4 text-primary" /><p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p><p className="mt-1 text-[11px] font-semibold leading-snug">{value}</p></div>;
+  return (
+    <div className="rounded-2xl bg-foreground/[0.04] p-3.5">
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        <p className="text-[13px] font-semibold">{label}</p>
+      </div>
+      <p className="mt-1 text-[15px] font-semibold leading-snug tabular-nums">{value}</p>
+    </div>
+  );
 }
 
 function ProposalForm({ gig, proposal, setProposal, currencySymbol, submitting, onBack, onSubmit }: any) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-border px-5 pb-4 pt-3 md:px-6 md:pt-5">
-        <button onClick={onBack} className="grid h-9 w-9 place-items-center rounded-lg border border-border hover:bg-muted"><ArrowLeft className="h-4 w-4" /></button>
-        <div><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">Proposal</p><h2 className="line-clamp-1 text-[16px] font-semibold">{gig.title}</h2></div>
-      </div>
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 md:px-6">
-        <FormField label="Cover note"><textarea value={proposal.coverNote} onChange={(event) => setProposal({ ...proposal, coverNote: event.target.value })} rows={7} maxLength={2000} placeholder="Explain your approach, relevant experience, and the result you can deliver." className="w-full resize-none rounded-lg border border-border bg-card px-3 py-3 text-[13px] leading-relaxed outline-none placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/10" /></FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Your price"><div className="flex h-11 w-full min-w-0 items-center rounded-lg border border-border bg-card px-3 text-[13px] focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10"><span className="mr-2 text-muted-foreground">{currencySymbol}</span><input type="number" min="0" value={proposal.proposedAmount} onChange={(event) => setProposal({ ...proposal, proposedAmount: event.target.value })} className="min-w-0 flex-1 bg-transparent outline-none" /></div></FormField>
-          <FormField label="Delivery days"><input type="number" min="1" value={proposal.deliveryDays} onChange={(event) => setProposal({ ...proposal, deliveryDays: event.target.value })} placeholder="7" className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-[13px] outline-none placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/10" /></FormField>
+      <div className="flex shrink-0 items-start gap-3 px-5 pb-3 pt-1 md:px-6 md:pt-5">
+        <button onClick={onBack} aria-label="Back to gig" className="-ml-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground hover:bg-foreground/[0.04]"><ArrowLeft className="h-[22px] w-[22px]" /></button>
+        <div className="min-w-0 pt-0.5">
+          <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Send a proposal</DrawerTitle>
+          <p className="mt-1 line-clamp-1 text-[14px] leading-relaxed text-muted-foreground">{gig.title}</p>
         </div>
-        <FormField label="Portfolio link (optional)"><input type="url" value={proposal.portfolioUrl} onChange={(event) => setProposal({ ...proposal, portfolioUrl: event.target.value })} placeholder="https://" className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-[13px] outline-none placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/10" /></FormField>
       </div>
-      <div className="border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-5"><button onClick={onSubmit} disabled={submitting} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground disabled:opacity-50">{submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{submitting ? "Sending" : "Send proposal"}</button></div>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-5 pt-1 md:px-6">
+        <FormField label="Cover note"><textarea value={proposal.coverNote} onChange={(event) => setProposal({ ...proposal, coverNote: event.target.value })} rows={7} maxLength={2000} placeholder="Explain your approach, relevant experience, and the result you can deliver." className="w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground focus:border-foreground/40" /></FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Your price"><div className="flex h-11 w-full min-w-0 items-center rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] focus-within:border-foreground/40"><span className="mr-2 text-muted-foreground">{currencySymbol}</span><input type="number" min="0" value={proposal.proposedAmount} onChange={(event) => setProposal({ ...proposal, proposedAmount: event.target.value })} className="min-w-0 flex-1 bg-transparent tabular-nums outline-none" /></div></FormField>
+          <FormField label="Delivery days"><input type="number" min="1" value={proposal.deliveryDays} onChange={(event) => setProposal({ ...proposal, deliveryDays: event.target.value })} placeholder="7" className="h-11 w-full min-w-0 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40 tabular-nums" /></FormField>
+        </div>
+        <FormField label="Portfolio link (optional)"><input type="url" value={proposal.portfolioUrl} onChange={(event) => setProposal({ ...proposal, portfolioUrl: event.target.value })} placeholder="https://" className="h-11 w-full min-w-0 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40" /></FormField>
+      </div>
+      <div className="shrink-0 border-t border-border/60 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 md:px-6 md:pb-5"><button onClick={onSubmit} disabled={submitting} className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[16px] font-semibold text-background disabled:opacity-40">{submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}{submitting ? "Sending" : "Send proposal"}</button></div>
     </div>
   );
 }
@@ -520,23 +532,39 @@ function ProposalForm({ gig, proposal, setProposal, currencySymbol, submitting, 
 function GigPostForm({ form, setForm, currencySymbol, submitting, onSubmit }: any) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <DrawerHeader className="border-b border-border px-5 pb-4 pt-2 md:px-6 md:pt-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">Hire on Zero Club</p><DrawerTitle className="text-[20px]">Post a gig</DrawerTitle><DrawerDescription className="text-[11px]">Publish a clear brief for builders across the network.</DrawerDescription></DrawerHeader>
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 md:px-6">
-        <FormField label="Gig title"><input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} maxLength={100} placeholder="e.g. Product designer for a fintech dashboard" className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-[13px] outline-none placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/10" /></FormField>
-        <FormField label="Project brief"><textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} maxLength={4000} rows={6} placeholder="Describe the outcome, scope, and what a strong delivery looks like." className="w-full resize-none rounded-lg border border-border bg-card px-3 py-3 text-[13px] leading-relaxed outline-none placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/10" /></FormField>
-        <div className="grid grid-cols-2 gap-3"><FilterSelect label="Category" value={form.category} onChange={(value) => setForm({ ...form, category: value })} options={CATEGORIES.filter((item) => item !== "All")} /><FilterSelect label="Work type" value={form.locationType} onChange={(value) => setForm({ ...form, locationType: value })} options={WORK_TYPES.filter((item) => item !== "All work types")} /></div>
-        <FormField label="Skills"><input value={form.skills} onChange={(event) => setForm({ ...form, skills: event.target.value })} placeholder="Figma, UX research, Design systems" className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-[13px] outline-none placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/10" /><p className="mt-1.5 text-[9.5px] text-muted-foreground">Separate skills with commas.</p></FormField>
-        <div className="grid grid-cols-2 gap-3"><FilterSelect label="Pricing" value={form.budgetType} onChange={(value) => setForm({ ...form, budgetType: value })} options={["fixed", "hourly"]} /><FilterSelect label="Experience" value={form.experienceLevel} onChange={(value) => setForm({ ...form, experienceLevel: value })} options={["Entry", "Intermediate", "Expert"]} /></div>
-        <div className="grid grid-cols-2 gap-3"><FormField label="Minimum budget"><div className="flex h-11 w-full min-w-0 items-center rounded-lg border border-border bg-card px-3 text-[13px] focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10"><span className="mr-2 text-muted-foreground">{currencySymbol}</span><input type="number" min="0" value={form.budgetMin} onChange={(event) => setForm({ ...form, budgetMin: event.target.value })} className="min-w-0 flex-1 bg-transparent outline-none" /></div></FormField><FormField label="Maximum budget"><div className="flex h-11 w-full min-w-0 items-center rounded-lg border border-border bg-card px-3 text-[13px] focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10"><span className="mr-2 text-muted-foreground">{currencySymbol}</span><input type="number" min="0" value={form.budgetMax} onChange={(event) => setForm({ ...form, budgetMax: event.target.value })} className="min-w-0 flex-1 bg-transparent outline-none" /></div></FormField></div>
-        <FormField label="Deadline (optional)"><input type="date" value={form.deadline} onChange={(event) => setForm({ ...form, deadline: event.target.value })} className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-[13px] outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10" /></FormField>
+      <DrawerHeader className="shrink-0 gap-0 px-5 pb-3 pt-1 sm:gap-0 sm:px-5 sm:pb-3 sm:pt-1 md:px-6 md:pt-5">
+        <p className="text-[13px] font-semibold text-[#a3186f]">Hire on Zero Club</p>
+        <DrawerTitle className="mt-0.5 font-display text-[20px] font-semibold leading-tight">Post a gig</DrawerTitle>
+        <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Publish a clear brief for builders across the network.</DrawerDescription>
+      </DrawerHeader>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-5 pt-1 md:px-6">
+        <FormField label="Gig title"><input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} maxLength={100} placeholder="e.g. Product designer for a fintech dashboard" className="h-11 w-full min-w-0 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40" /></FormField>
+        <FormField label="Project brief"><textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} maxLength={4000} rows={6} placeholder="Describe the outcome, scope, and what a strong delivery looks like." className="w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground focus:border-foreground/40" /></FormField>
+        <div className="grid grid-cols-2 gap-3"><SheetSelect label="Category" value={form.category} onChange={(value) => setForm({ ...form, category: value })} options={CATEGORIES.filter((item) => item !== "All")} /><SheetSelect label="Work type" value={form.locationType} onChange={(value) => setForm({ ...form, locationType: value })} options={WORK_TYPES.filter((item) => item !== "All work types")} /></div>
+        <FormField label="Skills"><input value={form.skills} onChange={(event) => setForm({ ...form, skills: event.target.value })} placeholder="Figma, UX research, Design systems" className="h-11 w-full min-w-0 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40" /><p className="mt-1.5 text-[13px] text-muted-foreground">Separate skills with commas.</p></FormField>
+        <div className="grid grid-cols-2 gap-3"><SheetSelect label="Pricing" value={form.budgetType} onChange={(value) => setForm({ ...form, budgetType: value })} options={["fixed", "hourly"]} /><SheetSelect label="Experience" value={form.experienceLevel} onChange={(value) => setForm({ ...form, experienceLevel: value })} options={["Entry", "Intermediate", "Expert"]} /></div>
+        <div className="grid grid-cols-2 gap-3"><FormField label="Minimum budget"><div className="flex h-11 w-full min-w-0 items-center rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] focus-within:border-foreground/40"><span className="mr-2 text-muted-foreground">{currencySymbol}</span><input type="number" min="0" value={form.budgetMin} onChange={(event) => setForm({ ...form, budgetMin: event.target.value })} className="min-w-0 flex-1 bg-transparent tabular-nums outline-none" /></div></FormField><FormField label="Maximum budget"><div className="flex h-11 w-full min-w-0 items-center rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] focus-within:border-foreground/40"><span className="mr-2 text-muted-foreground">{currencySymbol}</span><input type="number" min="0" value={form.budgetMax} onChange={(event) => setForm({ ...form, budgetMax: event.target.value })} className="min-w-0 flex-1 bg-transparent tabular-nums outline-none" /></div></FormField></div>
+        <FormField label="Deadline (optional)"><input type="date" value={form.deadline} onChange={(event) => setForm({ ...form, deadline: event.target.value })} className="h-11 w-full min-w-0 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40" /></FormField>
       </div>
-      <div className="border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-5"><button onClick={onSubmit} disabled={submitting} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground disabled:opacity-50">{submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <BriefcaseBusiness className="h-4 w-4" />}{submitting ? "Publishing" : "Publish gig"}</button></div>
+      <div className="shrink-0 border-t border-border/60 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 md:px-6 md:pb-5"><button onClick={onSubmit} disabled={submitting} className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white disabled:opacity-40">{submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <BriefcaseBusiness className="h-5 w-5" />}{submitting ? "Publishing" : "Publish gig"}</button></div>
     </div>
   );
 }
 
+/* The select used inside the Post a gig sheet. The page's filter bar keeps
+   its own compact FilterSelect. */
+function SheetSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
+  return (
+    <FormField label={label}>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40 capitalize">
+        {options.map((option) => <option key={option}>{option}</option>)}
+      </select>
+    </FormField>
+  );
+}
+
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block min-w-0"><span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</span>{children}</label>;
+  return <label className="block min-w-0"><span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">{label}</span>{children}</label>;
 }
 
 function MarketplaceEmptyState({ tab, canPost, onPost }: { tab: MarketplaceTab; canPost: boolean; onPost: () => void }) {

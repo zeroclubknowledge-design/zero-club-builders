@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Bell, ChevronDown, ChevronRight, Trash2 } from "@/components/icons/glyphs";
+import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Bell, ChevronDown, ChevronRight, Trash2, Check } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -40,19 +40,19 @@ function SwipeableNotification({ children, onDismiss }: { children: React.ReactN
 
   return (
     <div 
-      className="relative w-full overflow-hidden rounded-lg"
+      className="relative w-full overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <div 
-        className="absolute inset-y-0 left-0 flex w-full items-center justify-start rounded-lg bg-destructive/10 px-4 text-destructive transition-opacity"
+        className="absolute inset-y-0 left-0 flex w-full items-center justify-start bg-[#e0245e]/10 px-4 text-[#e0245e] transition-opacity"
         style={{ opacity: swipeOffset > 20 ? 1 : 0 }}
       >
         <Trash2 className="h-5 w-5" />
       </div>
       <div 
-        className="relative z-10 rounded-lg bg-card transition-transform"
+        className="relative z-10 bg-background transition-transform"
         style={{ 
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping.current ? 'none' : 'transform 0.2s ease-out'
@@ -865,82 +865,96 @@ function Clubs() {
       {/* Create Club Drawer */}
       <Drawer open={showCreate} onOpenChange={setShowCreate} repositionInputs={false}>
         <DrawerContent className="mx-auto max-h-[90dvh] max-w-lg border-none bg-background p-0">
-          <div className="px-4 pb-6 pt-1 sm:px-6 sm:pb-8 sm:pt-6">
-            <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
-              <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[19px]">
-                Create a permanent Club
-              </DrawerTitle>
-              <DrawerDescription className="text-xs font-medium text-muted-foreground/60 mt-1">
-                {clubCapacity.permanent_club_limit === null
-                  ? `${clubCapacity.plan_name} supports organisation-specific Club capacity.`
-                  : `${capacityLabel} permanent Clubs used on ${clubCapacity.plan_name}. Bootcamp cohort Clubs do not count.`}
-              </DrawerDescription>
-            </DrawerHeader>
+          <DrawerHeader className="gap-0 px-5 pb-3 pt-1 sm:gap-0 sm:px-5 sm:pb-3 sm:pt-1">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
+              Create a permanent Club
+            </DrawerTitle>
+            <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+              {clubCapacity.permanent_club_limit === null
+                ? `${clubCapacity.plan_name} supports organisation-specific Club capacity.`
+                : `${capacityLabel} permanent Clubs used on ${clubCapacity.plan_name}. Bootcamp cohort Clubs do not count.`}
+            </DrawerDescription>
+          </DrawerHeader>
 
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <label className="text-[11px] text-muted-foreground ml-1">Club Name</label>
-                <input 
-                  value={newClub.name}
-                  onChange={e => setNewClub(current => ({ ...current, name: e.target.value }))}
-                  placeholder="e.g. Lagos Design Squad" 
-                  className="w-full rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] text-muted-foreground ml-1">Description</label>
-                <textarea 
-                  value={newClub.description}
-                  onChange={e => setNewClub(current => ({ ...current, description: e.target.value }))}
-                  placeholder="What's this club about?" 
-                  rows={3}
-                  className="w-full resize-none rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                />
-              </div>
-              {clubCapacity.can_create ? (
-                <div className="space-y-2">
-                  <label className="text-[11px] text-muted-foreground ml-1">Access Type</label>
-                  <div className="flex gap-2">
-                    {["Free", "Paid"].map(type => (
+          <div className="space-y-4 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2">
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Club name</label>
+              <input
+                value={newClub.name}
+                onChange={e => setNewClub(current => ({ ...current, name: e.target.value }))}
+                placeholder="e.g. Lagos Design Squad"
+                className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Description</label>
+              <textarea
+                value={newClub.description}
+                onChange={e => setNewClub(current => ({ ...current, description: e.target.value }))}
+                placeholder="What's this club about?"
+                rows={3}
+                className="w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+              />
+            </div>
+            {clubCapacity.can_create ? (
+              <div>
+                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Access</label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {["Free", "Paid"].map(type => {
+                    const selected = (type === "Paid" && isPaid) || (type === "Free" && !isPaid);
+                    return (
                       <button
                         type="button"
                         key={type}
                         onClick={() => setIsPaid(type === "Paid")}
-                        className={`flex-1 rounded-lg border py-3.5 text-xs font-semibold transition ${
-                          (type ==="Paid" && isPaid) || (type === "Free" && !isPaid)
-                            ? "border-[#171218] bg-[#171218] text-[#f8f1e7] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)]"
-                            : "bg-card border-border/40 text-muted-foreground hover:border-border/60"
+                        aria-pressed={selected}
+                        className={`flex items-center justify-between gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${
+                          selected
+                            ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                            : "border-foreground/12 hover:bg-foreground/[0.03]"
                         }`}
                       >
-                        {type}
+                        <span className="min-w-0">
+                          <span className="block text-[15px] font-semibold text-foreground">{type}</span>
+                          <span className="mt-0.5 block text-[13px] text-muted-foreground">
+                            {type === "Paid" ? "Set an entry fee" : "No entry fee"}
+                          </span>
+                        </span>
+                        <span
+                          className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                            selected ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/25"
+                          }`}
+                        >
+                          {selected ? <Check className="h-3 w-3" /> : null}
+                        </span>
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-              ) : null}
+              </div>
+            ) : null}
 
-              {isPaid && clubCapacity.can_create && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                  <label className="text-[11px] text-muted-foreground ml-1">Entry Fee ({currencyDetails.symbol})</label>
-                  <input 
-                    type="number"
-                    value={newClub.price}
-                    onChange={e => setNewClub(current => ({ ...current, price: Number(e.target.value) }))}
-                    placeholder="e.g. 5000" 
-                    className="w-full rounded-lg border border-border/60 bg-background px-5 py-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/40 focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  />
-                </div>
-              )}
+            {isPaid && clubCapacity.can_create && (
+              <div className="animate-in fade-in slide-in-from-top-2">
+                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Entry fee ({currencyDetails.symbol})</label>
+                <input
+                  type="number"
+                  value={newClub.price}
+                  onChange={e => setNewClub(current => ({ ...current, price: Number(e.target.value) }))}
+                  placeholder="e.g. 5000"
+                  className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] tabular-nums text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                />
+              </div>
+            )}
 
-              <button 
-                type="button"
-                onClick={handleCreateClub}
-                disabled={isSubmitting}
-                className="mt-2 w-full rounded-full bg-[#171218] py-4 text-sm font-bold text-[#f8f1e7] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 hover:opacity-90"
-              >
-                {isSubmitting ? "Creating..." : "Launch Club"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleCreateClub}
+              disabled={isSubmitting}
+              className="!mt-6 h-12 w-full rounded-full bg-foreground text-[16px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              {isSubmitting ? "Creating..." : "Launch Club"}
+            </button>
           </div>
         </DrawerContent>
       </Drawer>
@@ -948,32 +962,26 @@ function Clubs() {
       {/* Upgrade Prompt Sheet */}
       <Drawer open={showUpgrade} onOpenChange={setShowUpgrade}>
         <DrawerContent className="mx-auto max-w-lg overflow-hidden border-none bg-background p-0">
-          <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-primary via-purple-600 to-blue-500">
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")` }} />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-14 w-14 rounded-full ring-1 ring-border bg-card flex items-center justify-center">
-                <ShieldCheck className="h-8 w-8 text-white" />
-              </div>
+          <div className="flex flex-col items-center px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+              <ShieldCheck className="h-6 w-6" />
             </div>
-          </div>
-          
-          <div className="px-6 py-8 text-center">
-            <h2 className="text-[19px] font-semibold text-foreground tracking-tight">Limit Reached</h2>
-            <p className="mt-3 text-sm text-muted-foreground/70 leading-relaxed font-medium">
+            <DrawerTitle className="mt-4 font-display text-[20px] font-semibold leading-tight text-foreground">Limit reached</DrawerTitle>
+            <DrawerDescription className="mt-1 max-w-sm text-[14px] leading-relaxed text-muted-foreground">
               {clubCapacity.upgrade_message || "Your current plan does not allow another permanent Club."}
-            </p>
-            
-            <div className="mt-8 space-y-3">
-              <Link 
+            </DrawerDescription>
+
+            <div className="mt-7 w-full space-y-2.5">
+              <Link
                 to="/app/premium"
                 onClick={() => setShowUpgrade(false)}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#171218] py-4 text-sm font-bold text-[#f8f1e7] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.2)] transition-all duration-300 active:scale-[0.98] hover:opacity-90"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[16px] font-semibold text-background transition-opacity hover:opacity-90"
               >
-                Upgrade Plan <ArrowRight className="h-4 w-4" />
+                Upgrade plan <ArrowRight className="h-4 w-4" />
               </Link>
-              <button 
+              <button
                 onClick={() => setShowUpgrade(false)}
-                className="w-full rounded-full bg-card border border-border/30 py-4 text-sm font-bold text-muted-foreground transition-all duration-300 active:scale-[0.98] hover:border-border/50"
+                className="h-12 w-full rounded-full border-[1.5px] border-foreground/25 text-[16px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
               >
                 Maybe later
               </button>
@@ -985,147 +993,150 @@ function Clubs() {
       {/* Club Notifications Drawer */}
       <Drawer open={showNotifications} onOpenChange={setShowNotifications}>
         <DrawerContent desktopVariant="panel" className="mx-auto flex max-h-[85vh] max-w-[620px] flex-col border-t border-border/60 bg-background p-0 shadow-[0_-16px_40px_-24px_rgba(0,0,0,0.45)]">
-          <DrawerHeader className="mt-0 shrink-0 border-b border-border/30 px-4 py-3 sm:mt-2 sm:px-6 sm:py-5">
-            <div className="flex items-center gap-4">
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-                <Bell className="h-5 w-5 text-primary" />
+          <DrawerHeader className="shrink-0 gap-0 px-5 pb-3 pt-1 sm:gap-0 sm:px-5 sm:pb-3 sm:pt-1">
+            <div className="flex items-center gap-2">
+              <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Notifications</DrawerTitle>
               {(pendingRequestsGrouped.length + unreadClubMessages.length) > 0 && (
-                  <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-background" />
-                )}
-              </div>
-              <div className="text-left">
-                <DrawerTitle className="text-[17px] font-semibold text-foreground tracking-tight">Notifications</DrawerTitle>
-                <DrawerDescription className="text-[11px] font-medium text-muted-foreground/60 mt-0.5">
-                  Manage admissions and club messages
-                </DrawerDescription>
-              </div>
+                <span className="rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold tabular-nums text-[#a3186f]">
+                  {pendingRequestsGrouped.length + unreadClubMessages.length}
+                </span>
+              )}
             </div>
+            <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+              Manage admissions and club messages
+            </DrawerDescription>
           </DrawerHeader>
 
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-3 no-scrollbar">
+          <div className="no-scrollbar flex-1 overflow-y-auto px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-1">
             {(() => {
               const hasNotifications = pendingRequestsGrouped.length > 0 || unreadClubMessages.length > 0;
 
               if (!hasNotifications) {
                 return (
-                  <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card/50 px-5 py-4">
-                    <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center">
-                      <Bell className="h-4 w-4 text-muted-foreground/40" />
+                  <div className="flex flex-col items-center px-4 py-10 text-center">
+                    <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
+                      <Bell className="h-6 w-6" />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground tracking-tight">All caught up</p>
-                      <p className="text-[11px] text-muted-foreground/50 mt-0.5 font-medium">You have no new notifications.</p>
-                    </div>
+                    <p className="mt-4 text-[16px] font-semibold text-foreground">All caught up</p>
+                    <p className="mt-1 text-[14px] text-muted-foreground">You have no new notifications.</p>
                   </div>
                 );
               }
 
               return (
-                <div className="flex flex-col gap-3">
-                  {/* Pending Requests */}
-                  {pendingRequestsGrouped.map(({ request: r, allIds }) => {
-                    const parts = r.content.split(':');
-                    const clubId = parts[1];
-                    const clubName = parts[2];
-                    const sender = r.sender || {};
-                    const isExpanded = expandedRequestId === r.id;
+                <div className="space-y-5">
+                  {pendingRequestsGrouped.length > 0 && (
+                    <section>
+                      <h3 className="mb-1 text-[13px] font-semibold text-muted-foreground">Join requests</h3>
+                      <div className="divide-y divide-border/60">
+                        {pendingRequestsGrouped.map(({ request: r, allIds }) => {
+                          const parts = r.content.split(':');
+                          const clubId = parts[1];
+                          const clubName = parts[2];
+                          const sender = r.sender || {};
+                          const isExpanded = expandedRequestId === r.id;
 
-                    return (
-                      <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming', allIds)}>
-                        <article 
-                          className="flex cursor-pointer flex-col gap-3 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/20"
-                          onClick={() => setExpandedRequestId(isExpanded ? null : r.id)}
-                        >
-                          <div className="flex items-center gap-3 w-full">
-                            <div className="h-10 w-10 rounded-full bg-accent/30 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-border/30">
-                              {sender.avatar_url ? (
-                                <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                              ) : (
-                                (sender.full_name || sender.username || 'U').substring(0, 1).toUpperCase()
-                              )}
+                          return (
+                            <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming', allIds)}>
+                              <article
+                                className="cursor-pointer py-3"
+                                onClick={() => setExpandedRequestId(isExpanded ? null : r.id)}
+                              >
+                                <div className="flex w-full items-center gap-3">
+                                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-foreground">
+                                    {sender.avatar_url ? (
+                                      <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                                    ) : (
+                                      (sender.full_name || sender.username || 'U').substring(0, 1).toUpperCase()
+                                    )}
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="flex items-baseline gap-1.5 truncate text-[15px] font-semibold text-foreground">
+                                      <span className="truncate">{sender.full_name || sender.username}</span>
+                                      <span className="shrink-0 text-[13px] font-normal text-muted-foreground">{getFirstName(sender)}</span>
+                                    </h4>
+                                    <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                                      Wants to join <span className="font-semibold text-foreground">{clubName}</span>
+                                    </p>
+                                  </div>
+
+                                  <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                </div>
+
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="flex items-center gap-2.5 pl-14 pt-3">
+                                        <button
+                                          disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDecideRequest(r.id, clubId, r.sender_id, 'decline', allIds);
+                                          }}
+                                          className="h-10 flex-1 rounded-full bg-[#e0245e]/10 text-[14px] font-semibold text-[#e0245e] transition-opacity hover:opacity-80 disabled:opacity-40"
+                                        >
+                                          Reject
+                                        </button>
+                                        <button
+                                          disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDecideRequest(r.id, clubId, r.sender_id, 'accept', allIds);
+                                          }}
+                                          className="h-10 flex-1 rounded-full bg-foreground text-[14px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+                                        >
+                                          Accept
+                                        </button>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </article>
+                            </SwipeableNotification>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+
+                  {unreadClubMessages.length > 0 && (
+                    <section>
+                      <h3 className="mb-1 text-[13px] font-semibold text-muted-foreground">Club messages</h3>
+                      <div className="divide-y divide-border/60">
+                        {unreadClubMessages.map((msgGroup: any) => (
+                          <article
+                            key={msgGroup.club_id}
+                            onClick={() => {
+                              setShowNotifications(false);
+                              navigate({ to: "/app/clubs/chat", search: { clubId: msgGroup.club_id } });
+                            }}
+                            className="flex cursor-pointer items-center gap-3 py-3 transition-opacity active:opacity-70"
+                          >
+                            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]">
+                              <MessageCircle className="h-5 w-5" />
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-[13px] font-bold truncate text-foreground flex items-center gap-1.5 tracking-tight">
-                                {sender.full_name || sender.username} 
-                                <span className="font-medium text-muted-foreground/50 text-[10px]">{getFirstName(sender)}</span>
+                              <h4 className="truncate text-[15px] font-semibold text-foreground">
+                                {msgGroup.club_name}
                               </h4>
-                              <p className="text-[10px] text-muted-foreground/60 mt-0.5 font-medium">
-                                Wants to join <span className="font-bold text-foreground">{clubName}</span>
+                              <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                                <span className="font-semibold tabular-nums text-foreground">{msgGroup.count > 24 ? '24+' : msgGroup.count}</span> unseen message{msgGroup.count !== 1 ? 's' : ''} on the club
                               </p>
                             </div>
-                            
-                            <div className="shrink-0 text-muted-foreground/50">
-                              <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                            </div>
-                          </div>
 
-                          <AnimatePresence>
-                            {isExpanded && (
-                              <motion.div 
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="overflow-hidden flex items-center gap-2 pt-1"
-                              >
-                                <button
-                                  disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDecideRequest(r.id, clubId, r.sender_id, 'decline', allIds);
-                                  }}
-                                  className="flex-1 h-9 rounded-full border border-border/40 bg-card text-muted-foreground transition-all duration-300 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 active:scale-95 disabled:opacity-50 flex items-center justify-center font-semibold text-xs"
-                                >
-                                  Reject
-                                </button>
-                                <button
-                                  disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDecideRequest(r.id, clubId, r.sender_id, 'accept', allIds);
-                                  }}
-                                  className="h-9 flex-1 rounded-full bg-[#171218] text-xs font-bold text-[#f8f1e7] shadow-sm transition-all duration-300 hover:opacity-90 active:scale-95 disabled:opacity-50"
-                                >
-                                  Accept
-                                </button>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </article>
-                      </SwipeableNotification>
-                    );
-                  })}
-
-                  {/* Club Messages */}
-                  {unreadClubMessages.map((msgGroup: any) => (
-                    <article 
-                      key={msgGroup.club_id} 
-                      onClick={() => {
-                        setShowNotifications(false);
-                        navigate({ to: "/app/clubs/chat", search: { clubId: msgGroup.club_id } });
-                      }}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/60 bg-card p-4 transition hover:border-primary/20 active:scale-95"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20 text-primary">
-                        <MessageCircle className="h-4 w-4" />
+                            <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                          </article>
+                        ))}
                       </div>
-
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-[13px] font-bold truncate text-foreground flex items-center gap-1.5 tracking-tight">
-                          {msgGroup.club_name}
-                        </h4>
-                        <p className="text-[11px] text-muted-foreground/80 mt-0.5 truncate font-medium">
-                          <span className="font-bold text-foreground">{msgGroup.count > 24 ? '24+' : msgGroup.count}</span> unseen message{msgGroup.count !== 1 ? 's' : ''} on the club
-                        </p>
-                      </div>
-
-                      <div className="shrink-0">
-                        <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
-                          <ArrowRight className="h-4 w-4" />
-                        </div>
-                      </div>
-                    </article>
-                  ))}
+                    </section>
+                  )}
                 </div>
               );
             })()}
@@ -1137,75 +1148,94 @@ function Clubs() {
       <Drawer open={showJoinModal} onOpenChange={setShowJoinModal}>
         <DrawerContent className="mx-auto max-w-lg overflow-hidden border-border bg-background p-0">
           {selectedClub && (
-            <div>
-              <div className="relative h-28 overflow-hidden bg-[#171218]">
-                {selectedClub.banner_url && <img src={selectedClub.banner_url} alt="" className="h-full w-full object-cover opacity-55" loading="lazy" decoding="async" />}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#171218] to-transparent" />
-                {/* The club's own picture, not a 48px crop of the middle of
-                    its banner — which is what this was, so the badge and the
-                    strip behind it showed the same image twice. */}
-                <div className="absolute bottom-4 left-5 flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-white/15 bg-black/30 backdrop-blur-md">
-                {selectedClub.logo_url ? (
-                  <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                ) : (
-                    <Hash className="h-6 w-6 text-white" />
-                )}
+            <div className="px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-1">
+              <div className="flex items-center gap-3">
+                {/* The club's own picture, not a crop of the middle of its
+                    banner, so the badge and the strip never repeat one image. */}
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-foreground/[0.06]">
+                  {selectedClub.logo_url ? (
+                    <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                  ) : (
+                    <Hash className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
+                    {joinNeedsApproval ? "Request to join" : "Join club"}
+                  </DrawerTitle>
+                  <p className="mt-0.5 truncate text-[15px] font-medium text-foreground">{selectedClub.name}</p>
                 </div>
               </div>
-              <div className="p-5 sm:p-6">
-                {/* Two separate facts. Whether the club can be found, and
-                    whether you can walk in — a public club may still want to
-                    be asked, so the copy is driven by admission, not privacy. */}
-                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase text-primary">{selectedClub.is_private ? <Lock className="h-3.5 w-3.5 fill-current" /> : <Users className="h-3.5 w-3.5 fill-current" />}{selectedClub.is_private ? "Private community" : joinNeedsApproval ? "Public · approval needed" : "Open community"}</div>
-                <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-foreground">{joinNeedsApproval ? "Request to join" : "Join club"}</h2>
-                <p className="mt-1 text-[14px] font-medium text-foreground">{selectedClub.name}</p>
-                <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{joinNeedsApproval ? "Your profile and public proof will be shared with the club administrators. You will be notified as soon as they decide." : "Join the conversation, participate in club work, and connect with members immediately."}</p>
 
-                {joinNeedsApproval && <div className="mt-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.045] p-3.5"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-[12px] font-semibold text-foreground">Admin approval required</p><p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">Sending a request does not grant access until an administrator approves it.</p></div></div>}
+              {selectedClub.banner_url && (
+                <div className="mt-4 h-24 overflow-hidden rounded-2xl bg-foreground/[0.05]">
+                  <img src={selectedClub.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                </div>
+              )}
 
-                {/* Say the price before they tap, not after the wallet moves. */}
-                {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
-                  <div className="mt-4 flex items-start justify-between gap-3 rounded-lg bg-card p-4">
+              {/* Two separate facts. Whether the club can be found, and
+                  whether you can walk in — a public club may still want to
+                  be asked, so the copy is driven by admission, not privacy. */}
+              <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
+                {selectedClub.is_private ? <Lock className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
+                {selectedClub.is_private ? "Private community" : joinNeedsApproval ? "Public · approval needed" : "Open community"}
+              </span>
+              <DrawerDescription className="mt-3 text-[14px] leading-relaxed text-muted-foreground">
+                {joinNeedsApproval ? "Your profile and public proof will be shared with the club administrators. You will be notified as soon as they decide." : "Join the conversation, participate in club work, and connect with members immediately."}
+              </DrawerDescription>
+
+              {joinNeedsApproval && (
+                <div className="mt-4 flex items-start gap-3 rounded-2xl bg-foreground/[0.04] p-4">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#cc208f]" />
+                  <div>
+                    <p className="text-[15px] font-semibold text-foreground">Admin approval required</p>
+                    <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">Sending a request does not grant access until an administrator approves it.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Say the price before they tap, not after the wallet moves. */}
+              {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
+                <div className="mt-4 rounded-2xl bg-foreground/[0.04] p-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Membership fee</p>
-                      <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
+                      <p className="text-[13px] font-semibold text-muted-foreground">Membership fee</p>
+                      <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                         Charged once from your Zero Club wallet when you join.
                       </p>
                     </div>
-                    <p className="shrink-0 text-[17px] font-semibold tabular-nums text-foreground">
+                    <p className="shrink-0 font-display text-[22px] font-semibold tabular-nums leading-tight text-foreground">
                       {format(Number(selectedClub.subscription_fee))}
                     </p>
                   </div>
-                )}
-
-                {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
-                  <div className="mt-2.5">
+                  <div className="mt-3">
                     <RequestFundsButton
                       amount={Number(selectedClub.subscription_fee)}
                       purpose={`Membership of ${selectedClub.name} on Zero Club`}
                       label="Ask someone to cover this"
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/15 bg-card text-[14px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
                     />
                   </div>
-                )}
+                </div>
+              )}
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="mt-6 grid grid-cols-2 gap-2.5">
                 <button
                   onClick={() => setShowJoinModal(false)}
-                  className="h-11 rounded-lg border border-border bg-card text-[13px] font-semibold text-foreground hover:bg-muted"
+                  className="h-12 rounded-full border-[1.5px] border-foreground/25 text-[16px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
                 >
                   Not now
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     handleJoinClub(selectedClub);
                     setShowJoinModal(false);
                   }}
                   disabled={joiningClubId === selectedClub.id}
-                  className="h-11 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                  className="h-12 rounded-full bg-foreground text-[16px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
                 >
                   {joiningClubId === selectedClub.id ? "Sending..." : joinNeedsApproval ? "Send request" : "Join now"}
                 </button>
-              </div>
               </div>
             </div>
           )}

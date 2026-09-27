@@ -1,13 +1,8 @@
-import { useLoaderData, createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
-import { 
-  BadgeCheck, Flame, MapPin, LinkIcon, CalendarDays, ChevronLeft, 
-  Search, MoreHorizontal, Hash, Users, MessageCircle, Heart,
-  Share2, Settings, UserPlus, Copy, X, Loader2, Star, Play, CheckCircle2, Link2,
-  Edit3, Zap, Award, TrendingUp, Pen, Mail, Sparkles
-} from "@/components/icons/glyphs";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { BadgeCheck, ChevronLeft, MoreHorizontal, Share2, Settings, Copy, X, Loader2, Play, Link2, Edit3, Zap, Pen } from "@/components/icons/glyphs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getProfile, enrichPosts } from "@/api";
+import { enrichPosts } from "@/api";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
@@ -15,7 +10,7 @@ import { PostCard } from "@/components/PostCard";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { useUser } from "@/hooks/useUser";
-import { getFirstName, displayName } from "@/lib/utils";
+import { displayName } from "@/lib/utils";
 import { ProfileExperience } from "@/components/ProfileExperience";
 import { useGoBack } from "@/hooks/useGoBack";
 
@@ -259,24 +254,24 @@ function Profile() {
                     </button>
                   </DrawerTrigger>
                   <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
-                    <DrawerHeader className="mb-3 p-0 text-left sm:mb-4 sm:p-4">
-                      <DrawerTitle className="text-[17px] font-semibold tracking-tight sm:text-[20px]">Profile actions</DrawerTitle>
+                    <DrawerHeader className="gap-0 p-0 pb-2 pt-1 text-left sm:gap-0 sm:p-0 sm:pb-2 sm:pt-1">
+                      <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Profile actions</DrawerTitle>
                     </DrawerHeader>
-                    <div className="space-y-2">
+                    <div className="-mx-4 flex flex-col sm:-mx-6">
                       <button
                         onClick={handleShare}
-                        className="flex w-full items-center gap-3 rounded-lg bg-card p-4 text-sm font-semibold tracking-tight ring-1 ring-border tap hover:bg-foreground/[0.03]"
+                        className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[16px] font-medium text-foreground tap hover:bg-foreground/[0.04] sm:px-6"
                       >
-                        <Share2 className="h-[18px] w-[18px] text-primary" /> Share profile link
+                        <Share2 className="h-[22px] w-[22px] shrink-0" /> Share profile link
                       </button>
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(`${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`);
                           toast.success("Profile link copied!");
                         }}
-                        className="flex w-full items-center gap-3 rounded-lg bg-card p-4 text-sm font-semibold tracking-tight ring-1 ring-border tap hover:bg-foreground/[0.03]"
+                        className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[16px] font-medium text-foreground tap hover:bg-foreground/[0.04] sm:px-6"
                       >
-                        <Copy className="h-[18px] w-[18px] text-primary" /> Copy URL
+                        <Copy className="h-[22px] w-[22px] shrink-0" /> Copy URL
                       </button>
                     </div>
                   </DrawerContent>

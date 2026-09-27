@@ -356,77 +356,79 @@ function StorePage() {
               <>
                 <div className="flex-1 overflow-y-auto no-scrollbar">
                   {/* Cover */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-primary/10">
-                    {selected.cover_url ? (
-                      <img src={selected.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center text-primary">
-                        <Gift className="h-10 w-10" strokeWidth={1.5} />
-                      </div>
-                    )}
-                    {(selected.discount_percent || 0) > 0 && (
-                      <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10.5px] font-semibold text-white backdrop-blur-sm">
-                        <Tag className="h-2.5 w-2.5" /> {formatPercent(selected.discount_percent)}% off
-                      </span>
-                    )}
+                  <div className="px-5 pt-1">
+                    <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-foreground/[0.05]">
+                      {selected.cover_url ? (
+                        <img src={selected.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : (
+                        <div className="grid h-full w-full place-items-center text-muted-foreground">
+                          <Gift className="h-10 w-10" strokeWidth={1.5} />
+                        </div>
+                      )}
+                      {(selected.discount_percent || 0) > 0 && (
+                        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-[#cc208f] px-2.5 py-0.5 text-[12px] font-semibold text-white">
+                          <Tag className="h-3 w-3" /> {formatPercent(selected.discount_percent)}% off
+                        </span>
+                      )}
 
-                    {/* Share sits on the cover so it is reachable without
-                        scrolling, whatever the description length. */}
-                    <div className="absolute right-4 top-4 flex items-center gap-2">
-                      <button
-                        onClick={() => copyProductLink(selected)}
-                        title="Copy link"
-                        aria-label="Copy product link"
-                        className="grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur-sm tap hover:bg-black/70"
-                      >
-                        <Copy className="h-[15px] w-[15px]" />
-                      </button>
-                      <button
-                        onClick={() => shareProduct(selected)}
-                        title="Share product"
-                        aria-label="Share product"
-                        className="flex h-9 items-center gap-1.5 rounded-full bg-black/55 px-3.5 text-[12px] font-semibold text-white backdrop-blur-sm tap hover:bg-black/70"
-                      >
-                        <Share2 className="h-[14px] w-[14px]" /> Share
-                      </button>
+                      {/* Share sits on the cover so it is reachable without
+                          scrolling, whatever the description length. */}
+                      <div className="absolute right-3 top-3 flex items-center gap-2">
+                        <button
+                          onClick={() => copyProductLink(selected)}
+                          title="Copy link"
+                          aria-label="Copy product link"
+                          className="grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur-sm tap hover:bg-black/70"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => shareProduct(selected)}
+                          title="Share product"
+                          aria-label="Share product"
+                          className="flex h-9 items-center gap-1.5 rounded-full bg-black/55 px-3.5 text-[13px] font-semibold text-white backdrop-blur-sm tap hover:bg-black/70"
+                        >
+                          <Share2 className="h-4 w-4" /> Share
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-5 px-6 py-5">
+                  <div className="space-y-5 px-5 pb-5 pt-4">
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      <p className="text-[13px] font-semibold text-muted-foreground">
                         {selected.category || "Product"}
                       </p>
-                      <DrawerTitle className="mt-1.5 text-[21px] font-semibold leading-tight tracking-tight text-foreground">
+                      <DrawerTitle className="mt-1 font-display text-[20px] font-semibold leading-tight text-foreground sm:text-[20px]">
                         {selected.name}
                       </DrawerTitle>
                     </div>
 
                     {seller && (
-                      <div className="flex items-center gap-2.5">
-                        <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
                           {seller.avatar_url
                             ? <img src={seller.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                             : (seller.full_name || seller.username || "?").charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-[13px] font-semibold tracking-tight text-foreground">
+                          <p className="truncate text-[15px] font-semibold text-foreground">
                             {seller.full_name || seller.username}
                           </p>
-                          <p className="text-[11px] text-muted-foreground">Seller on Zero Store</p>
+                          <p className="text-[13px] text-muted-foreground">Seller on Zero Store</p>
                         </div>
                       </div>
                     )}
 
                     {selected.description && (
-                      <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed text-muted-foreground">
+                      <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/85">
                         {selected.description}
                       </p>
                     )}
 
-                    <div className="flex items-start gap-2.5 rounded-lg bg-card px-4 py-3 ring-1 ring-border">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" strokeWidth={1.9} />
-                      <p className="text-[12px] leading-relaxed text-muted-foreground">
+                    <div className="flex items-start gap-3 rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
+                      <ShieldCheck className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" strokeWidth={1.9} />
+                      <p className="text-[13px] leading-relaxed text-muted-foreground">
                         Paid from your {selected.price_type === "Coins" ? "wallet" : "ZP"} balance. The file opens
                         immediately after purchase and stays yours.
                       </p>
@@ -434,18 +436,18 @@ function StorePage() {
 
                     {/* Coupon */}
                     {selected.coupon_code && !isOwn && (
-                      <div className="space-y-2">
-                        <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                      <div>
+                        <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
                           Have a coupon?
                         </label>
                         {appliedCoupon ? (
-                          <div className="flex items-center justify-between rounded-lg bg-success/[0.07] px-4 py-3 ring-1 ring-success/20">
-                            <span className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.06em] text-success">
-                              <Check className="h-3.5 w-3.5" /> {appliedCoupon}
+                          <div className="flex h-11 items-center justify-between rounded-[10px] bg-[#1a7f4b]/[0.08] px-3">
+                            <span className="flex items-center gap-2 text-[15px] font-semibold tracking-[0.04em] text-[#1a7f4b]">
+                              <Check className="h-4 w-4" /> {appliedCoupon}
                             </span>
                             <button
                               onClick={() => { setAppliedCoupon(null); setCouponInput(""); }}
-                              className="text-[11.5px] font-medium text-muted-foreground hover:text-foreground"
+                              className="text-[13px] font-semibold text-muted-foreground hover:text-foreground"
                             >
                               Remove
                             </button>
@@ -457,14 +459,14 @@ function StorePage() {
                               onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                               onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
                               placeholder="Enter code"
-                              className="h-11 w-full rounded-lg bg-background px-4 text-[13.5px] font-medium tracking-[0.08em] outline-none ring-1 ring-border placeholder:tracking-normal placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-primary/40"
+                              className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] font-medium tracking-[0.06em] outline-none placeholder:tracking-normal placeholder:text-muted-foreground focus:border-foreground/40"
                             />
                             <button
                               onClick={applyCoupon}
                               disabled={!couponInput.trim()}
-                              className="flex h-11 items-center gap-1.5 rounded-lg px-4 text-[12.5px] font-semibold text-foreground ring-1 ring-border tap hover:bg-foreground/[0.04] disabled:opacity-40"
+                              className="flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-foreground/25 px-4 text-[14px] font-semibold text-foreground tap hover:bg-foreground/[0.04] disabled:opacity-40"
                             >
-                              <TicketPercent className="h-3.5 w-3.5" /> Apply
+                              <TicketPercent className="h-4 w-4" /> Apply
                             </button>
                           </div>
                         )}
@@ -484,25 +486,25 @@ function StorePage() {
                 </div>
 
                 {/* Price + buy */}
-                <div className="shrink-0 border-t hairline px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                  <div className="mb-3 space-y-1">
+                <div className="shrink-0 border-t border-border/60 px-5 pt-3.5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                  <div className="mb-3">
                     <div className="flex items-baseline justify-between gap-4">
-                      <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                      <span className="text-[13px] font-semibold text-muted-foreground">
                         You pay
                       </span>
                       <span className="flex items-baseline gap-2">
                         {payable < selected.price && (
-                          <span className="text-[12px] text-muted-foreground line-through tabular-nums">
+                          <span className="text-[13px] tabular-nums text-muted-foreground line-through">
                             {formatMoney(selected.price, selected.price_type)}
                           </span>
                         )}
-                        <span className="text-[20px] font-semibold tracking-tight text-foreground tabular-nums">
+                        <span className="font-display text-[22px] font-semibold tabular-nums text-foreground">
                           {formatMoney(payable, selected.price_type)}
                         </span>
                       </span>
                     </div>
                     {!isOwn && !canAfford && (
-                      <p className="text-right text-[11.5px] font-medium text-destructive">
+                      <p className="mt-1 text-right text-[13px] font-medium text-[#e0245e]">
                         Your {isCoins ? "wallet" : "balance"} has {formatMoney(balance, selected.price_type)} — add {formatMoney(walletDue - balance, selected.price_type)} to buy this.
                       </p>
                     )}
@@ -511,22 +513,22 @@ function StorePage() {
                   {isOwn ? (
                     <Link
                       to="/app/my-store"
-                      className="flex h-12 w-full items-center justify-center rounded-full ring-1 ring-border text-[13.5px] font-semibold tracking-tight text-foreground tap hover:bg-foreground/[0.03]"
+                      className="flex h-12 w-full items-center justify-center rounded-full border-[1.5px] border-foreground/25 text-[16px] font-semibold text-foreground tap hover:bg-foreground/[0.04]"
                     >
                       This is your product — manage it
                     </Link>
                   ) : !canAfford ? (
                     <button
                       onClick={() => navigate({ to: "/app/wallet" })}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[13.5px] font-semibold tracking-tight text-background tap hover:opacity-90"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[16px] font-semibold text-background tap hover:opacity-90"
                     >
-                      Top up your wallet <ArrowUpRight className="h-4 w-4" />
+                      Top up your wallet <ArrowUpRight className="h-[18px] w-[18px]" />
                     </button>
                   ) : (
                     <button
                       onClick={() => handlePurchase(selected, appliedCoupon)}
                       disabled={purchasingId === selected.id}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[13.5px] font-semibold tracking-tight text-primary-foreground tap hover:opacity-90 disabled:opacity-50"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
                     >
                       {purchasingId === selected.id && <Loader2 className="h-4 w-4 animate-spin" />}
                       Buy now

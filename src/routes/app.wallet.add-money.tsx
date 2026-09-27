@@ -523,156 +523,161 @@ function AddMoneyPage() {
           desktopVariant="panel"
           className="border-none bg-background p-0 focus:ring-0 max-w-lg mx-auto max-h-[92dvh] flex flex-col"
         >
-          <div className="shrink-0 border-b px-6 pb-4 pt-5 hairline">
-            <DrawerTitle className="text-[19px] font-semibold tracking-tight">
+          <div className="shrink-0 px-5 pb-3 pt-1">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight sm:text-[20px]">
               {createdSlug ? "Your fund link is ready" : "Generate a fund link"}
             </DrawerTitle>
-            <p className="mt-1 text-[13px] text-muted-foreground">
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
               {createdSlug
                 ? "Share it anywhere. Whoever pays, the money lands in your wallet."
                 : "Leave the amount blank to let the payer decide."}
             </p>
           </div>
 
-          <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5 no-scrollbar">
+          <div className="flex-1 overflow-y-auto px-5 pb-5 pt-2 no-scrollbar">
             {!createdSlug ? (
-              <>
-                <div className="space-y-2">
-                  <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="fund-link-amount" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
                     Fixed amount (optional)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-medium text-muted-foreground">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[15px] font-semibold text-muted-foreground">
                       {details.symbol}
                     </span>
                     <input
+                      id="fund-link-amount"
                       type="number"
                       min="1"
                       inputMode="decimal"
                       value={linkAmount}
                       onChange={(e) => setLinkAmount(e.target.value)}
                       placeholder="Any amount"
-                      className="h-13 w-full rounded-xl bg-background py-3.5 pl-10 pr-4 text-[16px] font-semibold tabular-nums outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                      className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card pl-8 pr-3 text-[15px] font-semibold tabular-nums outline-none placeholder:font-normal placeholder:text-muted-foreground focus:border-foreground/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                <div>
+                  <label htmlFor="fund-link-note" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
                     What is it for? (optional)
                   </label>
                   <input
+                    id="fund-link-note"
                     value={linkNote}
                     onChange={(e) => setLinkNote(e.target.value)}
                     placeholder="e.g. Bootcamp fee"
                     maxLength={120}
-                    className="h-12 w-full rounded-xl bg-background px-4 text-[14px] outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                    className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                   />
                 </div>
 
-                <div className="flex items-start gap-2.5 rounded-xl bg-card px-4 py-3.5 ring-1 ring-border">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <p className="text-[12px] leading-relaxed text-muted-foreground">
+                <div className="flex items-start gap-3 rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
+                  <ShieldCheck className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" />
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">
                     Anyone with the link can add money to your wallet, but nobody can take money
                     out or see your balance.
                   </p>
                 </div>
-              </>
+              </div>
             ) : (
-              <>
-                <div className="rounded-xl bg-card px-4 py-3.5 ring-1 ring-border">
-                  <p className="break-all text-[12.5px] font-medium text-muted-foreground">{shareUrl}</p>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <div className="rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
+                    <p className="break-all text-[13px] font-medium leading-relaxed text-foreground/80">{shareUrl}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      onClick={() => copyToClipboard(shareUrl, "Fund link copied")}
+                      className="flex h-11 items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/25 text-[15px] font-semibold text-foreground tap hover:bg-foreground/[0.04]"
+                    >
+                      <Copy className="h-[18px] w-[18px]" /> Copy
+                    </button>
+                    <button
+                      onClick={() =>
+                        shareOrCopy({
+                          title: "Fund my Zero Club wallet",
+                          text: linkNote.trim() || "You can add money to my Zero Club wallet here",
+                          url: shareUrl,
+                          copiedMessage: "Fund link copied",
+                        })
+                      }
+                      className="flex h-11 items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background tap hover:opacity-90"
+                    >
+                      <Share2 className="h-[18px] w-[18px]" /> Share
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    onClick={() => copyToClipboard(shareUrl, "Fund link copied")}
-                    className="flex h-12 items-center justify-center gap-2 rounded-xl text-[13px] font-semibold ring-1 ring-border tap hover:bg-foreground/[0.04]"
-                  >
-                    <Copy className="h-4 w-4" /> Copy
-                  </button>
-                  <button
-                    onClick={() =>
-                      shareOrCopy({
-                        title: "Fund my Zero Club wallet",
-                        text: linkNote.trim() || "You can add money to my Zero Club wallet here",
-                        url: shareUrl,
-                        copiedMessage: "Fund link copied",
-                      })
-                    }
-                    className="flex h-12 items-center justify-center gap-2 rounded-xl bg-foreground text-[13px] font-semibold text-background tap hover:opacity-90"
-                  >
-                    <Share2 className="h-4 w-4" /> Share
-                  </button>
-                </div>
-
-                <div className="space-y-2.5 border-t hairline pt-5">
-                  <p className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                <div>
+                  <p className="mb-1.5 text-[13px] font-semibold text-muted-foreground">
                     Or send it to a Zero Club member
                   </p>
                   <div className="relative">
-                    <Search className="absolute left-4 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-muted-foreground" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" />
                     <input
                       value={recipientQuery}
                       onChange={(e) => setRecipientQuery(e.target.value)}
                       placeholder="Search by name or @username"
-                      className="h-12 w-full rounded-xl bg-background pl-11 pr-4 text-[14px] outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
+                      className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card pl-10 pr-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                     />
                   </div>
 
-                  {recipients.map((person) => {
-                    const sent = sentTo.includes(person.id);
-                    return (
-                      <div
-                        key={person.id}
-                        className="flex items-center gap-3 rounded-xl bg-card px-3.5 py-2.5 ring-1 ring-border"
-                      >
-                        <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground">
-                          {person.avatar_url ? (
-                            <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                          ) : (
-                            (person.full_name || person.username || "?").charAt(0).toUpperCase()
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[13.5px] font-semibold tracking-tight">
-                            {person.full_name || person.username}
-                          </p>
-                          <p className="truncate text-[11.5px] text-muted-foreground">@{person.username}</p>
-                        </div>
-                        <button
-                          onClick={() => sendToMember(person)}
-                          disabled={sent}
-                          className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[12px] font-semibold tap ${
-                            sent
-                              ? "text-success ring-1 ring-success/30"
-                              : "bg-foreground text-background hover:opacity-90"
-                          }`}
-                        >
-                          {sent ? <><Check className="h-3.5 w-3.5" /> Sent</> : <><Send className="h-3.5 w-3.5" /> Send</>}
-                        </button>
-                      </div>
-                    );
-                  })}
+                  {recipients.length > 0 && (
+                    <div className="mt-1">
+                      {recipients.map((person) => {
+                        const sent = sentTo.includes(person.id);
+                        return (
+                          <div key={person.id} className="flex items-center gap-3 py-3">
+                            <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
+                              {person.avatar_url ? (
+                                <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                              ) : (
+                                (person.full_name || person.username || "?").charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[15px] font-semibold text-foreground">
+                                {person.full_name || person.username}
+                              </p>
+                              <p className="truncate text-[13px] text-muted-foreground">@{person.username}</p>
+                            </div>
+                            <button
+                              onClick={() => sendToMember(person)}
+                              disabled={sent}
+                              className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-[14px] font-semibold tap ${
+                                sent
+                                  ? "bg-[#1a7f4b]/10 text-[#1a7f4b]"
+                                  : "bg-foreground text-background hover:opacity-90"
+                              }`}
+                            >
+                              {sent ? <><Check className="h-4 w-4" /> Sent</> : <><Send className="h-4 w-4" /> Send</>}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </>
+              </div>
             )}
           </div>
 
-          <div className="shrink-0 border-t hairline px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="shrink-0 px-5 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             {!createdSlug ? (
-              <div className="flex gap-3">
+              <div className="flex gap-2.5">
                 <button
                   onClick={resetLinkFlow}
                   disabled={creating}
-                  className="flex-1 rounded-full py-3 text-[13.5px] font-semibold ring-1 ring-border tap hover:bg-foreground/[0.03] disabled:opacity-50"
+                  className="h-12 flex-1 rounded-full border-[1.5px] border-foreground/25 text-[16px] font-semibold text-foreground tap hover:bg-foreground/[0.04] disabled:opacity-40"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateLink}
                   disabled={creating}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary py-3 text-[13.5px] font-semibold text-primary-foreground tap hover:opacity-90 disabled:opacity-40"
+                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
                 >
                   {creating && <Loader2 className="h-4 w-4 animate-spin" />}
                   Create link
@@ -681,7 +686,7 @@ function AddMoneyPage() {
             ) : (
               <button
                 onClick={resetLinkFlow}
-                className="w-full rounded-full bg-foreground py-3 text-[13.5px] font-semibold text-background tap hover:opacity-90"
+                className="h-12 w-full rounded-full bg-foreground text-[16px] font-semibold text-background tap hover:opacity-90"
               >
                 Done
               </button>

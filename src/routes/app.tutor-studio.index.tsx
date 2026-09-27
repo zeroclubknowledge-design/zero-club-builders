@@ -1004,18 +1004,26 @@ function TutorStudioPage() {
               {/* Role management drawer */}
               <Drawer open={roleDrawer !== null} onOpenChange={(open) => !open && setRoleDrawer(null)}>
                 <DrawerContent className="mx-auto max-w-lg border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
-                  <DrawerTitle className="text-[17px] font-semibold tracking-tight text-foreground sm:text-[20px]">
-                    {roleDrawer === "rep" ? "Study Reps" : "Manage administrators"}
-                  </DrawerTitle>
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    {roleDrawer === "rep"
-                      ? "Reps oversee daily activities and answer questions. Appoint as many as the cohort needs — tap a rep again to step them down."
-                      : "Administrators can moderate the club chat and manage members. Promote as many as you need."}
-                  </p>
+                  <div className="pb-3 pt-1 text-left">
+                    <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
+                      {roleDrawer === "rep" ? "Study Reps" : "Manage administrators"}
+                    </DrawerTitle>
+                    <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+                      {roleDrawer === "rep"
+                        ? "Reps oversee daily activities and answer questions. Appoint as many as the cohort needs — tap a rep again to step them down."
+                        : "Administrators can moderate the club chat and manage members. Promote as many as you need."}
+                    </p>
+                  </div>
 
-                  <div className="mt-5 max-h-[50vh] overflow-y-auto no-scrollbar divide-y divide-hairline">
+                  <div className="mt-2 max-h-[50vh] overflow-y-auto no-scrollbar">
                     {clubMembers.length === 0 && (
-                      <p className="py-10 text-center text-[13px] text-muted-foreground">No members in this club yet.</p>
+                      <div className="flex flex-col items-center px-4 py-10 text-center">
+                        <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]">
+                          <Users className="h-[22px] w-[22px] text-muted-foreground" />
+                        </div>
+                        <p className="mt-3 text-[16px] font-semibold text-foreground">No members yet</p>
+                        <p className="mt-1 text-[14px] text-muted-foreground">No members in this club yet.</p>
+                      </div>
                     )}
                     {clubMembers.map((member: any) => {
                       const isOwner = member.profile_id === profile?.id;
@@ -1023,49 +1031,47 @@ function TutorStudioPage() {
                       const isAdmin = member.role === "Administrator";
                       const busy = updatingMemberId === member.profile_id;
                       return (
-                        <div key={member.profile_id} className="flex items-center justify-between gap-3 py-3">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="h-10 w-10 rounded-full bg-muted overflow-hidden ring-1 ring-border shrink-0 flex items-center justify-center text-[13px] font-semibold text-muted-foreground">
-                              {member.profiles?.avatar_url ? (
-                                <img src={member.profiles.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                              ) : (
-                                (member.profiles?.username || "U")[0].toUpperCase()
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[14px] font-semibold tracking-tight text-foreground truncate">
-                                {member.profiles?.full_name || member.profiles?.username}
-                                {isOwner && <span className="ml-1.5 text-[10px] font-medium text-muted-foreground">(you)</span>}
-                              </p>
-                              <p className="text-[11.5px] text-muted-foreground truncate">
-                                @{member.profiles?.username} · {member.role}
-                              </p>
-                            </div>
+                        <div key={member.profile_id} className="flex items-center gap-3 py-3">
+                          <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] font-display text-[16px] font-semibold text-muted-foreground">
+                            {member.profiles?.avatar_url ? (
+                              <img src={member.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                            ) : (
+                              (member.profiles?.username || "U")[0].toUpperCase()
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[15px] font-semibold text-foreground">
+                              {member.profiles?.full_name || member.profiles?.username}
+                              {isOwner && <span className="ml-1.5 text-[13px] font-medium text-muted-foreground">(you)</span>}
+                            </p>
+                            <p className="truncate text-[13px] text-muted-foreground">
+                              @{member.profiles?.username} · {member.role}
+                            </p>
                           </div>
 
                           {roleDrawer === "rep" ? (
                             <button
                               onClick={() => handleToggleRep(member)}
                               disabled={busy || updatingMemberId !== null}
-                              className={`shrink-0 rounded-full px-4 py-1.5 text-[11.5px] font-semibold tracking-tight tap disabled:opacity-40 ${
+                              className={`inline-flex h-9 shrink-0 items-center rounded-full px-4 text-[14px] font-semibold tap disabled:opacity-40 ${
                                 isRep
-                                  ? "bg-primary/8 text-primary ring-1 ring-primary/15 hover:bg-primary/[0.14]"
+                                  ? "bg-[#cc208f]/10 text-[#a3186f] hover:bg-[#cc208f]/15"
                                   : "bg-foreground text-background hover:opacity-90"
                               }`}
                             >
                               {busy ? "Saving…" : isRep ? (
-                                <span className="flex items-center gap-1"><Check className="h-3 w-3" strokeWidth={2.5} /> Rep</span>
+                                <span className="flex items-center gap-1"><Check className="h-3.5 w-3.5" strokeWidth={2.5} /> Rep</span>
                               ) : "Make Rep"}
                             </button>
                           ) : isOwner ? (
-                            <span className="shrink-0 rounded-full ring-1 ring-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground">Owner</span>
+                            <span className="shrink-0 rounded-full bg-foreground/[0.06] px-2.5 py-0.5 text-[12px] font-semibold text-muted-foreground">Owner</span>
                           ) : (
                             <button
                               onClick={() => handleToggleAdmin(member)}
                               disabled={busy || updatingMemberId !== null}
-                              className={`shrink-0 rounded-full px-4 py-1.5 text-[11.5px] font-semibold tracking-tight tap disabled:opacity-40 ${
+                              className={`inline-flex h-9 shrink-0 items-center rounded-full px-4 text-[14px] font-semibold tap disabled:opacity-40 ${
                                 isAdmin
-                                  ? "ring-1 ring-destructive/25 text-destructive hover:bg-destructive/5"
+                                  ? "bg-[#e0245e]/10 text-[#e0245e] hover:bg-[#e0245e]/15"
                                   : "bg-foreground text-background hover:opacity-90"
                               }`}
                             >
@@ -1079,7 +1085,7 @@ function TutorStudioPage() {
 
                   <button
                     onClick={() => setRoleDrawer(null)}
-                    className="mt-6 w-full rounded-full ring-1 ring-border py-3 text-[13.5px] font-semibold tracking-tight text-foreground hover:bg-foreground/[0.03] tap"
+                    className="mt-5 h-12 w-full rounded-full bg-foreground text-[16px] font-semibold text-background tap"
                   >
                     Done
                   </button>

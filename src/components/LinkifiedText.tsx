@@ -71,6 +71,38 @@ function transformHtmlTextNodes(html: string, transform: (value: string) => stri
   }).join("");
 }
 
+/* The contents of the "Open link" sheet — the same in both render paths. */
+function OpenLinkSheetBody({ url, onOpenInternal, onOpenExternal }: { url: string | null; onOpenInternal: () => void; onOpenExternal: () => void }) {
+  const row = "flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[16px] font-medium text-foreground transition-colors hover:bg-foreground/[0.04] sm:px-6";
+  return (
+    <>
+      <DrawerHeader className="gap-0 p-0 pb-3 pt-1 text-left sm:gap-0 sm:p-0 sm:pb-3 sm:pt-1">
+        <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Open link</DrawerTitle>
+        <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+          This looks like an internal app link. How would you like to open it?
+        </DrawerDescription>
+        {url && <p className="mt-2 truncate text-[13px] text-muted-foreground">{url}</p>}
+      </DrawerHeader>
+      <div className="-mx-4 flex flex-col sm:-mx-6">
+        <button onClick={onOpenInternal} className={row}>
+          <AppWindow className="h-[22px] w-[22px] shrink-0" />
+          <span className="min-w-0">
+            <span className="block">Open inside the app</span>
+            <span className="mt-0.5 block text-[13px] font-normal text-muted-foreground">Stay in Zero Club</span>
+          </span>
+        </button>
+        <button onClick={onOpenExternal} className={row}>
+          <Globe className="h-[22px] w-[22px] shrink-0" />
+          <span className="min-w-0">
+            <span className="block">Open in external browser</span>
+            <span className="mt-0.5 block text-[13px] font-normal text-muted-foreground">Opens in a new tab</span>
+          </span>
+        </button>
+      </div>
+    </>
+  );
+}
+
 export function LinkifiedText({ text, className, linkColor = "text-primary font-bold hover:opacity-80" }: { text: string; className?: string, linkColor?: string }) {
   const navigate = useNavigate();
   const router = useRouter();
@@ -212,32 +244,7 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
         />
         <Drawer open={!!selectedUrl} onOpenChange={(open) => !open && setSelectedUrl(null)}>
           <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
-            <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
-              <DrawerTitle className="text-[17px] font-semibold tracking-tight sm:text-xl">Open Link</DrawerTitle>
-              <DrawerDescription className="text-sm font-medium mt-1">
-                This looks like an internal app link. How would you like to open it?
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="flex flex-col gap-3">
-              <button 
-                onClick={handleOpenInternal}
-                className="w-full flex items-center justify-start px-4 gap-4 h-14 rounded-2xl bg-primary text-primary-foreground font-bold text-base hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20"
-              >
-                <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <AppWindow className="h-4 w-4" />
-                </div>
-                Open inside the app
-              </button>
-              <button 
-                onClick={handleOpenExternal}
-                className="w-full flex items-center justify-start px-4 gap-4 h-14 rounded-2xl border-2 border-border/50 font-bold text-base hover:bg-accent/50 active:scale-95 transition-all"
-              >
-                <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0">
-                  <Globe className="h-4 w-4 text-foreground" />
-                </div>
-                Open in external browser
-              </button>
-            </div>
+            <OpenLinkSheetBody url={selectedUrl} onOpenInternal={handleOpenInternal} onOpenExternal={handleOpenExternal} />
           </DrawerContent>
         </Drawer>
       </>
@@ -297,32 +304,7 @@ export function LinkifiedText({ text, className, linkColor = "text-primary font-
 
       <Drawer open={!!selectedUrl} onOpenChange={(open) => !open && setSelectedUrl(null)}>
         <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 sm:p-6">
-          <DrawerHeader className="mb-3 p-0 text-left sm:mb-6">
-            <DrawerTitle className="text-[17px] font-semibold tracking-tight sm:text-xl">Open Link</DrawerTitle>
-            <DrawerDescription className="text-sm font-medium mt-1">
-              This looks like an internal app link. How would you like to open it?
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="flex flex-col gap-3">
-            <button 
-              onClick={handleOpenInternal}
-              className="w-full flex items-center justify-start px-4 gap-4 h-14 rounded-2xl bg-primary text-primary-foreground font-bold text-base hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20"
-            >
-              <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                <AppWindow className="h-4 w-4" />
-              </div>
-              Open inside the app
-            </button>
-            <button 
-              onClick={handleOpenExternal}
-              className="w-full flex items-center justify-start px-4 gap-4 h-14 rounded-2xl border-2 border-border/50 font-bold text-base hover:bg-accent/50 active:scale-95 transition-all"
-            >
-              <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center shrink-0">
-                <Globe className="h-4 w-4 text-foreground" />
-              </div>
-              Open in external browser
-            </button>
-          </div>
+          <OpenLinkSheetBody url={selectedUrl} onOpenInternal={handleOpenInternal} onOpenExternal={handleOpenExternal} />
         </DrawerContent>
       </Drawer>
     </>

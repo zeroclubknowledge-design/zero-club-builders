@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, User, Mail, Phone, Globe, Trash2, ChevronRight, AlertCircle, Check, Loader2 } from "@/components/icons/glyphs";
+import { ChevronLeft, User, Mail, Globe, Trash2, ChevronRight, AlertCircle, Check, Loader2 } from "@/components/icons/glyphs";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
@@ -123,36 +123,34 @@ function AccountSettings() {
               </button>
             </DrawerTrigger>
             <DrawerContent desktopVariant="panel" hideClose className="h-[90vh] border-none bg-background p-0">
-              <div className="flex h-full flex-col p-4 sm:p-6">
-                <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-8 sm:p-4">
-                  <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Change username</DrawerTitle>
-                  <button 
+              <div className="flex h-full flex-col">
+                <DrawerHeader className="flex flex-row items-center justify-between gap-3 space-y-0 px-5 pb-3 pt-1 text-left sm:px-5 sm:pb-3 sm:pt-1">
+                  <DrawerTitle className="font-display text-[20px] font-semibold leading-tight sm:text-[20px]">Change username</DrawerTitle>
+                  <button
                     onClick={handleUpdateUsername}
                     disabled={loading || !newUsername.trim() || newUsername === profile?.username}
-                    className="rounded-full bg-primary px-5 py-1.5 text-sm font-bold text-primary-foreground transition active:scale-95 disabled:opacity-50 disabled:grayscale"
+                    className="flex h-9 min-w-[72px] items-center justify-center rounded-full bg-foreground px-4 text-[14px] font-semibold text-background transition active:scale-95 disabled:opacity-40"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Done"}
                   </button>
                 </DrawerHeader>
 
-                <div className="space-y-6">
+                <div className="px-5 pt-2">
+                  <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Username</label>
                   <div className="relative">
-                    <label className="text-xs text-primary ml-1 mb-2 block">Username</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-lg">@</span>
-                      <input 
-                        autoFocus
-                        type="text" 
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-                        className="w-full rounded-2xl bg-accent border border-border p-4 pl-9 text-lg font-medium text-foreground outline-none focus:ring-2 ring-primary/50 transition-all"
-                        placeholder="new_handle"
-                      />
-                    </div>
-                    <p className="mt-3 text-xs text-muted-foreground leading-relaxed px-1">
-                      Your username is your unique identity on Zero Club. Choose something that represents your builder spirit!
-                    </p>
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-muted-foreground">@</span>
+                    <input
+                      autoFocus
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                      className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card pl-7 pr-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                      placeholder="new_handle"
+                    />
                   </div>
+                  <p className="mt-2.5 text-[13px] leading-relaxed text-muted-foreground">
+                    Letters, numbers and underscores only. Your username is your unique identity on Zero Club.
+                  </p>
                 </div>
               </div>
             </DrawerContent>
@@ -194,41 +192,47 @@ function AccountSettings() {
               </button>
             </DrawerTrigger>
             <DrawerContent desktopVariant="panel" hideClose className="h-[90vh] border-none bg-background p-0">
-              <div className="flex h-full flex-col p-4 sm:p-6">
-                <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-8 sm:p-4">
-                  <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Account Type</DrawerTitle>
-                  <button 
+              <div className="flex h-full flex-col">
+                <DrawerHeader className="flex flex-row items-start justify-between gap-3 space-y-0 px-5 pb-3 pt-1 text-left sm:px-5 sm:pb-3 sm:pt-1">
+                  <div className="min-w-0">
+                    <DrawerTitle className="font-display text-[20px] font-semibold leading-tight sm:text-[20px]">Account type</DrawerTitle>
+                    <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+                      Choose your primary role on Zero Club. This tailors your experience and the features you can access.
+                    </p>
+                  </div>
+                  <button
                     onClick={handleUpdateAccountType}
                     disabled={loading || newAccountType === profile?.account_type}
-                    className="rounded-full bg-primary px-5 py-1.5 text-sm font-bold text-primary-foreground transition active:scale-95 disabled:opacity-50 disabled:grayscale"
+                    className="flex h-9 min-w-[64px] shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-[14px] font-semibold text-background transition active:scale-95 disabled:opacity-40"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
                   </button>
                 </DrawerHeader>
 
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed px-1">
-                    Select your primary role on Zero Club. This will tailor your experience and access to features.
-                  </p>
-                  
-                  <div className="grid gap-3">
-                    {["Learner", "Tutor", "Institution"].map((type) => (
+                <div className="space-y-2.5 px-5 pt-2">
+                  {["Learner", "Tutor", "Institution"].map((type) => {
+                    const selected = newAccountType === type;
+                    return (
                       <button
                         key={type}
                         onClick={() => setNewAccountType(type)}
-                        className={`flex items-center justify-between rounded-2xl border p-4 transition-all ${
-                          newAccountType === type 
-                            ? "border-primary bg-primary/5 shadow-sm" 
-                            : "border-border bg-card hover:bg-accent/50"
+                        className={`flex w-full items-center justify-between rounded-2xl border-[1.5px] p-4 text-left transition-colors ${
+                          selected
+                            ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                            : "border-foreground/12 hover:bg-foreground/[0.04]"
                         }`}
                       >
-                        <span className={`font-bold ${newAccountType === type ? "text-primary" : "text-foreground"}`}>
-                          {type}
+                        <span className="text-[15px] font-semibold text-foreground">{type}</span>
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                            selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/25"
+                          }`}
+                        >
+                          {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                         </span>
-                        {newAccountType === type && <Check className="h-5 w-5 text-primary" />}
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             </DrawerContent>
@@ -247,18 +251,21 @@ function AccountSettings() {
               </button>
             </DrawerTrigger>
             <DrawerContent desktopVariant="panel" hideClose className="h-[90vh] border-none bg-background p-0">
-              <div className="flex h-full flex-col overflow-y-auto p-4 sm:p-6">
-                <DrawerHeader className="mb-3 flex flex-row items-center justify-between space-y-0 p-0 sm:mb-6 sm:p-4 sm:px-0">
-                  <DrawerTitle className="text-[17px] font-semibold sm:text-xl">Switch accounts</DrawerTitle>
+              <div className="flex h-full flex-col overflow-y-auto">
+                <DrawerHeader className="block space-y-0 px-5 pb-3 pt-1 text-left sm:px-5 sm:pb-3 sm:pt-1">
+                  <DrawerTitle className="font-display text-[20px] font-semibold leading-tight sm:text-[20px]">Switch accounts</DrawerTitle>
+                  <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+                    Tap an account to switch to it.
+                  </p>
                 </DrawerHeader>
 
-                <div className="space-y-4">
+                <div className="px-5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                   {savedAccounts.map((account) => {
                     const isCurrent = account.id === profile?.id;
                     return (
-                      <div key={account.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 transition-all hover:bg-accent/50">
+                      <div key={account.id} className="flex items-center gap-3 py-3">
                         <button
-                          className="flex flex-1 items-center gap-3 text-left"
+                          className="flex min-w-0 flex-1 items-center gap-3 text-left"
                           onClick={() => {
                             if (isCurrent) {
                               setIsAccountsSheetOpen(false);
@@ -271,19 +278,21 @@ function AccountSettings() {
                             }
                           }}
                         >
-                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/50 bg-accent flex items-center justify-center text-muted-foreground font-bold text-sm">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
                             {account.avatar_url ? (
                               <img src={account.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                             ) : (
                               (account.full_name || account.username || "U").charAt(0).toUpperCase()
                             )}
                           </div>
-                          <div>
-                            <div className="font-bold flex items-center gap-2">
-                              {account.username}
-                              {isCurrent && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">Active</span>}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-[15px] font-semibold text-foreground">{account.username}</span>
+                              {isCurrent && (
+                                <span className="shrink-0 rounded-full bg-[#1a7f4b]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#1a7f4b]">Active</span>
+                              )}
                             </div>
-                            <div className="text-xs text-muted-foreground">{account.email}</div>
+                            <div className="truncate text-[13px] text-muted-foreground">{account.email}</div>
                           </div>
                         </button>
                         {!isCurrent && (
@@ -294,10 +303,11 @@ function AccountSettings() {
                               setSavedAccounts(getSavedAccounts());
                               toast.success("Account removed");
                             }}
-                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors ml-2"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-[#e0245e]/10 hover:text-[#e0245e]"
                             title="Log out of this account"
+                            aria-label="Log out of this account"
                           >
-                            <LogOut className="h-4 w-4" />
+                            <LogOut className="h-[18px] w-[18px]" />
                           </button>
                         )}
                       </div>
@@ -306,14 +316,14 @@ function AccountSettings() {
 
                   <button
                     onClick={() => prepareAddAccount()}
-                    className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-transparent p-4 text-left transition-all hover:bg-accent hover:border-solid hover:border-primary/50"
+                    className="mt-2 flex w-full items-center gap-3 rounded-2xl py-3 text-left transition-colors hover:bg-foreground/[0.04]"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
-                      <PlusCircle className="h-5 w-5" />
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-foreground/25 text-foreground">
+                      <PlusCircle className="h-[22px] w-[22px]" />
                     </div>
-                    <div>
-                      <div className="font-bold">Add existing account</div>
-                      <div className="text-xs text-muted-foreground">Log into another Zero Club account</div>
+                    <div className="min-w-0">
+                      <div className="text-[15px] font-semibold text-foreground">Add existing account</div>
+                      <div className="text-[13px] text-muted-foreground">Log into another Zero Club account</div>
                     </div>
                   </button>
                 </div>

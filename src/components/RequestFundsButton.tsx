@@ -88,49 +88,57 @@ export function RequestFundsButton({
 
       <Drawer open={open} onOpenChange={(next) => { setOpen(next); if (!next) setSlug(null); }}>
         <DrawerContent className="mx-auto max-w-md px-4 pb-5 pt-1 sm:p-6">
-          <DrawerTitle className="text-[17px] font-semibold tracking-tight">Request this amount</DrawerTitle>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-            {purpose}
-            {requested > 0 && <> · <strong className="font-semibold text-foreground">{format(requested)}</strong></>}
-          </p>
+          <div className="pb-3">
+            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Request this amount</DrawerTitle>
+            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">{purpose}</p>
+          </div>
+
+          {requested > 0 && (
+            <div className="rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
+              <p className="text-[13px] font-semibold text-muted-foreground">Amount</p>
+              <p className="mt-0.5 font-display text-[28px] font-semibold leading-tight tabular-nums text-foreground">{format(requested)}</p>
+            </div>
+          )}
 
           {creating || !slug ? (
             <div className="grid min-h-32 place-items-center">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
             <>
-              <p className="mt-4 break-all rounded-lg bg-card px-3 py-2.5 font-mono text-[11.5px] text-muted-foreground">
-                {shareUrl}
-              </p>
-              <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
-                Whoever opens this can pay by card without a Zero Club account. The money lands in
-                your wallet, and you come back here to finish paying.
-              </p>
+              <div className="mt-4">
+                <p className="mb-1.5 text-[13px] font-semibold text-muted-foreground">Request link</p>
+                <p className="break-all rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 font-mono text-[13px] leading-relaxed text-foreground">
+                  {shareUrl}
+                </p>
+                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                  Whoever opens this can pay by card without a Zero Club account. The money lands in
+                  your wallet, and you come back here to finish paying.
+                </p>
+              </div>
 
               {/* Sharing is the point of this drawer; copying is the fallback
-                  for when the share sheet is not what somebody wants. Sitting
-                  them side by side made the primary action the narrower of the
-                  two, so each gets its own line and its full width. */}
-              <div className="mt-5 space-y-2.5">
+                  for when the share sheet is not what somebody wants. Each
+                  gets its own line and its full width. */}
+              <div className="mt-6 space-y-2.5">
                 <ShareMenu
                   url={shareUrl}
                   title="Help me with this on Zero Club"
                   text={requested > 0 ? `${purpose} — ${format(requested)}` : purpose}
                   label="Share"
                   wrapperClassName="w-full"
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-5 text-[13.5px] font-semibold text-background transition active:scale-[0.99]"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] px-5 text-[16px] font-semibold text-white transition-opacity hover:opacity-90"
                 />
                 <button
                   onClick={() => copyToClipboard(shareUrl, "Request link copied")}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border px-5 text-[13.5px] font-semibold text-foreground transition hover:bg-accent active:scale-[0.99]"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/25 px-5 text-[16px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
                 >
-                  <Copy className="h-4 w-4" /> Copy link
+                  <Copy className="h-5 w-5" /> Copy link
                 </button>
               </div>
 
-              <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-                <Check className="h-3 w-3" /> Also saved under Wallet · Request
+              <p className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-muted-foreground">
+                <Check className="h-4 w-4 text-[#1a7f4b]" /> Also saved under Wallet · Request
               </p>
             </>
           )}
