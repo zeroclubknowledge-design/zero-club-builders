@@ -310,21 +310,68 @@ function ShipPage() {
       }
 
       let newPost;
+      const isSchemaCacheError = (err: any) =>
+        Boolean(
+          err?.message?.includes("schema cache") ||
+          err?.message?.includes("available_for_use") ||
+          err?.code === "PGRST204" ||
+          err?.code === "42703"
+        );
+
       if (editId && !isNewVersion) {
-        const { data, error: postError } = await supabase
+        let { data, error: postError } = await supabase
           .from('posts')
           .update(postData)
           .eq('id', editId)
           .select()
           .single();
+
+        if (postError && isSchemaCacheError(postError)) {
+          const fallbackData = { ...postData };
+          delete fallbackData.project_root_id;
+          delete fallbackData.version_label;
+          delete fallbackData.release_notes;
+          delete fallbackData.available_for_use;
+          delete fallbackData.license_type;
+          delete fallbackData.license_price;
+
+          const retry = await supabase
+            .from('posts')
+            .update(fallbackData)
+            .eq('id', editId)
+            .select()
+            .single();
+          data = retry.data;
+          postError = retry.error;
+        }
+
         if (postError) throw postError;
         newPost = data;
       } else {
-        const { data, error: postError } = await supabase
+        let { data, error: postError } = await supabase
           .from('posts')
           .insert([postData])
           .select()
           .single();
+
+        if (postError && isSchemaCacheError(postError)) {
+          const fallbackData = { ...postData };
+          delete fallbackData.project_root_id;
+          delete fallbackData.version_label;
+          delete fallbackData.release_notes;
+          delete fallbackData.available_for_use;
+          delete fallbackData.license_type;
+          delete fallbackData.license_price;
+
+          const retry = await supabase
+            .from('posts')
+            .insert([fallbackData])
+            .select()
+            .single();
+          data = retry.data;
+          postError = retry.error;
+        }
+
         if (postError) throw postError;
         newPost = data;
       }
