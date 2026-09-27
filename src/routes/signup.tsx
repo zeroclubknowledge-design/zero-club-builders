@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useRouter, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ArrowRight, ChevronLeft, Gift, Loader2, Mail, ShieldCheck, User } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
+import { OtpInput, ResendRow } from "@/components/auth/OtpInput";
 import { startGoogleAuthentication } from "@/lib/googleAuth";
+import { isTrustedEmail, isUntrustedEmailError, suggestEmailFix, UNTRUSTED_EMAIL_MESSAGE } from "@/lib/trustedEmail";
 
 export const Route = createFileRoute("/signup")({
   component: SignUpPage,
@@ -37,6 +39,7 @@ function SignUpPage() {
   const [referralCode, setReferralCode] = useState(() => localStorage.getItem("signup_ref") || ref || "");
   const [step, setStep] = useState<"info" | "code">(() => (localStorage.getItem("signup_step") as "info" | "code") || "info");
   const [code, setCode] = useState("");
+  const codeFormRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
@@ -96,6 +99,16 @@ function SignUpPage() {
 
     setLoading(true);
     try {
+      // Temporary / unknown email services are refused (enforced in the database too).
+      if (!(await isTrustedEmail(email))) {
+        const fix = suggestEmailFix(email);
+        toast.error(fix ? `Did you mean ${fix}?` : "This email provider isn't accepted", {
+          description: fix ? "That address looks mistyped. Check it and try again." : UNTRUSTED_EMAIL_MESSAGE,
+        });
+        setLoading(false);
+        return;
+      }
+
       const cleanUsername = username.toLowerCase().replace(/[^a-z0-9]/g, "");
 
       const { data: existingUser } = await supabase
@@ -142,7 +155,8 @@ function SignUpPage() {
       });
 
       if (error) {
-        toast.error(`Sign Up Error: ${error.message}`);
+        if (isUntrustedEmailError(error.message)) toast.error("This email provider isn't accepted", { description: UNTRUSTED_EMAIL_MESSAGE });
+        else toast.error(`Sign Up Error: ${error.message}`);
       } else {
         setStep("code");
         toast.success("Confirmation code sent. Check your email.");
@@ -383,13 +397,13 @@ function SignUpPage() {
                       placeholder="Enter referral code"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      className={`h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] px-4 pl-11 pr-20 dark:border-white/12 dark:bg-white/[0.04] text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10 dark:border-white/12"}`}
+                      className={`h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 pr-20 dark:border-white/12 dark:bg-white/[0.04] text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10 dark:border-white/12"}`}
                     />
                     {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#9d176d]">Applied</span>}
                   </span>
                 </label>
 
-                <label className="flex items-start gap-3 rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 py-2.5">
+                <label className="flex items-start gap-3 rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 py-2.5">
                   <input
                     type="checkbox"
                     checked={agreedToTerms}
@@ -418,25 +432,20 @@ function SignUpPage() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifyCode} className="space-y-5">
+              <form ref={codeFormRef} onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
                   <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Verify email</h2>
                   <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
                     Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
                   </p>
                 </div>
-
-                <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
-                  <input
-                    type="text"
-                    placeholder="000000"
-                    maxLength={10}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
-                  />
-                </label>
+                <OtpInput
+                  value={code}
+                  onChange={setCode}
+                  disabled={loading}
+                  // Verifies the moment the last digit lands, like banking apps do.
+                  onComplete={() => requestAnimationFrame(() => codeFormRef.current?.requestSubmit())}
+                />
 
                 <button
                   type="submit"
@@ -445,18 +454,21 @@ function SignUpPage() {
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Complete signup <ArrowRight className="h-4 w-4" /></>}
                 </button>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
-                    Resend code
-                  </button>
-                  <button type="button" onClick={() => { setStep("info"); setCode(""); }} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
-                    Go back
-                  </button>
-                </div>
+                <ResendRow
+                  disabled={loading}
+                  onResend={() => handleSendCode({ preventDefault() {} } as any)}
+                  onChangeEmail={() => { setStep("info"); setCode(""); }}
+                  changeLabel="Go back"
+                />
               </form>
             )}
           </div>
+            {/* Quiet reassurance under the form: how access works, and where the rules live. */}
+            <p className="mt-8 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-[11.5px] leading-5 text-[#8c8187] dark:text-white/40">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+              Secured with one-time email codes · No passwords stored ·
+              <Link to="/docs" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Terms &amp; Privacy</Link>
+            </p>
           </div>
         </section>
       </main>

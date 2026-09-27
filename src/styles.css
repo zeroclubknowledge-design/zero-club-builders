@@ -378,7 +378,9 @@
      page of these costs nothing to animate. The distance is small on purpose:
      22px reads as the section settling into place, where 60px reads as the
      page being assembled in front of you. */
-  [data-reveal] {
+  /* Only once the page is interactive (useReveal adds .reveal-ready): the
+     server HTML must never ship invisible content. */
+  .reveal-ready [data-reveal] {
     opacity: 0;
     transform: translateY(22px);
     transition:
@@ -387,7 +389,7 @@
     transition-delay: var(--reveal-delay, 0ms);
     will-change: opacity, transform;
   }
-  [data-reveal].is-in {
+  .reveal-ready [data-reveal].is-in {
     opacity: 1;
     transform: none;
     /* Released once the animation is done: leaving will-change on hundreds of
@@ -509,12 +511,12 @@
     }
   }
 
-  [data-reveal="left"]  { transform: translateX(-26px); }
-  [data-reveal="right"] { transform: translateX(26px); }
-  [data-reveal="zoom"]  { transform: scale(0.965); }
-  [data-reveal="left"].is-in,
-  [data-reveal="right"].is-in,
-  [data-reveal="zoom"].is-in { transform: none; }
+  .reveal-ready [data-reveal="left"]  { transform: translateX(-26px); }
+  .reveal-ready [data-reveal="right"] { transform: translateX(26px); }
+  .reveal-ready [data-reveal="zoom"]  { transform: scale(0.965); }
+  .reveal-ready [data-reveal="left"].is-in,
+  .reveal-ready [data-reveal="right"].is-in,
+  .reveal-ready [data-reveal="zoom"].is-in { transform: none; }
   /* ZeroNotes article typography.
    *
    * Tailwind's prose defaults are tuned for documentation — tight headings,
@@ -1190,3 +1192,25 @@ body::-webkit-scrollbar { display: none; }
   font-family: var(--font-sans);
 }
 
+
+
+/* Join-club sheet: the banner settles in slowly, the logo pops, the text rises. */
+@keyframes zc-join-banner {
+  from { opacity: 0; transform: scale(1.14); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes zc-join-pop {
+  0% { opacity: 0; transform: translateY(12px) scale(0.8); }
+  70% { opacity: 1; transform: translateY(-2px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes zc-join-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.zc-join-banner { animation: zc-join-banner 1.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.zc-join-pop { animation: zc-join-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 80ms both; }
+.zc-join-rise { animation: zc-join-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .zc-join-banner, .zc-join-pop, .zc-join-rise { animation: none; }
+}

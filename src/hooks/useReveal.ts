@@ -26,6 +26,21 @@ export function useReveal() {
       return;
     }
 
+    if (typeof IntersectionObserver === "undefined") return; // content simply stays visible
+
+    /*
+     * Content is visible until this point. It used to start at opacity 0 in
+     * the server HTML, so on a slow phone everything below the hero was blank
+     * until the scripts finished downloading — seconds of empty page. Now the
+     * hiding is switched on here, after hydration, and anything already on
+     * screen is marked arrived first so nothing visible blinks out.
+     */
+    const viewportBottom = window.innerHeight;
+    document.querySelectorAll("[data-reveal]").forEach((el) => {
+      if (el.getBoundingClientRect().top < viewportBottom) el.classList.add("is-in");
+    });
+    document.documentElement.classList.add("reveal-ready");
+
     const seen = new WeakSet<Element>();
 
     const observer = new IntersectionObserver(
@@ -59,6 +74,7 @@ export function useReveal() {
     return () => {
       observer.disconnect();
       mutations.disconnect();
+      document.documentElement.classList.remove("reveal-ready");
     };
   }, []);
 }

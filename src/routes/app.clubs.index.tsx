@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Hash, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Bell, ChevronDown, ChevronRight, Trash2, Check } from "@/components/icons/glyphs";
+import { Search, Users, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Bell, ChevronDown, ChevronRight, Trash2, Check } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -816,12 +816,25 @@ function Clubs() {
                     const isRequested = requestedClubIds.includes(d.id);
                     const needsApproval = Boolean(d.is_private || d.requires_approval);
                     return (
-                      <article key={d.id} className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border text-center">
+                      <article
+                        key={d.id}
+                        // The whole card opens the join sheet, not just the small button.
+                        onClick={isAlreadyJoined || isRequested ? undefined : () => { setSelectedClub(d); setShowJoinModal(true); }}
+                        onKeyDown={isAlreadyJoined || isRequested ? undefined : (e) => {
+                          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedClub(d); setShowJoinModal(true); }
+                        }}
+                        role={isAlreadyJoined || isRequested ? undefined : "button"}
+                        tabIndex={isAlreadyJoined || isRequested ? undefined : 0}
+                        aria-label={isAlreadyJoined || isRequested ? undefined : `View ${d.name}`}
+                        className={`flex min-w-0 flex-col overflow-hidden rounded-xl border border-border text-center ${isAlreadyJoined || isRequested ? "" : "cursor-pointer transition active:scale-[0.98]"}`}
+                      >
                         <div className="relative h-14 bg-foreground/[0.06]">
                           {d.banner_url && <img src={d.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
                           {isFeatured && <span className="absolute left-2 top-2 rounded-full bg-card/95 px-2 py-0.5 text-[11px] font-semibold text-foreground">Featured</span>}
                         </div>
-                        <div className="-mt-7 flex justify-center">
+                        {/* relative + z-10: the banner is positioned, so without its own
+                            stacking the logo was painted underneath it. */}
+                        <div className="relative z-10 -mt-7 flex justify-center">
                           <span className="rounded-[14px] border-[3px] border-card">{clubAvatar(d, "h-[52px] w-[52px]")}</span>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-3 pt-1.5">
@@ -837,7 +850,8 @@ function Clubs() {
                               </Link>
                             ) : (
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setSelectedClub(d);
                                   setShowJoinModal(true);
                                 }}
@@ -1146,83 +1160,107 @@ function Clubs() {
       
       {/* Join Club Modal */}
       <Drawer open={showJoinModal} onOpenChange={setShowJoinModal}>
-        <DrawerContent className="mx-auto max-w-lg overflow-hidden border-border bg-background p-0">
+        <DrawerContent className="mx-auto max-h-[92dvh] max-w-lg overflow-hidden border-border bg-background p-0">
           {selectedClub && (
-            <div className="px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-1">
-              <div className="flex items-center gap-3">
-                {/* The club's own picture, not a crop of the middle of its
-                    banner, so the badge and the strip never repeat one image. */}
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-foreground/[0.06]">
-                  {selectedClub.logo_url ? (
-                    <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+            <div key={selectedClub.id} className="flex max-h-[calc(92dvh-24px)] flex-col">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {/* ── Hero: the club's banner, easing in with a slow settle ── */}
+                <div className="relative mx-3 mt-1 h-44 overflow-hidden rounded-[22px] bg-[#1b1420]">
+                  {selectedClub.banner_url ? (
+                    <img
+                      src={selectedClub.banner_url}
+                      alt=""
+                      className="zc-join-banner h-full w-full object-cover"
+                      decoding="async"
+                    />
                   ) : (
-                    <Hash className="h-6 w-6 text-muted-foreground" />
+                    <div className="zc-join-banner h-full w-full bg-[radial-gradient(120%_90%_at_15%_10%,#cc208f_0%,transparent_55%),radial-gradient(90%_80%_at_90%_100%,#6d28d9_0%,transparent_60%),linear-gradient(135deg,#1b1420,#2a1830)]" />
                   )}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+                  {Boolean((selectedClub as any).category) && (
+                    <span className="zc-join-rise absolute left-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md" style={{ animationDelay: "120ms" }}>
+                      {(selectedClub as any).category}
+                    </span>
+                  )}
+                  <span className="zc-join-rise absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md" style={{ animationDelay: "160ms" }}>
+                    {selectedClub.is_private ? <Lock className="h-3 w-3" /> : <Users className="h-3 w-3" />}
+                    {selectedClub.is_private ? "Private" : joinNeedsApproval ? "Approval" : "Open"}
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
-                    {joinNeedsApproval ? "Request to join" : "Join club"}
+
+                {/* ── Identity: logo overlapping the banner edge ── */}
+                <div className="relative z-10 -mt-9 flex items-end gap-3 px-6">
+                  <div className="zc-join-pop h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[20px] border-4 border-background bg-foreground/[0.06] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.45)]">
+                    {selectedClub.logo_url ? (
+                      <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" decoding="async" />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-[20px] font-semibold text-muted-foreground">
+                        {String(selectedClub.name || "?").substring(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="px-6 pt-3">
+                  <DrawerTitle className="zc-join-rise font-display text-[22px] font-semibold leading-tight tracking-tight text-foreground" style={{ animationDelay: "140ms" }}>
+                    {selectedClub.name}
                   </DrawerTitle>
-                  <p className="mt-0.5 truncate text-[15px] font-medium text-foreground">{selectedClub.name}</p>
+                  <p className="zc-join-rise mt-1 text-[13px] font-medium text-muted-foreground" style={{ animationDelay: "190ms" }}>
+                    {(selectedClub.members_count || 0).toLocaleString()} {(selectedClub.members_count || 0) === 1 ? "member" : "members"}
+                    {" · "}
+                    {clubPriceLabel(selectedClub)}
+                  </p>
+
+                  {/* ── What the club is about ── */}
+                  <div className="zc-join-rise mt-4" style={{ animationDelay: "240ms" }}>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">About</p>
+                    <DrawerDescription className="mt-1.5 whitespace-pre-line text-[14.5px] leading-relaxed text-foreground/85">
+                      {String((selectedClub as any).description || "").trim() || "This club hasn't written a description yet. Join to see what members are working on."}
+                    </DrawerDescription>
+                  </div>
+
+                  {joinNeedsApproval && (
+                    <div className="zc-join-rise mt-4 flex items-start gap-3 rounded-2xl bg-[#cc208f]/[0.07] p-4" style={{ animationDelay: "290ms" }}>
+                      <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#cc208f]" />
+                      <div>
+                        <p className="text-[14px] font-semibold text-foreground">Admins review requests</p>
+                        <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">Your profile and public proof are shared with the club admins. You'll be notified as soon as they decide.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Say the price before they tap, not after the wallet moves. */}
+                  {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
+                    <div className="zc-join-rise mt-4 rounded-2xl bg-foreground/[0.04] p-4" style={{ animationDelay: "290ms" }}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-semibold text-muted-foreground">Membership fee</p>
+                          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                            Charged once from your Zero Club wallet when you join.
+                          </p>
+                        </div>
+                        <p className="shrink-0 font-display text-[22px] font-semibold tabular-nums leading-tight text-foreground">
+                          {format(Number(selectedClub.subscription_fee))}
+                        </p>
+                      </div>
+                      <div className="mt-3">
+                        <RequestFundsButton
+                          amount={Number(selectedClub.subscription_fee)}
+                          purpose={`Membership of ${selectedClub.name} on Zero Club`}
+                          label="Ask someone to cover this"
+                          className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/15 bg-card text-[14px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {selectedClub.banner_url && (
-                <div className="mt-4 h-24 overflow-hidden rounded-2xl bg-foreground/[0.05]">
-                  <img src={selectedClub.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                </div>
-              )}
-
-              {/* Two separate facts. Whether the club can be found, and
-                  whether you can walk in — a public club may still want to
-                  be asked, so the copy is driven by admission, not privacy. */}
-              <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
-                {selectedClub.is_private ? <Lock className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
-                {selectedClub.is_private ? "Private community" : joinNeedsApproval ? "Public · approval needed" : "Open community"}
-              </span>
-              <DrawerDescription className="mt-3 text-[14px] leading-relaxed text-muted-foreground">
-                {joinNeedsApproval ? "Your profile and public proof will be shared with the club administrators. You will be notified as soon as they decide." : "Join the conversation, participate in club work, and connect with members immediately."}
-              </DrawerDescription>
-
-              {joinNeedsApproval && (
-                <div className="mt-4 flex items-start gap-3 rounded-2xl bg-foreground/[0.04] p-4">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#cc208f]" />
-                  <div>
-                    <p className="text-[15px] font-semibold text-foreground">Admin approval required</p>
-                    <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">Sending a request does not grant access until an administrator approves it.</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Say the price before they tap, not after the wallet moves. */}
-              {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
-                <div className="mt-4 rounded-2xl bg-foreground/[0.04] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-semibold text-muted-foreground">Membership fee</p>
-                      <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                        Charged once from your Zero Club wallet when you join.
-                      </p>
-                    </div>
-                    <p className="shrink-0 font-display text-[22px] font-semibold tabular-nums leading-tight text-foreground">
-                      {format(Number(selectedClub.subscription_fee))}
-                    </p>
-                  </div>
-                  <div className="mt-3">
-                    <RequestFundsButton
-                      amount={Number(selectedClub.subscription_fee)}
-                      purpose={`Membership of ${selectedClub.name} on Zero Club`}
-                      label="Ask someone to cover this"
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/15 bg-card text-[14px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6 grid grid-cols-2 gap-2.5">
+              {/* ── Actions stay pinned, however long the description is ── */}
+              <div className="zc-join-rise grid shrink-0 grid-cols-2 gap-2.5 border-t border-border/60 bg-background px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3" style={{ animationDelay: "320ms" }}>
                 <button
                   onClick={() => setShowJoinModal(false)}
-                  className="h-12 rounded-full border-[1.5px] border-foreground/25 text-[16px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
+                  className="h-12 rounded-full border-[1.5px] border-foreground/20 text-[15px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04] active:scale-[0.98]"
                 >
                   Not now
                 </button>
@@ -1232,9 +1270,9 @@ function Clubs() {
                     setShowJoinModal(false);
                   }}
                   disabled={joiningClubId === selectedClub.id}
-                  className="h-12 rounded-full bg-foreground text-[16px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+                  className="h-12 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.8)] transition hover:bg-[#b01c7b] active:scale-[0.98] disabled:opacity-40"
                 >
-                  {joiningClubId === selectedClub.id ? "Sending..." : joinNeedsApproval ? "Send request" : "Join now"}
+                  {joiningClubId === selectedClub.id ? "Sending…" : joinNeedsApproval ? "Send request" : "Join now"}
                 </button>
               </div>
             </div>

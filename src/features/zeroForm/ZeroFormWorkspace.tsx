@@ -186,8 +186,8 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
                 <Stat label="Revenue" value={money(form.revenue)} isText />
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                <button onClick={() => setOpenFormId(form.id)} className="rounded-lg bg-foreground px-4 py-2 text-[11.5px] font-semibold text-background">
+              <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
+                <button onClick={() => setOpenFormId(form.id)} className="h-9 shrink-0 rounded-lg bg-foreground px-4 text-[11.5px] font-semibold text-background">
                   Manage
                 </button>
                 <ShareButtons slug={form.slug} status={form.status} state={form.state} bootcampId={form.bootcamp_id} />
@@ -556,7 +556,7 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
         <StateBadge state={state} />
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex items-center gap-2">
         <ShareButtons slug={form?.slug} status={form?.status} state={state} bootcampId={bootcamp?.id} />
       </div>
 
@@ -737,6 +737,8 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
  * primary action is the Zero Form link; once it is live it becomes the
  * bootcamp link. The creator never switches this manually.
  */
+const ICON_ACTION = "grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-foreground transition hover:bg-muted active:scale-95";
+
 function ShareButtons({ slug, status, state, bootcampId }: { slug?: string; status?: string; state?: string; bootcampId?: string }) {
   const live = state === "bootcamp_started";
   const url = live
@@ -760,20 +762,22 @@ function ShareButtons({ slug, status, state, bootcampId }: { slug?: string; stat
   };
 
   if (status === "draft" && !live) {
-    return <span className="rounded-lg bg-muted px-3 py-2 text-[11px] font-medium text-muted-foreground">Publish to get a shareable link</span>;
+    return <span className="min-w-0 truncate rounded-lg bg-muted px-3 py-2 text-[11px] font-medium text-muted-foreground">Publish to get a shareable link</span>;
   }
 
   return (
     <>
-      <button onClick={share} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[11.5px] font-semibold hover:bg-muted">
-        <Share2 className="h-3.5 w-3.5" /> {shareLabel}
+      {/* Icon-only, so Manage and all three actions sit on one line on a
+          phone. The name is still announced (aria-label) and shown on hover. */}
+      <button type="button" onClick={share} aria-label={shareLabel} title={shareLabel} className={ICON_ACTION}>
+        <Share2 className="h-4 w-4" />
       </button>
-      <button onClick={copy} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[11.5px] font-semibold hover:bg-muted">
-        <Copy className="h-3.5 w-3.5" /> Copy link
+      <button type="button" onClick={copy} aria-label="Copy link" title="Copy link" className={ICON_ACTION}>
+        <Copy className="h-4 w-4" />
       </button>
       {!live && slug && (
-        <a href={`/form/${slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[11.5px] font-semibold hover:bg-muted">
-          <ExternalLink className="h-3.5 w-3.5" /> Preview
+        <a href={`/form/${slug}`} target="_blank" rel="noreferrer" aria-label="Preview Zero Form" title="Preview" className={ICON_ACTION}>
+          <ExternalLink className="h-4 w-4" />
         </a>
       )}
     </>

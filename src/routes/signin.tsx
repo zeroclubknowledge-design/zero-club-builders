@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useRouter, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ArrowRight, ChevronLeft, Loader2, Mail, ShieldCheck } from "@/components/icons/glyphs";
 import { IconClubs, IconNotes, IconWallet } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
+import { OtpInput, ResendRow } from "@/components/auth/OtpInput";
 import { startGoogleAuthentication } from "@/lib/googleAuth";
 
 export const Route = createFileRoute("/signin")({
@@ -38,6 +39,7 @@ function SignInPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [step, setStep] = useState<"email" | "code">(() => (localStorage.getItem("signin_step") as "email" | "code") || "email");
   const [code, setCode] = useState("");
+  const codeFormRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -269,11 +271,6 @@ function SignInPage() {
           <div className="rounded-xl bg-transparent">
             {step === "email" ? (
               <form onSubmit={handleSendCode} className="space-y-5">
-                <div>
-                  <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Sign in</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">We will send a short confirmation code.</p>
-                </div>
-
                 <GoogleAuthButton label="Continue with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignIn} />
 
                 <div className="flex items-center gap-3" aria-hidden="true">
@@ -291,7 +288,7 @@ function SignInPage() {
                       placeholder="ada@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                      className="h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
                     />
                   </span>
                 </label>
@@ -305,25 +302,20 @@ function SignInPage() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifyCode} className="space-y-5">
+              <form ref={codeFormRef} onSubmit={handleVerifyCode} className="space-y-5">
                 <div>
                   <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Enter the code</h2>
                   <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">
                     Sent to <span className="font-medium text-[#241f23] dark:text-white">{email}</span>.
                   </p>
                 </div>
-
-                <label className="block space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Confirmation code</span>
-                  <input
-                    type="text"
-                    placeholder="000000"
-                    maxLength={10}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="h-12 w-full rounded-lg border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 text-center text-lg font-medium tracking-[0.28em] text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
-                  />
-                </label>
+                <OtpInput
+                  value={code}
+                  onChange={setCode}
+                  disabled={loading}
+                  // Verifies the moment the last digit lands, like banking apps do.
+                  onComplete={() => requestAnimationFrame(() => codeFormRef.current?.requestSubmit())}
+                />
 
                 <button
                   type="submit"
@@ -332,18 +324,21 @@ function SignInPage() {
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Verify code <ArrowRight className="h-4 w-4" /></>}
                 </button>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={handleSendCode} disabled={loading} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
-                    Resend code
-                  </button>
-                  <button type="button" onClick={() => { setStep("email"); setCode(""); }} className="rounded-lg border border-black/10 bg-[#fbfaf7] px-4 py-2.5 text-sm font-medium text-[#5a5056] transition hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/10">
-                    Change email
-                  </button>
-                </div>
+                <ResendRow
+                  disabled={loading}
+                  onResend={() => handleSendCode({ preventDefault() {} } as any)}
+                  onChangeEmail={() => { setStep("email"); setCode(""); }}
+                  changeLabel="Use a different email"
+                />
               </form>
             )}
           </div>
+            {/* Quiet reassurance under the form: how access works, and where the rules live. */}
+            <p className="mt-8 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-[11.5px] leading-5 text-[#8c8187] dark:text-white/40">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+              Secured with one-time email codes · No passwords stored ·
+              <Link to="/docs" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Terms &amp; Privacy</Link>
+            </p>
           </div>
         </section>
       </main>
