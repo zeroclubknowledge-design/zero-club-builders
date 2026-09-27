@@ -42,6 +42,8 @@ import { getFirstName, displayName, getLevelFromXp } from "@/lib/utils";
 import { directMessagePreview } from "@/lib/directMessage";
 import { IncomingNotificationCard } from "@/components/IncomingNotificationCard";
 import { PushPrompt } from "@/components/PushPrompt";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
+import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -134,8 +136,8 @@ function SidebarContent({
   }, [isInstitutionStudio]);
 
   const level = getLevelFromXp(Number(profile?.xp || 0));
-  const role =
-    profile?.account_type === "Institution" ? "Institution" : profile?.account_type === "Tutor" ? "Tutor" : "Builder";
+  const mode = modeOf(profile);
+  const role = mode ? MODES[mode].label : "Institution";
 
   /* Everything reachable from the shell that is not already on the tab bar.
      On mobile the tab bar carries Home, Learn, Post, Clubs and Alerts, and
@@ -160,7 +162,7 @@ function SidebarContent({
   const workspaceLinks: any[] = [
     { Icon: IconStore, label: "My Store", to: "/app/my-store" },
     { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
-    ...(String(profile?.tier || "").toLowerCase() === "creator"
+    ...(mode === "creator" || String(profile?.tier || "").toLowerCase() === "creator"
       ? [{ Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" }]
       : []),
     ...(profile?.account_type === "Tutor" ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
@@ -329,6 +331,8 @@ function SidebarContent({
           </p>
           <span className="mt-1.5 inline-block text-[14px] font-semibold text-accent">View profile</span>
         </Link>
+        {/* One account, three modes. Switching takes you to that mode's home. */}
+        <ModeSwitcher profile={profile} className="mt-3" onSwitched={onNavigate ?? onClose} />
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Link to="/app/tasks" className="rounded-xl bg-foreground/[0.04] px-3 py-2.5 tap hover:bg-foreground/[0.06]">
             <span className="block text-[12px] text-muted-foreground">Zero Points</span>
@@ -506,7 +510,7 @@ function DesktopWorkspaceRail({
   const isAdmin = Boolean(profile?.is_admin);
   const isTutor = role === "Tutor" || role === "Institution";
   const isInstitution = role === "Institution";
-  const isCreator = String(profile?.tier || "").toLowerCase() === "creator";
+  const isCreator = String(profile?.tier || "").toLowerCase() === "creator" || profile?.active_mode === "creator";
 
   const primaryActions = isAdmin
     ? [
@@ -767,9 +771,17 @@ function AppLayout() {
     supabase.auth.signOut();
   }, [profile]);
 
+  // A brand-new member goes through onboarding once, then comes back to
+  // wherever they were headed (an invite link, a shared post).
   useEffect(() => {
-    // Basic presence update - redirected from here to chat if club param exists
-  }, [location.pathname, navigate]);
+    if (profileLoading || !needsOnboarding(profile)) return;
+    try {
+      sessionStorage.setItem("zc-after-onboarding", window.location.pathname + window.location.search);
+    } catch {
+      /* Without storage they simply land on their mode's home. */
+    }
+    navigate({ to: "/welcome", replace: true });
+  }, [profile, profileLoading, navigate]);
 
   useEffect(() => {
     let unreadBadgeCount = 0;

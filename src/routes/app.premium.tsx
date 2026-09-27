@@ -31,6 +31,11 @@ import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
+  // ?institution=1 opens the Digital Hub application straight away — used by
+  // onboarding for people setting up a school, academy or company.
+  validateSearch: (search: Record<string, unknown>): { institution?: number } => ({
+    institution: Number(search.institution) === 1 ? 1 : undefined,
+  }),
 });
 
 type Audience = "Learner" | "Creator" | "Tutor" | "Institution";
@@ -223,7 +228,7 @@ function MembershipPage() {
   const goBack = useGoBack("/app");
   const [audience, setAudience] = useState<Audience>("Learner");
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [showInstitutionForm, setShowInstitutionForm] = useState(false);
+  const [showInstitutionForm, setShowInstitutionForm] = useState(Route.useSearch().institution === 1);
   const [applyZeroGift, setApplyZeroGift] = useState(false);
 
   const { data: profile, isLoading } = useQuery({

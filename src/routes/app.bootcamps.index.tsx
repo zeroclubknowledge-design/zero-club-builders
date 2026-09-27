@@ -7,6 +7,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { supabase } from "@/lib/supabase";
 import { formatCountdown } from "@/features/zeroForm/templates";
 import { richTextToPlain } from "@/components/RichText";
+import { useUser } from "@/hooks/useUser";
 
 export const Route = createFileRoute("/app/bootcamps/")({
   component: Bootcamps,
@@ -45,10 +46,17 @@ function Bootcamps() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = useMemo(() => [
-    'All',
-    ...Array.from(new Set(bootcamps.map((camp: any) => camp.category).filter(Boolean))) as string[],
-  ], [bootcamps]);
+  // Interests picked during onboarding: their categories come first, and so
+  // do the bootcamps in them.
+  const { data: profile } = useUser();
+  const interests: string[] = Array.isArray(profile?.interests) ? profile.interests : [];
+  const likes = (category: unknown) => interests.some((interest) => interest.toLowerCase() === String(category || '').toLowerCase());
+
+  const categories = useMemo(() => {
+    const all = Array.from(new Set(bootcamps.map((camp: any) => camp.category).filter(Boolean))) as string[];
+    return ['All', ...all.filter(likes), ...all.filter((category) => !likes(category))];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bootcamps, interests.join('|')]);
 
   const filteredCamps = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -59,8 +67,9 @@ function Bootcamps() {
         .join(' ')
         .toLowerCase();
       return matchesCategory && (!query || searchable.includes(query));
-    });
-  }, [bootcamps, activeCategory, searchQuery]);
+    }).sort((a: any, b: any) => Number(likes(b.category)) - Number(likes(a.category)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bootcamps, activeCategory, searchQuery, interests.join('|')]);
 
   const showFeatured = activeCategory === 'All' && !searchQuery.trim() && filteredCamps.length > 0;
   const featured = showFeatured ? filteredCamps[0] : null;

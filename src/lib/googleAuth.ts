@@ -5,7 +5,6 @@ const GOOGLE_SIGNUP_CONTEXT_KEY = "zero_club_google_signup_context";
 const CONTEXT_MAX_AGE_MS = 30 * 60 * 1000;
 
 type GoogleSignupContext = {
-  accountType: "Learner" | "Tutor" | "Institution";
   referralCode?: string;
   startedAt: number;
 };
@@ -41,7 +40,7 @@ export async function startGoogleAuthentication({
   return error;
 }
 
-/** Applies the role selected immediately before a brand-new Google signup. */
+/** Applies the referral code entered immediately before a brand-new Google signup. */
 export async function completePendingGoogleSignup(user: User) {
   const stored = localStorage.getItem(GOOGLE_SIGNUP_CONTEXT_KEY);
   if (!stored) return;
@@ -63,13 +62,6 @@ export async function completePendingGoogleSignup(user: User) {
     localStorage.removeItem(GOOGLE_SIGNUP_CONTEXT_KEY);
     return;
   }
-
-  const { error: roleError } = await supabase
-    .from("profiles")
-    .update({ account_type: context.accountType })
-    .eq("id", user.id);
-
-  if (roleError) throw roleError;
 
   const referralCode = context.referralCode?.trim();
   if (referralCode) {

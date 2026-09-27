@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as DocsRouteImport } from './routes/docs'
@@ -101,6 +102,11 @@ import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit
 import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -568,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/app/admin': typeof AppAdminRouteWithChildren
@@ -660,6 +667,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/app/bookmarks': typeof AppBookmarksRoute
@@ -749,6 +757,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/app/admin': typeof AppAdminRouteWithChildren
@@ -844,6 +853,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/signin'
     | '/signup'
+    | '/welcome'
     | '/api/contact'
     | '/api/og-default'
     | '/app/admin'
@@ -936,6 +946,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/signin'
     | '/signup'
+    | '/welcome'
     | '/api/contact'
     | '/api/og-default'
     | '/app/bookmarks'
@@ -1024,6 +1035,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/signin'
     | '/signup'
+    | '/welcome'
     | '/api/contact'
     | '/api/og-default'
     | '/app/admin'
@@ -1118,6 +1130,7 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
+  WelcomeRoute: typeof WelcomeRoute
   ApiContactRoute: typeof ApiContactRoute
   ApiOgDefaultRoute: typeof ApiOgDefaultRoute
   ClubIdRoute: typeof ClubIdRoute
@@ -1134,6 +1147,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -2013,6 +2033,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
+  WelcomeRoute: WelcomeRoute,
   ApiContactRoute: ApiContactRoute,
   ApiOgDefaultRoute: ApiOgDefaultRoute,
   ClubIdRoute: ClubIdRoute,

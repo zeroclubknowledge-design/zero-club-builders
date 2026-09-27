@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft, Gift, Loader2, Mail, ShieldCheck, User } from "@/components/icons/glyphs";
-import { IconInstitution, IconPresentation, IconProfile } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
@@ -22,12 +21,6 @@ export const Route = createFileRoute("/signup")({
   }),
 });
 
-const accountTypeOptions = [
-  { id: "Learner", label: "Learner", helper: "Build proof", Icon: IconProfile },
-  { id: "Tutor", label: "Tutor", helper: "Teach live", Icon: IconPresentation },
-  { id: "Institution", label: "Institution", helper: "Run cohorts", Icon: IconInstitution },
-] as const;
-
 const proofPoints = [
   "Create a profile that shows real progress",
   "Join clubs, bootcamps, and focused learning rooms",
@@ -47,7 +40,6 @@ function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(() => localStorage.getItem("signup_terms") === "true");
-  const [accountType, setAccountType] = useState<"Learner" | "Tutor" | "Institution">(() => (localStorage.getItem("signup_account_type") as "Learner" | "Tutor" | "Institution") || "Learner");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -83,10 +75,6 @@ function SignUpPage() {
   useEffect(() => {
     localStorage.setItem("signup_terms", agreedToTerms ? "true" : "false");
   }, [agreedToTerms]);
-
-  useEffect(() => {
-    localStorage.setItem("signup_account_type", accountType);
-  }, [accountType]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +127,6 @@ function SignUpPage() {
       const metadata: any = {
         username: cleanUsername,
         full_name: username,
-        account_type: accountType,
       };
 
       if (referralCode) {
@@ -228,7 +215,6 @@ function SignUpPage() {
       const error = await startGoogleAuthentication({
         destination,
         signupContext: {
-          accountType,
           referralCode: referralCode || undefined,
         },
       });
@@ -290,10 +276,11 @@ function SignUpPage() {
           {/* The numbered steps from the reference. The current step is lit and
               the rest are quiet, so the panel doubles as a progress indicator
               rather than being decoration next to the form. */}
-          <div className="relative mt-8 grid gap-3 sm:grid-cols-2">
+          <div className="relative mt-8 grid gap-3 sm:grid-cols-3">
             {[
               { n: 1, label: "Create your account", done: true },
               { n: 2, label: "Confirm your email", done: step === "code" },
+              { n: 3, label: "Set up your experience", done: false },
             ].map((item) => (
               <div
                 key={item.n}
@@ -354,31 +341,7 @@ function SignUpPage() {
               <form onSubmit={handleSendCode} className="space-y-4">
                 <div>
                   <h2 className="font-display text-2xl font-normal text-[#241f23] dark:text-white">Create account</h2>
-                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">Set up the identity attached to your proof.</p>
-                </div>
-
-                <div className="space-y-2">
-                  <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Account type</span>
-                  {/* Icons removed at request. The icon was also what set the
-                      96px floor on these tiles, so without it they come down to
-                      the height of their own text. */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {accountTypeOptions.map((role) => (
-                      <button
-                        key={role.id}
-                        type="button"
-                        onClick={() => setAccountType(role.id)}
-                        className={`rounded-lg border p-2.5 text-left transition ${
-                          accountType === role.id
-                            ? "border-[#cc208f]/55 bg-[#cc208f]/12 text-[#9d176d] ring-2 ring-[#cc208f]/20 dark:text-white"
-                            : "border-black/10 bg-[#fbfaf7] text-[#655b61] hover:bg-white dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:bg-white/[0.07]"
-                        }`}
-                      >
-                        <span className="block text-[12.5px] font-medium">{role.label}</span>
-                        <span className="mt-0.5 block text-[10.5px] leading-4 text-[#81767d] dark:text-white/50">{role.helper}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <p className="mt-1 text-sm leading-6 text-[#746970] dark:text-white/55">One account to learn, teach and run communities — you'll choose where to start next.</p>
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-2">

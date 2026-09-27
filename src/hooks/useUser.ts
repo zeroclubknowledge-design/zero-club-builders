@@ -89,8 +89,7 @@ export function useUser() {
       }
 
       // Google creates the auth identity before returning to the app. Apply
-      // the account type selected on signup before the profile is read so the
-      // first screen already has the correct Learner/Tutor/Institution role.
+      // the referral code entered on signup before the profile is read.
       try {
         await completePendingGoogleSignup(session.user);
       } catch (error) {

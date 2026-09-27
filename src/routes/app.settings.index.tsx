@@ -5,6 +5,8 @@ import {
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
+import { modeOf } from "@/lib/modes";
 import { logoutCurrentAccount } from "@/lib/multiAccount";
 import { getLevelFromXp } from "@/lib/utils";
 
@@ -161,6 +163,14 @@ function SettingsIndex() {
                 View profile
               </Link>
             )}
+          </section>
+        )}
+
+        {!needle && modeOf(profile) && (
+          <section className="bg-card px-4 pb-4 pt-4 md:rounded-xl md:border md:border-border">
+            <h2 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Mode</h2>
+            <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">One account to learn, teach and run communities. Switch whenever you like.</p>
+            <ModeSwitcher profile={profile} className="mt-3" />
           </section>
         )}
 
