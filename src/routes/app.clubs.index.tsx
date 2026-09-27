@@ -610,7 +610,7 @@ function Clubs() {
   };
 
   const clubAvatar = (club: any, size = "h-12 w-12") => (
-    <span className={`${size} grid shrink-0 place-items-center overflow-hidden rounded-xl bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground`}>
+    <span className={`${size} ${size.includes("rounded-") ? "" : "rounded-xl"} grid shrink-0 place-items-center overflow-hidden bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground`}>
       {club?.logo_url || club?.banner_url ? (
         <img src={club.logo_url || club.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
       ) : (
@@ -835,7 +835,12 @@ function Clubs() {
                         {/* relative + z-10: the banner is positioned, so without its own
                             stacking the logo was painted underneath it. */}
                         <div className="relative z-10 -mt-7 flex justify-center">
-                          <span className="rounded-[14px] border-[3px] border-card">{clubAvatar(d, "h-[52px] w-[52px]")}</span>
+                          {/* A solid square tile behind the logo. Many logos are round images on a
+                              transparent background, and the old see-through tile let the banner
+                              show around them, so they read as circles. */}
+                          <span className="block overflow-hidden rounded-[14px] border-[3px] border-card bg-card shadow-[0_6px_16px_-8px_rgba(0,0,0,0.45)]">
+                            {clubAvatar(d, "h-[52px] w-[52px] rounded-[11px]")}
+                          </span>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-3 pt-1.5">
                           <p className="line-clamp-2 text-[14px] font-semibold leading-snug text-foreground">{d.name}</p>
@@ -1190,18 +1195,18 @@ function Clubs() {
 
                 {/* ── Identity: logo overlapping the banner edge ── */}
                 <div className="relative z-10 -mt-9 flex items-end gap-3 px-6">
-                  <div className="zc-join-pop h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[20px] border-4 border-background bg-foreground/[0.06] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.45)]">
+                  <div className="zc-join-pop h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[20px] border-4 border-background bg-background shadow-[0_10px_30px_-12px_rgba(0,0,0,0.45)]">
                     {selectedClub.logo_url ? (
                       <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" decoding="async" />
                     ) : (
-                      <span className="grid h-full w-full place-items-center text-[20px] font-semibold text-muted-foreground">
+                      <span className="grid h-full w-full place-items-center bg-foreground/[0.06] text-[20px] font-semibold text-muted-foreground">
                         {String(selectedClub.name || "?").substring(0, 2).toUpperCase()}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="px-6 pt-3">
+                <div className="px-6 pb-8 pt-3">
                   <DrawerTitle className="zc-join-rise font-display text-[22px] font-semibold leading-tight tracking-tight text-foreground" style={{ animationDelay: "140ms" }}>
                     {selectedClub.name}
                   </DrawerTitle>
