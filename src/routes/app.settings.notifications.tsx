@@ -3,43 +3,14 @@ import { ArrowLeft, Mail, Smartphone, Settings2, Loader2 } from "@/components/ic
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
-import { vapidKeyProblem, vapidApplicationServerKey } from "@/lib/webPush";
-
+import { disablePush, enablePush, isPushEnabled, supportsWebPush } from "@/lib/pushSubscription";
 
 export const Route = createFileRoute("/app/settings/notifications")({
   component: NotificationsSettings,
 });
 
-function supportsWebPush() {
-  return window.isSecureContext
-    && 'Notification' in window
-    && 'serviceWorker' in navigator
-    && 'PushManager' in window;
-}
-
-async function getPushRegistration() {
-  const existing = await navigator.serviceWorker.getRegistration('/');
-  if (existing?.active) return existing;
-
-  const registration = existing || await navigator.serviceWorker.register('/sw.js', { type: 'module' });
-  if (registration.active) return registration;
-
-  let timeoutId: ReturnType<typeof setTimeout>;
-  try {
-    return await Promise.race([
-      navigator.serviceWorker.ready,
-      new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error("Zero Club is still preparing notifications. Refresh the app and try again.")), 8000);
-      })
-    ]);
-  } finally {
-    clearTimeout(timeoutId!);
-  }
-}
-
 function NotificationsSettings() {
-  const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [pushOn, setPushOn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pushStatus, setPushStatus] = useState("Get instant alerts for messages and activity");
 
@@ -50,12 +21,10 @@ function NotificationsSettings() {
     }
 
     let cancelled = false;
-    void getPushRegistration()
-      .then((registration) => registration.pushManager.getSubscription())
-      .then((subscription) => {
+    void isPushEnabled()
+      .then((enabled) => {
         if (cancelled) return;
-        const enabled = Notification.permission === 'granted' && Boolean(subscription);
-        setIsPushEnabled(enabled);
+        setPushOn(enabled);
         setPushStatus(enabled ? "Enabled on this device. Tap to turn off." : "Get instant alerts for messages and activity");
       })
       .catch(() => {
@@ -74,88 +43,25 @@ function NotificationsSettings() {
     try {
       setLoading(true);
 
-      if (isPushEnabled) {
+      if (pushOn) {
         setPushStatus("Turning off notifications...");
-        const registration = await getPushRegistration();
-        const existingSubscription = await registration.pushManager.getSubscription();
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!existingSubscription) {
-          setIsPushEnabled(false);
-          setPushStatus("Get instant alerts for messages and activity");
-          return;
-        }
-
-        if (session) {
-          const { error } = await supabase
-            .from('push_subscriptions')
-            .delete()
-            .eq('profile_id', session.user.id)
-            .eq('endpoint', existingSubscription.endpoint);
-          if (error) throw error;
-        }
-        await existingSubscription.unsubscribe();
-        setIsPushEnabled(false);
+        await disablePush();
+        setPushOn(false);
         setPushStatus("Get instant alerts for messages and activity");
         toast.success("Push notifications disabled on this device.");
         return;
       }
 
-      // Checked before asking for permission. Prompting someone and then
-      // failing on a misconfigured key spends a permission request that
-      // browsers only grant once.
-      const keyProblem = vapidKeyProblem();
-      if (keyProblem) throw new Error(keyProblem);
-
-      setPushStatus("Waiting for browser permission...");
-      const permission = Notification.permission === 'granted'
-        ? 'granted'
-        : await Notification.requestPermission();
-      
-      if (permission !== 'granted') {
-        setPushStatus("Permission is blocked in your browser settings");
-        toast.error("Notification permission is blocked. Allow it in your browser settings, then try again.");
+      setPushStatus("Waiting for permission...");
+      const result = await enablePush();
+      if (result === "denied") {
+        setPushStatus("Permission is blocked in your phone settings");
+        toast.error("Notification permission is blocked. Allow it for Zero Club in your phone settings, then try again.");
         return;
       }
-
-      setPushStatus("Connecting this device...");
-      const [registration, sessionResult] = await Promise.all([
-        getPushRegistration(),
-        supabase.auth.getSession()
-      ]);
-      const { data: { session } } = sessionResult;
-      let existingSubscription = await registration.pushManager.getSubscription();
-      let subscription = existingSubscription;
-
-      if (!subscription) {
-        // Cannot be undefined here — vapidKeyProblem() already threw above if
-        // the key was unusable — but the cast keeps that guarantee explicit.
-        const applicationServerKey = vapidApplicationServerKey() as BufferSource;
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey,
-        });
-      }
-
-      // Save to Supabase
-      if (session && subscription) {
-        const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')!) as unknown as number[]));
-        const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')!) as unknown as number[]));
-
-        const { error } = await supabase.from('push_subscriptions').upsert({
-          profile_id: session.user.id,
-          endpoint: subscription.endpoint,
-          p256dh_key: p256dh,
-          auth_key: auth
-        }, { onConflict: 'profile_id, endpoint' });
-
-        if (error) throw error;
-        toast.success("Push notifications enabled on this device.");
-        setIsPushEnabled(true);
-        setPushStatus("Enabled on this device. Tap to turn off.");
-      } else if (!session) {
-        throw new Error("Sign in again to finish enabling push notifications.");
-      }
+      toast.success("Push notifications enabled on this device.");
+      setPushOn(true);
+      setPushStatus("Enabled on this device. Tap to turn off.");
     } catch (err: any) {
       console.error(err);
       setPushStatus(err.message || "Could not enable notifications");
@@ -180,7 +86,7 @@ function NotificationsSettings() {
         <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
           <h2 className={SECTION_TITLE}>Push notifications</h2>
           <div className="flex items-center gap-3.5 border-t border-border/60 px-4 py-3.5">
-            <Smartphone className={`h-5 w-5 shrink-0 ${isPushEnabled ? "text-[#1a7f4b]" : "text-foreground"}`} />
+            <Smartphone className={`h-5 w-5 shrink-0 ${pushOn ? "text-[#1a7f4b]" : "text-foreground"}`} />
             <div className="min-w-0 flex-1">
               <p className="text-[15px] text-foreground">On this device</p>
               <p className="text-[13px] text-muted-foreground">{pushStatus}</p>
@@ -188,7 +94,7 @@ function NotificationsSettings() {
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             ) : (
-              <Switch checked={isPushEnabled} onCheckedChange={() => void handlePushToggle()} aria-label="Push notifications on this device" />
+              <Switch checked={pushOn} onCheckedChange={() => void handlePushToggle()} aria-label="Push notifications on this device" />
             )}
           </div>
           <p className="border-t border-border/60 px-4 py-3 text-[13px] leading-relaxed text-muted-foreground">

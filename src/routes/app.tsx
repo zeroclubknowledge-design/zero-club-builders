@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { getFirstName, displayName, getLevelFromXp } from "@/lib/utils";
 import { directMessagePreview } from "@/lib/directMessage";
 import { IncomingNotificationCard } from "@/components/IncomingNotificationCard";
+import { PushPrompt } from "@/components/PushPrompt";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -1470,6 +1471,7 @@ function AppLayout() {
             onPost={() => navigate({ to: "/app", search: { create: 1 } })}
           />
         )}
+        <PushPrompt userId={profile?.id} hidden={isChat || pathname.startsWith("/app/settings/notifications")} />
       </div>
       {!isWideWorkspace && (
         <DesktopWorkspaceRail

@@ -42,6 +42,9 @@ serve(async (req) => {
     let title = "Zero Club";
     let body = "You have a new notification.";
     let url = "/app/notifications";
+    // The sender's photo, and a tag so one conversation stays one notification.
+    let icon: string | undefined;
+    let tag: string | undefined;
 
     // If payload is sent from the client directly
     if (payload.profile_id) {
@@ -57,10 +60,11 @@ serve(async (req) => {
       if (actorId) {
         const { data: actor } = await supabase
           .from("profiles")
-          .select("full_name, username")
+          .select("full_name, username, avatar_url")
           .eq("id", actorId)
           .maybeSingle();
         actorName = actor?.full_name || actor?.username || actorName;
+        icon = actor?.avatar_url || undefined;
       }
 
       const actions: Record<string, string> = {
@@ -70,6 +74,7 @@ serve(async (req) => {
         follow: "started following you",
         repost: "reposted your post",
         mention: "mentioned you",
+        club_mention: "tagged you in a club chat",
         build_tagged: "tagged your work for verification",
         game_buzz: "buzzed you into a Zero Game",
         system: "sent you an account update",
@@ -85,6 +90,8 @@ serve(async (req) => {
         ? `/app/profile/${actorId}`
         : notificationType === "game_buzz" && payload.record?.entity_id
           ? `/app/games/${payload.record.entity_id}`
+        : notificationType === "club_mention" && payload.record?.entity_id
+          ? `/app/clubs/chat?clubId=${payload.record.entity_id}`
         : payload.record?.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
           ? `/app/post/${payload.record.entity_id}`
           : "/app/notifications";
@@ -103,10 +110,12 @@ serve(async (req) => {
         url = `/app/chat/${payload.record.sender_id}`;
       } else {
         const senderId = payload.record.sender_id;
-        const { data: sender } = senderId ? await supabase.from("profiles").select("full_name, username").eq("id", senderId).maybeSingle() : { data: null };
+        const { data: sender } = senderId ? await supabase.from("profiles").select("full_name, username, avatar_url").eq("id", senderId).maybeSingle() : { data: null };
         title = sender?.full_name || sender?.username || "New message";
-        body = content.length > 50 ? content.substring(0, 50) + "..." : content;
+        body = content.length > 120 ? content.substring(0, 120) + "…" : content;
         url = `/app/chat/${senderId}`;
+        icon = sender?.avatar_url || undefined;
+        tag = `chat:${senderId}`;
       }
     }
 
@@ -132,10 +141,14 @@ serve(async (req) => {
     }
 
     const notificationType = payload.record?.type || payload.type || "notification";
-    const pushPayload = JSON.stringify({ title, body, url, type: notificationType });
+    const pushPayload = JSON.stringify({ title, body, url, type: notificationType, icon, tag });
     const pushOptions = notificationType === "game_buzz"
       ? { urgency: "high" as const, TTL: 60 }
-      : undefined;
+      : tag
+        // Direct messages: delivered straight away even when the phone is
+        // dozing, the way chat apps are, and kept for a day if it is offline.
+        ? { urgency: "high" as const, TTL: 86400 }
+        : undefined;
     const promises = [];
 
     // Send push notification to all of the user's devices

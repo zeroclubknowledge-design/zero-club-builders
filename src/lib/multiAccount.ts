@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { forgetPushSubscription } from "@/lib/pushSubscription";
 
 export interface SavedAccount {
   id: string;
@@ -136,6 +137,7 @@ export async function prepareAddAccount(destination = "/signin?add_account=true"
 }
 
 export async function logoutCurrentAccount(userId: string) {
+  await forgetPushSubscription(userId);
   removeSavedAccount(userId);
   saveAccounts([]);
   await supabase.auth.signOut({ scope: "local" });

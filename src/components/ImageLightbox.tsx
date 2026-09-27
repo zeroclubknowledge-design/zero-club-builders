@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { X } from "@/components/icons/glyphs";
 
 interface ImageLightboxProps {
   mediaUrls: string[];
@@ -24,14 +23,12 @@ export function ImageLightbox({ mediaUrls, initialIndex, isOpen, onClose }: Imag
         <DialogContent 
           className="max-w-[100vw] w-full h-[100dvh] p-0 border-none bg-transparent shadow-none flex items-center justify-center z-[100] outline-none"
           onInteractOutside={onClose}
+          // One close button: the dialog's own, plain white and large enough
+          // to hit with a thumb. The circled duplicate that sat on top of it
+          // is gone.
+          closeClassName="right-2 top-[calc(0.5rem+env(safe-area-inset-top))] z-[110] grid h-12 w-12 place-items-center rounded-full opacity-100 text-white focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-transparent data-[state=open]:text-white"
+          closeIconClassName="h-8 w-8"
         >
-          <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 z-[110] p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          
           <Carousel 
             opts={{ startIndex: initialIndex, loop: true }}
             className="w-full h-full flex items-center justify-center"

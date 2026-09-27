@@ -163,12 +163,17 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title || "Zero Club", {
       body: payload.body,
-      icon: "/logo.png",
-      badge: "/logo.png",
+      // The sender's photo when the server sends one, the Zero logo otherwise.
+      icon: payload.icon || "/logo.png",
+      // Status-bar glyph: Android draws only its silhouette, so it must be the
+      // monochrome mark — the full-colour logo renders as a white square.
+      badge: "/icons/icon-monochrome-512.png",
       vibrate: payload.type === "game_buzz" ? [250, 80, 250, 80, 400] : [100, 50, 100],
       requireInteraction: payload.type === "game_buzz",
-      tag: payload.type === "game_buzz" ? `zero-game-buzz:${payload.url || ""}` : undefined,
-      renotify: payload.type === "game_buzz",
+      // One notification per conversation that updates as new messages
+      // arrive, like a chat app, instead of a new card for every line.
+      tag: payload.tag || (payload.type === "game_buzz" ? `zero-game-buzz:${payload.url || ""}` : undefined),
+      renotify: Boolean(payload.tag) || payload.type === "game_buzz",
       data: { url: payload.url || "/app" },
       actions: [
         { action: "open", title: payload.type === "game_buzz" ? "Join game" : "Open app" },
