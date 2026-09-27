@@ -392,6 +392,20 @@ const TilePill = ({ name, muted, tutor }: { name: string; muted: boolean; tutor?
   </div>
 );
 
+/*
+ * Player settings for shared screens, created ONCE.
+ *
+ * agora-rtc-react restarts a video whenever the videoPlayerConfig object it
+ * is given changes identity: it stops the track (removing its <video>
+ * element) and plays it again into a fresh one. These used to be written
+ * inline, so every re-render built a new object — and the room re-renders
+ * about five times a second from the speaking indicator. Everyone watching a
+ * shared screen saw it torn down and rebuilt constantly: the black flicker.
+ * Module-level constants never change, so the video plays once and stays.
+ */
+const SCREEN_PLAYER_CONFIG = { fit: "contain", mirror: false } as const;
+const REMOTE_SCREEN_PLAYER_CONFIG = { fit: "contain" } as const;
+
 function LiveRoomContent({ channel, token }: { channel: string; token: string }) {
   const navigate = useNavigate();
   const { data: profile } = useUser();
@@ -1635,13 +1649,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         <div className="grid h-full w-full grid-cols-2 auto-rows-fr gap-2 overflow-auto pb-16 pt-8">
           {isScreenSharing && screenTrack && (
             <div className="relative min-h-0 overflow-hidden bg-black">
-              <LocalVideoTrack track={screenTrack} play className="h-full w-full" videoPlayerConfig={{ fit: "contain", mirror: false }} />
+              <LocalVideoTrack track={screenTrack} play className="h-full w-full" videoPlayerConfig={SCREEN_PLAYER_CONFIG} />
               <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">Your screen</span>
             </div>
           )}
           {remotePresenterUsers.map(user => (
             <div key={user.uid} className="relative min-h-0 overflow-hidden bg-black">
-              {findVideo(user.uid) && <RemoteVideoTrack track={findVideo(user.uid)!} play className="h-full w-full" videoPlayerConfig={{ fit: "contain" }} />}
+              {findVideo(user.uid) && <RemoteVideoTrack track={findVideo(user.uid)!} play className="h-full w-full" videoPlayerConfig={REMOTE_SCREEN_PLAYER_CONFIG} />}
               <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">{userNames[user.uid] || "Presenter"}’s screen</span>
             </div>
           ))}
@@ -1650,14 +1664,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
     // A local share wins on the presenter's own device, regardless of role.
     if (isScreenSharing && screenTrack) {
-      return <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full" videoPlayerConfig={{ fit: "contain", mirror: false }} />;
+      return <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full" videoPlayerConfig={SCREEN_PLAYER_CONFIG} />;
     }
 
     // A remote share wins for tutors and learners alike.
     if (remotePresenterUser) {
       const track = findVideo(remotePresenterUser.uid);
       return track
-        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full" videoPlayerConfig={{ fit: "contain" }} />
+        ? <RemoteVideoTrack track={track} play={true} className="w-full h-full" videoPlayerConfig={REMOTE_SCREEN_PLAYER_CONFIG} />
         : null;
     }
 
