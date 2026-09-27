@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BarChart3, CalendarDays, ChevronLeft, Gift, ShieldCheck, Sparkles, UsersRound } from "@/components/icons/glyphs";
+import { ArrowLeft, ArrowRight, BarChart3, CalendarDays, Gift, Loader2, ShieldCheck, Sparkles, UsersRound } from "@/components/icons/glyphs";
+import { useGoBack } from "@/hooks/useGoBack";
 import { supabase } from "@/lib/supabase";
 import { fallbackClubCapacity, isBootcampCohortClub } from "@/features/membership/plans";
 
@@ -40,19 +41,30 @@ function CreatorWorkspace() {
     retry: false,
   });
 
-  if (isLoading) return <div className="grid min-h-[60vh] place-items-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  if (isLoading) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-canvas">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const isCreator = data?.capacity?.plan_key === "creator";
   if (!isCreator) {
     return (
-      <div className="min-h-screen bg-background px-4 py-12 md:px-8">
-        <div className="mx-auto max-w-[720px] border-y border-border py-14 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-md bg-primary/10 text-primary"><UsersRound className="h-5 w-5 fill-current" /></span>
-          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.13em] text-primary">Creator pathway</p>
-          <h1 className="mt-2 font-display text-[30px] font-semibold tracking-tight">Build your own communities with Creator.</h1>
-          <p className="mx-auto mt-3 max-w-lg text-[12.5px] leading-6 text-muted-foreground">Creator unlocks three permanent Clubs, community management, insight, Creator Rewards eligibility, and six months of premium Club experience for your first Club.</p>
-          <Link to="/app/premium" className="mt-7 inline-flex h-11 items-center gap-2 rounded-md bg-foreground px-5 text-[12px] font-semibold text-background">View Creator plan <ArrowRight className="h-4 w-4" /></Link>
-        </div>
+      <div className="flex min-h-screen flex-col bg-canvas text-foreground">
+        <Header />
+        <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-28 pt-12 text-center md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-10">
+          <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><UsersRound className="h-7 w-7" /></span>
+          <p className="mt-5 text-[12px] font-semibold text-[#a3186f]">Creator pathway</p>
+          <h2 className="mt-1.5 max-w-[380px] font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em]">Build your own communities with Creator</h2>
+          <p className="mt-2.5 max-w-[400px] text-[15px] leading-relaxed text-muted-foreground">
+            Creator unlocks three permanent Clubs, community management, insight, Creator Rewards eligibility, and six months of premium Club experience for your first Club.
+          </p>
+          <Link to="/app/premium" className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition hover:opacity-90">
+            View Creator plan <ArrowRight className="h-4 w-4" />
+          </Link>
+        </main>
       </div>
     );
   }
@@ -61,45 +73,150 @@ function CreatorWorkspace() {
   const memberCount = new Set(data.memberRows.map((member: any) => member.profile_id)).size;
   const benefitEnd = data.profile?.first_club_benefit_expires_at ? new Date(data.profile.first_club_benefit_expires_at) : null;
   const rewardTotal = data.rewards.filter((entry: any) => entry.status === "paid").reduce((sum: number, entry: any) => sum + Number(entry.reward_amount || 0), 0);
+  const stats = [
+    { label: "Active members", value: memberCount.toLocaleString(), Icon: UsersRound },
+    { label: "Messages, 30 days", value: data.messageRows.length.toLocaleString(), Icon: BarChart3 },
+    { label: "Rewards paid", value: rewardTotal.toLocaleString(), Icon: Gift },
+  ];
+  const used = Math.min(1, capacity.permanent_club_count / Math.max(1, capacity.permanent_club_limit));
 
   return (
-    <div className="min-h-screen bg-background pb-20 text-foreground">
-      <header className="sticky top-0 z-30 bg-background/95 px-4 py-3 backdrop-blur-xl md:px-8">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between">
-          <div className="flex items-center gap-3"><Link to="/app" aria-label="Back" className="grid h-9 w-9 place-items-center rounded-md border border-border"><ChevronLeft className="h-4 w-4" /></Link><div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Community operations</p><h1 className="text-[18px] font-semibold tracking-tight">Creator Workspace</h1></div></div>
-          <Link to="/app/clubs" className="inline-flex h-9 items-center gap-2 rounded-md bg-foreground px-3 text-[10.5px] font-semibold text-background">Manage Clubs <ArrowRight className="h-3.5 w-3.5" /></Link>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-canvas text-foreground">
+      <Header
+        action={
+          <Link to="/app/clubs" className="mr-1 flex h-9 shrink-0 items-center rounded-full bg-foreground px-4 text-[14px] font-semibold text-background">
+            Manage clubs
+          </Link>
+        }
+      />
 
-      <main className="mx-auto max-w-[1180px] px-4 py-7 md:px-8 md:py-10">
-        <section className="grid gap-6 border-b border-border pb-8 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">Creator plan</p><h2 className="mt-2 max-w-2xl font-display text-[31px] font-semibold leading-tight tracking-tight md:text-[42px]">Build communities people return to.</h2><p className="mt-3 max-w-xl text-[13px] leading-6 text-muted-foreground">Manage permanent Clubs, understand community health, and keep contribution quality visible.</p></div>
-          <div className="flex items-center gap-3 border-l-2 border-primary pl-4"><div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Permanent Club capacity</p><p className="mt-1 text-[26px] font-semibold tabular-nums">{capacity.permanent_club_count} / {capacity.permanent_club_limit}</p></div></div>
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[14px] font-semibold">Permanent club capacity</p>
+            <p className="font-display text-[20px] font-semibold tabular-nums">
+              {capacity.permanent_club_count}<span className="text-muted-foreground"> / {capacity.permanent_club_limit}</span>
+            </p>
+          </div>
+          <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-foreground/[0.07]">
+            <div className="h-full rounded-full bg-[#cc208f]" style={{ width: `${used * 100}%` }} />
+          </div>
+          <p className="mt-2 text-[13px] text-muted-foreground">{capacity.remaining} {capacity.remaining === 1 ? "club" : "clubs"} remaining on the Creator plan</p>
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {stats.map(({ label, value, Icon }) => (
+              <div key={label} className="rounded-xl border border-foreground/10 p-3">
+                <Icon className="h-[18px] w-[18px] text-[#cc208f]" />
+                <p className="mt-2 font-display text-[22px] font-semibold leading-none tabular-nums">{value}</p>
+                <p className="mt-1 text-[12px] leading-tight text-muted-foreground">{label}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
-        <section className="mt-6 grid gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-3">
-          {[{ label: "Active members", value: memberCount, Icon: UsersRound }, { label: "30-day activity", value: data.messageRows.length, Icon: BarChart3 }, { label: "Rewards paid", value: rewardTotal.toLocaleString(), Icon: Gift }].map((item) => <div key={item.label} className="bg-card p-5"><item.Icon className="h-4 w-4 fill-current text-primary" /><p className="mt-4 text-[25px] font-semibold tracking-tight tabular-nums">{item.value}</p><p className="mt-1 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{item.label}</p></div>)}
+        <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+          <div className="flex items-center justify-between px-4 pb-2 pt-4">
+            <h2 className="font-display text-[18px] font-semibold">Your clubs</h2>
+            <Link to="/app/clubs" className="text-[14px] font-semibold text-[#a3186f]">New club</Link>
+          </div>
+          {data.permanentClubs.length ? (
+            data.permanentClubs.map((club: any) => {
+              const clubMembers = data.memberRows.filter((member: any) => member.club_id === club.id).length;
+              return (
+                <Link
+                  key={club.id}
+                  to="/app/clubs/chat"
+                  search={{ clubId: club.id, showRules: undefined }}
+                  className="flex items-center gap-3 border-t border-border/60 px-4 py-3 hover:bg-foreground/[0.02]"
+                >
+                  <img src={club.logo_url || club.banner_url || "/logo.png"} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" loading="lazy" decoding="async" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[15px] font-semibold">{club.name}</p>
+                    <p className="truncate text-[13px] text-muted-foreground">
+                      {clubMembers} {clubMembers === 1 ? "member" : "members"} · {club.continuity_mode ? "Continuity mode" : "Active"}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              );
+            })
+          ) : (
+            <div className="border-t border-border/60 px-4 py-10 text-center">
+              <p className="text-[15px] font-semibold">Your first club starts the clock</p>
+              <p className="mx-auto mt-1 max-w-[340px] text-[13px] leading-relaxed text-muted-foreground">Create it when you're ready to use the six-month premium experience.</p>
+              <Link to="/app/clubs" className="mt-4 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">Create your first club</Link>
+            </div>
+          )}
         </section>
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-[1fr_0.72fr]">
-          <div className="border-y border-border py-5">
-            <div className="flex items-center justify-between"><div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Your communities</p><h3 className="mt-1 text-[18px] font-semibold">Permanent Clubs</h3></div><span className="text-[10px] text-muted-foreground">{capacity.remaining} remaining</span></div>
-            <div className="mt-4 divide-y divide-border border-y border-border">
-              {data.permanentClubs.length ? data.permanentClubs.map((club: any) => {
-                const clubMembers = data.memberRows.filter((member: any) => member.club_id === club.id).length;
-                return <Link key={club.id} to="/app/clubs/chat" search={{ clubId: club.id, showRules: undefined }} className="flex items-center gap-3 py-4"><img src={club.logo_url || club.banner_url || "/logo.png"} alt="" className="h-10 w-10 rounded-md object-cover" loading="lazy" decoding="async" /><div className="min-w-0 flex-1"><p className="truncate text-[12.5px] font-semibold">{club.name}</p><p className="mt-0.5 text-[10px] text-muted-foreground">{clubMembers} members · {club.continuity_mode ? "Continuity mode" : "Active"}</p></div><ArrowRight className="h-4 w-4 text-muted-foreground" /></Link>;
-              }) : <div className="py-10 text-center"><p className="text-[12px] font-semibold">Your first Club starts the clock.</p><p className="mt-1 text-[10.5px] text-muted-foreground">Create it when you are ready to use the six-month premium experience.</p><Link to="/app/clubs" className="mt-4 inline-flex text-[11px] font-semibold text-primary">Create your first Club</Link></div>}
+        <section className="bg-[#171217] p-4 text-white md:rounded-xl">
+          <div className="flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-[#f28fd0]"><Sparkles className="h-5 w-5" /></span>
+            <div>
+              <p className="text-[12px] font-semibold text-[#f28fd0]">First club benefit</p>
+              <h3 className="mt-0.5 text-[16px] font-semibold">Six months of premium club experience</h3>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {benefitEnd
+                  ? `Activated once and available until ${benefitEnd.toLocaleDateString()}. Deleting the club does not reset this benefit.`
+                  : "The six-month period starts when you create your first permanent club, not when you subscribe."}
+              </p>
             </div>
           </div>
+        </section>
 
-          <div className="space-y-4">
-            <section className="rounded-md bg-[#171217] p-5 text-white"><Sparkles className="h-5 w-5 fill-[#f28fd0] text-[#f28fd0]" /><p className="mt-4 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#f28fd0]">First Club benefit</p><h3 className="mt-1 text-[17px] font-semibold">Six months of premium Club experience</h3><p className="mt-2 text-[11px] leading-5 text-white/55">{benefitEnd ? `Activated once and available until ${benefitEnd.toLocaleDateString()}. Deleting the Club does not reset this benefit.` : "The six-month period starts when you create your first permanent Club, not when you subscribe."}</p></section>
-            <section className="rounded-md border border-border bg-card p-5"><ShieldCheck className="h-5 w-5 fill-current text-primary" /><p className="mt-4 text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Community continuity</p><p className="mt-2 text-[11px] leading-5 text-muted-foreground">If a paid membership expires, communities and content remain available. Premium management tools can pause after the grace period and return on renewal.</p>{data.subscription?.renewal_date && <p className="mt-3 flex items-center gap-2 text-[10px] font-semibold"><CalendarDays className="h-3.5 w-3.5" /> Renewal {new Date(data.subscription.renewal_date).toLocaleDateString()}</p>}</section>
+        <section className="flex items-start gap-3 bg-card p-4 md:rounded-xl md:border md:border-border">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#1a7f4b]/10 text-[#1a7f4b]"><ShieldCheck className="h-5 w-5" /></span>
+          <div>
+            <p className="text-[15px] font-semibold">Community continuity</p>
+            <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
+              If a paid membership expires, communities and content remain available. Premium management tools can pause after the grace period and return on renewal.
+            </p>
+            {data.subscription?.renewal_date && (
+              <p className="mt-2 flex items-center gap-1.5 text-[13px] font-semibold">
+                <CalendarDays className="h-4 w-4" /> Renews {new Date(data.subscription.renewal_date).toLocaleDateString()}
+              </p>
+            )}
           </div>
         </section>
 
-        <section className="mt-8 border-t border-border pt-6"><div className="flex items-end justify-between gap-4"><div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Creator Rewards</p><h3 className="mt-1 text-[18px] font-semibold">Contribution history</h3><p className="mt-1 text-[10.5px] text-muted-foreground">Rewards are based on quality, activity, retention, and verified value, never Club count alone.</p></div></div><div className="mt-4 overflow-hidden rounded-md border border-border bg-card">{data.rewards.length ? data.rewards.map((entry: any) => <div key={entry.id} className="grid grid-cols-[1fr_auto] gap-4 border-b border-border px-4 py-3 last:border-0"><div><p className="text-[11.5px] font-semibold">Creator score {Number(entry.creator_score || 0).toLocaleString()}</p><p className="mt-0.5 text-[9.5px] text-muted-foreground">{entry.period?.period_start} to {entry.period?.period_end}</p></div><div className="text-right"><p className="text-[11.5px] font-semibold tabular-nums">{Number(entry.reward_amount || 0).toLocaleString()}</p><p className="mt-0.5 text-[9px] capitalize text-muted-foreground">{entry.status}</p></div></div>) : <div className="px-4 py-9 text-center text-[10.5px] text-muted-foreground">Reward periods will appear here once approved by Zero Club.</div>}</div></section>
+        <section className="flex-1 bg-card pb-28 md:flex-none md:overflow-hidden md:rounded-xl md:border md:border-border md:pb-0">
+          <div className="px-4 pb-2 pt-4">
+            <h2 className="font-display text-[18px] font-semibold">Creator Rewards</h2>
+            <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">Based on quality, activity, retention and verified value — never club count alone.</p>
+          </div>
+          {data.rewards.length ? (
+            data.rewards.map((entry: any) => (
+              <div key={entry.id} className="flex items-center gap-3 border-t border-border/60 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-semibold">Creator score {Number(entry.creator_score || 0).toLocaleString()}</p>
+                  <p className="text-[13px] text-muted-foreground">{entry.period?.period_start} to {entry.period?.period_end}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[15px] font-semibold tabular-nums">{Number(entry.reward_amount || 0).toLocaleString()}</p>
+                  <p className={`text-[12px] font-semibold capitalize ${entry.status === "paid" ? "text-[#1a7f4b]" : "text-muted-foreground"}`}>{entry.status}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="border-t border-border/60 px-4 py-9 text-center text-[13px] text-muted-foreground">Reward periods will appear here once approved by Zero Club.</p>
+          )}
+        </section>
       </main>
     </div>
+  );
+}
+
+function Header({ action }: { action?: React.ReactNode }) {
+  const goBack = useGoBack("/app");
+  return (
+    <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <ArrowLeft className="h-[22px] w-[22px]" />
+        </button>
+        <h1 className="flex-1 font-display text-[18px] font-semibold">Creator workspace</h1>
+        {action}
+      </div>
+    </header>
   );
 }

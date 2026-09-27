@@ -1,17 +1,10 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import {
-  Layout, ChevronLeft, Plus, Settings, Users, Hash, UploadCloud,
-  BarChart3, Calendar, DollarSign, GripVertical, MoreHorizontal, Edit3, Trash2,
-  CheckCircle2, ShieldCheck, Check, Play, Clock, Filter, MessageCircle,
-  UserMinus, Star, LayoutGrid, Sparkles, ArrowRight, ChevronDown, Search,
-  BookOpen, Wallet, TrendingUp, Zap, Eye, GraduationCap, Megaphone, Lock, UsersRound,
-  ClipboardList
-} from "@/components/icons/glyphs";
+import { Layout, ChevronLeft, Plus, Settings, Users, Hash, UploadCloud, Calendar, GripVertical, MoreHorizontal, Edit3, Trash2, ShieldCheck, Check, Play, Filter, MessageCircle, UserMinus, Star, ArrowRight, ChevronDown, Search, BookOpen, Wallet, Zap, Eye, Megaphone, UsersRound, ClipboardList, ArrowLeft, Loader2 } from "@/components/icons/glyphs";
 
 import { useState } from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -1460,273 +1453,204 @@ function TutorStudioPage() {
   // ═══════════════════════════════════════════════════════════════
   // DASHBOARD VIEW
   // ═══════════════════════════════════════════════════════════════
+  const kpis = [
+    { label: "Enrollment value", value: format(totalRevenue, { notation: "compact", maximumFractionDigits: 1 }), hint: "From enrollments", Icon: Wallet },
+    { label: "Learners", value: totalLearners.toLocaleString(), hint: "Across all bootcamps", Icon: Users },
+    { label: "Bootcamps", value: bootcamps.length.toLocaleString(), hint: "Published and drafts", Icon: BookOpen },
+    { label: "Active cohorts", value: activeBootcamps.toLocaleString(), hint: `${draftBootcamps} in draft`, Icon: Zap },
+  ];
+  const tools = [
+    { key: "zero-forms" as const, title: "Zero Forms", tag: "Pre-registration", body: "Collect learners and early-bird payments before your bootcamp starts.", Icon: ClipboardList },
+    { key: "operations" as const, title: "Teaching operations", tag: "Admin panel", body: "Cohorts, learner progress, schedules, announcements and assessments.", Icon: UsersRound },
+  ];
+
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* ── Header ────────────────────────── */}
-      <div className="sticky top-0 z-30 w-full bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-medium uppercase text-muted-foreground">Tutor workspace</p>
-            <h1 className="mt-0.5 font-display text-[23px] font-semibold tracking-tight text-foreground md:text-[26px]">Tutor Studio</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/app/tutor-studio/settings"
-              aria-label="Studio settings"
-              className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground tap hover:bg-muted"
-            >
-              <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
-            </Link>
-            <button
-              onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
-              className="flex h-10 items-center gap-2 rounded-lg bg-primary px-3.5 text-[13px] font-semibold text-primary-foreground tap hover:opacity-90 md:px-4"
-            >
-              <Plus className="h-4 w-4" strokeWidth={2.5} />
-              <span className="hidden sm:inline">New bootcamp</span>
-              <span className="sm:hidden">New</span>
-            </button>
-          </div>
+    <div className="flex min-h-screen flex-col bg-canvas text-foreground">
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[1080px] items-center gap-2 px-2 md:px-4">
+          <Link to="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </Link>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Tutor Studio</h1>
+          <Link
+            to="/app/tutor-studio/settings"
+            aria-label="Studio settings"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            <Settings className="h-[20px] w-[20px]" />
+          </Link>
+          <button
+            onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
+            className="mr-1 flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#cc208f] px-3.5 text-[14px] font-semibold text-white tap hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            <span className="hidden sm:inline">New bootcamp</span>
+            <span className="sm:hidden">New</span>
+          </button>
         </div>
-      </div>
+      </header>
 
-      <div className="mx-auto mt-5 max-w-[1180px] space-y-6 px-4 md:px-7 md:pb-12">
-        <section className="overflow-hidden rounded-lg bg-[#171218] text-white ring-1 ring-white/[0.06]">
-          <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.4fr_1fr] lg:p-8">
-            <div className="max-w-2xl">
-              <div className="mb-5 grid h-10 w-10 place-items-center rounded-lg bg-[#cc208f] text-white">
-                <GraduationCap className="h-5 w-5" strokeWidth={2.2} />
+      <main className="mx-auto flex w-full max-w-[1080px] flex-1 flex-col gap-2 pt-2 md:px-4 md:pb-8">
+        <section className="bg-card p-4 md:rounded-xl md:border md:border-border md:p-5">
+          <p className="text-[12px] font-semibold text-[#a3186f]">Your teaching business</p>
+          <h2 className="mt-1 font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] md:text-[26px]">
+            Welcome back{profile?.full_name ? `, ${String(profile.full_name).split(" ")[0]}` : ""}
+          </h2>
+          <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Curriculum, learners, pricing, coupons and the community around every cohort, in one studio.</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+            {kpis.map(({ label, value, hint, Icon }) => (
+              <div key={label} className="rounded-xl border border-foreground/10 p-3.5">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Icon className="h-4 w-4" />
+                  <span className="text-[13px] font-semibold">{label}</span>
+                </div>
+                <p className="mt-2 font-display text-[24px] font-semibold leading-none tabular-nums">{value}</p>
+                <p className="mt-1.5 text-[12px] text-muted-foreground">{hint}</p>
               </div>
-              <p className="text-[11px] font-medium uppercase text-white/55">Your teaching business</p>
-              <h2 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[31px]">Build excellent learning experiences.</h2>
-              <p className="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/60">Manage curriculum, learners, pricing, coupons, and the community around every cohort from one studio.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-white/10 ring-1 ring-white/10">
-              <div className="bg-white/[0.04] p-4 sm:p-5">
-                <p className="text-[10px] font-medium uppercase text-white/45">Learners</p>
-                <p className="mt-2 text-[25px] font-semibold tabular-nums">{totalLearners.toLocaleString()}</p>
-              </div>
-              <div className="bg-white/[0.04] p-4 sm:p-5">
-                <p className="text-[10px] font-medium uppercase text-white/45">Active cohorts</p>
-                <p className="mt-2 text-[25px] font-semibold tabular-nums">{activeBootcamps}</p>
-              </div>
-              <div className="col-span-2 bg-white/[0.04] p-4 sm:p-5">
-                <p className="text-[10px] font-medium uppercase text-white/45">Gross enrollment value</p>
-                <p className="mt-2 text-[25px] font-semibold tabular-nums">{format(totalRevenue)}</p>
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* The capacity strip was a full-bleed band with a rule above and below
-            — the one thing on this page that was not a card, which is why it
-            kept its square corners while everything around it rounded. */}
-        {clubCapacity && (
-          <section className="flex flex-col gap-3 rounded-2xl bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-            <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.11em] text-primary">Permanent Club capacity</p>
-              <p className="mt-1 text-[13px] font-semibold">{clubCapacity.permanent_club_count} / {clubCapacity.permanent_club_limit ?? "organisation-specific"} Clubs</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">Temporary Bootcamp cohort Clubs are excluded.</p>
-            </div>
-            <Link to="/app/clubs" className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border px-3 text-[10.5px] font-semibold">Manage Clubs <ArrowRight className="h-3.5 w-3.5" /></Link>
-          </section>
-        )}
-        {/* ── Quick Stats ────────────────────────── */}
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
-            <div className="flex items-center gap-2.5 text-muted-foreground">
-              <Wallet className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase">Enrollment value</span>
-            </div>
-            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{format(totalRevenue, { notation: "compact", maximumFractionDigits: 1 })}</p>
-            <div className="flex items-center gap-1.5 mt-2.5 text-success">
-              <TrendingUp className="h-3 w-3" />
-              <span className="text-[11px] font-medium">From enrollments</span>
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
-            <div className="flex items-center gap-2.5 text-muted-foreground">
-              <Users className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase">Learners</span>
-            </div>
-            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{totalLearners.toLocaleString()}</p>
-            <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
-              <span className="text-[11px] font-medium">Across all bootcamps</span>
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
-            <div className="flex items-center gap-2.5 text-muted-foreground">
-              <BookOpen className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase">Bootcamps</span>
-            </div>
-            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{bootcamps.length}</p>
-            <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
-              <span className="text-[11px] font-medium">Published & drafts</span>
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
-            <div className="flex items-center gap-2.5 text-muted-foreground">
-              <Zap className="h-4 w-4" strokeWidth={1.75} />
-              <span className="text-[11px] font-medium uppercase">Active</span>
-            </div>
-            <p className="mt-3 font-display text-[24px] font-semibold leading-none tabular-nums text-foreground">{activeBootcamps}</p>
-            <div className="flex items-center gap-1.5 mt-2.5 text-muted-foreground">
-              <span className="text-[11px] font-medium">{draftBootcamps} in draft</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Zero Forms: a proper entry point, not a button squeezed
-               beside a count ────────────────────────── */}
-        <button
-          onClick={() => setView("zero-forms")}
-          className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/35 hover:shadow-soft sm:p-5"
-        >
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary sm:h-12 sm:w-12">
-            <ClipboardList className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-[15px] font-semibold tracking-tight">Zero Forms</h3>
-              <span className="rounded-full bg-primary/[0.09] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-primary">
-                Pre-registration
-              </span>
-            </div>
-            <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
-              Collect learners and early-bird payments before your bootcamp starts.
-            </p>
-          </div>
-          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
-        </button>
-
-        <button
-          onClick={() => setView("operations")}
-          className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-all hover:border-primary/35 hover:shadow-soft sm:p-5"
-        >
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary sm:h-12 sm:w-12">
-            <UsersRound className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-[15px] font-semibold tracking-tight">Teaching operations</h3>
-              <span className="rounded-full bg-primary/[0.09] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-primary">Admin panel</span>
-            </div>
-            <p className="mt-1 text-[12px] leading-5 text-muted-foreground">Manage cohorts, learner progress, schedules, announcements, and assessments.</p>
-          </div>
-          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
-        </button>
-
-        {/* ── Bootcamps Grid ────────────────────────── */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-[19px] font-semibold tracking-tight text-foreground">Bootcamps</h2>
-              <p className="mt-1 text-[12px] text-muted-foreground">Select a bootcamp to edit every part of it.</p>
-            </div>
-            <span className="shrink-0 text-[12px] tabular-nums text-muted-foreground">{bootcamps.length} total</span>
-          </div>
-
-          {/* Published vs draft, so a live bootcamp is easy to find. */}
-          <div className="flex flex-wrap gap-1.5">
-            {([
-              ["all", "All", bootcamps.length],
-              ["published", "Published", activeBootcamps],
-              ["draft", "Drafts", draftBootcamps],
-            ] as const).map(([key, label, count]) => (
-              <button
-                key={key}
-                onClick={() => setBootcampFilter(key as any)}
-                className={`h-9 rounded-md border px-3 text-[11.5px] font-semibold transition ${bootcampFilter === key ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
-              >
-                {label} <span className="tabular-nums opacity-70">{count}</span>
-              </button>
             ))}
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {clubCapacity && (
+            <div className="mt-3 flex items-center gap-3 rounded-xl bg-foreground/[0.04] px-3.5 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[14px] font-semibold">
+                  {clubCapacity.permanent_club_count} / {clubCapacity.permanent_club_limit ?? "organisation-specific"} permanent clubs
+                </p>
+                <p className="text-[12px] text-muted-foreground">Temporary bootcamp cohort clubs are excluded.</p>
+              </div>
+              <Link to="/app/clubs" className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-foreground/30 px-3.5 text-[13px] font-semibold">
+                Manage <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          )}
+        </section>
+
+        <div className="flex flex-1 flex-col gap-2 lg:grid lg:flex-none lg:grid-cols-[1fr_320px] lg:items-start">
+          {/* Tools come first on a phone, beside the list on a wide screen. */}
+          <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border lg:order-2">
+            <h2 className="px-4 pb-2 pt-4 font-display text-[18px] font-semibold">Studio tools</h2>
+            {tools.map(({ key, title, tag, body, Icon }) => (
+              <button
+                key={key}
+                onClick={() => setView(key)}
+                className="group flex w-full items-center gap-3 border-t border-border/60 px-4 py-3.5 text-left hover:bg-foreground/[0.02]"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2">
+                    <p className="text-[15px] font-semibold">{title}</p>
+                    <span className="text-[12px] font-semibold text-muted-foreground">{tag}</span>
+                  </div>
+                  <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{body}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ))}
+          </section>
+
+          <section className="flex-1 bg-card pb-28 md:overflow-hidden md:rounded-xl md:border md:border-border md:pb-2 lg:order-1">
+            <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-4">
+              <h2 className="font-display text-[18px] font-semibold">Bootcamps</h2>
+              <span className="text-[13px] tabular-nums text-muted-foreground">{bootcamps.length} total</span>
+            </div>
+
+            {/* Published vs draft, so a live bootcamp is easy to find. */}
+            <div className="flex flex-wrap gap-2 px-4 pb-3">
+              {([
+                ["all", "All", bootcamps.length],
+                ["published", "Published", activeBootcamps],
+                ["draft", "Drafts", draftBootcamps],
+              ] as const).map(([key, label, count]) => (
+                <button
+                  key={key}
+                  onClick={() => setBootcampFilter(key as any)}
+                  className={`h-8 rounded-full px-3.5 text-[14px] font-semibold transition ${bootcampFilter === key ? "bg-foreground text-background" : "border border-foreground/30 text-muted-foreground hover:border-foreground/50"}`}
+                >
+                  {label} <span className="tabular-nums opacity-70">{count}</span>
+                </button>
+              ))}
+            </div>
+
             {bootcampsLoading ? (
-              <div className="sm:col-span-2 xl:col-span-3 rounded-lg border border-border bg-card p-10 text-center text-[13px] text-muted-foreground">Loading your studio...</div>
+              <div className="flex justify-center border-t border-border/60 py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : bootcampsError ? (
-              <div className="sm:col-span-2 xl:col-span-3 rounded-lg border border-destructive/30 bg-destructive/[0.04] p-8 text-center">
-                <p className="text-[13px] font-semibold text-destructive">Your bootcamps could not be loaded</p>
-                <p className="mx-auto mt-1.5 max-w-md text-[11.5px] leading-5 text-muted-foreground">
+              <div className="border-t border-border/60 px-4 py-10 text-center">
+                <p className="text-[15px] font-semibold text-[#e0245e]">Your bootcamps could not be loaded</p>
+                <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-muted-foreground">
                   {(bootcampsError as any)?.message || "Something went wrong. Please try again."}
                 </p>
-                <button onClick={() => refetchBootcamps()} className="mt-4 rounded-md bg-foreground px-4 py-2 text-[12px] font-semibold text-background">
+                <button onClick={() => refetchBootcamps()} className="mt-4 h-10 rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">
                   Try again
                 </button>
               </div>
-            ) : visibleBootcamps.length > 0 ? visibleBootcamps.map((course) => (
-              <div
-                key={course.id}
-                onClick={() => { setActiveBootcampId(course.id); setActiveTab("details"); setView("editor"); }}
-                className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/35 hover:shadow-soft"
-              >
-                {/* Thumbnail */}
-                <div className="relative h-36 w-full overflow-hidden bg-muted">
-                  {course.banner_url && (
-                    <img src={course.banner_url} alt={course.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
-                  )}
-                  {course.creator_id !== profile?.id && (
-                    <div className="absolute top-3 left-3">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary text-primary-foreground shadow-sm uppercase tracking-wide">
-                        Assigned
-                      </span>
-                    </div>
-                  )}
-                  <div className="absolute top-3 right-3">
-                    <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium backdrop-blur-md ${String(course.status || "").toLowerCase() === "active" ? "bg-black/60 text-white ring-1 ring-white/20" :
-                      "bg-black/50 text-white/80 ring-1 ring-white/15"
-                    }`}>
-                      {String(course.status || "").toLowerCase() === "active" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
-                      {course.status}
-                    </span>
+            ) : visibleBootcamps.length > 0 ? visibleBootcamps.map((course) => {
+              const live = String(course.status || "").toLowerCase() === "active";
+              return (
+                <button
+                  key={course.id}
+                  onClick={() => { setActiveBootcampId(course.id); setActiveTab("details"); setView("editor"); }}
+                  className="flex w-full gap-3 border-t border-border/60 px-4 py-3 text-left hover:bg-foreground/[0.02]"
+                >
+                  <div className="h-[72px] w-24 shrink-0 overflow-hidden rounded-[10px] bg-[#221d22]">
+                    {course.banner_url && <img src={course.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
                   </div>
-                </div>
-
-                <div className="flex flex-1 flex-col justify-between p-4">
-                  <div className="mb-4">
-                    <h3 className="text-[15px] font-semibold text-foreground leading-snug tracking-tight">{course.title}</h3>
-                    <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground mt-1.5">
-                      {course.category}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-[12px] font-semibold">
+                      <span className={`flex items-center gap-1 capitalize ${live ? "text-[#1a7f4b]" : "text-muted-foreground"}`}>
+                        {live && <span className="h-1.5 w-1.5 rounded-full bg-[#1a7f4b]" />}
+                        {course.status}
+                      </span>
+                      {course.creator_id !== profile?.id && (
+                        <>
+                          <span aria-hidden className="text-muted-foreground">·</span>
+                          <span className="text-[#a3186f]">Assigned to you</span>
+                        </>
+                      )}
+                    </div>
+                    <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug">{course.title}</h3>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                      <span className="truncate">{course.category}</span>
+                      <span aria-hidden>·</span>
+                      <span className="shrink-0 tabular-nums">{course.enrollments?.[0]?.count || 0} enrolled</span>
+                      <span aria-hidden>·</span>
+                      <span className="shrink-0 font-semibold tabular-nums text-foreground">{format(Number(course.price || 0))}</span>
                     </p>
                   </div>
-
-                  <div className="flex items-center justify-between pt-3.5 border-t hairline">
-                    <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
-                      <UsersRound className="h-3.5 w-3.5" strokeWidth={1.75} />
-                      <span className="tabular-nums">{course.enrollments?.[0]?.count || 0} enrolled</span>
-                    </div>
-                    <span className="text-[13px] font-semibold tracking-tight text-foreground tabular-nums">{format(Number(course.price || 0))}</span>
-                  </div>
-                </div>
-              </div>
-            )) : (
-              <div className="sm:col-span-2 xl:col-span-3 flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-12 text-center">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <BookOpen className="h-6 w-6 text-muted-foreground/60" strokeWidth={1.75} />
-                </div>
-                <h3 className="text-[17px] font-semibold text-foreground mb-1.5 tracking-tight">
+                </button>
+              );
+            }) : (
+              <div className="flex flex-col items-center border-t border-border/60 px-6 py-12 text-center">
+                <span className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
+                  <BookOpen className="h-5 w-5" />
+                </span>
+                <h3 className="font-display text-[18px] font-semibold">
                   {bootcamps.length === 0 ? "No bootcamps yet"
                     : bootcampFilter === "published" ? "No published bootcamps"
                     : "No drafts"}
                 </h3>
-                <p className="text-[13.5px] text-muted-foreground max-w-sm mb-7 leading-relaxed">
+                <p className="mt-1.5 max-w-sm text-[14px] leading-relaxed text-muted-foreground">
                   {bootcamps.length === 0
                     ? "Create your first bootcamp to start sharing your knowledge and earning."
                     : bootcampFilter === "published"
                       ? "Your bootcamps are still drafts. Open one and set its status to Active to publish it."
                       : "Everything you have created is published."}
                 </p>
-                <button
-                  onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
-                  className="rounded-lg bg-primary px-5 py-2.5 text-[13px] font-semibold text-primary-foreground tap hover:opacity-90"
-                >
-                  Create your first bootcamp
-                </button>
+                {bootcamps.length === 0 && (
+                  <button
+                    onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
+                    className="mt-6 h-10 rounded-full bg-foreground px-5 text-[14px] font-semibold text-background tap hover:opacity-90"
+                  >
+                    Create your first bootcamp
+                  </button>
+                )}
               </div>
             )}
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      </main>
     </div>
   );
 }
