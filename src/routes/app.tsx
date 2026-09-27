@@ -1358,7 +1358,7 @@ function AppLayout() {
           </header>
         )}
 
-        {/* Custom Floating Capsule Sidebar */}
+        {/* Sidebar anchored flush to the left edge */}
         {(isSidebarOpen || isSidebarClosing) && (
           <>
             {/* Blurred overlay - closes sidebar on click */}
@@ -1366,9 +1366,9 @@ function AppLayout() {
               className={`fixed inset-0 z-[70] bg-black/50 ${isSidebarClosing ? "animate-out fade-out duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in duration-500 ease-out"}`}
               onClick={handleCloseSidebar}
             />
-            {/* Floating sidebar panel */}
+            {/* Only the exposed right corners are rounded. */}
             <div
-              className={`fixed bottom-3 left-3 top-3 z-[80] flex w-[min(440px,calc(100vw-72px))] flex-col overflow-hidden rounded-xl border border-border/70 bg-background shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
+              className={`fixed bottom-3 left-0 top-3 z-[80] flex w-[min(452px,calc(100vw-60px))] flex-col overflow-hidden rounded-r-xl border border-l-0 border-border/70 bg-background shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
             >
               <SidebarContent
                 profile={profile}
