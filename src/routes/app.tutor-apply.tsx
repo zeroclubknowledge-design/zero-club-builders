@@ -79,6 +79,16 @@ function TutorApplyPage() {
 
   const back = () => (window.history.length > 1 ? router.history.back() : router.navigate({ to: "/app" }));
 
+  // The app's tab bar sits over the form's Continue button, so it's hidden
+  // while applying and comes back once the application is submitted.
+  const submitted = status.data?.application?.status === "pending";
+  useEffect(() => {
+    if (submitted) return;
+    const root = document.documentElement;
+    root.setAttribute("data-zc-focus-flow", "");
+    return () => root.removeAttribute("data-zc-focus-flow");
+  }, [submitted]);
+
   if (status.isLoading || !status.data) {
     return <div className="flex min-h-[80vh] items-center justify-center"><ZeroLoader /></div>;
   }

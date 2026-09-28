@@ -357,12 +357,14 @@ function SignUpPage() {
               screen now opens on the form rather than on two more paragraphs
               about it. */}
           <div className="mb-6 text-center">
-            <Link to="/" className="mx-auto mb-4 inline-flex items-center gap-3 lg:hidden">
+            <Link to="/" className="mx-auto mb-3 flex w-fit items-center gap-3 lg:hidden">
               <img decoding="async" src="/logo.png" alt="Zero Club" className="h-9 w-auto object-contain lg:h-10" />
               <span className="font-display text-xl font-medium text-[#171417] dark:text-white">Zero Club</span>
             </Link>
-            <p className="zc-eyebrow mx-auto">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+            {/* Its own line, and a size smaller, so it sits centred under the
+                logo instead of wrapping beside it on narrow phones. */}
+            <p className="zc-eyebrow mx-auto flex w-fit !gap-1 !px-2.5 !py-[3px] !text-[9.5px] !tracking-[0.1em]">
+              <ShieldCheck className="h-3 w-3 shrink-0" strokeWidth={2} />
               One code, no password
             </p>
           </div>

@@ -1496,3 +1496,10 @@ textarea.zc-apply-input { resize: vertical; }
   to { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .zc-apply-step { animation: none; } }
+
+/* Focused flows (e.g. the Tutor application) hide the floating tab bar. */
+html[data-zc-focus-flow] [data-zc-bottom-nav] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
