@@ -39,6 +39,31 @@ export async function saveAmbassador(input: {
   return data as { ok: boolean; reason?: string };
 }
 
+/** Applying: only an admin can make someone an ambassador. */
+export async function applyAmbassador(input: {
+  location: string;
+  country?: string;
+  bio?: string;
+  motivation: string;
+  links?: string;
+  focus: string[];
+  bootcamps: string[];
+  currency: "NGN" | "GHS" | "USD";
+}) {
+  const { data, error } = await supabase.rpc("zs_apply_ambassador", {
+    p_location: input.location,
+    p_country: input.country ?? null,
+    p_bio: input.bio ?? null,
+    p_motivation: input.motivation,
+    p_links: input.links ?? null,
+    p_focus: input.focus,
+    p_bootcamps: input.bootcamps,
+    p_currency: input.currency,
+  });
+  if (error) throw error;
+  return data as { ok: boolean; reason?: string };
+}
+
 export async function listTasks() {
   const { data, error } = await supabase.rpc("zs_ambassador_tasks");
   if (error) throw error;

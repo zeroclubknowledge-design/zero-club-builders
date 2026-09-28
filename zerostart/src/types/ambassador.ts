@@ -34,6 +34,27 @@ export interface AmbassadorMe {
   tasks_submitted?: number;
   zp_earned?: number;
   level?: AmbassadorLevel;
+  commission_rate?: number;
+  payout_currency?: "NGN" | "GHS" | "USD";
+  /** Only when found is false: the person's latest application, if any. */
+  application?: AmbassadorApplication;
+  default_rate?: number;
+}
+
+export interface AmbassadorApplication {
+  id?: string;
+  status: "none" | "pending" | "approved" | "rejected";
+  location?: string;
+  country?: string | null;
+  bio?: string | null;
+  motivation?: string;
+  links?: string | null;
+  focus?: string[];
+  bootcamps?: string[];
+  payout_currency?: "NGN" | "GHS" | "USD";
+  review_note?: string | null;
+  created_at?: string;
+  reviewed_at?: string | null;
 }
 
 export type TaskStatus = "available" | "submitted" | "approved" | "rejected";

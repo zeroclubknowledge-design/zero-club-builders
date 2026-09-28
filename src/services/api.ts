@@ -188,12 +188,12 @@ export const getPosts = async () => {
     const [{ data: posts, error: postsError }, { data: reposts, error: repostsError }] = await Promise.all([
       supabase
         .from('posts')
-        .select('*, profiles(username, full_name, avatar_url, account_type, tier), quoted_posts:quoted_post_id(*, profiles(username, full_name, avatar_url))')
+        .select('*, profiles(username, full_name, avatar_url, account_type, tier, affiliation), quoted_posts:quoted_post_id(*, profiles(username, full_name, avatar_url))')
         .order('created_at', { ascending: false })
         .limit(50),
       supabase
         .from('reposts')
-        .select('*, posts(*, profiles(username, full_name, avatar_url, account_type, tier)), profiles(username, full_name)')
+        .select('*, posts(*, profiles(username, full_name, avatar_url, account_type, tier, affiliation)), profiles(username, full_name)')
         .order('created_at', { ascending: false })
         .limit(50)
     ]);
@@ -995,7 +995,7 @@ export const searchEverything = async (query: string) => {
   const [posts, bootcamps, profiles, clubs] = await Promise.all([
     supabase
       .from('posts')
-      .select('*, profiles(username, full_name, avatar_url, account_type, tier)')
+      .select('*, profiles(username, full_name, avatar_url, account_type, tier, affiliation)')
       .or(`content.ilike.${q}`)
       .order('created_at', { ascending: false })
       .limit(20),

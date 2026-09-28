@@ -2,9 +2,12 @@ import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/re
 import { AppShell } from "@/components/AppShell";
 import { AmbassadorHome } from "@/screens/AmbassadorHome";
 import { JoinAmbassador } from "@/screens/JoinAmbassador";
-import { AmbassadorRoster } from "@/screens/AmbassadorRoster";
-import { AdminReview } from "@/screens/AdminReview";
 import { SignIn } from "@/screens/SignIn";
+import { Home } from "@/screens/Home";
+import { Campaigns } from "@/screens/Campaigns";
+import { Earnings } from "@/screens/Earnings";
+import { Leaderboard } from "@/screens/Leaderboard";
+import { AdminHub } from "@/screens/admin/AdminHub";
 
 /*
  * ZeroStart is the Zero Ambassador platform.
@@ -28,23 +31,40 @@ const rootRoute = createRootRoute({
 });
 
 const indexRoute = createRoute({
-  getParentRoute: () => rootRoute, path: "/", component: AmbassadorHome,
+  getParentRoute: () => rootRoute, path: "/", component: Home,
+});
+const campaignsRoute = createRoute({
+  getParentRoute: () => rootRoute, path: "/campaigns", component: Campaigns,
+});
+const earningsRoute = createRoute({
+  getParentRoute: () => rootRoute, path: "/earnings", component: Earnings,
+});
+const leaderboardRoute = createRoute({
+  getParentRoute: () => rootRoute, path: "/leaderboard", component: Leaderboard,
+});
+const tasksRoute = createRoute({
+  getParentRoute: () => rootRoute, path: "/tasks", component: AmbassadorHome,
 });
 const joinRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/join", component: JoinAmbassador,
 });
+// Old links to the roster land on the leaderboard.
 const rosterRoute = createRoute({
-  getParentRoute: () => rootRoute, path: "/ambassadors", component: AmbassadorRoster,
+  getParentRoute: () => rootRoute, path: "/ambassadors", component: Leaderboard,
 });
 const signInRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/signin", component: SignIn,
 });
 const adminRoute = createRoute({
-  getParentRoute: () => rootRoute, path: "/admin", component: AdminReview,
+  getParentRoute: () => rootRoute, path: "/admin", component: AdminHub,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  campaignsRoute,
+  earningsRoute,
+  leaderboardRoute,
+  tasksRoute,
   joinRoute,
   rosterRoute,
   signInRoute,

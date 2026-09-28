@@ -11,9 +11,12 @@ import { isTrustedEmail, isUntrustedEmailError, suggestEmailFix, UNTRUSTED_EMAIL
 
 export const Route = createFileRoute("/signup")({
   component: SignUpPage,
-  validateSearch: (search: Record<string, unknown>): { ref?: string; club?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { ref?: string; club?: string; c?: string } => ({
     ref: (search.ref as string) || undefined,
     club: (search.club as string) || undefined,
+    // A Zero Ambassador's campaign code (ZeroStart). Kept until the new
+    // member's first signed-in visit, where it is credited to the ambassador.
+    c: typeof search.c === "string" && /^[A-Za-z0-9]{4,12}$/.test(search.c) ? search.c.toUpperCase() : undefined,
   }),
   head: () => ({
     meta: [
@@ -33,7 +36,16 @@ function SignUpPage() {
   // Adopts the theme chosen on the landing page.
   usePublicTheme();
   const router = useRouter();
-  const { ref, club } = useSearch({ from: "/signup" });
+  const { ref, club, c: campaignCode } = useSearch({ from: "/signup" });
+
+  useEffect(() => {
+    if (!campaignCode) return;
+    try {
+      localStorage.setItem("zs_campaign_code", campaignCode);
+    } catch {
+      /* Without storage the signup simply isn't credited to a campaign. */
+    }
+  }, [campaignCode]);
   const [username, setUsername] = useState(() => localStorage.getItem("signup_username") || "");
   const [email, setEmail] = useState(() => localStorage.getItem("signup_email") || "");
   const [referralCode, setReferralCode] = useState(() => localStorage.getItem("signup_ref") || ref || "");

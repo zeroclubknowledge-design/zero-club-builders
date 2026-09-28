@@ -1,3 +1,4 @@
+import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { BadgeCheck, MoreHorizontal, Heart, Loader2, Share2, Copy, Flag, X, BellRing, Play, CheckCircle2, Pen, ArrowLeft, Plus, Rocket } from "@/components/icons/glyphs";
@@ -543,6 +544,11 @@ function ProfileDetail() {
                 <span className="grid h-full w-full place-items-center bg-accent/10">{initials}</span>
               )}
             </button>
+            {/* The ambassador mark sits on the photo's corner, outside the
+                clipped circle so it is never cut off. */}
+            <span className="pointer-events-none absolute -top-14 left-3 h-28 w-28">
+              <AvatarAffiliation profile={profile} size={30} />
+            </span>
 
             <div className="flex h-16 items-center justify-end">
               <span className="flex h-7 items-center gap-1.5 rounded-full border border-border px-2.5 text-[12px] font-semibold text-foreground" title={`${levelProgress.currentXP} of ${levelProgress.maxXP} XP to the next level`}>
@@ -559,7 +565,9 @@ function ProfileDetail() {
               {(profile?.tier === 'Premium' || profile?.tier === 'Premium+') && (
                 <BadgeCheck aria-label={profile.tier} className={`h-5 w-5 shrink-0 fill-current ${profile.tier === 'Premium+' ? 'text-[#e0a800]' : 'text-accent'}`} />
               )}
+              <AffiliationBadge profile={profile} size={19} />
             </div>
+            <AmbassadorChip profile={profile} />
             {profile?.bio ? (
               <div className="mt-1 text-[15px] leading-[1.45] text-foreground">
                 <LinkifiedText text={profile.bio} />

@@ -84,7 +84,7 @@ export function AmbassadorHome() {
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wider text-accent">{me.level}</p>
             <h1 className="mt-1.5 text-[24px] font-bold leading-tight text-ink sm:text-[28px]">
-              Your ambassador work
+              Tasks & initiatives
             </h1>
             <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-ink-muted">
               <MapPin className="h-3.5 w-3.5" /> {me.location}

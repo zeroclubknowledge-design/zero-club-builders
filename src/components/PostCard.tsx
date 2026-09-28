@@ -1,3 +1,4 @@
+import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
@@ -438,12 +439,15 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
 
       <header className="flex items-start gap-2.5 px-4 pt-3">
         <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex min-w-0 flex-1 items-start gap-2.5 tap">
-          <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
-            {post.profiles?.avatar_url ? (
-              <img src={post.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-            ) : (
-              (post.profiles?.full_name || post.profiles?.username || 'U').substring(0, 1).toUpperCase()
-            )}
+          <div className="relative h-12 w-12 shrink-0">
+            <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
+              {post.profiles?.avatar_url ? (
+                <img src={post.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+              ) : (
+                (post.profiles?.full_name || post.profiles?.username || 'U').substring(0, 1).toUpperCase()
+              )}
+            </div>
+            <AvatarAffiliation profile={post.profiles} size={18} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1">
@@ -454,6 +458,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
                   className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === 'Premium+' ? 'text-[#e0a800]' : 'text-accent'}`}
                 />
               )}
+              <AffiliationBadge profile={post.profiles} size={15} />
             </div>
             <p className="truncate text-[13px] leading-snug text-muted-foreground">
               {authorRole}{post.profiles?.username ? ` · @${post.profiles.username}` : ''}

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Compass, LayoutGrid, ShieldCheck, User, UserRound } from "lucide-react";
+import { House, Megaphone, ShieldCheck, Trophy, User, UserRound, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { getZpBalance } from "@/lib/api";
@@ -15,9 +15,11 @@ import { ZpBadge } from "./ui/primitives";
  */
 
 const NAV = [
-  { to: "/", label: "My work", icon: LayoutGrid, exact: true },
-  { to: "/ambassadors", label: "Ambassadors", icon: Compass, exact: false },
-  { to: "/join", label: "My profile", icon: UserRound, exact: false },
+  { to: "/", label: "Home", icon: House, exact: true },
+  { to: "/campaigns", label: "Campaigns", icon: Megaphone, exact: false },
+  { to: "/earnings", label: "Earnings", icon: Wallet, exact: false },
+  { to: "/leaderboard", label: "Leaders", icon: Trophy, exact: false },
+  { to: "/join", label: "Profile", icon: UserRound, exact: false },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -77,12 +79,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   isActive("/admin", false) ? "bg-ink/[0.06] text-ink" : "text-ink-muted hover:text-ink"
                 }`}
               >
-                <ShieldCheck className="h-3.5 w-3.5" /> Review
+                <ShieldCheck className="h-3.5 w-3.5" /> Admin
               </Link>
             )}
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
+            {isAdmin && (
+              <Link to="/admin" aria-label="Admin" className="grid h-9 w-9 place-items-center rounded-full bg-ink/[0.05] text-ink-muted sm:hidden">
+                <ShieldCheck className="h-4 w-4" />
+              </Link>
+            )}
             {zp !== null && <ZpBadge amount={zp} className="hidden sm:inline-flex" />}
             {session ? (
               <button

@@ -774,6 +774,31 @@ function AppLayout() {
 
   const { data: profile, isLoading: profileLoading } = useUser();
 
+  // Credit a ZeroStart ambassador when this member arrived through their
+  // campaign link. The database decides whether it counts (brand-new account,
+  // never self, once per person); the code is dropped after any real answer.
+  useEffect(() => {
+    if (!profile?.id) return;
+    let code: string | null = null;
+    try {
+      code = localStorage.getItem("zs_campaign_code");
+    } catch {
+      return;
+    }
+    if (!code) return;
+    supabase
+      .rpc("zs_attribute_signup", { p_code: code })
+      .then(({ error }) => {
+        if (!error) {
+          try {
+            localStorage.removeItem("zs_campaign_code");
+          } catch {
+            /* nothing to clean up */
+          }
+        }
+      });
+  }, [profile?.id]);
+
   useEffect(() => {
     if (!profile || profile.is_admin || profile.account_status !== "suspended") return;
     toast.error("This account has been suspended. Contact Zero Club support for help.");
