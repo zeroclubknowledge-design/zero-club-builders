@@ -980,7 +980,6 @@ function AppLayout() {
                       .single();
 
                     const senderName = sender?.full_name || sender?.username || "Someone";
-                    const avatarUrl = sender?.avatar_url;
                     const content = message.content || "";
                     const isRequest = content.startsWith("CLUB_REQUEST:");
 
