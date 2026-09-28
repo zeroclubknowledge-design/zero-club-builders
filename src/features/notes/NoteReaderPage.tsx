@@ -7,6 +7,7 @@
  * the reader and everything it pulls in, including the comment drawer, were
  * landing in the entry chunk that every visitor downloads before first paint.
  */
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -147,9 +148,9 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
 
   const handleShare = async () => {
     const url = zeroNoteUrl({ id: note?.id || id, slug: note?.slug });
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({
+        await openShareSheet({
           title: note?.title || "Check out this note on ZeroNotes!",
           url: url,
         });

@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -330,9 +331,9 @@ function BootcampDetail() {
   const isInstitution = bootcamp.profiles?.account_type === "Institution";
   const shareBootcamp = async () => {
     const url = `${window.location.origin}/app/bootcamps/${bootcamp.id}`;
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({ title: bootcamp.title || "Zero Club bootcamp", url });
+        await openShareSheet({ title: bootcamp.title || "Zero Club bootcamp", url });
         return;
       } catch { /* dismissed */ }
     }
@@ -639,9 +640,9 @@ function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
   const label = usesZeroForm ? "Share Zero Form" : "Share bootcamp";
 
   const handleShare = async () => {
-    if (typeof navigator !== "undefined" && navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({ title: bootcamp?.title || "Zero Club bootcamp", url });
+        await openShareSheet({ title: bootcamp?.title || "Zero Club bootcamp", url });
         return;
       } catch { /* dismissed */ }
     }

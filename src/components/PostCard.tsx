@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -390,7 +391,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
     const referralSuffix = currentUser?.referral_code ? `?ref=${currentUser.referral_code}` : '';
     const url = `${window.location.origin}/app/post/${postId}${referralSuffix}`;
     
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
         // Strip HTML tags and Markdown asterisks before sharing
         const tmp = document.createElement("DIV");
@@ -398,7 +399,8 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
         let plainText = tmp.textContent || tmp.innerText || "";
         plainText = plainText.replace(/\*/g, '');
         
-        await navigator.share({
+        await openShareSheet({
+          heading: `Share ${getFirstName(post.profiles) || 'this'}'s post`,
           title: 'Check out this shipped work on Zero Club!',
           text: plainText.substring(0, 100) + (plainText.length > 100 ? '...' : ''),
           url: url,
@@ -571,7 +573,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
 
       <Link to="/app/post/$id" params={{ id: postId }} className="block">
         <div className="px-4 pt-2.5">
-          <div className="line-clamp-3 whitespace-pre-wrap text-[14.5px] leading-[1.5] text-foreground">
+          <div className="line-clamp-3 whitespace-pre-wrap text-[14px] font-normal leading-[1.43] text-foreground/90">
             <LinkifiedText text={displayContent} />
             {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
               <span className="ml-1.5 text-[12px] text-muted-foreground">· edited</span>
@@ -610,7 +612,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
               </div>
               <span className="truncate text-[14px] font-semibold">{post.quoted_posts.profiles?.full_name || post.quoted_posts.profiles?.username}</span>
             </div>
-            <div className="line-clamp-2 text-[14px] leading-[1.45] text-foreground/85">
+            <div className="line-clamp-2 text-[13.5px] leading-[1.43] text-foreground/85">
               <LinkifiedText text={quotedDisplayContent} />
             </div>
             {post.quoted_posts.media_urls?.[0] && (

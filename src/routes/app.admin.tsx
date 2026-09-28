@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ShieldCheck } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/admin")({
   component: AdminLayout,
@@ -42,7 +43,7 @@ function AdminLayout() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
         <div className="grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary"><ShieldCheck className="h-5 w-5" /></div>
-        <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]"><div className="h-full w-1/3 animate-progress rounded-full bg-primary" /></div>
+        <ZeroLoader tone="brand" />
       </div>
     );
   }

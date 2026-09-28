@@ -36,11 +36,13 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
-  /* Inter for reading, Inter Tight for headlines: the neutral, premium type
-     of modern product apps, built for small sizes on phone screens. */
-  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-button: "Inter", system-ui, sans-serif;
+  /* Reading text uses the phone's own typeface, the way LinkedIn and X do:
+     Roboto on Android, SF Pro on iPhone, Segoe UI on Windows. It is what
+     people read all day, it is crisp at 14px, and it costs no download.
+     Headlines use Inter Tight for a little brand character. */
+  --font-display: "Inter Tight", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Fira Sans", Ubuntu, Oxygen, "Oxygen Sans", Cantarell, "Droid Sans", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-button: var(--font-sans);
 }
 
 :root {
@@ -323,7 +325,7 @@
 
 @layer base {
   * { border-color: var(--color-border); }
-  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: clip; width: 100%; position: relative; font-feature-settings: "cv05", "cv08", "calt"; font-optical-sizing: auto; }
+  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: clip; width: 100%; position: relative; font-optical-sizing: auto; }
   body { background-image: var(--gradient-hero); background-attachment: fixed; min-height: 100vh; }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.022em; text-wrap: balance; }
   h1 { letter-spacing: -0.035em; }
@@ -1441,3 +1443,27 @@ html.dark.zc-auth-page body {
   .zc-pop-host { justify-content: flex-end; padding-inline: 20px; top: 16px; }
   .zc-pop { max-width: 380px; }
 }
+
+/* ── Zero Club loader: the mark's eight blocks light up clockwise ─────── */
+.zc-loader-seg {
+  animation: zc-loader-seg 0.96s linear infinite;
+  transform-origin: 50px 50px;
+}
+@keyframes zc-loader-seg {
+  0% { opacity: 1; }
+  12% { opacity: 1; }
+  100% { opacity: 0.14; }
+}
+.zc-loader { animation: zc-loader-breathe 1.92s ease-in-out infinite; }
+@keyframes zc-loader-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.94); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zc-loader { animation: none; }
+  .zc-loader-seg { animation-duration: 2.4s; }
+}
+
+/* Share sheet: the Zero Club mark, large and faint, behind the targets. */
+.zc-share-mark { opacity: 0.07; transform: rotate(14deg); }
+.dark .zc-share-mark { opacity: 0.12; }

@@ -32,6 +32,7 @@ import AgoraRTC, {
   RemoteVideoTrack,
   RemoteAudioTrack,
 } from "agora-rtc-react";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
 const QUESTION_REMINDER_MS = 5 * 60 * 1000;
@@ -304,9 +305,7 @@ export function GlobalLiveRoom() {
         </div>
         <h2 className="text-[19px] font-semibold text-white tracking-tight mt-6">Preparing your classroom</h2>
         <p className="text-[13px] text-white/50 mt-1.5">Connecting to Zero Club Live</p>
-        <div className="mt-6 h-1 w-24 overflow-hidden rounded-full bg-white/[0.08]">
-          <div className="h-full w-1/3 rounded-full bg-[#cc208f] animate-progress" />
-        </div>
+        <ZeroLoader />
       </div>
     );
   }

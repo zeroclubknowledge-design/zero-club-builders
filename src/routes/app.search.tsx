@@ -10,6 +10,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { PostCard } from "@/components/PostCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { displayName } from "@/lib/utils";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/search")({
   validateSearch: (search: Record<string, unknown>): { q?: string } =>
@@ -167,9 +168,7 @@ function SearchPage() {
           </p>
         ) : isFetching && !data ? (
           <div className="mt-2 flex flex-col items-center bg-card py-16 md:rounded-xl">
-            <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-              <div className="h-full w-1/3 rounded-full bg-accent animate-progress" />
-            </div>
+            <ZeroLoader tone="brand" />
             <p className="mt-4 text-[14px] text-muted-foreground">Searching the Club</p>
           </div>
         ) : empty ? (

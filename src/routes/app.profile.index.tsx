@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
@@ -14,6 +15,7 @@ import { useUser } from "@/hooks/useUser";
 import { displayName } from "@/lib/utils";
 import { ProfileExperience } from "@/components/ProfileExperience";
 import { useGoBack } from "@/hooks/useGoBack";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/profile/")({
   component: Profile,
@@ -174,9 +176,10 @@ function Profile() {
     const url = `${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`;
     const text = `Join me on Zero Club and get rewarded with 200 ZP when you complete the referral.`;
     
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({
+        await openShareSheet({
+          heading: 'Invite friends to Zero Club',
           title: `${profile.full_name || profile.username} on Zero Club`,
           text: text,
           url: url,
@@ -203,9 +206,7 @@ function Profile() {
   if (profileLoading && !profile) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
-        <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-          <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
-        </div>
+        <ZeroLoader tone="brand" />
       </div>
     );
   }

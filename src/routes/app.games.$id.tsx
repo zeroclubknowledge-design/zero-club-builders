@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -219,7 +220,7 @@ function ZeroGameCompetitionPage() {
     if (!competition) return;
     const { url, text } = competitionShareDetails();
     try {
-      if (navigator.share) await navigator.share({ title: competition.title, text, url });
+      if (hasShareSheet()) await openShareSheet({ title: competition.title, text, url });
       else { await navigator.clipboard.writeText(`${text}\n\n${url}`); toast.success("Reward invitation copied"); }
     } catch (shareError: any) {
       if (shareError?.name !== "AbortError") toast.error("Could not share this competition");

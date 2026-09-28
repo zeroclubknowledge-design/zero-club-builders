@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { MoreHorizontal, ThumbsUp, Repeat, Send, UserPlus, UserMinus, Loader2, Bookmark, MessageSquare, Mail, Flag, ShieldCheck, Trash2, Link as LinkIcon, VolumeX, Volume2, Pencil, Edit3, Rocket, ArrowLeft, Plus, Quote, BadgeCheck } from "@/components/icons/glyphs";
@@ -692,9 +693,9 @@ function PostDetail() {
 
   const handleShare = async () => {
     const url = window.location.href;
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({ title: 'Check out this build on Zero Club!', url });
+        await openShareSheet({ heading: `Share ${post?.profiles?.full_name || post?.profiles?.username || 'this'}'s post`, title: 'Check out this build on Zero Club!', url });
       } catch (err) {}
     } else {
       await navigator.clipboard.writeText(url);
@@ -912,7 +913,7 @@ function PostDetail() {
               </header>
 
               <div className="px-4 pt-3">
-                <div className="whitespace-pre-wrap text-[15px] leading-[1.55] text-foreground">
+                <div className="whitespace-pre-wrap text-[14px] font-normal leading-[1.43] text-foreground/90">
                   <LinkifiedText text={displayContent || ""} linkColor="text-accent hover:underline" />
                   {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
                     <span className="ml-2 text-[12px] text-muted-foreground">(edited)</span>

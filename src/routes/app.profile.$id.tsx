@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
@@ -408,9 +409,10 @@ function ProfileDetail() {
     const url = `${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`;
     const text = `Check out ${profile.full_name || profile.username}'s builder profile on Zero Club! 🚀`;
     
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({
+        await openShareSheet({
+          heading: `Share ${profile.full_name || profile.username}'s profile`,
           title: `${profile.full_name || profile.username} on Zero Club`,
           text: text,
           url: url,

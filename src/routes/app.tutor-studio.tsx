@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { ArrowLeft, Loader2 } from "@/components/icons/glyphs";
 import { IconPresentation } from "@/components/icons/nav";
 import { switchMode } from "@/lib/modes";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/tutor-studio")({
   component: TutorStudioLayout,
@@ -38,7 +39,7 @@ function TutorStudioLayout() {
   }, [router]);
 
   if (state === "checking") {
-    return <div className="flex min-h-screen flex-col items-center justify-center gap-4"><div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]"><div className="h-full w-1/3 rounded-full bg-primary animate-progress" /></div></div>;
+    return <div className="flex min-h-screen flex-col items-center justify-center gap-4"><ZeroLoader tone="brand" /></div>;
   }
 
   if (state === "switch") {

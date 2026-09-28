@@ -15,6 +15,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
@@ -629,7 +630,7 @@ function TutorStudioPage() {
           {profile?.id ? (
             <LearningOperationsPanel mode="tutor" profileId={profile.id} bootcamps={bootcamps} />
           ) : (
-            <div className="flex min-h-[280px] items-center justify-center"><div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]"><div className="h-full w-1/3 animate-progress rounded-full bg-primary" /></div></div>
+            <div className="flex min-h-[280px] items-center justify-center"><ZeroLoader tone="brand" /></div>
           )}
         </main>
       </div>

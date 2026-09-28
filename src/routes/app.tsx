@@ -44,6 +44,7 @@ import { IncomingNotificationCard, showIncomingPop } from "@/components/Incoming
 import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -431,8 +432,8 @@ type BottomNavProps = {
 
 /* The floating tab bar. Its shape, its fade on scroll and its label type are
    deliberate and fixed; only what sits in the five slots is chosen here. The
-   labels use the app's typeface, Inter. */
-const TAB_BAR_FONT = '"Inter", system-ui, sans-serif';
+   labels use the app's reading typeface. */
+const TAB_BAR_FONT = 'var(--font-sans)';
 
 function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }: BottomNavProps) {
   return (
@@ -1336,10 +1337,7 @@ function AppLayout() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
-        <img src="/logo.png" alt="Zero Club" className="h-10 w-auto opacity-90" loading="lazy" decoding="async" />
-        <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-          <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
-        </div>
+        <ZeroLoader size={56} />
       </div>
     );
   }

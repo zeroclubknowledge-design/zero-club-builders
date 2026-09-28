@@ -15,6 +15,7 @@ import {
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle
 } from "@/components/ui/drawer";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/institution-studio/")({
   component: InstitutionHub,
@@ -393,9 +394,7 @@ function InstitutionHub() {
   if (profileLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-          <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
-        </div>
+        <ZeroLoader tone="brand" />
       </div>
     );
   }

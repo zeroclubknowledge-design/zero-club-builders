@@ -1,3 +1,4 @@
+import { ZeroLoader } from "@/components/ZeroLoader";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
@@ -26,11 +27,14 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
-    defaultPendingMs: 0, 
-    defaultPendingMinMs: 0,
+    defaultPendingMs: 300, // only for loads you would notice; no flash on quick taps
+    defaultPendingMinMs: 400,
     defaultPendingComponent: () => (
-      <div className="fixed top-0 left-0 right-0 z-[100] h-1 overflow-hidden bg-muted">
-        <div className="h-full bg-gradient-to-r from-accent via-[#cc208f] to-secondary animate-progress shadow-[0_0_15px_rgba(204,32,143,0.5)]" />
+      // A small floating Zero Club mark while the next page loads.
+      <div className="pointer-events-none fixed inset-x-0 top-[calc(10px+env(safe-area-inset-top))] z-[100] flex justify-center">
+        <div className="grid h-10 w-10 place-items-center rounded-full bg-card shadow-[0_8px_24px_-10px_rgba(0,0,0,0.45)] ring-1 ring-border/60">
+          <ZeroLoader size={24} />
+        </div>
       </div>
     ),
   });

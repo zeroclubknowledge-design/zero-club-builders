@@ -131,13 +131,11 @@ export async function shareOrCopy(options: {
   copiedMessage?: string;
 }): Promise<void> {
   const { title, text, url, copiedMessage } = options;
-  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-    try {
-      await navigator.share({ title, text, url });
-      return;
-    } catch {
-      /* dismissed or unsupported target */
-    }
+  // Zero Club's own share sheet (it offers the system sheet as one option).
+  if (typeof window !== "undefined") {
+    const { openShareSheet } = await import("@/components/ShareSheet");
+    await openShareSheet({ title, text, url });
+    return;
   }
   await copyToClipboard(url, copiedMessage);
 }

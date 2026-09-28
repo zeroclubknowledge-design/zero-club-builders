@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Search, Edit3, Image as ImageIcon, MoreVertical, Trash2, Share2, X, PenLine } from "@/components/icons/glyphs";
 import { useState, type ReactNode } from 'react';
@@ -85,9 +86,9 @@ function NotesIndexPage() {
   const handleShare = async (e: React.MouseEvent, note: any) => {
     e.preventDefault();
     const url = zeroNoteUrl(note);
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({
+        await openShareSheet({
           title: note.title || 'ZeroNotes',
           text: 'Check out this note on Zero Club!',
           url: url,

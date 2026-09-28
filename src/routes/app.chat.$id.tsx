@@ -1174,7 +1174,7 @@ function ChatViewPage() {
             as two boxes side by side for what is a single action. */}
         <div
           className="flex items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50"
-          style={{ fontFamily: '"Inter", system-ui, sans-serif', "--font-button": '"Inter", system-ui, sans-serif' } as React.CSSProperties}
+          style={{ fontFamily: 'var(--font-sans)', "--font-button": 'var(--font-sans)' } as React.CSSProperties}
         >
           <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
             {currentUserProfile?.avatar_url ? (

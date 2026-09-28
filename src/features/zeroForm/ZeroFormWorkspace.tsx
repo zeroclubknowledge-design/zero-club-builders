@@ -1,3 +1,4 @@
+import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -752,9 +753,9 @@ function ShareButtons({ slug, status, state, bootcampId }: { slug?: string; stat
   };
 
   const share = async () => {
-    if (navigator.share) {
+    if (hasShareSheet()) {
       try {
-        await navigator.share({ title: shareLabel, url });
+        await openShareSheet({ title: shareLabel, url });
         return;
       } catch { /* user dismissed */ }
     }

@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/live/$classId")({
   /*
@@ -94,9 +95,7 @@ function LiveClassEntrypoint() {
   // The actual UI is rendered by <GlobalLiveRoom /> which overlays the entire app.
   return (
     <div className="min-h-screen bg-[#0A0A0C] flex flex-col items-center justify-center gap-4">
-      <div className="h-1 w-24 overflow-hidden rounded-full bg-white/[0.08]">
-        <div className="h-full w-1/3 rounded-full bg-[#cc208f] animate-progress" />
-      </div>
+      <ZeroLoader />
     </div>
   );
 }

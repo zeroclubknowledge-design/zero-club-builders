@@ -6,6 +6,7 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/tutor-studio/settings")({
   component: TutorSettingsPage,
@@ -66,9 +67,7 @@ function TutorSettingsPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
-        <div className="h-1 w-24 overflow-hidden rounded-full bg-foreground/[0.06]">
-          <div className="h-full w-1/3 rounded-full bg-primary animate-progress" />
-        </div>
+        <ZeroLoader tone="brand" />
       </div>
     );
   }
