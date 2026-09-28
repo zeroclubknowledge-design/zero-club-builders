@@ -122,7 +122,7 @@ function InstitutionPage() {
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-canvas text-foreground">
-      <div className="mx-auto w-full max-w-[680px] md:pt-2">
+      <div className="zc-page-width mx-auto w-full max-w-[680px] md:pt-2">
         {/* The banner sits on its own band now, above the name rather than
             behind it, so busy artwork can never make the type unreadable. */}
         <section className="bg-card pb-4 md:overflow-hidden md:rounded-xl md:border md:border-border">
@@ -193,7 +193,7 @@ function InstitutionPage() {
         </div>
       </div>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col bg-card pb-28 md:mb-6 md:rounded-b-xl md:border md:border-t-0 md:border-border md:pb-2">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col bg-card pb-28 md:mb-6 md:rounded-b-xl md:border md:border-t-0 md:border-border md:pb-2">
         {activeTab === "programmes" && (
           bootcamps.length === 0 ? (
             <p className="px-4 py-12 text-center text-[14px] text-muted-foreground">No programmes are open for enrolment right now.</p>

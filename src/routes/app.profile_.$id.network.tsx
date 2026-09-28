@@ -124,7 +124,7 @@ function ProfileNetwork() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: "/app/profile/$id", params: { id: profile.username || profile.id } })}
             aria-label="Back to profile"
@@ -134,7 +134,7 @@ function ProfileNetwork() {
           </button>
           <h1 className="min-w-0 flex-1 truncate font-display text-[18px] font-semibold text-foreground">{displayName}</h1>
         </div>
-        <div className="mx-auto grid w-full max-w-[680px] grid-cols-3 border-b border-border text-center text-[14px] font-semibold">
+        <div className="zc-page-width mx-auto grid w-full max-w-[680px] grid-cols-3 border-b border-border text-center text-[14px] font-semibold">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -148,7 +148,7 @@ function ProfileNetwork() {
             </button>
           ))}
         </div>
-        <div className="mx-auto w-full max-w-[680px] px-3 py-2.5">
+        <div className="zc-page-width mx-auto w-full max-w-[680px] px-3 py-2.5">
           <label className="flex h-[38px] items-center gap-2 rounded-full bg-foreground/[0.06] px-3">
             <Search className="h-[17px] w-[17px] shrink-0 text-muted-foreground" />
             <input
@@ -161,7 +161,7 @@ function ProfileNetwork() {
         </div>
       </header>
 
-      <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
+      <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
         {activeTab === "following" || activeTab === "followers" ? (
           (activeTab === "following" ? followingLoading : followersLoading) ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>

@@ -385,7 +385,7 @@ function MembershipPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f1e6] text-foreground dark:bg-background">
       <header className="sticky top-0 z-40 bg-[#f6f1e6]/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl dark:bg-background/95">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.05]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
@@ -397,7 +397,7 @@ function MembershipPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-28 pt-2 md:pb-10">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col px-4 pb-28 pt-2 md:pb-10">
         <span className="inline-flex h-[26px] w-fit items-center gap-1.5 rounded-full bg-foreground px-2.5 text-[12px] font-bold tracking-[0.04em] text-[#e9c46a]">
           <Crown className="h-3.5 w-3.5" /> MEMBERSHIP
         </span>

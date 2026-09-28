@@ -540,7 +540,7 @@ export function BootcampForm({
     <div className="flex min-h-screen flex-col bg-background pb-24 text-foreground">
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-50 bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1040px] items-center justify-between">
+        <div className="zc-page-width mx-auto flex max-w-[1040px] items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate({ to: returnTo as any })}
@@ -568,7 +568,7 @@ export function BootcampForm({
 
       {/* ─── Progress Stepper ─── */}
       <div className="border-b hairline px-4 py-4 md:px-7">
-        <div className="relative mx-auto flex max-w-[760px] items-center justify-between">
+        <div className="zc-page-width relative mx-auto flex max-w-[760px] items-center justify-between">
           {/* Tracks */}
           <div className="absolute left-5 right-5 top-4 z-0 h-[2px] -translate-y-1/2">
             <div className="absolute inset-0 bg-foreground/[0.06] rounded-full" />
@@ -609,7 +609,7 @@ export function BootcampForm({
       </div>
 
       {/* ─── Main Content ─── */}
-      <main className="mx-auto w-full max-w-[820px] flex-1 overflow-y-auto px-4 py-7 md:px-7 md:py-9">
+      <main className="zc-page-width mx-auto w-full max-w-[820px] flex-1 overflow-y-auto px-4 py-7 md:px-7 md:py-9">
         {/* ══════════ Step 1 — Basics ══════════ */}
         {step === 1 && (
           <div className="animate-in space-y-7 fade-in slide-in-from-bottom-4 duration-500">
@@ -1298,7 +1298,7 @@ export function BootcampForm({
 
       {/* ─── Footer Controls ─── */}
       <footer className="fixed bottom-0 left-0 right-0 z-50 border-t hairline bg-background/95 px-4 py-3 backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[820px] items-center justify-between">
+        <div className="zc-page-width mx-auto flex max-w-[820px] items-center justify-between">
           <button
             onClick={() => step > 1 && setStep(step - 1)}
             disabled={loading}

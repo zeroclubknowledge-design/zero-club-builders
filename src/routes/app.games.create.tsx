@@ -135,14 +135,14 @@ function CreateZeroGame() {
   return (
     <div className="min-h-screen bg-background pb-28 md:pb-10">
       <header className="sticky top-0 z-40 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1080px] items-center gap-3">
+        <div className="zc-page-width mx-auto flex max-w-[1080px] items-center gap-3">
           <button onClick={() => navigate({ to: "/app/games" })} className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card"><ArrowLeft className="h-4 w-4" /></button>
           <div className="min-w-0 flex-1"><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Zero Games</p><h1 className="truncate text-[18px] font-semibold tracking-tight">Create competition</h1></div>
           <div className="hidden items-center gap-2 text-[11px] font-semibold text-muted-foreground sm:flex"><WalletCards className="h-4 w-4 fill-current" />{format(Number(profile?.coins || 0))}</div>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-[1080px] gap-6 px-4 py-5 md:grid-cols-[minmax(0,1fr)_320px] md:px-7 md:py-8">
+      <main className="zc-page-width mx-auto grid w-full max-w-[1080px] gap-6 px-4 py-5 md:grid-cols-[minmax(0,1fr)_320px] md:px-7 md:py-8">
         <section className="flex flex-col gap-3 rounded-md border border-border bg-card p-4 sm:flex-row sm:items-center md:col-span-2">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground"><Gamepad2 className="h-5 w-5 fill-current" /></span>
           <div className="min-w-0 flex-1"><p className="text-[12px] font-semibold">Prefer playing alone?</p><p className="mt-0.5 text-[10.5px] text-muted-foreground">Solo starts immediately with no lobby, invitations, or winner reward.</p></div>

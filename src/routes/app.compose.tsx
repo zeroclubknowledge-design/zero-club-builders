@@ -424,7 +424,7 @@ function ComposePage() {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-card md:relative md:inset-auto md:z-0 md:min-h-screen">
       <header className="relative z-50 w-full shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)] md:sticky md:top-0">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: "/app" })}
             aria-label="Close"
@@ -458,7 +458,7 @@ function ComposePage() {
           being enough the moment the keyboard opened — the next line of text
           was written behind the toolbar. */}
       <div
-        className="no-scrollbar mx-auto w-full max-w-[680px] flex-1 overflow-y-auto px-4 pt-4"
+        className="zc-page-width no-scrollbar mx-auto w-full max-w-[680px] flex-1 overflow-y-auto px-4 pt-4"
         style={{ paddingBottom: `calc(5.5rem + ${toolbarPinned ? keyboardInset : 0}px)` }}
       >
         <div className="flex items-center gap-2.5">
@@ -661,7 +661,7 @@ function ComposePage() {
         }
         style={toolbarPinned ? { bottom: keyboardInset } : undefined}
       >
-        <div className="mx-auto flex w-full max-w-[680px] items-center gap-0.5 px-2 pt-1.5 text-muted-foreground">
+        <div className="zc-page-width mx-auto flex w-full max-w-[680px] items-center gap-0.5 px-2 pt-1.5 text-muted-foreground">
           <label className="grid h-11 w-11 cursor-pointer place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90" title="Add a photo">
             <ImageIcon className="h-[22px] w-[22px]" />
             <input type="file" className="hidden" accept="image/*" multiple onChange={handleMediaUpload} disabled={uploading} />

@@ -188,7 +188,7 @@ function ChatInboxPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col border-t border-border md:mx-6 md:max-w-[820px]">
+      <div className="zc-page-width flex flex-1 flex-col border-t border-border md:mx-6 md:max-w-[820px]">
         {supportConversation && activeTab === 'All' && !searchQuery && (
           <Link
             to="/app/chat/$id"

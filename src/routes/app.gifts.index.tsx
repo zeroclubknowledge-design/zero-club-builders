@@ -114,7 +114,7 @@ function GiftCardsPage() {
 
   const header = (title: string) => (
     <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+      <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
         <Link to="/app/wallet" aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
           <ArrowLeft className="h-[22px] w-[22px]" />
         </Link>
@@ -134,7 +134,7 @@ function GiftCardsPage() {
     return (
       <div className="flex min-h-screen flex-col bg-canvas">
         {header("Zero Card ready")}
-        <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-4 pb-28 pt-8 text-center md:my-2 md:rounded-xl md:border md:border-border md:pb-8">
+        <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-4 pb-28 pt-8 text-center md:my-2 md:rounded-xl md:border md:border-border md:pb-8">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-[#1a7f4b]/10 text-[#1a7f4b]"><Check className="h-6 w-6" /></span>
           <h2 className="mt-3 font-display text-[24px] font-semibold leading-tight">Your Zero Card is ready</h2>
           <p className="mt-1.5 max-w-md text-[14px] leading-relaxed text-muted-foreground">It can be used for {serviceLabel}. Share the link with the person you chose.</p>
@@ -156,7 +156,7 @@ function GiftCardsPage() {
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       {header("Send a Zero Card")}
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           <div className="mx-auto w-full max-w-[420px]">
             <GiftCardVisual amount={numericAmount} service={service} templateId={templateId} message={message} />

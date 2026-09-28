@@ -224,7 +224,7 @@ function Profile() {
       {/* ═══════════════════════════════════════════
           FROSTED HEADER — Settings + @handle + Edit
          ═══════════════════════════════════════════ */}
-      <header className="fixed left-1/2 top-0 z-50 h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
+      <header className="fixed left-1/2 top-0 z-50 h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-none -translate-x-1/2 bg-background pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
         <div className="relative z-20 flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
             <button 
@@ -284,7 +284,7 @@ function Profile() {
       {/* ═══════════════════════════════════════════════
           HENSOR STYLE HERO CARD
          ═══════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-[900px] px-0 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-6 md:pt-6">
+      <div className="zc-page-width mx-auto max-w-[900px] px-0 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-6 md:pt-6">
         <div className="relative overflow-hidden bg-background sm:rounded-lg sm:border sm:border-border/60">
           {/* Banner */}
           <div className="relative flex h-[180px] w-full items-center justify-center overflow-hidden bg-[#211d21] sm:h-[240px]">
@@ -387,7 +387,7 @@ function Profile() {
       {/* ═══════════════════════════════════════════
           CONTENT TABS
          ═══════════════════════════════════════════ */}
-      <div className="mx-auto mt-5 max-w-[760px] px-4 md:px-0">
+      <div className="zc-page-width mx-auto mt-5 max-w-[760px] px-4 md:px-0">
         <div className="grid grid-cols-4 gap-1 overflow-hidden rounded-lg border border-border/60 bg-card p-1">
           {tabs.map((t) => {
             const active = tab === t;
@@ -411,7 +411,7 @@ function Profile() {
       {/* ═══════════════════════════════════════════
           TAB CONTENT
          ═══════════════════════════════════════════ */}
-      <div className="mx-auto max-w-[760px] px-4 pb-24 pt-4 md:px-0">
+      <div className="zc-page-width mx-auto max-w-[760px] px-4 pb-24 pt-4 md:px-0">
         {tab === "Posts" && (
           <div className="space-y-4">
             {filteredPosts.length > 0 ? (

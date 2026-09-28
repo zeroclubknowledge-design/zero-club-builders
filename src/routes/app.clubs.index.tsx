@@ -623,7 +623,7 @@ function Clubs() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto w-full max-w-[900px] px-4 md:px-6">
+        <div className="zc-page-width mx-auto w-full max-w-[900px] px-4 md:px-6">
           <div className="flex h-14 items-center justify-between gap-2">
             <h1 className="font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">Clubs</h1>
             <div className="flex items-center gap-1">
@@ -679,7 +679,7 @@ function Clubs() {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[900px]">
+      <div className="zc-page-width mx-auto w-full max-w-[900px]">
         <p className="bg-card px-4 py-2.5 text-[13px] text-muted-foreground md:mt-2 md:rounded-xl md:px-6">
           <b className="font-semibold text-foreground">{capacityLabel}</b> · {capacityCaption}
           {(totalOnlineBuilders || 0) > 0 && (

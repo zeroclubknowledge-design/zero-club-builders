@@ -45,13 +45,13 @@ function TutorStudioLayout() {
     return (
       <div className="flex min-h-screen flex-col bg-canvas">
         <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-          <div className="mx-auto flex h-14 w-full max-w-[680px] items-center px-2">
+          <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center px-2">
             <button onClick={() => router.history.back()} aria-label="Back" className="grid h-11 w-10 place-items-center rounded-full tap hover:bg-foreground/[0.04]">
               <ArrowLeft className="h-[22px] w-[22px]" />
             </button>
           </div>
         </header>
-        <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-28 pt-12 text-center md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-10">
+        <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-28 pt-12 text-center md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-10">
           <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><IconPresentation className="h-7 w-7" /></span>
           <h1 className="mt-5 font-display text-[24px] font-semibold leading-tight">Tutor Studio is in Tutor mode</h1>
           <p className="mt-2 max-w-[360px] text-[15px] leading-relaxed text-muted-foreground">

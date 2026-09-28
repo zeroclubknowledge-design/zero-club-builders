@@ -36,9 +36,11 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-sans: "Montserrat", system-ui, sans-serif;
-  --font-button: "Montserrat", system-ui, sans-serif;
+  /* Inter for reading, Inter Tight for headlines: the neutral, premium type
+     of modern product apps, built for small sizes on phone screens. */
+  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-button: "Inter", system-ui, sans-serif;
 }
 
 :root {
@@ -321,9 +323,9 @@
 
 @layer base {
   * { border-color: var(--color-border); }
-  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: clip; width: 100%; position: relative; font-feature-settings: "ss01", "cv11", "ss03"; }
+  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: clip; width: 100%; position: relative; font-feature-settings: "cv05", "cv08", "calt"; font-optical-sizing: auto; }
   body { background-image: var(--gradient-hero); background-attachment: fixed; min-height: 100vh; }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.028em; text-wrap: balance; }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.022em; text-wrap: balance; }
   h1 { letter-spacing: -0.035em; }
   button, .button { font-family: var(--font-button); font-weight: 600; letter-spacing: 0.005em; }
 
@@ -1164,6 +1166,28 @@ body::-webkit-scrollbar { display: none; }
   .zc-content-with-header {
     padding-top: var(--zc-header-h);
   }
+
+  /* Fixed chat panels bypass the app's flex layout. Reset the offsets for
+     sidebars that are hidden in this mode, including loading/error panels. */
+  .zc-chat-panel {
+    left: 0;
+    right: 0;
+    max-width: none;
+    margin-inline: 0;
+    border-inline: 0;
+  }
+}
+
+/* Explicitly marked page containers share one touch-width policy. This is
+   scoped to route content so dialog portals, message bubbles and card copy
+   retain their own sizing. Desktop reading-column limits remain in place. */
+@media (max-width: 767px), (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  .zc-desktop-content .zc-page-width {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin-inline: 0;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -1221,13 +1245,8 @@ body::-webkit-scrollbar { display: none; }
   stroke-width: 1.75;
 }
 
-/* The signed-in app reads in Geist: narrower and calmer than Montserrat at
-   the 13–15px sizes the app lives at. Scoped to the shell, so the public site
-   keeps its type, and so do the sheets and drawers, which open in a portal
-   outside it. The tab bar pins Montserrat on itself. */
+/* One typeface everywhere: the app shell, sheets and drawers all read in Inter. */
 .zc-app-shell {
-  --font-sans: "Geist", system-ui, sans-serif;
-  --font-button: "Geist", system-ui, sans-serif;
   font-family: var(--font-sans);
 }
 

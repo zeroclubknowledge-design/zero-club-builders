@@ -54,7 +54,7 @@ function CreatorWorkspace() {
     return (
       <div className="flex min-h-screen flex-col bg-canvas text-foreground">
         <Header />
-        <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-28 pt-12 text-center md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-10">
+        <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-28 pt-12 text-center md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-10">
           <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><UsersRound className="h-7 w-7" /></span>
           <p className="mt-5 text-[12px] font-semibold text-[#a3186f]">Creator pathway</p>
           <h2 className="mt-1.5 max-w-[380px] font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em]">Build your own communities with Creator</h2>
@@ -90,7 +90,7 @@ function CreatorWorkspace() {
         }
       />
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-[14px] font-semibold">Permanent club capacity</p>
@@ -210,7 +210,7 @@ function Header({ action }: { action?: React.ReactNode }) {
   const goBack = useGoBack("/app");
   return (
     <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+      <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
         <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
           <ArrowLeft className="h-[22px] w-[22px]" />
         </button>

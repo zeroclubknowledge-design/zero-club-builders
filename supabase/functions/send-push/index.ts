@@ -44,6 +44,47 @@ function publicKeyForPrivate(privateKey: string) {
   return ecdh.getPublicKey("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+const clip = (text: string, max = 120) => (text.length > max ? text.substring(0, max).trimEnd() + "…" : text);
+
+/**
+ * Chat content is stored with markers for media, cards and requests. Turn it
+ * into the line a person would expect to read on their lock screen.
+ */
+function readableChat(raw: string) {
+  const content = (raw || "").trim();
+  if (content.startsWith("::ZEROCLUB_CARD::")) {
+    try {
+      const card = JSON.parse(content.slice("::ZEROCLUB_CARD::".length));
+      const kind = card?.type === "announcement" ? "📣" : "📌";
+      return `${kind} ${card?.title || "New update"}${card?.body ? ` — ${card.body}` : ""}`;
+    } catch {
+      return "📌 Shared an update";
+    }
+  }
+  if (content.includes("$$MEDIA$$")) {
+    const text = content.split("$$MEDIA$$")[0].trim();
+    if (text) return text;
+    const media = (content.split("$$MEDIA$$")[1] || "").toLowerCase();
+    if (media.startsWith("image") || /\.(jpe?g|png|gif|webp)/.test(media)) return "📷 Photo";
+    if (media.startsWith("video") || /\.(mp4|webm|mov)/.test(media)) return "🎥 Video";
+    if (media.startsWith("audio") || /\.(mp3|m4a|wav|ogg|aac)/.test(media)) return "🎤 Voice note";
+    return "📎 Attachment";
+  }
+  if (content.startsWith("FUND_LINK:")) return "💸 Sent a wallet fund link";
+  return content.replace(/\s+/g, " ");
+}
+
+type Push = {
+  receivers: string[];
+  title: string;
+  body: string;
+  url: string;
+  icon?: string;
+  tag?: string;
+  type: string;
+  urgent?: boolean;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -75,12 +116,9 @@ serve(async (req) => {
     webPush.setVapidDetails(vapidSubject, publicKeyForPrivate(vapidPrivateKey), vapidPrivateKey);
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Read payload from the trigger/webhook or client request
     const payload = await req.json();
 
-    // Health check for the key pair. Push services reject every message with
-    // "invalid JWT" when the VAPID keys here differ from the public key the
-    // app subscribed phones with (VITE_VAPID_PUBLIC_KEY), so make it visible.
+    // Health check for the key pair.
     if (payload.diagnose) {
       const derived = publicKeyForPrivate(vapidPrivateKey);
       return new Response(JSON.stringify({
@@ -89,35 +127,60 @@ serve(async (req) => {
         pairMatches: derived === vapidPublicKey.trim(),
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
-    
-    let receiverId = payload.record?.receiver_id || payload.record?.recipient_id;
-    let title = "Zero Club";
-    let body = "You have a new notification.";
-    let url = "/app/notifications";
-    // The sender's photo, and a tag so one conversation stays one notification.
-    let icon: string | undefined;
-    let tag: string | undefined;
 
-    // If payload is sent from the client directly
+    const profileOf = async (id?: string | null) => {
+      if (!id) return null;
+      const { data } = await supabase.from("profiles").select("full_name, username, avatar_url").eq("id", id).maybeSingle();
+      return data as { full_name?: string | null; username?: string | null; avatar_url?: string | null } | null;
+    };
+    const nameOf = (p: { full_name?: string | null; username?: string | null } | null, fallback = "Someone") =>
+      p?.full_name || p?.username || fallback;
+
+    const record = payload.record || {};
+    let push: Push | null = null;
+
     if (payload.profile_id) {
-      receiverId = payload.profile_id;
-      title = payload.title || title;
-      body = payload.body || body;
-      url = payload.url || url;
-    } else if (payload.table === "notifications" || payload.record?.recipient_id) {
-      const actorId = payload.record?.actor_id;
-      const notificationType = payload.record?.type || "notification";
-      let actorName = "Someone";
+      // A ready-made push from server code (database triggers, other functions).
+      push = {
+        receivers: [payload.profile_id],
+        title: payload.title || "Zero Club",
+        body: payload.body || "You have a new notification.",
+        url: payload.url || "/app/notifications",
+        icon: payload.icon || undefined,
+        tag: payload.tag || undefined,
+        type: payload.kind || "notification",
+      };
+    } else if (payload.table === "club_messages") {
+      // A message in a club: everyone in the club except the sender.
+      const clubId = record.club_id;
+      const senderId = record.profile_id;
+      const [{ data: club }, sender, { data: members }] = await Promise.all([
+        supabase.from("clubs").select("name, logo_url, creator_id").eq("id", clubId).maybeSingle(),
+        profileOf(senderId),
+        supabase.from("club_members").select("profile_id").eq("club_id", clubId).eq("status", "active"),
+      ]);
+      const receivers = new Set<string>((members || []).map((m: { profile_id: string }) => m.profile_id));
+      if (club?.creator_id) receivers.add(club.creator_id);
+      receivers.delete(senderId);
 
-      if (actorId) {
-        const { data: actor } = await supabase
-          .from("profiles")
-          .select("full_name, username, avatar_url")
-          .eq("id", actorId)
-          .maybeSingle();
-        actorName = actor?.full_name || actor?.username || actorName;
-        icon = actor?.avatar_url || undefined;
-      }
+      const room = record.room_id && record.room_id !== "general" ? ` · #${record.room_id}` : "";
+      const line = readableChat(record.content || "");
+      push = {
+        receivers: [...receivers],
+        title: `${club?.name?.trim() || "Your club"}${room}`,
+        body: clip(`${nameOf(sender)}: ${line}`, 140),
+        url: `/app/clubs/chat?clubId=${clubId}`,
+        icon: club?.logo_url || sender?.avatar_url || undefined,
+        // One notification per club that updates as messages arrive.
+        tag: `club:${clubId}`,
+        type: "club_message",
+        urgent: true,
+      };
+    } else if (payload.table === "notifications" || record.recipient_id) {
+      const actorId = record.actor_id;
+      const notificationType = record.type || "notification";
+      const actor = await profileOf(actorId);
+      const actorName = nameOf(actor);
 
       const actions: Record<string, string> = {
         like: "liked your post",
@@ -132,58 +195,83 @@ serve(async (req) => {
         system: "sent you an account update",
       };
 
-      title = notificationType === "system"
-        ? "Zero Club update"
-        : notificationType === "game_buzz"
-          ? `${actorName} is buzzing you`
-          : actorName;
-      body = payload.record?.content || actions[notificationType] || "You have a new notification.";
-      url = notificationType === "follow"
-        ? `/app/profile/${actorId}`
-        : notificationType === "game_buzz" && payload.record?.entity_id
-          ? `/app/games/${payload.record.entity_id}`
-        : notificationType === "club_mention" && payload.record?.entity_id
-          ? `/app/clubs/chat?clubId=${payload.record.entity_id}`
-        : payload.record?.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
-          ? `/app/post/${payload.record.entity_id}`
-          : "/app/notifications";
-    } else if (payload.record?.content) {
-      // Auto-extract content from messages table trigger
-      const content = payload.record.content;
+      push = {
+        receivers: [record.recipient_id],
+        title: notificationType === "system"
+          ? "Zero Club update"
+          : notificationType === "game_buzz"
+            ? `${actorName} is buzzing you`
+            : actorName,
+        body: record.content || actions[notificationType] || "You have a new notification.",
+        url: notificationType === "follow"
+          ? `/app/profile/${actorId}`
+          : notificationType === "game_buzz" && record.entity_id
+            ? `/app/games/${record.entity_id}`
+            : notificationType === "club_mention" && record.entity_id
+              ? `/app/clubs/chat?clubId=${record.entity_id}`
+              : record.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
+                ? `/app/post/${record.entity_id}`
+                : "/app/notifications",
+        icon: actor?.avatar_url || undefined,
+        type: notificationType,
+        urgent: notificationType === "game_buzz",
+      };
+    } else if (record.content) {
+      // Direct messages (messages table).
+      const content: string = record.content;
+      const senderId = record.sender_id;
+      const sender = await profileOf(senderId);
+
       if (content.startsWith("CLUB_REQUEST:")) {
+        // CLUB_REQUEST:<clubId>:<clubName>:<status>
         const parts = content.split(":");
-        title = "Club Request";
-        body = `Request to join ${parts[2] || "Club"}`;
-        url = "/app/notifications";
-      } else if (content.startsWith("FUND_LINK:")) {
-        const parts = content.split(":");
-        title = "Wallet fund link";
-        body = `${parts.slice(2).join(":") || "A Zero Club member"} sent you a wallet fund link`;
-        url = `/app/chat/${payload.record.sender_id}`;
+        if (parts[parts.length - 1] !== "pending") {
+          return new Response(JSON.stringify({ message: "Not a new request" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+        const clubName = parts.slice(2, -1).join(":").trim() || "your club";
+        push = {
+          receivers: [record.receiver_id],
+          title: "New request to join",
+          body: `${nameOf(sender)} wants to join ${clubName}`,
+          url: "/app/clubs",
+          icon: sender?.avatar_url || undefined,
+          tag: `club-request:${parts[1]}:${senderId}`,
+          type: "club_request",
+          urgent: true,
+        };
+      } else if (content === "DISMISSED_CLUB_REQUEST") {
+        push = null;
       } else {
-        const senderId = payload.record.sender_id;
-        const { data: sender } = senderId ? await supabase.from("profiles").select("full_name, username, avatar_url").eq("id", senderId).maybeSingle() : { data: null };
-        title = sender?.full_name || sender?.username || "New message";
-        body = content.length > 120 ? content.substring(0, 120) + "…" : content;
-        url = `/app/chat/${senderId}`;
-        icon = sender?.avatar_url || undefined;
-        tag = `chat:${senderId}`;
+        push = {
+          receivers: [record.receiver_id],
+          title: nameOf(sender, "New message"),
+          body: clip(readableChat(content)),
+          url: `/app/chat/${senderId}`,
+          icon: sender?.avatar_url || undefined,
+          tag: `chat:${senderId}`,
+          type: "message",
+          urgent: true,
+        };
       }
     }
 
-    if (!receiverId) {
-      throw new Error("Missing receiver_id");
+    if (!push || push.receivers.filter(Boolean).length === 0) {
+      return new Response(JSON.stringify({ message: "Nothing to send" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    // Get the user's push subscriptions
+    // Every device of every receiver, in one query.
     const { data: subscriptions, error } = await supabase
       .from("push_subscriptions")
       .select("*")
-      .eq("profile_id", receiverId);
+      .in("profile_id", push.receivers.filter(Boolean));
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     if (!subscriptions || subscriptions.length === 0) {
       return new Response(JSON.stringify({ message: "No subscriptions found for user" }), {
@@ -192,41 +280,39 @@ serve(async (req) => {
       });
     }
 
-    const notificationType = payload.record?.type || payload.type || "notification";
-    const pushPayload = JSON.stringify({ title, body, url, type: notificationType, icon, tag });
-    const pushOptions = notificationType === "game_buzz"
+    const pushPayload = JSON.stringify({
+      title: push.title,
+      body: push.body,
+      url: push.url,
+      type: push.type,
+      icon: push.icon,
+      tag: push.tag,
+    });
+    const pushOptions = push.type === "game_buzz"
       ? { urgency: "high" as const, TTL: 60 }
-      : tag
-        // Direct messages: delivered straight away even when the phone is
+      : push.urgent
+        // Chats and requests: delivered straight away even when the phone is
         // dozing, the way chat apps are, and kept for a day if it is offline.
         ? { urgency: "high" as const, TTL: 86400 }
         : undefined;
-    const promises = [];
 
-    // Send push notification to all of the user's devices
-    for (const sub of subscriptions) {
-      const pushSubscription = {
-        endpoint: sub.endpoint,
-        keys: {
-          auth: sub.auth_key,
-          p256dh: sub.p256dh_key,
-        },
-      };
+    const results = await Promise.all(subscriptions.map((sub) =>
+      webPush.sendNotification(
+        { endpoint: sub.endpoint, keys: { auth: sub.auth_key, p256dh: sub.p256dh_key } },
+        pushPayload,
+        pushOptions,
+      ).then(() => true).catch(async (err) => {
+        console.error("Error sending push notification:", err?.statusCode, err?.body || err);
+        // If the subscription is no longer valid, delete it
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          await supabase.from("push_subscriptions").delete().eq("id", sub.id);
+        }
+        return false;
+      })
+    ));
 
-      promises.push(
-        webPush.sendNotification(pushSubscription, pushPayload, pushOptions).catch(async (err) => {
-          console.error("Error sending push notification:", err);
-          // If the subscription is no longer valid, delete it
-          if (err.statusCode === 410 || err.statusCode === 404) {
-            await supabase.from("push_subscriptions").delete().eq("id", sub.id);
-          }
-        })
-      );
-    }
-
-    await Promise.all(promises);
-
-    return new Response(JSON.stringify({ message: `Sent push to ${subscriptions.length} devices` }), {
+    const sent = results.filter(Boolean).length;
+    return new Response(JSON.stringify({ message: `Sent push to ${sent} of ${subscriptions.length} devices`, type: push.type }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

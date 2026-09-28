@@ -150,7 +150,7 @@ function NotesIndexPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-canvas selection:bg-foreground selection:text-background">
       <div className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
-        <header className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <header className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: '/app' })}
             aria-label="Back"
@@ -163,7 +163,7 @@ function NotesIndexPage() {
             <PenLine className="h-4 w-4" /> Write
           </Link>
         </header>
-        <div className="mx-auto flex w-full max-w-[680px] gap-6 border-b border-border px-4 text-[14px] font-semibold">
+        <div className="zc-page-width mx-auto flex w-full max-w-[680px] gap-6 border-b border-border px-4 text-[14px] font-semibold">
           {['For you', 'My notes'].map((tab) => (
             <button
               key={tab}
@@ -174,7 +174,7 @@ function NotesIndexPage() {
             </button>
           ))}
         </div>
-        <div className="mx-auto w-full max-w-[680px] px-3 py-2.5">
+        <div className="zc-page-width mx-auto w-full max-w-[680px] px-3 py-2.5">
           <label className="flex h-[38px] w-full items-center gap-2 rounded-full bg-foreground/[0.06] px-3">
             <Search className="h-[17px] w-[17px] shrink-0 text-muted-foreground" />
             <input
@@ -192,7 +192,7 @@ function NotesIndexPage() {
         </div>
       </div>
 
-      <div className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col gap-2 md:mb-6">
+      <div className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col gap-2 md:mb-6">
         {loading ? (
           <div className="flex flex-1 animate-pulse flex-col gap-3 bg-card p-4">
             <div className="h-[150px] w-full rounded-[14px] bg-muted/60" />

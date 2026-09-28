@@ -103,7 +103,7 @@ function TutorSettingsPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3.5 md:px-7">
+        <div className="zc-page-width mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3.5 md:px-7">
           <Link
             to="/app/tutor-studio"
             className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card tap hover:bg-muted"
@@ -117,7 +117,7 @@ function TutorSettingsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1180px] px-4 py-6 md:px-7 md:py-8">
+      <main className="zc-page-width mx-auto max-w-[1180px] px-4 py-6 md:px-7 md:py-8">
         <div className="mb-6 max-w-2xl">
           <h2 className="font-display text-[25px] font-semibold tracking-tight md:text-[30px]">Set up how learners work with you.</h2>
           <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">Manage booking availability, your teaching identity, payouts, notifications, and account protection.</p>

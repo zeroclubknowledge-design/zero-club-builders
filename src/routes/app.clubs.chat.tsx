@@ -1113,7 +1113,7 @@ function ClubChat() {
 
   if (club && isBasic && isExpired) {
     return (
-      <div className="zc-keep-width fixed inset-x-0 z-[100] mx-auto flex h-dvh max-w-md flex-col items-center justify-center bg-background px-6 text-center md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]">
+      <div className="zc-keep-width zc-chat-panel fixed inset-x-0 z-[100] mx-auto flex h-dvh max-w-none flex-col items-center justify-center bg-background px-6 text-center md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]">
         <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-6">
           <ShieldAlert className="w-10 h-10 text-primary" />
         </div>
@@ -1151,7 +1151,7 @@ function ClubChat() {
 
   return (
     <div 
-      className="zc-keep-width fixed inset-x-0 z-40 mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-card md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
+      className="zc-keep-width zc-chat-panel fixed inset-x-0 z-40 mx-auto flex max-w-none flex-col overflow-hidden border-x border-border bg-card md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
       <header className="relative z-50 shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
@@ -2685,7 +2685,7 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
   };
 
   return (
-    <section className="mx-auto w-full min-w-0 max-w-[760px] overflow-hidden">
+    <section className="zc-page-width mx-auto w-full min-w-0 max-w-[760px] overflow-hidden">
       <div className="mb-5 flex flex-col gap-4 border-b border-border pb-5 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">

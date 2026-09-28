@@ -78,7 +78,7 @@ function Bootcamps() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto max-w-[900px] px-4 pb-3 pt-3 md:px-6">
+        <div className="zc-page-width mx-auto max-w-[900px] px-4 pb-3 pt-3 md:px-6">
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">Learn</h1>
           <p className="mt-0.5 text-[14px] text-muted-foreground">Learn with a cohort. Leave with proof.</p>
           <label className="mt-3 flex h-9 w-full items-center gap-2 rounded-lg bg-foreground/[0.05] px-3">
@@ -112,7 +112,7 @@ function Bootcamps() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[900px]">
+      <main className="zc-page-width mx-auto w-full max-w-[900px]">
         <UpcomingRegistrations />
 
         {isLoading ? (

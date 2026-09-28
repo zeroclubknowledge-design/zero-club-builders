@@ -364,7 +364,7 @@ function MetricsPage() {
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-canvas">
       <header className="sticky top-0 z-30 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button type="button" onClick={goBack} className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]" aria-label="Back">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
@@ -374,7 +374,7 @@ function MetricsPage() {
             Live
           </span>
         </div>
-        <div className="mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
+        <div className="zc-page-width mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
           {periodOptions.map((option) => (
             <button
               key={option.value}
@@ -387,7 +387,7 @@ function MetricsPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         <section className={SECTION}>
           <p className="text-[12px] font-semibold text-[#a3186f]">{roleView.eyebrow}</p>
           <h2 className="mt-1 font-display text-[20px] font-semibold leading-tight text-foreground">{roleView.title}</h2>

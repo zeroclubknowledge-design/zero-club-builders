@@ -106,7 +106,7 @@ function SoloGame() {
   return (
     <div className="min-h-screen bg-background pb-10">
       <header className="sticky top-0 z-40 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1180px] items-center gap-3">
+        <div className="zc-page-width mx-auto flex max-w-[1180px] items-center gap-3">
           <Link to="/app/games" className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-card"><ArrowLeft className="h-4 w-4" /></Link>
           <div className="min-w-0 flex-1"><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Solo play</p><h1 className="truncate text-[17px] font-semibold tracking-tight">{getGameName(gameType)}</h1></div>
           <span className="hidden rounded-md border border-border bg-card px-3 py-2 text-[10px] font-semibold text-muted-foreground sm:block">No lobby · No rewards</span>
@@ -114,7 +114,7 @@ function SoloGame() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1180px] px-4 py-5 md:px-7 md:py-7">
+      <main className="zc-page-width mx-auto w-full max-w-[1180px] px-4 py-5 md:px-7 md:py-7">
         <section className="border-b border-border pb-5">
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <div>

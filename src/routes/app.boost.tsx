@@ -22,7 +22,7 @@ function BoostPage() {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col overflow-y-auto bg-canvas md:relative md:inset-auto md:z-0 md:min-h-screen">
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: "/app/compose" })}
             aria-label="Back"
@@ -34,7 +34,7 @@ function BoostPage() {
         </div>
       </header>
 
-      <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-10 text-center md:mb-6 md:rounded-xl md:border md:border-border">
+      <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-10 text-center md:mb-6 md:rounded-xl md:border md:border-border">
         <span className="grid h-[88px] w-[88px] place-items-center rounded-3xl bg-[#cc208f]/10 text-[#cc208f]">
           <Rocket className="h-10 w-10" />
         </span>

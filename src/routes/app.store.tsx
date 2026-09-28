@@ -229,7 +229,7 @@ function StorePage() {
   return (
     <div className="min-h-screen bg-card pb-24 text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[1180px] items-center gap-1 px-2 md:px-5">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[1180px] items-center gap-1 px-2 md:px-5">
           <Link to="/app/wallet" aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </Link>
@@ -245,7 +245,7 @@ function StorePage() {
             Sell
           </Link>
         </div>
-        <div className="mx-auto max-w-[1180px] px-4 pb-3 md:px-6">
+        <div className="zc-page-width mx-auto max-w-[1180px] px-4 pb-3 md:px-6">
           <label className="flex h-9 items-center gap-2 rounded-lg bg-foreground/[0.05] px-3">
             <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
             <input
@@ -273,7 +273,7 @@ function StorePage() {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1180px] px-4 pt-3 md:px-6">
+      <div className="zc-page-width mx-auto w-full max-w-[1180px] px-4 pt-3 md:px-6">
         <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 lg:grid-cols-4">
           {loading ? (
             <div className="col-span-full flex justify-center py-14">

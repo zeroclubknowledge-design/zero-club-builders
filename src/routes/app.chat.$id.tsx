@@ -950,7 +950,7 @@ function ChatViewPage() {
 
   return (
     <div 
-      className="fixed inset-x-0 z-[60] mx-auto flex max-w-md flex-col overflow-hidden border-x border-border bg-card md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
+      className="zc-chat-panel fixed inset-x-0 z-[60] mx-auto flex max-w-none flex-col overflow-hidden border-x border-border bg-card md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
       <header className="flex items-center gap-1 border-b border-border bg-card px-2 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))]">
@@ -1174,7 +1174,7 @@ function ChatViewPage() {
             as two boxes side by side for what is a single action. */}
         <div
           className="flex items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50"
-          style={{ fontFamily: '"Montserrat", system-ui, sans-serif', "--font-button": '"Montserrat", system-ui, sans-serif' } as React.CSSProperties}
+          style={{ fontFamily: '"Inter", system-ui, sans-serif', "--font-button": '"Inter", system-ui, sans-serif' } as React.CSSProperties}
         >
           <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
             {currentUserProfile?.avatar_url ? (

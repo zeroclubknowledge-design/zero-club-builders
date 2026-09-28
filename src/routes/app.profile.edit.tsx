@@ -182,7 +182,7 @@ function EditProfile() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={goBack}
             aria-label="Close"
@@ -203,7 +203,7 @@ function EditProfile() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 md:py-2">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 md:py-2">
         <section className="bg-card pb-4 md:overflow-hidden md:rounded-xl md:border md:border-border">
           <div className="relative h-[110px] w-full overflow-hidden bg-[#221d22] sm:h-[150px]">
             {banner && <img src={banner} className="h-full w-full object-cover" alt="" loading="lazy" decoding="async" />}

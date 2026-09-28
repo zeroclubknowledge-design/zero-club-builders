@@ -306,7 +306,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
           headerHidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >
-        <div className="mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: profile?.id ? "/app/notes" : "/" })}
             aria-label={profile?.id ? "Back to ZeroNotes" : "Back to Zero Club"}
@@ -341,7 +341,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
         onScroll={handleReaderScroll}
         className="flex h-full w-full flex-1 flex-col overflow-y-auto pt-[calc(3.6rem+env(safe-area-inset-top))]"
       >
-        <article className="relative z-10 mx-auto flex w-full max-w-[680px] flex-1 flex-col px-5 pb-10 pt-6">
+        <article className="zc-page-width relative z-10 mx-auto flex w-full max-w-[680px] flex-1 flex-col px-5 pb-10 pt-6">
           <span className="text-[12px] font-semibold text-[#a3186f]">ZeroNotes · {readMinutes} min read</span>
           <h1 className="mt-1.5 font-display text-[28px] font-semibold leading-[1.15] text-foreground md:text-[36px]">
             {note.title}
@@ -438,7 +438,7 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
       </div>
 
       <footer className="shrink-0 border-t border-border bg-card pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2">
-        <div className="mx-auto flex w-full max-w-[680px] items-center gap-1 px-3 text-[14px] font-semibold text-muted-foreground">
+        <div className="zc-page-width mx-auto flex w-full max-w-[680px] items-center gap-1 px-3 text-[14px] font-semibold text-muted-foreground">
           <button
             onClick={handleLike}
             aria-pressed={isLiked}

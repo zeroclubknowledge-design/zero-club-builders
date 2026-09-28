@@ -241,7 +241,7 @@ function MyStorePage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
           <button type="button" onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
@@ -252,7 +252,7 @@ function MyStorePage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+      <main className="zc-page-width mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-[10px] bg-foreground/[0.04] px-1 py-2.5">

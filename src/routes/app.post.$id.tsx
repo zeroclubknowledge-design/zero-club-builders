@@ -776,7 +776,7 @@ function PostDetail() {
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-canvas md:relative md:inset-auto md:z-auto md:h-screen md:min-h-screen">
       <header className="sticky top-0 z-50 shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button onClick={handleBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
@@ -857,7 +857,7 @@ function PostDetail() {
             )}
           </div>
         ) : (
-          <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col animate-in fade-in duration-300">
+          <div className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col animate-in fade-in duration-300">
             <article className="bg-card md:mt-2 md:overflow-hidden md:rounded-xl md:border md:border-border">
               <header className="flex items-start gap-2.5 px-4 pt-3">
                 <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex min-w-0 flex-1 items-start gap-2.5">

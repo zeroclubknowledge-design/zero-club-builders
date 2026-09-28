@@ -270,7 +270,7 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6">
-        <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4">
+        <div className="zc-page-width mx-auto flex max-w-[1500px] items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <Link to="/app" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Link>
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground"><ShieldCheck className="h-[18px] w-[18px]" /></div>
@@ -283,7 +283,7 @@ export function AdminDashboard() {
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-[1500px] lg:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="zc-page-width mx-auto grid w-full max-w-[1500px] lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="no-scrollbar hidden border-r border-border/70 px-3 py-5 lg:sticky lg:top-[61px] lg:flex lg:h-[calc(100vh-61px)] lg:flex-col lg:self-start lg:overflow-y-auto">
           <p className="px-3 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operations</p>
           <nav className="mt-3 space-y-1">{NAV_ITEMS.map(({ id, label, Icon }) => <AdminNavButton key={id} active={activeTab === id} label={label} Icon={Icon} onClick={() => setActiveTab(id)} badge={id === "moderation" ? data.metrics.open_reports : undefined} />)}</nav>

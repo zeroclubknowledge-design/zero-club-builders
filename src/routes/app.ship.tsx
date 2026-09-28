@@ -428,7 +428,7 @@ function ShipPage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: "/app" })}
             aria-label="Close"
@@ -449,7 +449,7 @@ function ShipPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 md:py-2">
+      <div className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 md:py-2">
         <section className={SECTION}>
           <p className="text-[14px] text-muted-foreground">
             {isNewVersion ? "Publish the latest work above the previous release." : "Proof of work — show what you built, how, and with what."}

@@ -157,7 +157,7 @@ function ClubQuizzesPage() {
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-canvas text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: "/app/clubs/chat", search: { clubId } })}
             aria-label="Back to the club"
@@ -178,7 +178,7 @@ function ClubQuizzesPage() {
             </button>
           )}
         </div>
-        <div className="mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
+        <div className="zc-page-width mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
           {([["all", "All"], ["todo", isAdmin ? "Not sat" : "To take"], ["done", "Completed"]] as const).map(([value, label]) => (
             <button
               key={value}
@@ -191,7 +191,7 @@ function ClubQuizzesPage() {
         </div>
       </header>
 
-      <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
+      <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
         {isLoading ? (
           <div className="grid min-h-40 place-items-center">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

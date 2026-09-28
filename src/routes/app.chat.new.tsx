@@ -30,7 +30,7 @@ function NewMessagePage() {
   return (
     <div className="flex min-h-screen flex-col bg-card">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: '/app/chat' })}
             aria-label="Close"
@@ -40,7 +40,7 @@ function NewMessagePage() {
           </button>
           <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">New message</h1>
         </div>
-        <label className="mx-auto flex w-full max-w-[680px] items-center gap-2 border-b border-border px-4 pb-2.5 pt-1">
+        <label className="zc-page-width mx-auto flex w-full max-w-[680px] items-center gap-2 border-b border-border px-4 pb-2.5 pt-1">
           <span className="text-[15px] text-muted-foreground">To:</span>
           <input
             type="text"
@@ -53,7 +53,7 @@ function NewMessagePage() {
         </label>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col pb-10">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col pb-10">
         <h2 className="px-4 pb-1.5 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
           {searchQuery ? "Results" : "Your followers"}{!isLoading && ` · ${filteredFollowers.length}`}
         </h2>

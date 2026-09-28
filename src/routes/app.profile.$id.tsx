@@ -473,7 +473,7 @@ function ProfileDetail() {
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <header className="fixed left-1/2 top-0 z-50 flex h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 items-center gap-1 bg-card px-2 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
+      <header className="fixed left-1/2 top-0 z-50 flex h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-none -translate-x-1/2 items-center gap-1 bg-card px-2 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
         <button onClick={() => navigate({ to: '/app' })} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
           <ArrowLeft className="h-[22px] w-[22px]" />
         </button>
@@ -520,7 +520,7 @@ function ProfileDetail() {
         </Drawer>
       </header>
 
-      <div className="mx-auto w-full max-w-[680px] pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-2">
+      <div className="zc-page-width mx-auto w-full max-w-[680px] pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-2">
         {/* ── Who this is ── */}
         <section className="bg-card pb-4 md:overflow-hidden md:rounded-xl md:border md:border-border">
           <div className="relative h-[104px] w-full overflow-hidden bg-[#221d22] sm:h-[140px]">

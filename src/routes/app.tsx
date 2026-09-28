@@ -431,9 +431,8 @@ type BottomNavProps = {
 
 /* The floating tab bar. Its shape, its fade on scroll and its label type are
    deliberate and fixed; only what sits in the five slots is chosen here. The
-   labels keep Montserrat even though the rest of the app moved on, because the
-   bar is meant to look exactly as it always has. */
-const TAB_BAR_FONT = '"Montserrat", system-ui, sans-serif';
+   labels use the app's typeface, Inter. */
+const TAB_BAR_FONT = '"Inter", system-ui, sans-serif';
 
 function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }: BottomNavProps) {
   return (
@@ -940,6 +939,14 @@ function AppLayout() {
       document.addEventListener("visibilitychange", onVisible);
     }
 
+    // Opening the notifications page marks everything as seen: clear the
+    // badge at once, then recount so the phone's app-icon badge follows.
+    const onNotificationsSeen = () => {
+      setUnreadNotificationsCount(0);
+      refreshBadgesSoon();
+    };
+    window.addEventListener("zc:notifications-seen", onNotificationsSeen);
+
     // Subscribe to realtime messages to instantly trigger badge update
     let pmSub: any, clubSub: any;
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -1058,6 +1065,7 @@ function AppLayout() {
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", onVisible);
       }
+      window.removeEventListener("zc:notifications-seen", onNotificationsSeen);
       if (pmSub) supabase.removeChannel(pmSub);
       if (clubSub) supabase.removeChannel(clubSub);
     };

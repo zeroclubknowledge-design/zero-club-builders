@@ -132,7 +132,7 @@ function ZeroHubPage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
@@ -141,7 +141,7 @@ function ZeroHubPage() {
             <Plus className="h-4 w-4" /> Ship
           </Link>
         </div>
-        <div className="no-scrollbar mx-auto flex w-full max-w-[680px] gap-5 overflow-x-auto border-b border-border px-4 text-[14px] font-semibold">
+        <div className="zc-page-width no-scrollbar mx-auto flex w-full max-w-[680px] gap-5 overflow-x-auto border-b border-border px-4 text-[14px] font-semibold">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -154,7 +154,7 @@ function ZeroHubPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         {view === 'history' ? (
           <>
             <section className="grid grid-cols-3 bg-card py-4 text-center md:rounded-xl md:border md:border-border">

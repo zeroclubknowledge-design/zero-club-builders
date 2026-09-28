@@ -68,6 +68,9 @@ function NotificationsPage() {
 
       if (error) throw error;
       setNotifs(data || []);
+      // Seeing the list counts as reading it, like other social apps: the
+      // badge clears now, while the unread highlights stay for this visit.
+      void markAllSeen(session.user.id);
     } catch (err: any) {
       toast.error("Could not load notifications");
     } finally {
@@ -88,6 +91,7 @@ function NotificationsPage() {
             supabase.from('profiles').select('id, username, full_name, avatar_url').eq('id', notification.actor_id).maybeSingle(),
             supabase.from('profiles').select('id, username, full_name, avatar_url').eq('id', notification.recipient_id).maybeSingle(),
           ]);
+          void markAllSeen(currentUser.id);
           setNotifs((current) => current.some((item) => item.id === notification.id)
             ? current
             : [{ ...notification, actor, recipient }, ...current].slice(0, 100));
@@ -97,6 +101,16 @@ function NotificationsPage() {
 
     return () => { supabase.removeChannel(channel); };
   }, [currentUser?.id]);
+
+  /** Marks everything as read in the database without touching what's on screen. */
+  async function markAllSeen(userId: string) {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('recipient_id', userId)
+      .eq('is_read', false);
+    if (!error) window.dispatchEvent(new Event('zc:notifications-seen'));
+  }
 
   const markAllRead = async () => {
     if (!currentUser) return;
@@ -314,7 +328,7 @@ function NotificationsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-20 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center justify-between px-4">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center justify-between px-4">
           <h1 className="font-display text-[20px] font-semibold text-foreground">Notifications</h1>
           {unreadCount > 0 && activeTab !== 'mentions' && (
             <button onClick={markAllRead} className="flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
@@ -322,7 +336,7 @@ function NotificationsPage() {
             </button>
           )}
         </div>
-        <div className="mx-auto flex w-full max-w-[680px] gap-2 border-b border-border px-4 pb-3">
+        <div className="zc-page-width mx-auto flex w-full max-w-[680px] gap-2 border-b border-border px-4 pb-3">
           {["all", "verified", "mentions"].map((tab) => (
             <button
               key={tab}
@@ -337,7 +351,7 @@ function NotificationsPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-col">
+      <div className="zc-page-width mx-auto flex w-full max-w-[680px] flex-col">
         {activeTab === 'mentions' ? (
           mentionsLoading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -365,7 +379,7 @@ function NotificationsPage() {
       </div>
 
       {(activeTab === 'mentions' ? (!mentionsLoading && (!mentionsFeed || mentionsFeed.length === 0)) : filteredNotifs.length === 0) && (
-        <div className="mx-auto mt-2 flex w-full max-w-[680px] flex-col items-center bg-card px-10 py-20 text-center md:rounded-xl">
+        <div className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-col items-center bg-card px-10 py-20 text-center md:rounded-xl">
           <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
             <BellRing className="h-6 w-6 text-muted-foreground" />
           </div>

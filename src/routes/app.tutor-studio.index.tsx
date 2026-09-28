@@ -601,7 +601,7 @@ function TutorStudioPage() {
             <h1 className="text-[17px] font-semibold tracking-tight">Zero Forms</h1>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[1080px] px-4 py-6 sm:px-6">
+        <main className="zc-page-width mx-auto w-full max-w-[1080px] px-4 py-6 sm:px-6">
           <ZeroFormWorkspace ownerLabel="Tutor Studio" />
         </main>
       </div>
@@ -615,7 +615,7 @@ function TutorStudioPage() {
     return (
       <div className="min-h-screen bg-background pb-24">
         <header className="sticky top-0 z-40 bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-          <div className="mx-auto flex max-w-[1240px] items-center gap-3 px-4 py-3.5 md:px-7">
+          <div className="zc-page-width mx-auto flex max-w-[1240px] items-center gap-3 px-4 py-3.5 md:px-7">
             <button onClick={() => setView("dashboard")} className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-foreground hover:bg-muted">
               <ChevronLeft className="h-[18px] w-[18px]" />
             </button>
@@ -625,7 +625,7 @@ function TutorStudioPage() {
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[1240px] px-4 py-6 md:px-7 md:py-8">
+        <main className="zc-page-width mx-auto w-full max-w-[1240px] px-4 py-6 md:px-7 md:py-8">
           {profile?.id ? (
             <LearningOperationsPanel mode="tutor" profileId={profile.id} bootcamps={bootcamps} />
           ) : (
@@ -1473,7 +1473,7 @@ function TutorStudioPage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[1080px] items-center gap-2 px-2 md:px-4">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[1080px] items-center gap-2 px-2 md:px-4">
           <Link to="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </Link>
@@ -1496,7 +1496,7 @@ function TutorStudioPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[1080px] flex-1 flex-col gap-2 pt-2 md:px-4 md:pb-8">
+      <main className="zc-page-width mx-auto flex w-full max-w-[1080px] flex-1 flex-col gap-2 pt-2 md:px-4 md:pb-8">
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border md:p-5">
           <p className="text-[12px] font-semibold text-[#a3186f]">Your teaching business</p>
           <h2 className="mt-1 font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] md:text-[26px]">

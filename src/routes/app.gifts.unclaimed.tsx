@@ -49,7 +49,7 @@ function UnclaimedGiftsPage() {
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground">
       <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
-        <div className="mx-auto flex max-w-[1080px] items-center justify-between gap-3">
+        <div className="zc-page-width mx-auto flex max-w-[1080px] items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => navigate({ to: "/app/gifts" })}
@@ -72,7 +72,7 @@ function UnclaimedGiftsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1080px] px-4 py-6 md:px-7 md:py-8">
+      <main className="zc-page-width mx-auto max-w-[1080px] px-4 py-6 md:px-7 md:py-8">
         {isLoading ? (
           <div className="grid place-items-center py-24">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

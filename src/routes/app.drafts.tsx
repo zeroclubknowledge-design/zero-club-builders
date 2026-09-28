@@ -64,7 +64,7 @@ function DraftsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
             onClick={() => navigate({ to: "/app" })}
             aria-label="Back"
@@ -79,7 +79,7 @@ function DraftsPage() {
         </div>
       </header>
 
-      <main className="mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
+      <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col bg-card md:mb-6 md:rounded-xl md:border md:border-border">
         {savedDrafts.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-6 py-20 text-center">
             <h2 className="font-display text-[18px] font-semibold">No drafts saved</h2>

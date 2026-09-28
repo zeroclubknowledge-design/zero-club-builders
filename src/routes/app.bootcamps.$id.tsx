@@ -342,7 +342,7 @@ function BootcampDetail() {
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#221d22] md:mx-auto md:mt-2 md:max-w-[680px] md:rounded-t-xl">
+      <div className="zc-page-width relative h-[220px] w-full shrink-0 overflow-hidden bg-[#221d22] md:mx-auto md:mt-2 md:max-w-[680px] md:rounded-t-xl">
         {bootcamp.banner_url ? (
           <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ) : (
@@ -366,7 +366,7 @@ function BootcampDetail() {
         </button>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2">
+      <div className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2">
         <section className="bg-card p-4 md:rounded-b-xl md:border md:border-t-0 md:border-border">
           {bootcamp.category && <span className="text-[12px] font-semibold text-[#a3186f]">{bootcamp.category}</span>}
           <h1 className="mt-1 font-display text-[24px] font-semibold leading-[1.15] text-foreground">{bootcamp.title}</h1>

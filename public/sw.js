@@ -9,7 +9,7 @@
 // Bump whenever navigation or shell behavior changes. Chrome keeps service
 // worker caches longer than ordinary browser tabs, so a stable version here
 // can leave an installed mobile app serving an old shell after a deployment.
-const VERSION = "zc-v5-chrome-navigation";
+const VERSION = "zc-v6-notification-taps";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const IMAGE_CACHE = `${VERSION}-images`;
@@ -196,16 +196,51 @@ self.addEventListener("notificationclick", (event) => {
     );
   }
 
-  event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      const existingClient = clients.find((client) =>
-        client.url.startsWith(self.registration.scope),
-      );
-      if (existingClient) {
-        return existingClient.navigate(targetUrl).then(() => existingClient.focus());
+  /* Open exactly what the notification was about.
+   *
+   * This used to call client.navigate() and only then client.focus(). On
+   * Android the tap's permission to bring the app forward expires while the
+   * page reloads, so focus() failed; and navigate() rejects outright when the
+   * page isn't controlled by this worker — either way the chain stopped and the
+   * tap just left the app wherever it was (or did nothing at all).
+   *
+   * Now: bring the app forward first, while the tap still counts, then ask the
+   * running app to route there itself (instant, no reload). If it doesn't
+   * answer, do a full navigation; if there is no window, open one. */
+  const target = new URL(targetUrl, self.location.origin).href;
+
+  const askAppToRoute = (client) =>
+    new Promise((resolve) => {
+      try {
+        const channel = new MessageChannel();
+        const timer = setTimeout(() => resolve(false), 1500);
+        channel.port1.onmessage = () => {
+          clearTimeout(timer);
+          resolve(true);
+        };
+        client.postMessage({ type: "NOTIFICATION_NAVIGATE", url: target }, [channel.port2]);
+      } catch {
+        resolve(false);
       }
-      return self.clients.openWindow(targetUrl);
-    }),
+    });
+
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const ours = windows.filter((client) => client.url.startsWith(self.registration.scope));
+      const client = ours.find((c) => c.focused) || ours.find((c) => c.visibilityState === "visible") || ours[0];
+
+      if (client) {
+        const focused = await client.focus().catch(() => client);
+        if (await askAppToRoute(focused)) return;
+        try {
+          if (await focused.navigate(target)) return;
+        } catch {
+          /* not controlled by this worker: fall through to a new window */
+        }
+      }
+      await self.clients.openWindow(target);
+    })(),
   );
 });
 

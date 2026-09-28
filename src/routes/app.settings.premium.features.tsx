@@ -41,7 +41,7 @@ function PlanFeatures() {
         <div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Membership</p><h1 className="text-[18px] font-semibold">Current plan features</h1></div>
       </header>
 
-      <main className="mx-auto max-w-[760px] px-4 py-7 sm:px-6">
+      <main className="zc-page-width mx-auto max-w-[760px] px-4 py-7 sm:px-6">
         <section className="border-b border-border pb-7">
           <span className="grid h-11 w-11 place-items-center rounded-md bg-primary/10 text-primary"><UsersRound className="h-5 w-5 fill-current" /></span>
           <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Current plan</p>

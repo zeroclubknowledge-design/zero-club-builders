@@ -84,14 +84,14 @@ function BookmarksPage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <Link to="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </Link>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Saved</h1>
           {bookmarks.length > 0 && <span className="pr-3 text-[13px] text-muted-foreground">{bookmarks.length} saved</span>}
         </div>
-        <div className="mx-auto w-full max-w-[680px] px-3 pb-2">
+        <div className="zc-page-width mx-auto w-full max-w-[680px] px-3 pb-2">
           <label className="flex h-[38px] w-full items-center gap-2 rounded-full bg-foreground/[0.06] px-3">
             <Search className="h-[17px] w-[17px] shrink-0 text-muted-foreground" />
             <input
@@ -107,7 +107,7 @@ function BookmarksPage() {
             )}
           </label>
         </div>
-        <div className="mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
+        <div className="zc-page-width mx-auto flex w-full max-w-[680px] gap-2 px-3 pb-3">
           {([["all", "All"], ["posts", "Posts"], ["ships", "Ships"]] as const).map(([value, label]) => (
             <button
               key={value}
@@ -120,7 +120,7 @@ function BookmarksPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col md:py-2">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col md:py-2">
         {isLoading ? (
           <div className="flex flex-1 justify-center bg-card py-20"><Loader2 className="h-7 w-7 animate-spin text-muted-foreground" /></div>
         ) : visibleBookmarks.length > 0 ? (

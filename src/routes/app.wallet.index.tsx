@@ -213,7 +213,7 @@ function WalletPage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       <header className="sticky top-0 z-20 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 max-w-[680px] items-center gap-1 px-2">
           <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
@@ -224,7 +224,7 @@ function WalletPage() {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[680px]">
+      <div className="zc-page-width mx-auto w-full max-w-[680px]">
         <section className="bg-card px-4 pb-5 pt-1 md:rounded-b-xl">
           {/* The Zero Wallet card as it was designed: dark gradient base, soft
               pink and violet washes for depth, and thick low-opacity rings that

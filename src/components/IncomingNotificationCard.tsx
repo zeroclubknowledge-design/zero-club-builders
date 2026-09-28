@@ -192,9 +192,10 @@ export function IncomingNotificationCard({ recipientId, onReceived, onRead }: In
         { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${recipientId}` },
         ({ new: record }) => {
           const n = record as IncomingNotification;
-          if (!n.is_read) receivedRef.current?.();
-          // Already looking at your notifications: the list updates, no need to pop.
+          // Already looking at your notifications: the page shows it and marks
+          // it seen, so neither pop nor bump the badge.
           if (pathRef.current.startsWith("/app/notifications")) return;
+          if (!n.is_read) receivedRef.current?.();
           if (n.actor_id && n.actor_id === recipientId) return;
 
           const cached = n.actor_id ? actorCacheRef.current.get(n.actor_id) : null;

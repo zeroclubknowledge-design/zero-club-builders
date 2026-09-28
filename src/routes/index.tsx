@@ -1447,7 +1447,7 @@ function Landing() {
   useParallax();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#141118] font-['Montserrat'] text-[#171717] dark:text-white selection:bg-[#cc208f]/20">
+    <div className="min-h-screen bg-white dark:bg-[#141118] font-sans text-[#171717] dark:text-white selection:bg-[#cc208f]/20">
       <Header referralCode={ref} />
       <main>
         {/* The first screen is its own composition now — one viewport, brand

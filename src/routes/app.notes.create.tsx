@@ -613,7 +613,7 @@ function NotesCreatePage() {
           headerHidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >
-        <div className="mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
         <button 
           onClick={() => navigate({ to: '/app/notes' })}
           aria-label="Close"
@@ -676,7 +676,7 @@ function NotesCreatePage() {
       >
         
         {/* Cover Image Area */}
-        <div className="mx-auto max-w-[760px] px-5 pt-4">
+        <div className="zc-page-width mx-auto max-w-[760px] px-5 pt-4">
           <div className={`group relative w-full overflow-hidden rounded-xl transition-colors ${coverPreview ? "aspect-[16/9] bg-muted md:aspect-[21/9]" : "h-[120px] border-[1.5px] border-dashed border-foreground/25 hover:border-foreground/45"}`}>
             {coverPreview ? (
               <>
@@ -705,7 +705,7 @@ function NotesCreatePage() {
         </div>
 
         {/* Editor Area */}
-        <div className="mx-auto max-w-[760px] px-5 pt-6">
+        <div className="zc-page-width mx-auto max-w-[760px] px-5 pt-6">
           <textarea
             value={title}
             onChange={e => {
@@ -906,7 +906,7 @@ function NotesCreatePage() {
           className={`formatting-toolbar fixed inset-x-0 z-50 border-t border-border bg-card animate-in fade-in duration-150 ${keyboardInset > 0 ? '' : showIdlePublish ? 'bottom-[calc(60px+env(safe-area-inset-bottom))]' : 'bottom-0 pb-[env(safe-area-inset-bottom)]'}`}
           style={keyboardInset > 0 ? { bottom: keyboardInset } : undefined}
         >
-          <div className="no-scrollbar mx-auto flex max-w-[760px] items-center gap-0.5 overflow-x-auto px-2 py-1.5 text-muted-foreground">
+          <div className="zc-page-width no-scrollbar mx-auto flex max-w-[760px] items-center gap-0.5 overflow-x-auto px-2 py-1.5 text-muted-foreground">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
@@ -1106,7 +1106,7 @@ function NotesCreatePage() {
 
       {showIdlePublish && !showPublishModal && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] animate-in slide-in-from-bottom-4 fade-in duration-200">
-          <div className="mx-auto flex h-[60px] max-w-[760px] items-center gap-3 px-4">
+          <div className="zc-page-width mx-auto flex h-[60px] max-w-[760px] items-center gap-3 px-4">
             <p className="min-w-0 flex-1 truncate text-[14px] text-muted-foreground">Your note is ready when you are.</p>
             <button
               onClick={() => setShowPublishModal(true)}

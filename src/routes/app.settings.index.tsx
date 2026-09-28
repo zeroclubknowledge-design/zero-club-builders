@@ -122,13 +122,13 @@ function SettingsIndex() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <Link to="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </Link>
           <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">Settings</h1>
         </div>
-        <div className="mx-auto w-full max-w-[680px] px-3 pb-3">
+        <div className="zc-page-width mx-auto w-full max-w-[680px] px-3 pb-3">
           <label className="flex h-[38px] items-center gap-2 rounded-full bg-foreground/[0.06] px-3">
             <Search className="h-[17px] w-[17px] shrink-0 text-muted-foreground" />
             <input
@@ -146,7 +146,7 @@ function SettingsIndex() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+      <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         {!needle && (
           <section className="flex items-center gap-3 bg-card px-4 py-3.5 md:rounded-xl md:border md:border-border">
             <div className="grid h-[52px] w-[52px] shrink-0 place-items-center overflow-hidden rounded-full bg-accent/10 text-[17px] font-semibold text-accent">
