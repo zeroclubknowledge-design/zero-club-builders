@@ -1127,6 +1127,45 @@ body::-webkit-scrollbar { display: none; }
   }
 }
 
+/* Android density overrides can push a portrait phone across desktop width
+   breakpoints. Keep the touch layout fluid instead of reserving side columns.
+   Mouse-driven desktops retain their normal multi-column layout. */
+@media (min-width: 768px) and (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  .zc-app-shell {
+    display: block;
+  }
+
+  .zc-app-main,
+  .zc-app-main:not(.zc-institution-main),
+  .zc-feed-tabs,
+  .zc-feed-content {
+    width: 100%;
+    max-width: none !important;
+    margin-inline: 0;
+    border-inline: 0;
+  }
+
+  .zc-desktop-sidebar,
+  .zc-workspace-rail {
+    display: none;
+  }
+
+  .zc-app-header {
+    position: fixed;
+    height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .zc-mobile-menu,
+  [data-zc-bottom-nav] {
+    display: block !important;
+  }
+
+  .zc-content-with-header {
+    padding-top: var(--zc-header-h);
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
    Cards are elevated, never outlined.
 

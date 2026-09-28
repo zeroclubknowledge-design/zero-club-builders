@@ -565,7 +565,7 @@ function DesktopWorkspaceRail({
       : ["Proof of work", "Learning progress", "Reputation signals"];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[336px] shrink-0 flex-col gap-0 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 xl:flex no-scrollbar">
+    <aside className="zc-workspace-rail sticky top-0 hidden h-screen w-[336px] shrink-0 flex-col gap-0 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 xl:flex no-scrollbar">
       <div className="border-b border-border/60 px-1 pb-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -1330,7 +1330,7 @@ function AppLayout() {
   return (
     <div className="zc-app-shell mx-auto min-h-screen w-full bg-background md:flex md:max-w-none md:justify-center">
       {/* Desktop Sidebar (Left Column) — hidden on admin routes, which have their own sidebar */}
-      <div className={`sticky top-0 z-40 h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-background no-scrollbar ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
+      <div className={`zc-desktop-sidebar sticky top-0 z-40 h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-background no-scrollbar ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
         <SidebarContent
           profile={profile}
           onOpenTheme={() => setIsThemeOpen(true)}
@@ -1353,12 +1353,12 @@ function AppLayout() {
             ref={headerRef}
             /* You, search, messages — the three things you reach for from
                every top-level page. The bell moved to the tab bar as Alerts. */
-            className="fixed left-0 top-0 z-50 flex h-[calc(56px+env(safe-area-inset-top))] w-full min-w-0 translate-y-0 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] md:sticky md:h-[60px] md:pt-0"
+            className="zc-app-header fixed left-0 top-0 z-50 flex h-[calc(56px+env(safe-area-inset-top))] w-full min-w-0 translate-y-0 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] md:sticky md:h-[60px] md:pt-0"
           >
             <button
               onClick={() => setIsSidebarOpen(true)}
               aria-label="Open your menu"
-              className="h-8 w-8 shrink-0 overflow-hidden rounded-full tap md:hidden"
+              className="zc-mobile-menu h-8 w-8 shrink-0 overflow-hidden rounded-full tap md:hidden"
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
@@ -1504,7 +1504,7 @@ function AppLayout() {
         </Drawer>
 
         <div
-          className={`zc-desktop-content ${!hideHeader ? "pt-[var(--zc-header-h)] md:pt-0" : "pt-[env(safe-area-inset-top)]"} pb-0`}
+          className={`zc-desktop-content ${!hideHeader ? "zc-content-with-header pt-[var(--zc-header-h)] md:pt-0" : "pt-[env(safe-area-inset-top)]"} pb-0`}
         >
           <Outlet />
         </div>
