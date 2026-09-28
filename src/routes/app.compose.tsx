@@ -488,50 +488,77 @@ function ComposePage() {
             <EditorContent editor={editor} className="w-full relative z-10 prose dark:prose-invert max-w-none prose-p:my-3 prose-p:leading-relaxed whitespace-pre-wrap" />
           </div>
 
-          {previews.length > 0 && (
-            <div className="mt-3 flex flex-col gap-3">
-               {previews.map((src, i) => {
-                 const isVideo = images[i] ? images[i]?.type.startsWith('video/') : (src.includes('.mp4') || src.includes('.mov') || src.includes('.webm'));
+          {previews.length > 0 && (() => {
+            /* Grouped like X: one image full width, two side by side, three as
+               one tall + two stacked, four as a 2×2 grid. More than four keeps
+               the grid and simply adds rows. It used to stack every image in a
+               single long column. */
+            const count = previews.length;
+            const single = count === 1;
+            const gridClass = single
+              ? ""
+              : count === 2
+                ? "grid grid-cols-2 h-[220px] sm:h-[300px]"
+                : count === 3
+                  ? "grid grid-cols-2 grid-rows-2 h-[280px] sm:h-[360px]"
+                  : count === 4
+                    ? "grid grid-cols-2 grid-rows-2 h-[280px] sm:h-[360px]"
+                    : "grid grid-cols-2 auto-rows-[140px] sm:auto-rows-[180px]";
 
-                 return (
-                   <div key={i} className="relative overflow-hidden rounded-xl bg-foreground/[0.04]">
-                     {isVideo ? (
-                       <video src={src} className="w-full h-auto max-h-[600px] object-contain" muted playsInline controls />
-                     ) : (
-                       <img src={src} className="w-full h-auto max-h-[600px] object-contain" alt="" loading="lazy" decoding="async" />
-                     )}
+            return (
+              <div className={`mt-3 overflow-hidden rounded-2xl ${single ? "" : `${gridClass} gap-0.5`}`}>
+                {previews.map((src, i) => {
+                  const isVideo = images[i] ? images[i]?.type.startsWith('video/') : (src.includes('.mp4') || src.includes('.mov') || src.includes('.webm'));
+                  const tall = count === 3 && i === 0;
 
-                     <button
-                       onClick={() => {
-                         setImages(prev => prev.filter((_, idx) => idx !== i));
-                         setPreviews(prev => prev.filter((_, idx) => idx !== i));
-                       }}
-                       aria-label="Remove"
-                       className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white transition active:scale-90 hover:bg-black/75"
-                     >
-                       <X className="h-4 w-4" />
-                     </button>
-                     {!isVideo && (
-                       <button
-                         onClick={() => setCroppingInfo(i)}
-                         className="absolute bottom-2 left-2 z-10 flex h-8 items-center gap-1.5 rounded-full bg-black/60 px-3 text-[12px] font-semibold text-white transition active:scale-90 hover:bg-black/75"
-                       >
-                         <Crop className="h-3.5 w-3.5" /> Crop
-                       </button>
-                     )}
-                     {isVideo && (
-                       <button
-                         onClick={() => setTrimmingInfo(i)}
-                         className="absolute bottom-2 left-2 z-10 flex h-8 items-center gap-1.5 rounded-full bg-black/60 px-3 text-[12px] font-semibold text-white transition active:scale-90 hover:bg-black/75"
-                       >
-                         <Wand2 className="h-3.5 w-3.5" /> Edit
-                       </button>
-                     )}
-                   </div>
-                 );
-               })}
-            </div>
-          )}
+                  return (
+                    <div
+                      key={i}
+                      className={`relative min-h-0 min-w-0 overflow-hidden bg-foreground/[0.04] ${tall ? "row-span-2" : ""}`}
+                    >
+                      {isVideo ? (
+                        <video
+                          src={src}
+                          className={single ? "h-auto max-h-[600px] w-full object-contain" : "h-full w-full object-cover"}
+                          muted
+                          playsInline
+                          controls={single}
+                        />
+                      ) : (
+                        <img
+                          src={src}
+                          className={single ? "h-auto max-h-[600px] w-full object-contain" : "h-full w-full object-cover"}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
+
+                      <button
+                        onClick={() => {
+                          setImages(prev => prev.filter((_, idx) => idx !== i));
+                          setPreviews(prev => prev.filter((_, idx) => idx !== i));
+                        }}
+                        aria-label="Remove"
+                        className={`absolute right-2 top-2 z-10 grid place-items-center rounded-full bg-black/60 text-white transition active:scale-90 hover:bg-black/75 ${single ? "h-8 w-8" : "h-7 w-7"}`}
+                      >
+                        <X className={single ? "h-4 w-4" : "h-3.5 w-3.5"} />
+                      </button>
+                      <button
+                        onClick={() => (isVideo ? setTrimmingInfo(i) : setCroppingInfo(i))}
+                        aria-label={isVideo ? "Edit video" : "Crop image"}
+                        className={`absolute bottom-2 left-2 z-10 flex h-8 items-center gap-1.5 rounded-full bg-black/60 text-white transition active:scale-90 hover:bg-black/75 ${single ? "px-3 text-[12px] font-semibold" : "w-8 justify-center"}`}
+                      >
+                        {isVideo ? <Wand2 className="h-3.5 w-3.5" /> : <Crop className="h-3.5 w-3.5" />}
+                        {/* Words only when there is room; the grid tiles show the icon alone. */}
+                        {single && (isVideo ? "Edit" : "Crop")}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* Tagging a bootcamp makes this a build post the tutor can verify.
               The picker existed but nothing on the page ever opened it. */}
