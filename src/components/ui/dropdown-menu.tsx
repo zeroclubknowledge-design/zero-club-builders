@@ -6,9 +6,80 @@ import { Check, ChevronRight, Circle } from "@/components/icons/glyphs";
 
 import { cn } from "@/lib/utils";
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+/*
+ * Two changes from Radix's defaults keep the feed scrolling:
+ *
+ * 1. Menus are non-modal. A modal menu locks page scroll and sets
+ *    `pointer-events: none` on <body> while it is open, so a menu that opened
+ *    by accident (or stayed open behind a sheet) froze the whole page.
+ *
+ * 2. On touch screens a menu opens on tap, not on touch-down. Radix opens on
+ *    pointerdown, so a scroll that happened to start on a "Repost" or "…"
+ *    button opened the menu mid-swipe and stopped the scroll dead.
+ */
+type MenuToggle = { open: boolean; setOpen: (open: boolean) => void };
+const MenuToggleContext = React.createContext<MenuToggle | null>(null);
 
-const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
+function DropdownMenu({
+  open: openProp,
+  defaultOpen,
+  onOpenChange,
+  modal = false,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen ?? false);
+  const controlled = openProp !== undefined;
+  const open = controlled ? Boolean(openProp) : uncontrolledOpen;
+  const onOpenChangeRef = React.useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+
+  const setOpen = React.useCallback((next: boolean) => {
+    if (!controlled) setUncontrolledOpen(next);
+    onOpenChangeRef.current?.(next);
+  }, [controlled]);
+
+  const toggle = React.useMemo(() => ({ open, setOpen }), [open, setOpen]);
+
+  return (
+    <MenuToggleContext.Provider value={toggle}>
+      <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen} modal={modal} {...props} />
+    </MenuToggleContext.Provider>
+  );
+}
+
+const DropdownMenuTrigger = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger>
+>(({ onPointerDown, onClick, ...props }, ref) => {
+  const toggle = React.useContext(MenuToggleContext);
+  const touchTap = React.useRef<{ wasOpen: boolean } | null>(null);
+
+  return (
+    <DropdownMenuPrimitive.Trigger
+      ref={ref}
+      {...props}
+      onPointerDown={(event) => {
+        onPointerDown?.(event);
+        if (event.pointerType === "mouse" || !toggle) {
+          touchTap.current = null;
+          return;
+        }
+        // Touch or pen: remember the state and let the tap (click) decide.
+        // Preventing default here skips Radix's open-on-pointerdown.
+        touchTap.current = { wasOpen: toggle.open };
+        event.preventDefault();
+      }}
+      onClick={(event) => {
+        onClick?.(event);
+        const tap = touchTap.current;
+        touchTap.current = null;
+        if (!tap || !toggle || props.disabled) return;
+        toggle.setOpen(!tap.wasOpen);
+      }}
+    />
+  );
+});
+DropdownMenuTrigger.displayName = DropdownMenuPrimitive.Trigger.displayName;
 
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 

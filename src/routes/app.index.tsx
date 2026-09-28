@@ -367,7 +367,10 @@ function Feed() {
     }
   }
 
-  const filteredPosts = (posts || []).filter((post: any) => {
+  // Memoised so a re-render of the feed (a tab tap, a sheet opening) doesn't
+  // rebuild every post card — that was a full re-render of ~100 cards, videos
+  // included, on every state change.
+  const filteredPosts = useMemo(() => (postsData || []).filter((post: any) => {
     if (activeTab === "Following") {
       // Show if user is the author OR if it's a repost from someone the user follows
       const isOriginalFromFollowed = followingIds.includes(post.author_id);
@@ -376,7 +379,7 @@ function Feed() {
     }
 
     return true;
-  });
+  }), [postsData, activeTab, followingIds]);
 
   const memoizedPostCards = useMemo(() => {
     return filteredPosts.map((post: any) => (

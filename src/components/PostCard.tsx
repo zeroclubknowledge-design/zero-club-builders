@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageLightbox } from './ImageLightbox';
@@ -178,7 +178,7 @@ function AdaptiveFeedMedia({ urls, onOpen }: { urls: string[]; onOpen: (index: n
   return <FeedMediaGrid urls={urls} onOpen={onOpen} />;
 }
 
-export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
+function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const cleanLegacyShipContent = (content: string) => {
@@ -261,7 +261,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
         if (error) throw error;
         toast.success("Saved to bookmarks!");
         queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
       } else {
         const { error } = await supabase
           .from('bookmarks')
@@ -271,7 +271,7 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
         if (error) throw error;
         toast.success("Removed from bookmarks");
         queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
       }
     } catch (err: any) {
       setIsBookmarked(!newStatus);
@@ -327,12 +327,12 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
         await likePostAction({ data: { profileId: currentUser.id, postId } });
         toast.success("Added to your liked ships!");
         queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
       } else {
         await unlikePostAction({ data: { profileId: currentUser.id, postId } });
         toast.success("Removed from liked ships");
         queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
       }
     } catch (err: any) {
       setLiked(!newLiked);
@@ -725,3 +725,6 @@ export function PostCard({ post, currentUser, onCommentClick }: PostCardProps) {
     </article>
   );
 }
+
+/** A card only re-renders when its own post (or the viewer) changes. */
+export const PostCard = memo(PostCardView);

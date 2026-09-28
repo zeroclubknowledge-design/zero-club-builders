@@ -1064,6 +1064,34 @@ function AppLayout() {
   }, []);
   const router = useRouter();
 
+  // Safety net for a frozen page. A sheet, dialog or menu that is torn down
+  // mid-animation (navigating away while it closes, a list refetch removing
+  // its card) can leave <body> with `pointer-events: none` or a scroll lock,
+  // and the feed then stops scrolling and ignores taps. If nothing is actually
+  // open, release them — on every route change and on any touch.
+  useEffect(() => {
+    const OPEN = '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [role="menu"][data-state="open"], [data-vaul-drawer][data-state="open"]';
+    const release = () => {
+      if (document.querySelector(OPEN)) return;
+      const body = document.body;
+      if (body.style.pointerEvents === "none") body.style.pointerEvents = "";
+      if (body.hasAttribute("data-scroll-locked")) body.removeAttribute("data-scroll-locked");
+      if (body.style.overflow === "hidden" && !location.pathname.startsWith("/app/chat/")) body.style.overflow = "";
+    };
+    const soon = () => window.setTimeout(release, 350);
+    const onPointer = () => {
+      if (document.body.style.pointerEvents === "none" || document.body.hasAttribute("data-scroll-locked")) soon();
+    };
+    const timer = soon();
+    document.addEventListener("pointerdown", onPointer, true);
+    document.addEventListener("visibilitychange", soon);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("pointerdown", onPointer, true);
+      document.removeEventListener("visibilitychange", soon);
+    };
+  }, [location.pathname]);
+
   // Theme State
   const [darkMode, setDarkMode] = useState<AppThemeMode>(getStoredAppThemeMode);
   const [darkTheme, setDarkTheme] = useState<AppDarkTheme>(getStoredAppDarkTheme);
