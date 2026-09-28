@@ -440,7 +440,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }:
     <nav
       data-zc-bottom-nav
       style={{ fontFamily: TAB_BAR_FONT, "--font-button": TAB_BAR_FONT } as React.CSSProperties}
-      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-20px)] max-w-md -translate-x-1/2 transition-all duration-300 md:hidden ${
+      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-20px)] -translate-x-1/2 transition-all duration-300 md:hidden ${
         visible &&
         !isDetail &&
         !pathname.includes("/app/live") &&
@@ -1341,7 +1341,7 @@ function AppLayout() {
       </div>
 
       {/* Main Center Column */}
-      <div className={`zc-app-main w-full flex-1 flex flex-col relative min-h-screen ${isWideWorkspace ? "zc-institution-main md:max-w-none" : "max-w-md mx-auto md:mx-0 md:max-w-none md:border-r border-border/10"}`}>
+      <div className={`zc-app-main w-full min-w-0 flex-1 flex flex-col relative min-h-screen ${isWideWorkspace ? "zc-institution-main md:max-w-none" : "md:border-r border-border/10"}`}>
         <IncomingNotificationCard
           recipientId={session.user.id}
           belowFeedHeader={!hideHeader}
@@ -1353,7 +1353,7 @@ function AppLayout() {
             ref={headerRef}
             /* You, search, messages — the three things you reach for from
                every top-level page. The bell moved to the tab bar as Alerts. */
-            className="fixed left-1/2 top-0 z-50 flex h-[calc(56px+env(safe-area-inset-top))] w-full max-w-md -translate-x-1/2 translate-y-0 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:h-[60px] md:max-w-full md:translate-x-0 md:pt-0"
+            className="fixed left-0 top-0 z-50 flex h-[calc(56px+env(safe-area-inset-top))] w-full min-w-0 translate-y-0 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] md:sticky md:h-[60px] md:pt-0"
           >
             <button
               onClick={() => setIsSidebarOpen(true)}
