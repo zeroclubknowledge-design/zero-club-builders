@@ -1,13 +1,13 @@
-import { ChevronRight, Handshake, MapPin, Users } from "lucide-react";
+import { CalendarClock, ChevronRight, Handshake, Users, Wallet } from "lucide-react";
 import { money, type PayoutCurrency } from "@/lib/money";
-import { GOAL_LABEL, topBonus, type Campaign } from "@/types/campaign";
+import { GOAL_LABEL, PHASE_CLASS, campaignPhase, daysLeft, type CampaignBase, type MyCampaign } from "@/types/campaign";
 
 /** What an ambassador earns: a share of everything their referrals pay. */
 export function rewardHeadline(rate: number | null | undefined) {
   return rate != null ? `Earn ${rate}% of what your referrals pay` : "Earn commission on what your referrals pay";
 }
 
-export function CampaignCover({ campaign, className = "" }: { campaign: Pick<Campaign, "cover_url" | "title" | "partner_name">; className?: string }) {
+export function CampaignCover({ campaign, className = "" }: { campaign: Pick<CampaignBase, "cover_url" | "title" | "partner_name">; className?: string }) {
   return (
     <div className={`relative overflow-hidden bg-[#1d1420] ${className}`}>
       {campaign.cover_url ? (
@@ -24,39 +24,58 @@ export function CampaignCover({ campaign, className = "" }: { campaign: Pick<Cam
   );
 }
 
-export function CampaignCard({ campaign, currency, rate, onOpen }: { campaign: Campaign; currency: PayoutCurrency; rate?: number | null; onOpen: () => void }) {
-  const bonus = topBonus(campaign.bonus_tiers);
-  const ended = campaign.status === "ended";
+export function PhasePill({ campaign }: { campaign: Pick<CampaignBase, "status" | "review_status"> }) {
+  const phase = campaignPhase(campaign);
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${PHASE_CLASS[phase.tone]}`}>
+      {phase.tone === "live" && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />}
+      {phase.label}
+    </span>
+  );
+}
+
+/** A campaign the ambassador runs: its state and its money at a glance. */
+export function MyCampaignCard({ campaign, currency, onOpen }: { campaign: MyCampaign; currency: PayoutCurrency; onOpen: () => void }) {
+  const running = campaign.status === "live" || campaign.status === "paused";
+  const left = running ? daysLeft(campaign.ends_at) : null;
 
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={`zs-card zs-card-hover group flex w-full flex-col overflow-hidden text-left ${ended ? "opacity-70" : ""}`}
-    >
-      <CampaignCover campaign={campaign} className="h-32" />
+    <button type="button" onClick={onOpen} className="zs-card zs-card-hover group flex w-full flex-col overflow-hidden text-left">
+      <CampaignCover campaign={campaign} className="h-28" />
       <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider">
-          <span className="text-accent">{GOAL_LABEL[campaign.goal]}</span>
-          {campaign.status !== "live" && <span className="text-ink-faint">· {campaign.status}</span>}
-          {campaign.joined && <span className="ml-auto rounded-full bg-ok/12 px-2 py-0.5 text-[10px] normal-case tracking-normal text-ok">Joined</span>}
+        <div className="flex items-center gap-2">
+          <PhasePill campaign={campaign} />
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{GOAL_LABEL[campaign.goal]}</span>
         </div>
-        <h3 className="mt-1.5 line-clamp-2 text-[16px] font-bold leading-snug text-ink">{campaign.title}</h3>
-        {campaign.summary && <p className="mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-ink-muted">{campaign.summary}</p>}
+        <h3 className="mt-2 line-clamp-2 text-[16px] font-bold leading-snug text-ink">{campaign.title}</h3>
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          <span className="rounded-full bg-accent-soft px-2.5 py-1 text-[11.5px] font-semibold text-accent">{rewardHeadline(rate)}</span>
-          {bonus > 0 && <span className="rounded-full bg-ink/[0.05] px-2.5 py-1 text-[11.5px] font-semibold text-ink">Bonuses up to +{money(bonus, currency)}</span>}
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          <Mini icon={<Users className="h-3.5 w-3.5" />} value={String(campaign.new_members)} label="joined" />
+          <Mini icon={<Wallet className="h-3.5 w-3.5" />} value={money(campaign.sales, currency, true)} label="sales" />
+          <Mini value={money(campaign.commission, currency, true)} label="earned" strong />
         </div>
 
-        <div className="mt-auto flex items-center gap-3 pt-4 text-[11.5px] text-ink-faint">
-          <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {campaign.ambassadors}</span>
-          {campaign.locations && (
-            <span className="inline-flex min-w-0 items-center gap-1 truncate"><MapPin className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{campaign.locations}</span></span>
+        <div className="mt-auto flex items-center gap-2 pt-4 text-[11.5px] text-ink-faint">
+          {left != null ? (
+            <span className="inline-flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /> {left === 0 ? "Ends today" : `${left} day${left === 1 ? "" : "s"} left`}</span>
+          ) : (
+            <span>{campaign.review_status === "pending" ? "Waiting for the Zero Club check" : "Finished"}</span>
           )}
           <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" />
         </div>
       </div>
     </button>
+  );
+}
+
+function Mini({ icon, value, label, strong = false }: { icon?: React.ReactNode; value: string; label: string; strong?: boolean }) {
+  return (
+    <div className="zs-inset rounded-xl px-2.5 py-2">
+      <p className={`flex items-center gap-1 truncate font-display text-[14px] font-bold ${strong ? "text-accent" : "text-ink"}`}>
+        {icon}
+        {value}
+      </p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">{label}</p>
+    </div>
   );
 }

@@ -1,25 +1,61 @@
 import { supabase } from "./supabase";
 import { config } from "./config";
+import { compressImage } from "./imageCompression";
 import type { PayoutCurrency } from "./money";
 import type {
-  AdminCampaign, Campaign, Earnings, LeaderRow, PayoutPreviewRow, PendingProof,
+  CampaignGoal, CampaignReview, Earnings, LeaderRow, MyCampaign, PayoutPreviewRow,
 } from "@/types/campaign";
 
-type Refusal = { ok: boolean; reason?: string; code?: string };
+type Refusal = { ok: boolean; reason?: string; code?: string; id?: string };
 
 /** Where a campaign link sends people: straight into Zero Club sign-up. */
 export const campaignLink = (code: string) => `${config.zeroClubUrl}/signup?c=${encodeURIComponent(code)}`;
 
-export async function listCampaigns() {
-  const { data, error } = await supabase.rpc("zs_campaigns_feed");
-  if (error) throw error;
-  return (data || []) as Campaign[];
+/* ── Ambassador: my campaigns ─────────────────────────────────────────── */
+
+export interface CampaignInput {
+  title: string;
+  summary?: string;
+  description?: string;
+  cover_url?: string;
+  partner_name?: string;
+  partner_url?: string;
+  goal?: CampaignGoal;
+  locations?: string;
+  ends_at: string;
 }
 
-export async function joinCampaign(id: string) {
-  const { data, error } = await supabase.rpc("zs_join_amb_campaign", { p_campaign_id: id });
+export async function listMyCampaigns() {
+  const { data, error } = await supabase.rpc("zs_my_campaigns");
+  if (error) throw error;
+  return (data || []) as MyCampaign[];
+}
+
+export async function createCampaign(input: CampaignInput) {
+  const { data, error } = await supabase.rpc("zs_create_campaign", { p: input });
   if (error) throw error;
   return data as Refusal;
+}
+
+export async function updateMyCampaign(id: string, input: Partial<CampaignInput>) {
+  const { data, error } = await supabase.rpc("zs_update_my_campaign", { p_id: id, p: input });
+  if (error) throw error;
+  return data as Refusal;
+}
+
+export async function endMyCampaign(id: string) {
+  const { data, error } = await supabase.rpc("zs_end_my_campaign", { p_id: id });
+  if (error) throw error;
+  return data as Refusal;
+}
+
+export async function uploadCampaignCover(file: File, ownerId: string) {
+  const image = await compressImage(file);
+  const ext = (image.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `${ownerId}/campaigns/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("zerostart-media").upload(path, image, { contentType: image.type, upsert: false });
+  if (error) throw error;
+  return supabase.storage.from("zerostart-media").getPublicUrl(path).data.publicUrl;
 }
 
 export async function submitProof(input: { campaignId: string; quantity: number; evidence: string; url?: string }) {
@@ -51,44 +87,40 @@ export async function getLeaderboard(period: "week" | "all", limit = 100) {
   return (data || []) as LeaderRow[];
 }
 
-/* ── Admin ─────────────────────────────────────────────────────────────── */
+/* ── Admin: campaign checks and payouts ───────────────────────────────── */
 
-export async function adminCampaigns() {
-  const { data, error } = await supabase.rpc("zs_admin_campaigns");
+export type ReviewFilter = "pending" | "live" | "reviewed" | "all";
+
+export async function adminCampaignReviews(filter: ReviewFilter) {
+  const { data, error } = await supabase.rpc("zs_admin_campaign_reviews", { p_filter: filter });
   if (error) throw error;
-  return (data || []) as AdminCampaign[];
+  return (data || []) as CampaignReview[];
 }
 
-export async function adminSaveCampaign(input: Record<string, unknown>) {
-  const { data, error } = await supabase.rpc("zs_admin_save_campaign", { p: input });
-  if (error) throw error;
-  return data as string;
-}
-
-export async function adminPendingProofs() {
-  const { data, error } = await supabase.rpc("zs_admin_pending_proofs");
-  if (error) throw error;
-  return (data || []) as PendingProof[];
-}
-
-export async function adminReviewProof(id: string, approve: boolean, quantity?: number, note?: string) {
-  const { data, error } = await supabase.rpc("zs_admin_review_proof", {
-    p_id: id, p_approve: approve, p_quantity: quantity ?? null, p_note: note || null,
+export async function adminReviewCampaign(id: string, approve: boolean, bonus: number, note?: string) {
+  const { data, error } = await supabase.rpc("zs_admin_review_campaign", {
+    p_id: id, p_approve: approve, p_bonus: bonus, p_note: note || null,
   });
+  if (error) throw error;
+  return data as { ok: boolean; reason?: string; approved?: boolean; paid?: number };
+}
+
+export async function adminSetCampaignStatus(id: string, status: "live" | "paused" | "removed", note?: string) {
+  const { data, error } = await supabase.rpc("zs_admin_set_campaign_status", { p_id: id, p_status: status, p_note: note || null });
   if (error) throw error;
   return data as Refusal;
 }
 
-export async function adminPayoutPreview(until?: string) {
-  const { data, error } = await supabase.rpc("zs_admin_payout_preview", { p_until: until || null });
+export async function adminPayoutPreview() {
+  const { data, error } = await supabase.rpc("zs_admin_payout_preview", { p_until: null });
   if (error) throw error;
   return (data || []) as PayoutPreviewRow[];
 }
 
-export async function adminRunPayouts(until?: string) {
-  const { data, error } = await supabase.rpc("zs_admin_run_payouts", { p_until: until || null });
+export async function adminRunPayouts() {
+  const { data, error } = await supabase.rpc("zs_admin_run_payouts", { p_until: null });
   if (error) throw error;
-  return data as { ok: boolean; reason?: string; ambassadors_paid?: number; total?: number; until?: string };
+  return data as { ok: boolean; reason?: string; ambassadors_paid?: number; total?: number };
 }
 
 /* ── Admin: applications, ambassadors, rates, bonuses ─────────────────── */

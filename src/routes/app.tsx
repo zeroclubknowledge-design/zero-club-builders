@@ -40,7 +40,7 @@ import { isGuestReadablePath } from "@/lib/guestAccess";
 import { toast } from "sonner";
 import { getFirstName, displayName, getLevelFromXp } from "@/lib/utils";
 import { directMessagePreview } from "@/lib/directMessage";
-import { IncomingNotificationCard } from "@/components/IncomingNotificationCard";
+import { IncomingNotificationCard, showIncomingPop } from "@/components/IncomingNotificationCard";
 import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
@@ -1022,27 +1022,13 @@ function AppLayout() {
                         ? displayContent.slice(0, 60) + "..."
                         : displayContent;
 
-                    toast(senderName, {
-                      description: preview,
-                      icon: avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt={senderName}
-                          className="h-8 w-8 rounded-full object-cover shrink-0"
-                        loading="lazy" decoding="async" />
-                      ) : (
-                        <div className="h-8 w-8 rounded-full bg-gradient-primary flex items-center justify-center text-xs font-bold text-white uppercase shrink-0">
-                          {senderName.substring(0, 1)}
-                        </div>
-                      ),
-                      action: {
-                        label: "Reply",
-                        onClick: () =>
-                          router.navigate({
-                            to: "/app/chat/$id",
-                            params: { id: message.sender_id || "" },
-                          }),
-                      },
+                    showIncomingPop({
+                      id: `dm:${(payload.new as { id?: string }).id || Date.now()}`,
+                      kind: "message",
+                      type: "message",
+                      person: sender || null,
+                      personId: message.sender_id,
+                      detail: preview,
                     });
                   } catch (e) {
                     console.error("Error showing new message notification", e);

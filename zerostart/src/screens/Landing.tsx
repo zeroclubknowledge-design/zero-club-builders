@@ -50,7 +50,7 @@ export function Landing({ signedIn = false, applicationStatus }: { signedIn?: bo
 
       <section className="mt-8 grid gap-3 sm:grid-cols-3">
         {[
-          { icon: Megaphone, title: "Apply & get approved", body: "Tell us where you'll represent. Once the Zero Club team approves you, pick campaigns that fit your people." },
+          { icon: Megaphone, title: "Apply & get approved", body: "Tell us where you'll represent. Once the Zero Club team approves you, start your own campaigns and share your link." },
           { icon: Share2, title: "Share your link", body: "Everyone who joins through your link is yours — you earn a share of every bootcamp, membership and purchase they pay for." },
           { icon: Wallet, title: "Get paid weekly", body: "Commission is paid into your Zero Club wallet every week, with bonuses from the Zero Club team on top." },
         ].map((step, i) => (

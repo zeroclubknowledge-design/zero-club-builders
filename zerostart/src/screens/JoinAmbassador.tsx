@@ -181,7 +181,7 @@ export function JoinAmbassador() {
       </h1>
       <p className="mt-2 max-w-[54ch] text-[14px] leading-relaxed text-ink-muted">
         {isAmbassador
-          ? "Where you represent and what you push. Keep it current so the team can match you with the right campaigns."
+          ? "Where you represent and what you push. Keep it current so the team knows where you represent Zero Club."
           : "Ambassadors are approved by the Zero Club team. Approved ambassadors earn commission on what the members they bring in pay, get weekly payouts, and wear the Zero Club Ambassador badge."}
       </p>
 

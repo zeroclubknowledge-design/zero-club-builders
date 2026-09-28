@@ -1,43 +1,42 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Check, Copy, ExternalLink, LoaderCircle, MapPin, Send, Share2, Users } from "lucide-react";
+import { CalendarClock, Check, CircleAlert, Copy, ExternalLink, Gift, Hourglass, MapPin, Pencil, Send, Share2, Square } from "lucide-react";
 import { Sheet } from "@/components/ui/Sheet";
-import { campaignLink, joinCampaign, submitProof } from "@/lib/campaignApi";
+import { campaignLink, endMyCampaign, submitProof } from "@/lib/campaignApi";
 import { externalUrl } from "@/lib/links";
 import { money, type PayoutCurrency } from "@/lib/money";
-import { nextTier, type Campaign } from "@/types/campaign";
-import { CampaignCover } from "./CampaignCard";
+import { daysLeft, type MyCampaign } from "@/types/campaign";
+import { CampaignCover, PhasePill } from "./CampaignCard";
 
 const REFUSAL: Record<string, string> = {
-  not_an_ambassador: "Set up your ambassador profile first.",
-  not_live: "This campaign isn't taking new ambassadors right now.",
-  ended: "This campaign has ended.",
-  full: "This campaign already has all the ambassadors it needs.",
-  not_joined: "Join the campaign first.",
-  link_only: "This campaign counts signups through your link automatically.",
+  not_live: "This campaign has already been checked, so it can't take new reports.",
+  not_joined: "This campaign isn't yours.",
   bad_quantity: "Enter how many results you're reporting.",
   evidence_required: "Describe what happened — at least a sentence.",
+  not_editable: "This campaign has already ended.",
 };
 
+const fmt = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+/** Everything about one of your campaigns: the link, the numbers, the check. */
 export function CampaignSheet({
   campaign,
   currency,
   rate,
-  isAmbassador,
   onClose,
   onChanged,
+  onEdit,
 }: {
-  campaign: Campaign;
+  campaign: MyCampaign;
   currency: PayoutCurrency;
   rate?: number | null;
-  isAmbassador: boolean;
   onClose: () => void;
   onChanged: () => void;
+  onEdit: () => void;
 }) {
-  const [code, setCode] = useState(campaign.my_code);
-  const [joining, setJoining] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<"link" | "code" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [ending, setEnding] = useState(false);
   const [proofOpen, setProofOpen] = useState(false);
   const [qty, setQty] = useState("");
   const [evidence, setEvidence] = useState("");
@@ -45,41 +44,23 @@ export function CampaignSheet({
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const link = code ? campaignLink(code) : null;
+  const code = campaign.my_code;
+  const link = campaignLink(code);
   const partnerUrl = externalUrl(campaign.partner_url);
-  const tiers = [...(campaign.bonus_tiers || [])].sort((a, b) => a.min - b.min);
-  const upcoming = nextTier(tiers, campaign.my_week_results);
-  const usesLink = campaign.tracking !== "proof";
-  const usesProof = campaign.tracking !== "link";
-
-  const join = async () => {
-    setJoining(true);
-    setError(null);
-    try {
-      const res = await joinCampaign(campaign.id);
-      if (!res.ok) setError(REFUSAL[res.reason || ""] || "Could not join this campaign.");
-      else {
-        setCode(res.code || null);
-        onChanged();
-      }
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setJoining(false);
-    }
-  };
+  const running = campaign.status === "live" || campaign.status === "paused";
+  const awaiting = !running && campaign.status !== "removed" && campaign.review_status === "pending";
+  const canReport = running || awaiting;
+  const left = running ? daysLeft(campaign.ends_at) : null;
+  const unpaid = Math.max(0, Number(campaign.commission) - Number(campaign.commission_paid));
 
   const copy = async (what: "link" | "code") => {
-    const text = what === "link" ? link : code;
-    if (!text) return;
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(what === "link" ? link : code);
     setCopied(what);
     setTimeout(() => setCopied(null), 1600);
   };
 
-  const shareText = "Join me on Zero Club — learn in live bootcamps, ship real work and grow with builders.";
+  const shareText = campaign.summary || "Join me on Zero Club — learn in live bootcamps, ship real work and grow with builders.";
   const share = async () => {
-    if (!link) return;
     if (navigator.share) {
       try {
         await navigator.share({ title: campaign.title, text: shareText, url: link });
@@ -91,12 +72,30 @@ export function CampaignSheet({
     copy("link");
   };
 
+  const end = async () => {
+    setEnding(true);
+    setError(null);
+    try {
+      const res = await endMyCampaign(campaign.id);
+      if (!res.ok) setError(REFUSAL[res.reason || ""] || "Couldn't end the campaign.");
+      else {
+        setConfirmEnd(false);
+        onChanged();
+        onClose();
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setEnding(false);
+    }
+  };
+
   const sendProof = async () => {
     setSending(true);
     setError(null);
     try {
       const res = await submitProof({ campaignId: campaign.id, quantity: Number(qty), evidence: evidence.trim(), url: url.trim() });
-      if (!res.ok) setError(REFUSAL[res.reason || ""] || "Could not send that.");
+      if (!res.ok) setError(REFUSAL[res.reason || ""] || "Couldn't send that.");
       else {
         setSent(true);
         setProofOpen(false);
@@ -112,39 +111,22 @@ export function CampaignSheet({
     }
   };
 
-  const joined = Boolean(code);
-  const canJoin = campaign.status === "live";
-
   return (
-    <Sheet
-      onClose={onClose}
-      wide
-      footer={
-        !joined ? (
-          isAmbassador ? (
-            <button
-              onClick={join}
-              disabled={!canJoin || joining}
-              className="zs-glow flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[14.5px] font-semibold text-accent-ink transition hover:opacity-90 disabled:opacity-40"
-            >
-              {joining ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-              {canJoin ? "Join campaign & get my link" : "Not open right now"}
-            </button>
-          ) : (
-            <Link to="/join" className="zs-glow flex h-12 w-full items-center justify-center rounded-full bg-accent text-[14.5px] font-semibold text-accent-ink">
-              Become an ambassador to join
-            </Link>
-          )
-        ) : undefined
-      }
-    >
-      <CampaignCover campaign={campaign} className="-mx-5 -mt-2 h-44 sm:-mx-6 sm:mt-0 sm:rounded-2xl" />
+    <Sheet onClose={onClose} wide>
+      <CampaignCover campaign={campaign} className="-mx-5 -mt-2 h-40 sm:-mx-6 sm:mt-0 sm:rounded-2xl" />
 
-      <h2 className="mt-4 text-[22px] font-bold leading-tight text-ink">{campaign.title}</h2>
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-ink-muted">
-        <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {campaign.ambassadors} ambassador{campaign.ambassadors === 1 ? "" : "s"}</span>
+      <div className="mt-4 flex items-center gap-2">
+        <PhasePill campaign={campaign} />
+        {left != null && (
+          <span className="inline-flex items-center gap-1 text-[12px] text-ink-muted">
+            <CalendarClock className="h-3.5 w-3.5" /> {left === 0 ? "Ends today" : `${left} day${left === 1 ? "" : "s"} left`}
+          </span>
+        )}
+      </div>
+      <h2 className="mt-2 text-[22px] font-bold leading-tight text-ink">{campaign.title}</h2>
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-ink-muted">
+        <span>{fmt(campaign.starts_at)} – {fmt(campaign.ended_at || campaign.ends_at || campaign.starts_at)}</span>
         {campaign.locations && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {campaign.locations}</span>}
-        {campaign.ends_at && <span>Ends {new Date(campaign.ends_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
         {partnerUrl && (
           <a href={partnerUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-accent">
             {campaign.partner_name || "Partner"} <ExternalLink className="h-3 w-3" />
@@ -152,10 +134,33 @@ export function CampaignSheet({
         )}
       </div>
 
-      {campaign.description && <p className="mt-4 whitespace-pre-line text-[14px] leading-relaxed text-ink/85">{campaign.description}</p>}
+      {/* ── Where it stands ── */}
+      {awaiting && (
+        <Notice icon={<Hourglass className="h-4 w-4" />} tone="accent" title="Waiting for the Zero Club check">
+          The team is reviewing your results. Once approved, {money(unpaid, currency)} in commission — plus any bonus — lands in your wallet.
+        </Notice>
+      )}
+      {campaign.review_status === "approved" && (
+        <Notice icon={<Check className="h-4 w-4" />} tone="ok" title="Approved and paid">
+          {money(campaign.commission_paid, currency)} commission
+          {Number(campaign.bonus_awarded) > 0 && <> + <b>{money(campaign.bonus_awarded || 0, currency)} bonus</b></>} went to your wallet.
+          Anyone who joined through this campaign keeps earning you commission, paid in the regular payouts.
+          {campaign.review_note && <span className="mt-1 block italic">“{campaign.review_note}”</span>}
+        </Notice>
+      )}
+      {(campaign.review_status === "rejected" || campaign.status === "removed") && (
+        <Notice icon={<CircleAlert className="h-4 w-4" />} tone="bad" title={campaign.status === "removed" ? "Taken down by Zero Club" : "Not approved for payout"}>
+          {campaign.review_note || "Reach out to the Zero Club team if you think this is a mistake."}
+        </Notice>
+      )}
+      {campaign.status === "paused" && (
+        <Notice icon={<CircleAlert className="h-4 w-4" />} tone="accent" title="Paused by Zero Club">
+          New sign-ups through your link aren't counted while it's paused.{campaign.review_note ? ` ${campaign.review_note}` : ""}
+        </Notice>
+      )}
 
       {/* ── Your link ── */}
-      {joined && link && (
+      {running && (
         <section className="zs-hero mt-5 p-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">Your campaign link</p>
           <p className="mt-2 break-all font-display text-[15px] font-semibold text-white">{link.replace(/^https?:\/\//, "")}</p>
@@ -181,77 +186,52 @@ export function CampaignSheet({
         </section>
       )}
 
-      {/* ── How you earn ── */}
-      <section className="mt-6">
-        <h3 className="text-[12px] font-bold uppercase tracking-wider text-ink-faint">How you earn</h3>
-        <div className="zs-inset mt-2 overflow-hidden rounded-2xl p-4">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-[13px] leading-relaxed text-ink-muted">
-              {usesLink
-                ? "Commission on every payment made by the people who join Zero Club through your link — bootcamps, memberships, store purchases and club fees."
-                : "This campaign is about reach; your reported results count toward the bonuses below."}
-            </span>
-            {usesLink && <span className="shrink-0 font-display text-[26px] font-bold text-accent">{rate ?? "—"}%</span>}
-          </div>
-          {usesLink && rate != null && (
-            <p className="mt-3 border-t border-line pt-3 text-[12.5px] text-ink-muted">
-              Example: someone you referred pays {money(25000, currency)} for a bootcamp → you earn{" "}
-              <span className="font-semibold text-ink">{money((25000 * rate) / 100, currency)}</span>.
-            </p>
-          )}
-        </div>
+      {/* ── Numbers ── */}
+      <section className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <Stat label="Joined" value={String(campaign.new_members)} />
+        <Stat label="Paying" value={String(campaign.paying_members)} />
+        <Stat label="Their payments" value={money(campaign.sales, currency, true)} />
+        <Stat label={`You earn (${rate ?? "—"}%)`} value={money(campaign.commission, currency, true)} accent />
+      </section>
+      {(Number(campaign.reported_results) > 0 || Number(campaign.my_pending_results) > 0) && (
+        <p className="mt-2 text-[12px] text-ink-muted">
+          {campaign.reported_results} offline result{Number(campaign.reported_results) === 1 ? "" : "s"} reported — the team weighs these for your bonus.
+        </p>
+      )}
+
+      {campaign.description && (
+        <section className="mt-5">
+          <h3 className="text-[12px] font-bold uppercase tracking-wider text-ink-faint">Your plan</h3>
+          <p className="mt-2 whitespace-pre-line text-[14px] leading-relaxed text-ink/85">{campaign.description}</p>
+        </section>
+      )}
+
+      {/* ── How it pays ── */}
+      <section className="zs-inset mt-5 rounded-2xl p-4">
+        <p className="flex items-center gap-2 text-[13px] font-semibold text-ink"><Gift className="h-4 w-4 text-accent" /> How this campaign pays</p>
+        <ol className="mt-2 space-y-1.5 text-[12.5px] leading-relaxed text-ink-muted">
+          <li>1. People join Zero Club through your link.</li>
+          <li>2. Whenever they pay — bootcamps, memberships, store, clubs — you earn {rate ?? "your"}%.</li>
+          <li>3. When the campaign ends, Zero Club checks it and pays everything to your wallet, with a bonus for strong results.</li>
+        </ol>
       </section>
 
-      {tiers.length > 0 && (
-        <section className="mt-5">
-          <h3 className="text-[12px] font-bold uppercase tracking-wider text-ink-faint">Weekly bonuses (set by Zero Club)</h3>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            {tiers.map((t) => {
-              const reached = campaign.my_week_results >= t.min;
-              return (
-                <div key={t.min} className={`flex items-center justify-between rounded-xl px-3.5 py-3 ${reached ? "bg-ok/10" : "zs-inset"}`}>
-                  <span className="text-[13px] text-ink-muted">
-                    <span className="font-semibold text-ink">{t.min}+</span> results in a week
-                  </span>
-                  <span className={`text-[13.5px] font-bold ${reached ? "text-ok" : "text-accent"}`}>
-                    {reached && <Check className="mr-1 inline h-3.5 w-3.5" />}+{money(t.bonus, currency)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          {joined && upcoming && (
-            <p className="mt-2 text-[12.5px] text-ink-muted">
-              <span className="font-semibold text-ink">{upcoming.min - campaign.my_week_results} more</span> this week unlocks +{money(upcoming.bonus, currency)}.
-            </p>
-          )}
-        </section>
-      )}
-
-      {joined && (
-        <section className="mt-5 grid grid-cols-3 gap-2">
-          <MiniStat label="This week" value={campaign.my_week_results} />
-          <MiniStat label="All time" value={campaign.my_total_results} />
-          <MiniStat label="In review" value={campaign.my_pending_results} />
-        </section>
-      )}
-
-      {/* ── Proof of offline results ── */}
-      {joined && usesProof && (
+      {/* ── Offline results ── */}
+      {canReport && (
         <section className="mt-5">
           {sent && !proofOpen && (
-            <p className="mb-3 rounded-xl bg-ok/10 px-3.5 py-2.5 text-[12.5px] font-semibold text-ok">Sent — the Zero Club team will verify it.</p>
+            <p className="mb-3 rounded-xl bg-ok/10 px-3.5 py-2.5 text-[12.5px] font-semibold text-ok">Added — the team will see it when they check your campaign.</p>
           )}
           {!proofOpen ? (
-            <button onClick={() => { setProofOpen(true); setSent(false); }} className="flex h-11 w-full items-center justify-center rounded-full bg-ink text-[13.5px] font-semibold text-white transition hover:opacity-90">
-              Report offline results
+            <button onClick={() => { setProofOpen(true); setSent(false); }} className="flex h-11 w-full items-center justify-center rounded-full bg-ink/[0.06] text-[13.5px] font-semibold text-ink transition hover:bg-ink/[0.1]">
+              Report offline results (events, flyers, talks)
             </button>
           ) : (
             <div className="zs-inset rounded-2xl p-4">
-              <label className="zs-label">How many {campaign.proof_unit_label}s?</label>
+              <label className="zs-label">How many people did you reach?</label>
               <input className="zs-input" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 25" />
               <label className="zs-label mt-3">What happened?</label>
-              <textarea className="zs-input" rows={3} value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Where, when, who — the details the team needs to verify it." />
+              <textarea className="zs-input" rows={3} value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Where, when, who — the details the team needs to check it." />
               <label className="zs-label mt-3">Proof link (photos, sheet, post)</label>
               <input className="zs-input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://" />
               <div className="mt-4 flex gap-2">
@@ -260,7 +240,7 @@ export function CampaignSheet({
                   disabled={sending || !Number(qty) || evidence.trim().length < 15}
                   className="h-11 flex-1 rounded-full bg-accent text-[13.5px] font-semibold text-accent-ink transition hover:opacity-90 disabled:opacity-40"
                 >
-                  {sending ? "Sending…" : "Send for review"}
+                  {sending ? "Sending…" : "Add to my campaign"}
                 </button>
                 <button onClick={() => setProofOpen(false)} className="h-11 rounded-full bg-ink/[0.06] px-5 text-[13.5px] font-semibold text-ink-muted">
                   Cancel
@@ -271,25 +251,49 @@ export function CampaignSheet({
         </section>
       )}
 
+      {/* ── Manage ── */}
+      {running && (
+        <section className="mt-5 flex flex-wrap gap-2">
+          <button onClick={onEdit} className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-[13.5px] font-semibold text-white transition hover:opacity-90">
+            <Pencil className="h-4 w-4" /> Edit
+          </button>
+          {!confirmEnd ? (
+            <button onClick={() => setConfirmEnd(true)} className="inline-flex h-11 items-center gap-2 rounded-full bg-bad/10 px-5 text-[13.5px] font-semibold text-bad">
+              <Square className="h-4 w-4" /> End now & send for check
+            </button>
+          ) : (
+            <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-bad/[0.06] p-3">
+              <span className="flex-1 text-[12.5px] text-ink">End it now? Your link stops counting new members and the team reviews it for payout.</span>
+              <button onClick={end} disabled={ending} className="h-10 rounded-full bg-bad px-4 text-[13px] font-semibold text-white disabled:opacity-50">{ending ? "Ending…" : "Yes, end it"}</button>
+              <button onClick={() => setConfirmEnd(false)} className="h-10 rounded-full bg-ink/[0.06] px-4 text-[13px] font-semibold text-ink-muted">Keep running</button>
+            </div>
+          )}
+        </section>
+      )}
+
       {error && <p className="mt-4 rounded-xl bg-bad/10 px-3.5 py-2.5 text-[12.5px] font-medium text-bad">{error}</p>}
     </Sheet>
   );
 }
 
-function EarnRow({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-      <span className="text-[13px] text-ink-muted">{label}</span>
-      <span className="shrink-0 font-display text-[15px] font-bold text-ink">{value}</span>
+    <div className="zs-inset rounded-xl p-3">
+      <p className={`truncate font-display text-[18px] font-bold ${accent ? "text-accent" : "text-ink"}`}>{value}</p>
+      <p className="truncate text-[10.5px] font-semibold uppercase tracking-wider text-ink-faint">{label}</p>
     </div>
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: number }) {
+function Notice({ icon, tone, title, children }: { icon: React.ReactNode; tone: "accent" | "ok" | "bad"; title: string; children: React.ReactNode }) {
+  const cls = tone === "ok" ? "bg-ok/10 text-ok" : tone === "bad" ? "bg-bad/10 text-bad" : "bg-accent-soft text-accent";
   return (
-    <div className="zs-inset rounded-xl p-3 text-center">
-      <p className="font-display text-[18px] font-bold text-ink">{value}</p>
-      <p className="text-[10.5px] font-semibold uppercase tracking-wider text-ink-faint">{label}</p>
+    <div className={`mt-4 flex gap-3 rounded-2xl px-4 py-3 ${cls}`}>
+      <span className="mt-0.5 shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-[13px] font-semibold">{title}</p>
+        <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink/80">{children}</p>
+      </div>
     </div>
   );
 }
