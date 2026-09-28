@@ -103,7 +103,11 @@ function OpenLinkSheetBody({ url, onOpenInternal, onOpenExternal }: { url: strin
   );
 }
 
-export function LinkifiedText({ text, className, linkColor = "text-primary font-bold hover:opacity-80" }: { text: string; className?: string, linkColor?: string }) {
+// Links are Zero Club pink in every theme, so they never read as plain text.
+// (--primary is ink on light themes and white on dark ones.)
+const LINK_CLASS = "text-[#cc208f] font-semibold hover:underline underline-offset-2";
+
+export function LinkifiedText({ text, className, linkColor = LINK_CLASS }: { text: string; className?: string, linkColor?: string }) {
   const navigate = useNavigate();
   const router = useRouter();
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);

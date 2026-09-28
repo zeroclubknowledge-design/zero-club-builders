@@ -32,7 +32,12 @@ function TutorStudioLayout() {
         return;
       }
       setProfileId(session.user.id);
-      const { data: profile } = await supabase.from("profiles").select("account_type").eq("id", session.user.id).single();
+      const { data: profile } = await supabase.from("profiles").select("account_type, tutor_enabled").eq("id", session.user.id).single();
+      if (profile?.account_type === "Learner" && !profile?.tutor_enabled) {
+        // Not vetted yet: Tutor Studio opens after an approved application.
+        router.navigate({ to: "/app/tutor-apply", replace: true });
+        return;
+      }
       setState(profile?.account_type === "Learner" ? "switch" : "ready");
     }
     checkAccess();

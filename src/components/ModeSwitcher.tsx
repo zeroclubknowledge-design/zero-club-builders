@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "@/components/icons/glyphs";
-import { MODES, MODE_ORDER, modeOf, switchMode, type Mode } from "@/lib/modes";
+import { MODES, MODE_ORDER, isApprovedTutor, modeOf, switchMode, type Mode } from "@/lib/modes";
 
 /**
  * Learner · Tutor · Creator, one tap apart. Renders nothing for institutions,
@@ -18,6 +18,12 @@ export function ModeSwitcher({ profile, className = "", onSwitched }: { profile:
 
   const choose = async (mode: Mode) => {
     if (mode === current || pending) return;
+    // Tutor mode is for vetted tutors: everyone else goes to the application.
+    if (mode === "tutor" && !isApprovedTutor(profile)) {
+      onSwitched?.();
+      navigate({ to: "/app/tutor-apply" });
+      return;
+    }
     setPending(mode);
     // Show the new mode straight away; the realtime profile update confirms it.
     queryClient.setQueryData(["profile", "current"], (old: any) =>

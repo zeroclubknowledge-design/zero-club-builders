@@ -49,11 +49,12 @@ import {
   YAxis,
 } from "recharts";
 import { toast } from "sonner";
+import { TutorApplicationsAdmin } from "./TutorApplicationsAdmin";
 import { contentPreview, toPlainText } from "@/lib/contentPreview";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
-type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "system";
+type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "tutors" | "system";
 
 type Snapshot = {
   metrics: Record<string, number>;
@@ -82,6 +83,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "community", label: "Community", Icon: UsersRound },
   { id: "marketplace", label: "Marketplace", Icon: BriefcaseBusiness },
   { id: "commerce", label: "Commerce", Icon: CircleDollarSign },
+  { id: "tutors", label: "Tutor applications", Icon: GraduationCap },
   { id: "institutions", label: "Institutions", Icon: Building2 },
   { id: "ads", label: "Ads Manager", Icon: Megaphone },
   { id: "system", label: "System", Icon: Settings2 },
@@ -309,6 +311,7 @@ export function AdminDashboard() {
           {activeTab === "community" && <Community clubs={data.clubs} posts={data.posts} />}
           {activeTab === "marketplace" && <Marketplace gigs={data.gigs} format={format} busy={action.isPending} runAction={runAction} />}
           {activeTab === "commerce" && <Commerce snapshot={data} format={format} />}
+          {activeTab === "tutors" && <TutorApplicationsAdmin />}
           {activeTab === "system" && <System snapshot={data} busy={action.isPending} runAction={runAction} />}
         </main>
       </div>

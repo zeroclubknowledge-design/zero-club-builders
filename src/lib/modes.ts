@@ -47,6 +47,19 @@ export function modeOf(profile: any): Mode | null {
   return profile.active_mode === "creator" ? "creator" : "learner";
 }
 
+/** Tutor mode needs an approved Tutor application first. */
+export class TutorNotApprovedError extends Error {
+  constructor() {
+    super("Tutor mode opens once your Tutor application is approved.");
+    this.name = "TutorNotApprovedError";
+  }
+}
+
+/** True once a Zero Club admin has approved this person to teach. */
+export function isApprovedTutor(profile: any) {
+  return Boolean(profile?.tutor_enabled) || String(profile?.account_type || "").toLowerCase() === "tutor";
+}
+
 /**
  * Switch the signed-in person's mode. Falls back to account_type alone when
  * the database update that adds modes has not been run yet, so Learner and
@@ -55,6 +68,9 @@ export function modeOf(profile: any): Mode | null {
 export async function switchMode(profileId: string, mode: Mode) {
   const { error } = await supabase.rpc("set_active_mode", { new_mode: mode });
   if (!error) return;
+  if (/TUTOR_NOT_APPROVED/.test(error.message || "")) {
+    throw new TutorNotApprovedError();
+  }
 
   const missingFunction = error.code === "PGRST202" || /set_active_mode/i.test(error.message || "");
   if (!missingFunction) throw error;

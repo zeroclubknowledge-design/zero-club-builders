@@ -3327,7 +3327,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             })() : (
               <>
                 <p className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
-                  <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-bold hover:opacity-80" : "text-primary underline font-bold hover:opacity-80"} />
+                  <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-bold hover:opacity-80" : "text-[#cc208f] underline font-bold hover:opacity-80"} />
                   {isMe && !message.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
                 </p>
                 

@@ -344,7 +344,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                    <p className={`text-[14px] font-bold ${isMe ? 'text-background' : 'text-red-600 dark:text-red-400'}`}>❌ Rejected invitation to join {m.content.split(':')[1]}</p>
                 ) : (
                   <p className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
-                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-semibold hover:opacity-80" : "text-accent underline font-semibold hover:opacity-80"} />
+                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-semibold hover:opacity-80" : "text-[#cc208f] underline font-semibold hover:opacity-80"} />
                     {!m.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
                   </p>
                 )}

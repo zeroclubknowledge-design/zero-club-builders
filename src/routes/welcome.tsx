@@ -10,7 +10,7 @@ import { useUser } from "@/hooks/useUser";
 import { useFollow } from "@/hooks/useFollow";
 import { enablePush, supportsWebPush } from "@/lib/pushSubscription";
 import { vapidKeyProblem } from "@/lib/webPush";
-import { INTEREST_OPTIONS, MODES, MODE_ORDER, isInstitution, switchMode, type Mode } from "@/lib/modes";
+import { INTEREST_OPTIONS, MODES, MODE_ORDER, isApprovedTutor, isInstitution, switchMode, type Mode } from "@/lib/modes";
 
 export const Route = createFileRoute("/welcome")({
   component: WelcomePage,
@@ -110,7 +110,9 @@ function WelcomePage() {
         .eq("id", profile.id);
       if (error) throw error;
 
-      if (mode !== "learner") await switchMode(profile.id, mode);
+      // Teaching needs a vetted Tutor application first; they land on it.
+      const needsTutorApproval = mode === "tutor" && !isApprovedTutor(profile);
+      if (mode !== "learner" && !needsTutorApproval) await switchMode(profile.id, mode);
       await queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
 
       let after: string | null = null;
@@ -126,7 +128,7 @@ function WelcomePage() {
       const meaningful = afterUrl && (
         afterUrl.pathname.replace(/\/$/, "") !== "/app" || [...afterUrl.searchParams.values()].some(Boolean)
       );
-      const target = destination || (meaningful ? after! : MODES[mode].home);
+      const target = needsTutorApproval ? "/app/tutor-apply" : destination || (meaningful ? after! : MODES[mode].home);
       window.location.replace(target);
     } catch (error: any) {
       toast.error(error?.message || "Could not save your setup");
