@@ -1411,7 +1411,7 @@ function Footer() {
                 {group.links.map((link) => (
                   <li key={link}>
                     <a
-                      href={link === "Contact" ? "#contact" : "#people"}
+                      href={link === "Contact" ? "#contact" : link === "Privacy" ? "/privacy" : link === "Terms" ? "/terms" : link === "Help Center" ? "/docs" : "#people"}
                       className="text-[13px] font-medium text-[#666a70] dark:text-white/55 transition-colors hover:text-[#171717]"
                     >
                       {link}

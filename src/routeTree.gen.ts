@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -108,6 +110,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -116,6 +123,11 @@ const SignupRoute = SignupRouteImport.update({
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
@@ -578,8 +590,10 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
   '/docs': typeof DocsRoute
+  '/privacy': typeof PrivacyRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
@@ -672,8 +686,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/docs': typeof DocsRoute
+  '/privacy': typeof PrivacyRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
@@ -763,8 +779,10 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
   '/docs': typeof DocsRoute
+  '/privacy': typeof PrivacyRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
@@ -860,8 +878,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/docs'
+    | '/privacy'
     | '/signin'
     | '/signup'
+    | '/terms'
     | '/welcome'
     | '/api/contact'
     | '/api/og-default'
@@ -954,8 +974,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/docs'
+    | '/privacy'
     | '/signin'
     | '/signup'
+    | '/terms'
     | '/welcome'
     | '/api/contact'
     | '/api/og-default'
@@ -1044,8 +1066,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/docs'
+    | '/privacy'
     | '/signin'
     | '/signup'
+    | '/terms'
     | '/welcome'
     | '/api/contact'
     | '/api/og-default'
@@ -1140,8 +1164,10 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AppRoute: typeof AppRouteWithChildren
   DocsRoute: typeof DocsRoute
+  PrivacyRoute: typeof PrivacyRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
+  TermsRoute: typeof TermsRoute
   WelcomeRoute: typeof WelcomeRoute
   ApiContactRoute: typeof ApiContactRoute
   ApiOgDefaultRoute: typeof ApiOgDefaultRoute
@@ -1166,6 +1192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -1178,6 +1211,13 @@ declare module '@tanstack/react-router' {
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs': {
@@ -2052,8 +2092,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AppRoute: AppRouteWithChildren,
   DocsRoute: DocsRoute,
+  PrivacyRoute: PrivacyRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
+  TermsRoute: TermsRoute,
   WelcomeRoute: WelcomeRoute,
   ApiContactRoute: ApiContactRoute,
   ApiOgDefaultRoute: ApiOgDefaultRoute,

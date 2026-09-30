@@ -280,11 +280,6 @@ function SignInPage() {
               <form onSubmit={handleSendCode} className="space-y-5">
                 <GoogleAuthButton label="Continue with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignIn} />
 
-                <div className="flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
-                </div>
 
                 <label className="block space-y-2">
                   <span className="text-[12px] font-medium text-[#5a5056] dark:text-white/60">Email address</span>
@@ -344,7 +339,7 @@ function SignInPage() {
             <p className="mt-8 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-[11.5px] leading-5 text-[#8c8187] dark:text-white/40">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               Secured with one-time email codes · No passwords stored ·
-              <Link to="/docs" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Terms &amp; Privacy</Link>
+              <Link to="/terms" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Terms</Link>{" & "}<Link to="/privacy" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Privacy</Link>
             </p>
           </div>
         </section>

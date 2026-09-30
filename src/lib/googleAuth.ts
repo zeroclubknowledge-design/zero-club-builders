@@ -9,6 +9,27 @@ type GoogleSignupContext = {
   startedAt: number;
 };
 
+let googleEnabled: Promise<boolean> | null = null;
+
+/**
+ * Whether Google sign-in is switched on for this Supabase project.
+ *
+ * Asked once from the public auth settings. While the provider is off, the
+ * Google button is hidden instead of sending people to Supabase's raw
+ * "Unsupported provider: provider is not enabled" error page.
+ */
+export function isGoogleSignInEnabled(): Promise<boolean> {
+  if (!googleEnabled) {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    googleEnabled = fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((settings) => Boolean(settings?.external?.google))
+      .catch(() => false);
+  }
+  return googleEnabled;
+}
+
 export async function startGoogleAuthentication({
   destination,
   signupContext,
@@ -23,6 +44,11 @@ export async function startGoogleAuthentication({
     );
   } else {
     localStorage.removeItem(GOOGLE_SIGNUP_CONTEXT_KEY);
+  }
+
+  if (!(await isGoogleSignInEnabled())) {
+    localStorage.removeItem(GOOGLE_SIGNUP_CONTEXT_KEY);
+    return new Error("Google sign-in isn't available right now. Please continue with your email.");
   }
 
   const { error } = await supabase.auth.signInWithOAuth({

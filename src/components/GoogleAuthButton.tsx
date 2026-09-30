@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Loader2 } from "@/components/icons/glyphs";
+import { isGoogleSignInEnabled } from "@/lib/googleAuth";
 
 function GoogleMark() {
   return (
@@ -20,6 +22,10 @@ function GoogleMark() {
   );
 }
 
+/**
+ * "Continue with Google" plus its "or use email" divider. Renders nothing
+ * while Google sign-in is switched off for the project.
+ */
 export function GoogleAuthButton({
   label,
   loading,
@@ -31,15 +37,32 @@ export function GoogleAuthButton({
   disabled?: boolean;
   onClick: () => void;
 }) {
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void isGoogleSignInEnabled().then((on) => alive && setEnabled(on));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  if (!enabled) return null;
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || loading}
-      className="flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-white text-sm font-medium text-[#241f23] shadow-sm transition hover:bg-[#fafafa] active:scale-[0.99] disabled:opacity-60 dark:border-white/12 dark:bg-[#0f0d12] dark:text-white dark:hover:bg-[#19151c]"
-    >
-      {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleMark />}
-      {loading ? "Opening Google" : label}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled || loading}
+        className="flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-white text-sm font-medium text-[#241f23] shadow-sm transition hover:bg-[#fafafa] active:scale-[0.99] disabled:opacity-60 dark:border-white/12 dark:bg-[#0f0d12] dark:text-white dark:hover:bg-[#19151c]"
+      >
+        {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleMark />}
+        {loading ? "Opening Google" : label}
+      </button>
+      <div className="flex items-center gap-3" aria-hidden="true">
+        <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
+        <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
+      </div>
+    </>
   );
 }

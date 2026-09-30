@@ -45,6 +45,7 @@ import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
 import { ZeroLoader } from "@/components/ZeroLoader";
+import { getDeviceId } from "@/lib/device";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -797,6 +798,22 @@ function AppLayout() {
           }
         }
       });
+  }, [profile?.id]);
+
+  // One account per person: remember this device for this account. A brand-new
+  // account made on a device that already has one (e.g. via Google) is held.
+  useEffect(() => {
+    if (!profile?.id) return;
+    const deviceId = getDeviceId();
+    if (!deviceId) return;
+    void supabase.rpc("register_device", { p_device: deviceId }).then(({ data }) => {
+      if (data && (data as { ok?: boolean }).ok === false) {
+        toast.error("This device already has a Zero Club account", {
+          description: "Each person can have one Zero Club account. Please sign in to your existing one.",
+        });
+        void supabase.auth.signOut().then(() => window.location.replace("/signin"));
+      }
+    });
   }, [profile?.id]);
 
   useEffect(() => {

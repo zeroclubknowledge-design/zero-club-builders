@@ -1,0 +1,17 @@
+-- ALREADY APPLIED to the live database on 30 Sep 2026 (as "one_account_per_person"
+-- and "one_account_system_hold"). Kept for the record — do not run again.
+--
+-- One Zero Club account per person:
+--  * public.normalize_email(): gmail dots / +aliases and googlemail.com collapse to one inbox.
+--  * public.account_devices: which device (anonymous id from the app) each account uses.
+--  * public.signup_precheck(email, device): friendly reasons for the sign-up screen
+--    (existing_account | email_alias | device_has_account).
+--  * trigger enforce_one_account_per_person (before insert on auth.users): hard gate,
+--    raises DUPLICATE_ACCOUNT / DEVICE_HAS_ACCOUNT.
+--  * trigger record_signup_device (after insert on auth.users): stores the sign-up device,
+--    and never lets a new account start as a Tutor.
+--  * public.register_device(device): called by the app each session; a brand-new account
+--    (under 30 minutes old, e.g. via Google) on a device that already has another account
+--    is suspended and admins are notified.
+--  * protect_profile_admin_fields(): allows that one system hold (app.system_hold).
+-- Devices used by an admin account are exempt, so admins can still create test accounts.

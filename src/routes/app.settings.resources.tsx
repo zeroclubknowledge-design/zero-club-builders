@@ -9,7 +9,8 @@ function ResourcesSettings() {
   const items = [
     { icon: HelpCircle, title: "Help Center", desc: "Find answers and contact support" },
     { icon: Info, title: "About Zero Club", desc: "Learn more about our mission and team" },
-    { icon: ShieldAlert, title: "Legal", desc: "Terms of Service, Privacy Policy, and Cookies" },
+    { icon: ShieldAlert, title: "Terms of Service", desc: "The rules for using Zero Club", href: "/terms" },
+    { icon: ShieldAlert, title: "Privacy Policy", desc: "How we collect, use and protect your information", href: "/privacy" },
     { icon: FileText, title: "Release notes", desc: "See what's new in the latest version" },
   ];
 
@@ -25,7 +26,7 @@ function ResourcesSettings() {
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="mt-4 flex flex-col border-b border-border">
           {items.map((item) => (
-            <button key={item.title} className="flex items-start gap-5 px-5 py-4 transition active:bg-accent/10 text-left group">
+            <button key={item.title} onClick={() => { const href = (item as { href?: string }).href; if (href) window.location.href = href; }} className="flex items-start gap-5 px-5 py-4 transition active:bg-accent/10 text-left group">
               <div className="mt-1 shrink-0">
                 <item.icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
               </div>

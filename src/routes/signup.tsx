@@ -7,6 +7,7 @@ import { usePublicTheme } from "@/hooks/usePublicTheme";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { OtpInput, ResendRow } from "@/components/auth/OtpInput";
 import { startGoogleAuthentication } from "@/lib/googleAuth";
+import { getDeviceId, ONE_ACCOUNT_MESSAGES, oneAccountErrorMessage } from "@/lib/device";
 import { isTrustedEmail, isUntrustedEmailError, suggestEmailFix, UNTRUSTED_EMAIL_MESSAGE } from "@/lib/trustedEmail";
 
 export const Route = createFileRoute("/signup")({
@@ -128,6 +129,20 @@ function SignUpPage() {
         return;
       }
 
+      // One account per person: no second account on this device, and no
+      // second account on the same inbox through aliases (a.b@ / ab+1@).
+      const deviceId = getDeviceId();
+      const { data: precheck } = await supabase.rpc("signup_precheck", { p_email: email.trim(), p_device: deviceId });
+      if (precheck && precheck.ok === false) {
+        const say = ONE_ACCOUNT_MESSAGES[precheck.reason as string];
+        toast.error("You already have a Zero Club account", {
+          description: say ? say(precheck.account) : "Each person can have one Zero Club account.",
+          action: { label: "Sign in", onClick: () => router.navigate({ to: "/signin" }) },
+        });
+        setLoading(false);
+        return;
+      }
+
       const cleanUsername = username.toLowerCase().replace(/[^a-z0-9]/g, "");
 
       const { data: existingUser } = await supabase
@@ -159,6 +174,7 @@ function SignUpPage() {
       const metadata: any = {
         username: cleanUsername,
         full_name: username,
+        device_id: deviceId,
       };
 
       if (referralCode) {
@@ -174,7 +190,9 @@ function SignUpPage() {
       });
 
       if (error) {
-        if (isUntrustedEmailError(error.message)) toast.error("This email provider isn't accepted", { description: UNTRUSTED_EMAIL_MESSAGE });
+        const oneAccount = oneAccountErrorMessage(error.message);
+        if (oneAccount) toast.error("You already have a Zero Club account", { description: oneAccount });
+        else if (isUntrustedEmailError(error.message)) toast.error("This email provider isn't accepted", { description: UNTRUSTED_EMAIL_MESSAGE });
         else toast.error(`Sign Up Error: ${error.message}`);
       } else {
         setStep("code");
@@ -432,17 +450,12 @@ function SignUpPage() {
                     className="mt-1 h-4 w-4 rounded border-black/20 accent-[#cc208f] dark:border-white/25"
                   />
                   <span className="text-xs leading-5 text-[#746970] dark:text-white/55">
-                    I agree to the <span className="font-medium text-[#241f23] underline dark:text-white">Terms of Service</span> and <span className="font-medium text-[#241f23] underline dark:text-white">Privacy Policy</span>.
+                    I agree to the <a href="/terms" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} className="font-medium text-[#cc208f] underline underline-offset-2">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} className="font-medium text-[#cc208f] underline underline-offset-2">Privacy Policy</a>.
                   </span>
                 </label>
 
                 <GoogleAuthButton label="Sign up with Google" loading={googleLoading} disabled={loading} onClick={handleGoogleSignUp} />
 
-                <div className="flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8c8187] dark:text-white/40">or use email</span>
-                  <span className="h-px flex-1 bg-black/10 dark:bg-white/12" />
-                </div>
 
                 <button
                   type="submit"
@@ -488,7 +501,7 @@ function SignUpPage() {
             <p className="mt-8 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-[11.5px] leading-5 text-[#8c8187] dark:text-white/40">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               Secured with one-time email codes · No passwords stored ·
-              <Link to="/docs" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Terms &amp; Privacy</Link>
+              <Link to="/terms" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Terms</Link>{" & "}<Link to="/privacy" className="underline-offset-4 hover:text-[#241f23] hover:underline dark:hover:text-white">Privacy</Link>
             </p>
           </div>
         </section>
