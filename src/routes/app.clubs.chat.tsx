@@ -19,15 +19,21 @@ import { getFirstName } from "@/lib/utils";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useGoBack } from "@/hooks/useGoBack";
 import { notifyMentionedUsers } from "@/lib/mentions";
+import { ClubQuizzes } from "@/features/clubs/ClubQuizzes";
+import { ZeroMark } from "@/components/ZeroLoader";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
-  validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string } => {
-    const next: { showRules?: string; clubId?: string } = {};
+  validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string; room?: string } => {
+    const next: { showRules?: string; clubId?: string; room?: string } = {};
+    if (typeof search.room === "string" && search.room) next.room = search.room;
     if (typeof search.showRules === "string" && search.showRules) next.showRules = search.showRules;
     if (typeof search.clubId === "string" && search.clubId) next.clubId = search.clubId;
     return next;
   },
 });
+
+/** Quizzes live inside the club like any other section, not on their own page. */
+const QUIZ_ROOM = "quizzes";
 
 const defaultRooms = [
   { id: "general", name: "Discussion" },
@@ -232,10 +238,11 @@ const isUserOnline = (profile: any) => {
 };
 
 function ClubChat() {
-  const { showRules: showRulesParam, clubId } = useSearch({ from: "/app/clubs/chat" });
   const navigate = useNavigate();
   const goBack = useGoBack("/app/clubs");
-  const [activeRoom, setActiveRoom] = useState("general");
+  const { showRules: showRulesParam, clubId, room: roomParam } = useSearch({ from: "/app/clubs/chat" });
+  const [activeRoom, setActiveRoom] = useState(roomParam || "general");
+  const [showQuickNav, setShowQuickNav] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [club, setClub] = useState<any>(null);
@@ -404,6 +411,7 @@ function ClubChat() {
 
   useEffect(() => {
     if (!club) return;
+    if (activeRoom === QUIZ_ROOM) return;
     const fetchedRooms = getClubRooms(club.rooms);
     if (!fetchedRooms.find((r: any) => r.id === activeRoom)) {
       setActiveRoom(fetchedRooms[0]?.id || "general");
@@ -1231,8 +1239,12 @@ function ClubChat() {
               </button>
             ))}
             <button
-              onClick={() => navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } })}
-              className="flex h-10 flex-none items-center whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => setActiveRoom(QUIZ_ROOM)}
+              className={`flex h-10 flex-none items-center whitespace-nowrap transition-colors ${
+                activeRoom === QUIZ_ROOM
+                  ? "text-foreground shadow-[inset_0_-2px_0_currentColor]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               Quizzes
             </button>
@@ -2304,7 +2316,7 @@ function ClubChat() {
                   </DrawerHeader>
 
                   <div className="space-y-2">
-                    {club?.rooms?.map((r: any) => (
+                    {getClubRooms(club?.rooms).map((r: any) => (
                       <button
                         key={r.id}
                         onClick={() => {
@@ -2337,18 +2349,20 @@ function ClubChat() {
 
                   <button
                     onClick={() => {
+                      setActiveRoom(QUIZ_ROOM);
                       setShowRoomSwitcher(false);
-                      navigate({ to: "/app/clubs/quizzes/$clubId", params: { clubId: clubId || club?.id || "" } });
                     }}
-                    className="mt-3 flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition hover:bg-foreground/[0.04] active:scale-[0.99]"
+                    className={`mt-2 flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-4 py-3.5 text-left transition active:scale-[0.99] ${
+                      activeRoom === QUIZ_ROOM ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"
+                    }`}
                   >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-muted-foreground">
+                    <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${activeRoom === QUIZ_ROOM ? "bg-[#cc208f]/10 text-[#a3186f]" : "bg-foreground/[0.05] text-muted-foreground"}`}>
                       <ClipboardCheck className="h-[18px] w-[18px]" />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-semibold text-foreground">Quiz</span>
+                    <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-foreground">Quizzes</span>
+                    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${activeRoom === QUIZ_ROOM ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/20"}`}>
+                      {activeRoom === QUIZ_ROOM && <Check className="h-3 w-3" strokeWidth={3} />}
                     </span>
-                    <ArrowRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                   </button>
                 </div>
               </DrawerContent>
@@ -2433,13 +2447,18 @@ function ClubChat() {
         </div>
       )}
 
-      {['assignments', 'announcements', 'q-and-a'].includes(activeRoom) ? (
+      {activeRoom === QUIZ_ROOM ? (
+        <main className="w-full shrink-0 pb-28">
+          <ClubQuizzes clubId={club?.id || clubId || ""} embedded />
+        </main>
+      ) : ['assignments', 'announcements', 'q-and-a'].includes(activeRoom) ? (
         <main className="w-full shrink-0 px-4 py-5 md:px-6 md:py-7">
           <StructuredClubRoom
             key={activeRoom}
             room={activeRoom}
             messages={messages}
             isAdmin={isAdmin}
+            isOwner={Boolean(club?.creator_id && club.creator_id === currentUser?.id)}
             currentUser={currentUser}
             onPost={handleSendMessage}
           />
@@ -2472,11 +2491,93 @@ function ClubChat() {
       )}
       </div>
 
+      {/* Owners and admins: a floating Zero Club mark that opens every section
+          and the admin tools in one drawer, for moving around a busy club fast. */}
+      {isAdmin && (
+        <>
+          <button
+            type="button"
+            onClick={() => setShowQuickNav(true)}
+            aria-label="Club sections and tools"
+            className={`absolute right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#cc208f] text-white shadow-[0_14px_30px_-10px_rgba(204,32,143,0.85)] ring-4 ring-card transition active:scale-90 ${
+              ['assignments', 'announcements', 'q-and-a', QUIZ_ROOM].includes(activeRoom)
+                ? "bottom-[calc(20px+env(safe-area-inset-bottom))]"
+                : "bottom-[calc(96px+env(safe-area-inset-bottom))]"
+            }`}
+          >
+            <ZeroMark size={28} />
+          </button>
+
+          <Drawer open={showQuickNav} onOpenChange={setShowQuickNav}>
+            <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
+              <div className="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-1 sm:pt-4">
+                <DrawerHeader className="mb-2 gap-0 px-0 pb-3 pt-0 text-center sm:gap-0 sm:p-0 sm:pb-4">
+                  <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Go to</DrawerTitle>
+                  <DrawerDescription className="mt-1 truncate text-[14px] text-muted-foreground">{club?.name}</DrawerDescription>
+                </DrawerHeader>
+
+                <div className="space-y-1">
+                  {[...getClubRooms(club?.rooms), { id: QUIZ_ROOM, name: "Quizzes" }].map((r: any) => {
+                    const Icon = r.id === "assignments" ? ClipboardCheck : r.id === "announcements" ? Megaphone : r.id === "q-and-a" ? HelpCircle : r.id === QUIZ_ROOM ? BookOpenCheck : Hash;
+                    const active = activeRoom === r.id;
+                    return (
+                      <button
+                        key={r.id}
+                        onClick={() => { setActiveRoom(r.id); setShowQuickNav(false); }}
+                        className={`flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition active:scale-[0.99] ${active ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
+                      >
+                        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-[#cc208f] text-white" : "bg-foreground/[0.05] text-foreground"}`}>
+                          <Icon className="h-[19px] w-[19px]" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[16px] font-medium text-foreground">{r.name}</span>
+                        {active && <Check className="h-4 w-4 shrink-0 text-[#cc208f]" strokeWidth={3} />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="my-3 h-px bg-border" />
+
+                <div className="space-y-1">
+                  <button
+                    onClick={() => {
+                      setShowQuickNav(false);
+                      if (liveNow) navigate({ to: "/app/live/$classId", params: { classId: club?.id || clubId || "unknown" } });
+                      else { setShowScheduleForm(false); setShowLiveMenu(true); }
+                    }}
+                    className="flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition hover:bg-foreground/[0.04] active:scale-[0.99]"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-foreground"><Radio className="h-[19px] w-[19px]" /></span>
+                    <span className="flex-1 text-[16px] font-medium text-foreground">{liveNow ? "Join the live class" : "Go live or schedule"}</span>
+                  </button>
+                  <button
+                    onClick={() => { setShowQuickNav(false); setShowMembers(true); }}
+                    className="flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition hover:bg-foreground/[0.04] active:scale-[0.99]"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-foreground"><Users className="h-[19px] w-[19px]" /></span>
+                    <span className="flex-1 text-[16px] font-medium text-foreground">Members</span>
+                  </button>
+                  {club?.creator_id === currentUser?.id && (
+                    <button
+                      onClick={() => { setShowQuickNav(false); setShowSettings(true); }}
+                      className="flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition hover:bg-foreground/[0.04] active:scale-[0.99]"
+                    >
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-foreground"><Settings className="h-[19px] w-[19px]" /></span>
+                      <span className="flex-1 text-[16px] font-medium text-foreground">Club settings</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </>
+      )}
+
       {/* An overlay, not a footer. Absolute rather than fixed: this page is a
           fixed panel whose height follows visualViewport, so a fixed child
           would ignore both the desktop sidebar offset and the shrinking the
           keyboard causes. */}
-      {!['assignments', 'announcements', 'q-and-a'].includes(activeRoom) && (
+      {!['assignments', 'announcements', 'q-and-a', QUIZ_ROOM].includes(activeRoom) && (
       <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
         {replyingTo && (
           <div className="mb-2 flex items-center justify-between rounded-lg bg-accent/10 p-2 border-l-3 border-primary">
@@ -2580,7 +2681,24 @@ type ClubCardPayload = {
   title: string;
   body: string;
   dueDate?: string;
+  /** "HH:MM", local time. Missing on older assignments: they close at the end of the day. */
+  dueTime?: string;
+  /** Total marks, set by the club owner. Grades can't exceed it. */
+  maxMarks?: number;
 };
+
+/** When an assignment closes, as a Date (end of the day if no time was set). */
+const assignmentDue = (card: ClubCardPayload) =>
+  card.dueDate ? new Date(`${card.dueDate}T${card.dueTime || "23:59"}:00`) : null;
+
+const formatDue = (card: ClubCardPayload) => {
+  const due = assignmentDue(card);
+  if (!due || Number.isNaN(due.getTime())) return null;
+  const day = due.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  return card.dueTime ? `${day}, ${due.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}` : day;
+};
+
+const fmtMark = (n: number) => (Number.isInteger(Number(n)) ? String(Number(n)) : Number(n).toFixed(1));
 
 const encodeClubCard = (payload: ClubCardPayload) => `${CLUB_CARD_PREFIX}${JSON.stringify(payload)}`;
 const encodeClubReply = (type: 'submission' | 'answer', body: string) => `${CLUB_REPLY_PREFIX}${JSON.stringify({ type, body })}`;
@@ -2616,16 +2734,56 @@ const parseClubReply = (message: any) => {
   return { type: 'answer' as const, body: raw };
 };
 
-function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: any) {
+function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentUser, onPost }: any) {
   const [showComposer, setShowComposer] = useState(false);
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [dueTime, setDueTime] = useState('');
+  const [maxMarks, setMaxMarks] = useState('');
+  const [grades, setGrades] = useState<Record<string, any>>({});
+  const [gradeDrafts, setGradeDrafts] = useState<Record<string, { score: string; feedback: string }>>({});
+  const [gradingId, setGradingId] = useState<string | null>(null);
   const [threadReply, setThreadReply] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const cards = messages.filter((message: any) => !message.reply_to_id);
+
+  // Marks for submissions. Row-level security returns only what this person
+  // may see: their own marks, or every mark for the club owner and admins.
+  const cardIdsKey = room === 'assignments' ? cards.map((c: any) => c.id).join(',') : '';
+  const loadGrades = async () => {
+    if (!cardIdsKey) return;
+    const { data } = await supabase
+      .from('club_assignment_grades')
+      .select('submission_id, score, max_marks, feedback, graded_at')
+      .in('assignment_id', cardIdsKey.split(','));
+    const next: Record<string, any> = {};
+    (data || []).forEach((g: any) => { next[g.submission_id] = g; });
+    setGrades(next);
+  };
+  useEffect(() => { void loadGrades(); }, [cardIdsKey]);
+
+  const saveGrade = async (submissionId: string, max: number) => {
+    const draft = gradeDrafts[submissionId] || { score: '', feedback: '' };
+    const score = Number(draft.score);
+    if (draft.score.trim() === '' || Number.isNaN(score) || score < 0 || score > max) {
+      toast.error(`Enter a mark between 0 and ${fmtMark(max)}.`);
+      return;
+    }
+    setGradingId(submissionId);
+    const { data, error } = await supabase.rpc('grade_club_submission', { p_submission: submissionId, p_score: score, p_feedback: draft.feedback || null });
+    setGradingId(null);
+    if (error || !data?.ok) {
+      const reason = data?.reason;
+      toast.error(reason === 'owner_only' ? 'Only the club owner can mark assignments.' : reason === 'out_of_range' ? `Marks must be between 0 and ${fmtMark(data.max)}.` : reason === 'no_marks_set' ? 'This assignment has no total marks.' : error?.message || 'Could not save the mark.');
+      return;
+    }
+    toast.success(`Marked ${fmtMark(score)}/${fmtMark(max)}`);
+    setGradeDrafts((d) => { const n = { ...d }; delete n[submissionId]; return n; });
+    void loadGrades();
+  };
   const roomMeta = room === 'assignments'
     ? {
         label: 'Classwork',
@@ -2660,6 +2818,8 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
     setTitle('');
     setBody('');
     setDueDate('');
+    setDueTime('');
+    setMaxMarks('');
     setShowComposer(false);
   };
 
@@ -2671,7 +2831,20 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
 
     setIsSubmitting(true);
     const type = room === 'assignments' ? 'assignment' : room === 'q-and-a' ? 'question' : 'announcement';
-    await onPost(encodeClubCard({ type, title: title.trim(), body: body.trim(), dueDate: dueDate || undefined }), null);
+    const marks = Number(maxMarks);
+    if (room === 'assignments' && isOwner && maxMarks.trim() && (!Number.isFinite(marks) || marks <= 0 || marks > 1000)) {
+      toast.error('Total marks must be a number between 1 and 1000.');
+      setIsSubmitting(false);
+      return;
+    }
+    await onPost(encodeClubCard({
+      type,
+      title: title.trim(),
+      body: body.trim(),
+      dueDate: dueDate || undefined,
+      dueTime: dueDate && dueTime ? dueTime : undefined,
+      maxMarks: room === 'assignments' && isOwner && marks > 0 ? marks : undefined,
+    }), null);
     resetComposer();
     setIsSubmitting(false);
   };
@@ -2734,14 +2907,46 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
               className="min-h-28 w-full min-w-0 resize-y rounded-md border border-border bg-background px-3.5 py-3 text-sm leading-6 outline-none transition focus:border-primary"
             />
             {room === 'assignments' && (
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Due date</label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => setDueDate(event.target.value)}
-                  className="h-11 w-full rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary sm:max-w-[240px]"
-                />
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Due date</label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(event) => setDueDate(event.target.value)}
+                    className="h-11 w-full rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Due time</label>
+                  <input
+                    type="time"
+                    value={dueTime}
+                    disabled={!dueDate}
+                    onChange={(event) => setDueTime(event.target.value)}
+                    className="h-11 w-full rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary disabled:opacity-50"
+                  />
+                </div>
+                {isOwner && (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Total marks</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={1}
+                      max={1000}
+                      value={maxMarks}
+                      onChange={(event) => setMaxMarks(event.target.value)}
+                      placeholder="e.g. 20"
+                      className="h-11 w-full rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary"
+                    />
+                  </div>
+                )}
+                {isOwner && (
+                  <p className="text-[12px] leading-relaxed text-muted-foreground sm:col-span-3">
+                    Only you, as the club owner, can mark this assignment. Learners can score up to the total marks you set.
+                  </p>
+                )}
               </div>
             )}
             <div className="flex justify-end pt-1">
@@ -2809,7 +3014,12 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                         <span>{author}</span>
                       </Link>
                       <span>{formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}</span>
-                      {card.dueDate && <span className="font-medium text-foreground">Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}</span>}
+                      {card.dueDate && (() => {
+                        const due = assignmentDue(card);
+                        const overdue = Boolean(due && due.getTime() < Date.now());
+                        return <span className={`font-medium ${overdue ? "text-rose-600" : "text-foreground"}`}>{overdue ? "Closed" : "Due"} {formatDue(card)}</span>;
+                      })()}
+                      {card.maxMarks ? <span className="rounded-full bg-[#cc208f]/10 px-2 py-0.5 font-semibold text-[#a3186f]">{fmtMark(card.maxMarks)} marks</span> : null}
                       {interactive && <span className="font-medium text-primary">{replyCount} {room === 'assignments' ? 'submissions' : 'answers'}</span>}
                     </div>
                   </div>
@@ -2834,11 +3044,18 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                     {room === 'assignments' ? 'Assignment details' : 'Question thread'}
                   </span>
                   <DrawerTitle className="break-words pr-8 font-display text-[20px] font-semibold leading-tight [overflow-wrap:anywhere]">{card.title}</DrawerTitle>
-                  {card.dueDate && (
-                    <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
-                      <CalendarDays className="h-4 w-4" />
-                      Due {new Date(`${card.dueDate}T12:00:00`).toLocaleDateString()}
-                    </p>
+                  {(card.dueDate || card.maxMarks) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[13px] font-medium text-muted-foreground">
+                      {card.dueDate && (
+                        <span className={`inline-flex items-center gap-1.5 ${assignmentDue(card)!.getTime() < Date.now() ? "text-rose-600" : ""}`}>
+                          <CalendarDays className="h-4 w-4" />
+                          {assignmentDue(card)!.getTime() < Date.now() ? "Closed" : "Due"} {formatDue(card)}
+                        </span>
+                      )}
+                      {card.maxMarks ? (
+                        <span className="rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">Total: {fmtMark(card.maxMarks)} marks</span>
+                      ) : null}
+                    </div>
                   )}
                   <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">{card.body}</p>
                 </DrawerHeader>
@@ -2876,6 +3093,80 @@ function StructuredClubRoom({ room, messages, isAdmin, currentUser, onPost }: an
                               <span className="shrink-0 text-[12px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
                             </div>
                             <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">{parsedReply.body}</p>
+                            {room === 'assignments' && (() => {
+                              const due = assignmentDue(card);
+                              const late = Boolean(due && new Date(reply.created_at).getTime() > due.getTime());
+                              const grade = grades[reply.id];
+                              const max = Number(card.maxMarks || 0);
+                              const draft = gradeDrafts[reply.id];
+                              return (
+                                <>
+                                  {(late || grade) && (
+                                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                                      {late && <span className="rounded-full bg-amber-500/12 px-2 py-0.5 text-[11.5px] font-semibold text-amber-600">Submitted late</span>}
+                                      {grade && (
+                                        <span className="rounded-full bg-emerald-500/12 px-2.5 py-0.5 text-[12.5px] font-bold text-emerald-600">
+                                          {fmtMark(grade.score)}/{fmtMark(grade.max_marks)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {grade?.feedback && !draft && (
+                                    <p className="mt-2 rounded-xl bg-background/70 px-3 py-2 text-[13.5px] leading-relaxed text-foreground/80">
+                                      <span className="font-semibold">Tutor's note: </span>{grade.feedback}
+                                    </p>
+                                  )}
+                                  {isOwner && max > 0 && (
+                                    draft ? (
+                                      <div className="mt-3 rounded-xl border border-border bg-background p-3">
+                                        <div className="flex items-center gap-2">
+                                          <input
+                                            type="number"
+                                            inputMode="decimal"
+                                            min={0}
+                                            max={max}
+                                            step="0.5"
+                                            autoFocus
+                                            value={draft.score}
+                                            onChange={(e) => setGradeDrafts((d) => ({ ...d, [reply.id]: { ...draft, score: e.target.value } }))}
+                                            className="h-10 w-24 rounded-lg border border-border bg-card px-3 text-[15px] font-semibold outline-none focus:border-[#cc208f]"
+                                          />
+                                          <span className="text-[14px] font-semibold text-muted-foreground">/ {fmtMark(max)}</span>
+                                        </div>
+                                        <input
+                                          value={draft.feedback}
+                                          onChange={(e) => setGradeDrafts((d) => ({ ...d, [reply.id]: { ...draft, feedback: e.target.value } }))}
+                                          placeholder="Feedback for the learner (optional)"
+                                          className="mt-2 h-10 w-full rounded-lg border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]"
+                                        />
+                                        <div className="mt-2 flex gap-2">
+                                          <button
+                                            onClick={() => void saveGrade(reply.id, max)}
+                                            disabled={gradingId === reply.id}
+                                            className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#cc208f] text-[13.5px] font-semibold text-white disabled:opacity-50"
+                                          >
+                                            {gradingId === reply.id && <Loader2 className="h-4 w-4 animate-spin" />} Save mark
+                                          </button>
+                                          <button
+                                            onClick={() => setGradeDrafts((d) => { const n = { ...d }; delete n[reply.id]; return n; })}
+                                            className="h-9 rounded-full bg-foreground/[0.06] px-4 text-[13.5px] font-semibold text-muted-foreground"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => setGradeDrafts((d) => ({ ...d, [reply.id]: { score: grade ? String(grade.score) : '', feedback: grade?.feedback || '' } }))}
+                                        className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full border border-[#cc208f]/40 px-3 text-[12.5px] font-semibold text-[#cc208f]"
+                                      >
+                                        <Check className="h-3.5 w-3.5" /> {grade ? 'Change mark' : 'Mark submission'}
+                                      </button>
+                                    )
+                                  )}
+                                </>
+                              );
+                            })()}
                           </article>
                         );
                       })}
