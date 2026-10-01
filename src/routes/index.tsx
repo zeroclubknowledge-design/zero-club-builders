@@ -2,6 +2,7 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { HeroStage } from "@/features/landing/HeroStage";
+import { CanvasVideo } from "@/features/landing/CanvasVideo";
 import { useReveal } from "@/hooks/useReveal";
 import { usePointerGlow, useParallax, usePrefersReducedMotion } from "@/hooks/useLandingMotion";
 import { Bloom, Seam, Spotlight } from "@/features/landing/LandingKit";
@@ -463,218 +464,6 @@ function Header({ referralCode }: ReferralProps) {
   );
 }
 
-/* ── Code-built product showcase: the real Zero Club, not screenshots ── */
-function ProductShowcase() {
-  return (
-    <div className="relative mx-auto w-[calc(100vw-20px)] max-w-[380px] min-w-0 justify-self-center pb-7 sm:w-full sm:max-w-[520px] sm:pb-0">
-      {/* Glow */}
-      <div className="pointer-events-none absolute -top-20 -right-14 h-80 w-80 rounded-full bg-[#cc208f]/25 blur-[100px]" />
-      <div className="pointer-events-none absolute -bottom-16 -left-12 h-64 w-64 rounded-full bg-[#7a3cc8]/20 blur-[90px]" />
-
-      {/* Main: a shipped-work post inside the dark app frame */}
-      <div className="zc-surface relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#241c29] via-[#161219] to-[#0d0b10] p-4 text-white sm:rounded-[26px] sm:p-6">
-        <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[#cc208f]/15 blur-[80px]" />
-
-        {/* Post header */}
-        <div className="relative flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-[#cc208f]/20 ring-1 ring-[#cc208f]/30 text-[15px] font-semibold text-[#f28fd0]">
-            A
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[14px] font-semibold tracking-tight">Amara O.</span>
-              <span className="flex items-center gap-1 rounded-full bg-[#cc208f]/15 px-2 py-0.5 text-[9px] font-medium text-[#f28fd0] ring-1 ring-[#cc208f]/25">
-                <ArrowUpRight className="h-2.5 w-2.5" /> Ship
-              </span>
-            </div>
-            <p className="text-[11px] text-white/45">@amara · 2h</p>
-          </div>
-          <span className="flex items-center gap-1 rounded-full bg-white/[0.06] px-2.5 py-1 text-[10px] font-semibold text-amber-400 ring-1 ring-white/10 tabular-nums">
-            <Zap className="h-3 w-3" /> +50 XP
-          </span>
-        </div>
-
-        {/* Post body */}
-        <p className="relative mt-4 text-[14px] leading-relaxed text-white/80">
-          Shipped my first paid bootcamp landing page — built during the
-          <span className="text-[#f28fd0]"> UI Engineering cohort</span>. Feedback welcome 🚀
-        </p>
-
-        {/* Mock media */}
-        {/* The attached work, as a little browser rather than four grey bars.
-            A window chrome and an address line read instantly as "a page they
-            built"; abstract pills read as a loading state that never
-            finished. */}
-        <div className="zc-surface relative mt-4 overflow-hidden rounded-[14px] bg-gradient-to-br from-[#2a1f2e] via-[#1a161d] to-[#121016]">
-          <div className="flex items-center gap-1.5 px-3 py-2">
-            <span className="h-2 w-2 rounded-full bg-white/20" />
-            <span className="h-2 w-2 rounded-full bg-white/15" />
-            <span className="h-2 w-2 rounded-full bg-white/10" />
-            <span className="ml-2 h-4 flex-1 rounded-full bg-white/[0.06]" />
-          </div>
-          <div className="relative h-24 px-4 pt-4 sm:h-32">
-            <div className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full bg-[#cc208f]/30 blur-[34px]" />
-            <div className="relative h-2.5 w-28 rounded-full bg-white/25" />
-            <div className="relative mt-2.5 h-2 w-44 rounded-full bg-white/[0.10]" />
-            <div className="relative mt-1.5 h-2 w-36 rounded-full bg-white/[0.08]" />
-            <div className="relative mt-3.5 inline-flex h-7 items-center rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0479f] px-4 text-[9px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(204,32,143,0.9)]">
-              View project
-            </div>
-          </div>
-        </div>
-
-        {/* Post actions */}
-        <div className="relative mt-4 flex items-center gap-3 text-[11px] text-white/45 tabular-nums sm:gap-5 sm:text-[11.5px]">
-          <span className="flex items-center gap-1.5">
-            <ThumbsUp className="h-3.5 w-3.5 fill-current" />
-            128 likes
-          </span>
-          <span className="flex items-center gap-1.5">
-            <MessageSquare className="h-3.5 w-3.5 fill-current" />
-            24 replies
-          </span>
-          <span className="ml-auto flex items-center gap-1 text-emerald-400">
-            <Check className="h-3 w-3" /> Verified proof
-          </span>
-        </div>
-      </div>
-
-      {/* Floating: live class pill */}
-      <div className="zc-showcase-float zc-surface-light absolute -top-3 left-0 flex max-w-full items-center gap-2 overflow-hidden rounded-[16px] bg-white/95 p-2 pr-3.5 backdrop-blur-xl dark:bg-gradient-to-br dark:from-[#241c29] dark:via-[#161219] dark:to-[#0d0b10] sm:-top-5 sm:-left-6 sm:max-w-none sm:gap-2.5 sm:rounded-[18px] sm:p-3 sm:pr-4">
-        <span className="pointer-events-none absolute -right-6 -top-8 hidden h-20 w-20 rounded-full bg-[#cc208f]/25 blur-[30px] dark:block" />
-        <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500/10">
-          <Radio className="h-4 w-4 text-red-500" />
-          <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-        </span>
-        <div className="relative">
-          <p className="text-[12px] font-semibold tracking-tight text-[#171717] dark:text-white">
-            Live bootcamp
-          </p>
-          <p className="text-[10.5px] text-[#666a70] dark:text-white/55">
-            UI Engineering · 48 learners
-          </p>
-        </div>
-      </div>
-
-      {/* Floating: wallet mini-card */}
-      <div className="zc-showcase-float-delayed zc-surface absolute bottom-0 right-0 w-[130px] overflow-hidden rounded-[16px] bg-gradient-to-br from-[#241c29] via-[#161219] to-[#0d0b10] p-3 sm:-bottom-6 sm:-right-6 sm:w-44 sm:rounded-[18px] sm:p-4">
-        <div className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-[#cc208f]/30 blur-[30px]" />
-        <p className="text-[9px] font-medium uppercase tracking-[0.16em] text-white/45">
-          Creator wallet
-        </p>
-        <p className="mt-1.5 text-[17px] font-semibold tracking-tight text-white tabular-nums sm:text-[20px]">
-          ₦248,500
-        </p>
-        <p className="mt-0.5 text-[10px] text-emerald-400">+ ₦45,000 this week</p>
-      </div>
-    </div>
-  );
-}
-
-/**
-   * The scrolling rail under the hero, showing real clubs.
-   *
-   * Reads clubs directly with the anon key and only shows active clubs that have
-   * a real logo or banner. The landing rail is a visual showcase only: it does
-   * not expose a private club's posts, members, chat, or join controls.
-   *
-   * If the query fails or returns nothing, the rail renders nothing at all rather
-   * than falling back to invented clubs. An empty strip is better than a landing
-   * page that promises communities which do not exist.
-   */
-function ActivityRail() {
-  const { data: clubs = [] } = useQuery({
-    queryKey: ["landing-live-clubs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clubs")
-        .select("id, name, category, logo_url, banner_url, status, created_at")
-        .eq("status", "active")
-        .or("logo_url.not.is.null,banner_url.not.is.null")
-        .order("created_at", { ascending: false })
-        .limit(18);
-
-      if (error) throw error;
-
-      // Prefer category variety, then fill the remaining spaces with the most
-      // recently created image-backed clubs. At most six distinct clubs are
-      // shown so the hero remains compact on phones.
-      const imageBacked = (data ?? []).filter((club) => Boolean(club.logo_url || club.banner_url));
-      const selected: typeof imageBacked = [];
-      const usedCategories = new Set<string>();
-
-      for (const club of imageBacked) {
-        const category = (club.category || "Community").trim().toLowerCase();
-        if (!usedCategories.has(category)) {
-          selected.push(club);
-          usedCategories.add(category);
-        }
-        if (selected.length === 6) break;
-      }
-
-      for (const club of imageBacked) {
-        if (selected.length === 6) break;
-        if (!selected.some((item) => item.id === club.id)) selected.push(club);
-      }
-
-      return selected;
-    },
-    // The landing page is the most-hit route on the site; clubs change rarely.
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
-
-  if (clubs.length === 0) return null;
-
-  // Duplicated so the marquee can loop without a visible seam. The copies are
-  // hidden from screen readers so each club is announced once.
-  const rail = [...clubs, ...clubs];
-
-  return (
-    <div className="mt-6 w-full max-w-[540px]">
-      <div className="flex items-center justify-between px-1 pb-2 text-[9px] font-medium uppercase tracking-[0.13em] text-[#666a70] dark:text-white/55 sm:text-[10px]">
-        <span className="flex items-center gap-2 text-[#9d176d]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#cc208f] animate-pulse" />
-          Live Clubs
-        </span>
-        <span>Proof in motion</span>
-      </div>
-      {/* py/px keep each card's ring from being clipped by the overflow mask */}
-      <div className="overflow-hidden px-1 py-1.5 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
-        <div className="zc-activity-rail flex w-max gap-2">
-          {rail.map((club, index) => (
-            <article
-              key={`${club.id}-${index}`}
-              aria-hidden={index >= clubs.length || undefined}
-              className="flex w-[198px] shrink-0 items-center gap-2.5 rounded-lg bg-[#f4f2ef] dark:bg-[#0f0d12] px-3 py-2.5 ring-1 ring-[#171717]/[0.05] dark:ring-white/[0.08] sm:w-[218px] sm:gap-3"
-            >
-              <span className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-[#cc208f]/10 ring-1 ring-[#171717]/[0.06] dark:ring-white/10">
-                <img
-                  src={club.logo_url || club.banner_url || ""}
-                  alt={`${club.name} club`}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-[11.5px] font-semibold text-[#242126] dark:text-white">
-                  {club.name}
-                </span>
-                <span className="block truncate text-[10.5px] text-[#666a70] dark:text-white/55">
-                  {club.category || "Community"}
-                </span>
-              </span>
-              <span className="ml-auto shrink-0 text-[10px] font-semibold text-[#9d176d]">
-                Live
-              </span>
-            </article>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /**
    * Download button for the Android app, shown only on Android.
    *
@@ -715,15 +504,13 @@ function ProductSection() {
   /*
    * What the old hero carried, kept.
    *
-   * Replacing the hero would otherwise have dropped the product mockup, the
-   * live activity rail and the Android download link — the last of which is a
-   * real install path, not decoration. They move here, directly beneath the
-   * new first screen, where they still do their job.
+   * Keeps the Android download link (a real install path) beneath the first
+   * screen. The product mockup and the "Live Clubs" rail were removed.
    */
   return (
     <section className="relative overflow-hidden bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
-      <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:grid-cols-[1fr_0.95fr] lg:gap-12 lg:py-20">
+      <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:py-20">
         <div className="min-w-0">
           <h2 className="max-w-[620px] font-display text-[clamp(24px,4.4vw,38px)] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white">
             Everything you build, in one place.
@@ -734,11 +521,7 @@ function ProductSection() {
           </p>
 
           <AndroidAppDownload />
-
-          <ActivityRail />
         </div>
-
-        <ProductShowcase />
       </div>
     </section>
   );
@@ -820,16 +603,13 @@ function LearningSection() {
                 The poster is the first frame, so the card shows its artwork
                 immediately instead of a black rectangle while the file loads.
               */}
-              <video
+              {/* Painted onto a canvas so mobile browsers don't float their own
+                  download button over it — see CanvasVideo. */}
+              <CanvasVideo
                 src={item.video}
                 poster={item.poster}
-                autoPlay={!reducedMotion}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                aria-hidden
-                className="aspect-video w-full bg-[#f4f2ef] object-cover dark:bg-[#0f0d12]"
+                play={!reducedMotion}
+                className="aspect-video w-full bg-[#f4f2ef] dark:bg-[#0f0d12]"
               />
               <div className="bg-gradient-to-br from-white via-[#fbfaf8] to-[#f2f0ec] p-6 dark:from-[#1d1922] dark:via-[#161219] dark:to-[#121016] md:p-8">
                 <h3 className="max-w-[620px] text-[19px] font-semibold leading-snug tracking-tight text-[#171717] dark:text-white md:text-[22px]">
