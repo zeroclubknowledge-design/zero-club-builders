@@ -1179,6 +1179,14 @@ function AppLayout() {
         setSession(session);
         setLoading(false);
 
+        // Invite links point at a profile (?ref=CODE), which guests can read
+        // without being sent to /signup. Keep the code so signing up later
+        // from that page still credits the person who invited them.
+        if (!session) {
+          const inviteCode = new URLSearchParams(window.location.search).get("ref");
+          if (inviteCode) { try { localStorage.setItem("signup_ref", inviteCode); } catch { /* storage unavailable */ } }
+        }
+
         if (!session && !isGuestReadable) {
           const search = new URLSearchParams(window.location.search);
           router.navigate({

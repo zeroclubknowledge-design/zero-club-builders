@@ -174,12 +174,12 @@ function Profile() {
 
   const handleShare = async () => {
     const url = `${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`;
-    const text = `Join me on Zero Club and get rewarded with 200 ZP when you complete the referral.`;
+    const text = `Join me on Zero Club — learn, build and get rewarded for it.`;
     
     if (hasShareSheet()) {
       try {
         await openShareSheet({
-          heading: 'Invite friends to Zero Club',
+          heading: 'Invite friends · earn 100 ZP each',
           title: `${profile.full_name || profile.username} on Zero Club`,
           text: text,
           url: url,
@@ -189,7 +189,7 @@ function Profile() {
       }
     } else {
       await navigator.clipboard.writeText(`${text}\n\n${url}`);
-      toast.success("Profile referral link copied!");
+      toast.success("Invite link copied — you earn 100 ZP for every friend who joins");
     }
   };
 

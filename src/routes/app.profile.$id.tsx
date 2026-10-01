@@ -359,24 +359,8 @@ function ProfileDetail() {
       if (!nowFollowing) {
         toast.success(`Unfollowed ${getFirstName(profile)}`);
       } else {
-        // Referral incentives are spendable ZP, not reputation XP.
-        if (currentUser.referral_code_used && currentUser.referral_code_used === profile.referral_code) {
-          const { error: referralErr } = await supabase.rpc('claim_referral_reward', {
-            referrer: profile.id,
-          });
-          if (referralErr) throw referralErr;
-          toast.success("Referral complete! Both earned 200 ZP");
-          
-          // Add a notification for the referrer
-          await supabase.from('notifications').insert([{
-            recipient_id: profile.id,
-            actor_id: currentUser.id,
-            type: 'referral_reward',
-            content: 'completed your referral link and you both earned 200 ZP!'
-          }]);
-        } else {
-          toast.success(`Following ${getFirstName(profile)}!`);
-        }
+        // Referral ZP is paid automatically when someone joins with an invite link.
+        toast.success(`Following ${getFirstName(profile)}!`);
       }
 
       // Refresh everything

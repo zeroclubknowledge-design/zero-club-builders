@@ -186,7 +186,9 @@ function TournamentCard({ row, now, money }: { row: TournamentRow; now: number; 
       </div>
       <div className="shrink-0 text-right">
         <p className="max-w-[110px] truncate text-[13px] font-bold text-[#1a7f4b]">{rewardHeadline(row, money)}</p>
-        {row.my_best ? <p className="text-[11.5px] text-muted-foreground">Best {row.my_best.toLocaleString()}</p> : <ChevronRight className="ml-auto mt-0.5 h-4 w-4 text-muted-foreground" />}
+        <p className="mt-0.5 flex items-center justify-end gap-0.5 text-[11.5px] font-semibold text-[#cc208f]">
+          {row.my_best ? `Best ${row.my_best.toLocaleString()}` : "Leaderboard"} <ChevronRight className="h-3.5 w-3.5" />
+        </p>
       </div>
     </Link>
   );

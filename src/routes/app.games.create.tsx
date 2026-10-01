@@ -19,7 +19,9 @@ export const Route = createFileRoute("/app/games/create")({
   component: CreateTournament,
 });
 
-const DURATIONS = [30, 60, 180, 360, 1440, 4320, 10080];
+// 30 minutes up to 30 days (the database allows 10 minutes to 30 days).
+const DURATIONS = [30, 60, 180, 360, 1440, 4320, 10080, 20160, 43200];
+const DAY = 1440;
 const CAPS = [10, 25, 50, 100];
 const ZP_PER_NAIRA = 10;
 
@@ -162,9 +164,25 @@ function CreateTournament() {
           <p className="mb-2 mt-4 text-[13px] font-semibold">How long it runs</p>
           <div className="flex flex-wrap gap-1.5">
             {DURATIONS.map((m) => (
-              <Chip key={m} active={duration === m} onClick={() => setDuration(m)}>{durationLabel(m)}</Chip>
+              <Chip key={m} active={duration === m} onClick={() => setDuration(m)}>{m === 43200 ? "30 days (1 month)" : durationLabel(m)}</Chip>
             ))}
           </div>
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-border px-3 py-2">
+            <span className="flex-1 text-[13px] text-muted-foreground">Or set the number of days</span>
+            <button type="button" onClick={() => setDuration((d) => Math.max(DAY, (Math.ceil(d / DAY) - 1) * DAY))} className="grid h-8 w-8 place-items-center rounded-full border border-border"><Minus className="h-3.5 w-3.5" /></button>
+            <input
+              value={duration >= DAY && duration % DAY === 0 ? duration / DAY : ""}
+              placeholder="–"
+              onChange={(e) => { const n = Number(e.target.value.replace(/\D/g, "")); if (n) setDuration(Math.min(30, Math.max(1, n)) * DAY); }}
+              inputMode="numeric"
+              className="w-10 bg-transparent text-center text-[15px] font-semibold tabular-nums outline-none"
+            />
+            <button type="button" onClick={() => setDuration((d) => Math.min(30 * DAY, (Math.floor(d / DAY) + 1) * DAY))} className="grid h-8 w-8 place-items-center rounded-full border border-border"><Plus className="h-3.5 w-3.5" /></button>
+            <span className="text-[13px] font-semibold">days</span>
+          </div>
+          <p className="mt-2 text-[12px] text-muted-foreground">
+            Ends {new Date((startMode === "later" ? new Date(startAt).getTime() : Date.now()) + duration * 60000).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}. The leaderboard is live the whole time and the winners are paid when it ends.
+          </p>
         </Card>
 
         <Card title="Players" Icon={Users}>

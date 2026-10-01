@@ -49,7 +49,7 @@ function SignUpPage() {
   }, [campaignCode]);
   const [username, setUsername] = useState(() => localStorage.getItem("signup_username") || "");
   const [email, setEmail] = useState(() => localStorage.getItem("signup_email") || "");
-  const [referralCode, setReferralCode] = useState(() => localStorage.getItem("signup_ref") || ref || "");
+  const [referralCode, setReferralCode] = useState(() => ref || localStorage.getItem("signup_ref") || "");
   const [step, setStep] = useState<"info" | "code">(() => (localStorage.getItem("signup_step") as "info" | "code") || "info");
   const [code, setCode] = useState("");
   const codeFormRef = useRef<HTMLFormElement>(null);

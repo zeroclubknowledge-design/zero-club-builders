@@ -165,7 +165,8 @@ function NotificationsPage() {
       case 'club_mention': return { icon: AtSign, ...ink, action: isActorMe ? `You mentioned @${recipientName}` : 'tagged you in a club chat' };
       case 'build_tagged': return { icon: ShieldCheck, ...green, action: 'tagged their post for verification' };
       case 'game_buzz': return { icon: Gamepad2, ...ink, action: 'buzzed you into a Zero Game' };
-      case 'system': return { icon: Zap, ...ink, action: `You and ${actorName} each earned 200 ZP from your referral.` };
+      // System notices carry their own message (referral ZP, tutor applications, rewards...).
+      case 'system': return { icon: Zap, ...ink, action: '' };
       default: return { icon: BellRing, ...ink, action: 'interacted with you' };
     }
   };
@@ -308,9 +309,9 @@ function NotificationsPage() {
           <div className="min-w-0">
             <p className="text-[14px] leading-[1.4] text-foreground">
               {!isReward && <span className="font-semibold">{renderActors()} </span>}
-              <span>{ui.action}</span>
+              <span>{isReward ? (String(n.content || '').trim() || 'Zero Club update') : ui.action}</span>
             </p>
-            {n.content && (
+            {n.content && !isReward && (
               <p className="mt-1 line-clamp-2 text-[13px] leading-[1.4] text-muted-foreground">“{renderText(n)}”</p>
             )}
             {n.type === 'follow' && !isActorMe && n.actor_id && <FollowBack userId={n.actor_id} />}

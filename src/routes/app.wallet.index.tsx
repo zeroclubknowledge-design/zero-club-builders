@@ -137,68 +137,8 @@ function WalletPage() {
   const legacyActivities = (walletHistory?.legacy || []) as any[];
   const activities = legacyActivities;
 
-  // Robust, fail-safe programmatic referral auto-claim and follow resolver
-  useEffect(() => {
-    if (profile && profile.referred_by && !profile.referral_reward_claimed) {
-      const claimReferralReward = async () => {
-        try {
-          console.log("Auto-claiming referral reward... Referee:", profile.id, "Referrer:", profile.referred_by);
-          
-          // Check if already following referrer
-          const { data: existingFollow } = await supabase
-            .from("follows")
-            .select("*")
-            .eq("follower_id", profile.id)
-            .eq("following_id", profile.referred_by)
-            .maybeSingle();
-            
-          if (!existingFollow) {
-            // Programmatically follow the referrer to fire the database trigger
-            const { error: followError } = await supabase
-              .from("follows")
-              .insert({
-                follower_id: profile.id,
-                following_id: profile.referred_by
-              });
-              
-            if (followError) {
-              console.error("Error programmatically following referrer:", followError);
-            } else {
-              console.log("Programmatically followed referrer! Triggering reward trigger...");
-              toast.success("Referral reward of 200 ZP claimed!");
-              await refetch();
-              refetchActivities?.();
-            }
-          } else {
-            // If follow relation already existed but trigger didn't fire, re-trigger it
-            await supabase
-              .from("follows")
-              .delete()
-              .eq("follower_id", profile.id)
-              .eq("following_id", profile.referred_by);
-              
-            const { error: reFollowError } = await supabase
-              .from("follows")
-              .insert({
-                follower_id: profile.id,
-                following_id: profile.referred_by
-              });
-              
-            if (!reFollowError) {
-              console.log("Re-triggered follow relation to activate DB trigger!");
-              toast.success("Referral reward of 200 ZP claimed!");
-              await refetch();
-              refetchActivities?.();
-            }
-          }
-        } catch (err) {
-          console.error("Failed to auto-claim referral reward:", err);
-        }
-      };
-      
-      claimReferralReward();
-    }
-  }, [profile, refetch, refetchActivities]);
+  // Referral ZP is paid by the database the moment an invited member joins
+  // (100 ZP to the inviter), so there is nothing to claim from the wallet.
 
   const dayHeading = (iso: string) => {
     const d = new Date(iso);

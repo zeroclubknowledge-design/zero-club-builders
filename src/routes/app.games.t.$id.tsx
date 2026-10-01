@@ -134,38 +134,6 @@ function TournamentPage() {
       </section>
 
       <main className="mx-auto max-w-[680px] space-y-2 pt-2">
-        {/* Rules */}
-        <section className="grid grid-cols-2 gap-px overflow-hidden bg-border md:rounded-xl md:border md:border-border">
-          <Fact Icon={Users} label="Players" value={`${t.players}${t.max_players ? ` / ${t.max_players}` : ""}`} sub={t.max_players ? (full ? "Full" : `${t.max_players - t.players} spots left`) : "Unlimited"} />
-          <Fact Icon={t.visibility === "private" ? LockKeyhole : Globe} label="Access" value={t.visibility === "private" ? "Private" : "Public"} sub={t.visibility === "private" ? "Invite link only" : "Anyone can find it"} />
-          <Fact Icon={ShieldCheck} label="Who can enter" value={t.eligibility === "subscribers" ? "Premium only" : "Everyone"} sub={t.eligibility === "subscribers" ? "Premium, Premium+ & Creator" : "Free and Premium"} />
-          <Fact Icon={Calendar} label="Window" value={new Date(starts).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })} sub={`to ${new Date(ends).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}`} />
-        </section>
-
-        {/* Prizes */}
-        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
-          <h2 className="flex items-center gap-2 font-display text-[17px] font-semibold"><Trophy className="h-4 w-4 text-[#cc208f]" /> Prizes</h2>
-          {t.reward_type === "none" || !t.prizes.length ? (
-            <p className="mt-2 text-[13.5px] text-muted-foreground">No prize — just the crown and the bragging rights.</p>
-          ) : (
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {t.prizes.map((p) => (
-                <div key={p.place} className="rounded-xl border border-border p-3 text-center">
-                  <Medal className="mx-auto h-5 w-5" style={{ color: p.place === 1 ? "#e3a008" : p.place === 2 ? "#9aa4b2" : "#c26d3a" }} />
-                  <p className="mt-1 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">{placeLabel(p.place)}</p>
-                  <p className="mt-0.5 line-clamp-2 text-[13.5px] font-bold">{prizeText(p, t.reward_type, money)}</p>
-                </div>
-              ))}
-            </div>
-          )}
-          <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
-            Highest Game Points when the clock runs out wins. Only your best run counts, and you can play as many runs as you like while it's live. Ties go to whoever got there first.
-            {t.reward_type === "funds" || t.reward_type === "zp"
-              ? t.sponsored ? " Prizes are paid by Zero Club, straight to the winners' wallets when it ends." : " Prizes are held from the host's wallet and paid automatically."
-              : ""}
-          </p>
-        </section>
-
         {/* Awards */}
         {awards.length > 0 && (
           <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
@@ -195,7 +163,7 @@ function TournamentPage() {
           {leaderboard.length === 0 ? (
             <div className="border-t border-border/60 px-5 py-10 text-center">
               <p className="text-[15px] font-semibold">No scores yet</p>
-              <p className="mt-1 text-[13px] text-muted-foreground">{status === "upcoming" ? "The board opens when the tournament starts." : "Be the first to post a score."}</p>
+              <p className="mt-1 text-[13px] text-muted-foreground">{status === "upcoming" ? "Scores appear here as soon as the tournament starts." : "Scores appear here the moment someone finishes a run. Be the first!"}</p>
             </div>
           ) : (
             <ol>
@@ -218,6 +186,38 @@ function TournamentPage() {
             </ol>
           )}
         </section>
+        {/* Prizes */}
+        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
+          <h2 className="flex items-center gap-2 font-display text-[17px] font-semibold"><Trophy className="h-4 w-4 text-[#cc208f]" /> Prizes</h2>
+          {t.reward_type === "none" || !t.prizes.length ? (
+            <p className="mt-2 text-[13.5px] text-muted-foreground">No prize — just the crown and the bragging rights.</p>
+          ) : (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {t.prizes.map((p) => (
+                <div key={p.place} className="rounded-xl border border-border p-3 text-center">
+                  <Medal className="mx-auto h-5 w-5" style={{ color: p.place === 1 ? "#e3a008" : p.place === 2 ? "#9aa4b2" : "#c26d3a" }} />
+                  <p className="mt-1 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">{placeLabel(p.place)}</p>
+                  <p className="mt-0.5 line-clamp-2 text-[13.5px] font-bold">{prizeText(p, t.reward_type, money)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+            Highest Game Points when the clock runs out wins. Only your best run counts, and you can play as many runs as you like while it's live. Ties go to whoever got there first.
+            {t.reward_type === "funds" || t.reward_type === "zp"
+              ? t.sponsored ? " Prizes are paid by Zero Club, straight to the winners' wallets when it ends." : " Prizes are held from the host's wallet and paid automatically."
+              : ""}
+          </p>
+        </section>
+
+        {/* Rules */}
+        <section className="grid grid-cols-2 gap-px overflow-hidden bg-border md:rounded-xl md:border md:border-border">
+          <Fact Icon={Users} label="Players" value={`${t.players}${t.max_players ? ` / ${t.max_players}` : ""}`} sub={t.max_players ? (full ? "Full" : `${t.max_players - t.players} spots left`) : "Unlimited"} />
+          <Fact Icon={t.visibility === "private" ? LockKeyhole : Globe} label="Access" value={t.visibility === "private" ? "Private" : "Public"} sub={t.visibility === "private" ? "Invite link only" : "Anyone can find it"} />
+          <Fact Icon={ShieldCheck} label="Who can enter" value={t.eligibility === "subscribers" ? "Premium only" : "Everyone"} sub={t.eligibility === "subscribers" ? "Premium, Premium+ & Creator" : "Free and Premium"} />
+          <Fact Icon={Calendar} label="Window" value={new Date(starts).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })} sub={`to ${new Date(ends).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}`} />
+        </section>
+
       </main>
 
       {/* Action bar */}
