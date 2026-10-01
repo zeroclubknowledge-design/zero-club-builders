@@ -3,6 +3,9 @@ export default async function handler(req: any, res: any) {
   try {
     // Import from the built output instead of source
     // We use a relative path that Vercel's bundler will follow
+    // The build output has no type declarations; Vercel type-checks this file
+    // before the import exists in a typed form, so skip the check here.
+    // @ts-ignore TS7016 — untyped build output
     const { default: serverHandler } = await import("../dist/server/server.js");
     
     // Convert Node.js request to a Web Request that TanStack Start expects
