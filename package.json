@@ -49,9 +49,9 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.83.0",
-    "@tanstack/react-router": "^1.168.25",
-    "@tanstack/react-start": "^1.167.50",
-    "@tanstack/router-plugin": "^1.167.28",
+    "@tanstack/react-router": "^1.170.41",
+    "@tanstack/react-start": "^1.168.60",
+    "@tanstack/router-plugin": "^1.168.42",
     "@tiptap/extension-color": "^3.25.0",
     "@tiptap/extension-placeholder": "^3.25.0",
     "@tiptap/extension-text-style": "^3.25.0",
@@ -109,6 +109,9 @@
     "workbox-precaching": "^7.4.1",
     "workbox-routing": "^7.4.1",
     "workbox-strategies": "^7.4.1"
+  },
+  "overrides": {
+    "@tanstack/start-server-core": "^1.169.39"
   },
   "engines": {
     "node": "22.x"
