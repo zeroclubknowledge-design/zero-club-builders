@@ -19,9 +19,11 @@ export const Route = createFileRoute("/app/games/create")({
   component: CreateTournament,
 });
 
-// 30 minutes up to 30 days (the database allows 10 minutes to 30 days).
-const DURATIONS = [30, 60, 180, 360, 1440, 4320, 10080, 20160, 43200];
+// Quick picks. Any length from 10 minutes to 365 days can be set under "Custom" or "End date".
+const DURATIONS = [30, 60, 180, 1440, 4320, 10080, 43200];
 const DAY = 1440;
+const MIN_MINUTES = 10;
+const MAX_MINUTES = 365 * DAY;
 const CAPS = [10, 25, 50, 100];
 const ZP_PER_NAIRA = 10;
 
@@ -43,7 +45,18 @@ function CreateTournament() {
     d.setMinutes(0, 0, 0);
     return toLocalInput(d);
   });
-  const [duration, setDuration] = useState(60);
+  const [durationMode, setDurationMode] = useState<"quick" | "custom" | "end">("quick");
+  const [quickDuration, setQuickDuration] = useState(60);
+  const [customDays, setCustomDays] = useState("30");
+  const [customHours, setCustomHours] = useState("0");
+  const [customMinutes, setCustomMinutes] = useState("0");
+  const [endAt, setEndAt] = useState(() => toLocalInput(new Date(Date.now() + 30 * DAY * 60000)));
+  const startMs = startMode === "later" ? new Date(startAt).getTime() : Date.now();
+  const duration = durationMode === "quick"
+    ? quickDuration
+    : durationMode === "custom"
+    ? (Number(customDays) || 0) * DAY + (Number(customHours) || 0) * 60 + (Number(customMinutes) || 0)
+    : Math.round((new Date(endAt).getTime() - startMs) / 60000);
   const [capped, setCapped] = useState(false);
   const [cap, setCap] = useState(25);
   const [visibility, setVisibility] = useState<"public" | "private">("public");
@@ -70,6 +83,8 @@ function CreateTournament() {
 
   const problems: string[] = [];
   if (title.trim().length < 3) problems.push("Give the tournament a name");
+  if (!Number.isFinite(duration) || duration < MIN_MINUTES) problems.push(durationMode === "end" ? "The end time must be at least 10 minutes after the start" : "A tournament needs to run for at least 10 minutes");
+  if (duration > MAX_MINUTES) problems.push("A tournament can run for up to 365 days");
   if (startMode === "later" && new Date(startAt).getTime() < Date.now()) problems.push("Pick a start time in the future");
   if (reward === "funds" && amounts.slice(0, places).some((v) => !(Number(v) > 0))) problems.push("Each prize needs an amount");
   if (reward === "zp" && zps.slice(0, places).some((v) => !(Number(v) >= 10) || Number(v) % 10 !== 0)) problems.push("ZP prizes go in steps of 10");
@@ -162,26 +177,33 @@ function CreateTournament() {
             <input type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]" />
           )}
           <p className="mb-2 mt-4 text-[13px] font-semibold">How long it runs</p>
-          <div className="flex flex-wrap gap-1.5">
-            {DURATIONS.map((m) => (
-              <Chip key={m} active={duration === m} onClick={() => setDuration(m)}>{m === 43200 ? "30 days (1 month)" : durationLabel(m)}</Chip>
-            ))}
-          </div>
-          <div className="mt-3 flex items-center gap-2 rounded-xl border border-border px-3 py-2">
-            <span className="flex-1 text-[13px] text-muted-foreground">Or set the number of days</span>
-            <button type="button" onClick={() => setDuration((d) => Math.max(DAY, (Math.ceil(d / DAY) - 1) * DAY))} className="grid h-8 w-8 place-items-center rounded-full border border-border"><Minus className="h-3.5 w-3.5" /></button>
-            <input
-              value={duration >= DAY && duration % DAY === 0 ? duration / DAY : ""}
-              placeholder="–"
-              onChange={(e) => { const n = Number(e.target.value.replace(/\D/g, "")); if (n) setDuration(Math.min(30, Math.max(1, n)) * DAY); }}
-              inputMode="numeric"
-              className="w-10 bg-transparent text-center text-[15px] font-semibold tabular-nums outline-none"
-            />
-            <button type="button" onClick={() => setDuration((d) => Math.min(30 * DAY, (Math.floor(d / DAY) + 1) * DAY))} className="grid h-8 w-8 place-items-center rounded-full border border-border"><Plus className="h-3.5 w-3.5" /></button>
-            <span className="text-[13px] font-semibold">days</span>
-          </div>
-          <p className="mt-2 text-[12px] text-muted-foreground">
-            Ends {new Date((startMode === "later" ? new Date(startAt).getTime() : Date.now()) + duration * 60000).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}. The leaderboard is live the whole time and the winners are paid when it ends.
+          <Segmented value={durationMode} onChange={(v) => setDurationMode(v as "quick" | "custom" | "end")} options={[["quick", "Quick pick"], ["custom", "Custom"], ["end", "End date"]]} />
+          {durationMode === "quick" && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {DURATIONS.map((m) => (
+                <Chip key={m} active={quickDuration === m} onClick={() => setQuickDuration(m)}>{m === 43200 ? "30 days (1 month)" : durationLabel(m)}</Chip>
+              ))}
+            </div>
+          )}
+          {durationMode === "custom" && (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <DurationField label="Days" value={customDays} onChange={setCustomDays} max={365} />
+              <DurationField label="Hours" value={customHours} onChange={setCustomHours} max={23} />
+              <DurationField label="Minutes" value={customMinutes} onChange={setCustomMinutes} max={59} />
+            </div>
+          )}
+          {durationMode === "end" && (
+            <label className="mt-3 block">
+              <span className="mb-1 block text-[12px] text-muted-foreground">Ends on</span>
+              <input type="datetime-local" value={endAt} onChange={(e) => setEndAt(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]" />
+            </label>
+          )}
+          <p className={`mt-2 text-[12px] ${duration >= MIN_MINUTES && duration <= MAX_MINUTES ? "text-muted-foreground" : "text-rose-600"}`}>
+            {duration >= MIN_MINUTES && duration <= MAX_MINUTES ? (
+              <>
+                Runs for <span className="font-semibold text-foreground">{lengthText(duration)}</span>, ending {new Date(startMs + duration * 60000).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" })}. The leaderboard is live the whole time and winners are paid when it ends.
+              </>
+            ) : duration > MAX_MINUTES ? "That's longer than 365 days — choose a shorter length." : "Set at least 10 minutes."}
           </p>
         </Card>
 
@@ -268,7 +290,7 @@ function CreateTournament() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur">
         <div className="mx-auto flex max-w-[680px] items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13.5px] font-semibold">{info.name} · {durationLabel(duration)}</p>
+            <p className="truncate text-[13.5px] font-semibold">{info.name} · {duration >= MIN_MINUTES ? lengthText(duration) : "Set a length"}</p>
             <p className="truncate text-[12px] text-muted-foreground">
               {capped ? `${cap} players` : "Unlimited players"} · {visibility === "private" ? "Private" : "Public"} · {eligibility === "subscribers" ? "Premium" : "Everyone"}
               {pool > 0 ? ` · ${format(pool)} pool` : ""}{sponsored && reward !== "none" ? " · Zero Club pays" : ""}
@@ -281,6 +303,31 @@ function CreateTournament() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** "30 days", "2 days 6 hours", "1 hour 30 minutes" */
+function lengthText(mins: number) {
+  const d = Math.floor(mins / DAY), h = Math.floor((mins % DAY) / 60), m = mins % 60;
+  const part = (n: number, w: string) => (n ? `${n} ${w}${n === 1 ? "" : "s"}` : "");
+  return [part(d, "day"), part(h, "hour"), part(m, "minute")].filter(Boolean).join(" ") || "0 minutes";
+}
+
+function DurationField({ label, value, onChange, max }: { label: string; value: string; onChange: (v: string) => void; max: number }) {
+  return (
+    <label className="rounded-xl border border-border px-3 py-2 focus-within:border-[#cc208f]">
+      <span className="block text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => {
+          const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
+          onChange(digits === "" ? "" : String(Math.min(max, Number(digits))));
+        }}
+        onBlur={() => { if (value === "") onChange("0"); }}
+        inputMode="numeric"
+        className="mt-0.5 w-full bg-transparent text-[20px] font-bold tabular-nums outline-none"
+      />
+    </label>
   );
 }
 

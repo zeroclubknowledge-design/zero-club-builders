@@ -169,6 +169,8 @@ export function countdown(ms: number) {
 
 export function durationLabel(mins: number) {
   if (mins % 1440 === 0) return `${mins / 1440} day${mins === 1440 ? "" : "s"}`;
-  if (mins % 60 === 0) return `${mins / 60} hour${mins === 60 ? "" : "s"}`;
-  return `${mins} min`;
+  if (mins < 60) return `${mins} min`;
+  if (mins % 60 === 0 && mins < 1440) return `${mins / 60} hour${mins === 60 ? "" : "s"}`;
+  const d = Math.floor(mins / 1440), h = Math.floor((mins % 1440) / 60), m = mins % 60;
+  return [d && `${d}d`, h && `${h}h`, m && `${m}m`].filter(Boolean).join(" ");
 }

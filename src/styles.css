@@ -36,12 +36,14 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
-  /* Reading text uses the phone's own typeface, the way LinkedIn and X do:
-     Roboto on Android, SF Pro on iPhone, Segoe UI on Windows. It is what
-     people read all day, it is crisp at 14px, and it costs no download.
-     Headlines use Inter Tight for a little brand character. */
+  /* Trying Montserrat across the whole app — body text, headlines and
+     buttons. The old setup (system font for reading, Inter Tight for
+     headlines) is kept below, commented out, to switch back in one edit.
   --font-display: "Inter Tight", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Fira Sans", Ubuntu, Oxygen, "Oxygen Sans", Cantarell, "Droid Sans", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  */
+  --font-display: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   --font-button: var(--font-sans);
 }
 

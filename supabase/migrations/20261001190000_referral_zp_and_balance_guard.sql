@@ -138,3 +138,15 @@ $$;
 select public.award_profile_zp(p.referred_by, 'referral', p.id::text, 100, jsonb_build_object('referred_profile_id', p.id, 'backfill', true))
 from public.profiles p
 where p.referred_by is not null and p.referred_by <> p.id and coalesce(p.account_status, 'active') <> 'suspended';
+
+-- ── 6. tournaments may run up to 365 days (was 30) ──
+do $do$
+declare def text; nd text;
+begin
+  def := pg_get_functiondef('public.create_zero_tournament(jsonb)'::regprocedure);
+  nd := replace(def, 'if mins < 10 or mins > 60 * 24 * 30 then raise exception ''Tournaments last from 10 minutes to 30 days''; end if;',
+                     'if mins < 10 or mins > 60 * 24 * 365 then raise exception ''Tournaments last from 10 minutes to 365 days''; end if;');
+  if nd = def then raise exception 'patch did not apply'; end if;
+  execute nd;
+end
+$do$;

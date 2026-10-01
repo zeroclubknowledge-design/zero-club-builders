@@ -258,7 +258,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Preloaded, then applied by the inline head script below. As a plain
       // stylesheet it blocked the first paint until Google answered, which on
       // a slow mobile connection left the app blank for seconds at launch.
-      { rel: "preload", as: "style", href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500..800&display=swap" },
+      { rel: "preload", as: "style", href: "https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400..800;1,400..600&display=swap" },
     ],
   }),
   shellComponent: RootShell,
@@ -278,7 +278,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
               try {
                 var fontCss = document.createElement('link');
                 fontCss.rel = 'stylesheet';
-                fontCss.href = 'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500..800&display=swap';
+                fontCss.href = 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400..800;1,400..600&display=swap';
                 document.head.appendChild(fontCss);
               } catch(e) {}
               try {

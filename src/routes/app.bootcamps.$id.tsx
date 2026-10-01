@@ -580,9 +580,9 @@ function BootcampDetail() {
               {modules.map((module: any, i: number) => (
                 <AccordionItem key={i} value={`item-${i}`} className="border-foreground/10 last:border-b-0">
                   <AccordionTrigger className="gap-2.5 px-3 py-3 text-left hover:no-underline data-[state=open]:bg-foreground/[0.03]">
-                    <span className="w-5 shrink-0 text-[12px] font-semibold text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="w-5 shrink-0 text-[12px] font-semibold text-[#cc208f]/70">{String(i + 1).padStart(2, "0")}</span>
                     <span className="flex-1">
-                      <span className="block text-[15px] font-semibold">{module.title}</span>
+                      <span className="block text-[15px] font-semibold text-[#cc208f]">{module.title}</span>
                       <span className="block text-[12px] font-normal text-muted-foreground">{module.lessons?.length || 0} lessons</span>
                     </span>
                   </AccordionTrigger>
