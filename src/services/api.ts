@@ -230,7 +230,7 @@ export const getPosts = async () => {
         reposted_by: r.profiles?.full_name || r.profiles?.username,
         computed_reposts_count: dynamicRepostCounts[r.post_id] || 0,
         computed_quotes_count: dynamicQuotesCounts[r.post_id] || 0
-      })).filter(rp => rp.original_id);
+      })).filter(rp => rp.original_id && rp.content !== undefined);
     }
 
     // 3. Fetch user interactions in parallel if authenticated

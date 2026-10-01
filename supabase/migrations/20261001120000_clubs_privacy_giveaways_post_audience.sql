@@ -1,0 +1,15 @@
+-- ALREADY APPLIED to the live database on 1 Oct 2026. Kept for the record — do not run again.
+-- Applied as: club_assignment_grades, club_giveaways_with_prize_types,
+-- giveaway_bootcamp_options_active, set_club_privacy, post_audience.
+--
+-- * club_assignment_grades + grade_club_submission(): owner-only marking, capped at the assignment's maxMarks.
+-- * notifications_type_check now allows 'club_mention' and 'game_buzz'.
+-- * zp_per_naira() = 10 (10 ZP = ₦1).
+-- * club_giveaways / club_giveaway_entries / club_giveaway_awards (the earlier
+--   20260731120000_club_giveaway_escrow.sql had never been applied) with prize types
+--   funds | zp | bootcamp; create_club_giveaway(..., p_prize_type, p_zp_per_winner, p_bootcamp_id),
+--   enter_club_giveaway(), award_club_giveaway(), giveaway_bootcamp_options().
+--   The prize pool is debited from the runner's wallet via wallet_apply (source 'giveaway').
+-- * set_club_privacy(club, private): owner-only private/public switch.
+-- * posts.audience ('everyone' | 'club') + posts.audience_club_id, can_see_post() used by the
+--   posts select policy, and guard_post_audience() so you can only post to a club you belong to.

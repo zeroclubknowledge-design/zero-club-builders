@@ -21,6 +21,7 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { notifyMentionedUsers } from "@/lib/mentions";
 import { ClubQuizzes } from "@/features/clubs/ClubQuizzes";
 import { ZeroMark } from "@/components/ZeroLoader";
+import { FloatingPicker } from "@/components/FloatingPicker";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (search: Record<string, unknown>): { showRules?: string; clubId?: string; room?: string } => {
@@ -216,6 +217,10 @@ type ClubGiveaway = {
   prize?: string;
   amountPerWinner?: number;
   totalAmount?: number;
+  /** funds = wallet money, zp = Zero Points, bootcamp = a bootcamp seat (or refund). */
+  prizeType?: "funds" | "zp" | "bootcamp";
+  zpPerWinner?: number;
+  bootcampId?: string;
   description: string;
   endsAt: string;
   winners: number;
@@ -229,6 +234,16 @@ const parseClubGiveaway = (content: string): ClubGiveaway | null => {
     return null;
   }
 };
+
+/** The line that describes a giveaway's prize. */
+const giveawayPrizeLine = (g: ClubGiveaway, money: (n: number) => string) =>
+  g.prizeType === "zp"
+    ? `${(g.zpPerWinner || 0).toLocaleString()} Zero Points per winner`
+    : g.prizeType === "bootcamp"
+      ? `A seat in ${g.prize || "a bootcamp"} per winner`
+      : g.amountPerWinner
+        ? `${money(g.amountPerWinner)} per winner`
+        : g.prize || "";
 
 const isUserOnline = (profile: any) => {
   if (!profile || !profile.updated_at) return false;
@@ -285,6 +300,7 @@ function ClubChat() {
     description: "",
     endsAt: "",
     winners: 1,
+    prizeType: "funds",
   });
 
   const toggleVoiceRecording = async () => {
@@ -324,7 +340,21 @@ function ClubChat() {
   const currentUserRole = currentUser ? members.find(mem => mem.profile_id === currentUser.id)?.role : undefined;
   const isAdmin = club?.creator_id === currentUser?.id || currentUserRole === 'Administrator';
   const giveawayWinnerCount = Math.max(1, Math.min(20, Number(giveaway.winners) || 1));
-  const giveawayPrizeBase = Math.round(toBaseAmount(Number(giveaway.amountPerWinner || 0)));
+  const { data: giveawayBootcamps = [] } = useQuery({
+    queryKey: ["giveaway-bootcamps", currentUser?.id],
+    enabled: showGiveaway && giveaway.prizeType === "bootcamp",
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("giveaway_bootcamp_options");
+      if (error) throw error;
+      return (data || []) as { id: string; title: string; price: number; banner_url: string | null }[];
+    },
+  });
+  const giveawayBootcamp = giveawayBootcamps.find((b) => b.id === giveaway.bootcampId);
+  const giveawayPrizeBase = giveaway.prizeType === "zp"
+    ? Math.floor(Number(giveaway.zpPerWinner || 0) / 10)
+    : giveaway.prizeType === "bootcamp"
+      ? Math.round(Number(giveawayBootcamp?.price || 0))
+      : Math.round(toBaseAmount(Number(giveaway.amountPerWinner || 0)));
   const giveawayTotalBase = giveawayPrizeBase * giveawayWinnerCount;
   const canFundGiveaway = giveawayTotalBase > 0 && giveawayTotalBase <= Number(currentUserProfile?.coins || 0);
   const openMemberProfile = (profile: any, profileId?: string) => {
@@ -752,6 +782,15 @@ function ClubChat() {
 
       /* Same reasoning as the fee: who is allowed in is the database's rule to
          keep, so it is set through a function that checks the owner. */
+      // Private or public, switchable any time by the owner.
+      if (Boolean(editClub.is_private) !== Boolean(club?.is_private)) {
+        const { error: privacyError } = await supabase.rpc('set_club_privacy', {
+          p_club_id: clubId,
+          p_private: Boolean(editClub.is_private),
+        });
+        if (privacyError) throw privacyError;
+      }
+
       const { error: admissionError } = await supabase.rpc('set_club_admission', {
         p_club_id: clubId,
         p_requires_approval: Boolean(editClub.requires_approval),
@@ -970,12 +1009,20 @@ function ClubChat() {
       return;
     }
     const winnerCount = Math.max(1, Math.min(20, Number(giveaway.winners) || 1));
-    const displayAmount = Number(giveaway.amountPerWinner || 0);
-    const amountPerWinner = Math.round(toBaseAmount(displayAmount));
+    const prizeType = giveaway.prizeType || "funds";
+    const amountPerWinner = giveawayPrizeBase;
     const totalAmount = amountPerWinner * winnerCount;
 
+    if (prizeType === "zp" && (Number(giveaway.zpPerWinner || 0) < 10 || Number(giveaway.zpPerWinner) % 10 !== 0)) {
+      toast.error("Zero Points prizes go in steps of 10 ZP (10 ZP = ₦1).");
+      return;
+    }
+    if (prizeType === "bootcamp" && !giveawayBootcamp) {
+      toast.error("Choose the bootcamp you're giving away.");
+      return;
+    }
     if (!giveaway.title.trim() || amountPerWinner <= 0 || !giveaway.endsAt) {
-      toast.error("Add a title, prize amount, and closing date.");
+      toast.error("Add a title, a prize, and a closing date.");
       return;
     }
     if (new Date(giveaway.endsAt).getTime() <= Date.now()) {
@@ -996,6 +1043,9 @@ function ClubChat() {
         p_amount_per_winner: amountPerWinner,
         p_winner_count: winnerCount,
         p_ends_at: new Date(giveaway.endsAt).toISOString(),
+        p_prize_type: prizeType,
+        p_zp_per_winner: prizeType === "zp" ? Number(giveaway.zpPerWinner) : null,
+        p_bootcamp_id: prizeType === "bootcamp" ? giveaway.bootcampId : null,
       });
       if (error) throw error;
 
@@ -1013,7 +1063,7 @@ function ClubChat() {
         }
       }
 
-      setGiveaway({ title: "", amountPerWinner: undefined, description: "", endsAt: "", winners: 1 });
+      setGiveaway({ title: "", amountPerWinner: undefined, description: "", endsAt: "", winners: 1, prizeType: "funds" });
       setShowGiveaway(false);
       await refetchCurrentUser();
       toast.success(`${formatWalletAmount(totalAmount)} has been locked for the winners.`);
@@ -1572,14 +1622,42 @@ function ClubChat() {
                         <div className="space-y-3">
                           <h3 className="text-[13px] font-semibold text-muted-foreground">Who gets in</h3>
 
+                          {/* Private ⇄ public, any time. */}
+                          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-foreground/[0.04] p-1.5" role="radiogroup" aria-label="Club privacy">
+                            {([
+                              [false, "Public", "Anyone can find it", Users],
+                              [true, "Private", "Joining is by request", LockKeyhole],
+                            ] as const).map(([value, label, hint, Icon]) => {
+                              const on = Boolean(editClub.is_private) === value;
+                              return (
+                                <button
+                                  key={label}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={on}
+                                  onClick={() => setEditClub({ ...editClub, is_private: value })}
+                                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition ${on ? "bg-card shadow-sm ring-1 ring-[#cc208f]/40" : "hover:bg-card/60"}`}
+                                >
+                                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${on ? "bg-[#cc208f] text-white" : "bg-foreground/[0.06] text-muted-foreground"}`}>
+                                    <Icon className="h-4 w-4" />
+                                  </span>
+                                  <span className="min-w-0">
+                                    <span className="block text-[14.5px] font-semibold text-foreground">{label}</span>
+                                    <span className="block truncate text-[12px] text-muted-foreground">{hint}</span>
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
                           {/* Being findable and being open are different
                               things. A private club is by request either way,
                               so the switch is only offered where it changes
                               something. */}
                           {editClub.is_private ? (
                             <p className="rounded-2xl bg-foreground/[0.04] px-4 py-3.5 text-[14px] leading-relaxed text-muted-foreground">
-                              This club is private, so every join is a request you approve. Make it
-                              public if you want people to find it on their own.
+                              This club is private, so every join is a request you approve. Switch it
+                              to Public whenever you want people to find it on their own.
                             </p>
                           ) : (
                             <button
@@ -2227,7 +2305,64 @@ function ClubChat() {
                     />
                   </label>
 
+                  <div className="block">
+                    <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Prize type</span>
+                    <FloatingPicker
+                      value={giveaway.prizeType || "funds"}
+                      onChange={(value) => setGiveaway((current) => ({ ...current, prizeType: value as ClubGiveaway["prizeType"] }))}
+                      options={[
+                        { value: "funds", label: "Wallet funds", description: "Cash sent straight to each winner's Zero Club wallet.", icon: <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/12 text-emerald-600"><Wallet className="h-4 w-4" /></span> },
+                        { value: "zp", label: "Zero Points", description: "ZP bought from your wallet (10 ZP = ₦1) and given to each winner.", icon: <span className="grid h-8 w-8 place-items-center rounded-lg bg-amber-500/12 text-amber-600"><Trophy className="h-4 w-4" /></span> },
+                        { value: "bootcamp", label: "Bootcamp seat", description: "A free seat in one of your bootcamps — refunded to winners who already paid.", icon: <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#cc208f]/12 text-[#cc208f]"><GraduationCap className="h-4 w-4" /></span> },
+                      ]}
+                    />
+                  </div>
+
+                  {giveaway.prizeType === "bootcamp" && (
+                    <div className="block">
+                      <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Bootcamp</span>
+                      <FloatingPicker
+                        value={giveaway.bootcampId}
+                        placeholder="Choose one of your bootcamps"
+                        emptyText="You have no paid, active bootcamps to give away."
+                        onChange={(value) => setGiveaway((current) => ({ ...current, bootcampId: value }))}
+                        options={giveawayBootcamps.map((b) => ({
+                          value: b.id,
+                          label: b.title,
+                          meta: formatWalletAmount(Number(b.price || 0)),
+                          icon: b.banner_url
+                            ? <img src={b.banner_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+                            : <span className="grid h-8 w-8 place-items-center rounded-lg bg-foreground/[0.06]"><GraduationCap className="h-4 w-4" /></span>,
+                        }))}
+                      />
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
+                    {giveaway.prizeType === "zp" ? (
+                      <label className="block min-w-0">
+                        <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">ZP per winner</span>
+                        <div className="flex h-11 items-center rounded-[10px] border border-foreground/15 bg-card transition focus-within:border-foreground/40">
+                          <input
+                            type="number"
+                            min={10}
+                            step={10}
+                            value={giveaway.zpPerWinner ?? ""}
+                            onChange={(event) => setGiveaway((current) => ({ ...current, zpPerWinner: event.target.value === "" ? undefined : Number(event.target.value) }))}
+                            placeholder="500"
+                            className="min-w-0 flex-1 bg-transparent px-3 text-[15px] tabular-nums outline-none placeholder:text-muted-foreground"
+                          />
+                          <span className="pr-3 text-[13px] font-semibold text-muted-foreground">ZP</span>
+                        </div>
+                      </label>
+                    ) : giveaway.prizeType === "bootcamp" ? (
+                      <div className="block min-w-0">
+                        <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Value per winner</span>
+                        <div className="flex h-11 items-center rounded-[10px] bg-foreground/[0.04] px-3 text-[15px] font-semibold tabular-nums text-foreground">
+                          {giveawayBootcamp ? formatWalletAmount(Number(giveawayBootcamp.price)) : "—"}
+                        </div>
+                      </div>
+                    ) : (
                     <label className="block min-w-0">
                       <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Prize per winner</span>
                       <div className="flex h-11 items-center rounded-[10px] border border-foreground/15 bg-card transition focus-within:border-foreground/40">
@@ -2243,6 +2378,7 @@ function ClubChat() {
                         />
                       </div>
                     </label>
+                    )}
                     <label className="block min-w-0">
                       <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Winners</span>
                       <input
@@ -2491,9 +2627,9 @@ function ClubChat() {
       )}
       </div>
 
-      {/* Owners and admins: a floating Zero Club mark that opens every section
-          and the admin tools in one drawer, for moving around a busy club fast. */}
-      {isAdmin && (
+      {/* A floating Zero Club mark that opens every section in one drawer, for
+          moving around a busy club fast. Admins also get their tools here. */}
+      {Boolean(club) && (
         <>
           <button
             type="button"
@@ -2539,6 +2675,7 @@ function ClubChat() {
                 <div className="my-3 h-px bg-border" />
 
                 <div className="space-y-1">
+                  {(isAdmin || liveNow) && (
                   <button
                     onClick={() => {
                       setShowQuickNav(false);
@@ -2550,6 +2687,7 @@ function ClubChat() {
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-foreground"><Radio className="h-[19px] w-[19px]" /></span>
                     <span className="flex-1 text-[16px] font-medium text-foreground">{liveNow ? "Join the live class" : "Go live or schedule"}</span>
                   </button>
+                  )}
                   <button
                     onClick={() => { setShowQuickNav(false); setShowMembers(true); }}
                     className="flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition hover:bg-foreground/[0.04] active:scale-[0.99]"
@@ -3516,9 +3654,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                   <div className="flex items-center gap-2">
                     <Trophy className={`h-4 w-4 shrink-0 ${isMe ? 'text-background/70' : 'text-primary'}`} />
                     <p className={`text-sm font-semibold ${isMe ? 'text-background' : 'text-foreground'}`}>
-                      {giveaway.amountPerWinner
-                        ? `${formatWalletAmount(giveaway.amountPerWinner)} per winner`
-                        : giveaway.prize}
+                      {giveawayPrizeLine(giveaway, formatWalletAmount)}
                     </p>
                   </div>
                   {giveaway.description && <p className={`mt-2 whitespace-pre-wrap text-xs leading-5 ${isMe ? 'text-background/70' : 'text-muted-foreground'}`}>{giveaway.description}</p>}
@@ -3747,7 +3883,11 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                     <div className="min-w-0">
                       <p className="text-[13px] font-semibold text-muted-foreground">Automatic payout</p>
                       <p className="mt-0.5 truncate font-display text-[18px] font-semibold tabular-nums text-foreground">
-                        {formatWalletAmount(giveaway.amountPerWinner || 0)} <span className="text-[14px] font-medium text-muted-foreground">each</span>
+                        {giveaway.prizeType === "zp"
+                          ? `${(giveaway.zpPerWinner || 0).toLocaleString()} ZP`
+                          : giveaway.prizeType === "bootcamp"
+                            ? "Bootcamp seat"
+                            : formatWalletAmount(giveaway.amountPerWinner || 0)} <span className="text-[14px] font-medium text-muted-foreground">each</span>
                       </p>
                     </div>
                     <div className="shrink-0 text-right">

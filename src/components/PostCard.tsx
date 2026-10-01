@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { memo, useState, useEffect, useRef } from "react";
+import { Users as UsersIcon } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageLightbox } from './ImageLightbox';
@@ -467,6 +468,11 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             </p>
             <p className="flex items-center gap-1 text-[12px] leading-snug text-muted-foreground">
               <span className="tabular-nums">{timeAgo}</span>
+              {post.audience === 'club' && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#cc208f]/10 px-1.5 py-px text-[11px] font-semibold text-[#cc208f]" title="Only club members can see this post">
+                  <UsersIcon className="h-3 w-3" /> Club
+                </span>
+              )}
               {post.is_build_post && (
                 <>
                   <span aria-hidden>·</span>

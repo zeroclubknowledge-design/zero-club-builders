@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1, Globe, GraduationCap } from "@/components/icons/glyphs";
+import { X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1, Globe, GraduationCap, Users, Check, ChevronDown } from "@/components/icons/glyphs";
+import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadMedia } from "@/lib/storage";
@@ -69,8 +70,24 @@ function ComposePage() {
   const { quote: quoteId, draftId, editId } = Route.useSearch();
   const [quotedPost, setQuotedPost] = useState<any>(null);
 
-  // Settings State
+  // Who can see the post: "Everyone", or the id of one club whose members can.
   const [audience, setAudience] = useState("Everyone");
+  const [audienceOpen, setAudienceOpen] = useState(false);
+  const [myClubs, setMyClubs] = useState<{ id: string; name: string; logo_url: string | null }[]>([]);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    void Promise.all([
+      supabase.from('clubs').select('id, name, logo_url').eq('creator_id', profile.id),
+      supabase.from('club_members').select('clubs(id, name, logo_url)').eq('profile_id', profile.id),
+    ]).then(([owned, joined]) => {
+      const byId = new Map<string, { id: string; name: string; logo_url: string | null }>();
+      (owned.data || []).forEach((c: any) => byId.set(c.id, c));
+      (joined.data || []).forEach((m: any) => m.clubs && byId.set(m.clubs.id, m.clubs));
+      setMyClubs([...byId.values()].sort((a, b) => a.name.localeCompare(b.name)));
+    });
+  }, [profile?.id]);
+  const audienceClub = audience !== "Everyone" ? myClubs.find((c) => c.id === audience) : null;
 
   useEffect(() => {
     if (draftId) {
@@ -103,6 +120,8 @@ function ComposePage() {
           setImages(data.media_urls.map(() => null));
         }
         
+        setAudience(data.audience === 'club' && data.audience_club_id ? data.audience_club_id : "Everyone");
+
         if (data.is_build_post && data.bootcamp_id) {
           setSelectedBootcampId(data.bootcamp_id);
           setIsBuild(true);
@@ -344,7 +363,9 @@ function ComposePage() {
         author_id: user.id,
         content: finalContent,
         media_urls,
-        is_build_post: isBuild
+        is_build_post: isBuild,
+        audience: audience === "Everyone" ? 'everyone' : 'club',
+        audience_club_id: audience === "Everyone" ? null : audience,
       };
 
       if (isBuild && selectedBootcampId) {
@@ -473,11 +494,61 @@ function ComposePage() {
           </div>
           <div className="min-w-0">
             <p className="truncate text-[15px] font-semibold text-foreground">{authorName}</p>
-            <span className="mt-0.5 inline-flex h-[22px] items-center gap-1 rounded-full border border-foreground/25 px-2 text-[12px] font-semibold text-muted-foreground">
-              <Globe className="h-3 w-3" /> Everyone
-            </span>
+            <button
+              type="button"
+              onClick={() => setAudienceOpen(true)}
+              className={`mt-0.5 inline-flex h-[24px] max-w-[220px] items-center gap-1 rounded-full border px-2.5 text-[12px] font-semibold transition active:scale-95 ${
+                audienceClub ? "border-[#cc208f]/50 bg-[#cc208f]/[0.06] text-[#cc208f]" : "border-foreground/25 text-muted-foreground"
+              }`}
+            >
+              {audienceClub ? <Users className="h-3 w-3 shrink-0" /> : <Globe className="h-3 w-3 shrink-0" />}
+              <span className="truncate">{audienceClub ? `${audienceClub.name} members` : "Everyone"}</span>
+              <ChevronDown className="h-3 w-3 shrink-0" />
+            </button>
           </div>
         </div>
+
+        <Drawer open={audienceOpen} onOpenChange={setAudienceOpen}>
+          <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
+            <div className="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-1 sm:pt-4">
+              <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Who can see this post?</DrawerTitle>
+              <DrawerDescription className="mt-1 text-[14px] text-muted-foreground">Share it with everyone, or keep it for the members of one of your clubs.</DrawerDescription>
+
+              <div className="mt-4 max-h-[55dvh] space-y-1 overflow-y-auto overscroll-contain">
+                {[{ id: "Everyone", name: "Everyone", logo_url: null as string | null }, ...myClubs].map((c) => {
+                  const active = audience === c.id;
+                  const everyone = c.id === "Everyone";
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => { setAudience(c.id); setAudienceOpen(false); }}
+                      className={`flex w-full items-center gap-3.5 rounded-2xl px-3 py-3 text-left transition active:scale-[0.99] ${active ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
+                    >
+                      {everyone ? (
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06] text-foreground"><Globe className="h-5 w-5" /></span>
+                      ) : c.logo_url ? (
+                        <img src={c.logo_url} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
+                      ) : (
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">{c.name.charAt(0).toUpperCase()}</span>
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[15.5px] font-semibold text-foreground">{everyone ? "Everyone" : `${c.name} members`}</span>
+                        <span className="block truncate text-[13px] text-muted-foreground">{everyone ? "Anyone on or off Zero Club" : "Only people in this club can see it"}</span>
+                      </span>
+                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/20"}`}>
+                        {active && <Check className="h-3 w-3" strokeWidth={3} />}
+                      </span>
+                    </button>
+                  );
+                })}
+                {myClubs.length === 0 && (
+                  <p className="px-3 py-3 text-[13px] text-muted-foreground">Join or create a club to share posts with its members only.</p>
+                )}
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
 
         <div className="relative mt-4 flex min-h-[calc(100dvh-14rem)] flex-col">
           {/* The writing area grows with what is written, rather than always
