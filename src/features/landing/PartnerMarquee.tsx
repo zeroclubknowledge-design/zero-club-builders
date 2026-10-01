@@ -75,7 +75,7 @@ export function PartnerMarquee() {
 
        Plain block comment — this sits between `return (` and the root element,
        which is expression position. A braced one here is a second expression. */
-    <div className="mt-7 w-full animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.52s_both]">
+    <div className="w-full">
       <p className="text-center text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[#8b8f96] dark:text-white/35">
         Partnering Tools at Zero Club
       </p>

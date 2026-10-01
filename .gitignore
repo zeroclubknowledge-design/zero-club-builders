@@ -74,3 +74,6 @@ dev-dist
 
 # Local preview bundles made during Claude sessions
 .claude-preview/
+
+# Scratch files left by Claude for you to delete
+_to_delete/

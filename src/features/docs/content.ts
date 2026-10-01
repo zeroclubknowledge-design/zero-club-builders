@@ -218,7 +218,7 @@ export const docPages: DocPage[] = [
       {
         title: "For learners",
         paragraphs: ["A bootcamp details page begins with the programme description and outcomes, then presents its curriculum and learning contents before pricing and purchase actions. This order lets a learner understand the programme before making a payment decision."],
-        bullets: ["Review the tutor or institution, outcomes, schedule, requirements, and curriculum.", "Expand curriculum sections to understand the sequence of lessons.", "Review price, available coupon, refund information, and access terms at the page footer.", "After enrolment, use the cohort club for live teaching, announcements, questions, and classwork."],
+        bullets: ["Review the tutor or institution, outcomes, schedule, requirements, and curriculum.", "Expand curriculum sections to see every lesson title, type and length — the full syllabus outline is public, while lesson videos and files unlock after enrolment.", "Review price, available coupon, refund information, and access terms at the page footer.", "After enrolment, use the cohort club for live teaching, announcements, questions, and classwork."],
       },
       {
         title: "For tutors",
@@ -281,7 +281,8 @@ export const docPages: DocPage[] = [
       },
       {
         title: "Locked prizes and giveaways",
-        paragraphs: ["When an admin publishes a cash giveaway or a host funds a Zero Games prize, the required amount is locked from their available wallet balance. The winner is paid automatically after the authorised award or valid game result."],
+        paragraphs: ["When a Club admin publishes a funded giveaway or a member hosts a tournament with a cash or ZP prize, the required amount is held from their available wallet balance. Winners are paid automatically, and any prize nobody wins is returned to the host."],
+        note: "Zero Club itself can sponsor tournaments and reward members directly. Those payouts come from Zero Club, not from an admin's personal wallet, and every one is recorded for the Zero Club team.",
       },
     ],
   },
@@ -333,27 +334,38 @@ export const docPages: DocPage[] = [
     slug: "zero-games",
     group: "Build",
     title: "Zero Games",
-    summary: "Compete through skill, invite the network, and win offers or host-funded prizes.",
-    readTime: "6 min",
+    summary: "Three skill games, practice anytime, and tournaments with live leaderboards and real prizes.",
+    readTime: "7 min",
     sections: [
       {
         title: "The games",
-        bullets: ["Zero Sudoku is a multiplayer race where the first valid completion wins.", "Zero Words is a word competition designed around field knowledge, speed, and shared challenges.", "Practice modes help members understand a game before entering a live competition."],
+        bullets: [
+          "Zero Space: pilot the Zero craft, collect opportunity orbs to refuel before the fuel ring runs out, and dodge Doubt drones. Shields, Focus and Magnet power-ups and combos raise your score.",
+          "Zero Sudoku: fill the grid correctly as fast as you can. Answers are checked on Zero Club's servers.",
+          "Zero Words: trace professional terms hidden in a letter board; clearing the whole board quickly earns a bonus.",
+          "Tapping a game opens its splash screen with Play practice, its tournaments, and How to play. Practice never affects tournaments.",
+        ],
       },
       {
-        title: "Create a competition",
-        paragraphs: ["A host chooses the game, competition settings, participant access, and reward type. They can copy an invitation link, send it to friends, or share the competition to Feed for relevant members to join."],
+        title: "Tournaments",
+        paragraphs: ["A tournament runs for a set time. Players can play as many runs as they like while it is live; only their best run counts. The highest Game Points when the clock runs out wins, and ties go to whoever got there first."],
+        bullets: [
+          "Duration: a quick pick, any custom length in days, hours and minutes, or an exact end date — from 10 minutes up to 365 days.",
+          "Players: unlimited, or a limit you set.",
+          "Access: Public (listed in Zero Games) or Private (invite link only).",
+          "Who can enter: everyone, or Premium members only.",
+          "The live leaderboard is on every tournament page, alongside the countdown, rules, prizes and winners.",
+        ],
       },
       {
-        title: "Reward models",
-        bullets: ["Free with an offer: no funds are staked; the winner unlocks a defined Zero Club offer.", "Host-funded prize: the host sets a cash amount that is locked before the competition becomes available.", "A valid winner receives the offer or wallet transfer through the competition result flow."],
-        note: "XP is never staked or transferred. Experience stays attached to the profile.",
-      },
-      {
-        title: "Reward allowances",
-        paragraphs: ["Every published competition includes a winner reward and uses one allowance. Cancelled competitions release their usage. The allowance resets each Monday using the Zero Club operating timezone."],
-        bullets: ["Learner Basic: 2 rewarded competitions weekly; Tutor Basic: 3 weekly; Learner Premium: 5 weekly.", "Creator: 12 weekly, maximum 2 daily; Tutor Premium: 8 weekly, maximum 2 daily; Tutor Premium+: 20 weekly, maximum 3 daily.", "Institution Small: 21 weekly, maximum 3 daily; Institution Large: 56 weekly, maximum 8 daily; Institution Custom: 84 weekly, maximum 12 daily."],
-        note: "Invitation shares include the exact winner offer or secured cash prize so people can understand what they are joining before opening the competition.",
+        title: "Prizes",
+        bullets: [
+          "No prize, wallet funds, Zero Points, or an offer — for the top 1, 2 or 3 places.",
+          "Funds and ZP prizes are held from the host's wallet when the tournament is created and paid automatically when it ends.",
+          "Prizes nobody wins are returned to the host, and hosts cannot win their own prizes.",
+          "Zero Club–sponsored tournaments are paid by Zero Club and show a Sponsored by Zero Club badge.",
+        ],
+        note: "Scores are capped at what is actually possible in the time played, so a run cannot be faked into first place.",
       },
     ],
   },
@@ -376,6 +388,71 @@ export const docPages: DocPage[] = [
         title: "Boundaries",
         bullets: ["Zero AI should not impersonate a tutor, learner, institution, or administrator.", "AI output must not silently publish, transfer funds, grade high-stakes work, or make irreversible account decisions.", "Members remain responsible for reviewing generated content and verifying important claims.", "Sensitive account, wallet, and private community data requires strict access controls."],
         note: "Zero AI is under development. Product surfaces should clearly distinguish available capabilities from planned ones.",
+      },
+    ],
+  },
+  {
+    slug: "live-classes",
+    group: "Community",
+    title: "Live classes",
+    summary: "Teach and learn live inside a Club, with clear audio on everyday mobile networks.",
+    readTime: "4 min",
+    sections: [
+      {
+        title: "Joining a live class",
+        bullets: [
+          "Learners join muted with the camera off, and unmute or raise a hand when they want to speak.",
+          "Club owners, admins and moderators go live with mic and camera on automatically.",
+          "Earphones stop echo and help everyone hear the speaker clearly.",
+        ],
+      },
+      {
+        title: "Built for real networks",
+        bullets: [
+          "Voice comes first: on a weak connection the class lowers your video automatically so your voice stays clear.",
+          "If your connection drops, a Reconnecting banner appears and the class rejoins by itself — stay on the screen rather than leaving.",
+          "Echo cancellation, noise suppression and automatic volume levelling are always on.",
+          "Classes can run longer than two hours without interruption.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "zerostart-ambassadors",
+    group: "Grow with Zero Club",
+    title: "ZeroStart and Zero Ambassadors",
+    summary: "Represent Zero Club where you are, run campaigns with your own link, and earn commission paid to your wallet.",
+    readTime: "6 min",
+    sections: [
+      {
+        title: "What ZeroStart is",
+        paragraphs: ["ZeroStart is Zero Club's Ambassador programme. It uses the same Zero Club account and wallet, so there is nothing new to sign up for."],
+      },
+      {
+        title: "Becoming an Ambassador",
+        bullets: [
+          "Apply with where you will represent Zero Club, what you will work on, who you can reach, and links to your communities or socials.",
+          "The Zero Club team reviews every application and you are notified of the decision.",
+          "Approved Ambassadors wear the Zero Club Ambassador badge on their profile.",
+        ],
+      },
+      {
+        title: "Campaigns and your link",
+        bullets: [
+          "Approved Ambassadors create their own campaigns — up to 3 running at once, each lasting 1 to 60 days — and they go live immediately.",
+          "Each campaign uses your personal sign-up link. Everyone who joins through it is credited to you.",
+          "You can also report offline work such as events and flyers as evidence for your campaign.",
+          "The Zero Club team can pause, resume or take down a campaign that breaks the rules.",
+        ],
+      },
+      {
+        title: "Earning",
+        bullets: [
+          "You earn your locked-in commission rate on every payment — bootcamps, memberships, store purchases and club fees — made by members who joined through your link.",
+          "When a campaign ends, the Zero Club team checks it. Approved campaigns are paid into your wallet, sometimes with a bonus; campaigns taken down or rejected are not paid.",
+          "Commission earned later from members of approved campaigns is paid out in regular payout runs.",
+        ],
+        note: "Fake sign-ups, duplicate accounts and misleading promotion lead to rejected campaigns and can remove Ambassador status.",
       },
     ],
   },
@@ -424,6 +501,11 @@ export const docPages: DocPage[] = [
         paragraphs: ["Tutor Studio is the operating workspace for an individual educator. It brings bootcamps, curriculum, learners, coupons, performance, settings, and programme editing into a focused desktop and mobile experience."],
       },
       {
+        title: "Becoming a Tutor",
+        paragraphs: ["Teaching on Zero Club starts with a short application: your headline and experience, the subjects and levels you teach, proof such as LinkedIn or a portfolio, a sample class outline, and your availability. The Zero Club team reviews every application."],
+        bullets: ["Approval unlocks Tutor mode and Tutor Studio.", "If an application is not approved, the note explains what to strengthen before applying again.", "Accounts cannot make themselves Tutors from sign-up; approval is always required."],
+      },
+      {
         title: "Institution Hub",
         paragraphs: ["Institution Hub replaces Tutor Studio for an Institution account. It supports programme operations at organisation level, including assigned tutors, multiple bootcamps, cohorts, institutional metrics, and administration."],
         bullets: ["Institution navigation remains inside the standard desktop frame.", "Back to app returns the institution to the social product.", "Assigned tutors and authorised admins can edit and save bootcamps they manage.", "Institution metrics must represent programme and organisational outcomes, not learner activity."],
@@ -450,11 +532,12 @@ export const docPages: DocPage[] = [
       {
         title: "Notifications",
         paragraphs: ["In-app notifications cover relevant activity such as likes, comments, follows, messages, programme updates, and community actions. A compact incoming notification appears near the header; the Notifications page preserves the longer activity history."],
-        bullets: ["A comment notification should open the related post and display the comment when access allows.", "Push notifications require browser or device permission and an active registered subscription.", "Notification settings control which supported events can reach the device.", "Fast optimistic UI should not pretend an event is complete before the server confirms it."],
+        bullets: ["A comment notification should open the related post and display the comment when access allows.", "Push notifications require browser or device permission and an active registered subscription.", "Notification settings control which supported events can reach the device.", "Tapping a push notification opens the exact post, message, Club or game it is about, and opening Notifications clears the badge.", "Fast optimistic UI should not pretend an event is complete before the server confirms it."],
       },
       {
         title: "Moderation tools",
         paragraphs: ["Members can report content or people where supported. Club admins manage membership and space-level conduct. Zero Club administrators handle platform-wide safety, account status, marketplace quality, financial risk, and escalations."],
+        note: "The full Terms of Service and Privacy Policy are linked in the site footer.",
       },
       {
         title: "Protect your account",

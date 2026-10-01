@@ -349,17 +349,23 @@
 
 /* App-wide text scale — see zcFontScale in vite.config.ts. 0.94 is "a little
    smaller" everywhere; 1 restores the original sizes. */
-:root { --zc-fs: 0.94; }
+:root {
+  --zc-fs: 0.94;
+  /* Also set here, outside @theme, so var(--font-sans) always resolves. */
+  --font-sans: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-display: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-button: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 /* The bottom tab bar was already sized down on its own; keep it as it is. */
 [data-zc-bottom-nav] { --zc-fs: 1; }
 
 @layer base {
   * { border-color: var(--color-border); }
-  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: clip; width: 100%; position: relative; font-optical-sizing: auto; }
+  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: clip; width: 100%; position: relative; font-optical-sizing: auto; }
   body { background-image: var(--gradient-hero); background-attachment: fixed; min-height: 100vh; }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.022em; text-wrap: balance; }
+  h1, h2, h3, h4 { font-family: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; letter-spacing: -0.022em; text-wrap: balance; }
   h1 { letter-spacing: -0.035em; }
-  button, .button { font-family: var(--font-button); font-weight: 600; letter-spacing: 0.005em; }
+  button, .button, input, textarea, select { font-family: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; font-weight: 600; letter-spacing: 0.005em; }
 
   /* Editorial focus ring — visible only on keyboard navigation */
   :focus { outline: none; }
@@ -1277,7 +1283,7 @@ body::-webkit-scrollbar { display: none; }
   stroke-width: 1.75;
 }
 
-/* One typeface everywhere: the app shell, sheets and drawers all read in Inter. */
+/* One typeface everywhere: the app shell, sheets and drawers all read in Montserrat. */
 .zc-app-shell {
   font-family: var(--font-sans);
 }

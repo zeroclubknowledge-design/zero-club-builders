@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { HeroStage } from "@/features/landing/HeroStage";
 import { CanvasVideo } from "@/features/landing/CanvasVideo";
+import { PartnerMarquee } from "@/features/landing/PartnerMarquee";
 import { useReveal } from "@/hooks/useReveal";
 import { usePointerGlow, useParallax, usePrefersReducedMotion } from "@/hooks/useLandingMotion";
 import { Bloom, Seam, Spotlight } from "@/features/landing/LandingKit";
@@ -510,7 +511,13 @@ function ProductSection() {
   return (
     <section className="relative overflow-hidden bg-[#f4f2ef] dark:bg-[#0f0d12]">
       <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
-      <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 py-14 md:px-6 md:py-16 lg:py-20">
+      {/* Partner strip leads into the section: it is the bridge from the
+          hero's promise to "everything you build", and it no longer competes
+          with the hero's call to action. */}
+      <div className="relative mx-auto max-w-[1320px] px-4 pt-12 md:px-6 md:pt-14 lg:pt-16">
+        <PartnerMarquee />
+      </div>
+      <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 md:px-6 md:pb-16 md:pt-12 lg:pb-20 lg:pt-14">
         <div className="min-w-0">
           <h2 className="max-w-[620px] font-display text-[clamp(24px,4.4vw,38px)] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white">
             Everything you build, in one place.
@@ -872,7 +879,7 @@ function FeaturesSection() {
 const faqs = [
   {
     q: "What is Zero Club?",
-    a: "Zero Club is a professional network designed specifically for the next generation of builders, creators, and institutions to learn, connect, and grow.",
+    a: "Zero Club is a social learning platform where you build skill, build proof and build opportunities for yourself.",
   },
   {
     q: "Who can join Zero Club?",

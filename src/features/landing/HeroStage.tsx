@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "@/components/icons/glyphs";
-import { PartnerMarquee } from "./PartnerMarquee";
 
 /**
  * The front door.
@@ -97,7 +96,8 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           </Link>
         </div>
 
-        <PartnerMarquee />
+        {/* The partner strip now opens the next section ("Everything you
+            build, in one place") instead of crowding the hero's buttons. */}
       </div>
 
       {/* No reserved height any more.
