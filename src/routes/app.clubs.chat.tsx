@@ -2823,7 +2823,39 @@ type ClubCardPayload = {
   dueTime?: string;
   /** Total marks, set by the club owner. Grades can't exceed it. */
   maxMarks?: number;
+  /** Pictures and videos attached by the tutor. */
+  media?: { type: 'image' | 'video'; url: string; name?: string }[];
 };
+
+/** Pictures and videos attached to an assignment or announcement. */
+function CardMedia({ media, compact = false }: { media?: ClubCardPayload['media']; compact?: boolean }) {
+  if (!media?.length) return null;
+  if (compact) {
+    return (
+      <div className="mt-3 flex gap-1.5">
+        {media.slice(0, 4).map((m, i) => (
+          <span key={i} className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+            {m.type === 'video'
+              ? <><video src={m.url} muted playsInline preload="metadata" className="h-full w-full object-cover" /><span className="absolute inset-0 grid place-items-center bg-black/25"><Film className="h-4 w-4 text-white" /></span></>
+              : <img src={m.url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />}
+            {i === 3 && media.length > 4 && <span className="absolute inset-0 grid place-items-center bg-black/55 text-[13px] font-bold text-white">+{media.length - 4}</span>}
+          </span>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className={`mt-4 grid gap-2 ${media.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+      {media.map((m, i) => m.type === 'video' ? (
+        <video key={i} src={m.url} controls playsInline preload="metadata" className="max-h-80 w-full rounded-xl bg-black object-contain" />
+      ) : (
+        <a key={i} href={m.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl bg-muted">
+          <img src={m.url} alt={m.name || ''} loading="lazy" decoding="async" className="max-h-80 w-full object-cover" />
+        </a>
+      ))}
+    </div>
+  );
+}
 
 /** When an assignment closes, as a Date (end of the day if no time was set). */
 const assignmentDue = (card: ClubCardPayload) =>
@@ -2880,6 +2912,9 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
   const [maxMarks, setMaxMarks] = useState('');
+  const [attachments, setAttachments] = useState<NonNullable<ClubCardPayload['media']>>([]);
+  const [attaching, setAttaching] = useState(false);
+  const attachInputRef = useRef<HTMLInputElement>(null);
   const [grades, setGrades] = useState<Record<string, any>>({});
   const [gradeDrafts, setGradeDrafts] = useState<Record<string, { score: string; feedback: string }>>({});
   const [gradingId, setGradingId] = useState<string | null>(null);
@@ -2958,6 +2993,7 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
     setDueDate('');
     setDueTime('');
     setMaxMarks('');
+    setAttachments([]);
     setShowComposer(false);
   };
 
@@ -2982,9 +3018,38 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
       dueDate: dueDate || undefined,
       dueTime: dueDate && dueTime ? dueTime : undefined,
       maxMarks: room === 'assignments' && isOwner && marks > 0 ? marks : undefined,
+      media: attachments.length ? attachments : undefined,
     }), null);
     resetComposer();
     setIsSubmitting(false);
+  };
+
+  const addAttachments = async (files: FileList | null) => {
+    if (!files?.length || !currentUser?.id) return;
+    const room_ = Math.max(0, 6 - attachments.length);
+    const chosen = Array.from(files).slice(0, room_);
+    if (!chosen.length) { toast.error('You can attach up to 6 pictures or videos.'); return; }
+    setAttaching(true);
+    const added: NonNullable<ClubCardPayload['media']> = [];
+    for (const original of chosen) {
+      try {
+        const isVideo = original.type.startsWith('video/');
+        if (isVideo && original.size > 50 * 1024 * 1024) { toast.error(`${original.name} is over 50MB`); continue; }
+        if (!isVideo && !original.type.startsWith('image/')) continue;
+        const file = isVideo ? original : await compressImage(original);
+        const ext = (file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase();
+        const path = `${currentUser.id}/classwork/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage.from('post-media').upload(path, file, { cacheControl: '31536000', contentType: file.type || undefined });
+        if (error) throw error;
+        const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(path);
+        added.push({ type: isVideo ? 'video' : 'image', url: publicUrl, name: original.name });
+      } catch (e: any) {
+        toast.error(`Couldn't attach ${original.name}: ${e?.message || 'upload failed'}`);
+      }
+    }
+    setAttachments((current) => [...current, ...added]);
+    setAttaching(false);
+    if (attachInputRef.current) attachInputRef.current.value = '';
   };
 
   const submitThreadReply = async () => {
@@ -3087,6 +3152,39 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
                 )}
               </div>
             )}
+            {room !== 'q-and-a' && (
+              <div>
+                <input ref={attachInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => void addAttachments(e.target.files)} />
+                {attachments.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {attachments.map((m, i) => (
+                      <span key={m.url} className="relative h-20 w-20 overflow-hidden rounded-lg bg-muted">
+                        {m.type === 'video'
+                          ? <><video src={m.url} muted playsInline preload="metadata" className="h-full w-full object-cover" /><span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[9px] font-bold text-white">VIDEO</span></>
+                          : <img src={m.url} alt="" className="h-full w-full object-cover" />}
+                        <button
+                          type="button"
+                          onClick={() => setAttachments((current) => current.filter((_, j) => j !== i))}
+                          aria-label="Remove attachment"
+                          className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => attachInputRef.current?.click()}
+                  disabled={attaching || attachments.length >= 6}
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-dashed border-foreground/25 px-3.5 text-[13px] font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                >
+                  {attaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+                  {attaching ? 'Uploading…' : 'Attach pictures or videos'}
+                </button>
+              </div>
+            )}
             <div className="flex justify-end pt-1">
               <button
                 onClick={submitCard}
@@ -3138,6 +3236,7 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
                       {interactive && <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />}
                     </div>
                     <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">{card.body}</p>
+                    <CardMedia media={card.media} compact={interactive} />
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <Link
                         to="/app/profile/$id"
@@ -3196,6 +3295,7 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
                     </div>
                   )}
                   <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">{card.body}</p>
+                  <CardMedia media={card.media} />
                 </DrawerHeader>
 
                 <div className="border-t border-border/60 px-5 py-5 sm:px-6">

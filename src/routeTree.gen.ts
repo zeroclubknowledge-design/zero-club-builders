@@ -102,6 +102,8 @@ import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
 import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
+import { Route as AppGamesTIdRouteImport } from './routes/app.games.t.$id'
+import { Route as AppGamesPlayGameRouteImport } from './routes/app.games.play.$game'
 import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
 
@@ -574,6 +576,16 @@ const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
   path: '/notes/$id/edit',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGamesTIdRoute = AppGamesTIdRouteImport.update({
+  id: '/games/t/$id',
+  path: '/games/t/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesPlayGameRoute = AppGamesPlayGameRouteImport.update({
+  id: '/games/play/$game',
+  path: '/games/play/$game',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppClubsQuizzesClubIdRoute = AppClubsQuizzesClubIdRouteImport.update({
   id: '/clubs/quizzes/$clubId',
   path: '/clubs/quizzes/$clubId',
@@ -677,6 +689,8 @@ export interface FileRoutesByFullPath {
   '/app/wallet/': typeof AppWalletIndexRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
+  '/app/games/play/$game': typeof AppGamesPlayGameRoute
+  '/app/games/t/$id': typeof AppGamesTIdRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -768,6 +782,8 @@ export interface FileRoutesByTo {
   '/app/wallet': typeof AppWalletIndexRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
+  '/app/games/play/$game': typeof AppGamesPlayGameRoute
+  '/app/games/t/$id': typeof AppGamesTIdRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -866,6 +882,8 @@ export interface FileRoutesById {
   '/app/wallet/': typeof AppWalletIndexRoute
   '/app/bootcamps_/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
+  '/app/games/play/$game': typeof AppGamesPlayGameRoute
+  '/app/games/t/$id': typeof AppGamesTIdRoute
   '/app/notes_/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
@@ -965,6 +983,8 @@ export interface FileRouteTypes {
     | '/app/wallet/'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
+    | '/app/games/play/$game'
+    | '/app/games/t/$id'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
@@ -1056,6 +1076,8 @@ export interface FileRouteTypes {
     | '/app/wallet'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
+    | '/app/games/play/$game'
+    | '/app/games/t/$id'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
@@ -1153,6 +1175,8 @@ export interface FileRouteTypes {
     | '/app/wallet/'
     | '/app/bootcamps_/$id/edit'
     | '/app/clubs/quizzes/$clubId'
+    | '/app/games/play/$game'
+    | '/app/games/t/$id'
     | '/app/notes_/$id/edit'
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
@@ -1836,6 +1860,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNotesIdEditRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/games/t/$id': {
+      id: '/app/games/t/$id'
+      path: '/games/t/$id'
+      fullPath: '/app/games/t/$id'
+      preLoaderRoute: typeof AppGamesTIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/play/$game': {
+      id: '/app/games/play/$game'
+      path: '/games/play/$game'
+      fullPath: '/app/games/play/$game'
+      preLoaderRoute: typeof AppGamesPlayGameRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/clubs/quizzes/$clubId': {
       id: '/app/clubs/quizzes/$clubId'
       path: '/clubs/quizzes/$clubId'
@@ -1998,6 +2036,8 @@ interface AppRouteChildren {
   AppWalletIndexRoute: typeof AppWalletIndexRoute
   AppBootcampsIdEditRoute: typeof AppBootcampsIdEditRoute
   AppClubsQuizzesClubIdRoute: typeof AppClubsQuizzesClubIdRoute
+  AppGamesPlayGameRoute: typeof AppGamesPlayGameRoute
+  AppGamesTIdRoute: typeof AppGamesTIdRoute
   AppNotesIdEditRoute: typeof AppNotesIdEditRoute
   AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
   AppWalletTransactionIdRoute: typeof AppWalletTransactionIdRoute
@@ -2056,6 +2096,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppWalletIndexRoute: AppWalletIndexRoute,
   AppBootcampsIdEditRoute: AppBootcampsIdEditRoute,
   AppClubsQuizzesClubIdRoute: AppClubsQuizzesClubIdRoute,
+  AppGamesPlayGameRoute: AppGamesPlayGameRoute,
+  AppGamesTIdRoute: AppGamesTIdRoute,
   AppNotesIdEditRoute: AppNotesIdEditRoute,
   AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
   AppWalletTransactionIdRoute: AppWalletTransactionIdRoute,

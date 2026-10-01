@@ -14,6 +14,8 @@ export const Route = createFileRoute("/app/bootcamps/")({
 });
 
 const relationCount = (value: any) => Number(Array.isArray(value) ? value[0]?.count : value?.count) || 0;
+/** Enrolled learners plus members the owner added to the bootcamp's club (kept in learners_count). */
+const learnerCount = (camp: any) => Math.max(Number(camp?.learners_count) || 0, relationCount(camp?.enrollments));
 function BootcampCover({ bootcamp, className = '', compact = false }: { bootcamp: any; className?: string; compact?: boolean }) {
   return (
     <div className={`relative overflow-hidden bg-foreground/[0.06] ${className}`}>
@@ -144,7 +146,7 @@ function Bootcamps() {
                     <BootcampCover bootcamp={featured} className="aspect-[16/9]" />
                     <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-card/95 px-2.5 py-1 text-[12px] font-semibold text-foreground">
                       <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                      {relationCount(featured.enrollments)} {relationCount(featured.enrollments) === 1 ? 'learner' : 'learners'} enrolled
+                      {learnerCount(featured)} {learnerCount(featured) === 1 ? 'learner' : 'learners'} enrolled
                     </span>
                   </div>
                   <h2 className="mt-3 font-display text-[20px] font-semibold leading-tight tracking-[-0.01em] text-foreground group-hover:underline">{featured.title}</h2>
@@ -187,7 +189,7 @@ function Bootcamps() {
                           {camp.profiles?.account_type === 'Institution' ? ' · Institution' : ''}
                         </p>
                         <p className="mt-0.5 text-[12px] text-muted-foreground">
-                          {relationCount(camp.modules)} {relationCount(camp.modules) === 1 ? 'module' : 'modules'} · {relationCount(camp.enrollments)} {relationCount(camp.enrollments) === 1 ? 'learner' : 'learners'} ·{' '}
+                          {relationCount(camp.modules)} {relationCount(camp.modules) === 1 ? 'module' : 'modules'} · {learnerCount(camp)} {learnerCount(camp) === 1 ? 'learner' : 'learners'} ·{' '}
                           <b className={`font-semibold ${Number(camp.price || 0) > 0 ? 'text-foreground' : 'text-success'}`}>{formatPrice(camp.price)}</b>
                         </p>
                       </div>

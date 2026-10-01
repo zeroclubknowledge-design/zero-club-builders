@@ -1,267 +1,312 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  BadgeCheck,
-  Banknote,
-  Brain,
-  Check,
-  ChevronRight,
-  Clock3,
-  Eye,
-  Gamepad2,
-  Gift,
-  Link2,
-  Loader2,
-  LockKeyhole,
-  TextAa,
-  Users,
-  WalletCards,
-} from "@/components/icons/glyphs";
-import { supabase } from "@/lib/supabase";
-import { useUser } from "@/hooks/useUser";
-import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import {
-  generateWordsPuzzle,
-  ZERO_GAME_OFFERS,
-  ZERO_GAME_PROFESSIONS,
-  type ZeroGameDifficulty,
-  type ZeroGameRewardType,
-  type ZeroGameType,
-  type ZeroGameVisibility,
-} from "@/features/games/zeroGames";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  fallbackZeroGameRewardAllowance,
-  zeroGameAllowanceName,
-  type ZeroGameRewardAllowance,
-} from "@/features/games/rewardEntitlements";
+  ArrowLeft, Banknote, Coins, Gift, Globe, LockKeyhole, Minus, Plus, ShieldCheck, Trophy, Users, X,
+} from "@/components/icons/glyphs";
+import { useUser } from "@/hooks/useUser";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { ZERO_GAME_OFFERS, ZERO_GAME_PROFESSIONS } from "@/features/games/zeroGames";
+import { ZERO_GAMES, ZERO_GAME_LIST, isZeroGameKey, type ZeroGameKey } from "@/features/games/v2/catalog";
+import { GameEmblem, SPLASH_CSS } from "@/features/games/v2/GameSplash";
+import { createTournament, durationLabel, placeLabel, type TournamentReward } from "@/features/games/v2/api";
 
 export const Route = createFileRoute("/app/games/create")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    game: search.game === "words" ? "words" as const : search.game === "sudoku" ? "sudoku" as const : undefined,
+  validateSearch: (search: Record<string, unknown>): { game?: ZeroGameKey } => ({
+    game: isZeroGameKey(search.game) ? search.game : undefined,
   }),
-  component: CreateZeroGame,
+  component: CreateTournament,
 });
 
-const toLocalDateTime = (date: Date) => {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-};
+const DURATIONS = [30, 60, 180, 360, 1440, 4320, 10080];
+const CAPS = [10, 25, 50, 100];
+const ZP_PER_NAIRA = 10;
 
-function CreateZeroGame() {
+function CreateTournament() {
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const search = Route.useSearch();
   const { data: profile } = useUser();
-  const { format, toBaseAmount } = useWalletCurrency();
-  const [gameType, setGameType] = useState<ZeroGameType>(search.game || "sudoku");
+  const { format } = useWalletCurrency();
+
+  const [game, setGame] = useState<ZeroGameKey>(search.game || "space");
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [difficulty, setDifficulty] = useState("medium");
   const [profession, setProfession] = useState<string>(ZERO_GAME_PROFESSIONS[0]);
-  const [difficulty, setDifficulty] = useState<ZeroGameDifficulty>("medium");
-  const [visibility, setVisibility] = useState<ZeroGameVisibility>("public");
-  const [rewardType, setRewardType] = useState<ZeroGameRewardType>("offer");
-  const [offerType, setOfferType] = useState<string>(ZERO_GAME_OFFERS[0].id);
-  const [prizeAmount, setPrizeAmount] = useState("1000");
-  const [maxPlayers, setMaxPlayers] = useState(8);
-  const [durationMinutes, setDurationMinutes] = useState(5);
-  const [startsAt, setStartsAt] = useState(toLocalDateTime(new Date(Date.now() + 10 * 60_000)));
-  const [hostPlays, setHostPlays] = useState(true);
-  const [creating, setCreating] = useState(false);
-
-  const { data: allowanceData, isLoading: allowanceLoading } = useQuery({
-    queryKey: ["zero-game-reward-allowance", profile?.id],
-    enabled: Boolean(profile?.id),
-    retry: false,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_my_zero_game_reward_allowance");
-      if (error) {
-        console.warn("Zero Games allowance is not available yet:", error.message);
-        return fallbackZeroGameRewardAllowance(profile);
-      }
-      return data as ZeroGameRewardAllowance;
-    },
+  const [startMode, setStartMode] = useState<"now" | "later">("now");
+  const [startAt, setStartAt] = useState(() => {
+    const d = new Date(Date.now() + 60 * 60 * 1000);
+    d.setMinutes(0, 0, 0);
+    return toLocalInput(d);
   });
+  const [duration, setDuration] = useState(60);
+  const [capped, setCapped] = useState(false);
+  const [cap, setCap] = useState(25);
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [eligibility, setEligibility] = useState<"everyone" | "subscribers">("everyone");
+  const [reward, setReward] = useState<TournamentReward>("none");
+  const [places, setPlaces] = useState(1);
+  const [amounts, setAmounts] = useState<string[]>(["1000", "500", "250"]);
+  const [zps, setZps] = useState<string[]>(["500", "250", "100"]);
+  const [labels, setLabels] = useState<string[]>([ZERO_GAME_OFFERS[0].label, "", ""]);
+  const [saving, setSaving] = useState(false);
 
-  const rewardAllowance = allowanceData || fallbackZeroGameRewardAllowance(profile);
-  const dailyLimitReached = rewardAllowance.daily_limit !== null
-    && rewardAllowance.daily_remaining === 0
-    && rewardAllowance.weekly_remaining > 0;
+  const info = ZERO_GAMES[game];
+  const balance = Number(profile?.coins || 0);
 
-  const basePrizeAmount = useMemo(() => toBaseAmount(Number(prizeAmount || 0)), [prizeAmount, toBaseAmount]);
-  const selectedOffer = ZERO_GAME_OFFERS.find((offer) => offer.id === offerType) || ZERO_GAME_OFFERS[0];
-  const canCreate = Boolean(profile?.id)
-    && !allowanceLoading
-    && rewardAllowance.can_create
-    && title.trim().length >= 3
-    && Boolean(startsAt)
-    && maxPlayers >= 2
-    && (rewardType === "offer" || basePrizeAmount >= 100);
+  const pool = useMemo(() => {
+    if (reward === "funds") return amounts.slice(0, places).reduce((s, v) => s + Math.max(0, Math.floor(Number(v) || 0)), 0);
+    if (reward === "zp") return zps.slice(0, places).reduce((s, v) => s + Math.floor((Number(v) || 0) / ZP_PER_NAIRA), 0);
+    return 0;
+  }, [reward, amounts, zps, places]);
 
-  const createCompetition = async () => {
-    if (!canCreate || creating) return;
-    setCreating(true);
+  const problems: string[] = [];
+  if (title.trim().length < 3) problems.push("Give the tournament a name");
+  if (startMode === "later" && new Date(startAt).getTime() < Date.now()) problems.push("Pick a start time in the future");
+  if (reward === "funds" && amounts.slice(0, places).some((v) => !(Number(v) > 0))) problems.push("Each prize needs an amount");
+  if (reward === "zp" && zps.slice(0, places).some((v) => !(Number(v) >= 10) || Number(v) % 10 !== 0)) problems.push("ZP prizes go in steps of 10");
+  if (reward === "offer" && labels.slice(0, places).some((v) => v.trim().length < 3)) problems.push("Describe each reward");
+  if (pool > balance) problems.push(`You need ${format(pool)} in your wallet for this prize pool`);
+
+  const submit = async () => {
+    if (problems.length) { toast.error(problems[0]); return; }
+    setSaving(true);
     try {
-      const wordsPayload = gameType === "words" ? generateWordsPuzzle(profession, difficulty) : null;
-      const { data, error } = await supabase.rpc("create_zero_game_competition", {
-        p_game_type: gameType,
-        p_title: title.trim(),
-        p_profession: gameType === "words" ? profession : null,
-        p_difficulty: difficulty,
-        p_visibility: visibility,
-        p_reward_type: rewardType,
-        p_offer_type: rewardType === "offer" ? offerType : null,
-        p_prize_amount: rewardType === "cash" ? Math.round(basePrizeAmount) : 0,
-        p_max_players: maxPlayers,
-        p_starts_at: new Date(startsAt).toISOString(),
-        p_duration_seconds: durationMinutes * 60,
-        p_host_plays: hostPlays,
-        p_words_payload: wordsPayload,
+      const prizes = Array.from({ length: places }, (_, i) =>
+        reward === "funds" ? { place: i + 1, amount: Math.floor(Number(amounts[i])) }
+        : reward === "zp" ? { place: i + 1, zp: Math.floor(Number(zps[i])) }
+        : { place: i + 1, label: labels[i].trim() });
+      const res = await createTournament({
+        game_type: game,
+        title: title.trim(),
+        description: description.trim(),
+        difficulty: game === "space" ? "medium" : difficulty,
+        profession: game === "words" ? profession : null,
+        starts_at: startMode === "later" ? new Date(startAt).toISOString() : null,
+        duration_minutes: duration,
+        max_players: capped ? cap : null,
+        visibility,
+        eligibility,
+        reward_type: reward,
+        prizes: reward === "none" ? [] : prizes,
       });
-      if (error) throw error;
-      const competitionId = data?.competition_id;
-      if (!competitionId) throw new Error("Competition was created without an ID");
-      await queryClient.invalidateQueries({ queryKey: ["zero-game-reward-allowance", profile?.id] });
-      toast.success(rewardType === "cash" ? "Race published and prize secured" : "Race published with a winner offer");
-      navigate({ to: "/app/games/$id", params: { id: competitionId } });
-    } catch (error: any) {
-      toast.error(error.message || "Could not create this competition");
+      void queryClient.invalidateQueries({ queryKey: ["zero-tournaments"] });
+      void queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success("Tournament created");
+      navigate({ to: "/app/games/t/$id", params: { id: res.id }, search: { code: visibility === "private" ? res.share_code : undefined }, replace: true });
+    } catch (e) {
+      toast.error((e as Error).message.replace(/^.*?: /, "") || "Couldn't create the tournament.");
     } finally {
-      setCreating(false);
+      setSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background pb-28 md:pb-10">
-      <header className="sticky top-0 z-40 bg-background/96 px-4 py-3 backdrop-blur-xl md:px-7">
-        <div className="zc-page-width mx-auto flex max-w-[1080px] items-center gap-3">
-          <button onClick={() => navigate({ to: "/app/games" })} className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1"><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Zero Games</p><h1 className="truncate text-[18px] font-semibold tracking-tight">Create competition</h1></div>
-          <div className="hidden items-center gap-2 text-[11px] font-semibold text-muted-foreground sm:flex"><WalletCards className="h-4 w-4 fill-current" />{format(Number(profile?.coins || 0))}</div>
+    <div className="min-h-screen bg-canvas pb-[calc(env(safe-area-inset-bottom)+110px)]">
+      <style>{SPLASH_CSS}</style>
+      <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+          <button onClick={() => window.history.back()} aria-label="Back" className="grid h-11 w-10 place-items-center rounded-full hover:bg-foreground/[0.04]">
+            <ArrowLeft className="h-[22px] w-[22px]" />
+          </button>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Host a tournament</h1>
         </div>
       </header>
 
-      <main className="zc-page-width mx-auto grid w-full max-w-[1080px] gap-6 px-4 py-5 md:grid-cols-[minmax(0,1fr)_320px] md:px-7 md:py-8">
-        <section className="flex flex-col gap-3 rounded-md border border-border bg-card p-4 sm:flex-row sm:items-center md:col-span-2">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground"><Gamepad2 className="h-5 w-5 fill-current" /></span>
-          <div className="min-w-0 flex-1"><p className="text-[12px] font-semibold">Prefer playing alone?</p><p className="mt-0.5 text-[10.5px] text-muted-foreground">Solo starts immediately with no lobby, invitations, or winner reward.</p></div>
-          <Link to="/app/games/solo" search={{ game: gameType, difficulty, profession }} className="grid h-10 shrink-0 place-items-center rounded-md bg-foreground px-4 text-[11px] font-semibold text-background">Start Solo</Link>
-        </section>
-        <div className="space-y-6">
-          <FormSection eyebrow="01 · Game" title="Choose the race">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <GameChoice selected={gameType === "sudoku"} onClick={() => setGameType("sudoku")} Icon={Brain} title="Zero Sudoku" detail="The first correct logic grid wins." />
-              <GameChoice selected={gameType === "words"} onClick={() => setGameType("words")} Icon={TextAa} title="Zero Words" detail="Find every professional term first." />
-            </div>
-          </FormSection>
-
-          <FormSection eyebrow="02 · Details" title="Set up the competition">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="sm:col-span-2"><FieldLabel>Competition name</FieldLabel><input value={title} onChange={(event) => setTitle(event.target.value.slice(0, 80))} placeholder={gameType === "sudoku" ? "Friday logic sprint" : "Frontend words showdown"} className={fieldClass} /></label>
-              {gameType === "words" && <label><FieldLabel>Professional field</FieldLabel><select value={profession} onChange={(event) => setProfession(event.target.value)} className={fieldClass}>{ZERO_GAME_PROFESSIONS.map((field) => <option key={field}>{field}</option>)}</select></label>}
-              <label className={gameType === "words" ? "" : "sm:col-span-2"}><FieldLabel>Difficulty</FieldLabel><select value={difficulty} onChange={(event) => setDifficulty(event.target.value as ZeroGameDifficulty)} className={fieldClass}>{["easy", "medium", "hard", "expert"].map((level) => <option key={level} value={level} className="capitalize">{level[0].toUpperCase() + level.slice(1)}</option>)}</select></label>
-              <label><FieldLabel>Players</FieldLabel><div className="grid grid-cols-[42px_minmax(0,1fr)_42px] overflow-hidden rounded-md border border-border bg-card"><button type="button" onClick={() => setMaxPlayers((value) => Math.max(2, value - 1))} className="h-11 border-r border-border text-lg">−</button><span className="grid h-11 place-items-center text-[13px] font-semibold tabular-nums">{maxPlayers}</span><button type="button" onClick={() => setMaxPlayers((value) => Math.min(20, value + 1))} className="h-11 border-l border-border text-lg">+</button></div></label>
-              <label><FieldLabel>Race duration</FieldLabel><select value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} className={fieldClass}>{[2, 3, 5, 10, 15].map((minutes) => <option key={minutes} value={minutes}>{minutes} minutes</option>)}</select></label>
-              <label className="sm:col-span-2"><FieldLabel>Scheduled start</FieldLabel><input type="datetime-local" value={startsAt} min={toLocalDateTime(new Date())} onChange={(event) => setStartsAt(event.target.value)} className={fieldClass} /></label>
-            </div>
-          </FormSection>
-
-          <FormSection eyebrow="03 · Access" title="Choose who can join">
-            <div className="grid gap-2 sm:grid-cols-3">
-              <VisibilityChoice selected={visibility === "public"} onClick={() => setVisibility("public")} Icon={Eye} title="Public" detail="Discoverable in Zero Games" />
-              <VisibilityChoice selected={visibility === "link"} onClick={() => setVisibility("link")} Icon={Link2} title="Link only" detail="Only people with the link" />
-              <VisibilityChoice selected={visibility === "followers"} onClick={() => setVisibility("followers")} Icon={Users} title="Followers" detail="Your network can join" />
-            </div>
-            <label className="mt-4 flex items-center justify-between gap-4 rounded-md border border-border bg-card p-3.5">
-              <div><p className="text-[12px] font-semibold">Join your own race</p><p className="mt-0.5 text-[10.5px] text-muted-foreground">Turn this off when you only want to host.</p></div>
-              <button type="button" role="switch" aria-checked={hostPlays} onClick={() => setHostPlays((value) => !value)} className={`relative h-6 w-11 rounded-full transition ${hostPlays ? "bg-primary" : "bg-muted"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${hostPlays ? "left-[22px]" : "left-0.5"}`} /></button>
-            </label>
-          </FormSection>
-
-          <FormSection eyebrow="04 · Reward" title="Reward the first finisher">
-            <div className={`mb-4 rounded-md border p-3.5 ${rewardAllowance.can_create ? "border-border bg-card" : "border-destructive/25 bg-destructive/[0.045]"}`}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{zeroGameAllowanceName(rewardAllowance.plan_key)}</p>
-                  <p className="mt-1 text-[12px] font-semibold">Winner reward allowance</p>
-                </div>
-                <span className="text-[12px] font-semibold tabular-nums">{allowanceLoading ? "..." : `${rewardAllowance.weekly_remaining} / ${rewardAllowance.weekly_limit}`}</span>
-              </div>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-foreground/[0.07]">
-                <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${Math.min(100, (rewardAllowance.weekly_used / Math.max(1, rewardAllowance.weekly_limit)) * 100)}%` }} />
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-3 text-[9.5px] text-muted-foreground">
-                <span>{rewardAllowance.can_create ? `${rewardAllowance.weekly_remaining} rewarded competition${rewardAllowance.weekly_remaining === 1 ? "" : "s"} left this week` : dailyLimitReached ? "Daily limit reached; available again tomorrow" : "Weekly reward allowance used"}</span>
-                {rewardAllowance.daily_limit !== null && <span>{rewardAllowance.daily_remaining} / {rewardAllowance.daily_limit} left today</span>}
-              </div>
-              {!rewardAllowance.can_create && !dailyLimitReached && <button type="button" onClick={() => navigate({ to: "/app/premium" })} className="mt-3 text-[10px] font-semibold text-primary">Compare membership plans</button>}
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <RewardChoice selected={rewardType === "offer"} onClick={() => setRewardType("offer")} Icon={Gift} title="Free with an offer" detail="Everyone joins free. The winner unlocks a verified offer." />
-              <RewardChoice selected={rewardType === "cash"} onClick={() => setRewardType("cash")} Icon={Banknote} title="Host-funded prize" detail="Reserve a cash prize from your wallet. Players still join free." />
-            </div>
-
-            {rewardType === "offer" ? (
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                {ZERO_GAME_OFFERS.map((offer) => (
-                  <button key={offer.id} type="button" onClick={() => setOfferType(offer.id)} className={`flex min-h-[76px] items-start gap-3 rounded-md border p-3 text-left ${offerType === offer.id ? "border-primary bg-primary/[0.055]" : "border-border bg-card"}`}>
-                    <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-sm border ${offerType === offer.id ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{offerType === offer.id && <Check className="h-3 w-3" strokeWidth={3} />}</span>
-                    <span><span className="block text-[11.5px] font-semibold">{offer.label}</span><span className="mt-1 block text-[9.5px] leading-4 text-muted-foreground">{offer.detail}</span></span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-4 rounded-md border border-border bg-card p-4">
-                <div className="flex items-center justify-between gap-3"><div><FieldLabel>Secured cash prize</FieldLabel><p className="text-[10px] text-muted-foreground">Reserved immediately when you publish.</p></div><LockKeyhole className="h-5 w-5 fill-current text-primary" /></div>
-                <div className="mt-3 flex items-center rounded-md border border-border bg-background px-3 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10"><span className="text-[13px] font-semibold text-muted-foreground">{format(0).replace(/[\d.,\s]/g, "") || "₦"}</span><input type="number" min="100" value={prizeAmount} onChange={(event) => setPrizeAmount(event.target.value)} className="h-12 min-w-0 flex-1 bg-transparent px-2 text-[18px] font-semibold tabular-nums outline-none" /></div>
-                <div className="mt-3 flex items-center justify-between text-[10px]"><span className="text-muted-foreground">Wallet balance</span><span className={basePrizeAmount > Number(profile?.coins || 0) ? "font-semibold text-destructive" : "font-semibold text-foreground"}>{format(Number(profile?.coins || 0))}</span></div>
-              </div>
-            )}
-          </FormSection>
-        </div>
-
-        <aside className="md:sticky md:top-24 md:self-start">
-          <div className="rounded-md border border-border bg-card p-5">
-            <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-md bg-foreground text-background"><Gamepad2 className="h-5 w-5 fill-current" /></div><div><p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Competition preview</p><p className="text-[14px] font-semibold">{title.trim() || "Untitled race"}</p></div></div>
-            <div className="mt-5 divide-y divide-border border-y border-border text-[11px]">
-              <SummaryRow label="Game" value={gameType === "sudoku" ? "Zero Sudoku" : "Zero Words"} />
-              <SummaryRow label="Players" value={`Up to ${maxPlayers}`} />
-              <SummaryRow label="Duration" value={`${durationMinutes} minutes`} />
-              <SummaryRow label="Access" value={visibility === "link" ? "Link only" : visibility === "followers" ? "Followers" : "Public"} />
-              <SummaryRow label="Reward" value={rewardType === "cash" ? format(basePrizeAmount) : selectedOffer.label} />
-            </div>
-            <button disabled={!canCreate || creating} onClick={createCompetition} className="mt-5 hidden h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35 md:flex">{creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LockKeyhole className="h-4 w-4 fill-current" />}{creating ? "Publishing" : rewardType === "cash" ? "Secure prize & publish" : "Publish competition"}</button>
+      <main className="mx-auto max-w-[680px] space-y-2 pt-2">
+        <Card title="Game">
+          <div className="grid grid-cols-3 gap-2">
+            {ZERO_GAME_LIST.map((g) => (
+              <button
+                key={g.key}
+                onClick={() => setGame(g.key)}
+                className={`flex flex-col items-center gap-2 rounded-2xl p-3 text-white transition ${game === g.key ? "ring-2 ring-[#cc208f] ring-offset-2 ring-offset-card" : "opacity-70"}`}
+                style={{ background: `linear-gradient(150deg, ${g.to}, ${g.from})` }}
+              >
+                <GameEmblem game={g.key} size={44} />
+                <span className="text-[12.5px] font-bold">{g.name}</span>
+              </button>
+            ))}
           </div>
-        </aside>
+          <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{info.scoring}</p>
+          {game !== "space" && (
+            <div className="mt-3 space-y-3">
+              <Segmented value={difficulty} onChange={setDifficulty} options={[["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]]} />
+              {game === "words" && (
+                <select value={profession} onChange={(e) => setProfession(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]">
+                  {ZERO_GAME_PROFESSIONS.map((p) => <option key={p}>{p}</option>)}
+                </select>
+              )}
+            </div>
+          )}
+        </Card>
+
+        <Card title="Details">
+          <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, 80))} placeholder={`e.g. Friday ${info.name} Showdown`} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14.5px] outline-none focus:border-[#cc208f]" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} placeholder="Rules, shout-outs or anything players should know (optional)" className="mt-2 w-full resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[14px] outline-none focus:border-[#cc208f]" />
+        </Card>
+
+        <Card title="When" Icon={Trophy}>
+          <Segmented value={startMode} onChange={(v) => setStartMode(v as "now" | "later")} options={[["now", "Start now"], ["later", "Schedule"]]} />
+          {startMode === "later" && (
+            <input type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]" />
+          )}
+          <p className="mb-2 mt-4 text-[13px] font-semibold">How long it runs</p>
+          <div className="flex flex-wrap gap-1.5">
+            {DURATIONS.map((m) => (
+              <Chip key={m} active={duration === m} onClick={() => setDuration(m)}>{durationLabel(m)}</Chip>
+            ))}
+          </div>
+        </Card>
+
+        <Card title="Players" Icon={Users}>
+          <Segmented value={capped ? "cap" : "open"} onChange={(v) => setCapped(v === "cap")} options={[["open", "Unlimited"], ["cap", "Set a limit"]]} />
+          {capped && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              {CAPS.map((c) => <Chip key={c} active={cap === c} onClick={() => setCap(c)}>{c}</Chip>)}
+              <div className="ml-auto flex items-center gap-1 rounded-full border border-border p-1">
+                <button onClick={() => setCap((c) => Math.max(2, c - 1))} className="grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.05]"><Minus className="h-3.5 w-3.5" /></button>
+                <input value={cap} onChange={(e) => setCap(Math.max(2, Math.min(10000, Number(e.target.value.replace(/\D/g, "")) || 2)))} inputMode="numeric" className="w-12 bg-transparent text-center text-[14px] font-semibold tabular-nums outline-none" />
+                <button onClick={() => setCap((c) => Math.min(10000, c + 1))} className="grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.05]"><Plus className="h-3.5 w-3.5" /></button>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        <Card title="Access">
+          <Option active={visibility === "public"} onClick={() => setVisibility("public")} Icon={Globe} title="Public" body="Listed in Zero Games. Anyone can find and join it." />
+          <Option active={visibility === "private"} onClick={() => setVisibility("private")} Icon={LockKeyhole} title="Private" body="Hidden from the list. Only people with your invite link can join." />
+          <p className="mb-2 mt-4 text-[13px] font-semibold">Who can enter</p>
+          <Option active={eligibility === "everyone"} onClick={() => setEligibility("everyone")} Icon={Users} title="Everyone" body="Free and Premium members." />
+          <Option active={eligibility === "subscribers"} onClick={() => setEligibility("subscribers")} Icon={ShieldCheck} title="Premium members" body="Only Premium, Premium+ and Creator members can join." />
+        </Card>
+
+        <Card title="Prizes">
+          <div className="grid grid-cols-4 gap-1.5">
+            {([["none", "None", Trophy], ["funds", "Funds", Banknote], ["zp", "Zero Points", Coins], ["offer", "Offer", Gift]] as const).map(([v, label, Icon]) => (
+              <button
+                key={v}
+                onClick={() => setReward(v)}
+                className={`flex flex-col items-center gap-1 rounded-xl border px-1 py-2.5 text-[12px] font-semibold transition ${reward === v ? "border-[#cc208f] bg-[#cc208f]/[0.07] text-[#cc208f]" : "border-border text-muted-foreground"}`}
+              >
+                <Icon className="h-5 w-5" /> {label}
+              </button>
+            ))}
+          </div>
+
+          {reward !== "none" && (
+            <>
+              <div className="mt-4 flex items-center">
+                <p className="text-[13px] font-semibold">Winning places</p>
+                <div className="ml-auto"><Segmented value={String(places)} onChange={(v) => setPlaces(Number(v))} options={[["1", "Top 1"], ["2", "Top 2"], ["3", "Top 3"]]} /></div>
+              </div>
+              <div className="mt-3 space-y-2">
+                {Array.from({ length: places }, (_, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="w-10 shrink-0 text-[13px] font-bold text-muted-foreground">{placeLabel(i + 1)}</span>
+                    {reward === "funds" && (
+                      <AmountInput value={amounts[i]} onChange={(v) => setAmounts((a) => a.map((x, j) => (j === i ? v : x)))} prefix="₦" />
+                    )}
+                    {reward === "zp" && (
+                      <AmountInput value={zps[i]} onChange={(v) => setZps((a) => a.map((x, j) => (j === i ? v : x)))} suffix="ZP" />
+                    )}
+                    {reward === "offer" && (
+                      <div className="relative flex-1">
+                        <input list="zg-offers" value={labels[i]} onChange={(e) => setLabels((a) => a.map((x, j) => (j === i ? e.target.value.slice(0, 120) : x)))} placeholder="e.g. Free mentorship call" className="h-11 w-full rounded-xl border border-border bg-card px-3 pr-9 text-[14px] outline-none focus:border-[#cc208f]" />
+                        {labels[i] && <button onClick={() => setLabels((a) => a.map((x, j) => (j === i ? "" : x)))} className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground"><X className="h-3.5 w-3.5" /></button>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <datalist id="zg-offers">{ZERO_GAME_OFFERS.map((o) => <option key={o.id} value={o.label} />)}</datalist>
+              </div>
+              <p className="mt-3 rounded-xl bg-foreground/[0.04] px-3 py-2.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                {reward === "offer"
+                  ? "You deliver offers yourself — winners get notified with what they won."
+                  : `${format(pool)} will be held from your wallet now (balance ${format(balance)}) and paid to winners automatically when it ends. Unclaimed places are refunded to you.`}
+                {reward === "zp" && ` ${ZP_PER_NAIRA} ZP = ₦1.`}
+              </p>
+            </>
+          )}
+        </Card>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/96 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
-        <button disabled={!canCreate || creating} onClick={createCompetition} className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground text-[12px] font-semibold text-background disabled:opacity-35">{creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LockKeyhole className="h-4 w-4 fill-current" />}{creating ? "Publishing" : rewardType === "cash" ? "Secure prize & publish" : "Publish competition"}</button>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur">
+        <div className="mx-auto flex max-w-[680px] items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13.5px] font-semibold">{info.name} · {durationLabel(duration)}</p>
+            <p className="truncate text-[12px] text-muted-foreground">
+              {capped ? `${cap} players` : "Unlimited players"} · {visibility === "private" ? "Private" : "Public"} · {eligibility === "subscribers" ? "Premium" : "Everyone"}
+              {pool > 0 ? ` · ${format(pool)} pool` : ""}
+            </p>
+          </div>
+          <button onClick={() => void submit()} disabled={saving} className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-5 text-[14px] font-bold text-white disabled:opacity-50" style={{ background: "#cc208f" }}>
+            {saving && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
+            Create
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-const fieldClass = "mt-1.5 h-11 w-full rounded-md border border-border bg-card px-3 text-[12px] font-medium outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10";
-const FieldLabel = ({ children }: { children: ReactNode }) => <span className="block text-[9.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{children}</span>;
-
-function FormSection({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
-  return <section><div className="mb-3"><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">{eyebrow}</p><h2 className="mt-1 text-[17px] font-semibold tracking-tight">{title}</h2></div>{children}</section>;
+function toLocalInput(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function GameChoice({ selected, onClick, Icon, title, detail }: any) {
-  return <button type="button" onClick={onClick} className={`flex min-h-[100px] items-start gap-3 rounded-md border p-4 text-left transition ${selected ? "border-primary bg-primary/[0.055] ring-1 ring-primary/10" : "border-border bg-card hover:border-foreground/20"}`}><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-md ${selected ? "bg-primary text-primary-foreground" : "bg-foreground text-background"}`}><Icon className="h-5 w-5 fill-current" /></span><span className="min-w-0"><span className="flex items-center gap-2 text-[13px] font-semibold">{title}{selected && <BadgeCheck className="h-4 w-4 fill-primary text-primary-foreground" />}</span><span className="mt-1 block text-[10.5px] leading-4 text-muted-foreground">{detail}</span></span></button>;
+function Card({ title, children, Icon }: { title: string; children: ReactNode; Icon?: typeof Users }) {
+  return (
+    <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
+      <h2 className="mb-3 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{Icon && <Icon className="h-3.5 w-3.5" />}{title}</h2>
+      {children}
+    </section>
+  );
 }
 
-function VisibilityChoice({ selected, onClick, Icon, title, detail }: any) {
-  return <button type="button" onClick={onClick} className={`min-h-[84px] rounded-md border p-3 text-left ${selected ? "border-primary bg-primary/[0.05]" : "border-border bg-card"}`}><div className="flex items-center justify-between"><Icon className={`h-4 w-4 ${selected ? "fill-current text-primary" : "text-muted-foreground"}`} />{selected && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={3} />}</div><p className="mt-3 text-[11.5px] font-semibold">{title}</p><p className="mt-0.5 text-[9.5px] leading-4 text-muted-foreground">{detail}</p></button>;
+function Segmented({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) {
+  return (
+    <div className="inline-flex w-full rounded-full bg-foreground/[0.06] p-1">
+      {options.map(([v, label]) => (
+        <button key={v} onClick={() => onChange(v)} className={`h-8 flex-1 whitespace-nowrap rounded-full px-3 text-[13px] font-semibold transition ${value === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
-function RewardChoice({ selected, onClick, Icon, title, detail }: any) {
-  return <button type="button" onClick={onClick} className={`min-h-[112px] rounded-md border p-4 text-left ${selected ? "border-primary bg-primary/[0.05]" : "border-border bg-card"}`}><div className="flex items-center justify-between"><span className={`grid h-9 w-9 place-items-center rounded-md ${selected ? "bg-primary text-primary-foreground" : "bg-foreground/[0.06] text-foreground"}`}><Icon className="h-[18px] w-[18px] fill-current" /></span>{selected && <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground"><Check className="h-3 w-3" strokeWidth={3} /></span>}</div><p className="mt-3 text-[12px] font-semibold">{title}</p><p className="mt-1 text-[10px] leading-4 text-muted-foreground">{detail}</p></button>;
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button onClick={onClick} className={`h-8 rounded-full border px-3.5 text-[13px] font-semibold transition ${active ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground"}`}>
+      {children}
+    </button>
+  );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return <div className="flex items-center justify-between gap-4 py-3"><span className="text-muted-foreground">{label}</span><span className="max-w-[180px] truncate text-right font-semibold">{value}</span></div>;
+function Option({ active, onClick, Icon, title, body }: { active: boolean; onClick: () => void; Icon: typeof Users; title: string; body: string }) {
+  return (
+    <button onClick={onClick} className={`mb-2 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${active ? "border-[#cc208f] bg-[#cc208f]/[0.05]" : "border-border"}`}>
+      <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${active ? "text-[#cc208f]" : "text-muted-foreground"}`} />
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] font-semibold">{title}</p>
+        <p className="text-[12.5px] leading-snug text-muted-foreground">{body}</p>
+      </div>
+      <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+        {active && <span className="h-2 w-2 rounded-full bg-white" />}
+      </span>
+    </button>
+  );
+}
+
+function AmountInput({ value, onChange, prefix, suffix }: { value: string; onChange: (v: string) => void; prefix?: string; suffix?: string }) {
+  return (
+    <label className="flex h-11 flex-1 items-center gap-1.5 rounded-xl border border-border bg-card px-3 focus-within:border-[#cc208f]">
+      {prefix && <span className="text-[14px] font-semibold text-muted-foreground">{prefix}</span>}
+      <input value={value} onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 9))} inputMode="numeric" className="min-w-0 flex-1 bg-transparent text-[14.5px] font-semibold tabular-nums outline-none" />
+      {suffix && <span className="text-[13px] font-semibold text-muted-foreground">{suffix}</span>}
+    </label>
+  );
 }
