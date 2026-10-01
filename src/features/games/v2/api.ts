@@ -25,6 +25,8 @@ export type TournamentRow = {
   creator_name: string | null;
   creator_avatar?: string | null;
   players: number;
+  /** Prizes paid by Zero Club rather than the host. */
+  sponsored?: boolean;
   my_best?: number | null;
   joined?: boolean;
 };
@@ -106,6 +108,8 @@ export type CreateTournamentInput = {
   eligibility: "everyone" | "subscribers";
   reward_type: TournamentReward;
   prizes: TournamentPrize[];
+  /** Admins only: Zero Club pays the prizes. */
+  sponsored?: boolean;
 };
 
 export async function createTournament(input: CreateTournamentInput) {

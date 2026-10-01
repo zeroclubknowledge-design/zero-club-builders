@@ -52,6 +52,10 @@ function CreateTournament() {
   const [zps, setZps] = useState<string[]>(["500", "250", "100"]);
   const [labels, setLabels] = useState<string[]>([ZERO_GAME_OFFERS[0].label, "", ""]);
   const [saving, setSaving] = useState(false);
+  const isAdmin = Boolean(profile?.is_admin);
+  const [sponsorChoice, setSponsorChoice] = useState(true);
+  /** Admins host on Zero Club's budget by default — no wallet top-up needed. */
+  const sponsored = isAdmin && sponsorChoice;
 
   const info = ZERO_GAMES[game];
   const balance = Number(profile?.coins || 0);
@@ -68,7 +72,7 @@ function CreateTournament() {
   if (reward === "funds" && amounts.slice(0, places).some((v) => !(Number(v) > 0))) problems.push("Each prize needs an amount");
   if (reward === "zp" && zps.slice(0, places).some((v) => !(Number(v) >= 10) || Number(v) % 10 !== 0)) problems.push("ZP prizes go in steps of 10");
   if (reward === "offer" && labels.slice(0, places).some((v) => v.trim().length < 3)) problems.push("Describe each reward");
-  if (pool > balance) problems.push(`You need ${format(pool)} in your wallet for this prize pool`);
+  if (!sponsored && pool > balance) problems.push(`You need ${format(pool)} in your wallet for this prize pool`);
 
   const submit = async () => {
     if (problems.length) { toast.error(problems[0]); return; }
@@ -91,7 +95,9 @@ function CreateTournament() {
         eligibility,
         reward_type: reward,
         prizes: reward === "none" ? [] : prizes,
+        sponsored,
       });
+      if (sponsored) void queryClient.invalidateQueries({ queryKey: ["admin", "platform-rewards"] });
       void queryClient.invalidateQueries({ queryKey: ["zero-tournaments"] });
       void queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Tournament created");
@@ -184,6 +190,12 @@ function CreateTournament() {
         </Card>
 
         <Card title="Prizes">
+          {isAdmin && (
+            <div className="mb-4">
+              <Option active={sponsored} onClick={() => setSponsorChoice(true)} Icon={ShieldCheck} title="Sponsored by Zero Club" body="Zero Club pays the winners. Nothing is taken from your wallet, and every payout is recorded in Admin → Rewards & games." />
+              <Option active={!sponsored} onClick={() => setSponsorChoice(false)} Icon={Banknote} title="From my wallet" body="Prizes are held from your own wallet, like any member's tournament." />
+            </div>
+          )}
           <div className="grid grid-cols-4 gap-1.5">
             {([["none", "None", Trophy], ["funds", "Funds", Banknote], ["zp", "Zero Points", Coins], ["offer", "Offer", Gift]] as const).map(([v, label, Icon]) => (
               <button
@@ -224,7 +236,9 @@ function CreateTournament() {
               </div>
               <p className="mt-3 rounded-xl bg-foreground/[0.04] px-3 py-2.5 text-[12.5px] leading-relaxed text-muted-foreground">
                 {reward === "offer"
-                  ? "You deliver offers yourself — winners get notified with what they won."
+                  ? (sponsored ? "Zero Club delivers these offers — winners get notified with what they won." : "You deliver offers yourself — winners get notified with what they won.")
+                  : sponsored
+                  ? `Zero Club pays up to ${format(pool)} to the winners automatically when it ends. Your wallet isn't touched.`
                   : `${format(pool)} will be held from your wallet now (balance ${format(balance)}) and paid to winners automatically when it ends. Unclaimed places are refunded to you.`}
                 {reward === "zp" && ` ${ZP_PER_NAIRA} ZP = ₦1.`}
               </p>
@@ -239,7 +253,7 @@ function CreateTournament() {
             <p className="truncate text-[13.5px] font-semibold">{info.name} · {durationLabel(duration)}</p>
             <p className="truncate text-[12px] text-muted-foreground">
               {capped ? `${cap} players` : "Unlimited players"} · {visibility === "private" ? "Private" : "Public"} · {eligibility === "subscribers" ? "Premium" : "Everyone"}
-              {pool > 0 ? ` · ${format(pool)} pool` : ""}
+              {pool > 0 ? ` · ${format(pool)} pool` : ""}{sponsored && reward !== "none" ? " · Zero Club pays" : ""}
             </p>
           </div>
           <button onClick={() => void submit()} disabled={saving} className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-5 text-[14px] font-bold text-white disabled:opacity-50" style={{ background: "#cc208f" }}>

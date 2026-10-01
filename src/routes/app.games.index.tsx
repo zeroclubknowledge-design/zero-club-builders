@@ -172,6 +172,7 @@ function TournamentCard({ row, now, money }: { row: TournamentRow; now: number; 
           <p className="truncate text-[15px] font-semibold">{row.title}</p>
           {row.visibility === "private" && <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
           {row.eligibility === "subscribers" && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#cc208f]" />}
+          {row.sponsored && <span className="shrink-0 rounded-full bg-[#cc208f] px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-white">Zero Club</span>}
         </div>
         <p className="mt-0.5 flex items-center gap-1 truncate text-[12.5px] text-muted-foreground">
           <Clock3 className="h-3 w-3 shrink-0" />

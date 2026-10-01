@@ -104,9 +104,12 @@ function TournamentPage() {
           <div className="mt-5 flex items-start gap-4">
             <div className="shrink-0"><GameEmblem game={t.game_type} size={76} /></div>
             <div className="min-w-0">
-              <StatusChip status={status} />
+              <div className="flex flex-wrap items-center gap-1.5">
+                <StatusChip status={status} />
+                {t.sponsored && <span className="inline-flex h-6 items-center gap-1 rounded-full bg-white px-2.5 text-[11px] font-bold uppercase tracking-wide text-[#cc208f]"><ShieldCheck className="h-3 w-3" /> Sponsored by Zero Club</span>}
+              </div>
               <h1 className="mt-2 font-display text-[24px] font-bold leading-tight tracking-[-0.02em]">{t.title}</h1>
-              <p className="mt-1 text-[13px] text-white/65">{info.name} · hosted by {t.is_creator ? "you" : t.creator_name || "a member"}</p>
+              <p className="mt-1 text-[13px] text-white/65">{info.name} · hosted by {t.sponsored ? "Zero Club" : t.is_creator ? "you" : t.creator_name || "a member"}</p>
             </div>
           </div>
           {t.description && <p className="mt-4 whitespace-pre-line text-[14px] leading-relaxed text-white/75">{t.description}</p>}
@@ -157,7 +160,9 @@ function TournamentPage() {
           )}
           <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
             Highest Game Points when the clock runs out wins. Only your best run counts, and you can play as many runs as you like while it's live. Ties go to whoever got there first.
-            {t.reward_type === "funds" || t.reward_type === "zp" ? " Prizes are held from the host's wallet and paid automatically." : ""}
+            {t.reward_type === "funds" || t.reward_type === "zp"
+              ? t.sponsored ? " Prizes are paid by Zero Club, straight to the winners' wallets when it ends." : " Prizes are held from the host's wallet and paid automatically."
+              : ""}
           </p>
         </section>
 
