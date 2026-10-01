@@ -61,7 +61,9 @@ const isNetworkFailure = (error: unknown) => {
   return /failed to fetch|networkerror|network request failed|load failed|fetch failed|internet disconnected|err_internet|timeout|timed out/i.test(message);
 };
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error: rawError, reset }: { error: unknown; reset: () => void }) {
+  // Newer TanStack Router types the thrown value as `unknown` (anything can be thrown).
+  const error = rawError instanceof Error ? rawError : new Error(String(rawError ?? "Unknown error"));
   const router = useRouter();
   const [online, setOnline] = useState(() => typeof navigator === "undefined" || navigator.onLine);
   const [retrying, setRetrying] = useState(false);

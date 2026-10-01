@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
@@ -1570,12 +1571,14 @@ function ClubChat() {
                           </div>
                           <div>
                             <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Description</label>
-                            <textarea 
-                              ref={descRef}
+                            {/* Descriptions can come from a bootcamp's rich text, so this
+                                is the same formatted editor — a plain textarea showed the
+                                raw <p><strong>… tags. */}
+                            <RichTextEditor
                               value={editClub.description}
-                              onChange={e => setEditClub({...editClub, description: e.target.value})}
+                              onChange={(html) => setEditClub((current) => ({ ...current, description: html }))}
                               placeholder="What is this club about?"
-                              className="min-h-[88px] w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed text-foreground outline-none transition no-scrollbar placeholder:text-muted-foreground focus:border-foreground/40"
+                              minHeight={120}
                             />
                           </div>
                           <div>

@@ -284,6 +284,28 @@
   background-size: 100% 100%;
 }
 
+/* Rose Noir sidebar — a frosted pink glass panel.
+   The panel is see-through (the page and its pink wash show faintly behind),
+   but it is frosted and darkened enough that every label stays easy to read.
+   A large, faint Zero mark sits in the lower corner as a watermark, and a
+   thin pink light runs down the edge that faces the page. */
+.dark.rose-noir .zc-noir-sidebar {
+  background-color: rgba(12, 4, 10, 0.62);
+  background-image:
+    radial-gradient(120% 55% at 0% 0%, rgba(204, 32, 143, 0.30) 0%, rgba(204, 32, 143, 0.08) 45%, transparent 72%),
+    radial-gradient(80% 40% at 100% 100%, rgba(163, 26, 118, 0.22) 0%, transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23cc208f' fill-opacity='0.10' fill-rule='evenodd' d='M41.02 1.32 L21.91 9.27 L30.27 30.27 L9.27 21.91 L1.32 41.02 L22.07 50.00 L1.32 58.98 L9.27 78.09 L30.27 69.72 L21.91 90.72 L41.02 98.68 L50.00 77.92 L58.98 98.68 L78.09 90.72 L69.72 69.72 L90.72 78.09 L98.68 58.98 L77.92 50.00 L98.68 41.02 L90.72 21.91 L69.72 30.27 L78.09 9.27 L58.98 1.32 L50.00 22.07Z M43.81 16.82 L50.00 30.82 L56.19 16.82 L69.16 22.21 L63.54 36.46 L77.79 30.84 L83.18 43.81 L69.17 50.00 L83.18 56.19 L77.79 69.16 L63.54 63.54 L69.16 77.79 L56.19 83.18 L50.00 69.17 L43.81 83.18 L30.84 77.79 L36.46 63.54 L22.21 69.16 L16.82 56.19 L30.82 50.00 L16.82 43.81 L22.21 30.84 L36.46 36.46 L30.84 22.21Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 100%, 100% 100%, 300px 300px;
+  background-position: 0 0, 0 0, calc(100% + 90px) calc(100% + 70px);
+  background-attachment: scroll;
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+  border-color: rgba(204, 32, 143, 0.28);
+  box-shadow: inset -1px 0 0 rgba(255, 79, 195, 0.22), 18px 0 60px -30px rgba(204, 32, 143, 0.55);
+}
+.dark.rose-noir .zc-noir-sidebar .border-border { border-color: rgba(204, 32, 143, 0.18); }
+
 .premium {
   /* Premium Ivory Theme — #f7f8ef */
   color-scheme: light;

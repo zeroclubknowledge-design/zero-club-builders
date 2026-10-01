@@ -1374,7 +1374,7 @@ function AppLayout() {
   return (
     <div className="zc-app-shell mx-auto min-h-screen w-full bg-background md:flex md:max-w-none md:justify-center">
       {/* Desktop Sidebar (Left Column) — hidden on admin routes, which have their own sidebar */}
-      <div className={`zc-desktop-sidebar sticky top-0 z-40 h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-background no-scrollbar ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
+      <div className={`zc-desktop-sidebar zc-noir-sidebar sticky top-0 z-40 h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-background no-scrollbar ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
         <SidebarContent
           profile={profile}
           onOpenTheme={() => setIsThemeOpen(true)}
@@ -1446,7 +1446,7 @@ function AppLayout() {
             />
             {/* Only the exposed right corners are rounded. */}
             <div
-              className={`fixed bottom-3 left-0 top-3 z-[80] flex w-[min(452px,calc(100vw-60px))] flex-col overflow-hidden rounded-r-xl border border-l-0 border-border/70 bg-background shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
+              className={`zc-noir-sidebar fixed bottom-3 left-0 top-3 z-[80] flex w-[min(452px,calc(100vw-60px))] flex-col overflow-hidden rounded-r-xl border border-l-0 border-border/70 bg-background shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] ${isSidebarClosing ? "animate-out fade-out slide-out-to-left-full duration-500 ease-in-out fill-mode-forwards" : "animate-in fade-in slide-in-from-left-full duration-500 ease-out"}`}
             >
               <SidebarContent
                 profile={profile}

@@ -4,6 +4,7 @@ import { ArrowLeft, BadgeCheck, Users, Loader2, Hash, Search, Shield } from "@/c
 import { useFollow } from "@/hooks/useFollow";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { toPlainText } from "@/lib/contentPreview";
 import { getFirstName } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
@@ -219,7 +220,7 @@ function ProfileNetwork() {
                 <h4 className="truncate text-[15px] font-semibold text-foreground">{c.name}</h4>
                 <p className="truncate text-[13px] text-muted-foreground">
                   {Number(c.members_count || 0).toLocaleString()} {Number(c.members_count) === 1 ? "member" : "members"}
-                  {c.description ? ` · ${c.description}` : ""}
+                  {c.description ? ` · ${toPlainText(c.description)}` : ""}
                 </p>
               </div>
             </Link>

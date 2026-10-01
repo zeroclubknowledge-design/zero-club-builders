@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { RichText } from "@/components/RichText";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Users, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Bell, ChevronDown, ChevronRight, Trash2, Check } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
@@ -1219,8 +1220,12 @@ function Clubs() {
                   {/* ── What the club is about ── */}
                   <div className="zc-join-rise mt-4" style={{ animationDelay: "240ms" }}>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">About</p>
-                    <DrawerDescription className="mt-1.5 whitespace-pre-line text-[14.5px] leading-relaxed text-foreground/85">
-                      {String((selectedClub as any).description || "").trim() || "This club hasn't written a description yet. Join to see what members are working on."}
+                    <DrawerDescription asChild>
+                      <div className="mt-1.5 text-[14.5px] leading-relaxed text-foreground/85">
+                        {String((selectedClub as any).description || "").trim()
+                          ? <RichText content={(selectedClub as any).description} />
+                          : "This club hasn't written a description yet. Join to see what members are working on."}
+                      </div>
                     </DrawerDescription>
                   </div>
 

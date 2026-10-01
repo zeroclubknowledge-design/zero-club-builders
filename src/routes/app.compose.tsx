@@ -509,7 +509,10 @@ function ComposePage() {
         </div>
 
         <Drawer open={audienceOpen} onOpenChange={setAudienceOpen}>
-          <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
+          {/* The compose page is a full-screen layer at z-[100] on phones, so the
+              sheet has to sit above it — at the default z-50 it opened unseen
+              behind the page and the audience never changed. */}
+          <DrawerContent overlayClassName="z-[110]" className="z-[110] border-t border-border/40 bg-background/95 backdrop-blur-xl">
             <div className="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-1 sm:pt-4">
               <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Who can see this post?</DrawerTitle>
               <DrawerDescription className="mt-1 text-[14px] text-muted-foreground">Share it with everyone, or keep it for the members of one of your clubs.</DrawerDescription>

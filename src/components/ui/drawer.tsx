@@ -36,10 +36,12 @@ const DrawerContent = React.forwardRef<
     hideClose?: boolean;
     hideHandle?: boolean;
     desktopVariant?: "dialog" | "panel";
+    /** Lets a sheet opened from a full-screen page (z-[100]) sit above it. */
+    overlayClassName?: string;
   }
->(({ className, children, hideClose, hideHandle, desktopVariant = "dialog", ...props }, ref) => (
+>(({ className, children, hideClose, hideHandle, desktopVariant = "dialog", overlayClassName, ...props }, ref) => (
   <DrawerPortal>
-    <DrawerOverlay />
+    <DrawerOverlay className={overlayClassName} />
     <DrawerPrimitive.Content
       ref={ref}
       data-zc-drawer-variant={desktopVariant}
