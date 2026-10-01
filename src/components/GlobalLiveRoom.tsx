@@ -57,7 +57,9 @@ const CAMERA_QUALITY_OPTIONS: Array<{
   { value: "2160p", label: "4K (2160p)", note: "Studio connection", width: 3840, height: 2160, frameRate: 30, bitrateMin: 4000, bitrateMax: 8500 },
 ];
 
-const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality";
+// v2: the old key stored the 720p default for everyone who ever joined, so
+// those saved values are discarded rather than honoured.
+const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality-v2";
 /*
  * HD by default.
  *
@@ -72,7 +74,16 @@ const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality";
  * settings, and Agora drops the sender's bitrate on its own when the uplink
  * cannot sustain it.
  */
-const DEFAULT_CAMERA_QUALITY: CameraQuality = "720p";
+/*
+ * Smooth (540p) by default — voice first.
+ *
+ * 720p asked a phone on Airtel/MTN mobile data to upload up to ~2.3 Mbps
+ * (1.8 Mbps camera + the 500 kbps companion stream). When the uplink could not
+ * sustain that, it was the host's AUDIO that broke up for the class. 540p is
+ * still clear for teaching; anyone on a strong connection can pick HD in Camera
+ * settings, and the room now steps video down by itself on a weak uplink.
+ */
+const DEFAULT_CAMERA_QUALITY: CameraQuality = "540p";
 
 const cameraProfile = (quality: CameraQuality) =>
   CAMERA_QUALITY_OPTIONS.find((option) => option.value === quality) ||
@@ -219,11 +230,13 @@ export function GlobalLiveRoom() {
        * 480x270 at 500kbps still costs a fraction of the high stream and
        * survives being shown at a reasonable size.
        */
+      // Kept modest: every publisher uploads this on top of their main
+      // stream, and on mobile data that extra upload competes with their voice.
       rtcClient.setLowStreamParameter({
-        width: 480,
-        height: 270,
-        framerate: 20,
-        bitrate: 500,
+        width: 424,
+        height: 240,
+        framerate: 15,
+        bitrate: 280,
       });
 
       Promise.all([
@@ -446,8 +459,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   }, [channel, profile?.id]);
 
   /* ── Video / Audio state ── */
-  const [micOn, setMicOn] = useState(true);
-  const [cameraOn, setCameraOn] = useState(true);
+  /*
+   * Everyone joins muted with the camera off; hosts (club creator, admins,
+   * moderators) are switched on as soon as their role is known. Open mics on
+   * every phone were mixing room noise and speaker echo into the tutor's voice.
+   */
+  const [micOn, setMicOn] = useState(false);
+  const [cameraOn, setCameraOn] = useState(false);
+  const hostAutoOnRef = useRef(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenTrack, setScreenTrack] = useState<any>(null);
   const [startingPresentation, setStartingPresentation] = useState(false);
@@ -510,7 +529,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* ── Agora hooks ── */
   useJoin({ appid: APP_ID, channel, token }, true);
   const client = useRTCClient();
-  const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
+  /*
+   * Voice processing on, explicitly: echo cancellation (people on speaker),
+   * noise suppression (fans, generators, street noise) and automatic gain (so a
+   * quiet or distant speaker is levelled up). speech_standard is tuned for
+   * voice at a low bitrate, which survives weak mobile networks far better
+   * than a music profile.
+   */
+  const { localMicrophoneTrack } = useLocalMicrophoneTrack(true, {
+    AEC: true,
+    ANS: true,
+    AGC: true,
+    encoderConfig: "speech_standard",
+  });
   /* Start smooth. Higher modes are available in Camera settings and are applied
      to both capture and encoding so they improve the source rather than merely
      upscaling a low-resolution camera frame. */
@@ -576,6 +607,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   useEffect(() => {
     try {
+      // Only a choice the person made is remembered, not an automatic step-down.
+      if (autoQualityRef.current) { autoQualityRef.current = false; return; }
       window.localStorage.setItem(CAMERA_QUALITY_STORAGE_KEY, cameraQuality);
     } catch {
       /* The setting still works for this call when storage is unavailable. */
@@ -609,6 +642,86 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   useEffect(() => {
     localCameraTrack?.setMuted(!cameraOn).catch(console.error);
   }, [cameraOn, localCameraTrack]);
+
+  /* Hosts go live with mic and camera on; learners are told once why they're muted. */
+  useEffect(() => {
+    if (isAdmin && !hostAutoOnRef.current) {
+      hostAutoOnRef.current = true;
+      setMicOn(true);
+      setCameraOn(true);
+    }
+  }, [isAdmin]);
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      if (!isAdminRef.current && !hostAutoOnRef.current) {
+        toast("You joined muted", { description: "Tap the mic when you want to speak. Earphones help everyone hear clearly." });
+      }
+    }, 4000);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  /*
+   * Staying connected, and keeping the voice clear.
+   *
+   * - connection-state-change drives a "Reconnecting…" banner. Agora rejoins by
+   *   itself after a network blip; people were leaving and rejoining manually
+   *   because the room just looked frozen, which drops them for much longer.
+   * - network-quality reports every ~2s. Three poor uplink reports in a row
+   *   step the camera down one rung (720p → 540p → 480p) so the upload stops
+   *   crowding out the microphone.
+   * - The access token lasts 2 hours. It is renewed before it expires so a long
+   *   class is not cut off at the two-hour mark.
+   */
+  const [connectionState, setConnectionState] = useState<string>("CONNECTED");
+  const [weakUplink, setWeakUplink] = useState(false);
+  const autoQualityRef = useRef(false);
+  const poorUplinkCount = useRef(0);
+  const qualityToastShown = useRef(false);
+  const cameraQualityRef = useRef(cameraQuality);
+  const cameraOnRef = useRef(cameraOn);
+  useEffect(() => { cameraQualityRef.current = cameraQuality; }, [cameraQuality]);
+  useEffect(() => { cameraOnRef.current = cameraOn; }, [cameraOn]);
+
+  useEffect(() => {
+    if (!client) return;
+    const onState = (current: string) => setConnectionState(current);
+    const onQuality = (quality: { uplinkNetworkQuality: number }) => {
+      // 4 = poor, 5 = bad, 6 = down. 0 means "not measured yet".
+      const poor = quality.uplinkNetworkQuality >= 4;
+      setWeakUplink(poor);
+      poorUplinkCount.current = poor ? poorUplinkCount.current + 1 : 0;
+      if (poorUplinkCount.current < 3 || !cameraOnRef.current) return;
+      poorUplinkCount.current = 0;
+      const order = CAMERA_QUALITY_OPTIONS.map((option) => option.value);
+      const index = order.indexOf(cameraQualityRef.current);
+      if (index > 0) {
+        autoQualityRef.current = true;
+        setCameraQuality(order[index - 1]);
+        if (!qualityToastShown.current) {
+          qualityToastShown.current = true;
+          toast("Weak connection", { description: "Your video was lowered so your voice stays clear." });
+        }
+      }
+    };
+    const renewToken = async () => {
+      try {
+        const { data } = await supabase.functions.invoke("agora-token", { body: { channelName: channel, uid: 0 } });
+        if (data?.token) await client.renewToken(data.token);
+      } catch (error) {
+        console.warn("Could not renew the live class token", error);
+      }
+    };
+    client.on("connection-state-change", onState);
+    client.on("network-quality", onQuality);
+    client.on("token-privilege-will-expire", renewToken);
+    client.on("token-privilege-did-expire", renewToken);
+    return () => {
+      client.off("connection-state-change", onState);
+      client.off("network-quality", onQuality);
+      client.off("token-privilege-will-expire", renewToken);
+      client.off("token-privilege-did-expire", renewToken);
+    };
+  }, [client, channel]);
 
   const videoTrackToPublish = isScreenSharing && screenTrack ? screenTrack : localCameraTrack;
 
@@ -654,7 +767,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       // Agora reports the local user as uid 0. Levels arrive 0–100; the meter
       // wants 0–1.
       const mine = volumes.find((entry) => String(entry.uid) === "0");
-      setSelfVolume(mine ? mine.level / 100 : 0);
+      // Rounded to tenths: the meter does not need more, and an unrounded value
+      // re-rendered the whole room five times a second, which old phones felt.
+      setSelfVolume(mine ? Math.round(mine.level / 10) / 10 : 0);
     };
     client.on("volume-indicator", onVolume);
     return () => { client.off("volume-indicator", onVolume); };
@@ -1897,6 +2012,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <Share2 className="h-[19px] w-[19px]" />
         </button>
       </header>
+
+      {connectionState === "RECONNECTING" ? (
+        <div role="status" aria-live="polite" className="z-30 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-amber-500/15 px-3 py-2 text-[13px] text-amber-100 ring-1 ring-amber-400/30">
+          <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-300" />
+          Reconnecting… stay on this screen, you'll be back in a moment.
+        </div>
+      ) : weakUplink && micOn ? (
+        <div role="status" aria-live="polite" className="z-30 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-white/[0.08] px-3 py-2 text-[12.5px] text-white/80">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" />
+          Your connection is weak — others may hear you break up. Wi‑Fi or a stronger signal will help.
+        </div>
+      ) : null}
 
       {(isAdmin ? presentationRequests.incoming.length > 0 : !!presentationRequests.request) && (
         <div role="status" aria-live="polite" className="z-40 max-h-[30dvh] shrink-0 space-y-2 overflow-auto px-3 py-2 text-sm text-white">

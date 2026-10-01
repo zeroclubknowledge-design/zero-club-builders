@@ -65,8 +65,15 @@ function BootcampDetail() {
       if (modulesError) throw modulesError;
 
       const moduleIds = (fetchedModules || []).map((module: any) => module.id);
+      /*
+       * The syllabus outline comes from bootcamp_syllabus_outline, not the
+       * lessons table. Lessons are only readable by enrolled learners and the
+       * bootcamp's managers (they hold the video/file links), so everyone else
+       * saw section names with "No lessons in this section yet". The function
+       * returns titles, types and durations only — never the content links.
+       */
       const { data: lessons } = moduleIds.length
-        ? await supabase.from("lessons").select("*").in("module_id", moduleIds).order("order_index", { ascending: true })
+        ? await supabase.rpc("bootcamp_syllabus_outline", { p_bootcamp_id: id })
         : { data: [] as any[] };
       const modules = (fetchedModules || []).map((module: any) => ({
         ...module,

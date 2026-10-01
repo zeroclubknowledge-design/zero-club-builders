@@ -10,6 +10,30 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/*
+ * App-wide text size, in one place.
+ *
+ * Nearly every size in the app is a fixed pixel value (text-[14px] and
+ * friends), so there is no root font size to turn down. Instead every
+ * font-size the CSS ends up with is multiplied by --zc-fs, set in styles.css.
+ * Lowering that one number shrinks text on every page; anything that should
+ * keep its size (the bottom tab bar) sets --zc-fs back to 1 for itself.
+ */
+const zcFontScale = () => ({
+  postcssPlugin: "zc-font-scale",
+  Declaration: {
+    "font-size": (decl: { value: string }) => {
+      const value = decl.value.trim();
+      if (value.includes("--zc-fs")) return;
+      // Only absolute sizes: px, rem, Tailwind's --text-* tokens and clamp/calc
+      // built from them. em, %, keywords and inherit already follow the parent.
+      const scalable = /^(-?[\d.]+(px|rem)|var\(--text-[\w-]+\)|clamp\(|calc\(|min\(|max\()/.test(value);
+      if (!scalable) return;
+      decl.value = `calc(${value} * var(--zc-fs, 1))`;
+    },
+  },
+});
+
 export default defineConfig(({ command }) => {
   const isVercelBuild = process.env.VERCEL === "1" || process.env.NITRO_PRESET === "vercel";
   const plugins = [
@@ -155,6 +179,9 @@ export default defineConfig(({ command }) => {
 
   return {
     plugins,
+    css: {
+      postcss: { plugins: [zcFontScale()] },
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src")

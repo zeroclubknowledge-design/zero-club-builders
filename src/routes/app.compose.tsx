@@ -517,7 +517,7 @@ function ComposePage() {
               <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Who can see this post?</DrawerTitle>
               <DrawerDescription className="mt-1 text-[14px] text-muted-foreground">Share it with everyone, or keep it for the members of one of your clubs.</DrawerDescription>
 
-              <div className="mt-4 max-h-[55dvh] space-y-1 overflow-y-auto overscroll-contain">
+              <div className="no-scrollbar mt-4 max-h-[55dvh] space-y-1 overflow-y-auto overscroll-contain">
                 {[{ id: "Everyone", name: "Everyone", logo_url: null as string | null }, ...myClubs].map((c) => {
                   const active = audience === c.id;
                   const everyone = c.id === "Everyone";
