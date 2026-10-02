@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { previewResponse } from "@/lib/og/respond";
+import { previewResponse } from "@/lib/og/core/respond";
 
 /**
  * Kept at its old address so links already shared keep their picture. The

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useGoBack } from "@/hooks/useGoBack";
-import { ChevronLeft, Bell, Lock, Shield, Ban, Eye } from "@/components/icons/glyphs";
+import { ChevronLeft, Bell, Lock, Shield, Ban, Eye, Send } from "@/components/icons/glyphs";
+import { useEnterToSend } from "@/lib/chatPrefs";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 
@@ -13,6 +14,7 @@ function ChatSettingsPage() {
   const router = useRouter();
   const [pushEnabled, setPushEnabled] = useState(true);
   const [readReceipts, setReadReceipts] = useState(true);
+  const [enterToSend, setEnterToSend] = useEnterToSend();
 
   return (
     <div className="flex flex-col min-h-screen bg-background relative">
@@ -26,6 +28,25 @@ function ChatSettingsPage() {
 
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
         
+        {/* Typing */}
+        <section className="space-y-4">
+          <h2 className="text-xs text-muted-foreground">Typing</h2>
+          <div className="bg-card/50 border border-border/50 rounded-2xl overflow-hidden divide-y divide-border/30">
+            <div className="flex items-center justify-between gap-3 p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-xl bg-[#cc208f]/10 flex items-center justify-center text-[#cc208f]">
+                  <Send className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Press Enter to send</h3>
+                  <p className="text-xs text-muted-foreground">Enter sends your message. Shift + Enter adds a new line. Works in clubs and direct messages.</p>
+                </div>
+              </div>
+              <Switch checked={enterToSend} onCheckedChange={setEnterToSend} aria-label="Press Enter to send" />
+            </div>
+          </div>
+        </section>
+
         {/* Notifications */}
         <section className="space-y-4">
           <h2 className="text-xs text-muted-foreground">Notifications</h2>

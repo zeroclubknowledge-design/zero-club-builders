@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
+import { contentPreview } from "@/lib/contentPreview";
+import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
+import { Switch } from "@/components/ui/switch";
 import { ClubNoteCard, ClubNotePicker, parseClubNote } from "@/features/clubs/ClubNotes";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
-import { BookOpen, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet } from "@/components/icons/glyphs";
+import { BookOpen, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, Smile } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
@@ -73,6 +76,7 @@ function ClubMessageComposer({
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [enterToSend] = useEnterToSend();
 
   /*
    * Tagging someone in the room.
@@ -181,11 +185,13 @@ function ClubMessageComposer({
             applyMention(mentionMatches[0].username);
             return;
           }
-          if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+          if (isSendKey(event, enterToSend)) {
             event.preventDefault();
             void submit();
           }
         }}
+        enterKeyHint={enterToSend ? "send" : "enter"}
+        data-club-composer=""
         placeholder={placeholder}
         className="flex-1 resize-none bg-transparent py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
         rows={1}
@@ -2709,6 +2715,7 @@ function ClubChat() {
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-foreground"><Users className="h-[19px] w-[19px]" /></span>
                     <span className="flex-1 text-[16px] font-medium text-foreground">Members</span>
                   </button>
+                  <EnterToSendRow />
                   {club?.creator_id === currentUser?.id && (
                     <button
                       onClick={() => { setShowQuickNav(false); setShowSettings(true); }}
@@ -2732,16 +2739,19 @@ function ClubChat() {
       {!['assignments', 'announcements', 'q-and-a', QUIZ_ROOM].includes(activeRoom) && (
       <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
         {replyingTo && (
-          <div className="mb-2 flex items-center justify-between rounded-lg bg-accent/10 p-2 border-l-3 border-primary">
+          /* Solid on purpose: messages scroll underneath the composer, and a
+             see-through bar let them show through the reply preview. */
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-background py-2 pl-3 pr-2 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.45)]" style={{ borderLeft: "3px solid #cc208f" }}>
             <div className="min-w-0 flex-1">
-              <span className="text-[10px] font-bold text-primary flex items-center gap-1">
-                <Reply className="h-2.5 w-2.5" /> Replying to {replyingTo.profiles?.full_name || replyingTo.profiles?.username}
+              <span className="flex items-center gap-1 text-[11px] font-bold text-[#cc208f]">
+                <Reply className="h-3 w-3" /> Replying to {replyingTo.profiles?.full_name || replyingTo.profiles?.username || "a message"}
               </span>
-              <p className="truncate text-[11px] text-muted-foreground">{replyingTo.content}</p>
+              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{contentPreview(replyingTo.content) || "Message"}</p>
             </div>
             <button 
               onClick={() => setReplyingTo(null)}
-              className="ml-2 h-5 w-5 rounded-full bg-accent/20 flex items-center justify-center text-muted-foreground"
+              aria-label="Cancel reply"
+              className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-foreground"
             >
               <X className="h-3 w-3" />
             </button>
@@ -3643,7 +3653,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
   return (
     <div 
       id={`message-${message.id}`}
-      className={`relative py-1.5 flex w-full transition-colors duration-500 ${isMe ?'justify-end' : 'justify-start'}`}
+      className={`group/msg relative py-1.5 flex w-full transition-colors duration-500 ${isMe ?'justify-end' : 'justify-start'}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -3700,6 +3710,33 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
           </button>
         )}
 
+        {/* Computer: hover a message to reply or react (phones swipe instead). */}
+        <div className={`order-last hidden shrink-0 items-center gap-1 self-center opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover/msg:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:flex ${isMe ? 'mr-1' : 'ml-1'}`}>
+          <button
+            type="button"
+            title="Reply"
+            aria-label="Reply to this message"
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={() => {
+              onReply(message);
+              requestAnimationFrame(() => (document.querySelector('[data-club-composer]') as HTMLTextAreaElement | null)?.focus());
+            }}
+            className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition hover:border-[#cc208f]/40 hover:text-[#cc208f]"
+          >
+            <Reply className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            title="React"
+            aria-label="React to this message"
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={() => setShowEmojiPicker((open) => !open)}
+            className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition hover:border-[#cc208f]/40 hover:text-[#cc208f]"
+          >
+            <Smile className="h-4 w-4" />
+          </button>
+        </div>
+
         {/* Content Container */}
         <div className={`flex flex-col ${isMe ?'items-end' : 'items-start'} min-w-0`}>
           
@@ -3720,7 +3757,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             >
               <Reply className="h-3 w-3 shrink-0" />
               <span className="font-bold whitespace-nowrap">{repliedMessage.profiles?.username || 'Someone'}</span>
-              <span className="truncate max-w-[120px] text-muted-foreground">{repliedMessage.content}</span>
+              <span className="truncate max-w-[160px] text-muted-foreground">{contentPreview(repliedMessage.content) || "Message"}</span>
             </div>
           )}
 
@@ -4068,5 +4105,20 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
         </div>
       </div>
     </div>
+  );
+}
+
+/** "Press Enter to send", switchable from the club menu. Same setting as Chat settings. */
+function EnterToSendRow() {
+  const [enterToSend, setEnterToSend] = useEnterToSend();
+  return (
+    <label className="flex w-full cursor-pointer items-center gap-4 rounded-2xl px-3 py-3 text-left transition hover:bg-foreground/[0.04]">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-foreground"><Send className="h-[19px] w-[19px]" /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[16px] font-medium text-foreground">Press Enter to send</span>
+        <span className="block text-[12px] text-muted-foreground">Shift + Enter adds a new line</span>
+      </span>
+      <Switch checked={enterToSend} onCheckedChange={setEnterToSend} aria-label="Press Enter to send" />
+    </label>
   );
 }

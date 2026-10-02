@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/glyphs";
 import React, { useState, useRef, useEffect } from "react";
@@ -465,6 +466,7 @@ function ChatViewPage() {
   const goBackSmart = useGoBack("/app/chat");
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
+  const [enterToSend] = useEnterToSend();
   const { data: currentUserProfile } = useUser();
   const navigate = useNavigate();
 
@@ -1129,13 +1131,13 @@ function ChatViewPage() {
           desktop sidebar offset and the shrinking the keyboard causes. */}
       <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
         {editingId && (
-          <div className="flex items-center justify-between mb-2 px-3 py-1.5 bg-primary/10 rounded-xl text-xs font-bold text-primary">
+          <div className="mb-2 flex items-center justify-between rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-primary shadow-[0_6px_20px_-8px_rgba(0,0,0,0.45)]">
             <span className="flex items-center gap-1.5"><Pencil className="h-3.5 w-3.5" /> Editing message</span>
             <button onClick={cancelEditing} className="hover:text-foreground grid h-6 w-6 place-items-center rounded-full hover:bg-primary/20 transition"><X className="h-3 w-3" /></button>
           </div>
         )}
         {replyingTo && (
-          <div className="flex items-center justify-between mb-2 px-2 bg-primary/5 rounded-lg py-1.5 border border-primary/10">
+          <div className="mb-2 flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.45)]" style={{ borderLeft: "3px solid #cc208f" }}>
             <span className="flex items-center gap-1.5 text-xs text-primary font-medium">
               <Reply className="h-3 w-3" /> Replying to {replyingTo.sender_id === currentUserId ? 'yourself' : (otherUser?.full_name || otherUser?.username)}
             </span>
@@ -1195,11 +1197,12 @@ function ChatViewPage() {
                 target.style.height = `${Math.min(target.scrollHeight, 80)}px`;
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                if (isSendKey(e, enterToSend)) {
                   e.preventDefault();
                   handleSendMessage();
                 }
               }}
+              enterKeyHint={enterToSend ? "send" : "enter"}
               placeholder={editingId ? "Edit your message" : (replyingTo ? "Write a reply..." : "Start a message")} 
               className="flex-1 resize-none bg-transparent py-2 text-sm outline-none text-foreground placeholder:text-muted-foreground no-scrollbar"
               rows={1}

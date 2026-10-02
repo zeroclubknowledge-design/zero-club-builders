@@ -56,6 +56,26 @@
       "destination": "/assets/$1"
     },
     {
+      "source": "/api/og/:kind/:id",
+      "destination": "/api/og?kind=:kind&id=:id"
+    },
+    {
+      "source": "/api/og-default",
+      "destination": "/api/og?kind=default&id=brand"
+    },
+    {
+      "source": "/api/club-image/:id",
+      "destination": "/api/og?kind=club&id=:id"
+    },
+    {
+      "source": "/api/game-image/:id",
+      "destination": "/api/og?kind=game&id=:id"
+    },
+    {
+      "source": "/api/gift-image/:id",
+      "destination": "/api/og?kind=gift&id=:id"
+    },
+    {
       "source": "/(.*)",
       "destination": "/api/index"
     }

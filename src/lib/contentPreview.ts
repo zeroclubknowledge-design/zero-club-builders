@@ -81,19 +81,36 @@ export function toPlainText(value?: string | null): string {
  */
 export function contentPreview(content?: string | null): string {
   const value = content || "";
-  // A ZeroNote attached in a club chat.
-  if (value.startsWith("::ZEROCLUB_NOTE::")) {
+  // Club chat cards are stored as a marker + JSON. Show what they are, in words.
+  const card = (prefix: string) => {
+    if (!value.startsWith(prefix)) return null;
     try {
-      const note = JSON.parse(value.slice("::ZEROCLUB_NOTE::".length));
-      return `📘 ZeroNote: ${note?.title || "a note"}`;
+      return JSON.parse(value.slice(prefix.length)) || {};
     } catch {
-      return "📘 Shared a ZeroNote";
+      return {};
     }
+  };
+  const note = card("::ZEROCLUB_NOTE::");
+  if (note) return note.title ? `ZeroNote: ${toPlainText(note.title)}` : "Shared a ZeroNote";
+  const giveaway = card("::ZEROCLUB_GIVEAWAY::");
+  if (giveaway) return giveaway.title ? `Giveaway: ${toPlainText(giveaway.title)}` : "Started a giveaway";
+  const clubCard = card("::ZEROCLUB_CARD::");
+  if (clubCard) {
+    const kind = clubCard.type === "assignment" ? "Assignment" : clubCard.type === "question" ? "Question" : "Announcement";
+    const text = toPlainText(clubCard.title || clubCard.body);
+    return text ? `${kind}: ${text}` : kind;
   }
-  if (!value.includes(MEDIA_MARKER)) return value.trim();
+  const reply = card("::ZEROCLUB_REPLY::");
+  if (reply) {
+    const text = toPlainText(reply.body);
+    const kind = reply.type === "submission" ? "Submission" : "Answer";
+    return text ? `${kind}: ${text}` : kind;
+  }
+  if (value.startsWith("::ZEROCLUB_")) return "Shared a card";
+  if (!value.includes(MEDIA_MARKER)) return toPlainText(value);
 
   const [textPart = "", mediaPart = ""] = value.split(MEDIA_MARKER);
-  if (textPart.trim()) return textPart.trim();
+  if (toPlainText(textPart)) return toPlainText(textPart);
 
   const described = describeMedia(mediaPart.split(",").map((t) => t.trim()).filter(Boolean));
   return described || "an attachment";
