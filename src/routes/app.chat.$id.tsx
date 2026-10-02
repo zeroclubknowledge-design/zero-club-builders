@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/glyphs";
 import React, { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
@@ -461,6 +462,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
 }
 
 function ChatViewPage() {
+  const goBackSmart = useGoBack("/app/chat");
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
   const { data: currentUserProfile } = useUser();
@@ -954,7 +956,7 @@ function ChatViewPage() {
       style={{ height: viewportHeight, top: viewportTop }}
     >
       <header className="flex items-center gap-1 border-b border-border bg-card px-2 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))]">
-        <button onClick={() => navigate({ to: '/app/chat' })} aria-label="Back to messages" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+        <button onClick={goBackSmart} aria-label="Back to messages" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
           <ArrowLeft className="h-[22px] w-[22px]" />
         </button>
 

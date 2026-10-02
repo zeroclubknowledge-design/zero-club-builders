@@ -174,3 +174,64 @@ export function durationLabel(mins: number) {
   const d = Math.floor(mins / 1440), h = Math.floor((mins % 1440) / 60), m = mins % 60;
   return [d && `${d}d`, h && `${h}h`, m && `${m}m`].filter(Boolean).join(" ");
 }
+
+/* ── Host editing ── */
+
+export type TournamentEdit = {
+  title?: string;
+  description?: string;
+  starts_at?: string | null;
+  ends_at?: string;
+  max_players?: number | null;
+  visibility?: "public" | "private";
+  eligibility?: "everyone" | "subscribers";
+};
+
+/** The host can change details; the game and the held prize stay as they are. */
+export async function updateTournament(id: string, edit: TournamentEdit) {
+  const payload: Record<string, unknown> = { ...edit };
+  if ("max_players" in edit) payload.max_players = edit.max_players == null ? "" : edit.max_players;
+  const { data, error } = await supabase.rpc("update_zero_tournament", { p_id: id, p: payload });
+  if (error) throw error;
+  return data as { ok: boolean };
+}
+
+/* ── Link previews ── */
+
+export type TournamentPreview =
+  | { found: false }
+  | { found: true; locked: true; game_type: ZeroGameKey }
+  | {
+    found: true;
+    locked: false;
+    title: string;
+    description: string | null;
+    game_type: ZeroGameKey;
+    status: TournamentStatus;
+    starts_at: string;
+    ends_at: string;
+    players: number;
+    max_players: number | null;
+    eligibility: "everyone" | "subscribers";
+    reward_type: TournamentReward;
+    prizes: TournamentPrize[];
+    sponsored: boolean;
+    host_name: string | null;
+  };
+
+/** Works signed out — it is what link previews are built from. */
+export async function tournamentPreview(id: string, code?: string) {
+  const { data, error } = await supabase.rpc("zero_tournament_preview", { p_id: id, p_code: code || null });
+  if (error) throw error;
+  return data as TournamentPreview;
+}
+
+/** "₦5,000 for 1st" style headline without a currency hook (used server-side). */
+export function previewPrizeLine(p: { reward_type: TournamentReward; prizes: TournamentPrize[] }) {
+  if (p.reward_type === "none" || !p.prizes?.length) return "Play for the top spot";
+  const first = p.prizes.find((x) => x.place === 1) || p.prizes[0];
+  const value = p.reward_type === "funds" ? `₦${Number(first.amount || 0).toLocaleString("en-NG")}`
+    : p.reward_type === "zp" ? `${Number(first.zp || 0).toLocaleString("en-NG")} ZP`
+    : first.label || "a reward";
+  return `Win ${value}${p.prizes.length > 1 ? ` · prizes for top ${p.prizes.length}` : ""}`;
+}

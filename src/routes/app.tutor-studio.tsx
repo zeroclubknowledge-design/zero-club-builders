@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/app/tutor-studio")({
  * they needed a different account.
  */
 function TutorStudioLayout() {
+  const goBackSmart = useGoBack("/app");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [state, setState] = useState<"checking" | "ready" | "switch">("checking");
@@ -52,7 +54,7 @@ function TutorStudioLayout() {
       <div className="flex min-h-screen flex-col bg-canvas">
         <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
           <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center px-2">
-            <button onClick={() => router.history.back()} aria-label="Back" className="grid h-11 w-10 place-items-center rounded-full tap hover:bg-foreground/[0.04]">
+            <button onClick={goBackSmart} aria-label="Back" className="grid h-11 w-10 place-items-center rounded-full tap hover:bg-foreground/[0.04]">
               <ArrowLeft className="h-[22px] w-[22px]" />
             </button>
           </div>

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ const CAPS = [10, 25, 50, 100];
 const ZP_PER_NAIRA = 10;
 
 function CreateTournament() {
+  const goBackSmart = useGoBack("/app/games");
   const search = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -131,7 +133,7 @@ function CreateTournament() {
       <style>{SPLASH_CSS}</style>
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <button onClick={() => window.history.back()} aria-label="Back" className="grid h-11 w-10 place-items-center rounded-full hover:bg-foreground/[0.04]">
+          <button onClick={goBackSmart} aria-label="Back" className="grid h-11 w-10 place-items-center rounded-full hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Host a tournament</h1>

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { ArrowLeft, Clock, ArrowRight, Landmark, ShieldCheck } from "@/components/icons/glyphs";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 export const Route = createFileRoute("/app/wallet/withdraw")({ component: WithdrawPage });
 
 function WithdrawPage() {
+  const goBackSmart = useGoBack("/app/wallet");
   const navigate = useNavigate();
   const { data: profile } = useUser();
   const { details, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
@@ -46,7 +48,7 @@ function WithdrawPage() {
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <button onClick={() => navigate({ to: "/app/wallet" })} aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <button onClick={goBackSmart} aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Withdraw</h1>

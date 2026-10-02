@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -420,6 +421,7 @@ const REMOTE_SCREEN_PLAYER_CONFIG = { fit: "contain" } as const;
 
 function LiveRoomContent({ channel, token }: { channel: string; token: string }) {
   const navigate = useNavigate();
+  const goBackFromLive = useGoBack("/app");
   const { data: profile } = useUser();
   const liveSession = useLiveSession();
   const { isMinimized } = liveSession;
@@ -1130,11 +1132,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     e?.stopPropagation();
     liveSession.minimize();
     if (window.location.pathname.includes(`/app/live/`)) {
-      if (window.history.length > 2) {
-        window.history.back();
-      } else {
-        navigate({ to: "/app" });
-      }
+      goBackFromLive();
     }
   };
 

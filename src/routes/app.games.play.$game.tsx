@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -212,10 +213,9 @@ function PlayGame() {
     setPhase("splash");
   };
 
-  const back = () => {
-    if (tournamentId) navigate({ to: "/app/games/t/$id", params: { id: tournamentId }, search: { code } });
-    else navigate({ to: "/app/games" });
-  };
+  // Back returns to the page you opened the game from (the tournament or the
+  // hub) instead of pushing a new copy of it, which made back loop.
+  const back = useGoBack(tournamentId ? `/app/games/t/${tournamentId}${code ? `?code=${encodeURIComponent(code)}` : ""}` : "/app/games");
 
   /* ── splash ── */
   if (phase === "splash") {

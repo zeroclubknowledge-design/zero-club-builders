@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeft, Bell, Lock, Shield, Ban, Eye } from "@/components/icons/glyphs";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
@@ -8,6 +9,7 @@ export const Route = createFileRoute("/app/chat/settings")({
 });
 
 function ChatSettingsPage() {
+  const goBackSmart = useGoBack("/app/chat");
   const router = useRouter();
   const [pushEnabled, setPushEnabled] = useState(true);
   const [readReceipts, setReadReceipts] = useState(true);
@@ -16,7 +18,7 @@ function ChatSettingsPage() {
     <div className="flex flex-col min-h-screen bg-background relative">
       {/* High-Fidelity Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center gap-3">
-        <button onClick={() => router.history.back()} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-accent/50 transition">
+        <button onClick={goBackSmart} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-accent/50 transition">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h1 className="text-lg font-bold">Chat Settings</h1>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useGoBack } from "@/hooks/useGoBack";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -77,7 +78,7 @@ function TutorApplyPage() {
   const [mode, setMode] = useState<"auto" | "form">("auto");
   const [prefill, setPrefill] = useState<TutorApplication | null>(null);
 
-  const back = () => (window.history.length > 1 ? router.history.back() : router.navigate({ to: "/app" }));
+  const back = useGoBack("/app");
 
   // The app's tab bar sits over the form's Continue button, so it's hidden
   // while applying and comes back once the application is submitted.

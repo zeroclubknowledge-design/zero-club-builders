@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { useGoBack } from "@/hooks/useGoBack";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
@@ -101,6 +102,7 @@ const isVideoUrl = (url: string) => {
 };
 
 function ProfileDetail() {
+  const goBackSmart = useGoBack("/app");
   const navigate = useNavigate();
   const { profile: loaderProfile } = Route.useLoaderData();
 
@@ -460,7 +462,7 @@ function ProfileDetail() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="fixed left-1/2 top-0 z-50 flex h-[calc(3.5rem+env(safe-area-inset-top))] w-full max-w-none -translate-x-1/2 items-center gap-1 bg-card px-2 pt-[env(safe-area-inset-top)] md:sticky md:left-0 md:max-w-none md:translate-x-0">
-        <button onClick={() => navigate({ to: '/app' })} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+        <button onClick={goBackSmart} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
           <ArrowLeft className="h-[22px] w-[22px]" />
         </button>
         <div className={`min-w-0 flex-1 transition-opacity duration-200 ${scrolled ? "opacity-100" : "opacity-0"}`}>

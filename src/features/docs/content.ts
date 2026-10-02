@@ -355,6 +355,7 @@ export const docPages: DocPage[] = [
           "Access: Public (listed in Zero Games) or Private (invite link only).",
           "Who can enter: everyone, or Premium members only.",
           "The live leaderboard is on every tournament page, alongside the countdown, rules, prizes and winners.",
+          "The host can edit the name, description, start (before it begins), end time, player limit, access and who can enter until it ends. The game and the prize cannot be changed once the tournament is created.",
         ],
       },
       {

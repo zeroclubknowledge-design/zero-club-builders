@@ -21,7 +21,10 @@ import { ArrowRight } from "@/components/icons/glyphs";
 
 export function HeroStage({ referralCode }: { referralCode?: string }) {
   return (
-    /* min-h rather than h: the composition wants one screen, but a short
+    /* No minimum height any more: with the partner strip moved down, a fixed
+       screen-height left a band of empty space under the buttons. The hero is
+       now exactly as tall as its content plus breathing room.
+       Previous note — min-h rather than h: the composition wants one screen, but a short
        laptop window should scroll rather than crush the stats into the
        headline. */
     /* Shorter section, so the headline sits nearer the header.
@@ -34,7 +37,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
        Plain block comment, not {braced}: this sits between `return (` and the
        root element, which is expression position — a braced comment there is a
        second expression and the file stops compiling. */
-    <section className="relative flex min-h-[68svh] flex-col overflow-hidden bg-[#f4f2ef] text-[#171717] dark:bg-[#0b0a0d] dark:text-white md:min-h-[74svh]">
+    <section className="relative flex flex-col overflow-hidden bg-[#f4f2ef] text-[#171717] dark:bg-[#0b0a0d] dark:text-white md:min-h-[74svh]">
       <BrandField />
 
       {/* Positioned, not centred.
@@ -49,7 +52,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
        * The top padding has to CLEAR the header, which is 4rem tall and fixed.
        * It was 3.25rem — 12px less than the header itself — which is why the
        * headline was sitting right up against it. */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-col items-center px-4 pb-10 pt-[calc(4rem+2.5rem+env(safe-area-inset-top))] text-center md:px-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-col items-center px-4 pb-12 pt-[calc(4rem+2.5rem+env(safe-area-inset-top))] text-center md:px-8 md:pb-16">
         {/* The wording is the landing page's own, unchanged. Three lines, so
             the progression reads as a sequence — skills, then proof, then what
             the proof opens — with the third in brand pink. Each is its own

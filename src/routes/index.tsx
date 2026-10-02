@@ -514,7 +514,7 @@ function ProductSection() {
       {/* Partner strip leads into the section: it is the bridge from the
           hero's promise to "everything you build", and it no longer competes
           with the hero's call to action. */}
-      <div className="relative mx-auto max-w-[1320px] px-4 pt-12 md:px-6 md:pt-14 lg:pt-16">
+      <div className="relative mx-auto max-w-[1320px] px-4 pt-10 md:px-6 md:pt-12 lg:pt-14">
         <PartnerMarquee />
       </div>
       <div className="mx-auto grid max-w-[1320px] grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 md:px-6 md:pb-16 md:pt-12 lg:pb-20 lg:pt-14">

@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Calendar, Clock3, Crown, Globe, LockKeyhole, Medal, Play, Share2, ShieldCheck, Trophy, Users,
+  ArrowLeft, Calendar, Clock3, Crown, Globe, LockKeyhole, Medal, Pencil, Play, Share2, ShieldCheck, Trophy, Users,
 } from "@/components/icons/glyphs";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { ZeroPageLoader } from "@/components/ZeroLoader";
 import { openShareSheet } from "@/components/ShareSheet";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -12,12 +14,66 @@ import { ZERO_GAMES } from "@/features/games/v2/catalog";
 import { GameEmblem, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import {
   countdown, durationLabel, joinTournament, JOIN_REFUSAL, placeLabel, prizeText, tournamentDetail,
+  previewPrizeLine, tournamentPreview, updateTournament, type TournamentRow,
 } from "@/features/games/v2/api";
 
 export const Route = createFileRoute("/app/games/t/$id")({
   validateSearch: (search: Record<string, unknown>): { code?: string } => ({
     code: typeof search.code === "string" ? search.code : undefined,
   }),
+  /*
+   * Link previews. A shared tournament link is opened by a crawler that is
+   * signed out and runs no JavaScript, so without this every link previewed as
+   * the generic Zero Club card. The loader runs on the server and the head
+   * describes the game, the tournament and its prize instead.
+   */
+  loaderDeps: ({ search }) => ({ code: search.code }),
+  loader: async ({ params, deps }) => {
+    try {
+      const preview = await tournamentPreview(params.id, deps.code);
+      // The invite code travels with it, so a private link's preview image
+      // can show the tournament rather than a "private" card.
+      return { ...preview, inviteCode: deps.code } as typeof preview & { inviteCode?: string };
+    } catch {
+      return null;
+    }
+  },
+  head: ({ loaderData, params }) => {
+    const preview = loaderData;
+    if (!preview || !preview.found) return {};
+    const game = ZERO_GAMES[preview.game_type] || ZERO_GAMES.space;
+    const open = preview.locked ? null : preview;
+    const title = open ? `${open.title} · ${game.name} tournament` : `A private ${game.name} tournament on Zero Games`;
+    const left = open && open.status !== "ended"
+      ? (() => { const d = Math.ceil((new Date(open.ends_at).getTime() - Date.now()) / 86400000); return d > 1 ? ` ${d} days left.` : " Ends today."; })()
+      : "";
+    const description = open
+      ? `${previewPrizeLine(open)}. ${game.tagline} ${open.players} player${open.players === 1 ? "" : "s"} so far.${left} Highest Game Points wins.`
+      : `${game.name}: ${game.tagline} You need the invite link to join.`;
+    const invite = (loaderData as { inviteCode?: string }).inviteCode;
+    const image = `https://www.zeroclubs.xyz/api/game-image/${params.id}${invite ? `?code=${encodeURIComponent(invite)}` : ""}`;
+    const url = `https://www.zeroclubs.xyz/app/games/t/${params.id}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "Zero Games" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: image },
+        { property: "og:image:secure_url", content: image },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+    };
+  },
   component: TournamentPage,
 });
 
@@ -30,6 +86,7 @@ function TournamentPage() {
   const money = (n: number) => format(n);
   const [now, setNow] = useState(Date.now());
   const [joining, setJoining] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const query = useQuery({
     queryKey: ["zero-tournament", id, code],
@@ -42,7 +99,7 @@ function TournamentPage() {
     return () => window.clearInterval(t);
   }, []);
 
-  const back = () => (window.history.length > 1 ? window.history.back() : navigate({ to: "/app/games" }));
+  const back = useGoBack("/app/games");
 
   if (query.isLoading) return <div className="grid min-h-screen place-items-center bg-canvas"><ZeroPageLoader /></div>;
 
@@ -99,7 +156,10 @@ function TournamentPage() {
         <div className="relative mx-auto max-w-[680px] px-4 pb-6 pt-[calc(env(safe-area-inset-top)+10px)]">
           <div className="flex items-center">
             <button onClick={back} aria-label="Back" className="grid h-10 w-10 place-items-center rounded-full bg-white/10"><ArrowLeft className="h-5 w-5" /></button>
-            <button onClick={share} className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-4 text-[13px] font-semibold"><Share2 className="h-4 w-4" /> Invite</button>
+            {t.is_creator && status !== "ended" && (
+              <button onClick={() => setEditing(true)} className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-4 text-[13px] font-semibold"><Pencil className="h-4 w-4" /> Edit</button>
+            )}
+            <button onClick={share} className={`${t.is_creator && status !== "ended" ? "ml-2" : "ml-auto"} flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-4 text-[13px] font-semibold`}><Share2 className="h-4 w-4" /> Invite</button>
           </div>
           <div className="mt-5 flex items-start gap-4">
             <div className="shrink-0"><GameEmblem game={t.game_type} size={76} /></div>
@@ -220,6 +280,17 @@ function TournamentPage() {
 
       </main>
 
+      {t.is_creator && (
+        <EditTournamentSheet
+          open={editing}
+          onOpenChange={setEditing}
+          tournament={t}
+          status={status}
+          prizeSummary={t.reward_type === "none" || !t.prizes.length ? "No prize" : t.prizes.map((p) => `${placeLabel(p.place)}: ${prizeText(p, t.reward_type, money)}`).join(" · ")}
+          onSaved={() => void queryClient.invalidateQueries({ queryKey: ["zero-tournament", id] })}
+        />
+      )}
+
       {/* Action bar */}
       {status !== "ended" && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur">
@@ -247,6 +318,133 @@ function TournamentPage() {
         </div>
       )}
     </div>
+  );
+}
+
+const toLocalInput = (iso: string) => {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/**
+ * Host editing. Everything players read can change — name, rules, timing,
+ * player limit, access — but the game and the prize cannot: players joined on
+ * those terms and the prize money is already held.
+ */
+function EditTournamentSheet({ open, onOpenChange, tournament: t, status, prizeSummary, onSaved }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  tournament: TournamentRow & { is_creator: boolean };
+  status: "upcoming" | "live" | "ended";
+  prizeSummary: string;
+  onSaved: () => void;
+}) {
+  const [title, setTitle] = useState(t.title);
+  const [description, setDescription] = useState(t.description || "");
+  const [startsAt, setStartsAt] = useState(toLocalInput(t.starts_at));
+  const [endsAt, setEndsAt] = useState(toLocalInput(t.ends_at));
+  const [capped, setCapped] = useState(t.max_players != null);
+  const [cap, setCap] = useState(String(t.max_players ?? Math.max(10, t.players)));
+  const [visibility, setVisibility] = useState(t.visibility);
+  const [eligibility, setEligibility] = useState(t.eligibility);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setTitle(t.title); setDescription(t.description || ""); setStartsAt(toLocalInput(t.starts_at)); setEndsAt(toLocalInput(t.ends_at));
+    setCapped(t.max_players != null); setCap(String(t.max_players ?? Math.max(10, t.players))); setVisibility(t.visibility); setEligibility(t.eligibility);
+  }, [open, t]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateTournament(t.id, {
+        title: title.trim(),
+        description: description.trim(),
+        ...(status === "upcoming" ? { starts_at: new Date(startsAt).toISOString() } : {}),
+        ends_at: new Date(endsAt).toISOString(),
+        max_players: capped ? Math.max(2, Number(cap) || 2) : null,
+        visibility,
+        eligibility,
+      });
+      toast.success("Tournament updated");
+      onSaved();
+      onOpenChange(false);
+    } catch (e) {
+      toast.error((e as Error).message.replace(/^.*?: /, "") || "Couldn't save the changes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const field = "h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]";
+  const seg = (active: boolean) => `h-9 flex-1 rounded-full text-[13px] font-semibold transition ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`;
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[92dvh]">
+        <div className="no-scrollbar overflow-y-auto px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+          <DrawerTitle className="font-display text-[20px] font-semibold">Edit tournament</DrawerTitle>
+          <DrawerDescription className="mt-1 text-[13px] text-muted-foreground">Changes show to players straight away.</DrawerDescription>
+
+          <div className="mt-4 space-y-4">
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Name</span>
+              <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, 80))} className={field} />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Description</span>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} className={`${field} h-auto resize-none py-2.5`} />
+            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Starts</span>
+                <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} disabled={status !== "upcoming"} className={`${field} disabled:opacity-50`} />
+                {status !== "upcoming" && <span className="mt-1 block text-[11.5px] text-muted-foreground">Already started</span>}
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Ends</span>
+                <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={field} />
+              </label>
+            </div>
+            <div>
+              <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Players</span>
+              <div className="flex rounded-full bg-foreground/[0.06] p-1">
+                <button type="button" onClick={() => setCapped(false)} className={seg(!capped)}>Unlimited</button>
+                <button type="button" onClick={() => setCapped(true)} className={seg(capped)}>Set a limit</button>
+              </div>
+              {capped && (
+                <input value={cap} onChange={(e) => setCap(e.target.value.replace(/\D/g, "").slice(0, 5))} inputMode="numeric" className={`${field} mt-2`} placeholder={`At least ${Math.max(2, t.players)}`} />
+              )}
+            </div>
+            <div>
+              <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Access</span>
+              <div className="flex rounded-full bg-foreground/[0.06] p-1">
+                <button type="button" onClick={() => setVisibility("public")} className={seg(visibility === "public")}>Public</button>
+                <button type="button" onClick={() => setVisibility("private")} className={seg(visibility === "private")}>Private (link only)</button>
+              </div>
+            </div>
+            <div>
+              <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Who can enter</span>
+              <div className="flex rounded-full bg-foreground/[0.06] p-1">
+                <button type="button" onClick={() => setEligibility("everyone")} className={seg(eligibility === "everyone")}>Everyone</button>
+                <button type="button" onClick={() => setEligibility("subscribers")} className={seg(eligibility === "subscribers")}>Premium only</button>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5 rounded-xl bg-foreground/[0.04] p-3">
+              <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <div className="text-[12.5px] leading-relaxed text-muted-foreground">
+                <span className="font-semibold text-foreground">Prize and game are locked.</span> {prizeSummary}. {ZERO_GAMES[t.game_type].name} — players joined on these terms{t.reward_type === "funds" || t.reward_type === "zp" ? " and the prize is already held" : ""}.
+              </div>
+            </div>
+            <button onClick={() => void save()} disabled={saving || title.trim().length < 3} className="flex h-12 w-full items-center justify-center rounded-full text-[15px] font-bold text-white disabled:opacity-50" style={{ background: "#cc208f" }}>
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

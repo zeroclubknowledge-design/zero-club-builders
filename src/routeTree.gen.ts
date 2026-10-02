@@ -51,6 +51,7 @@ import { Route as GiftCodeRouteImport } from './routes/gift.$code'
 import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as ApiClubImageIdRouteImport } from './routes/api.club-image.$id'
+import { Route as ApiGameImageIdRouteImport } from './routes/api.game-image.$id'
 import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
 import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
@@ -315,6 +316,11 @@ const ProductIdRoute = ProductIdRouteImport.update({
 const ApiClubImageIdRoute = ApiClubImageIdRouteImport.update({
   id: '/api/club-image/$id',
   path: '/api/club-image/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGameImageIdRoute = ApiGameImageIdRouteImport.update({
+  id: '/api/game-image/$id',
+  path: '/api/game-image/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
@@ -640,6 +646,7 @@ export interface FileRoutesByFullPath {
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
+  '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
@@ -733,6 +740,7 @@ export interface FileRoutesByTo {
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
+  '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
@@ -833,6 +841,7 @@ export interface FileRoutesById {
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
+  '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
@@ -934,6 +943,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/app/'
     | '/api/club-image/$id'
+    | '/api/game-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
     | '/app/bootcamps/$id'
@@ -1027,6 +1037,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/app'
     | '/api/club-image/$id'
+    | '/api/game-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
     | '/app/bootcamps/$id'
@@ -1126,6 +1137,7 @@ export interface FileRouteTypes {
     | '/product/$id'
     | '/app/'
     | '/api/club-image/$id'
+    | '/api/game-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
     | '/app/bootcamps/$id'
@@ -1203,6 +1215,7 @@ export interface RootRouteChildren {
   NotesSlugRoute: typeof NotesSlugRouteWithChildren
   ProductIdRoute: typeof ProductIdRouteWithChildren
   ApiClubImageIdRoute: typeof ApiClubImageIdRoute
+  ApiGameImageIdRoute: typeof ApiGameImageIdRoute
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
   ApiGiftImageCodeRoute: typeof ApiGiftImageCodeRoute
 }
@@ -1501,6 +1514,13 @@ declare module '@tanstack/react-router' {
       path: '/api/club-image/$id'
       fullPath: '/api/club-image/$id'
       preLoaderRoute: typeof ApiClubImageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/game-image/$id': {
+      id: '/api/game-image/$id'
+      path: '/api/game-image/$id'
+      fullPath: '/api/game-image/$id'
+      preLoaderRoute: typeof ApiGameImageIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/gift-card/$code': {
@@ -2149,6 +2169,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotesSlugRoute: NotesSlugRouteWithChildren,
   ProductIdRoute: ProductIdRouteWithChildren,
   ApiClubImageIdRoute: ApiClubImageIdRoute,
+  ApiGameImageIdRoute: ApiGameImageIdRoute,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
   ApiGiftImageCodeRoute: ApiGiftImageCodeRoute,
 }
