@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { NoteAudiencePicker, saveNoteAudience, type NoteAudienceMode } from "@/features/notes/NoteAudiencePicker";
 import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, StopCircle, Wand2, Crown, Check, Globe, Bold, Italic, List, Palette } from "@/components/icons/glyphs";
 import { Highlighter, NOTE_TEXT_COLORS, NOTE_HIGHLIGHTS } from "@/features/notes/editorMarks";
 import { useState, useRef, useEffect } from 'react';
@@ -121,6 +122,20 @@ function NotesEditPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState(false);
+  /* Who the note is for: everyone, or learners of chosen bootcamps. */
+  const [noteMode, setNoteMode] = useState<NoteAudienceMode>("free");
+  const [noteBootcampIds, setNoteBootcampIds] = useState<string[]>([]);
+  // Start from the note's current audience, so saving an edit doesn't reset it.
+  useEffect(() => {
+    if (!noteId) return;
+    void supabase.rpc("get_note_audience", { p_note: noteId }).then(({ data }) => {
+      const current = data as { audience?: string; bootcamp_ids?: string[] } | null;
+      if (current?.audience === "bootcamps") {
+        setNoteMode("bootcamps");
+        setNoteBootcampIds(current.bootcamp_ids || []);
+      }
+    });
+  }, [noteId]);
   
   const [blocks, setBlocks] = useState<NoteBlock[]>([]);
   const [isNoteLoaded, setIsNoteLoaded] = useState(false);
@@ -527,6 +542,7 @@ function NotesEditPage() {
 
       if (updateError) throw new Error(updateError.message);
       if (!updatedNote) throw new Error('The note could not be updated. Please confirm you are the author.');
+      await saveNoteAudience(noteId, noteMode, noteBootcampIds);
 
       queryClient.setQueryData(['note', noteId], (current: any) => ({
         ...(current || {}),
@@ -1028,34 +1044,12 @@ function NotesEditPage() {
             </DrawerHeader>
 
             <div className="px-5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-              <p className="mb-2 mt-2 text-[13px] font-semibold text-muted-foreground">Access</p>
-              <div className="space-y-2.5">
-                {[
-                  { key: "free", paid: false, Icon: Globe, title: "Free", meta: "Available to all" },
-                  { key: "premium", paid: true, Icon: Crown, title: "Premium", meta: "Monetize content" },
-                ].map((opt) => {
-                  const selected = isPaid === opt.paid;
-                  return (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      onClick={() => setIsPaid(opt.paid)}
-                      className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
-                    >
-                      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? "bg-[#cc208f]/10 text-[#a3186f]" : "bg-foreground/[0.05] text-muted-foreground"}`}>
-                        <opt.Icon className="h-[22px] w-[22px]" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[15px] font-semibold text-foreground">{opt.title}</span>
-                        <span className="mt-0.5 block text-[13px] text-muted-foreground">{opt.meta}</span>
-                      </span>
-                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
-                        {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <NoteAudiencePicker
+                mode={noteMode}
+                onModeChange={(mode) => { setNoteMode(mode); setIsPaid(mode === "premium"); }}
+                bootcampIds={noteBootcampIds}
+                onBootcampIdsChange={setNoteBootcampIds}
+              />
 
               <DrawerFooter className="px-0 pb-0 pt-5">
                 {isPaid ? (
@@ -1072,7 +1066,7 @@ function NotesEditPage() {
                     setShowPublishModal(false);
                     executePublish();
                   }}
-                  disabled={isPaid || isPublishing}
+                  disabled={isPaid || isPublishing || (noteMode === "bootcamps" && noteBootcampIds.length === 0)}
                   className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white transition active:scale-[0.98] disabled:opacity-40"
                 >
                   {isPublishing ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Publish note'}

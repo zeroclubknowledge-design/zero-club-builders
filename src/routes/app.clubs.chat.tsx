@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
+import { ClubNoteCard, ClubNotePicker, parseClubNote } from "@/features/clubs/ClubNotes";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
-import { ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet } from "@/components/icons/glyphs";
+import { BookOpen, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
@@ -294,6 +295,7 @@ function ClubChat() {
   const [showRoomSwitcher, setShowRoomSwitcher] = useState(false);
   const [squadSearch, setSquadSearch] = useState("");
   const [showGiveaway, setShowGiveaway] = useState(false);
+  const [showNotePicker, setShowNotePicker] = useState(false);
   const [isCreatingGiveaway, setIsCreatingGiveaway] = useState(false);
   const [giveaway, setGiveaway] = useState<ClubGiveaway>({
     title: "",
@@ -2289,6 +2291,15 @@ function ClubChat() {
                   </DrawerContent>
                 </Drawer>
 
+            {isAdmin && club?.id && (
+              <ClubNotePicker
+                open={showNotePicker}
+                onOpenChange={setShowNotePicker}
+                clubId={club.id}
+                onAttach={(payload) => handleSendMessage(payload)}
+              />
+            )}
+
             <Drawer open={showGiveaway} onOpenChange={setShowGiveaway}>
               <DrawerContent desktopVariant="panel" className="mx-auto max-w-[680px] overflow-hidden border border-border bg-background p-0 shadow-2xl">
                 <DrawerHeader className="gap-0 sm:gap-0 px-5 pb-3 pt-1 text-left sm:px-7 sm:pt-2">
@@ -2802,6 +2813,8 @@ function ClubChat() {
                     <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => documentInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
+                    {/* Admins only: members see Pictures, Video and File. */}
+                    {isAdmin && activeRoom === "general" && <DropdownMenuItem onSelect={() => setShowNotePicker(true)} className="gap-2.5"><BookOpen className="h-4 w-4" /> Notes</DropdownMenuItem>}
                     {isAdmin && activeRoom === "general" && <DropdownMenuItem onSelect={() => setShowGiveaway(true)} className="gap-2.5"><Gift className="h-4 w-4 fill-current" /> Give Away</DropdownMenuItem>}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -3470,6 +3483,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
     return acc;
   }, {}) || {};
   const giveaway = parseClubGiveaway(message.content);
+  const clubNote = parseClubNote(message.content);
   const giveawayEntries = message.reactions?.filter((reaction: any) => reaction.emoji === GIVEAWAY_ENTRY_EMOJI) || [];
   const hasEnteredGiveaway = giveawayEntries.some((reaction: any) => reaction.profile_id === currentUser?.id);
   const giveawayClosed = giveaway ? new Date(giveaway.endsAt).getTime() <= Date.now() : false;
@@ -3741,7 +3755,9 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               </div>
             )}
 
-            {giveaway ? (
+            {clubNote ? (
+              <ClubNoteCard note={clubNote} isMe={isMe} />
+            ) : giveaway ? (
               <div className="w-[min(300px,72vw)] text-left">
                 <div className="flex items-start gap-3">
                   <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${isMe ? 'bg-background/15 text-background' : 'bg-foreground text-background'}`}>

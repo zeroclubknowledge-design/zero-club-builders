@@ -66,7 +66,7 @@ export const Route = createFileRoute("/gift/$code")({
     /* The card itself, rendered to PNG per gift by /api/gift-image/<code>.
        Replaces the six static template PNGs, which could not carry the amount
        or the code and so previewed as generic artwork. */
-    const image = `https://www.zeroclubs.xyz/api/gift-image/${params.code}?v=6`;
+    const image = `https://www.zeroclubs.xyz/api/og/gift/${params.code}`;
 
     return {
       meta: [
@@ -76,7 +76,7 @@ export const Route = createFileRoute("/gift/$code")({
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "Zero Club" },
-        { property: "og:url", content: `https://www.zeroclubs.xyz/gift/${params.code}?v=6` },
+        { property: "og:url", content: `https://www.zeroclubs.xyz/gift/${params.code}?v=7` },
         { property: "og:image", content: image },
         { property: "og:image:secure_url", content: image },
         { property: "og:image:type", content: "image/png" },

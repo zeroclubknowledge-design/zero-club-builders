@@ -11,4 +11,11 @@ Allow: /favicon.ico
 
 # Signed-in areas hold nothing useful to a crawler and should not be indexed.
 Disallow: /app/
+# Link-preview images live under /api, and some chat apps check robots.txt
+# before fetching a preview image.
+Allow: /api/og/
+Allow: /api/og-default
+Allow: /api/club-image/
+Allow: /api/game-image/
+Allow: /api/gift-image/
 Disallow: /api/

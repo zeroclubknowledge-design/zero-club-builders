@@ -1,12 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useGoBack } from "@/hooks/useGoBack";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Calendar, Clock3, Crown, Globe, LockKeyhole, Medal, Pencil, Play, Share2, ShieldCheck, Trophy, Users,
+  ArrowLeft, Calendar, Clock3, Crown, Globe, LockKeyhole, Medal, Pencil, Play, Share2, ShieldCheck, Trophy, Users, X,
 } from "@/components/icons/glyphs";
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { ZeroPageLoader } from "@/components/ZeroLoader";
 import { openShareSheet } from "@/components/ShareSheet";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -51,7 +50,7 @@ export const Route = createFileRoute("/app/games/t/$id")({
       ? `${previewPrizeLine(open)}. ${game.tagline} ${open.players} player${open.players === 1 ? "" : "s"} so far.${left} Highest Game Points wins.`
       : `${game.name}: ${game.tagline} You need the invite link to join.`;
     const invite = (loaderData as { inviteCode?: string }).inviteCode;
-    const image = `https://www.zeroclubs.xyz/api/game-image/${params.id}${invite ? `?code=${encodeURIComponent(invite)}` : ""}`;
+    const image = `https://www.zeroclubs.xyz/api/og/game/${params.id}${invite ? `?code=${encodeURIComponent(invite)}` : ""}`;
     const url = `https://www.zeroclubs.xyz/app/games/t/${params.id}`;
     return {
       meta: [
@@ -350,11 +349,16 @@ function EditTournamentSheet({ open, onOpenChange, tournament: t, status, prizeS
   const [eligibility, setEligibility] = useState(t.eligibility);
   const [saving, setSaving] = useState(false);
 
+  // Filled from the tournament each time the sheet OPENS — not on every
+  // background refresh of the page, which used to wipe what you were typing.
+  const latest = useRef(t);
+  latest.current = t;
   useEffect(() => {
     if (!open) return;
+    const t = latest.current;
     setTitle(t.title); setDescription(t.description || ""); setStartsAt(toLocalInput(t.starts_at)); setEndsAt(toLocalInput(t.ends_at));
     setCapped(t.max_players != null); setCap(String(t.max_players ?? Math.max(10, t.players))); setVisibility(t.visibility); setEligibility(t.eligibility);
-  }, [open, t]);
+  }, [open]);
 
   const save = async () => {
     setSaving(true);
@@ -381,12 +385,30 @@ function EditTournamentSheet({ open, onOpenChange, tournament: t, status, prizeS
   const field = "h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]";
   const seg = (active: boolean) => `h-9 flex-1 rounded-full text-[13px] font-semibold transition ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`;
 
+  /*
+   * A full-screen editor rather than a bottom sheet. In a swipeable sheet,
+   * tapping a field on a phone raised the keyboard, the sheet was pushed and
+   * resized, and it read that as a dismiss — so it closed the moment you tried
+   * to type. A plain page has nothing to swipe away.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onOpenChange(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onOpenChange]);
+  if (!open) return null;
+
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[92dvh]">
-        <div className="no-scrollbar overflow-y-auto px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-          <DrawerTitle className="font-display text-[20px] font-semibold">Edit tournament</DrawerTitle>
-          <DrawerDescription className="mt-1 text-[13px] text-muted-foreground">Changes show to players straight away.</DrawerDescription>
+    <div role="dialog" aria-modal="true" aria-label="Edit tournament" className="fixed inset-0 z-[120] flex flex-col bg-background">
+      <header className="flex shrink-0 items-center gap-2 border-b border-border px-3 pb-2 pt-[calc(env(safe-area-inset-top)+8px)]">
+        <button onClick={() => onOpenChange(false)} aria-label="Close" className="grid h-10 w-10 place-items-center rounded-full hover:bg-foreground/[0.05]"><X className="h-5 w-5" /></button>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-[17px] font-semibold">Edit tournament</p>
+          <p className="truncate text-[12px] text-muted-foreground">Changes show to players straight away.</p>
+        </div>
+      </header>
+        <div className="mx-auto w-full max-w-[560px] flex-1 overflow-y-auto overscroll-contain px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4">
 
           <div className="mt-4 space-y-4">
             <label className="block">
@@ -443,8 +465,7 @@ function EditTournamentSheet({ open, onOpenChange, tournament: t, status, prizeS
             </button>
           </div>
         </div>
-      </DrawerContent>
-    </Drawer>
+    </div>
   );
 }
 

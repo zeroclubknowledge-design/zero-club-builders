@@ -61,6 +61,23 @@ function readableChat(raw: string) {
       return "📌 Shared an update";
     }
   }
+  // A ZeroNote attached by a club admin.
+  if (content.startsWith("::ZEROCLUB_NOTE::")) {
+    try {
+      const note = JSON.parse(content.slice("::ZEROCLUB_NOTE::".length));
+      return `📘 Shared a ZeroNote: ${note?.title || "a note"}`;
+    } catch {
+      return "📘 Shared a ZeroNote";
+    }
+  }
+  if (content.startsWith("::ZEROCLUB_GIVEAWAY::")) {
+    try {
+      const giveaway = JSON.parse(content.slice("::ZEROCLUB_GIVEAWAY::".length));
+      return `🎁 Giveaway: ${giveaway?.title || "enter now"}`;
+    } catch {
+      return "🎁 Started a giveaway";
+    }
+  }
   if (content.includes("$$MEDIA$$")) {
     const text = content.split("$$MEDIA$$")[0].trim();
     if (text) return text;
@@ -195,6 +212,13 @@ serve(async (req) => {
         system: "sent you an account update",
       };
 
+      // game_buzz notifications point at a tournament (new) or an old race.
+      let gameUrl = "/app/games";
+      if (notificationType === "game_buzz" && record.entity_id) {
+        const { data: tournament } = await supabase.from("zero_tournaments").select("id").eq("id", record.entity_id).maybeSingle();
+        gameUrl = tournament ? `/app/games/t/${record.entity_id}` : `/app/games/${record.entity_id}`;
+      }
+
       push = {
         receivers: [record.recipient_id],
         title: notificationType === "system"
@@ -205,8 +229,8 @@ serve(async (req) => {
         body: record.content || actions[notificationType] || "You have a new notification.",
         url: notificationType === "follow"
           ? `/app/profile/${actorId}`
-          : notificationType === "game_buzz" && record.entity_id
-            ? `/app/games/${record.entity_id}`
+          : notificationType === "game_buzz"
+            ? gameUrl
             : notificationType === "club_mention" && record.entity_id
               ? `/app/clubs/chat?clubId=${record.entity_id}`
               : record.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)

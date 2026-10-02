@@ -81,6 +81,15 @@ export function toPlainText(value?: string | null): string {
  */
 export function contentPreview(content?: string | null): string {
   const value = content || "";
+  // A ZeroNote attached in a club chat.
+  if (value.startsWith("::ZEROCLUB_NOTE::")) {
+    try {
+      const note = JSON.parse(value.slice("::ZEROCLUB_NOTE::".length));
+      return `📘 ZeroNote: ${note?.title || "a note"}`;
+    } catch {
+      return "📘 Shared a ZeroNote";
+    }
+  }
   if (!value.includes(MEDIA_MARKER)) return value.trim();
 
   const [textPart = "", mediaPart = ""] = value.split(MEDIA_MARKER);

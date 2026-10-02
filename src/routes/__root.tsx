@@ -205,8 +205,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Zero Club — Build skills. Build proof. Build opportunities." },
       { name: "twitter:description", content: "Learn in live bootcamps, ship work in public, join serious communities — and turn proof of work into reputation and income." },
-      { property: "og:image", content: "https://www.zeroclubs.xyz/api/og-default" },
-      { name: "twitter:image", content: "https://www.zeroclubs.xyz/api/og-default" },
+      { property: "og:image", content: "https://www.zeroclubs.xyz/api/og/default/brand" },
+      { name: "twitter:image", content: "https://www.zeroclubs.xyz/api/og/default/brand" },
       /* The dimensions are declared, not left to be discovered. Several
          scrapers — WhatsApp and LinkedIn among them — will fall back to a
          small square thumbnail rather than the wide card if they have to

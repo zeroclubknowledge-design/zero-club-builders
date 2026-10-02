@@ -99,6 +99,7 @@ import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.setti
 import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
 import { Route as NotesSlugPreviewV1RouteImport } from './routes/notes.$slug.preview-v1'
 import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
+import { Route as ApiOgKindIdRouteImport } from './routes/api.og.$kind.$id'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
 import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppGamesPlayGameRouteImport } from './routes/app.games.play.$game'
@@ -561,6 +562,11 @@ const ProductIdPreviewV3Route = ProductIdPreviewV3RouteImport.update({
   path: '/preview-v3',
   getParentRoute: () => ProductIdRoute,
 } as any)
+const ApiOgKindIdRoute = ApiOgKindIdRouteImport.update({
+  id: '/api/og/$kind/$id',
+  path: '/api/og/$kind/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
   id: '/bootcamps_/$id/edit',
   path: '/bootcamps/$id/edit',
@@ -694,6 +700,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
+  '/api/og/$kind/$id': typeof ApiOgKindIdRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -788,6 +795,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/tutor-studio': typeof AppTutorStudioIndexRoute
   '/app/wallet': typeof AppWalletIndexRoute
+  '/api/og/$kind/$id': typeof ApiOgKindIdRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -889,6 +897,7 @@ export interface FileRoutesById {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
+  '/api/og/$kind/$id': typeof ApiOgKindIdRoute
   '/app/bootcamps_/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -991,6 +1000,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tutor-studio/'
     | '/app/wallet/'
+    | '/api/og/$kind/$id'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1085,6 +1095,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tutor-studio'
     | '/app/wallet'
+    | '/api/og/$kind/$id'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1185,6 +1196,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/tutor-studio/'
     | '/app/wallet/'
+    | '/api/og/$kind/$id'
     | '/app/bootcamps_/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1218,6 +1230,7 @@ export interface RootRouteChildren {
   ApiGameImageIdRoute: typeof ApiGameImageIdRoute
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
   ApiGiftImageCodeRoute: typeof ApiGiftImageCodeRoute
+  ApiOgKindIdRoute: typeof ApiOgKindIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1852,6 +1865,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductIdPreviewV3RouteImport
       parentRoute: typeof ProductIdRoute
     }
+    '/api/og/$kind/$id': {
+      id: '/api/og/$kind/$id'
+      path: '/api/og/$kind/$id'
+      fullPath: '/api/og/$kind/$id'
+      preLoaderRoute: typeof ApiOgKindIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/bootcamps_/$id/edit': {
       id: '/app/bootcamps_/$id/edit'
       path: '/bootcamps/$id/edit'
@@ -2172,6 +2192,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGameImageIdRoute: ApiGameImageIdRoute,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
   ApiGiftImageCodeRoute: ApiGiftImageCodeRoute,
+  ApiOgKindIdRoute: ApiOgKindIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

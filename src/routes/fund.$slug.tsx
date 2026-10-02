@@ -63,12 +63,16 @@ export const Route = createFileRoute("/fund/$slug")({
       { name: "twitter:description", content: description },
     ];
 
-    if (loaderData.owner_avatar) {
-      meta.push(
-        { property: "og:image", content: loaderData.owner_avatar },
-        { name: "twitter:image", content: loaderData.owner_avatar },
-      );
-    }
+    const image = `https://www.zeroclubs.xyz/api/og/fund/${encodeURIComponent(loaderData.slug)}`;
+    meta.push(
+      { property: "og:image", content: image },
+      { property: "og:image:secure_url", content: image },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:type", content: "image/png" },
+      { name: "twitter:image", content: image },
+      { name: "twitter:card", content: "summary_large_image" },
+    );
 
     return { meta };
   },

@@ -25,7 +25,7 @@ export const Route = createFileRoute("/app/live/$classId")({
       return null;
     }
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     if (!loaderData?.name) return {};
 
     const title = `${loaderData.name} is live on Zero Club`;
@@ -41,12 +41,12 @@ export const Route = createFileRoute("/app/live/$classId")({
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
-        ...(loaderData.banner
-          ? [
-              { property: "og:image", content: String(loaderData.banner) },
-              { name: "twitter:image", content: String(loaderData.banner) },
-            ]
-          : []),
+        { property: "og:image", content: `https://www.zeroclubs.xyz/api/og/live/${params.classId}` },
+        { property: "og:image:secure_url", content: `https://www.zeroclubs.xyz/api/og/live/${params.classId}` },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:type", content: "image/png" },
+        { name: "twitter:image", content: `https://www.zeroclubs.xyz/api/og/live/${params.classId}` },
       ],
     };
   },

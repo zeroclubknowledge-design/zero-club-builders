@@ -4,7 +4,6 @@
  * Kept apart from the reader component so the public /notes/$slug route can
  * build its meta tags without importing the route module that owns the reader.
  */
-import { zeroNotePreviewImageUrl } from "@/lib/share";
 
 export function buildNoteHead(note: any) {
   if (!note) return {};
@@ -19,10 +18,7 @@ export function buildNoteHead(note: any) {
     description = stripped.substring(0, 160) + (stripped.length > 160 ? "..." : "");
   }
 
-  const image =
-    note.cover_url && note.slug
-      ? zeroNotePreviewImageUrl(note.slug)
-      : note.cover_url || "https://www.zeroclubs.xyz/api/og-default";
+  const image = `https://www.zeroclubs.xyz/api/og/note/${encodeURIComponent(note.slug || note.id)}`;
   const canonicalUrl = note.slug ? `https://www.zeroclubs.xyz/notes/${note.slug}` : null;
 
   return {
@@ -33,13 +29,13 @@ export function buildNoteHead(note: any) {
       { property: "og:description", content: description },
       { property: "og:image", content: image },
       { property: "og:image:secure_url", content: image },
-      { property: "og:image:type", content: "image/jpeg" },
+      { property: "og:image:type", content: "image/png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: `${title} cover` },
       { property: "og:type", content: "article" },
       ...(canonicalUrl ? [{ property: "og:url", content: canonicalUrl }] : []),
-      { name: "twitter:card", content: note.cover_url ? "summary_large_image" : "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
       { name: "twitter:image", content: image },

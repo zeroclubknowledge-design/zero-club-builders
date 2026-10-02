@@ -59,7 +59,7 @@ export const Route = createFileRoute("/club/$id")({
      * picture. The endpoint composes a card that always exists, using the
      * club's own picture when it can genuinely be loaded.
      */
-    const image = `https://www.zeroclubs.xyz/api/club-image/${params.id}?v=1`;
+    const image = `https://www.zeroclubs.xyz/api/og/club/${params.id}`;
 
     return {
       meta: [

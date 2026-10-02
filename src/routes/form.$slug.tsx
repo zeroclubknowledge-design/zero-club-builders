@@ -62,7 +62,7 @@ export const Route = createFileRoute("/form/$slug")({
     }
   },
 
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     if (!loaderData?.title) return {};
 
     const title = `${loaderData.title} — Zero Club`;
@@ -83,13 +83,16 @@ export const Route = createFileRoute("/form/$slug")({
 
     // Only override the site-wide preview image when this bootcamp has one of
     // its own, otherwise the generic Zero Club image still shows.
-    if (loaderData.image) {
-      meta.push(
-        { property: "og:image", content: loaderData.image },
-        { name: "twitter:image", content: loaderData.image },
-        { name: "twitter:card", content: "summary_large_image" },
-      );
-    }
+    const image = `https://www.zeroclubs.xyz/api/og/form/${encodeURIComponent(params.slug)}`;
+    meta.push(
+      { property: "og:image", content: image },
+      { property: "og:image:secure_url", content: image },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:type", content: "image/png" },
+      { name: "twitter:image", content: image },
+      { name: "twitter:card", content: "summary_large_image" },
+    );
 
     return { meta };
   },

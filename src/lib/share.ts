@@ -3,7 +3,7 @@ import { toast } from "sonner";
 // Bump this when the shape of product link metadata changes. Messaging apps
 // cache link previews very aggressively, so a versioned URL makes them fetch
 // the corrected card instead of keeping an older image-less result.
-export const PRODUCT_PREVIEW_VERSION = "3";
+export const PRODUCT_PREVIEW_VERSION = "4";
 export const NOTE_PREVIEW_VERSION = "1";
 
 /**

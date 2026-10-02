@@ -19,6 +19,7 @@ import {
   Trash2,
   Bell,
   Check,
+  GraduationCap,
 } from "@/components/icons/glyphs";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
@@ -31,7 +32,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { deleteNoteAction } from "@/api";
 import { zeroNotePreviewImageUrl, zeroNoteUrl } from "@/lib/share";
 
-export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initialNote?: any }) {
+export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; initialNote?: any; slug?: string }) {
   const id = noteId;
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -40,21 +41,35 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
   const [readProgress, setReadProgress] = useState(0);
   const { data: profile } = useUser();
   const queryClient = useQueryClient();
+  /*
+   * Fetched again in the browser, signed in. Bootcamp-only notes are invisible
+   * to the signed-out server render, so a learner opening one cold would
+   * otherwise see "not found" for a note they are allowed to read.
+   */
   const { data: note, isLoading: loading } = useQuery({
-    queryKey: ["note", id],
+    queryKey: ["note", id || `slug:${slug}`],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let request = supabase
         .from("notes")
         .select("*, profiles(username, full_name, avatar_url)")
-        .eq("id", id)
-        .eq("is_published", true)
-        .single();
-
+        .eq("is_published", true);
+      request = id ? request.eq("id", id) : request.eq("slug", slug as string);
+      const { data, error } = await request.maybeSingle();
       if (error) throw error;
       return data;
     },
     initialData: () => initialNote || undefined,
-    enabled: Boolean(id),
+    enabled: Boolean(id || slug),
+  });
+
+  // When the note can't be read, ask why: gone, or for bootcamp learners only.
+  const { data: lockInfo } = useQuery({
+    queryKey: ["note-lock", id],
+    enabled: Boolean(id) && !loading && !note,
+    queryFn: async () => {
+      const { data } = await supabase.rpc("note_lock_info", { p_note: id });
+      return data as { exists: boolean; locked?: boolean; title?: string; bootcamps?: { id: string; title: string }[] } | null;
+    },
   });
 
   const [isLiked, setIsLiked] = useState(false);
@@ -191,6 +206,33 @@ export function NoteReaderPage({ noteId, initialNote }: { noteId: string; initia
     return (
       <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-card">
         <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-foreground/15 border-t-foreground" />
+      </div>
+    );
+  }
+
+  if (!note && lockInfo?.exists && lockInfo.locked) {
+    return (
+      <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-card p-6 text-center">
+        <span className="mb-4 grid h-14 w-14 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]"><GraduationCap className="h-6 w-6" /></span>
+        <h2 className="mb-2 font-display text-[22px] font-semibold">{lockInfo.title || "This note"} is for bootcamp learners</h2>
+        <p className="mb-5 max-w-[320px] text-[14px] leading-relaxed text-muted-foreground">
+          {profile?.id ? "Enrol in the bootcamp it was written for to read it." : "Sign in with the account you use for the bootcamp to read it."}
+        </p>
+        {profile?.id && (lockInfo.bootcamps || []).length > 0 && (
+          <div className="mb-5 flex flex-wrap justify-center gap-2">
+            {(lockInfo.bootcamps || []).map((b) => (
+              <button key={b.id} onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })} className="h-10 rounded-full bg-[#cc208f] px-4 text-[13.5px] font-semibold text-white">
+                View {b.title}
+              </button>
+            ))}
+          </div>
+        )}
+        <button
+          onClick={() => navigate({ to: profile?.id ? "/app/notes" : "/signin" } as never)}
+          className="flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background transition hover:opacity-90"
+        >
+          {profile?.id ? "Back to ZeroNotes" : "Sign in"}
+        </button>
       </div>
     );
   }

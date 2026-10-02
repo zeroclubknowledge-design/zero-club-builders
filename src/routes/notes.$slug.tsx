@@ -21,5 +21,7 @@ export const Route = createFileRoute("/notes/$slug")({
 
 function PublicNoteRoutePage() {
   const { note } = Route.useLoaderData();
-  return <NoteReaderPage noteId={note?.id || ""} initialNote={note} />;
+  const { slug } = Route.useParams();
+  // The slug lets a signed-in reader load a bootcamp-only note the server render could not.
+  return <NoteReaderPage noteId={note?.id || ""} initialNote={note} slug={slug} />;
 }

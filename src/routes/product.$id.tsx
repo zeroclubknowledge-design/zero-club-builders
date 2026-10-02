@@ -84,18 +84,13 @@ export const Route = createFileRoute("/product/$id")({
       { name: "twitter:description", content: description },
     ];
 
-    // Only override the site-wide preview image when this product has a cover
-    // of its own, otherwise the generic logo is still better than nothing.
-    if (loaderData.cover_url) {
-      // Keep the public image on the same Zero Club origin and give it a clean
-      // path without query parameters. Some messaging crawlers obey the image
-      // renderer's robots.txt, which rejects every query-string image even
-      // though a normal browser can load it successfully.
-      const previewImage = `https://www.zeroclubs.xyz/product/${loaderData.id}/preview-v3`;
+    // Every product gets the branded Zero Club preview card (lib/og).
+    {
+      const previewImage = `https://www.zeroclubs.xyz/api/og/product/${loaderData.id}`;
       meta.push(
         { property: "og:image", content: previewImage },
         { property: "og:image:secure_url", content: previewImage },
-        { property: "og:image:type", content: "image/jpeg" },
+        { property: "og:image:type", content: "image/png" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: `${loaderData.name} product cover` },

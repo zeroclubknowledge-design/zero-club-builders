@@ -134,17 +134,7 @@ export const Route = createFileRoute("/app/post/$id")({
     const stripped = description.replace(/(<([^>]+)>)/gi, "");
     description = stripped.substring(0, 160) + (stripped.length > 160 ? '...' : '');
 
-    const isVideoUrl = (url: string) => {
-      const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg', '.m4v'];
-      return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url.includes('video');
-    };
-
-    let firstMedia = post.media_urls?.[0];
-    if (firstMedia && isVideoUrl(firstMedia)) {
-      firstMedia = null; // Don't use video for og:image
-    }
-
-    const image = firstMedia || post.profiles?.avatar_url || "https://www.zeroclubs.xyz/api/og-default";
+    const image = `https://www.zeroclubs.xyz/api/og/post/${post.id}`;
 
     return {
       meta: [
@@ -153,8 +143,13 @@ export const Route = createFileRoute("/app/post/$id")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:image", content: image },
+        { property: "og:image:secure_url", content: image },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:alt", content: title },
         { property: "og:type", content: "article" },
-        { name: "twitter:card", content: firstMedia ? "summary_large_image" : "summary" },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: image },
