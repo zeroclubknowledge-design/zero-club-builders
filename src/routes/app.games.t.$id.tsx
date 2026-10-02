@@ -86,6 +86,7 @@ function TournamentPage() {
   const [now, setNow] = useState(Date.now());
   const [joining, setJoining] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const query = useQuery({
     queryKey: ["zero-tournament", id, code],
@@ -225,8 +226,13 @@ function TournamentPage() {
               <p className="mt-1 text-[13px] text-muted-foreground">{status === "upcoming" ? "Scores appear here as soon as the tournament starts." : "Scores appear here the moment someone finishes a run. Be the first!"}</p>
             </div>
           ) : (
+            <>
+            <div className="flex items-center gap-2 border-t border-border/60 px-4 py-2 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span>{showAll ? `All ${leaderboard.length} players` : `Top ${Math.min(10, leaderboard.length)}`}</span>
+              <span className="ml-auto">Best score</span>
+            </div>
             <ol>
-              {leaderboard.map((row) => {
+              {(showAll ? leaderboard : leaderboard.slice(0, 10)).map((row) => {
                 const mine = me && row.rank === me.rank;
                 return (
                   <li key={row.profile_id} className={`flex items-center gap-3 border-t border-border/60 px-4 py-2.5 ${mine ? "bg-[#cc208f]/[0.06]" : ""}`}>
@@ -243,6 +249,23 @@ function TournamentPage() {
                 );
               })}
             </ol>
+            {/* Outside the top 10: still show where you stand. */}
+            {!showAll && me?.rank && me.rank > 10 && (
+              <div className="flex items-center gap-3 border-t-2 border-dashed border-border/70 bg-[#cc208f]/[0.06] px-4 py-2.5">
+                <span className="w-7 shrink-0 text-center text-[14px] font-bold tabular-nums text-muted-foreground">{me.rank}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-semibold">You</p>
+                  <p className="truncate text-[12px] text-muted-foreground">{me.plays} run{me.plays === 1 ? "" : "s"} · {me.rank - 10} place{me.rank - 10 === 1 ? "" : "s"} from the top 10</p>
+                </div>
+                <span className="shrink-0 text-[15px] font-bold tabular-nums">{me.best_score.toLocaleString()}</span>
+              </div>
+            )}
+            {leaderboard.length > 10 && (
+              <button type="button" onClick={() => setShowAll((v) => !v)} className="w-full border-t border-border/60 py-3 text-[13.5px] font-semibold text-[#cc208f] transition hover:bg-foreground/[0.03]">
+                {showAll ? "Show top 10" : `Show all ${leaderboard.length} players`}
+              </button>
+            )}
+            </>
           )}
         </section>
         {/* Prizes */}

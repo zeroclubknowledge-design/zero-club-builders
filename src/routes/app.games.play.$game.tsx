@@ -18,7 +18,7 @@ import { ZERO_GAMES, isZeroGameKey, wordsScore, type ZeroGameKey } from "@/featu
 import { GameSplash, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import { ZeroSpaceGame, type ZeroSpaceResult } from "@/features/games/v2/ZeroSpace";
 import {
-  countdown, finishRun, joinTournament, JOIN_REFUSAL, startRun, tournamentDetail,
+  countdown, finishRun, joinTournament, JOIN_REFUSAL, listTournaments, previewPrizeLine, startRun, tournamentDetail,
 } from "@/features/games/v2/api";
 
 export const Route = createFileRoute("/app/games/play/$game")({
@@ -84,6 +84,23 @@ function PlayGame() {
     enabled: Boolean(tournamentId),
   });
   const t = detail.data && detail.data.found && !detail.data.locked ? detail.data : null;
+
+  /*
+   * Opening a game from the Zero Games home used to start PRACTICE, which
+   * never reaches a leaderboard — so people played "the competition" and no
+   * score was ever recorded for them. When this game has a live tournament
+   * open to everyone, that is now what the big button plays; practice is the
+   * second option.
+   */
+  const liveForGame = useQuery({
+    queryKey: ["zero-tournaments", "live"],
+    queryFn: () => listTournaments("live"),
+    enabled: !tournamentId,
+    staleTime: 60_000,
+  });
+  const featured = (liveForGame.data || [])
+    .filter((row) => row.game_type === game && row.status === "live" && row.visibility === "public")
+    .sort((a, b) => Number(Boolean(b.sponsored)) - Number(Boolean(a.sponsored)) || (b.players || 0) - (a.players || 0))[0] || null;
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -257,6 +274,25 @@ function PlayGame() {
       );
     }
     const best = readBest(bestKey(game, variant));
+    if (featured) {
+      return (
+        <GameSplash
+          game={game}
+          onBack={back}
+          eyebrow={featured.sponsored ? "Zero Club tournament · live" : "Live tournament"}
+          primaryLabel={featured.joined ? "Play in the tournament" : "Join & play the tournament"}
+          onPrimary={() => navigate({ to: "/app/games/play/$game", params: { game }, search: { t: featured.id, code: undefined }, replace: true })}
+          secondary={{ label: "Practice instead", onClick: startPractice }}
+          footer={
+            <div className="space-y-1">
+              <p className="font-semibold text-white/90">{featured.title}</p>
+              <p>{previewPrizeLine(featured)} · {featured.players.toLocaleString()} {featured.players === 1 ? "player" : "players"} · ends in {countdown(new Date(featured.ends_at).getTime() - now)}</p>
+              <p className="text-white/55">Only tournament runs count on the leaderboard.</p>
+            </div>
+          }
+        />
+      );
+    }
     return (
       <GameSplash
         game={game}

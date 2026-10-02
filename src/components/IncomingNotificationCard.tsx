@@ -255,7 +255,13 @@ export function IncomingNotificationCard({ recipientId, onReceived, onRead }: In
     } else if (t === "follow" && active.personId) {
       void navigate({ to: "/app/profile/$id", params: { id: active.personId } });
     } else if (t === "game_buzz" && active.entityId) {
-      void navigate({ to: "/app/games/$id", params: { id: active.entityId } });
+      // Tournaments (the current Zero Games) have their own page; older game
+      // invites still open the legacy competition page.
+      const entityId = active.entityId;
+      void supabase.rpc("zero_tournament_preview", { p_id: entityId, p_code: null }).then(({ data }) => {
+        if ((data as any)?.found) void navigate({ to: "/app/games/t/$id", params: { id: entityId }, search: { code: undefined } as any });
+        else void navigate({ to: "/app/games/$id", params: { id: entityId } });
+      }, () => void navigate({ to: "/app/games/$id", params: { id: entityId } }));
     } else if (t === "club_mention" && active.entityId) {
       void navigate({ to: "/app/clubs/chat", search: { clubId: active.entityId } });
     } else if (active.entityId && t !== "system") {
