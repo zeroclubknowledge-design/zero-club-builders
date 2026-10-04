@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { contentPreview } from "@/lib/contentPreview";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
+import { MentionField, type MentionPerson } from "@/components/MentionField";
 import { Switch } from "@/components/ui/switch";
 import { ClubNoteCard, ClubNotePicker, parseClubNote } from "@/features/clubs/ClubNotes";
 import { RichTextEditor } from "@/components/RichTextEditor";
@@ -10,7 +11,7 @@ import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
 import { BookOpen, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, Smile } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
-import { useState, useRef, useEffect, type ReactNode } from "react";
+import { useState, useRef, useEffect, useMemo, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
@@ -90,6 +91,12 @@ function ClubMessageComposer({
    * that should come to hand are the names of people in it.
    */
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const mentionPeople = useMemo<MentionPerson[]>(() => members
+    .map((member: any) => {
+      const person = member.profiles || member;
+      return person?.username ? { id: person.id, username: person.username, full_name: person.full_name, avatar_url: person.avatar_url, badge: member.role && member.role !== "Member" ? member.role : null } : null;
+    })
+    .filter(Boolean) as MentionPerson[], [members]);
 
   const mentionMatches = (() => {
     if (mentionQuery === null) return [];
@@ -143,48 +150,19 @@ function ClubMessageComposer({
 
   return (
     <div className="relative flex w-full items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50">
-      {mentionMatches.length > 0 && (
-        <div className="absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-xl bg-card shadow-[0_18px_44px_-20px_rgba(0,0,0,0.45)] ring-1 ring-border">
-          {mentionMatches.map((person: any) => (
-            <button
-              key={person.id || person.username}
-              type="button"
-              onMouseDown={(event) => { event.preventDefault(); applyMention(person.username); }}
-              className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-accent/50"
-            >
-              <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
-                {person.avatar_url
-                  ? <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                  : (person.full_name || person.username || "?")[0].toUpperCase()}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-semibold tracking-tight text-foreground">
-                  {person.full_name || person.username}
-                </span>
-                <span className="block truncate text-[11px] text-muted-foreground">@{person.username}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
       {avatar}
-      <textarea
-        ref={textareaRef}
+      <MentionField
+        ref={textareaRef as any}
         value={draft}
+        people={mentionPeople}
+        peopleLabel="In this club"
         onChange={(event) => {
           setDraft(event.target.value);
-          readMentionQuery(event.target.value);
           event.target.style.height = "auto";
           event.target.style.height = `${Math.min(event.target.scrollHeight, 80)}px`;
         }}
         onKeyDown={(event) => {
-          if (event.key === "Escape") { setMentionQuery(null); return; }
-          if (event.key === "Enter" && mentionMatches.length > 0 && !event.shiftKey) {
-            // Finish the tag rather than sending "@ben" as literal text.
-            event.preventDefault();
-            applyMention(mentionMatches[0].username);
-            return;
-          }
+          // An open tag list handles Enter itself, so Enter here is a real send.
           if (isSendKey(event, enterToSend)) {
             event.preventDefault();
             void submit();
@@ -193,7 +171,7 @@ function ClubMessageComposer({
         enterKeyHint={enterToSend ? "send" : "enter"}
         data-club-composer=""
         placeholder={placeholder}
-        className="flex-1 resize-none bg-transparent py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
+        className="block w-full flex-1 resize-none bg-transparent py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
         rows={1}
         style={{ minHeight: "36px", maxHeight: "80px", height: "36px" }}
       />
@@ -3129,7 +3107,9 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
               placeholder={room === 'q-and-a' ? 'What do you need help with?' : room === 'assignments' ? 'Assignment title' : 'Announcement title'}
               className="h-11 w-full min-w-0 rounded-md border border-border bg-background px-3.5 text-sm outline-none transition focus:border-primary"
             />
-            <textarea
+            <MentionField
+              wrapperClassName="relative w-full min-w-0"
+              menuPlacement="bottom"
               value={body}
               onChange={(event) => setBody(event.target.value)}
               placeholder={room === 'q-and-a' ? 'Add enough context for the club to give a useful answer...' : room === 'assignments' ? 'Add the brief, instructions, and expected outcome...' : 'Write the update for club members...'}
@@ -3442,12 +3422,12 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
                 <div className="border-t border-border/60 bg-background px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:px-6">
                   <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">{room === 'assignments' ? 'Submit your work' : 'Contribute an answer'}</label>
                   <div className="flex items-end gap-2">
-                    <textarea
+                    <MentionField
                       value={threadReply}
                       onChange={(event) => setThreadReply(event.target.value)}
                       placeholder={room === 'assignments' ? 'Add your submission, work link, or notes...' : 'Write a focused, helpful answer...'}
                       rows={2}
-                      className="min-h-12 flex-1 resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
+                      className="block min-h-12 w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] outline-none transition placeholder:text-muted-foreground focus:border-foreground/40"
                     />
                     <button
                       onClick={submitThreadReply}

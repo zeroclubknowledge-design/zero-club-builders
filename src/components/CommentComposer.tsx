@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { MentionField } from "@/components/MentionField";
 import { Film, Image, Loader2, Mic, Paperclip, Send, Square, X } from "@/components/icons/glyphs";
 import {
   DropdownMenu,
@@ -186,7 +187,8 @@ export function CommentComposer({
           {currentUser?.avatar_url ? <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : name.slice(0, 1).toUpperCase()}
         </div>
 
-        <textarea
+        <MentionField
+          wrapperClassName="relative min-w-0 flex-1 self-center"
           data-comment-composer=""
           value={value}
           onChange={(event) => {
@@ -202,7 +204,7 @@ export function CommentComposer({
           }}
           placeholder={placeholder}
           rows={1}
-          className="max-h-24 min-h-9 min-w-0 flex-1 resize-none self-center bg-transparent px-1.5 py-2 text-[13px] leading-5 outline-none no-scrollbar placeholder:text-muted-foreground"
+          className="block max-h-24 min-h-9 w-full min-w-0 resize-none bg-transparent px-1.5 py-2 text-[13px] leading-5 outline-none no-scrollbar placeholder:text-muted-foreground"
         />
 
         <div className="mb-0.5 flex shrink-0 items-center">

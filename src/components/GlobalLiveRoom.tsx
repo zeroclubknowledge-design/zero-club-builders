@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
+import { MentionField, type MentionPerson } from "@/components/MentionField";
 import { useGoBack } from "@/hooks/useGoBack";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
@@ -160,6 +161,7 @@ interface ChatMessage {
 interface PresenceUser {
   uid: string;
   name: string;
+  username?: string;
   avatar: string;
   isAdmin: boolean;
 }
@@ -538,7 +540,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * voice at a low bitrate, which survives weak mobile networks far better
    * than a music profile.
    */
-  const { localMicrophoneTrack } = useLocalMicrophoneTrack(true, {
+  const { localMicrophoneTrack, error: micError } = useLocalMicrophoneTrack(true, {
     AEC: true,
     ANS: true,
     AGC: true,
@@ -644,6 +646,82 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   useEffect(() => {
     localCameraTrack?.setMuted(!cameraOn).catch(console.error);
   }, [cameraOn, localCameraTrack]);
+
+  /*
+   * Is your voice actually reaching the room?
+   *
+   * The mic button only shows what you chose. It cannot tell when the browser
+   * was refused the microphone, when another app (Zoom, Teams, WhatsApp
+   * Desktop) is holding it, when a headset was unplugged, or when the
+   * laptop's default input is the wrong device — in every one of those the
+   * button says "on" and the class hears nothing. So we listen to what the
+   * microphone is really picking up:
+   *
+   *   • micLevel drives the green ring on the mic button while you talk;
+   *   • "blocked": the browser could not open any microphone;
+   *   • "ended":   the microphone disappeared (unplugged, taken by the OS);
+   *   • "silent":  unmuted for 15s and not one sound has come through.
+   */
+  const [micLevel, setMicLevel] = useState(0);
+  const [micProblem, setMicProblem] = useState<null | "blocked" | "silent" | "ended">(null);
+  const [fixingMic, setFixingMic] = useState(false);
+  const micHeardRef = useRef(false);
+  const micOnSinceRef = useRef(0);
+
+  useEffect(() => {
+    if (micError) setMicProblem("blocked");
+  }, [micError]);
+
+  useEffect(() => {
+    micHeardRef.current = false;
+    micOnSinceRef.current = Date.now();
+    if (!localMicrophoneTrack || !micOn) {
+      setMicLevel(0);
+      setMicProblem((problem) => (problem === "blocked" ? problem : null));
+      return;
+    }
+    const id = window.setInterval(() => {
+      const media = (localMicrophoneTrack as any).getMediaStreamTrack?.() as MediaStreamTrack | undefined;
+      if (!media || media.readyState === "ended") {
+        setMicProblem("ended");
+        return;
+      }
+      const level = Number((localMicrophoneTrack as any).getVolumeLevel?.() ?? 0);
+      // Rounded to tenths so the room only redraws when the ring visibly changes.
+      setMicLevel(level > 0.02 ? Math.min(1, Math.round(level * 10) / 10) : 0);
+      if (level > 0.02) {
+        micHeardRef.current = true;
+        setMicProblem((problem) => (problem === "silent" || problem === "ended" ? null : problem));
+      } else if (!micHeardRef.current && Date.now() - micOnSinceRef.current > 15000) {
+        setMicProblem((problem) => problem ?? "silent");
+      }
+    }, 200);
+    return () => window.clearInterval(id);
+  }, [localMicrophoneTrack, micOn]);
+
+  /* Reopen the microphone from scratch: frees it from a stuck or stolen state. */
+  const restartMic = async () => {
+    if (!localMicrophoneTrack) {
+      window.location.reload();
+      return;
+    }
+    setFixingMic(true);
+    try {
+      await localMicrophoneTrack.setEnabled(false);
+      await localMicrophoneTrack.setEnabled(true);
+      await localMicrophoneTrack.setMuted(false);
+      setMicOn(true);
+      micHeardRef.current = false;
+      micOnSinceRef.current = Date.now();
+      setMicProblem(null);
+      toast("Microphone restarted", { description: "Say something — the ring on your mic button should move." });
+    } catch (error) {
+      console.error("Could not restart the microphone", error);
+      setMicProblem("blocked");
+    } finally {
+      setFixingMic(false);
+    }
+  };
 
   /* Hosts go live with mic and camera on; learners are told once why they're muted. */
   useEffect(() => {
@@ -1020,6 +1098,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     // needs to address the person, or the instruction misses when they rejoin.
     profile_id: profile.userId || profile.id,
     name: displayName(profile, ""),
+    username: profile?.username || "",
     avatar_url: profile?.avatar_url || "",
     isAdmin: isAdmin
   } : undefined;
@@ -1059,6 +1138,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           people.push({
             uid: String(u.agora_uid),
             name: (u.name || "").trim() || "Joining\u2026",
+            username: u.username || "",
             avatar: u.avatar_url || "",
             isAdmin: !!u.isAdmin,
           });
@@ -1311,6 +1391,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     setSelectedMic(deviceId);
     try {
       await (localMicrophoneTrack as any)?.setDevice?.(deviceId);
+      micHeardRef.current = false;
+      micOnSinceRef.current = Date.now();
+      setMicProblem(null);
     } catch (error) {
       console.error("Microphone switch failed:", error);
       toast.error("Could not switch to that microphone");
@@ -1544,6 +1627,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     setReplyingTo(null);
     setMentionQuery(null);
   };
+
+  const livePeople = useMemo<MentionPerson[]>(() => presenceUsers
+    .filter((person) => person.username)
+    .map((person) => ({ id: person.uid, username: person.username!, full_name: person.name, avatar_url: person.avatar || null, badge: person.isAdmin ? "Host" : null })), [presenceUsers]);
 
   /* Everybody in the room, deduplicated by name — the picker offers people,
      not connections, and one person on two devices is still one person. */
@@ -2011,6 +2098,37 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         </button>
       </header>
 
+      {micProblem && (micOn || micProblem === "blocked") && (
+        <div role="alert" className="z-30 mx-3 mb-2 shrink-0 rounded-xl bg-red-500/15 px-3 py-2.5 text-[13px] text-red-50 ring-1 ring-red-400/35">
+          <div className="flex items-start gap-2">
+            <MicOff className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">
+                {micProblem === "blocked" ? "Your microphone is blocked" : micProblem === "ended" ? "Your microphone was disconnected" : "Others can't hear you — no sound is coming from your microphone"}
+              </p>
+              <p className="mt-0.5 text-[12px] leading-snug text-red-50/75">
+                {micProblem === "blocked"
+                  ? "Allow the microphone from the lock icon next to the web address, and on Windows check Settings → Privacy & security → Microphone. Close Zoom, Teams or other apps using it, then reload."
+                  : "Pick the right microphone, or restart it. If your laptop has a mic key (often F4 or F10), make sure it isn't muted, and close other apps using the mic."}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" onClick={() => void restartMic()} disabled={fixingMic} className="rounded-lg bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#140a12] disabled:opacity-60">
+                  {fixingMic ? "Restarting…" : micProblem === "blocked" ? "Reload and try again" : "Restart microphone"}
+                </button>
+                {micProblem !== "blocked" && (
+                  <button type="button" onClick={() => setShowSettings(true)} className="rounded-lg bg-white/15 px-3 py-1.5 text-[12.5px] font-semibold">
+                    Choose microphone
+                  </button>
+                )}
+                <button type="button" onClick={() => setMicProblem(null)} className="rounded-lg px-2 py-1.5 text-[12.5px] text-red-50/70 hover:text-white">
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {connectionState === "RECONNECTING" ? (
         <div role="status" aria-live="polite" className="z-30 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-amber-500/15 px-3 py-2 text-[13px] text-amber-100 ring-1 ring-amber-400/30">
           <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-300" />
@@ -2327,6 +2445,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
               <button
                 onClick={() => setMicOn((p) => !p)}
+                style={micOn && micLevel > 0 ? { boxShadow: `0 0 0 ${2 + Math.round(micLevel * 8)}px rgba(52, 211, 153, 0.45)` } : undefined}
                 disabled={isLeaving}
                 title={micOn ? "Mute microphone" : "Unmute microphone"}
                 aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
@@ -2530,24 +2649,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   <div ref={chatEndRef} />
                 </div>
                 <div className="shrink-0 border-t border-white/[0.06] p-3">
-                  {mentionCandidates.length > 0 && (
-                    <div className="mb-2 overflow-hidden rounded-xl bg-[#1b1620] ring-1 ring-white/10">
-                      {mentionCandidates.map((person) => (
-                        <button
-                          key={person.uid}
-                          onClick={() => applyMention(person.name)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.06]"
-                        >
-                          <span className="grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-[10px] font-semibold text-white/80">
-                            {person.avatar ? <img src={person.avatar} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : person.name[0]?.toUpperCase()}
-                          </span>
-                          <span className="min-w-0 flex-1 truncate text-[12.5px] text-white/85">{person.name}</span>
-                          {person.isAdmin && <span className="shrink-0 text-[9.5px] font-semibold uppercase tracking-wide text-[#f28fd0]">Host</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
                   {replyingTo && (
                     <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-[#cc208f] bg-white/[0.05] px-3 py-2">
                       <span className="min-w-0 flex-1">
@@ -2567,22 +2668,25 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   )}
 
                   <div className="flex items-center gap-2 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-4 py-2.5 focus-within:ring-[#cc208f]/50 transition-all">
-                    <input
-                      ref={chatInputRef}
+                    <MentionField
+                      as="input"
+                      tone="dark"
+                      ref={chatInputRef as any}
                       value={chatInput}
-                      onChange={(e) => handleChatInputChange(e.target.value)}
+                      people={livePeople}
+                      peopleLabel="In this room"
+                      searchEveryone={false}
+                      onChange={(e) => setChatInput(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Escape") { setMentionQuery(null); setReplyingTo(null); return; }
+                        // An open tag list handles Enter itself.
+                        if (e.key === "Escape") { setReplyingTo(null); return; }
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
-                          // Enter picks the top name when the picker is open,
-                          // rather than sending "@hal" as literal text.
-                          if (mentionCandidates.length > 0) applyMention(mentionCandidates[0].name);
-                          else sendMessage();
+                          sendMessage();
                         }
                       }}
                       placeholder={replyingTo ? `Reply to ${replyingTo.sender_name}` : isAdmin ? "Message your learners" : "Ask a question"}
-                      className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none min-w-0"
+                      className="block w-full bg-transparent text-[14px] text-white placeholder:text-white/35 outline-none min-w-0"
                     />
                     {/* Attach. Images, video and files all go the same route,
                         so "can you see this?" can be answered without leaving
@@ -2752,6 +2856,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
           <button
             onClick={() => setMicOn((previous) => !previous)}
+            style={micOn && micLevel > 0 ? { boxShadow: `0 0 0 ${2 + Math.round(micLevel * 8)}px rgba(52, 211, 153, 0.45)` } : undefined}
             disabled={isLeaving}
             title={micOn ? "Mute microphone" : "Unmute microphone"}
             aria-label={micOn ? "Mute microphone" : "Unmute microphone"}

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { MentionField } from "@/components/MentionField";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/glyphs";
@@ -1188,7 +1189,9 @@ function ChatViewPage() {
             )}
           </div>
 
-            <textarea 
+            <MentionField
+              people={otherUser?.username ? [{ id: otherUser.id, username: otherUser.username, full_name: otherUser.full_name, avatar_url: otherUser.avatar_url }] : []}
+              peopleLabel="In this chat"
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
@@ -1204,7 +1207,7 @@ function ChatViewPage() {
               }}
               enterKeyHint={enterToSend ? "send" : "enter"}
               placeholder={editingId ? "Edit your message" : (replyingTo ? "Write a reply..." : "Start a message")} 
-              className="flex-1 resize-none bg-transparent py-2 text-sm outline-none text-foreground placeholder:text-muted-foreground no-scrollbar"
+              className="block w-full flex-1 resize-none bg-transparent py-2 text-sm outline-none text-foreground placeholder:text-muted-foreground no-scrollbar"
               rows={1}
               style={{ minHeight: '36px', maxHeight: '80px', height: '36px' }}
             />

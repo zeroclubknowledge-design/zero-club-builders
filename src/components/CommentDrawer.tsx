@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { MentionField } from "@/components/MentionField";
 import {
   Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle
 } from "@/components/ui/drawer";
@@ -641,7 +642,9 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                       
                       {editingCommentId === comment.id ? (
                         <div className="mt-2 mb-2">
-                          <textarea
+                          <MentionField
+                            wrapperClassName="relative w-full"
+                            menuPlacement="bottom"
                             value={editCommentText}
                             onChange={(e) => setEditCommentText(e.target.value)}
                             className="min-h-[80px] w-full rounded-lg border border-border bg-card p-3 text-sm outline-none focus:border-primary"

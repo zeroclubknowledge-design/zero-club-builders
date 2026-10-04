@@ -1539,3 +1539,12 @@ html[data-zc-focus-flow] [data-zc-bottom-nav] {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* MentionField: the field's own glyphs are transparent (a mirror draws them,
+   with @tags in pink). Placeholders must stay visible. */
+.zc-mention-field::placeholder {
+  -webkit-text-fill-color: currentColor;
+}
+.zc-mention-field::selection {
+  -webkit-text-fill-color: transparent;
+}
