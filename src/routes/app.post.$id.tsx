@@ -1108,7 +1108,8 @@ function PostDetail() {
                             <textarea
                               value={editCommentText}
                               onChange={(e) => setEditCommentText(e.target.value)}
-                              className="min-h-[80px] w-full rounded-lg border border-border bg-card p-3 text-[14px] outline-none focus:border-foreground/40"
+                              className="min-h-[80px] w-full resize-none border-0 bg-transparent p-0 text-[14px] outline-none focus:outline-none focus:ring-0 focus:border-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                              style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                               autoFocus
                             />
                             <div className="mt-2 flex justify-end gap-2">

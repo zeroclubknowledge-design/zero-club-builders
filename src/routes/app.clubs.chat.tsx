@@ -3963,8 +3963,8 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                         if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void saveEdit(); }
                       }}
                       rows={2}
-                      className="block w-full resize-none rounded-lg border border-background/25 bg-background/10 px-2.5 py-2 text-[15px] leading-[1.4] text-inherit outline-none placeholder:opacity-60 focus:border-background/50"
-                      style={isMe ? undefined : { borderColor: 'hsl(var(--border))', background: 'hsl(var(--background))' }}
+                      className="block w-full resize-none border-0 bg-transparent p-0 text-[15px] leading-[1.4] text-inherit outline-none focus:outline-none focus:ring-0 focus:border-0 placeholder:opacity-60 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                      style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                     />
                     <div className="mt-2 flex items-center justify-end gap-2">
                       <span className={`mr-auto text-[11px] ${isMe ? 'text-background/60' : 'text-muted-foreground'}`}>Enter to save · Esc to cancel</span>

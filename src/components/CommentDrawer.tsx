@@ -647,7 +647,8 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                             menuPlacement="bottom"
                             value={editCommentText}
                             onChange={(e) => setEditCommentText(e.target.value)}
-                            className="min-h-[80px] w-full rounded-lg border border-border bg-card p-3 text-sm outline-none focus:border-primary"
+                            className="min-h-[80px] w-full resize-none border-0 bg-transparent p-0 text-sm outline-none focus:outline-none focus:ring-0 focus:border-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                            style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                             autoFocus
                           />
                           <div className="flex justify-end gap-2 mt-2">
