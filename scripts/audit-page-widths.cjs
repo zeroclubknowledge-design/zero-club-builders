@@ -24,7 +24,9 @@ for (const path of files) {
           if (ts.isJsxElement(parent) && /^(DrawerContent|DialogContent|AlertDialogContent)$/.test(parent.openingElement.tagName.getText(tree))) portal = true;
           parent = parent.parent;
         }
-        if (!portal && caps.some(n => n >= 600) && /(?:^|\s)(?:md:)?mx-(?:auto|6)(?:\s|$)/.test(cls) && !cls.includes('zc-page-width')) edits.push(attr.initializer.getStart(tree) + 1);
+        const pageFrame = caps.some(n => n >= 600) && /(?:^|\s)(?:md:)?mx-(?:auto|6)(?:\s|$)/.test(cls);
+        const mainFrame = tag === 'main' && caps.some(n => n >= 400);
+        if (!portal && (pageFrame || mainFrame) && !cls.includes('zc-page-width')) edits.push(attr.initializer.getStart(tree) + 1);
       }
     }
     ts.forEachChild(node, visit);

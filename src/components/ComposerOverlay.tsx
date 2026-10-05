@@ -52,7 +52,7 @@ export function ComposerOverlay({
     >
       {/* The composer, sharp and opaque, sitting on top of the strip below. */}
       <div
-        className={`zc-page-width relative z-10 mx-auto w-full px-2.5 sm:px-4 ${maxWidthClassName}`}
+        className={`${position === "absolute" ? "zc-page-width" : ""} relative z-10 mx-auto w-full px-2.5 sm:px-4 ${maxWidthClassName}`}
         style={{ pointerEvents: "auto" }}
       >
         {children}

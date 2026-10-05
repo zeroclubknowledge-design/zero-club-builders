@@ -383,7 +383,7 @@ function PlayGame() {
           <Clock3 className="h-4 w-4" /> {formatGameTime(elapsed)}
         </span>
       </header>
-      <main className="mx-auto w-full max-w-[720px] px-3 py-4">
+      <main className="zc-page-width mx-auto w-full max-w-[720px] px-3 py-4">
         {board?.kind === "sudoku" && (
           <SudokuRaceBoard key={runKey} puzzle={board.puzzle} submitting={submitting} submitLabel="Submit grid" onSubmit={onSudoku} />
         )}

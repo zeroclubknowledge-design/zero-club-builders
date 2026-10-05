@@ -132,7 +132,7 @@ function CreateTournament() {
     <div className="min-h-screen bg-canvas pb-[calc(env(safe-area-inset-bottom)+110px)]">
       <style>{SPLASH_CSS}</style>
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
+        <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button onClick={goBackSmart} aria-label="Back" className="grid h-11 w-10 place-items-center rounded-full hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
@@ -140,7 +140,7 @@ function CreateTournament() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[680px] space-y-2 pt-2">
+      <main className="zc-page-width mx-auto max-w-[680px] space-y-2 pt-2">
         <Card title="Game">
           <div className="grid grid-cols-3 gap-2">
             {ZERO_GAME_LIST.map((g) => (
@@ -290,7 +290,7 @@ function CreateTournament() {
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-40 md:sticky border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur">
-        <div className="mx-auto flex max-w-[680px] items-center gap-3">
+        <div className="zc-page-width mx-auto flex max-w-[680px] items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13.5px] font-semibold">{info.name} · {duration >= MIN_MINUTES ? lengthText(duration) : "Set a length"}</p>
             <p className="truncate text-[12px] text-muted-foreground">

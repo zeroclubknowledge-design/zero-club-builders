@@ -153,7 +153,7 @@ function TournamentPage() {
       <style>{SPLASH_CSS}</style>
       {/* Hero */}
       <section className="relative overflow-hidden text-white" style={{ background: `radial-gradient(120% 90% at 80% 0%, ${info.to}, ${info.from} 75%)` }}>
-        <div className="relative mx-auto max-w-[680px] px-4 pb-6 pt-[calc(env(safe-area-inset-top)+10px)]">
+        <div className="zc-page-width relative mx-auto max-w-[680px] px-4 pb-6 pt-[calc(env(safe-area-inset-top)+10px)]">
           <div className="flex items-center">
             <button onClick={back} aria-label="Back" className="grid h-10 w-10 place-items-center rounded-full bg-white/10"><ArrowLeft className="h-5 w-5" /></button>
             {t.is_creator && status !== "ended" && (
@@ -193,7 +193,7 @@ function TournamentPage() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-[680px] space-y-2 pt-2">
+      <main className="zc-page-width mx-auto max-w-[680px] space-y-2 pt-2">
         {/* Awards */}
         {awards.length > 0 && (
           <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
@@ -316,7 +316,7 @@ function TournamentPage() {
       {/* Action bar */}
       {status !== "ended" && (
         <div className="fixed inset-x-0 bottom-0 z-40 md:sticky border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur">
-          <div className="mx-auto flex max-w-[680px] items-center gap-3">
+          <div className="zc-page-width mx-auto flex max-w-[680px] items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13.5px] font-semibold">
                 {!can_enter ? "Premium members only" : joined ? (status === "live" ? "You're in — beat your best" : "You're in") : full ? "Tournament is full" : "Join to compete"}

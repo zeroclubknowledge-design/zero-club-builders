@@ -120,7 +120,7 @@ function TutorApplyPage() {
 function TopBar({ onBack, children }: { onBack: () => void; children?: ReactNode }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-card/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-      <div className="mx-auto flex h-14 w-full max-w-[680px] items-center gap-2 px-2">
+      <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-2 px-2">
         <button onClick={onBack} aria-label="Back" className="grid h-10 w-10 place-items-center rounded-full tap hover:bg-foreground/[0.05]">
           <ArrowLeft className="h-[22px] w-[22px]" />
         </button>
@@ -140,7 +140,7 @@ function IntroScreen({ firstName, onStart, onBack }: { firstName: string; onStar
   return (
     <Shell>
       <TopBar onBack={onBack}><p className="text-[15px] font-semibold">Become a Tutor</p></TopBar>
-      <main className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-32 pt-4">
+      <main className="zc-page-width mx-auto w-full max-w-[680px] flex-1 px-4 pb-32 pt-4">
         <section className="relative overflow-hidden rounded-[26px] bg-[#16111a] px-6 pb-7 pt-8 text-white shadow-[0_30px_60px_-30px_rgba(204,32,143,0.55)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_70%_at_100%_0%,rgba(204,32,143,0.55),transparent_60%),radial-gradient(70%_60%_at_0%_100%,rgba(109,40,217,0.45),transparent_60%)]" />
           <ZeroMark size={220} className="pointer-events-none absolute -right-16 -top-10 rotate-12 text-white/[0.07]" />
@@ -211,7 +211,7 @@ function Perk({ icon, title, body }: { icon: ReactNode; title: string; body: str
 function StickyFooter({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 md:sticky border-t border-border/60 bg-card/92 px-4 pt-3 backdrop-blur-xl" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
-      <div className="mx-auto w-full max-w-[680px]">{children}</div>
+      <div className="zc-page-width mx-auto w-full max-w-[680px]">{children}</div>
     </div>
   );
 }
@@ -294,7 +294,7 @@ function ApplicationForm({ prefill, onExit, onSubmitted }: { prefill: TutorAppli
         <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Step {step + 1} of {STEPS.length}</p>
         <p className="truncate text-[15px] font-semibold leading-tight">{STEPS[step].title}</p>
       </TopBar>
-      <div className="mx-auto w-full max-w-[680px] px-4 pt-3">
+      <div className="zc-page-width mx-auto w-full max-w-[680px] px-4 pt-3">
         <div className="flex gap-1.5" aria-hidden>
           {STEPS.map((s, i) => (
             <span key={s.key} className="h-1 flex-1 overflow-hidden rounded-full bg-foreground/[0.08]">
@@ -304,7 +304,7 @@ function ApplicationForm({ prefill, onExit, onSubmitted }: { prefill: TutorAppli
         </div>
       </div>
 
-      <main key={step} className="zc-apply-step mx-auto w-full max-w-[680px] flex-1 px-4 pb-36 pt-6">
+      <main key={step} className="zc-page-width zc-apply-step mx-auto w-full max-w-[680px] flex-1 px-4 pb-36 pt-6">
         <h1 className="font-display text-[24px] font-bold leading-tight tracking-[-0.02em]">{STEPS[step].title}</h1>
         <p className="mt-1.5 text-[14px] text-muted-foreground">{STEPS[step].hint}</p>
 
@@ -559,7 +559,7 @@ function PendingScreen({ application, onBack }: { application: TutorApplication;
   return (
     <Shell>
       <TopBar onBack={onBack}><p className="text-[15px] font-semibold">Tutor application</p></TopBar>
-      <main className="mx-auto w-full max-w-[680px] flex-1 px-4 pb-16 pt-8">
+      <main className="zc-page-width mx-auto w-full max-w-[680px] flex-1 px-4 pb-16 pt-8">
         <div className="flex flex-col items-center text-center">
           <ZeroLoader size={64} />
           <h1 className="mt-6 font-display text-[26px] font-bold leading-tight tracking-[-0.02em]">You're in the queue</h1>
@@ -597,7 +597,7 @@ function RejectedScreen({ application, onBack, onReapply }: { application: Tutor
   return (
     <Shell>
       <TopBar onBack={onBack}><p className="text-[15px] font-semibold">Tutor application</p></TopBar>
-      <main className="mx-auto w-full max-w-[520px] flex-1 px-4 pb-32 pt-10 text-center">
+      <main className="zc-page-width mx-auto w-full max-w-[520px] flex-1 px-4 pb-32 pt-10 text-center">
         <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-foreground/[0.06]"><GraduationCap className="h-7 w-7" /></span>
         <h1 className="mt-5 font-display text-[24px] font-bold leading-tight">Not approved this time</h1>
         <p className="mt-2 text-[14.5px] leading-relaxed text-muted-foreground">
@@ -643,7 +643,7 @@ function ApprovedScreen({ firstName, onBack }: { firstName: string; onBack: () =
   return (
     <Shell>
       <TopBar onBack={onBack} />
-      <main className="mx-auto flex w-full max-w-[520px] flex-1 flex-col items-center px-4 pb-32 pt-10 text-center">
+      <main className="zc-page-width mx-auto flex w-full max-w-[520px] flex-1 flex-col items-center px-4 pb-32 pt-10 text-center">
         <div className="relative grid h-28 w-28 place-items-center">
           <span className="absolute inset-0 animate-ping rounded-full opacity-20" style={{ background: PINK }} />
           <span className="relative grid h-24 w-24 place-items-center rounded-full text-white shadow-[0_20px_40px_-16px_rgba(204,32,143,0.9)]" style={{ background: PINK }}>

@@ -64,7 +64,7 @@ function ClaimGiftPage() {
           <X className="h-[22px] w-[22px]" />
         </Link>
       </header>
-      <main className="flex w-full max-w-[420px] flex-1 flex-col items-center px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-center md:pb-10">{children}</main>
+      <main className="zc-page-width flex w-full max-w-[420px] flex-1 flex-col items-center px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-center md:pb-10">{children}</main>
     </div>
   );
 

@@ -1160,20 +1160,10 @@ body::-webkit-scrollbar { display: none; }
   }
 }
 
-@media (min-width: 1280px) {
-  .zc-app-main:not(.zc-institution-main) {
-    max-width: calc(100vw - 628px) !important;
-  }
-
-  .zc-institution-main {
-    max-width: none !important;
-  }
-}
-
-@media (min-width: 1536px) {
-  .zc-app-main:not(.zc-institution-main) {
-    max-width: 920px !important;
-  }
+/* Flex distributes the remaining space after the real sidebar widths. A
+   separate viewport calculation or reading cap leaves gaps between columns. */
+.zc-app-main {
+  max-width: none;
 }
 
 /* Android density overrides can push a portrait phone across desktop width
@@ -1225,15 +1215,20 @@ body::-webkit-scrollbar { display: none; }
   }
 }
 
-/* Explicitly marked page containers share one touch-width policy. This is
-   scoped to route content so dialog portals, message bubbles and card copy
-   retain their own sizing. Desktop reading-column limits remain in place. */
-@media (max-width: 767px), (hover: none) and (pointer: coarse) and (orientation: portrait) {
-  .zc-desktop-content .zc-page-width {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    margin-inline: 0;
+/* Page frames fill their column at every screen width. Keep this explicit
+   and scoped: dialog portals, message bubbles and text retain their sizing. */
+.zc-desktop-content .zc-page-width {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin-inline: 0;
+}
+
+@media (min-width: 768px) {
+  .zc-desktop-content .zc-page-width.bg-card,
+  .zc-desktop-content .zc-page-width > :is(article, section).bg-card {
+    border-radius: 0;
+    border-inline: 0;
   }
 }
 
