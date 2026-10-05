@@ -398,7 +398,7 @@ function Feed() {
           The header sits above this one, so the overlap is invisible — and it
           means no rounding difference can ever reopen a gap for posts to
           scroll through. */}
-      <header className="zc-page-width zc-feed-tabs sticky top-[calc(var(--zc-header-h)-1px)] z-40 border-b border-border bg-card md:mx-auto md:w-full md:max-w-[680px] md:border-x">
+      <header className="zc-page-width zc-feed-tabs sticky top-[calc(var(--zc-header-h)-1px)] z-40 w-full border-b border-border bg-card">
         <div className="flex h-11 items-stretch justify-between px-4">
           <div className="no-scrollbar flex min-w-0 flex-1 gap-[22px] overflow-x-auto">
             {["Discover", "Following", "Live", "Leaderboard", "Institution"].map((tab) => (
@@ -422,7 +422,7 @@ function Feed() {
         </div>
       </header>
 
-      <main className="zc-page-width zc-feed-content md:mx-auto md:w-full md:max-w-[680px]">
+      <main className="zc-page-width zc-feed-content w-full min-w-0">
           <>
             {activeTab === 'Leaderboard' ? (
               <div className="mt-2 bg-card md:rounded-xl md:border md:border-border">
@@ -493,7 +493,7 @@ function Feed() {
               <>
             {/* The composer strip. Tapping it opens the same create sheet as
                 the Post tab; the rocket goes straight to shipping a project. */}
-            <div className="mt-2 flex items-center gap-3 bg-card px-4 py-3 md:rounded-xl md:border md:border-border">
+            <div className="zc-feed-composer mt-2 flex items-center gap-3 bg-card px-4 py-3">
               <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
                 {currentUser?.avatar_url ? (
                   <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />

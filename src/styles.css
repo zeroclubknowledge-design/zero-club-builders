@@ -1119,6 +1119,15 @@ body::-webkit-scrollbar { display: none; }
   }
 }
 
+/* Feed cards meet the desktop column edges; keep rounding inside cards for
+   quoted posts and media, rather than cutting holes along the outer frame. */
+@media (min-width: 768px) {
+  .zc-feed-content > article {
+    border-radius: 0;
+    border-inline: 0;
+  }
+}
+
 @media (min-width: 768px) {
   [data-zc-bottom-nav] {
     display: none !important;

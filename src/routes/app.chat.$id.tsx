@@ -1132,7 +1132,7 @@ function ChatViewPage() {
           desktop sidebar offset and the shrinking the keyboard causes. */}
       <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
         {editingId && (
-          <div className="mb-2 flex items-center justify-between rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-primary shadow-[0_6px_20px_-8px_rgba(0,0,0,0.45)]">
+          <div className="mb-2 flex items-center justify-between bg-background px-3 py-1.5 text-xs font-bold text-primary">
             <span className="flex items-center gap-1.5"><Pencil className="h-3.5 w-3.5" /> Editing message</span>
             <button onClick={cancelEditing} className="hover:text-foreground grid h-6 w-6 place-items-center rounded-full hover:bg-primary/20 transition"><X className="h-3 w-3" /></button>
           </div>
@@ -1178,7 +1178,7 @@ function ChatViewPage() {
         {/* One container. The avatar used to sit outside the input, which read
             as two boxes side by side for what is a single action. */}
         <div
-          className="flex items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50"
+          className={`flex items-end gap-1.5 rounded-2xl bg-card px-2.5 py-1.5 transition-colors ${editingId ? "border-0 shadow-none" : "border border-border focus-within:border-primary/50"}`}
           style={{ fontFamily: 'var(--font-sans)', "--font-button": 'var(--font-sans)' } as React.CSSProperties}
         >
           <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
@@ -1207,7 +1207,7 @@ function ChatViewPage() {
               }}
               enterKeyHint={enterToSend ? "send" : "enter"}
               placeholder={editingId ? "Edit your message" : (replyingTo ? "Write a reply..." : "Start a message")} 
-              className="block w-full flex-1 resize-none bg-transparent py-2 text-sm outline-none text-foreground placeholder:text-muted-foreground no-scrollbar"
+              className="block w-full flex-1 resize-none border-0 bg-transparent py-2 text-sm text-foreground shadow-none outline-none focus:border-0 focus:outline-none focus:ring-0 placeholder:text-muted-foreground no-scrollbar"
               rows={1}
               style={{ minHeight: '36px', maxHeight: '80px', height: '36px' }}
             />
