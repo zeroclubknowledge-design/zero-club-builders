@@ -446,6 +446,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }:
         !isDetail &&
         !pathname.includes("/app/live") &&
         !pathname.includes("/app/notes") &&
+        !pathname.includes("/app/zero-ai") &&
         (!isChat || pathname === "/app/chat" || pathname === "/app/chat/")
           ? "translate-y-0 opacity-100"
           : "translate-y-[150%] opacity-0 pointer-events-none"
@@ -1301,7 +1302,7 @@ function AppLayout() {
   // product grid. In the reading column that left the grid about 430px wide,
   // which is narrower than one product card wants.
   const isMyStore = pathname.startsWith("/app/my-store");
-  const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio || isMyStore;
+  const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio || isMyStore || pathname.startsWith("/app/zero-ai");
   const hideHeader = !isFeed;
 
   /*
