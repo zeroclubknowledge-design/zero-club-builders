@@ -1,6 +1,26 @@
 /* Density overrides must not turn a portrait phone into a two-column chat. */
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
-  .zero-ai-history { display: none; }
+  .zero-ai-history { display: none !important; }
   .zero-ai-history-toggle, .zero-ai-mobile-history { display: block; }
   .zero-ai-main { max-width: none; }
+}
+
+/* Gradient ring around the composer: quiet at rest, brand-lit when focused. */
+.zero-ai-composer {
+  background: linear-gradient(135deg, color-mix(in oklab, var(--zai-accent, #cc208f) 22%, transparent), color-mix(in oklab, currentColor 10%, transparent) 45%, color-mix(in oklab, #cc208f 18%, transparent));
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+.zero-ai-composer:focus-within {
+  background: linear-gradient(135deg, #cc208f, var(--zai-accent, #cc208f) 55%, #7a1e66);
+  box-shadow: 0 0 0 6px color-mix(in oklab, #cc208f 10%, transparent);
+}
+
+/* The logo's light breathes slowly; still for people who prefer less motion. */
+@keyframes zero-ai-breathe { 0%, 100% { opacity: 0.55; transform: scale(0.96); } 50% { opacity: 0.9; transform: scale(1.04); } }
+@keyframes zero-ai-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+.zero-ai-halo { animation: zero-ai-breathe 5s ease-in-out infinite; }
+.zero-ai-pulse { animation: zero-ai-pulse 1.4s ease-in-out infinite; }
+.zero-ai-glow { transition: background 600ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .zero-ai-halo, .zero-ai-pulse { animation: none; }
 }

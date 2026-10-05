@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { IconZeroAI } from "@/components/icons/zeroAI";
 import {
   MoreHorizontal,
   Zap,
@@ -179,7 +180,7 @@ function SidebarContent({
     { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
     { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
     { Icon: IconGames, label: "Games", to: "/app/games" },
-    { Icon: IconSpark, label: "Zero AI", to: "/app/zero-ai" },
+    { Icon: IconZeroAI, label: "Zero AI", to: "/app/zero-ai" },
     { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
   ];
   const workspaceLinks: any[] = [

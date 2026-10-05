@@ -1,175 +1,209 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
+  BarChart3,
   BookOpen,
+  Brain,
   Building2,
+  ClipboardCheck,
   GraduationCap,
+  Sparkles,
+  ListChecks,
+  Megaphone,
   Menu,
+  NotebookPen,
   Plus,
   Rocket,
-  Sparkles,
+  Target,
   Trash2,
+  Users,
   X,
 } from "@/components/icons/glyphs";
+import { ZeroMark } from "@/components/ZeroLoader";
 import { useUser } from "@/hooks/useUser";
 import { useZeroGiftBalance } from "@/components/ZeroGiftPaymentOption";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { toast } from "sonner";
 import "./zero-ai.css";
 
-const modes = {
+/*
+ * Zero AI — one workspace, shaped around who you are.
+ *
+ * The logo is the Zero Club mark: Zero AI is Zero Club's own assistant.
+ * Each role (learner, tutor, creator, institution) gets its own greeting,
+ * starters, "made for you" promises and shortcuts into the parts of Zero Club
+ * it already uses.
+ *
+ * Honest by design: replies are not live yet. Prompts are drafted and saved on
+ * this device, and the page says so plainly rather than pretending to answer.
+ */
+
+type Icon = ComponentType<{ className?: string }>;
+type Starter = { title: string; hint: string; prompt: string; icon: Icon };
+type RoleConfig = {
+  label: string;
+  icon: Icon;
+  accent: string;
+  eyebrow: string;
+  heading: string;
+  description: string;
+  placeholder: string;
+  starters: Starter[];
+  promises: { title: string; body: string }[];
+  shortcuts: { label: string; hint: string; to: string }[];
+};
+
+const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig> = {
   learner: {
     label: "Learner",
     icon: BookOpen,
-    heading: "What would you like to understand?",
-    description: "A little clarity. A better plan. Your next breakthrough.",
-    placeholder: "Bring a question, a tricky concept, or a learning goal…",
-    prompts: [
-      [
-        "Make it click",
-        "Explain a difficult concept",
-        "Help me understand this concept step by step, with a simple example: ",
-      ],
-      [
-        "Build a study plan",
-        "Make room for steady progress",
-        "Help me build a study plan. My goal is… My available time is…",
-      ],
-      [
-        "Test my understanding",
-        "Practice with a short quiz",
-        "Quiz me on this topic, one question at a time, and explain my mistakes: ",
-      ],
-      [
-        "Review my work",
-        "Find your next improvement",
-        "Give constructive feedback on my project. Here is the goal and what I have built: ",
-      ],
+    accent: "#cc208f",
+    eyebrow: "Your learning companion",
+    heading: "What would you like to understand today?",
+    description: "Break down hard topics, plan steady progress and get honest feedback on your work.",
+    placeholder: "Ask about a concept, paste a question from class, or describe a goal…",
+    starters: [
+      { title: "Make it click", hint: "A hard concept, explained simply", prompt: "Help me understand this concept step by step, with a simple real-world example: ", icon: Sparkles },
+      { title: "Build a study plan", hint: "Steady progress around your week", prompt: "Build me a study plan. My goal is … I have … hours a week, and I'm starting from …", icon: ListChecks },
+      { title: "Quiz me", hint: "One question at a time", prompt: "Quiz me on this topic one question at a time, and explain any mistakes I make: ", icon: Brain },
+      { title: "Review my project", hint: "Clear next improvements", prompt: "Give me constructive feedback on my project. The goal was … and here is what I built: ", icon: Target },
+    ],
+    promises: [
+      { title: "Explains at your level", body: "Plain language first, depth when you ask for it." },
+      { title: "Keeps you on track", body: "Plans that fit your week and your bootcamp schedule." },
+      { title: "Feedback, not answers", body: "Hints and reviews that help you learn, not copy." },
+    ],
+    shortcuts: [
+      { label: "My bootcamps", hint: "Continue learning", to: "/app/bootcamps" },
+      { label: "ZeroNotes", hint: "Notes from your tutors", to: "/app/notes" },
+      { label: "Zero Games", hint: "Practise and compete", to: "/app/games" },
     ],
   },
   tutor: {
     label: "Tutor",
     icon: GraduationCap,
+    accent: "#8b5cf6",
+    eyebrow: "Your teaching assistant",
     heading: "What will you teach next?",
-    description: "Turn your expertise into lessons that stay with people.",
-    placeholder: "Describe a lesson, a learner challenge, or an assessment…",
-    prompts: [
-      [
-        "Plan a lesson",
-        "From objective to activity",
-        "Plan a lesson. Topic: … Learner level: … Duration: … Learning outcome: …",
-      ],
-      [
-        "Create an assessment",
-        "Reveal what learners understand",
-        "Draft an assessment and marking rubric for these learning objectives: ",
-      ],
-      [
-        "Give better feedback",
-        "Clear, specific, and encouraging",
-        "Help me write actionable feedback on this anonymized learner submission: ",
-      ],
-      [
-        "Design a bootcamp",
-        "Build a curriculum with purpose",
-        "Outline a bootcamp. Audience: … Skills: … Duration: … Final project: …",
-      ],
+    description: "Plan lessons, build fair assessments and write feedback learners actually use.",
+    placeholder: "Describe a lesson, a learner challenge, or an assessment you need…",
+    starters: [
+      { title: "Plan a lesson", hint: "From objective to activity", prompt: "Plan a lesson. Topic: … Learner level: … Duration: … Learning outcome: …", icon: NotebookPen },
+      { title: "Create an assessment", hint: "With a marking rubric", prompt: "Draft an assessment and marking rubric for these learning objectives: ", icon: ClipboardCheck },
+      { title: "Write better feedback", hint: "Specific and encouraging", prompt: "Help me write actionable, encouraging feedback on this anonymised learner submission: ", icon: Target },
+      { title: "Design a bootcamp", hint: "A curriculum with purpose", prompt: "Outline a bootcamp. Audience: … Skills: … Duration: … Final project: …", icon: GraduationCap },
+    ],
+    promises: [
+      { title: "Lesson-ready drafts", body: "Structure, activities and timings you can adjust." },
+      { title: "Fair assessment", body: "Rubrics tied to the outcomes you set." },
+      { title: "Your voice, faster", body: "Feedback drafts that sound like you." },
+    ],
+    shortcuts: [
+      { label: "Tutor Studio", hint: "Your classes and learners", to: "/app/tutor-studio" },
+      { label: "Clubs", hint: "Talk to your cohorts", to: "/app/clubs" },
+      { label: "ZeroNotes", hint: "Publish class notes", to: "/app/notes" },
     ],
   },
   creator: {
     label: "Creator",
     icon: Rocket,
+    accent: "#f97316",
+    eyebrow: "Your creative partner",
     heading: "What are we building today?",
-    description: "Give your next idea a clear direction and a first step.",
-    placeholder: "Tell me about your idea, audience, or next launch…",
-    prompts: [
-      [
-        "Shape an idea",
-        "Turn a thought into a brief",
-        "Shape this idea into a project brief with an audience, value proposition, and first milestone: ",
-      ],
-      [
-        "Plan my content",
-        "Show up with something useful",
-        "Create a content plan for my community. Audience: … Topic: … Goal: …",
-      ],
-      [
-        "Prepare a launch",
-        "From building to sharing",
-        "Plan a launch for this project, with a checklist and announcement draft: ",
-      ],
-      [
-        "Grow my community",
-        "Create reasons to come back",
-        "Suggest activities for my community. We focus on… Members need help with…",
-      ],
+    description: "Shape ideas into briefs, plan content that helps people and launch with confidence.",
+    placeholder: "Tell me about your idea, your audience, or your next launch…",
+    starters: [
+      { title: "Shape an idea", hint: "From a thought to a brief", prompt: "Shape this idea into a project brief with an audience, value proposition and first milestone: ", icon: Sparkles },
+      { title: "Plan my content", hint: "Useful, consistent, yours", prompt: "Create a 4-week content plan for my community. Audience: … Topic: … Goal: …", icon: ListChecks },
+      { title: "Prepare a launch", hint: "Checklist and announcement", prompt: "Plan a launch for this product, with a checklist and an announcement draft: ", icon: Megaphone },
+      { title: "Grow my community", hint: "Reasons to come back", prompt: "Suggest activities for my community. We focus on … and members need help with …", icon: Users },
+    ],
+    promises: [
+      { title: "Clarity before effort", body: "A sharp brief before you build anything." },
+      { title: "Content with a plan", body: "Posts and sessions that build on each other." },
+      { title: "Launches that land", body: "Checklists and words that get people moving." },
+    ],
+    shortcuts: [
+      { label: "My Store", hint: "Products and sales", to: "/app/my-store" },
+      { label: "Creator Workspace", hint: "Your creator tools", to: "/app/creator" },
+      { label: "Metrics", hint: "What's working", to: "/app/metrics" },
     ],
   },
   institution: {
     label: "Institution",
     icon: Building2,
-    heading: "How can your programs do more?",
-    description: "Thoughtful planning for your learners, teams, and programs.",
-    placeholder: "Describe a program, a cohort goal, or a planning task…",
-    prompts: [
-      [
-        "Design a program",
-        "Connect teaching to outcomes",
-        "Design a learning program. Audience: … Outcomes: … Timeline: … Resources: …",
-      ],
-      [
-        "Reflect on a cohort",
-        "Turn a summary into next steps",
-        "Review this anonymized cohort summary. Suggest support actions and separate evidence from assumptions: ",
-      ],
-      [
-        "Support my tutors",
-        "Make great teaching repeatable",
-        "Create a tutor onboarding checklist and support plan for this program: ",
-      ],
-      [
-        "Draft a report",
-        "Communicate progress clearly",
-        "Structure a program progress report from these aggregate results and observations: ",
-      ],
+    accent: "#0ea5e9",
+    eyebrow: "Your programme planner",
+    heading: "How can your programmes do more?",
+    description: "Design programmes, support your tutors and report progress with clarity.",
+    placeholder: "Describe a programme, a cohort goal, or a report you need to write…",
+    starters: [
+      { title: "Design a programme", hint: "Teaching tied to outcomes", prompt: "Design a learning programme. Audience: … Outcomes: … Timeline: … Resources: …", icon: Target },
+      { title: "Reflect on a cohort", hint: "From summary to next steps", prompt: "Review this anonymised cohort summary. Suggest support actions and separate evidence from assumptions: ", icon: Users },
+      { title: "Support my tutors", hint: "Make great teaching repeatable", prompt: "Create a tutor onboarding checklist and support plan for this programme: ", icon: ClipboardCheck },
+      { title: "Draft a report", hint: "Progress, clearly told", prompt: "Structure a programme progress report from these aggregate results and observations: ", icon: BarChart3 },
+    ],
+    promises: [
+      { title: "Outcome-first design", body: "Programmes built backwards from results." },
+      { title: "Evidence, not guesses", body: "Clear lines between data and assumptions." },
+      { title: "Reports in minutes", body: "Structure for stakeholders and partners." },
+    ],
+    shortcuts: [
+      { label: "Digital Hub", hint: "Your institution studio", to: "/app/institution-studio" },
+      { label: "Bootcamps", hint: "Programmes and cohorts", to: "/app/bootcamps" },
+      { label: "Metrics", hint: "Reach and results", to: "/app/metrics" },
     ],
   },
-} as const;
-type Mode = keyof typeof modes;
+};
+
+type Mode = keyof typeof roles;
 type Draft = { id: string; mode: Mode; text: string; updatedAt: number };
-const isMode = (value: string): value is Mode => Object.prototype.hasOwnProperty.call(modes, value);
+const MODES = Object.keys(roles) as Mode[];
+const isMode = (value: string): value is Mode => Object.prototype.hasOwnProperty.call(roles, value);
+
+function greeting() {
+  const hour = new Date().getHours();
+  return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+}
+
+function timeAgo(ms: number) {
+  const minutes = Math.round((Date.now() - ms) / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
 
 export function ZeroAIWorkspace() {
   const { data: profile, isLoading } = useUser();
   if (isLoading || !profile?.id)
     return (
-      <div className="grid min-h-[60dvh] place-items-center text-muted-foreground" role="status">
-        Loading your workspace…
+      <div className="grid min-h-[60dvh] place-items-center" role="status">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <ZeroMark size={36} className="zero-ai-pulse text-[#cc208f]" />
+          <span className="text-sm">Opening Zero AI…</span>
+        </div>
       </div>
     );
-  const account = String(profile.account_type || "learner").toLowerCase();
+  const account = String(profile.account_type || "").toLowerCase();
+  const tier = String(profile.tier || "").toLowerCase();
+  const own: Mode = isMode(account) ? account : tier === "creator" ? "creator" : "learner";
   return (
     <Workspace
       key={profile.id}
       userId={profile.id}
       name={String(profile.full_name || profile.username || "").split(" ")[0]}
-      initialMode={isMode(account) ? account : "learner"}
+      avatar={profile.avatar_url || null}
+      ownMode={own}
     />
   );
 }
 
-function Workspace({
-  userId,
-  name,
-  initialMode,
-}: {
-  userId: string;
-  name: string;
-  initialMode: Mode;
-}) {
-  const [mode, setMode] = useState<Mode>(initialMode);
+function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: string; avatar: string | null; ownMode: Mode }) {
+  const [mode, setMode] = useState<Mode>(ownMode);
   const [text, setText] = useState("");
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -178,29 +212,24 @@ function Workspace({
   const { available } = useZeroGiftBalance("zero-ai");
   const { format } = useWalletCurrency();
   const storageKey = `zc-zero-ai-drafts:${userId}`;
-  const current = modes[mode];
-  const Icon = current.icon;
+  const role = roles[mode];
+  const RoleIcon = role.icon;
+  const hello = useMemo(greeting, []);
+
   useEffect(() => {
     try {
       const saved: unknown = JSON.parse(localStorage.getItem(storageKey) || "[]");
       if (Array.isArray(saved))
         setDrafts(
           saved
-            .filter(
-              (d): d is Draft =>
-                d &&
-                typeof d.id === "string" &&
-                typeof d.text === "string" &&
-                typeof d.mode === "string" &&
-                isMode(d.mode) &&
-                Number.isFinite(d.updatedAt),
-            )
+            .filter((d): d is Draft => d && typeof d.id === "string" && typeof d.text === "string" && typeof d.mode === "string" && isMode(d.mode) && Number.isFinite(d.updatedAt))
             .slice(0, 50),
         );
     } catch {
       toast.error("Saved prompts could not be loaded on this device.");
     }
   }, [storageKey]);
+
   function persist(next: Draft[]) {
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
@@ -213,231 +242,286 @@ function Workspace({
   }
   function save() {
     if (!text.trim()) return;
-    const draft = {
-      id: selected || crypto.randomUUID(),
-      mode,
-      text: text.trim(),
-      updatedAt: Date.now(),
-    };
+    const draft = { id: selected || crypto.randomUUID(), mode, text: text.trim(), updatedAt: Date.now() };
     if (persist([draft, ...drafts.filter((d) => d.id !== draft.id)].slice(0, 50))) {
       setSelected(draft.id);
-      toast.success("Prompt saved on this device. AI replies are not available yet.");
+      toast.success("Prompt saved", { description: "It's kept on this device, ready for when Zero AI replies go live." });
     }
   }
   function fresh() {
     setSelected(null);
     setText("");
     setHistoryOpen(false);
-    input.current?.focus();
+    requestAnimationFrame(() => input.current?.focus());
   }
+  function applyStarter(prompt: string) {
+    setText(prompt);
+    setSelected(null);
+    requestAnimationFrame(() => {
+      const el = input.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(prompt.length, prompt.length);
+    });
+  }
+
   const history = (
-    <>
-      <p className="mb-3 px-2 text-xs font-semibold text-muted-foreground">Saved on this device</p>
+    <div className="space-y-1">
       {drafts.length ? (
-        drafts.map((d) => (
-          <div
-            key={d.id}
-            className={`flex items-center rounded-lg ${selected === d.id ? "bg-foreground/5" : "hover:bg-foreground/5"}`}
-          >
-            <button
-              onClick={() => {
-                setSelected(d.id);
-                setMode(d.mode);
-                setText(d.text);
-                setHistoryOpen(false);
-              }}
-              className="min-w-0 flex-1 truncate px-2 py-3 text-left text-sm"
-            >
-              {d.text}
-            </button>
-            <button
-              aria-label={`Delete prompt: ${d.text.slice(0, 30)}`}
-              onClick={() => {
-                if (persist(drafts.filter((item) => item.id !== d.id)) && selected === d.id)
-                  setSelected(null);
-              }}
-              className="rounded-lg p-2 text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ))
+        drafts.map((d) => {
+          const DraftIcon = roles[d.mode].icon;
+          return (
+            <div key={d.id} className={`group flex items-center rounded-xl transition ${selected === d.id ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}>
+              <button
+                onClick={() => { setSelected(d.id); setMode(d.mode); setText(d.text); setHistoryOpen(false); }}
+                className="flex min-w-0 flex-1 items-start gap-2.5 px-2.5 py-2.5 text-left"
+              >
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md" style={{ background: `${roles[d.mode].accent}18`, color: roles[d.mode].accent }}>
+                  <DraftIcon className="h-3.5 w-3.5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-medium text-foreground">{d.text}</span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{roles[d.mode].label} · {timeAgo(d.updatedAt)}</span>
+                </span>
+              </button>
+              <button
+                aria-label={`Delete prompt: ${d.text.slice(0, 30)}`}
+                onClick={() => { if (persist(drafts.filter((item) => item.id !== d.id)) && selected === d.id) setSelected(null); }}
+                className="mr-1 rounded-lg p-2 text-muted-foreground opacity-60 transition hover:text-destructive group-hover:opacity-100"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          );
+        })
       ) : (
-        <p className="px-2 text-xs leading-5 text-muted-foreground">
-          Your saved prompts will appear here.
-        </p>
+        <div className="rounded-xl border border-dashed border-border px-3 py-5 text-center">
+          <p className="text-[12.5px] font-medium">No saved prompts yet</p>
+          <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">Prompts you save appear here, on this device.</p>
+        </div>
       )}
-    </>
+    </div>
   );
+
   return (
-    <div className="zero-ai-workspace relative flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full min-w-0 bg-card text-foreground">
-      <aside
-        className="zero-ai-history hidden w-56 shrink-0 flex-col border-r border-border bg-background/70 p-3 xl:flex"
-        aria-label="Saved prompts"
-      >
-        <Link
-          to="/app"
-          className="mb-6 flex h-10 items-center gap-2 px-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Zero Club
-        </Link>
-        <button
-          onClick={fresh}
-          className="mb-8 flex h-11 items-center gap-2 rounded-xl px-2 text-sm font-semibold hover:bg-foreground/5"
-        >
+    <div
+      className="zero-ai-workspace relative flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full min-w-0 overflow-hidden bg-background text-foreground"
+      style={{ ["--zai-accent" as string]: role.accent }}
+    >
+      {/* Ambient brand light, tinted by the role in use. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="zero-ai-glow absolute left-1/2 top-[-260px] h-[560px] w-[860px] -translate-x-1/2 rounded-full opacity-[0.16] blur-3xl dark:opacity-[0.22]" style={{ background: `radial-gradient(closest-side, ${role.accent}, transparent)` }} />
+        <ZeroMark size={520} className="absolute -right-40 -top-32 rotate-12 text-foreground opacity-[0.025] dark:opacity-[0.04]" />
+      </div>
+
+      {/* ── Saved prompts (desktop) ── */}
+      <aside className="zero-ai-history relative z-10 hidden w-[264px] shrink-0 flex-col border-r border-border/70 bg-background/80 p-4 backdrop-blur-xl xl:flex" aria-label="Saved prompts">
+        <div className="mb-5 flex items-center gap-2.5 px-1">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white shadow-[0_8px_24px_-10px_rgba(204,32,143,0.8)]">
+            <ZeroMark size={20} />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-[15px] font-bold tracking-tight">Zero AI</span>
+            <span className="block text-[11px] text-muted-foreground">by Zero Club</span>
+          </span>
+        </div>
+        <button onClick={fresh} className="mb-5 flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground text-[13.5px] font-semibold text-background transition hover:opacity-90 active:scale-[0.99]">
           <Plus className="h-4 w-4" /> New prompt
         </button>
-        <div className="flex-1">{history}</div>
-        <div className="mt-8 border-t border-border px-2 pt-4">
-          <p className="text-sm font-semibold">{name || "Your workspace"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{current.label} workspace</p>
+        <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Saved prompts</p>
+        <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">{history}</div>
+        <div className="mt-4 space-y-3 border-t border-border/70 pt-4">
+          <Link to="/app" className="flex items-center gap-2 px-1 text-[12.5px] text-muted-foreground transition hover:text-foreground">
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to Zero Club
+          </Link>
+          <div className="flex items-center gap-2.5 rounded-xl bg-foreground/[0.03] p-2.5">
+            {avatar ? <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover" /> : (
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#cc208f]/10 text-[13px] font-bold text-[#cc208f]">{(name || "Z")[0].toUpperCase()}</span>
+            )}
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate text-[13px] font-semibold">{name || "Your workspace"}</span>
+              <span className="block text-[11px] text-muted-foreground">{roles[ownMode].label} workspace</span>
+            </span>
+          </div>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
+
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
+        {/* ── Top bar ── */}
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 sm:px-6">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <button
               onClick={() => setHistoryOpen(!historyOpen)}
-              aria-label="Toggle saved prompts"
+              aria-label="Saved prompts"
               aria-expanded={historyOpen}
-              className="zero-ai-history-toggle rounded-lg p-2 hover:bg-foreground/5 xl:hidden"
+              className="zero-ai-history-toggle rounded-xl p-2 transition hover:bg-foreground/5 xl:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <span className="text-lg font-semibold tracking-tight">
-              Zero AI
-              <span className="ml-2 align-middle text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                Preview
-              </span>
+            <span className="flex items-center gap-2 xl:hidden">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white"><ZeroMark size={17} /></span>
+              <span className="text-[16px] font-bold tracking-tight">Zero AI</span>
             </span>
+            <span className="rounded-full border border-[#cc208f]/25 bg-[#cc208f]/[0.07] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Preview</span>
           </div>
-          <button
-            onClick={fresh}
-            aria-label="New prompt"
-            title="New prompt"
-            className="rounded-full p-2.5 hover:bg-foreground/5"
-          >
-            <Plus className="h-5 w-5" />
+          <button onClick={fresh} aria-label="New prompt" title="New prompt" className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-background/70 px-3 text-[12.5px] font-semibold backdrop-blur transition hover:bg-foreground/5">
+            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New</span>
           </button>
         </header>
+
         {historyOpen && (
-          <section
-            className="zero-ai-mobile-history mx-4 mb-4 rounded-xl border border-border bg-background p-3 xl:hidden"
-            aria-label="Saved prompts"
-          >
-            <div className="flex items-center justify-between">
-              <Link to="/app" className="text-xs text-muted-foreground">
-                ← Back to Zero Club
-              </Link>
-              <button
-                aria-label="Close saved prompts"
-                onClick={() => setHistoryOpen(false)}
-                className="p-2"
-              >
-                <X className="h-4 w-4" />
-              </button>
+          <section className="zero-ai-mobile-history mx-4 mb-4 rounded-2xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur-xl xl:hidden" aria-label="Saved prompts">
+            <div className="mb-2 flex items-center justify-between px-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Saved prompts</p>
+              <button aria-label="Close saved prompts" onClick={() => setHistoryOpen(false)} className="rounded-lg p-1.5 hover:bg-foreground/5"><X className="h-4 w-4" /></button>
             </div>
-            <div className="max-h-60 overflow-y-auto">{history}</div>
+            <div className="max-h-72 overflow-y-auto">{history}</div>
+            <Link to="/app" className="mt-2 flex items-center gap-2 px-1 py-1 text-[12.5px] text-muted-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Back to Zero Club</Link>
           </section>
         )}
-        <main className="zero-ai-main mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col justify-center px-4 pb-8 pt-8 sm:px-8 sm:pt-12">
-          <div className="mb-8 text-center">
-            <span className="mx-auto mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]">
-              <Sparkles className="h-6 w-6" />
-            </span>
-            <p className="mb-2 text-sm text-muted-foreground">
-              A space for your next step{name ? `, ${name}` : ""}.
-            </p>
-            <h1 className="font-display text-[28px] font-medium leading-tight tracking-tight sm:text-[36px]">
-              {current.heading}
+
+        <main className="zero-ai-main mx-auto flex w-full min-w-0 max-w-[880px] flex-1 flex-col px-4 pb-12 pt-4 sm:px-8 sm:pt-8">
+          {/* ── Hero ── */}
+          <div className="text-center">
+            <div className="relative mx-auto mb-6 h-[76px] w-[76px]">
+              <div aria-hidden className="zero-ai-halo absolute inset-[-14px] rounded-[30px] opacity-70 blur-xl" style={{ background: `conic-gradient(from 120deg, #cc208f, ${role.accent}, #7a1e66, #cc208f)` }} />
+              <div className="relative grid h-full w-full place-items-center rounded-[24px] bg-gradient-to-br from-[#cc208f] via-[#a3197a] to-[#4c0f3f] text-white shadow-[0_20px_44px_-18px_rgba(204,32,143,0.9)] ring-1 ring-white/20">
+                <ZeroMark size={40} />
+              </div>
+            </div>
+            <p className="text-[13px] font-semibold uppercase tracking-[0.16em]" style={{ color: role.accent }}>{role.eyebrow}</p>
+            <h1 className="mx-auto mt-3 max-w-[640px] font-display text-[28px] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[40px]">
+              {hello}{name ? `, ${name}` : ""}.
+              <span className="block text-foreground/70">{role.heading}</span>
             </h1>
-            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground">
-              {current.description}
-            </p>
+            <p className="mx-auto mt-3 max-w-[520px] text-[14.5px] leading-6 text-muted-foreground">{role.description}</p>
           </div>
-          <div
-            className="mb-6 flex flex-wrap justify-center gap-1.5"
-            aria-label="Choose your workspace"
-          >
-            {(Object.keys(modes) as Mode[]).map((value) => {
-              const RoleIcon = modes[value].icon;
+
+          {/* ── Role switch ── */}
+          <div className="mx-auto mt-7 flex w-full max-w-[560px] rounded-2xl border border-border bg-background/70 p-1 shadow-sm backdrop-blur" role="tablist" aria-label="Choose your workspace">
+            {MODES.map((value) => {
+              const ModeIcon = roles[value].icon;
+              const on = mode === value;
               return (
                 <button
                   key={value}
-                  aria-pressed={mode === value}
+                  role="tab"
+                  aria-selected={on}
                   onClick={() => setMode(value)}
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition ${mode === value ? "bg-foreground text-background" : "text-muted-foreground hover:bg-foreground/5"}`}
+                  className={`relative flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-[12.5px] font-semibold transition ${on ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                  <RoleIcon className="h-4 w-4" />
-                  {modes[value].label}
+                  <ModeIcon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{roles[value].label}</span>
+                  {value === ownMode && <span aria-label="Your account type" className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full" style={{ background: on ? "#fff" : roles[value].accent }} />}
                 </button>
               );
             })}
           </div>
+
+          {/* ── Composer ── */}
           <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              save();
-            }}
-            className="rounded-[24px] border border-foreground/15 bg-background/60 p-3 shadow-sm focus-within:border-[#cc208f]/40 focus-within:ring-2 focus-within:ring-[#cc208f]/5"
+            onSubmit={(event) => { event.preventDefault(); save(); }}
+            className="zero-ai-composer group relative mt-6 rounded-[26px] p-[1.5px]"
           >
-            <label htmlFor="zero-ai-prompt" className="sr-only">
-              Your {current.label.toLowerCase()} prompt
-            </label>
-            <textarea
-              id="zero-ai-prompt"
-              ref={input}
-              value={text}
-              maxLength={12000}
-              onChange={(event) => setText(event.target.value)}
-              placeholder={current.placeholder}
-              rows={4}
-              className="max-h-64 min-h-28 w-full resize-y bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
-            />
-            <div className="flex items-center justify-between gap-2 pt-2">
-              <span className="flex items-center gap-1.5 px-2 text-xs text-muted-foreground">
-                <Icon className="h-4 w-4" />
-                {current.label} mode
-              </span>
-              <button
-                type="submit"
-                disabled={!text.trim()}
-                className="flex h-10 items-center gap-2 rounded-full bg-foreground px-4 text-xs font-semibold text-background transition hover:opacity-85 disabled:opacity-30"
-              >
-                Save prompt <ArrowUpRight className="h-4 w-4" />
-              </button>
+            <div className="rounded-[25px] bg-card p-3 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
+              <label htmlFor="zero-ai-prompt" className="sr-only">Your {role.label.toLowerCase()} prompt</label>
+              <textarea
+                id="zero-ai-prompt"
+                ref={input}
+                value={text}
+                maxLength={12000}
+                onChange={(event) => setText(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) { event.preventDefault(); save(); } }}
+                placeholder={role.placeholder}
+                rows={4}
+                className="max-h-72 min-h-[116px] w-full resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 px-1 pt-3">
+                <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold" style={{ background: `${role.accent}14`, color: role.accent }}>
+                    <RoleIcon className="h-3.5 w-3.5" /> {role.label}
+                  </span>
+                  <span className="hidden tabular-nums sm:inline">{text.length ? `${text.length.toLocaleString()} characters` : "Ctrl + Enter to save"}</span>
+                </span>
+                <button
+                  type="submit"
+                  disabled={!text.trim()}
+                  className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0458f] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
+                >
+                  Save prompt <ArrowUpRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </form>
-          <p role="status" className="mt-3 text-center text-xs leading-5 text-muted-foreground">
-            AI replies are coming soon. Prompts are saved only on this device.
+          <p role="status" className="mt-3 flex items-center justify-center gap-2 text-center text-[12px] text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            Zero AI replies are coming soon. Your prompts are saved privately on this device.
           </p>
-          <div className="mt-7 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {current.prompts.map(([title, hint, prompt]) => (
-              <button
-                key={title}
-                onClick={() => {
-                  setText(prompt);
-                  setSelected(null);
-                  input.current?.focus();
-                }}
-                className="group flex items-start gap-3 rounded-2xl border border-border px-4 py-4 text-left transition hover:border-foreground/20 hover:bg-foreground/[0.025]"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium">{title}</span>
-                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">{hint}</span>
-                </span>
-                <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-foreground" />
-              </button>
-            ))}
-          </div>
+
+          {/* ── Starters ── */}
+          <section className="mt-9" aria-labelledby="zai-starters">
+            <div className="mb-3 flex items-end justify-between">
+              <h2 id="zai-starters" className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Start with</h2>
+              <span className="text-[12px] text-muted-foreground">Tap to use</span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {role.starters.map(({ title, hint, prompt, icon: StarterIcon }) => (
+                <button
+                  key={title}
+                  onClick={() => applyStarter(prompt)}
+                  className="group relative flex items-start gap-3.5 overflow-hidden rounded-2xl border border-border bg-card/80 p-4 text-left shadow-[0_1px_0_rgba(0,0,0,0.02)] transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[0_18px_40px_-28px_rgba(0,0,0,0.5)]"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl transition group-hover:scale-105" style={{ background: `${role.accent}14`, color: role.accent }}>
+                    <StarterIcon className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[14.5px] font-semibold">{title}</span>
+                    <span className="mt-0.5 block text-[12.5px] leading-5 text-muted-foreground">{hint}</span>
+                  </span>
+                  <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground" />
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* ── Made for you + shortcuts ── */}
+          <section className="mt-6 grid gap-3 lg:grid-cols-[1.35fr_1fr]">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card/80 p-5">
+              <div aria-hidden className="absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-20 blur-2xl" style={{ background: role.accent }} />
+              <p className="relative text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: role.accent }}>Made for {role.label.toLowerCase()}s</p>
+              <ul className="relative mt-3 space-y-3">
+                {role.promises.map((item, i) => (
+                  <li key={item.title} className="flex gap-3">
+                    <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white" style={{ background: role.accent }}>{i + 1}</span>
+                    <span>
+                      <span className="block text-[14px] font-semibold">{item.title}</span>
+                      <span className="block text-[12.5px] leading-5 text-muted-foreground">{item.body}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-border bg-card/80 p-2">
+              <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Your Zero Club</p>
+              {role.shortcuts.map((item) => (
+                <Link key={item.to + item.label} to={item.to as any} className="group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition hover:bg-foreground/[0.04]">
+                  <span className="min-w-0">
+                    <span className="block text-[14px] font-semibold">{item.label}</span>
+                    <span className="block text-[12px] text-muted-foreground">{item.hint}</span>
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition group-hover:text-foreground" />
+                </Link>
+              ))}
+            </div>
+          </section>
+
           {available > 0 && (
-            <p className="mt-6 text-center text-xs leading-5 text-muted-foreground">
-              Your {format(available)} in Zero AI cards is reserved for paid tools when they launch.
-              Saving prompts is free.
+            <p className="mt-6 rounded-xl bg-[#cc208f]/[0.06] px-4 py-3 text-center text-[12.5px] leading-5 text-foreground/80">
+              Your {format(available)} in Zero AI cards is reserved for paid tools when they launch. Saving prompts is free.
             </p>
           )}
-          <p className="mt-8 text-center text-[11px] leading-5 text-muted-foreground/75">
-            Built around your goals. Your courses, files, and learner records are not connected yet.
+          <p className="mt-8 text-center text-[11.5px] leading-5 text-muted-foreground/80">
+            Zero AI by Zero Club · Your courses, files and learner records are not connected yet.
           </p>
         </main>
       </div>
