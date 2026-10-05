@@ -3,6 +3,7 @@ import { IconZeroAI } from "@/components/icons/zeroAI";
 import {
   MoreHorizontal,
   Zap,
+  ChevronRight,
   Palette,
   Check,
   Rocket,
@@ -45,7 +46,10 @@ import { IncomingNotificationCard, showIncomingPop } from "@/components/Incoming
 import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
-import { ZeroLoader } from "@/components/ZeroLoader";
+import { ZeroLoader, ZeroMark } from "@/components/ZeroLoader";
+import { useQuery } from "@tanstack/react-query";
+import { listTournaments, previewPrizeLine } from "@/features/games/v2/api";
+import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { getDeviceId } from "@/lib/device";
 
 export const Route = createFileRoute("/app")({
@@ -553,101 +557,120 @@ function DesktopWorkspaceRail({
           { label: "Create note", to: "/app/notes/create", Icon: IconNotes },
         ];
 
-  const proofItems = [
-    { label: "XP", value: formatCompactNumber(profile?.xp), Icon: Zap },
-    { label: "Wallet", value: formatCompactNumber(profile?.coins), Icon: IconWallet },
-    { label: "Messages", value: formatCompactNumber(unreadMessagesCount), Icon: IconMessages },
+  const { format: formatMoney } = useWalletCurrency();
+  const firstName = getFirstName(profile) || "";
+  const hour = new Date().getHours();
+  const hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  /* What is live on Zero Games right now — the most useful thing to see at a glance. */
+  const liveGames = useQuery({
+    queryKey: ["zero-tournaments", "live"],
+    queryFn: () => listTournaments("live"),
+    staleTime: 60_000,
+  });
+  const spotlight = (liveGames.data || [])
+    .filter((t) => t.status === "live" && t.visibility === "public")
+    .sort((a, b) => Number(Boolean(b.sponsored)) - Number(Boolean(a.sponsored)) || (b.players || 0) - (a.players || 0))
+    .slice(0, 2);
+
+  const stats = [
+    { label: "Zero Points", value: `${formatCompactNumber(profile?.zp)}`, to: "/app/tasks", Icon: Zap },
+    { label: "Wallet", value: formatMoney(Number(profile?.coins) || 0, { notation: "compact" }), to: "/app/wallet", Icon: IconWallet },
+    { label: "Unread", value: formatCompactNumber(unreadMessagesCount), to: "/app/chat", Icon: IconMessages },
   ];
 
-  const workspaceNotes = isAdmin
-    ? ["Trust and safety", "Platform operations", "Revenue and growth"]
-    : isInstitution
-    ? ["Tutor visibility", "Cohort outcomes", "Credentials and reporting"]
-    : isTutor
-      ? ["Bootcamp curriculum", "Learner progress", "Creator earnings"]
-      : ["Proof of work", "Learning progress", "Reputation signals"];
-
   return (
-    <aside className="zc-workspace-rail sticky top-0 hidden h-screen w-[336px] shrink-0 flex-col gap-0 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 xl:flex no-scrollbar">
-      <div className="border-b border-border/60 px-1 pb-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Desktop workspace
-            </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-foreground">{isAdmin ? "Zero Club Admin" : role}</h2>
+    <aside className="zc-workspace-rail sticky top-0 hidden h-screen w-[336px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 xl:flex no-scrollbar">
+      {/* Who you are and where you stand */}
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[0_18px_44px_-34px_rgba(0,0,0,0.5)]">
+        <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#cc208f]/20 blur-2xl" />
+        <ZeroMark size={88} className="pointer-events-none absolute -bottom-6 -right-5 rotate-12 text-[#cc208f] opacity-[0.07]" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-muted-foreground">{hello}{firstName ? `,` : ""}</p>
+            <h2 className="truncate text-[20px] font-bold tracking-[-0.02em] text-foreground">{firstName || "Welcome back"}</h2>
           </div>
-          <img src="/logo.png" alt="" className="h-10 w-10 object-contain" loading="lazy" decoding="async" />
+          <span className="shrink-0 rounded-full border border-[#cc208f]/25 bg-[#cc208f]/[0.07] px-2.5 py-1 text-[11px] font-semibold text-[#cc208f]">
+            {isAdmin ? "Admin" : role}
+          </span>
         </div>
-        <p className="mt-4 text-sm leading-6 text-muted-foreground">
-          Zero Club connects learning, proof, reputation, and earning into one operating workspace.
-        </p>
-      </div>
-
-      <div className="border-b border-border/60 py-5">
-        <div className="grid grid-cols-3 gap-2">
-          {proofItems.map((item) => (
-            <div
+        <div className="relative mt-4 grid grid-cols-3 gap-2">
+          {stats.map((item) => (
+            <Link
               key={item.label}
-              className="rounded-lg border border-border bg-background/60 px-3 py-3.5 text-center"
+              to={item.to as any}
+              className="rounded-xl bg-foreground/[0.035] px-2.5 py-3 text-center transition hover:bg-foreground/[0.06]"
             >
-              <item.Icon className="mx-auto h-[18px] w-[18px] text-muted-foreground" />
-              <div className="mt-2.5 text-lg font-semibold tracking-tight leading-none text-foreground tabular-nums">
-                {item.value}
-              </div>
-              <div className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-                {item.label}
-              </div>
-            </div>
+              <item.Icon className="mx-auto h-4 w-4 text-muted-foreground" />
+              <div className="mt-1.5 truncate text-[16px] font-bold tabular-nums leading-tight text-foreground">{item.value}</div>
+              <div className="mt-1 truncate text-[10.5px] font-medium text-muted-foreground">{item.label}</div>
+            </Link>
           ))}
         </div>
       </div>
 
-      <div className="border-b border-border/60 py-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-foreground">Primary actions</h3>
+      {/* Shortcuts for this kind of account */}
+      <div>
+        <div className="mb-2 flex items-center justify-between px-1">
+          <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Quick actions</h3>
           {unreadNotificationsCount > 0 && (
-            <Link
-              to="/app/notifications"
-              className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary"
-            >
+            <Link to="/app/notifications" className="rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[11px] font-semibold text-[#cc208f]">
               {unreadNotificationsCount} new
             </Link>
           )}
         </div>
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           {primaryActions.map((action) => (
             <Link
               key={action.label}
               to={action.to}
-              className="group flex items-center gap-3 rounded-lg border border-border bg-background/60 px-3.5 py-3 text-sm font-semibold tracking-tight transition-colors hover:border-primary/30 hover:bg-primary/5"
+              className="group flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-3 text-[14px] font-semibold tracking-tight transition hover:-translate-y-px hover:border-[#cc208f]/30 hover:shadow-[0_10px_24px_-18px_rgba(204,32,143,0.6)]"
             >
-              <action.Icon className="h-[18px] w-[18px] text-muted-foreground group-hover:text-primary transition-colors" />
-              <span>{action.label}</span>
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-foreground/[0.04] transition group-hover:bg-[#cc208f]/10">
+                <action.Icon className="h-[17px] w-[17px] text-muted-foreground transition group-hover:text-[#cc208f]" />
+              </span>
+              <span className="min-w-0 flex-1 truncate">{action.label}</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/50 transition group-hover:translate-x-0.5 group-hover:text-foreground" />
             </Link>
           ))}
         </div>
       </div>
 
-      <div className="border-b border-border/60 py-5">
-        <h3 className="text-sm font-bold text-foreground">What this workspace tracks</h3>
-        <div className="mt-3 grid gap-2">
-          {workspaceNotes.map((note) => (
-            <div key={note} className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>{note}</span>
-            </div>
-          ))}
+      {/* Live on Zero Games */}
+      <div className="rounded-2xl border border-border bg-card p-2">
+        <div className="flex items-center justify-between px-2.5 pb-1 pt-2">
+          <h3 className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#e0245e]" /> Live on Zero Games
+          </h3>
+          <Link to="/app/games" className="text-[12px] font-semibold text-[#cc208f]">See all</Link>
         </div>
+        {spotlight.length ? spotlight.map((t) => (
+          <Link
+            key={t.id}
+            to="/app/games/t/$id"
+            params={{ id: t.id }}
+            search={{ code: undefined } as any}
+            className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition hover:bg-foreground/[0.04]"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white"><IconGames className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13.5px] font-semibold text-foreground">{t.title}</span>
+              <span className="block truncate text-[12px] text-muted-foreground">{previewPrizeLine(t)} · {t.players} {t.players === 1 ? "player" : "players"}</span>
+            </span>
+          </Link>
+        )) : (
+          <p className="px-2.5 pb-3 pt-1 text-[12.5px] leading-5 text-muted-foreground">No live tournaments right now. Start one and invite your club.</p>
+        )}
       </div>
 
-      <div className="mt-5 rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-          Current section
-        </p>
-        <p className="mt-2 text-sm font-semibold text-foreground">
-          {pathname.replace("/app", "Zero Club") || "Zero Club"}
-        </p>
+      <div className="mt-auto px-1 pt-2 text-[11.5px] leading-5 text-muted-foreground/80">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          <Link to="/docs" className="hover:text-foreground">Docs</Link>
+          <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+          <Link to="/terms" className="hover:text-foreground">Terms</Link>
+          <Link to="/app/settings" className="hover:text-foreground">Settings</Link>
+        </div>
+        <p className="mt-1.5">© {new Date().getFullYear()} Zero Club</p>
       </div>
     </aside>
   );

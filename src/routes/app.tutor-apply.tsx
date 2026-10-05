@@ -210,7 +210,7 @@ function Perk({ icon, title, body }: { icon: ReactNode; title: string; body: str
 
 function StickyFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/92 px-4 pt-3 backdrop-blur-xl" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
+    <div className="fixed inset-x-0 bottom-0 z-40 md:sticky border-t border-border/60 bg-card/92 px-4 pt-3 backdrop-blur-xl" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
       <div className="mx-auto w-full max-w-[680px]">{children}</div>
     </div>
   );

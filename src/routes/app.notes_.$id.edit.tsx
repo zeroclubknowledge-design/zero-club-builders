@@ -1017,7 +1017,7 @@ function NotesEditPage() {
       )}
 
       {showIdlePublish && !showPublishModal && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] animate-in slide-in-from-bottom-4 fade-in duration-200">
+        <div className="fixed inset-x-0 bottom-0 z-40 md:sticky border-t border-border bg-card pb-[env(safe-area-inset-bottom)] animate-in slide-in-from-bottom-4 fade-in duration-200">
           <div className="zc-page-width mx-auto flex h-[60px] max-w-[760px] items-center gap-3 px-4">
             <p className="min-w-0 flex-1 truncate text-[14px] text-muted-foreground">Finished making changes?</p>
             <button

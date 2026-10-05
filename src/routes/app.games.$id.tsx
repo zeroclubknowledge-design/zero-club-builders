@@ -372,7 +372,7 @@ function ZeroGameCompetitionPage() {
         </section>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 bg-[#141217] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3">
+      <div className="fixed inset-x-0 bottom-0 z-40 md:sticky bg-[#141217] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3">
         <div className="zc-page-width mx-auto max-w-[680px]">
           {isHost && !everyPlayerReady && <p className="mb-2.5 text-center text-[13px] text-white/60">At least two players must be ready to start.</p>}
           <div className="flex gap-2.5">

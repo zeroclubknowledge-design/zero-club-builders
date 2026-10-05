@@ -289,7 +289,7 @@ function CreateTournament() {
         </Card>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-40 md:sticky border-t border-border bg-card/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur">
         <div className="mx-auto flex max-w-[680px] items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13.5px] font-semibold">{info.name} · {duration >= MIN_MINUTES ? lengthText(duration) : "Set a length"}</p>

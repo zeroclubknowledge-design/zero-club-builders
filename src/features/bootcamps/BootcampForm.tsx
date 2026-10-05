@@ -1297,7 +1297,7 @@ export function BootcampForm({
       </main>
 
       {/* ─── Footer Controls ─── */}
-      <footer className="fixed bottom-0 left-0 right-0 z-50 border-t hairline bg-background/95 px-4 py-3 backdrop-blur-xl md:px-7">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 md:sticky border-t hairline bg-background/95 px-4 py-3 backdrop-blur-xl md:px-7">
         <div className="zc-page-width mx-auto flex max-w-[820px] items-center justify-between">
           <button
             onClick={() => step > 1 && setStep(step - 1)}

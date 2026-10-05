@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
-import { BookOpen, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, Smile } from "@/components/icons/glyphs";
+import { BookOpen, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, Smile, Pencil } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
 import { useState, useRef, useEffect, useMemo, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
@@ -913,6 +913,8 @@ function ClubChat() {
       room_id: activeRoom,
       reply_to_id: parentId,
       created_at: new Date().toISOString(),
+      // Not saved yet: it cannot be edited until the server has it.
+      pending: true,
       profiles: members.find(m => m.profile_id === currentUser.id)?.profiles || currentUser.user_metadata
     };
     
@@ -1059,6 +1061,22 @@ function ClubChat() {
     } finally {
       setIsCreatingGiveaway(false);
     }
+  };
+
+  /* Edit your own message. The server keeps attachments and refuses cards. */
+  const handleEditMessage = async (messageId: string, text: string) => {
+    const { data, error } = await supabase.rpc('edit_club_message', { p_id: messageId, p_text: text });
+    if (error) {
+      toast.error(error.message || 'Could not edit this message');
+      return false;
+    }
+    const result = data as { content: string; edited_at: string | null };
+    setMessages((prev) => {
+      const next = prev.map((m) => (m.id === messageId ? { ...m, content: result.content, edited_at: result.edited_at } : m));
+      messagesCache.current[activeRoom] = next;
+      return next;
+    });
+    return true;
   };
 
   const handleReact = async (messageId: string, emoji: string) => {
@@ -2616,6 +2634,7 @@ function ClubChat() {
               repliedMessage={m.reply_to_id ? messages.find(prev => prev.id === m.reply_to_id) : null}
               onReply={setReplyingTo}
               onReact={handleReact}
+              onEdit={handleEditMessage}
               getRoleColor={getRoleColor}
               room={activeRoom}
               isAdmin={isAdmin}
@@ -3448,7 +3467,24 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
   );
 }
 
-function MessageBubble({ message, isMe, currentUser, members, repliedMessage, onReply, onReact, getRoleColor, room, isAdmin }: any) {
+function MessageBubble({ message, isMe, currentUser, members, repliedMessage, onReply, onReact, onEdit, getRoleColor, room, isAdmin }: any) {
+  const canEdit = Boolean(isMe && onEdit && !message.pending && !String(message.content || '').startsWith('::ZEROCLUB_'));
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+  const startEdit = () => {
+    setEditText(String(message.content || '').split('$$MEDIA$$')[0].trim());
+    setEditing(true);
+  };
+  const saveEdit = async () => {
+    if (savingEdit) return;
+    const hasMedia = String(message.content || '').includes('$$MEDIA$$');
+    if (!editText.trim() && !hasMedia) { toast.error('A message cannot be empty'); return; }
+    setSavingEdit(true);
+    const ok = await onEdit(message.id, editText);
+    setSavingEdit(false);
+    if (ok) setEditing(false);
+  };
   const navigate = useNavigate();
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -3715,6 +3751,18 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
           >
             <Smile className="h-4 w-4" />
           </button>
+          {canEdit && !editing && (
+            <button
+              type="button"
+              title="Edit"
+              aria-label="Edit your message"
+              onMouseDown={(event) => event.stopPropagation()}
+              onClick={startEdit}
+              className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition hover:border-[#cc208f]/40 hover:text-[#cc208f]"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Content Container */}
@@ -3752,7 +3800,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                   {role}
                 </span>
               )}
-              <span className="text-muted-foreground">· {time}</span>
+              <span className="text-muted-foreground">· {time}{message.edited_at ? ' · Edited' : ''}</span>
             </div>
           )}
 
@@ -3889,10 +3937,47 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
               );
             })() : (
               <>
+                {editing ? (
+                  <div
+                    className="w-[min(420px,70vw)] text-left"
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onTouchStart={(event) => event.stopPropagation()}
+                  >
+                    <textarea
+                      autoFocus
+                      value={editText}
+                      maxLength={4000}
+                      onChange={(event) => {
+                        setEditText(event.target.value);
+                        event.target.style.height = 'auto';
+                        event.target.style.height = `${Math.min(event.target.scrollHeight, 200)}px`;
+                      }}
+                      onFocus={(event) => {
+                        const el = event.target;
+                        el.setSelectionRange(el.value.length, el.value.length);
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Escape') { event.preventDefault(); setEditing(false); }
+                        if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void saveEdit(); }
+                      }}
+                      rows={2}
+                      className="block w-full resize-none rounded-lg border border-background/25 bg-background/10 px-2.5 py-2 text-[15px] leading-[1.4] text-inherit outline-none placeholder:opacity-60 focus:border-background/50"
+                      style={isMe ? undefined : { borderColor: 'hsl(var(--border))', background: 'hsl(var(--background))' }}
+                    />
+                    <div className="mt-2 flex items-center justify-end gap-2">
+                      <span className={`mr-auto text-[11px] ${isMe ? 'text-background/60' : 'text-muted-foreground'}`}>Enter to save · Esc to cancel</span>
+                      <button type="button" onClick={() => setEditing(false)} className={`rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${isMe ? 'text-background/80 hover:bg-background/10' : 'text-muted-foreground hover:bg-foreground/5'}`}>Cancel</button>
+                      <button type="button" onClick={() => void saveEdit()} disabled={savingEdit} className="rounded-full bg-[#cc208f] px-3.5 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-60">{savingEdit ? 'Saving…' : 'Save'}</button>
+                    </div>
+                  </div>
+                ) : (
                 <p className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
                   <LinkifiedText text={message.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-bold hover:opacity-80" : "text-[#cc208f] underline font-bold hover:opacity-80"} />
-                  {isMe && !message.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
+                  {isMe && !message.content.includes('$$MEDIA$$') && <span className={`inline-block ${message.edited_at ? 'w-24' : 'w-12'}`} />} {/* Space for timestamp */}
                 </p>
+                )}
                 
                 {message.content.includes('$$MEDIA$$') && (
                   <div className={`mt-2 rounded-xl overflow-hidden transition-colors ${
@@ -3926,7 +4011,7 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
             {isMe && message.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
             {isMe && giveaway && <div className="h-4" />}
             
-            {isMe && <span className="absolute bottom-1.5 right-3 text-[10px] text-background/70">{time}</span>}
+            {isMe && !editing && <span className="absolute bottom-1.5 right-3 text-[10px] text-background/70">{message.edited_at ? 'Edited · ' : ''}{time}</span>}
 
             {/* Tap outside overlay */}
             {(showEmojiPicker || showFullPicker) && (
@@ -3957,6 +4042,15 @@ function MessageBubble({ message, isMe, currentUser, members, repliedMessage, on
                 >
                   <Plus className="h-4 w-4" />
                 </button>
+                {canEdit && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(false); startEdit(); }}
+                    aria-label="Edit your message"
+                    className="ml-0.5 flex h-8 items-center gap-1.5 rounded-full bg-foreground px-3 text-[12.5px] font-semibold text-background active:scale-95"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                )}
               </div>
             )}
 
