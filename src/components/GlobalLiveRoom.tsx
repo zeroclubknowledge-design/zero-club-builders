@@ -777,10 +777,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       if (index > 0) {
         autoQualityRef.current = true;
         setCameraQuality(order[index - 1]);
-        if (!qualityToastShown.current) {
-          qualityToastShown.current = true;
-          toast("Weak connection", { description: "Your video was lowered so your voice stays clear." });
-        }
       }
     };
     const renewToken = async () => {
@@ -2098,46 +2094,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         </button>
       </header>
 
-      {micProblem && (micOn || micProblem === "blocked") && (
-        <div role="alert" className="z-30 mx-3 mb-2 shrink-0 rounded-xl bg-red-500/15 px-3 py-2.5 text-[13px] text-red-50 ring-1 ring-red-400/35">
-          <div className="flex items-start gap-2">
-            <MicOff className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold">
-                {micProblem === "blocked" ? "Your microphone is blocked" : micProblem === "ended" ? "Your microphone was disconnected" : "Others can't hear you — no sound is coming from your microphone"}
-              </p>
-              <p className="mt-0.5 text-[12px] leading-snug text-red-50/75">
-                {micProblem === "blocked"
-                  ? "Allow the microphone from the lock icon next to the web address, and on Windows check Settings → Privacy & security → Microphone. Close Zoom, Teams or other apps using it, then reload."
-                  : "Pick the right microphone, or restart it. If your laptop has a mic key (often F4 or F10), make sure it isn't muted, and close other apps using the mic."}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button type="button" onClick={() => void restartMic()} disabled={fixingMic} className="rounded-lg bg-white px-3 py-1.5 text-[12.5px] font-semibold text-[#140a12] disabled:opacity-60">
-                  {fixingMic ? "Restarting…" : micProblem === "blocked" ? "Reload and try again" : "Restart microphone"}
-                </button>
-                {micProblem !== "blocked" && (
-                  <button type="button" onClick={() => setShowSettings(true)} className="rounded-lg bg-white/15 px-3 py-1.5 text-[12.5px] font-semibold">
-                    Choose microphone
-                  </button>
-                )}
-                <button type="button" onClick={() => setMicProblem(null)} className="rounded-lg px-2 py-1.5 text-[12.5px] text-red-50/70 hover:text-white">
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {connectionState === "RECONNECTING" ? (
         <div role="status" aria-live="polite" className="z-30 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-amber-500/15 px-3 py-2 text-[13px] text-amber-100 ring-1 ring-amber-400/30">
           <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-300" />
           Reconnecting… stay on this screen, you'll be back in a moment.
-        </div>
-      ) : weakUplink && micOn ? (
-        <div role="status" aria-live="polite" className="z-30 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-white/[0.08] px-3 py-2 text-[12.5px] text-white/80">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" />
-          Your connection is weak — others may hear you break up. Wi‑Fi or a stronger signal will help.
         </div>
       ) : null}
 
