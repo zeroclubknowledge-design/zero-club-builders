@@ -13,6 +13,7 @@ const QUICK_REACTIONS = ["👍", "❤️", "😂", "🎉", "👏", "🔥"];
 
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 import { usePresentationRequests } from "@/hooks/usePresentationRequests";
+import { useLiveRecording } from "@/features/zero-live/useLiveRecording";
 
 import { displayName } from "@/lib/utils";
 import { useOrientationLock } from "@/hooks/useOrientationLock";
@@ -857,6 +858,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   /* ── Remote presenter tracking (broadcast + heartbeat, expires when stale) ── */
   const [remotePresenters, setRemotePresenters] = useState<Record<string, number>>({});
+  const [screenChoice, setScreenChoice] = useState<string>("all");
 
   /*
    * ── Reactions ──
@@ -1082,6 +1084,23 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [adminUids, setAdminUids] = useState<Set<string>>(new Set());
   const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
   const [userProfileIds, setUserProfileIds] = useState<Record<string, string>>({});
+  const nativeTrack = (track: any): MediaStreamTrack | undefined => track?.getMediaStreamTrack?.();
+  const recording = useLiveRecording({
+    title: clubName || "Zero Live",
+    audio: [
+      ...(micOn ? [nativeTrack(localMicrophoneTrack)] : []),
+      ...audioTracks.filter((track) => remoteUsers.some((user) => user.uid === track.getUserId() && user.hasAudio)).map(nativeTrack),
+    ].filter((track): track is MediaStreamTrack => !!track),
+    videos: [
+      ...(isScreenSharing && nativeTrack(screenTrack) ? [{ track: nativeTrack(screenTrack)!, label: displayName(profile, "You"), screen: true }] : []),
+      ...(cameraOn && !isScreenSharing && nativeTrack(localCameraTrack) ? [{ track: nativeTrack(localCameraTrack)!, label: displayName(profile, "You") }] : []),
+      ...videoTracks.filter((track) => remoteUsers.some((user) => user.uid === track.getUserId() && user.hasVideo)).map((track) => ({
+        track: nativeTrack(track)!, label: userNames[String(track.getUserId())] || "Participant",
+        screen: remotePresenters[String(track.getUserId())] != null,
+      })).filter((source) => !!source.track),
+    ],
+  });
+  const isRecording = recording.phase === "recording";
   const presentationRequests = usePresentationRequests({
     uid: client?.uid == null ? "" : String(client.uid),
     isAdmin, peers: presenceUsers, channelRef: chatChannelRef,
@@ -1096,10 +1115,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     name: displayName(profile, ""),
     username: profile?.username || "",
     avatar_url: profile?.avatar_url || "",
-    isAdmin: isAdmin
+    isAdmin: isAdmin,
+    recording: isRecording,
   } : undefined;
 
   const { presenceState } = useSharedPresence(`live-presence-${channel}`, presencePayload);
+  const remoteRecording = Object.values(presenceState).some((users: any[]) =>
+    users.some((user) => user.isAdmin && user.recording && String(user.agora_uid) !== String(client.uid)),
+  );
 
   const hasSeenOthers = useRef(false);
   const hadAdmin = useRef(false);
@@ -1221,6 +1244,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     setIsLeaving(true);
 
     try {
+      await recording.stop();
       await Promise.allSettled([
         localMicrophoneTrack?.setEnabled(false),
         localCameraTrack?.setEnabled(false),
@@ -1696,8 +1720,17 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   /* ══════════ STAGE COMPOSITION ══════════ */
   const remotePresenterUsers = remoteUsers.filter(u => remotePresenters[String(u.uid)] != null && u.hasVideo);
-  const remotePresenterUser = remotePresenterUsers[0];
   const multiplePresentations = remotePresenterUsers.length + (isScreenSharing ? 1 : 0) > 1;
+  /*
+   * Several people sharing at once: each viewer picks what to watch.
+   * "all" shows every screen side by side; "self" is your own share; any
+   * other value is the uid of the presenter you chose. The choice is yours
+   * alone, and falls back to "all" if that person stops sharing.
+   */
+  const screenOptions = [...(isScreenSharing ? ["self"] : []), ...remotePresenterUsers.map((u) => String(u.uid))];
+  const screenView = screenOptions.includes(screenChoice) ? screenChoice : "all";
+  const chosenRemoteScreen = remotePresenterUsers.find((u) => String(u.uid) === screenView);
+  const remotePresenterUser = chosenRemoteScreen || remotePresenterUsers[0];
   const remoteTutor = remoteUsers.find((u) => adminUids.has(String(u.uid)));
   const tutorName = isAdmin
     ? (profile?.username || "You")
@@ -1811,22 +1844,71 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const waitingFaces = presenceUsers.filter((p) => !p.isAdmin).slice(0, 3);
   const waitingExtra = Math.max(0, presenceUsers.filter((p) => !p.isAdmin).length - 3);
 
+  const renderScreenPicker = () => (
+    <div className="pointer-events-auto absolute left-1/2 top-10 z-30 flex max-w-[calc(100%-24px)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-full bg-black/70 p-1 ring-1 ring-white/15 backdrop-blur-md no-scrollbar" role="tablist" aria-label="Choose which screen to watch">
+      {[
+        { id: "all", label: `All screens · ${screenOptions.length}` },
+        ...(isScreenSharing ? [{ id: "self", label: "Your screen" }] : []),
+        ...remotePresenterUsers.map((u) => ({ id: String(u.uid), label: `${userNames[u.uid] || "Presenter"}` })),
+      ].map((option) => {
+        const on = screenView === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            onClick={(event) => { event.stopPropagation(); setScreenChoice(option.id); }}
+            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-semibold transition ${on ? "bg-white text-[#140a12]" : "text-white/80 hover:bg-white/10 hover:text-white"}`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   const renderStage = () => {
     if (multiplePresentations) {
+      // One chosen screen, full size, with the picker to switch.
+      if (screenView === "self" && screenTrack) {
+        return (
+          <div className="relative h-full w-full">
+            <LocalVideoTrack track={screenTrack} play className="h-full w-full" videoPlayerConfig={SCREEN_PLAYER_CONFIG} />
+            {renderScreenPicker()}
+          </div>
+        );
+      }
+      if (chosenRemoteScreen) {
+        const track = findVideo(chosenRemoteScreen.uid);
+        return (
+          <div className="relative h-full w-full">
+            {track && <RemoteVideoTrack track={track} play className="h-full w-full" videoPlayerConfig={REMOTE_SCREEN_PLAYER_CONFIG} />}
+            {renderScreenPicker()}
+          </div>
+        );
+      }
+      // Every screen side by side; tap one to watch it full size.
+      const tiles = screenOptions.length;
       return (
-        <div className="grid h-full w-full grid-cols-2 auto-rows-fr gap-2 overflow-auto pb-16 pt-8">
-          {isScreenSharing && screenTrack && (
-            <div className="relative min-h-0 overflow-hidden bg-black">
-              <LocalVideoTrack track={screenTrack} play className="h-full w-full" videoPlayerConfig={SCREEN_PLAYER_CONFIG} />
-              <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">Your screen</span>
-            </div>
-          )}
-          {remotePresenterUsers.map(user => (
-            <div key={user.uid} className="relative min-h-0 overflow-hidden bg-black">
-              {findVideo(user.uid) && <RemoteVideoTrack track={findVideo(user.uid)!} play className="h-full w-full" videoPlayerConfig={REMOTE_SCREEN_PLAYER_CONFIG} />}
-              <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">{userNames[user.uid] || "Presenter"}’s screen</span>
-            </div>
-          ))}
+        <div className="relative h-full w-full">
+          <div className={`grid h-full w-full auto-rows-fr gap-2 overflow-auto pb-16 pt-20 ${tiles > 4 ? "grid-cols-3" : "grid-cols-2"}`}>
+            {isScreenSharing && screenTrack && (
+              <button type="button" onClick={(event) => { event.stopPropagation(); setScreenChoice("self"); }} className="group relative min-h-0 overflow-hidden bg-black text-left ring-[#cc208f] transition hover:ring-2" title="Watch your screen full size">
+                <LocalVideoTrack track={screenTrack} play className="pointer-events-none h-full w-full" videoPlayerConfig={SCREEN_PLAYER_CONFIG} />
+                <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">Your screen</span>
+                <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100">Watch</span>
+              </button>
+            )}
+            {remotePresenterUsers.map(user => (
+              <button type="button" key={user.uid} onClick={(event) => { event.stopPropagation(); setScreenChoice(String(user.uid)); }} className="group relative min-h-0 overflow-hidden bg-black text-left ring-[#cc208f] transition hover:ring-2" title={`Watch ${userNames[user.uid] || "this presenter"}'s screen full size`}>
+                {findVideo(user.uid) && <RemoteVideoTrack track={findVideo(user.uid)!} play className="pointer-events-none h-full w-full" videoPlayerConfig={REMOTE_SCREEN_PLAYER_CONFIG} />}
+                <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">{userNames[user.uid] || "Presenter"}’s screen</span>
+                <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100">Watch</span>
+              </button>
+            ))}
+          </div>
+          {renderScreenPicker()}
         </div>
       );
     }
@@ -1976,7 +2058,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
             <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600/90 backdrop-blur-md px-2 py-0.5 rounded-full">
               <Radio className="w-2.5 h-2.5 text-white animate-pulse" />
-              <span className="text-[8px] font-medium text-white tracking-[0.08em]">LIVE</span>
+              <span className="text-[8px] font-medium text-white tracking-[0.08em]">{isRecording || remoteRecording ? "REC" : "LIVE"}</span>
             </div>
 
             <div className="absolute top-2 right-2">
@@ -2066,6 +2148,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <Share2 className="h-[19px] w-[19px]" />
         </button>
       </header>
+      {(isAdmin || remoteRecording) && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-white/5 bg-white/[0.03] px-3 py-2 text-xs md:px-5">
+          {(isRecording || remoteRecording) && <span role="status" className="flex items-center gap-1.5 font-semibold text-red-300"><span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />Recording{isRecording ? ` · ${Math.floor(recording.elapsed / 60)}:${String(recording.elapsed % 60).padStart(2, "0")}` : " by tutor"}</span>}
+          {isAdmin && <button type="button" disabled={isLeaving || recording.phase === "starting" || recording.phase === "saving"} onClick={() => void (isRecording ? recording.stop() : recording.start())} className={`rounded-full px-3 py-2 font-semibold disabled:opacity-50 ${isRecording ? "bg-red-500 text-white" : "bg-white/10 text-white hover:bg-white/20"}`} aria-pressed={isRecording}>{recording.phase === "starting" ? "Starting…" : recording.phase === "saving" ? "Saving…" : isRecording ? "Stop recording" : "Record"}</button>}
+          {isAdmin && !isRecording && <span className="text-white/50">Saves to your device · Keep this app open</span>}
+          {recording.saved && <a href={recording.saved.url} download={recording.saved.filename} className="rounded-full bg-emerald-500/15 px-3 py-2 font-semibold text-emerald-300 hover:bg-emerald-500/25">Download recording</a>}
+        </div>
+      )}
 
       {connectionState === "RECONNECTING" ? (
         <div role="status" aria-live="polite" className="z-30 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-amber-500/15 px-3 py-2 text-[13px] text-amber-100 ring-1 ring-amber-400/30">
