@@ -13,6 +13,8 @@ import {
   ListChecks,
   Megaphone,
   Menu,
+  Mic,
+  Loader2,
   NotebookPen,
   Plus,
   Rocket,
@@ -27,6 +29,10 @@ import { isInstitution, modeOf } from "@/lib/modes";
 import { useZeroGiftBalance } from "@/components/ZeroGiftPaymentOption";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { toast } from "sonner";
+import { getCachedSession } from "@/lib/auth";
+import { readAIStream } from "./stream";
+import { useVoiceConversation } from "./useVoiceConversation";
+import { ZeroAICalls } from "./ZeroAICalls";
 import "./zero-ai.css";
 
 /*
@@ -37,8 +43,8 @@ import "./zero-ai.css";
  * starters, "made for you" promises and shortcuts into the parts of Zero Club
  * it already uses.
  *
- * Honest by design: replies are not live yet. Prompts are drafted and saved on
- * this device, and the page says so plainly rather than pretending to answer.
+ * GPT replies are streamed through authenticated server routes. The API key
+ * stays on the server; conversation history stays within this account/role.
  */
 
 type Icon = ComponentType<{ className?: string }>;
@@ -160,7 +166,8 @@ const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig>
 };
 
 type Mode = keyof typeof roles;
-type Draft = { id: string; mode: Mode; text: string; updatedAt: number };
+type ChatMessage = { role: "user" | "assistant"; content: string };
+type Draft = { id: string; mode: Mode; text: string; updatedAt: number; messages?: ChatMessage[] };
 const MODES = Object.keys(roles) as Mode[];
 const isMode = (value: string): value is Mode => Object.prototype.hasOwnProperty.call(roles, value);
 
@@ -207,6 +214,12 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sending, setSending] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const pending = useRef<AbortController | null>(null);
+  const transcriptEnd = useRef<HTMLDivElement>(null);
+  const voice = useVoiceConversation();
   const input = useRef<HTMLTextAreaElement>(null);
   const { available } = useZeroGiftBalance("zero-ai");
   const { format } = useWalletCurrency();
@@ -214,6 +227,9 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
   const role = roles[mode];
   const RoleIcon = role.icon;
   const hello = useMemo(greeting, []);
+
+  useEffect(() => () => pending.current?.abort(), []);
+  useEffect(() => { transcriptEnd.current?.scrollIntoView({ block: "nearest" }); }, [messages]);
 
   useEffect(() => {
     try {
@@ -225,7 +241,7 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
             .slice(0, 50),
         );
     } catch {
-      toast.error("Saved prompts could not be loaded on this device.");
+      toast.error("Chats could not be loaded on this device.");
     }
   }, [storageKey, ownMode, userId]);
 
@@ -235,27 +251,64 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
       setDrafts(next);
       return true;
     } catch {
-      toast.error("Your device could not save this prompt. Copy your text before leaving.");
+      toast.error("Your device could not save this chat. Copy your conversation before leaving.");
       return false;
     }
   }
-  function save() {
-    if (!text.trim()) return;
-    const draft = { id: selected || crypto.randomUUID(), mode, text: text.trim(), updatedAt: Date.now() };
-    if (persist([draft, ...drafts.filter((d) => d.id !== draft.id)].slice(0, 50))) {
-      setSelected(draft.id);
-      toast.success("Prompt saved", { description: "It's kept on this device, ready for when Zero AI replies go live." });
+  async function send() {
+    if (!text.trim() || pending.current || voice.status !== "idle") return;
+    const prompt = text.trim();
+    const context = [...messages, { role: "user" as const, content: prompt }].slice(-23);
+    const id = selected || crypto.randomUUID();
+    const abort = new AbortController();
+    pending.current = abort;
+    setSending(true);
+    setChatError("");
+    setText("");
+    setMessages([...context, { role: "assistant", content: "" }]);
+    let reply = "";
+    let completed = false;
+    try {
+      const { data: { session } } = await getCachedSession();
+      if (!session) throw new Error("Please sign in to use Zero AI.");
+      const response = await fetch("/api/zero-ai/chat", {
+        method: "POST", headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: context }), signal: abort.signal,
+      });
+      await readAIStream(response, (delta) => {
+        reply += delta;
+        setMessages([...context, { role: "assistant", content: reply }]);
+      });
+      if (!reply.trim()) throw new Error("Zero AI returned an empty reply. Please try again.");
+      completed = true;
+    } catch (error) {
+      if (!abort.signal.aborted) setChatError(error instanceof Error ? error.message : "Couldn't send your message. Please try again.");
+    } finally {
+      if (completed || (abort.signal.aborted && reply.trim())) {
+        const draft: Draft = { id, mode, text: drafts.find((d) => d.id === id)?.text || prompt, updatedAt: Date.now(), messages: [...context, { role: "assistant", content: reply }] };
+        if (persist([draft, ...drafts.filter((d) => d.id !== id)].slice(0, 50))) setSelected(id);
+      } else {
+        setMessages(messages);
+        setText(prompt);
+      }
+      if (pending.current === abort) pending.current = null;
+      setSending(false);
     }
   }
   function fresh() {
+    if (pending.current || voice.status !== "idle") return;
     setSelected(null);
+    setMessages([]);
+    setChatError("");
     setText("");
     setHistoryOpen(false);
     requestAnimationFrame(() => input.current?.focus());
   }
   function applyStarter(prompt: string) {
+    if (pending.current) return;
     setText(prompt);
     setSelected(null);
+    setMessages([]);
     requestAnimationFrame(() => {
       const el = input.current;
       if (!el) return;
@@ -272,7 +325,15 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
           return (
             <div key={d.id} className={`group flex items-center rounded-xl transition ${selected === d.id ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}>
               <button
-                onClick={() => { setSelected(d.id); setText(d.text); setHistoryOpen(false); }}
+                disabled={sending || voice.status !== "idle"}
+                onClick={() => {
+                  setSelected(d.id);
+                  const history = Array.isArray(d.messages) ? d.messages.filter((message) => message && (message.role === "user" || message.role === "assistant") && typeof message.content === "string" && message.content.length <= 12000).slice(-24) : [];
+                  setMessages(history);
+                  setText(history.length ? "" : d.text);
+                  setChatError("");
+                  setHistoryOpen(false);
+                }}
                 className="flex min-w-0 flex-1 items-start gap-2.5 px-2.5 py-2.5 text-left"
               >
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md" style={{ background: `${roles[d.mode].accent}18`, color: roles[d.mode].accent }}>
@@ -284,8 +345,9 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
                 </span>
               </button>
               <button
-                aria-label={`Delete prompt: ${d.text.slice(0, 30)}`}
-                onClick={() => { if (persist(drafts.filter((item) => item.id !== d.id)) && selected === d.id) setSelected(null); }}
+                aria-label={`Delete chat: ${d.text.slice(0, 30)}`}
+                disabled={sending || voice.status !== "idle"}
+                onClick={() => { if (persist(drafts.filter((item) => item.id !== d.id)) && selected === d.id) fresh(); }}
                 className="mr-1 rounded-lg p-2 text-muted-foreground opacity-60 transition hover:text-destructive group-hover:opacity-100"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -295,8 +357,8 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
         })
       ) : (
         <div className="rounded-xl border border-dashed border-border px-3 py-5 text-center">
-          <p className="text-[12.5px] font-medium">No saved prompts yet</p>
-          <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">Prompts you save appear here, on this device.</p>
+          <p className="text-[12.5px] font-medium">No chats yet</p>
+          <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">Your conversations appear here, on this device.</p>
         </div>
       )}
     </div>
@@ -313,8 +375,8 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
         <ZeroMark size={520} className="absolute -right-40 -top-32 rotate-12 text-foreground opacity-[0.025] dark:opacity-[0.04]" />
       </div>
 
-      {/* ── Saved prompts (desktop) ── */}
-      <aside className="zero-ai-history relative z-10 hidden w-[264px] shrink-0 flex-col border-r border-border/70 bg-background/80 p-4 backdrop-blur-xl xl:flex" aria-label="Saved prompts">
+      {/* ── Chats (desktop) ── */}
+      <aside className="zero-ai-history relative z-10 hidden w-[264px] shrink-0 flex-col border-r border-border/70 bg-background/80 p-4 backdrop-blur-xl xl:flex" aria-label="Chats">
         <div className="mb-5 flex items-center gap-2.5 px-1">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white shadow-[0_8px_24px_-10px_rgba(204,32,143,0.8)]">
             <ZeroMark size={20} />
@@ -325,9 +387,9 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
           </span>
         </div>
         <button onClick={fresh} className="mb-5 flex h-11 items-center justify-center gap-2 rounded-xl bg-foreground text-[13.5px] font-semibold text-background transition hover:opacity-90 active:scale-[0.99]">
-          <Plus className="h-4 w-4" /> New prompt
+          <Plus className="h-4 w-4" /> New chat
         </button>
-        <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Saved prompts</p>
+        <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Chats</p>
         <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">{history}</div>
         <div className="mt-4 space-y-3 border-t border-border/70 pt-4">
           <Link to="/app" className="flex items-center gap-2 px-1 text-[12.5px] text-muted-foreground transition hover:text-foreground">
@@ -351,7 +413,7 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
           <div className="flex min-w-0 items-center gap-2">
             <button
               onClick={() => setHistoryOpen(!historyOpen)}
-              aria-label="Saved prompts"
+              aria-label="Chats"
               aria-expanded={historyOpen}
               className="zero-ai-history-toggle rounded-xl p-2 transition hover:bg-foreground/5 xl:hidden"
             >
@@ -361,18 +423,18 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white"><ZeroMark size={17} /></span>
               <span className="text-[16px] font-bold tracking-tight">Zero AI</span>
             </span>
-            <span className="rounded-full border border-[#cc208f]/25 bg-[#cc208f]/[0.07] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">Preview</span>
+            <span className="rounded-full border border-[#cc208f]/25 bg-[#cc208f]/[0.07] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#cc208f]">GPT</span>
           </div>
-          <button onClick={fresh} aria-label="New prompt" title="New prompt" className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-background/70 px-3 text-[12.5px] font-semibold backdrop-blur transition hover:bg-foreground/5">
+          <button onClick={fresh} aria-label="New chat" title="New chat" className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-background/70 px-3 text-[12.5px] font-semibold backdrop-blur transition hover:bg-foreground/5">
             <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New</span>
           </button>
         </header>
 
         {historyOpen && (
-          <section className="zero-ai-mobile-history mx-4 mb-4 rounded-2xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur-xl xl:hidden" aria-label="Saved prompts">
+          <section className="zero-ai-mobile-history mx-4 mb-4 rounded-2xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur-xl xl:hidden" aria-label="Chats">
             <div className="mb-2 flex items-center justify-between px-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Saved prompts</p>
-              <button aria-label="Close saved prompts" onClick={() => setHistoryOpen(false)} className="rounded-lg p-1.5 hover:bg-foreground/5"><X className="h-4 w-4" /></button>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Chats</p>
+              <button aria-label="Close chats" onClick={() => setHistoryOpen(false)} className="rounded-lg p-1.5 hover:bg-foreground/5"><X className="h-4 w-4" /></button>
             </div>
             <div className="max-h-72 overflow-y-auto">{history}</div>
             <Link to="/app" className="mt-2 flex items-center gap-2 px-1 py-1 text-[12.5px] text-muted-foreground"><ArrowLeft className="h-3.5 w-3.5" /> Back to Zero Club</Link>
@@ -403,9 +465,35 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
             </span>
           </div>
 
+          {messages.length > 0 && (
+            <section className="mt-6 space-y-5" aria-label="Conversation with Zero AI" aria-live="polite" aria-busy={sending}>
+              {messages.map((message, index) => (
+                <article key={index} className={message.role === "user" ? "ml-auto max-w-[85%] rounded-2xl bg-foreground/[0.06] px-4 py-3" : "px-1 py-2"}>
+                  <p className="mb-1 text-xs font-semibold text-muted-foreground">{message.role === "user" ? "You" : "Zero AI"}</p>
+                  <p className="whitespace-pre-wrap break-words text-[15px] leading-7 [overflow-wrap:anywhere]">{message.content || (sending ? "Thinking…" : "")}</p>
+                </article>
+              ))}
+              <div ref={transcriptEnd} />
+            </section>
+          )}
+          {chatError && <p role="alert" className="mt-4 text-sm text-destructive">{chatError} Your message is below so you can retry.</p>}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            {voice.status === "idle" ? (
+              <button type="button" disabled={sending} onClick={() => void voice.start()} className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold disabled:opacity-40"><Mic className="h-4 w-4" /> Talk to Zero AI</button>
+            ) : (
+              <>
+                <span role="status" className="text-sm text-muted-foreground">{voice.status === "connecting" ? "Connecting…" : "Voice connected"}</span>
+                {voice.status === "connected" && <button onClick={voice.toggleMute} className="rounded-full border border-border px-3 py-2 text-sm">{voice.muted ? "Unmute" : "Mute"}</button>}
+                <button onClick={voice.stop} className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-white">End voice chat</button>
+              </>
+            )}
+          </div>
+          {voice.error && <div role="alert" className="mt-2 text-center text-sm text-destructive">{voice.error}{voice.status !== "idle" && <button onClick={voice.enableAudio} className="ml-2 underline">Enable audio</button>}</div>}
+          <ZeroAICalls userId={userId} />
+
           {/* Composer */}
           <form
-            onSubmit={(event) => { event.preventDefault(); save(); }}
+            onSubmit={(event) => { event.preventDefault(); void send(); }}
             className="zero-ai-composer group relative mt-6 rounded-[26px] p-[1.5px]"
           >
             <div className="rounded-[25px] bg-card p-3 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
@@ -414,9 +502,10 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
                 id="zero-ai-prompt"
                 ref={input}
                 value={text}
+                disabled={sending || voice.status !== "idle"}
                 maxLength={12000}
                 onChange={(event) => setText(event.target.value)}
-                onKeyDown={(event) => { if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) { event.preventDefault(); save(); } }}
+                onKeyDown={(event) => { if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) { event.preventDefault(); void send(); } }}
                 placeholder={role.placeholder}
                 rows={4}
                 className="max-h-72 min-h-[116px] w-full resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
@@ -426,21 +515,21 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
                   <span className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold" style={{ background: `${role.accent}14`, color: role.accent }}>
                     <RoleIcon className="h-3.5 w-3.5" /> {role.label}
                   </span>
-                  <span className="hidden tabular-nums sm:inline">{text.length ? `${text.length.toLocaleString()} characters` : "Ctrl + Enter to save"}</span>
+                  <span className="hidden tabular-nums sm:inline">{text.length ? `${text.length.toLocaleString()} characters` : "Ctrl + Enter to send"}</span>
                 </span>
                 <button
-                  type="submit"
-                  disabled={!text.trim()}
+                  type={sending ? "button" : "submit"}
+                  onClick={sending ? () => pending.current?.abort() : undefined}
+                  disabled={!sending && (!text.trim() || voice.status !== "idle")}
                   className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0458f] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
                 >
-                  Save prompt <ArrowUpRight className="h-4 w-4" />
+                  {sending ? <>Stop reply <Loader2 className="h-4 w-4 animate-spin" /></> : <>Send <ArrowUpRight className="h-4 w-4" /></>}
                 </button>
               </div>
             </div>
           </form>
           <p role="status" className="mt-3 flex items-center justify-center gap-2 text-center text-[12px] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            Zero AI replies are coming soon. Your prompts are saved privately on this device.
+            Chats are saved on this device. Zero AI can make mistakes; check important answers.
           </p>
 
           {/* ── Starters ── */}
@@ -502,7 +591,7 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
 
           {available > 0 && (
             <p className="mt-6 rounded-xl bg-[#cc208f]/[0.06] px-4 py-3 text-center text-[12.5px] leading-5 text-foreground/80">
-              Your {format(available)} in Zero AI cards is reserved for paid tools when they launch. Saving prompts is free.
+              Your {format(available)} in Zero AI cards is reserved for paid tools. Chat does not spend your cards.
             </p>
           )}
           <p className="mt-8 text-center text-[11.5px] leading-5 text-muted-foreground/80">

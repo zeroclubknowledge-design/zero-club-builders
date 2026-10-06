@@ -110,19 +110,6 @@ export function useUser() {
 
       console.log("[useUser] Profile data from DB:", data);
 
-      // Fetch follow counts and actual following IDs
-      const [followersResult, followingResult, followingListResult] = await Promise.all([
-        supabase
-          .from("follows")
-          .select("*", { count: "exact", head: true })
-          .eq("following_id", session.user.id),
-        supabase
-          .from("follows")
-          .select("*", { count: "exact", head: true })
-          .eq("follower_id", session.user.id),
-        supabase.from("follows").select("following_id").eq("follower_id", session.user.id),
-      ]);
-
       const profileData = data || {};
 
       // REPAIR LOGIC: If username is an email or missing, try to recover from metadata
@@ -156,9 +143,6 @@ export function useUser() {
 
       const finalProfile = {
         ...profileData,
-        followers_count: followersResult.count || 0,
-        following_count: followingResult.count || 0,
-        following_ids: followingListResult.data?.map((f) => f.following_id) || [],
         isAuthenticated: true,
         userId: session.user.id,
       };
@@ -182,5 +166,26 @@ export function useUser() {
     });
   }, [query.data?.id, queryClient]);
 
-  return query;
+  // Counts enrich the profile after it is usable. Wallet, clubs and other
+  // pages should never wait for social statistics before loading content.
+  const followSummary = useQuery({
+    queryKey: ["profile", "follow-summary", query.data?.id],
+    enabled: !!query.data?.id,
+    queryFn: async () => {
+      const [followers, following] = await Promise.all([
+        supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", query.data!.id),
+        supabase.from("follows").select("following_id", { count: "exact" }).eq("follower_id", query.data!.id),
+      ]);
+      if (followers.error) throw followers.error;
+      if (following.error) throw following.error;
+      return {
+        followers_count: followers.count || 0,
+        following_count: following.count || 0,
+        following_ids: following.data?.map((f) => f.following_id) || [],
+      };
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  return { ...query, data: query.data ? { ...query.data, ...followSummary.data } : query.data };
 }

@@ -17,7 +17,8 @@ export default async function handler(req: any, res: any) {
       method: req.method,
       headers: req.headers,
       body: req.method !== "GET" && req.method !== "HEAD" ? req : undefined,
-    });
+      duplex: "half",
+    } as RequestInit & { duplex: "half" });
 
     // Let the built TanStack Start handler process the request
     // Note: serverHandler might be the fetch function directly if it's the Nitro output
@@ -31,11 +32,33 @@ export default async function handler(req: any, res: any) {
       res.setHeader(key, value);
     });
 
-    const body = await response.arrayBuffer();
-    res.send(Buffer.from(body));
+    // Send chunks as they arrive so GPT and pages can stream immediately.
+    if (!response.body) { res.end(); return; }
+    const reader = response.body.getReader();
+    const onClose = () => { void reader.cancel().catch(() => {}); };
+    res.on("close", onClose);
+    try {
+      while (!res.destroyed) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!res.write(Buffer.from(value))) {
+          await new Promise<void>((resolve) => {
+            const ready = () => { res.off("drain", ready); res.off("close", ready); resolve(); };
+            res.once("drain", ready);
+            res.once("close", ready);
+          });
+        }
+      }
+      res.end();
+    } finally {
+      res.off("close", onClose);
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
     
   } catch (error: any) {
     console.error("Vercel SSR Bridge Error:", error);
-    res.status(500).send(`Deployment Error: ${error.message}\n\nTrace: ${error.stack}`);
+    if (res.headersSent) res.destroy();
+    else res.status(500).send("The application couldn't load. Please try again.");
   }
 }

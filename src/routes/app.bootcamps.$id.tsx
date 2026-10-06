@@ -28,6 +28,7 @@ import { RichText } from "@/components/RichText";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGoBack } from "@/hooks/useGoBack";
+import { getCachedSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/app/bootcamps/$id")({
   component: BootcampDetail,
@@ -50,21 +51,17 @@ function BootcampDetail() {
 
       if (error) throw error;
 
-      const { data: creator } = await supabase
-        .from("profiles")
-        .select("id, username, full_name, avatar_url, account_type")
-        .eq("id", bootcamp.creator_id)
-        .maybeSingle();
-
-      const { data: fetchedModules, error: modulesError } = await supabase
-        .from("modules")
-        .select("*")
-        .eq("bootcamp_id", id)
-        .order("order_index", { ascending: true });
+      const [creatorResult, modulesResult, outlineResult, clubResult] = await Promise.all([
+        supabase.from("profiles").select("id, username, full_name, avatar_url, account_type").eq("id", bootcamp.creator_id).maybeSingle(),
+        supabase.from("modules").select("*").eq("bootcamp_id", id).order("order_index", { ascending: true }),
+        supabase.rpc("bootcamp_syllabus_outline", { p_bootcamp_id: id }),
+        supabase.from("clubs").select("*").eq("bootcamp_id", id).maybeSingle(),
+      ]);
+      const { data: creator } = creatorResult;
+      const { data: fetchedModules, error: modulesError } = modulesResult;
 
       if (modulesError) throw modulesError;
 
-      const moduleIds = (fetchedModules || []).map((module: any) => module.id);
       /*
        * The syllabus outline comes from bootcamp_syllabus_outline, not the
        * lessons table. Lessons are only readable by enrolled learners and the
@@ -72,19 +69,13 @@ function BootcampDetail() {
        * saw section names with "No lessons in this section yet". The function
        * returns titles, types and durations only — never the content links.
        */
-      const { data: lessons } = moduleIds.length
-        ? await supabase.rpc("bootcamp_syllabus_outline", { p_bootcamp_id: id })
-        : { data: [] as any[] };
+      const { data: lessons } = outlineResult;
       const modules = (fetchedModules || []).map((module: any) => ({
         ...module,
         lessons: (lessons || []).filter((lesson: any) => lesson.module_id === module.id),
       }));
 
-      const { data: club } = await supabase
-        .from("clubs")
-        .select("*")
-        .eq("bootcamp_id", bootcamp.id)
-        .maybeSingle();
+      const { data: club } = clubResult;
 
       return { bootcamp: { ...bootcamp, profiles: creator }, modules, club };
     },
@@ -105,6 +96,7 @@ function BootcampDetail() {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [applyZeroGift, setApplyZeroGift] = useState(false);
   const [viewerChecked, setViewerChecked] = useState(false);
+  const [viewerError, setViewerError] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [couponOpen, setCouponOpen] = useState(false);
 
@@ -118,10 +110,11 @@ function BootcampDetail() {
 
   async function checkEnrollment() {
     setViewerChecked(false);
+    setViewerError(false);
     try {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await getCachedSession();
 
       if (!session) {
         setCurrentUser(null);
@@ -134,42 +127,21 @@ function BootcampDetail() {
 
       setViewerId(session.user.id);
 
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
+      const [{ data: prof }, { data, error: enrollmentError }, { data: wishlist }, membershipResult] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", session.user.id).single(),
+        supabase.from("enrollments").select("id").eq("profile_id", session.user.id).eq("bootcamp_id", bootcamp.id).maybeSingle(),
+        supabase.from("bootcamp_wishlists").select("id").eq("profile_id", session.user.id).eq("bootcamp_id", bootcamp.id).maybeSingle(),
+        club?.id
+          ? supabase.from("club_members").select("role").eq("club_id", club.id).eq("profile_id", session.user.id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
       setCurrentUser(prof || session.user);
-
-      const { data } = await supabase
-        .from("enrollments")
-        .select("*")
-        .eq("profile_id", session.user.id)
-        .eq("bootcamp_id", bootcamp.id)
-        .maybeSingle();
-      setIsEnrolled(Boolean(data));
-
-      const { data: wishlist } = await supabase
-        .from("bootcamp_wishlists")
-        .select("id")
-        .eq("profile_id", session.user.id)
-        .eq("bootcamp_id", bootcamp.id)
-        .maybeSingle();
+      if (enrollmentError || membershipResult.error) throw enrollmentError || membershipResult.error;
+      setIsEnrolled(Boolean(data || membershipResult.data));
       setIsWishlisted(Boolean(wishlist));
-
-      if (!club?.id) {
-        setIsClubAdmin(false);
-        return;
-      }
-
-      const { data: membership } = await supabase
-        .from("club_members")
-        .select("role")
-        .eq("club_id", club.id)
-        .eq("profile_id", session.user.id)
-        .eq("role", "Administrator")
-        .maybeSingle();
-      setIsClubAdmin(Boolean(membership));
+      setIsClubAdmin(membershipResult.data?.role === "Administrator");
+    } catch {
+      setViewerError(true);
     } finally {
       setViewerChecked(true);
     }
@@ -210,6 +182,7 @@ function BootcampDetail() {
   }
 
   async function handleEnroll() {
+    if (isEnrolled) { toast.info("You're already enrolled in this bootcamp."); return; }
     if (!currentUser) {
       toast.error("Please sign in to enroll");
       return;
@@ -409,6 +382,11 @@ function BootcampDetail() {
               <div className="h-6 w-32 animate-pulse rounded-md bg-muted" />
               <div className="h-12 w-full animate-pulse rounded-full bg-muted" />
             </div>
+          ) : viewerError ? (
+            <div role="alert">
+              <p>We couldn't check your enrollment. Please try again.</p>
+              <button onClick={() => void checkEnrollment()} className="mt-3 rounded-full bg-foreground px-4 py-2 text-background">Retry</button>
+            </div>
           ) : canManageBootcamp ? (
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[12px] font-semibold text-[#a3186f]">
@@ -448,7 +426,7 @@ function BootcampDetail() {
             </div>
           ) : isEnrolled ? (
             <div>
-              <p className="flex items-center gap-2 text-[15px] font-semibold text-[#1a7f4b]"><CheckCircle2 className="h-5 w-5" /> You're enrolled</p>
+              <p className="flex items-center gap-2 text-[15px] font-semibold text-[#1a7f4b]"><CheckCircle2 className="h-5 w-5" /> Enrolled</p>
               <div className={`mt-3 grid gap-2 ${club ? "grid-cols-2" : "grid-cols-1"}`}>
                 <Link to="/app/live/$classId" params={{ classId: bootcamp.id }} className="flex h-11 items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition active:scale-[0.98]">
                   <Video className="h-[18px] w-[18px]" /> Join live class

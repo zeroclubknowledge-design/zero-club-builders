@@ -156,20 +156,22 @@ export const deleteBootcampAction = createServerFn({ method: 'POST' }).inputVali
 
 // Fetch a single bootcamp with its curriculum (modules and lessons)
 export const getBootcampWithCurriculum = async ({ data: { bootcampId } }: { data: { bootcampId: string } }) => {
-  const { data: bootcamp, error: bootcampError } = await supabase
+  const [bootcampResult, modulesResult] = await Promise.all([
+    supabase
     .from('bootcamps')
     .select('*, profiles!bootcamps_creator_id_fkey(username, full_name, avatar_url, account_type)')
     .eq('id', bootcampId)
-    .single();
-    
-  if (bootcampError) throw new Error(bootcampError.message);
-
-  const { data: modules, error: modulesError } = await supabase
+    .single(),
+    supabase
     .from('modules')
     .select('*, lessons(*)')
     .eq('bootcamp_id', bootcampId)
-    .order('order_index', { ascending: true });
+    .order('order_index', { ascending: true }),
+  ]);
+  const { data: bootcamp, error: bootcampError } = bootcampResult;
+  const { data: modules, error: modulesError } = modulesResult;
 
+  if (bootcampError) throw new Error(bootcampError.message);
   if (modulesError) throw new Error(modulesError.message);
 
   // Sort lessons within modules
@@ -185,7 +187,7 @@ export const getBootcampWithCurriculum = async ({ data: { bootcampId } }: { data
 export const getPosts = async () => {
   try {
     // 1. & 2. Fetch original posts and reposts in parallel
-    const [{ data: posts, error: postsError }, { data: reposts, error: repostsError }] = await Promise.all([
+    const [{ data: posts, error: postsError }, { data: reposts, error: repostsError }, { data: { session } }] = await Promise.all([
       supabase
         .from('posts')
         .select('*, profiles(username, full_name, avatar_url, account_type, tier, affiliation), quoted_posts:quoted_post_id(*, profiles(username, full_name, avatar_url))')
@@ -195,7 +197,8 @@ export const getPosts = async () => {
         .from('reposts')
         .select('*, posts(*, profiles(username, full_name, avatar_url, account_type, tier, affiliation)), profiles(username, full_name)')
         .order('created_at', { ascending: false })
-        .limit(50)
+        .limit(50),
+      getCachedSession(),
     ]);
 
     if (postsError) {
@@ -238,8 +241,6 @@ export const getPosts = async () => {
     let myLikes: string[] = [];
     let myReposts: string[] = [];
     let myQuotes: string[] = [];
-    
-    const { data: { session } } = await getCachedSession();
     
     if (session && (posts || reposts)) {
       const allPostIds = [
@@ -848,7 +849,10 @@ export const getConversations = async () => {
    * is not dead code; it is the older path, kept until every environment has
    * the function.
    */
-  const viaRpc = await supabase.rpc('conversation_list', { p_limit: 60 });
+  const [viaRpc, supportResult] = await Promise.all([
+    supabase.rpc('conversation_list', { p_limit: 60 }),
+    supabase.from("profiles").select("id, username, full_name, avatar_url, updated_at, is_admin").eq("is_admin", true).neq("id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
+  ]);
 
   if (!viaRpc.error && Array.isArray(viaRpc.data)) {
     const rows = viaRpc.data as any[];
@@ -868,7 +872,7 @@ export const getConversations = async () => {
       status: presenceStatus(row.other_updated_at),
     }));
 
-    return withSupportConversation(conversations, user.id);
+    return withSupportConversation(conversations, supportResult.data);
   }
 
   const { data, error } = await supabase
@@ -924,22 +928,13 @@ export const getConversations = async () => {
     }
   });
 
-  return withSupportConversation(Array.from(conversationsMap.values()), user.id);
+  return withSupportConversation(Array.from(conversationsMap.values()), supportResult.data);
 };
 
 // The protected is_admin flag is the source of truth for the official support
 // identity. This makes support available before a member has ever sent a
 // message, without creating millions of placeholder message rows.
-const withSupportConversation = async (conversations: any[], userId: string) => {
-  const { data: supportProfile } = await supabase
-    .from("profiles")
-    .select("id, username, full_name, avatar_url, updated_at, is_admin")
-    .eq("is_admin", true)
-    .neq("id", userId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
+const withSupportConversation = (conversations: any[], supportProfile: any) => {
   if (!supportProfile) return conversations;
 
   const supportIndex = conversations.findIndex((conversation: any) => conversation.id === supportProfile.id);

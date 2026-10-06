@@ -11,6 +11,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } f
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
 import { fallbackClubCapacity, isBootcampCohortClub, type ClubCapacity } from "@/features/membership/plans";
+import { getCachedSession } from "@/lib/auth";
 
 function SwipeableNotification({ children, onDismiss }: { children: React.ReactNode, onDismiss: () => void }) {
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -147,7 +148,7 @@ function Clubs() {
     staleTime: 1000 * 60 * 3,
     gcTime: 1000 * 60 * 15,
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await getCachedSession();
       if (!session) {
         window.location.href = "/signin";
         return null;
@@ -206,13 +207,15 @@ function Clubs() {
       let uniqueOnlineProfiles = new Set<string>();
 
       if (uniqueClubIds.length > 0) {
-        const { data: memberRows } = await supabase
-          .from('club_members')
-          .select('club_id')
-          .in('club_id', uniqueClubIds);
-          
-        if (memberRows) {
-          memberRows.forEach(row => {
+        const batches = await Promise.all(Array.from({ length: Math.ceil(uniqueClubIds.length / 200) }, (_, index) =>
+          supabase.rpc('club_directory_counts', { p_club_ids: uniqueClubIds.slice(index * 200, (index + 1) * 200) })
+        ));
+        if (batches.every((result) => !result.error)) {
+          batches.flatMap((result) => result.data || []).forEach((row: any) => { membersCountMap[row.club_id] = Number(row.member_count); });
+        } else {
+          // Older databases stay usable until the migration is applied.
+          const { data: memberRows } = await supabase.from('club_members').select('club_id').in('club_id', uniqueClubIds);
+          memberRows?.forEach(row => {
             membersCountMap[row.club_id] = (membersCountMap[row.club_id] || 0) + 1;
           });
         }

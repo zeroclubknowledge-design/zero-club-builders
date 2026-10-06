@@ -54,6 +54,9 @@ import { Route as ApiClubImageIdRouteImport } from './routes/api.club-image.$id'
 import { Route as ApiGameImageIdRouteImport } from './routes/api.game-image.$id'
 import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
 import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
+import { Route as ApiZeroAiCallsRouteImport } from './routes/api.zero-ai.calls'
+import { Route as ApiZeroAiChatRouteImport } from './routes/api.zero-ai.chat'
+import { Route as ApiZeroAiVoiceRouteImport } from './routes/api.zero-ai.voice'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
@@ -100,6 +103,8 @@ import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withd
 import { Route as NotesSlugPreviewV1RouteImport } from './routes/notes.$slug.preview-v1'
 import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
 import { Route as ApiOgKindIdRouteImport } from './routes/api.og.$kind.$id'
+import { Route as ApiZeroAiCallsDispatchRouteImport } from './routes/api.zero-ai.calls.dispatch'
+import { Route as ApiZeroAiCallsEndRouteImport } from './routes/api.zero-ai.calls.end'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
 import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppGamesPlayGameRouteImport } from './routes/app.games.play.$game'
@@ -332,6 +337,21 @@ const ApiGiftCardCodeRoute = ApiGiftCardCodeRouteImport.update({
 const ApiGiftImageCodeRoute = ApiGiftImageCodeRouteImport.update({
   id: '/api/gift-image/$code',
   path: '/api/gift-image/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiZeroAiCallsRoute = ApiZeroAiCallsRouteImport.update({
+  id: '/api/zero-ai/calls',
+  path: '/api/zero-ai/calls',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiZeroAiChatRoute = ApiZeroAiChatRouteImport.update({
+  id: '/api/zero-ai/chat',
+  path: '/api/zero-ai/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiZeroAiVoiceRoute = ApiZeroAiVoiceRouteImport.update({
+  id: '/api/zero-ai/voice',
+  path: '/api/zero-ai/voice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
@@ -567,6 +587,16 @@ const ApiOgKindIdRoute = ApiOgKindIdRouteImport.update({
   path: '/api/og/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiZeroAiCallsDispatchRoute = ApiZeroAiCallsDispatchRouteImport.update({
+  id: '/dispatch',
+  path: '/dispatch',
+  getParentRoute: () => ApiZeroAiCallsRoute,
+} as any)
+const ApiZeroAiCallsEndRoute = ApiZeroAiCallsEndRouteImport.update({
+  id: '/end',
+  path: '/end',
+  getParentRoute: () => ApiZeroAiCallsRoute,
+} as any)
 const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
   id: '/bootcamps_/$id/edit',
   path: '/bootcamps/$id/edit',
@@ -655,6 +685,9 @@ export interface FileRoutesByFullPath {
   '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
+  '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
+  '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
+  '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -701,6 +734,8 @@ export interface FileRoutesByFullPath {
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
+  '/api/zero-ai/calls/dispatch': typeof ApiZeroAiCallsDispatchRoute
+  '/api/zero-ai/calls/end': typeof ApiZeroAiCallsEndRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -750,6 +785,9 @@ export interface FileRoutesByTo {
   '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
+  '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
+  '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
+  '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -796,6 +834,8 @@ export interface FileRoutesByTo {
   '/app/tutor-studio': typeof AppTutorStudioIndexRoute
   '/app/wallet': typeof AppWalletIndexRoute
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
+  '/api/zero-ai/calls/dispatch': typeof ApiZeroAiCallsDispatchRoute
+  '/api/zero-ai/calls/end': typeof ApiZeroAiCallsEndRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -852,6 +892,9 @@ export interface FileRoutesById {
   '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
+  '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
+  '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
+  '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
@@ -898,6 +941,8 @@ export interface FileRoutesById {
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
+  '/api/zero-ai/calls/dispatch': typeof ApiZeroAiCallsDispatchRoute
+  '/api/zero-ai/calls/end': typeof ApiZeroAiCallsEndRoute
   '/app/bootcamps_/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -955,6 +1000,9 @@ export interface FileRouteTypes {
     | '/api/game-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
+    | '/api/zero-ai/calls'
+    | '/api/zero-ai/chat'
+    | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -1001,6 +1049,8 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/api/og/$kind/$id'
+    | '/api/zero-ai/calls/dispatch'
+    | '/api/zero-ai/calls/end'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1050,6 +1100,9 @@ export interface FileRouteTypes {
     | '/api/game-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
+    | '/api/zero-ai/calls'
+    | '/api/zero-ai/chat'
+    | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -1096,6 +1149,8 @@ export interface FileRouteTypes {
     | '/app/tutor-studio'
     | '/app/wallet'
     | '/api/og/$kind/$id'
+    | '/api/zero-ai/calls/dispatch'
+    | '/api/zero-ai/calls/end'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1151,6 +1206,9 @@ export interface FileRouteTypes {
     | '/api/game-image/$id'
     | '/api/gift-card/$code'
     | '/api/gift-image/$code'
+    | '/api/zero-ai/calls'
+    | '/api/zero-ai/chat'
+    | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
     | '/app/chat/$id'
     | '/app/chat/new'
@@ -1197,6 +1255,8 @@ export interface FileRouteTypes {
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/api/og/$kind/$id'
+    | '/api/zero-ai/calls/dispatch'
+    | '/api/zero-ai/calls/end'
     | '/app/bootcamps_/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1230,6 +1290,9 @@ export interface RootRouteChildren {
   ApiGameImageIdRoute: typeof ApiGameImageIdRoute
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
   ApiGiftImageCodeRoute: typeof ApiGiftImageCodeRoute
+  ApiZeroAiCallsRoute: typeof ApiZeroAiCallsRouteWithChildren
+  ApiZeroAiChatRoute: typeof ApiZeroAiChatRoute
+  ApiZeroAiVoiceRoute: typeof ApiZeroAiVoiceRoute
   ApiOgKindIdRoute: typeof ApiOgKindIdRoute
 }
 
@@ -1548,6 +1611,27 @@ declare module '@tanstack/react-router' {
       path: '/api/gift-image/$code'
       fullPath: '/api/gift-image/$code'
       preLoaderRoute: typeof ApiGiftImageCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/zero-ai/calls': {
+      id: '/api/zero-ai/calls'
+      path: '/api/zero-ai/calls'
+      fullPath: '/api/zero-ai/calls'
+      preLoaderRoute: typeof ApiZeroAiCallsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/zero-ai/chat': {
+      id: '/api/zero-ai/chat'
+      path: '/api/zero-ai/chat'
+      fullPath: '/api/zero-ai/chat'
+      preLoaderRoute: typeof ApiZeroAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/zero-ai/voice': {
+      id: '/api/zero-ai/voice'
+      path: '/api/zero-ai/voice'
+      fullPath: '/api/zero-ai/voice'
+      preLoaderRoute: typeof ApiZeroAiVoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/admin/': {
@@ -1872,6 +1956,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOgKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/zero-ai/calls/dispatch': {
+      id: '/api/zero-ai/calls/dispatch'
+      path: '/dispatch'
+      fullPath: '/api/zero-ai/calls/dispatch'
+      preLoaderRoute: typeof ApiZeroAiCallsDispatchRouteImport
+      parentRoute: typeof ApiZeroAiCallsRoute
+    }
+    '/api/zero-ai/calls/end': {
+      id: '/api/zero-ai/calls/end'
+      path: '/end'
+      fullPath: '/api/zero-ai/calls/end'
+      preLoaderRoute: typeof ApiZeroAiCallsEndRouteImport
+      parentRoute: typeof ApiZeroAiCallsRoute
+    }
     '/app/bootcamps_/$id/edit': {
       id: '/app/bootcamps_/$id/edit'
       path: '/bootcamps/$id/edit'
@@ -2169,6 +2267,20 @@ const ProductIdRouteWithChildren = ProductIdRoute._addFileChildren(
   ProductIdRouteChildren,
 )
 
+interface ApiZeroAiCallsRouteChildren {
+  ApiZeroAiCallsDispatchRoute: typeof ApiZeroAiCallsDispatchRoute
+  ApiZeroAiCallsEndRoute: typeof ApiZeroAiCallsEndRoute
+}
+
+const ApiZeroAiCallsRouteChildren: ApiZeroAiCallsRouteChildren = {
+  ApiZeroAiCallsDispatchRoute: ApiZeroAiCallsDispatchRoute,
+  ApiZeroAiCallsEndRoute: ApiZeroAiCallsEndRoute,
+}
+
+const ApiZeroAiCallsRouteWithChildren = ApiZeroAiCallsRoute._addFileChildren(
+  ApiZeroAiCallsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
@@ -2192,6 +2304,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGameImageIdRoute: ApiGameImageIdRoute,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,
   ApiGiftImageCodeRoute: ApiGiftImageCodeRoute,
+  ApiZeroAiCallsRoute: ApiZeroAiCallsRouteWithChildren,
+  ApiZeroAiChatRoute: ApiZeroAiChatRoute,
+  ApiZeroAiVoiceRoute: ApiZeroAiVoiceRoute,
   ApiOgKindIdRoute: ApiOgKindIdRoute,
 }
 export const routeTree = rootRouteImport

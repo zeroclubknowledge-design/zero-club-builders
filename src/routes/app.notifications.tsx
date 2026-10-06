@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type SetStateAction } from "react";
 import {
   BellRing, UserRoundPlus, ThumbsUp, MessageSquare, Zap,
   CheckCheck, Repeat, AtSign, Loader2, ShieldCheck, Gamepad2
 } from "@/components/icons/glyphs";
 import { useFollow } from "@/hooks/useFollow";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { stripMarkdownAsterisks } from "@/components/LinkifiedText";
 import { contentPreview } from "@/lib/contentPreview";
@@ -24,12 +24,29 @@ export const Route = createFileRoute("/app/notifications")({
 function NotificationsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all");
-  const [notifs, setNotifs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [commentPost, setCommentPost] = useState<any>(null);
 
-  const { data: profile } = useUser();
+  const { data: profile, isLoading: profileLoading } = useUser();
+  const currentUser = profile;
+  const queryClient = useQueryClient();
+  const notificationKey = ['notifications', profile?.id];
+  const notifications = useQuery({
+    queryKey: notificationKey,
+    enabled: !!profile?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*, actor:profiles!actor_id(id, username, full_name, avatar_url), recipient:profiles!recipient_id(id, username, full_name, avatar_url)')
+        .or(`recipient_id.eq.${profile!.id},and(actor_id.eq.${profile!.id},type.eq.mention)`)
+        .order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const notifs: any[] = notifications.data || [];
+  const loading = profileLoading || notifications.isLoading;
+  const setNotifs = (next: SetStateAction<any[]>) => queryClient.setQueryData<any[]>(notificationKey, (current) => typeof next === 'function' ? next(current || []) : next);
 
   const { data: mentionsFeed, isLoading: mentionsLoading } = useQuery({
     queryKey: ['mentions_feed', profile?.id, profile?.username],
@@ -50,33 +67,11 @@ function NotificationsPage() {
   });
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  async function fetchNotifications() {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      setCurrentUser(session.user);
-
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*, actor:profiles!actor_id(id, username, full_name, avatar_url), recipient:profiles!recipient_id(id, username, full_name, avatar_url)')
-        .or(`recipient_id.eq.${session.user.id},and(actor_id.eq.${session.user.id},type.eq.mention)`)
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      setNotifs(data || []);
-      // Seeing the list counts as reading it, like other social apps: the
-      // badge clears now, while the unread highlights stay for this visit.
-      void markAllSeen(session.user.id);
-    } catch (err: any) {
-      toast.error("Could not load notifications");
-    } finally {
-      setLoading(false);
-    }
-  }
+    if (profile?.id && notifications.isSuccess) void markAllSeen(profile.id);
+  }, [profile?.id, notifications.isSuccess]);
+  useEffect(() => {
+    if (notifications.isError) toast.error("Could not load notifications");
+  }, [notifications.isError]);
 
   useEffect(() => {
     if (!currentUser?.id) return;

@@ -3,9 +3,14 @@ import { supabase } from '@/lib/supabase';
 
 let sessionPromise: Promise<{ data: { session: Session | null }, error: any }> | null = null;
 let sessionPromiseTime = 0;
+let sessionInFlight = false;
 
-supabase.auth.onAuthStateChange(() => {
+supabase.auth.onAuthStateChange((event) => {
   sessionPromiseTime = 0;
+  if (event !== 'INITIAL_SESSION') {
+    sessionPromise = null;
+    sessionInFlight = false;
+  }
 });
 
 // Helper to clear Supabase stuck locks
@@ -22,12 +27,19 @@ const clearSupabaseLocks = () => {
 
 export const getCachedSession = () => {
   const now = Date.now();
-  if (sessionPromise && now - sessionPromiseTime < 2000) {
+  if (sessionPromise && (sessionInFlight || now - sessionPromiseTime < 2000)) {
     return sessionPromise;
   }
   
   clearSupabaseLocks();
-  sessionPromise = supabase.auth.getSession();
+  sessionInFlight = true;
+  const pending = supabase.auth.getSession().finally(() => {
+    if (sessionPromise === pending) {
+      sessionInFlight = false;
+      sessionPromiseTime = Date.now();
+    }
+  });
+  sessionPromise = pending;
   sessionPromiseTime = now;
   return sessionPromise;
 };
