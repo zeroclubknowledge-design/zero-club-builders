@@ -274,13 +274,17 @@ function InstitutionHub() {
   };
 
   const handleAssignTutor = async (bootcampId: string, tutorId: string) => {
+    if (!profile?.id || allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id) {
+      toast.error("Only the bootcamp creator can edit this bootcamp.");
+      return;
+    }
     setAssigning(true);
     try {
       // Update bootcamp's assigned_tutor_id
       const { error } = await supabase
         .from("bootcamps")
         .update({ assigned_tutor_id: tutorId })
-        .eq("id", bootcampId);
+        .eq("id", bootcampId).eq("creator_id", profile.id);
 
       if (error) throw error;
 
@@ -330,17 +334,25 @@ function InstitutionHub() {
   };
 
   const handleUnassignTutor = async (bootcampId: string) => {
+    if (!profile?.id || allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id) {
+      toast.error("Only the bootcamp creator can edit this bootcamp.");
+      return;
+    }
     const { error } = await supabase
       .from("bootcamps")
       .update({ assigned_tutor_id: null })
-      .eq("id", bootcampId);
+      .eq("id", bootcampId).eq("creator_id", profile.id);
     if (error) toast.error("Failed to unassign.");
     else { toast.success("Tutor unassigned."); refetchBootcamps(); }
   };
 
   const handleDeleteBootcamp = async (bootcampId: string) => {
+    if (!profile?.id || allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id) {
+      toast.error("Only the bootcamp creator can delete this bootcamp.");
+      return;
+    }
     if (!confirm("Delete this bootcamp permanently?")) return;
-    const { error } = await supabase.from("bootcamps").delete().eq("id", bootcampId);
+    const { error } = await supabase.from("bootcamps").delete().eq("id", bootcampId).eq("creator_id", profile.id);
     if (error) toast.error("Failed to delete.");
     else { toast.success("Bootcamp deleted."); refetchBootcamps(); }
   };

@@ -23,6 +23,7 @@ import {
 } from "@/components/icons/glyphs";
 import { ZeroMark } from "@/components/ZeroLoader";
 import { useUser } from "@/hooks/useUser";
+import { isInstitution, modeOf } from "@/lib/modes";
 import { useZeroGiftBalance } from "@/components/ZeroGiftPaymentOption";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { toast } from "sonner";
@@ -188,12 +189,10 @@ export function ZeroAIWorkspace() {
         </div>
       </div>
     );
-  const account = String(profile.account_type || "").toLowerCase();
-  const tier = String(profile.tier || "").toLowerCase();
-  const own: Mode = isMode(account) ? account : tier === "creator" ? "creator" : "learner";
+  const own: Mode = isInstitution(profile) ? "institution" : modeOf(profile) || "learner";
   return (
     <Workspace
-      key={profile.id}
+      key={`${profile.id}:${own}`}
       userId={profile.id}
       name={String(profile.full_name || profile.username || "").split(" ")[0]}
       avatar={profile.avatar_url || null}
@@ -203,7 +202,7 @@ export function ZeroAIWorkspace() {
 }
 
 function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: string; avatar: string | null; ownMode: Mode }) {
-  const [mode, setMode] = useState<Mode>(ownMode);
+  const mode = ownMode;
   const [text, setText] = useState("");
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -211,24 +210,24 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
   const input = useRef<HTMLTextAreaElement>(null);
   const { available } = useZeroGiftBalance("zero-ai");
   const { format } = useWalletCurrency();
-  const storageKey = `zc-zero-ai-drafts:${userId}`;
+  const storageKey = `zc-zero-ai-drafts:${userId}:${ownMode}`;
   const role = roles[mode];
   const RoleIcon = role.icon;
   const hello = useMemo(greeting, []);
 
   useEffect(() => {
     try {
-      const saved: unknown = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      const saved: unknown = JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem(`zc-zero-ai-drafts:${userId}`) || "[]");
       if (Array.isArray(saved))
         setDrafts(
           saved
-            .filter((d): d is Draft => d && typeof d.id === "string" && typeof d.text === "string" && typeof d.mode === "string" && isMode(d.mode) && Number.isFinite(d.updatedAt))
+            .filter((d): d is Draft => d && typeof d.id === "string" && typeof d.text === "string" && typeof d.mode === "string" && isMode(d.mode) && d.mode === ownMode && Number.isFinite(d.updatedAt))
             .slice(0, 50),
         );
     } catch {
       toast.error("Saved prompts could not be loaded on this device.");
     }
-  }, [storageKey]);
+  }, [storageKey, ownMode, userId]);
 
   function persist(next: Draft[]) {
     try {
@@ -273,7 +272,7 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
           return (
             <div key={d.id} className={`group flex items-center rounded-xl transition ${selected === d.id ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}>
               <button
-                onClick={() => { setSelected(d.id); setMode(d.mode); setText(d.text); setHistoryOpen(false); }}
+                onClick={() => { setSelected(d.id); setText(d.text); setHistoryOpen(false); }}
                 className="flex min-w-0 flex-1 items-start gap-2.5 px-2.5 py-2.5 text-left"
               >
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md" style={{ background: `${roles[d.mode].accent}18`, color: roles[d.mode].accent }}>
@@ -397,28 +396,14 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
             <p className="mx-auto mt-3 max-w-[520px] text-[14.5px] leading-6 text-muted-foreground">{role.description}</p>
           </div>
 
-          {/* ── Role switch ── */}
-          <div className="mx-auto mt-7 flex w-full max-w-[560px] rounded-2xl border border-border bg-background/70 p-1 shadow-sm backdrop-blur" role="tablist" aria-label="Choose your workspace">
-            {MODES.map((value) => {
-              const ModeIcon = roles[value].icon;
-              const on = mode === value;
-              return (
-                <button
-                  key={value}
-                  role="tab"
-                  aria-selected={on}
-                  onClick={() => setMode(value)}
-                  className={`relative flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-[12.5px] font-semibold transition ${on ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  <ModeIcon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{roles[value].label}</span>
-                  {value === ownMode && <span aria-label="Your account type" className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full" style={{ background: on ? "#fff" : roles[value].accent }} />}
-                </button>
-              );
-            })}
+          {/* Account workspace */}
+          <div className="mt-7 flex justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-foreground/5 px-4 py-2 text-sm font-semibold">
+              <RoleIcon className="h-4 w-4" />{role.label} workspace
+            </span>
           </div>
 
-          {/* ── Composer ── */}
+          {/* Composer */}
           <form
             onSubmit={(event) => { event.preventDefault(); save(); }}
             className="zero-ai-composer group relative mt-6 rounded-[26px] p-[1.5px]"

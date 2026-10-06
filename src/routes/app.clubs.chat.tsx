@@ -2894,7 +2894,7 @@ const formatDue = (card: ClubCardPayload) => {
 const fmtMark = (n: number) => (Number.isInteger(Number(n)) ? String(Number(n)) : Number(n).toFixed(1));
 
 const encodeClubCard = (payload: ClubCardPayload) => `${CLUB_CARD_PREFIX}${JSON.stringify(payload)}`;
-const encodeClubReply = (type: 'submission' | 'answer', body: string) => `${CLUB_REPLY_PREFIX}${JSON.stringify({ type, body })}`;
+const encodeClubReply = (type: 'submission' | 'answer', body: string, media?: ClubCardPayload['media']) => `${CLUB_REPLY_PREFIX}${JSON.stringify({ type, body, media })}`;
 
 const parseClubCard = (message: any, room: string): ClubCardPayload => {
   const raw = String(message?.content || '');
@@ -2919,7 +2919,7 @@ const parseClubReply = (message: any) => {
   const raw = String(message?.content || '');
   if (raw.startsWith(CLUB_REPLY_PREFIX)) {
     try {
-      return JSON.parse(raw.slice(CLUB_REPLY_PREFIX.length)) as { type: 'submission' | 'answer'; body: string };
+      return JSON.parse(raw.slice(CLUB_REPLY_PREFIX.length)) as { type: 'submission' | 'answer'; body: string; media?: ClubCardPayload['media'] };
     } catch {
       // Fall through to legacy plain-text replies.
     }
@@ -2942,7 +2942,17 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
   const [gradeDrafts, setGradeDrafts] = useState<Record<string, { score: string; feedback: string }>>({});
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [threadReply, setThreadReply] = useState('');
+  const [replyAttachments, setReplyAttachments] = useState<NonNullable<ClubCardPayload['media']>>([]);
+  const [replyAttaching, setReplyAttaching] = useState(false);
+  const replyAttachInputRef = useRef<HTMLInputElement>(null);
+  const uploadBusy = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setThreadReply('');
+    setReplyAttachments([]);
+    if (replyAttachInputRef.current) replyAttachInputRef.current.value = '';
+  }, [selectedCard?.id]);
 
   const cards = messages.filter((message: any) => !message.reply_to_id);
 
@@ -3047,12 +3057,15 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
     setIsSubmitting(false);
   };
 
-  const addAttachments = async (files: FileList | null) => {
-    if (!files?.length || !currentUser?.id) return;
-    const room_ = Math.max(0, 6 - attachments.length);
+  const addAttachments = async (files: FileList | null, submission = false) => {
+    if (!files?.length || !currentUser?.id || uploadBusy.current || isSubmitting) return;
+    const room_ = Math.max(0, 6 - (submission ? replyAttachments : attachments).length);
     const chosen = Array.from(files).slice(0, room_);
     if (!chosen.length) { toast.error('You can attach up to 6 pictures or videos.'); return; }
-    setAttaching(true);
+    uploadBusy.current = true;
+    const setUploading = submission ? setReplyAttaching : setAttaching;
+    const inputRef = submission ? replyAttachInputRef : attachInputRef;
+    setUploading(true);
     const added: NonNullable<ClubCardPayload['media']> = [];
     for (const original of chosen) {
       try {
@@ -3070,17 +3083,26 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
         toast.error(`Couldn't attach ${original.name}: ${e?.message || 'upload failed'}`);
       }
     }
-    setAttachments((current) => [...current, ...added]);
-    setAttaching(false);
-    if (attachInputRef.current) attachInputRef.current.value = '';
+    (submission ? setReplyAttachments : setAttachments)((current) => [...current, ...added]);
+    setUploading(false);
+    uploadBusy.current = false;
+    if (inputRef.current) inputRef.current.value = '';
   };
 
   const submitThreadReply = async () => {
-    if (!threadReply.trim() || !selectedCard) return;
+    if ((!threadReply.trim() && !replyAttachments.length) || !selectedCard || replyAttaching || isSubmitting) return;
     setIsSubmitting(true);
-    await onPost(encodeClubReply(room === 'assignments' ? 'submission' : 'answer', threadReply.trim()), selectedCard.id);
-    setThreadReply('');
-    setIsSubmitting(false);
+    try {
+      const result = await onPost(encodeClubReply(room === 'assignments' ? 'submission' : 'answer', threadReply.trim(), replyAttachments.length ? replyAttachments : undefined), selectedCard.id);
+      if (result !== false) {
+        setThreadReply('');
+        setReplyAttachments([]);
+      }
+    } catch {
+      toast.error('Could not submit your work. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -3292,7 +3314,7 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
         </div>
       )}
 
-      <Drawer open={Boolean(selectedCard)} onOpenChange={(open) => !open && setSelectedCard(null)}>
+      <Drawer open={Boolean(selectedCard)} dismissible={!replyAttaching && !isSubmitting} onOpenChange={(open) => !open && !replyAttaching && !isSubmitting && setSelectedCard(null)}>
         <DrawerContent desktopVariant="panel" className="mx-auto h-[94dvh] max-w-[760px] overflow-hidden border border-border bg-background p-0 shadow-2xl sm:h-[90dvh]">
           {selectedCard && (() => {
             const card = parseClubCard(selectedCard, room);
@@ -3356,6 +3378,7 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
                               <span className="shrink-0 text-[12px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
                             </div>
                             <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">{parsedReply.body}</p>
+                            <CardMedia media={parsedReply.media} />
                             {room === 'assignments' && (() => {
                               const due = assignmentDue(card);
                               const late = Boolean(due && new Date(reply.created_at).getTime() > due.getTime());
@@ -3440,6 +3463,28 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
 
                 <div className="border-t border-border/60 bg-background px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:px-6">
                   <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">{room === 'assignments' ? 'Submit your work' : 'Contribute an answer'}</label>
+                  {room === 'assignments' && (
+                    <div className="mb-3 space-y-2">
+                      {replyAttachments.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {replyAttachments.map((media, index) => (
+                            <div key={media.url} className="relative overflow-hidden rounded-lg bg-muted">
+                              {media.type === 'video'
+                                ? <video src={media.url} controls playsInline preload="metadata" className="h-24 w-full object-contain" />
+                                : <img src={media.url} alt={media.name || 'Submission image'} className="h-24 w-full object-cover" />}
+                              <button type="button" disabled={isSubmitting || replyAttaching} onClick={() => setReplyAttachments((current) => current.filter((_, i) => i !== index))} aria-label={`Remove ${media.name || 'attachment'}`} className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/75 text-white disabled:opacity-40"><X className="h-3.5 w-3.5" /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <input ref={replyAttachInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(event) => void addAttachments(event.target.files, true)} />
+                      <button type="button" onClick={() => replyAttachInputRef.current?.click()} disabled={replyAttaching || isSubmitting || replyAttachments.length >= 6} className="inline-flex items-center gap-2 rounded-full bg-foreground/[0.06] px-3 py-2 text-sm font-semibold disabled:opacity-40">
+                        {replyAttaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                        {replyAttaching ? 'Uploading...' : 'Add images or videos'}
+                      </button>
+                      <p className="text-xs text-muted-foreground">Up to 6 images or videos. Videos up to 50 MB.</p>
+                    </div>
+                  )}
                   <div className="flex items-end gap-2">
                     <MentionField
                       value={threadReply}
@@ -3450,7 +3495,7 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
                     />
                     <button
                       onClick={submitThreadReply}
-                      disabled={!threadReply.trim() || isSubmitting}
+                      disabled={(!threadReply.trim() && !replyAttachments.length) || isSubmitting || replyAttaching}
                       className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground text-background transition active:scale-95 disabled:opacity-40"
                       aria-label={room === 'assignments' ? 'Submit assignment' : 'Post answer'}
                     >

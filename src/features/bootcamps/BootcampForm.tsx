@@ -119,6 +119,13 @@ export function BootcampForm({
         return;
       }
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || bootcamp.creator_id !== user.id) {
+        toast.error("Only the bootcamp creator can edit this bootcamp.");
+        navigate({ to: returnTo as any });
+        return;
+      }
+
       const { data: fetchedModules, error: moduleError } = await supabase
         .from("modules")
         .select("*, lessons(*)")
@@ -232,6 +239,13 @@ export function BootcampForm({
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+      if (bootcampId) {
+        const { data: ownedBootcamp, error: ownershipError } = await supabase
+          .from("bootcamps").select("creator_id").eq("id", bootcampId).single();
+        if (ownershipError || ownedBootcamp?.creator_id !== user.id) {
+          throw new Error("Only the bootcamp creator can edit this bootcamp.");
+        }
+      }
 
       let bannerUrl = banner?.startsWith("http") ? banner : "";
       if (bannerFile) {
@@ -266,7 +280,7 @@ export function BootcampForm({
       };
 
       const saveQuery = bootcampId
-        ? supabase.from("bootcamps").update(bootcampPayload).eq("id", bootcampId)
+        ? supabase.from("bootcamps").update(bootcampPayload).eq("id", bootcampId).eq("creator_id", user.id)
         : supabase.from("bootcamps").insert([{ ...bootcampPayload, creator_id: user.id }]);
       const { data: newBootcamp, error: dbError } = await saveQuery.select().single();
 

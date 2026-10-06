@@ -328,9 +328,7 @@ function BootcampDetail() {
   const viewerIds = [viewerId, currentUser?.id, currentUser?.userId, currentUser?.user_id]
     .filter(Boolean)
     .map((value) => String(value).toLowerCase());
-  const canManageBootcamp = viewerIds.includes(String(bootcamp.creator_id || "").toLowerCase())
-    || viewerIds.includes(String(bootcamp.assigned_tutor_id || "").toLowerCase())
-    || isClubAdmin;
+  const canManageBootcamp = viewerIds.includes(String(bootcamp.creator_id || "").toLowerCase());
   const descriptionText = String(bootcamp.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const descriptionCanExpand = descriptionText.length > 180 || /<(ul|ol|h2|h3|blockquote)\b/i.test(String(bootcamp.description || ""));
 

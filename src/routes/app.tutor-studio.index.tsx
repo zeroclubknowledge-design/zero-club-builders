@@ -286,6 +286,10 @@ function TutorStudioPage() {
 
   const handleSaveBootcampSettings = async () => {
     if (!activeBootcampId) return;
+    if (!profile?.id || !activeBootcamp || activeBootcamp.creator_id !== profile.id) {
+      toast.error("Only the bootcamp creator can edit this bootcamp.");
+      return;
+    }
 
     if (bootcampSettings.ends_at && activeBootcamp?.starts_at) {
       const selectedEnd = new Date(`${bootcampSettings.ends_at}T23:59:59.999`);
@@ -640,6 +644,14 @@ function TutorStudioPage() {
   // ═══════════════════════════════════════════════════════════════
   // EDITOR VIEW
   // ═══════════════════════════════════════════════════════════════
+  if (view === "editor" && activeBootcamp && activeBootcamp.creator_id !== profile?.id) {
+    return (
+      <div className="p-6 text-center">
+        <p>Only the bootcamp creator can edit this bootcamp.</p>
+        <button onClick={() => setView("dashboard")} className="mt-4 rounded-full bg-foreground px-4 py-2 text-background">Back to studio</button>
+      </div>
+    );
+  }
   if (view === "editor") {
     return (
       <div className="flex flex-col min-h-screen bg-background pb-20">
@@ -1598,7 +1610,13 @@ function TutorStudioPage() {
               return (
                 <button
                   key={course.id}
-                  onClick={() => { setActiveBootcampId(course.id); setActiveTab("details"); setView("editor"); }}
+                  onClick={() => {
+                    if (course.creator_id !== profile?.id) {
+                      void router.navigate({ to: "/app/bootcamps/$id", params: { id: course.id } });
+                      return;
+                    }
+                    setActiveBootcampId(course.id); setActiveTab("details"); setView("editor");
+                  }}
                   className="flex w-full gap-3 border-t border-border/60 px-4 py-3 text-left hover:bg-foreground/[0.02]"
                 >
                   <div className="h-[72px] w-24 shrink-0 overflow-hidden rounded-[10px] bg-[#221d22]">
