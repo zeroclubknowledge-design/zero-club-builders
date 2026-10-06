@@ -262,7 +262,7 @@ function InstitutionDirectory() {
                 )}
               </div>
               <div className="flex min-w-0 items-start gap-3 p-4">
-                <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-card text-muted-foreground ring-1 ring-border">
+                <span className="relative z-10 -mt-11 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl border-[3px] border-card bg-card text-muted-foreground shadow-[0_8px_20px_-10px_rgba(0,0,0,0.5)]">
                   {institution.avatar_url ? (
                     <img src={institution.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (

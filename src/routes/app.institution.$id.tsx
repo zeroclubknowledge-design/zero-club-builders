@@ -140,7 +140,7 @@ function InstitutionPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
           </div>
-          <div className="-mt-9 px-4">
+          <div className="relative z-10 -mt-9 px-4">
             <span className="grid h-[72px] w-[72px] place-items-center overflow-hidden rounded-2xl border-4 border-card bg-muted">
               {institution.avatar_url ? (
                 <img src={institution.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />

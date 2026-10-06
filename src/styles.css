@@ -1552,3 +1552,20 @@ html[data-zc-focus-flow] [data-zc-bottom-nav] {
 .zc-mention-field::selection {
   -webkit-text-fill-color: transparent;
 }
+
+/* Profile photo: a slow ring of Zero Club light around the picture. */
+@property --zc-ring-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.zc-avatar-ring {
+  background: conic-gradient(from var(--zc-ring-angle), #cc208f, #ff7ac8, #7a1e66, #f06ac3, #cc208f);
+  animation: zc-ring-spin 6s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(204, 32, 143, 0.35));
+}
+@keyframes zc-ring-spin { to { --zc-ring-angle: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .zc-avatar-ring { animation: none; }
+}
+
+/* Room under the page for the minimised live-class bar (phones). */
+@media (max-width: 767px) {
+  body { padding-bottom: var(--zc-live-bar-h, 0px); }
+}

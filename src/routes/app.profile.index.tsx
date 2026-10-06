@@ -304,8 +304,9 @@ function Profile() {
           <div className="relative px-6 pb-6">
             {/* Avatar overlapping banner */}
             <div className="absolute -top-[44px] left-6 z-20 sm:-top-[48px]">
+              <span aria-hidden className="zc-avatar-ring pointer-events-none absolute -inset-[5px] rounded-[14px]" />
               <div
-                className="flex h-[88px] w-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90 sm:h-[96px] sm:w-[96px]"
+                className="relative flex h-[88px] w-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90 sm:h-[96px] sm:w-[96px]"
                 onClick={() => setIsAvatarOpen(true)}
               >
                 {profile?.avatar_url ? (

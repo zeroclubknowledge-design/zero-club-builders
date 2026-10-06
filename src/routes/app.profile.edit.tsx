@@ -125,6 +125,19 @@ function EditProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    /* Animated profile pictures: a GIF goes up as it is. The cropper redraws
+       images on a canvas, which keeps only the first frame and loses the
+       animation, so it is skipped for GIFs. */
+    if (type === 'avatar' && file.type === 'image/gif') {
+      e.target.value = '';
+      if (file.size > 8 * 1024 * 1024) {
+        toast.error("Animated pictures can be up to 8 MB. Try a shorter or smaller GIF.");
+        return;
+      }
+      void uploadProfileImage('avatar', file, 'gif');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       setCropImage({ src: reader.result as string, type });
@@ -138,13 +151,15 @@ function EditProfile() {
     if (!cropImage) return;
     const type = cropImage.type;
     setCropImage(null);
+    // Extension follows the blob: the cropper emits WebP where the browser
+    // can write it, and a .jpg holding WebP misleads anything that trusts
+    // the suffix.
+    await uploadProfileImage(type, croppedBlob, croppedBlob.type === 'image/webp' ? 'webp' : 'jpg');
+  };
 
+  const uploadProfileImage = async (type: 'avatar' | 'banner', croppedBlob: Blob, ext: string) => {
     try {
       setLoading(true);
-      // Extension follows the blob: the cropper emits WebP where the browser
-      // can write it, and a .jpg holding WebP misleads anything that trusts
-      // the suffix.
-      const ext = croppedBlob.type === 'image/webp' ? 'webp' : 'jpg';
       const fileName = `${type}-${profile.id}-${Date.now()}.${ext}`;
       const bucket = 'profiles';
 
@@ -161,7 +176,7 @@ function EditProfile() {
       if (type === 'avatar') setAvatar(url);
       else setBanner(url);
       
-      toast.success(`${type === 'avatar' ? 'Avatar' : 'Banner'} updated!`);
+      toast.success(ext === 'gif' ? 'Animated profile picture updated!' : `${type === 'avatar' ? 'Avatar' : 'Banner'} updated!`);
     } catch (error: any) {
       toast.error(error.message || "Upload failed");
     } finally {
@@ -252,6 +267,7 @@ function EditProfile() {
                 Edit photo
               </button>
               {profile?.username && <p className="truncate text-[13px] text-muted-foreground">@{profile.username}</p>}
+              <p className="text-[12px] text-muted-foreground">Upload a GIF to make your photo animated.</p>
             </div>
           </div>
         </section>

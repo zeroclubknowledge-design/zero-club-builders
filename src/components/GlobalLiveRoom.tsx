@@ -870,6 +870,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     return () => query.removeEventListener?.("change", update);
   }, []);
   const screenSwipeX = useRef<number | null>(null);
+  /* While minimised, the bottom bar takes 64px; the floating tab bar reads
+     this and rises above it, and pages get room to scroll past it. */
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isMinimized) root.style.setProperty("--zc-live-bar-h", "64px");
+    else root.style.removeProperty("--zc-live-bar-h");
+    return () => { root.style.removeProperty("--zc-live-bar-h"); };
+  }, [isMinimized]);
 
   /*
    * ── Reactions ──
@@ -2042,83 +2050,70 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   );
 
   if (isMinimized) {
-    const miniRemoteUser = remotePresenterUser || (!isAdmin ? remoteTutor : undefined);
-    const miniRemoteTrack = miniRemoteUser ? findVideo(miniRemoteUser.uid) : undefined;
+    /*
+     * Minimised: a slim bar along the bottom, like an audio player — not a
+     * floating card over the page. Tap the title to go back into the class,
+     * the round button to mute or unmute, the cross to leave.
+     */
+    const recordingNow = isRecording || remoteRecording;
+    const presenterName = remotePresenterUser ? (userNames[remotePresenterUser.uid] || "Someone") : null;
+    const subtitle = isScreenSharing
+      ? "You're presenting"
+      : presenterName
+        ? `${presenterName} is presenting`
+        : !isAdmin && remoteTutor
+          ? `${tutorName} is live`
+          : "Tap to return to the class";
 
     return (
       <>
       {audioSink}
       <div
-        onMouseDown={onDragStart}
-        onMouseMove={onDragMove}
-        onMouseUp={onDragEnd}
-        onTouchStart={onDragStart}
-        onTouchMove={onDragMove as any}
-        onTouchEnd={onDragEnd}
-        className="fixed z-[9999] select-none cursor-grab active:cursor-grabbing"
-        style={{ right: `${position.x}px`, bottom: `${position.y}px` }}
+        role="region"
+        aria-label="Live class, minimised"
+        className="fixed inset-x-0 bottom-0 z-[9999] select-none border-t border-white/10 bg-[#0f0d10] pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-12px_32px_-18px_rgba(0,0,0,0.7)] animate-in slide-in-from-bottom-4 duration-300 md:inset-x-auto md:bottom-4 md:right-4 md:w-[400px] md:rounded-2xl md:border md:pb-0"
       >
-        <div className="w-[152px] rounded-lg overflow-hidden shadow-lift ring-1 ring-white/15 bg-[#141117] animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
-          <div
-            className="relative aspect-[4/3] bg-[#0A0A0C] flex items-center justify-center cursor-pointer overflow-hidden"
-            onClick={handleRestore}
+        {/* A thin line of Zero Club light: red while recording. */}
+        <div aria-hidden className={`absolute inset-x-0 top-0 h-[2px] md:inset-x-4 ${recordingNow ? "bg-red-500" : "bg-gradient-to-r from-[#cc208f] via-[#ff7ac8] to-[#cc208f]"}`} />
+        <div className="flex h-[60px] items-center gap-3 px-3">
+          <button
+            type="button"
+            onClick={() => setMicOn((on) => !on)}
+            aria-label={micOn ? "Mute microphone" : "Unmute microphone"}
+            aria-pressed={!micOn}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition tap active:scale-95 ${micOn ? "bg-white/[0.12] text-white" : "bg-red-500 text-white"}`}
           >
-            {isScreenSharing && screenTrack ? (
-              <LocalVideoTrack track={screenTrack} play={true} className="w-full h-full object-contain bg-black pointer-events-none" />
-            ) : miniRemoteTrack ? (
-              <RemoteVideoTrack
-                track={miniRemoteTrack}
-                play={true}
-                className={`w-full h-full pointer-events-none ${remotePresenterUser ? "object-contain bg-black" : "object-cover"}`}
-              />
-            ) : cameraOn && localCameraTrack ? (
-              <LocalVideoTrack track={localCameraTrack} play={true} className="w-full h-full object-cover pointer-events-none" />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center overflow-hidden">
-                {liveSession.userAvatar ? (
-                  <img src={liveSession.userAvatar} alt="" className="w-full h-full object-cover pointer-events-none" loading="lazy" decoding="async" />
-                ) : (
-                  <span className="text-xl font-semibold text-white/80">{initial}</span>
-                )}
-              </div>
-            )}
+            {micOn ? <Mic className="h-[18px] w-[18px]" /> : <MicOff className="h-[18px] w-[18px]" />}
+          </button>
 
-            <div className={`absolute top-2 left-2 flex items-center gap-1 backdrop-blur-md px-2 py-0.5 rounded-full ${isRecording || remoteRecording ? "bg-red-600" : "bg-[#cc208f]/90"}`}>
-              {isRecording || remoteRecording
-                ? <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                : <Radio className="w-2.5 h-2.5 text-white" />}
-              <span className="text-[8px] font-medium text-white tracking-[0.08em]">{isRecording || remoteRecording ? "REC" : "LIVE"}</span>
-            </div>
+          <button type="button" onClick={handleRestore} className="min-w-0 flex-1 text-left" aria-label="Return to the live class">
+            <span className="block truncate text-[15px] font-bold leading-tight">{clubName || "Zero Club Live"}</span>
+            <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] text-white/60">
+              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${recordingNow ? "animate-pulse bg-red-500" : "bg-[#ff4fc3]"}`} />
+              <span className={`shrink-0 font-semibold ${recordingNow ? "text-red-400" : "text-[#ff7ac8]"}`}>{recordingNow ? "REC" : "LIVE"}</span>
+              <SessionElapsed className="shrink-0 tabular-nums text-white/60" />
+              <span aria-hidden>·</span>
+              <span className="truncate">{subtitle}</span>
+            </span>
+          </button>
 
-            <div className="absolute top-2 right-2">
-              <div className={`h-5 w-5 rounded-full flex items-center justify-center ${micOn ? "bg-black/50 ring-1 ring-white/10" : "bg-red-500/85"}`}>
-                {micOn ? <Mic className="w-2.5 h-2.5 text-emerald-400" /> : <MicOff className="w-2.5 h-2.5 text-white" />}
-              </div>
-            </div>
-
-            <div className="absolute bottom-1.5 inset-x-0 text-center pointer-events-none">
-              <span className="text-[8px] font-medium text-white/70 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                Tap to return
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between px-2 py-1.5 bg-[#141117] border-t border-white/[0.06]">
-            <button
-              onClick={handleRestore}
-              className="h-7 w-7 rounded-full bg-white/[0.08] text-white/80 flex items-center justify-center hover:bg-white/15 transition tap"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={handleLeave}
-              disabled={isLeaving}
-              className="flex h-7 items-center justify-center gap-1 rounded-full bg-red-500 px-2.5 text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-70 tap"
-            >
-              <PhoneOff className="w-3 h-3" />
-              <span className="text-[9px] font-semibold">{isLeaving ? "Leaving" : "Leave"}</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleRestore}
+            aria-label="Open the live class"
+            className="hidden h-10 w-10 shrink-0 place-items-center rounded-full text-white/80 transition hover:bg-white/10 md:grid"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleLeave}
+            disabled={isLeaving}
+            aria-label="Leave the live class"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/[0.12] text-white transition hover:bg-white/20 disabled:cursor-wait disabled:opacity-60 tap active:scale-95"
+          >
+            {isLeaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-5 w-5" />}
+          </button>
         </div>
       </div>
       </>

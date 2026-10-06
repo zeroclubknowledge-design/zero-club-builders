@@ -446,7 +446,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }:
     <nav
       data-zc-bottom-nav
       style={{ fontFamily: TAB_BAR_FONT, "--font-button": TAB_BAR_FONT } as React.CSSProperties}
-      className={`fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-20px)] -translate-x-1/2 transition-all duration-300 md:hidden ${
+      className={`fixed bottom-[calc(max(10px,env(safe-area-inset-bottom))_+_var(--zc-live-bar-h,0px))] left-1/2 z-50 w-[calc(100%-20px)] -translate-x-1/2 transition-all duration-300 md:hidden ${
         visible &&
         !isDetail &&
         !pathname.includes("/app/live") &&

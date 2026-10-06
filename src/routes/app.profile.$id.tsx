@@ -521,6 +521,8 @@ function ProfileDetail() {
           </div>
 
           <div className="relative px-4">
+            {/* A slow brand-pink light circling the photo. */}
+            <span aria-hidden className="zc-avatar-ring pointer-events-none absolute -top-[60px] left-[8px] h-[120px] w-[120px] rounded-full" />
             <button
               onClick={() => setIsAvatarOpen(true)}
               aria-label="View profile photo"
