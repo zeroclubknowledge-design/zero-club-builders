@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { plain } from "@/lib/og/core/text";
 import { useEffect } from "react";
 import { ArrowRight, Users } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/club/$id")({
 
     const title = `${loaderData.name} — a club on Zero Club`;
     const description =
-      loaderData.description?.slice(0, 200).trim() ||
+      plain(loaderData.description).slice(0, 200).trim() ||
       `Join ${loaderData.name} on Zero Club — ${loaderData.member_count} member${
         loaderData.member_count === 1 ? "" : "s"
       }.`;

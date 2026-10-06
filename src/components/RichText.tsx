@@ -79,22 +79,39 @@ const ENTITIES: Record<string, string> = {
 export function richTextToPlain(content?: string | null) {
   const text = (content || "").trim();
   if (!text) return "";
-  if (!looksLikeHtml(text)) return text;
 
-  // Block tags must become a space first. Without this, textContent glues the
-  // blocks together — <p>Hello</p><p>World</p> reads back as "HelloWorld" —
-  // which mangles card previews and breaks any text comparison.
   const spaced = text
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<\/(p|div|li|ul|ol|h[1-6]|blockquote|tr|td|th|section)>/gi, " ");
 
-  if (typeof window === "undefined" || typeof DOMParser === "undefined") {
+  let raw = "";
+  if (!looksLikeHtml(text)) {
+    raw = text;
+  } else if (typeof window === "undefined" || typeof DOMParser === "undefined") {
     const stripped = spaced.replace(/<[^>]+>/g, " ");
-    return stripped
+    raw = stripped
       .replace(/&[a-z]+;|&#\d+;/gi, (m) => ENTITIES[m.toLowerCase()] ?? " ")
       .replace(/\s+/g, " ")
       .trim();
+  } else {
+    const doc = new DOMParser().parseFromString(spaced, "text/html");
+    raw = (doc.body.textContent || "").replace(/\s+/g, " ").trim();
   }
-  const doc = new DOMParser().parseFromString(spaced, "text/html");
-  return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+
+  return raw
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/`{1,3}([^`]+)`{1,3}/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/~~([^~]+)~~/g, "$1")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/^\s{0,3}>\s+/gm, "")
+    .replace(/\*{1,3}/g, "")
+    .replace(/_/g, "")
+    .replace(/~/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }

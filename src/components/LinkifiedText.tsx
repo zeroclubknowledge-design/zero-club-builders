@@ -34,9 +34,18 @@ const SINGLE_ASTERISK_PAIR = /(^|[^*])\*([^*][\s\S]*?)\*(?!\*)/g;
 /** One stray asterisk that is not part of a ** pair. */
 const LONE_ASTERISK = /(^|[^*])\*(?!\*)/g;
 
-/** Strips markdown asterisks for plain-text previews. Safe on every browser. */
+/** Strips markdown asterisks and formatting symbols for plain-text previews. */
 export function stripMarkdownAsterisks(value: string) {
-  return value.replace(/\*\*/g, "").replace(LONE_ASTERISK, "$1");
+  if (!value) return "";
+  return value
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/\*{1,3}/g, "")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/_/g, "")
+    .replace(/~~([^~]+)~~/g, "$1")
+    .replace(/~/g, "");
 }
 
 const EMAIL_SOURCE = String.raw`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}`;

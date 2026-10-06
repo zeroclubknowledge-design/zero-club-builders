@@ -15,6 +15,20 @@ export function plain(value: unknown): string {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#0?39;/g, "'")
+    // Strip markdown formatting for preview cards
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1") // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")  // links
+    .replace(/`{1,3}([^`]+)`{1,3}/g, "$1")     // code
+    .replace(/\*\*([^*]+)\*\*/g, "$1")        // **bold**
+    .replace(/\*([^*]+)\*/g, "$1")            // *italic*
+    .replace(/__([^_]+)__/g, "$1")            // __bold__
+    .replace(/_([^_]+)_/g, "$1")              // _italic_
+    .replace(/~~([^~]+)~~/g, "$1")            // ~~strikethrough~~
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")       // headers #
+    .replace(/^\s{0,3}>\s+/gm, "")            // blockquotes >
+    .replace(/\*{1,3}/g, "")                  // any remaining asterisks
+    .replace(/_/g, "")                        // any remaining underscores
+    .replace(/~/g, "")                        // any remaining tildes
     .replace(/\s+/g, " ")
     .trim();
 }

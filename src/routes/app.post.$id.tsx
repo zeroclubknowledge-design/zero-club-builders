@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { plain } from "@/lib/og/core/text";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { MoreHorizontal, ThumbsUp, Repeat, Send, UserPlus, UserMinus, Loader2, Bookmark, MessageSquare, Mail, Flag, ShieldCheck, Trash2, Link as LinkIcon, VolumeX, Volume2, Pencil, Edit3, Rocket, ArrowLeft, Plus, Quote, BadgeCheck } from "@/components/icons/glyphs";
@@ -130,9 +131,8 @@ export const Route = createFileRoute("/app/post/$id")({
     // somebody's timeline announced as a post.
     const title = `${authorName}'s ${post.is_build_post ? "Project" : "Post"} on Zero Club`;
     
-    let description = post.content || "Check out this post on Zero Club";
-    const stripped = description.replace(/(<([^>]+)>)/gi, "");
-    description = stripped.substring(0, 160) + (stripped.length > 160 ? '...' : '');
+    let description = plain(post.content) || "Check out this post on Zero Club";
+    description = description.substring(0, 160) + (description.length > 160 ? '...' : '');
 
     const image = `https://www.zeroclubs.xyz/api/og/post/${post.id}`;
 

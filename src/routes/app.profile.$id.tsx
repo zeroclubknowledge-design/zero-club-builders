@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { plain } from "@/lib/og/core/text";
 import { useGoBack } from "@/hooks/useGoBack";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
@@ -65,7 +66,7 @@ export const Route = createFileRoute("/app/profile/$id")({
   head: ({ loaderData }) => {
     const profile = loaderData?.profile;
     const title = profile ? `${profile.full_name || profile.username} (${getFirstName(profile)}) on Zero Club` : "Profile | Zero Club";
-    const description = profile?.bio || "Zero Club builder on the rise. Check out my builds!";
+    const description = plain(profile?.bio) || "Zero Club builder on the rise. Check out my builds!";
     /* Preview images must be ABSOLUTE urls. "/logo.png" is relative, so every
        profile without an avatar previewed with a broken image — crawlers do
        not resolve relative paths against the page they are reading. */

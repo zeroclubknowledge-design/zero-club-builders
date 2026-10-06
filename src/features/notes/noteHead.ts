@@ -1,3 +1,5 @@
+import { plain } from "@/lib/og/core/text";
+
 /**
  * Head tags for a note, shared by the two routes that render one.
  *
@@ -14,7 +16,7 @@ export function buildNoteHead(note: any) {
   );
   let description = "Read this note on Zero Club";
   if (firstTextBlock) {
-    const stripped = firstTextBlock.content.replace(/(<([^>]+)>)/gi, "");
+    const stripped = plain(firstTextBlock.content);
     description = stripped.substring(0, 160) + (stripped.length > 160 ? "..." : "");
   }
 
