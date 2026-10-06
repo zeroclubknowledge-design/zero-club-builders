@@ -362,7 +362,7 @@ export function GlobalLiveRoom() {
 
   return (
     <AgoraRTCProvider client={client}>
-      <LiveRoomContent channel={channelId} token={token!} />
+      <LiveRoomContent key={channelId} channel={channelId} token={token!} />
     </AgoraRTCProvider>
   );
 }
@@ -1522,43 +1522,16 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     };
   }, [isLeaving, audioTracks, clubName]);
 
-  /*
-   * Chat that survives a refresh.
-   *
-   * Messages are broadcast over a realtime channel and held in memory, so a
-   * reload emptied the thread — the questions asked five minutes ago were
-   * simply gone, for the one person who reloaded. Keeping a copy per channel
-   * means the thread comes back.
-   *
-   * sessionStorage, not localStorage: it belongs to this tab and this session,
-   * which is the right lifetime for a class that has ended.
-   */
-  const chatCacheKey = liveSession.channelId ? `zc-live-chat:${liveSession.channelId}` : null;
-
+  // Live messages belong to this room visit only. Restoring a minimized call
+  // keeps this component mounted; leaving or refreshing starts an empty chat.
+  // Remove caches written by older versions without ever reading them back.
   useEffect(() => {
-    if (!chatCacheKey) return;
     try {
-      const saved = sessionStorage.getItem(chatCacheKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as ChatMessage[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setChatMessages((current) => (current.length > 0 ? current : parsed));
-        }
-      }
+      sessionStorage.removeItem(`zc-live-chat:${channel}`);
     } catch {
-      /* Malformed or unavailable — start with an empty thread. */
+      // Storage can be unavailable in private mode; chat still works in memory.
     }
-  }, [chatCacheKey]);
-
-  useEffect(() => {
-    if (!chatCacheKey) return;
-    try {
-      // A cap, because a long class should not fill the tab's storage quota.
-      sessionStorage.setItem(chatCacheKey, JSON.stringify(chatMessages.slice(-200)));
-    } catch {
-      /* Quota or private mode. Not worth interrupting a call over. */
-    }
-  }, [chatCacheKey, chatMessages]);
+  }, [channel]);
 
   /*
    * Attachments in the room.
