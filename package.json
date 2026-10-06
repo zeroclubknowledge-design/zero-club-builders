@@ -57,6 +57,7 @@
     "@tiptap/extension-text-style": "^3.25.0",
     "@tiptap/react": "^3.25.0",
     "@tiptap/starter-kit": "^3.25.0",
+    "@vapi-ai/web": "^2.7.1",
     "@vercel/og": "^1.0.1",
     "agora-rtc-react": "^2.5.1",
     "agora-rtc-sdk-ng": "^4.24.4",
@@ -84,6 +85,7 @@
     "vite-tsconfig-paths": "^6.0.2"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^9.32.0",
     "@phosphor-icons/core": "^2.1.1",
     "@resvg/resvg-js": "^2.6.2",

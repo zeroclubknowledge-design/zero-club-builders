@@ -4,6 +4,13 @@ Zero AI uses authenticated server routes for GPT chat, WebRTC voice, and
 user-approved scheduled phone calls. No OpenAI or phone-provider credential
 belongs in a `VITE_*` variable, browser code, or Git.
 
+The current in-app voice UI uses **Vapi with GPT assistants**. Follow
+[Vapi voice and project-confirmation setup](./vapi-zero-ai-setup.md) for its
+credentials, saved assistants, authenticated webhooks, and new publication
+migration. The direct OpenAI WebRTC endpoint below remains for older clients;
+it is no longer the default voice UI. Text chat and scheduled phone calls still
+use the OpenAI routes documented here.
+
 ## Database
 
 Apply the following migrations to the same Supabase project the app uses:

@@ -31,7 +31,8 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { toast } from "sonner";
 import { getCachedSession } from "@/lib/auth";
 import { readAIStream } from "./stream";
-import { useVoiceConversation } from "./useVoiceConversation";
+import { useVapiVoice } from "./useVapiVoice";
+import { VoiceOverlay } from "./VoiceOverlay";
 import { ZeroAICalls } from "./ZeroAICalls";
 import "./zero-ai.css";
 
@@ -219,7 +220,7 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
   const [chatError, setChatError] = useState("");
   const pending = useRef<AbortController | null>(null);
   const transcriptEnd = useRef<HTMLDivElement>(null);
-  const voice = useVoiceConversation();
+  const voice = useVapiVoice();
   const input = useRef<HTMLTextAreaElement>(null);
   const { available } = useZeroGiftBalance("zero-ai");
   const { format } = useWalletCurrency();
@@ -479,7 +480,7 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
           {chatError && <p role="alert" className="mt-4 text-sm text-destructive">{chatError} Your message is below so you can retry.</p>}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             {voice.status === "idle" ? (
-              <button type="button" disabled={sending} onClick={() => void voice.start()} className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold disabled:opacity-40"><Mic className="h-4 w-4" /> Talk to Zero AI</button>
+              <button type="button" disabled={sending} onClick={() => void voice.start({ purpose: "conversation" })} className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold disabled:opacity-40"><Mic className="h-4 w-4" /> Talk to Zero AI</button>
             ) : (
               <>
                 <span role="status" className="text-sm text-muted-foreground">{voice.status === "connecting" ? "Connecting…" : "Voice connected"}</span>
@@ -488,6 +489,7 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
               </>
             )}
           </div>
+          <VoiceOverlay voice={voice} />
           {voice.error && <div role="alert" className="mt-2 text-center text-sm text-destructive">{voice.error}{voice.status !== "idle" && <button onClick={voice.enableAudio} className="ml-2 underline">Enable audio</button>}</div>}
           <ZeroAICalls userId={userId} />
 

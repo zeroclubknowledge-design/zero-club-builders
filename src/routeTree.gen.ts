@@ -105,6 +105,8 @@ import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.pre
 import { Route as ApiOgKindIdRouteImport } from './routes/api.og.$kind.$id'
 import { Route as ApiZeroAiCallsDispatchRouteImport } from './routes/api.zero-ai.calls.dispatch'
 import { Route as ApiZeroAiCallsEndRouteImport } from './routes/api.zero-ai.calls.end'
+import { Route as ApiZeroAiVapiSessionRouteImport } from './routes/api.zero-ai.vapi.session'
+import { Route as ApiZeroAiVapiWebhookRouteImport } from './routes/api.zero-ai.vapi.webhook'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
 import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppGamesPlayGameRouteImport } from './routes/app.games.play.$game'
@@ -597,6 +599,16 @@ const ApiZeroAiCallsEndRoute = ApiZeroAiCallsEndRouteImport.update({
   path: '/end',
   getParentRoute: () => ApiZeroAiCallsRoute,
 } as any)
+const ApiZeroAiVapiSessionRoute = ApiZeroAiVapiSessionRouteImport.update({
+  id: '/api/zero-ai/vapi/session',
+  path: '/api/zero-ai/vapi/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiZeroAiVapiWebhookRoute = ApiZeroAiVapiWebhookRouteImport.update({
+  id: '/api/zero-ai/vapi/webhook',
+  path: '/api/zero-ai/vapi/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
   id: '/bootcamps_/$id/edit',
   path: '/bootcamps/$id/edit',
@@ -736,6 +748,8 @@ export interface FileRoutesByFullPath {
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
   '/api/zero-ai/calls/dispatch': typeof ApiZeroAiCallsDispatchRoute
   '/api/zero-ai/calls/end': typeof ApiZeroAiCallsEndRoute
+  '/api/zero-ai/vapi/session': typeof ApiZeroAiVapiSessionRoute
+  '/api/zero-ai/vapi/webhook': typeof ApiZeroAiVapiWebhookRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -836,6 +850,8 @@ export interface FileRoutesByTo {
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
   '/api/zero-ai/calls/dispatch': typeof ApiZeroAiCallsDispatchRoute
   '/api/zero-ai/calls/end': typeof ApiZeroAiCallsEndRoute
+  '/api/zero-ai/vapi/session': typeof ApiZeroAiVapiSessionRoute
+  '/api/zero-ai/vapi/webhook': typeof ApiZeroAiVapiWebhookRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -943,6 +959,8 @@ export interface FileRoutesById {
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
   '/api/zero-ai/calls/dispatch': typeof ApiZeroAiCallsDispatchRoute
   '/api/zero-ai/calls/end': typeof ApiZeroAiCallsEndRoute
+  '/api/zero-ai/vapi/session': typeof ApiZeroAiVapiSessionRoute
+  '/api/zero-ai/vapi/webhook': typeof ApiZeroAiVapiWebhookRoute
   '/app/bootcamps_/$id/edit': typeof AppBootcampsIdEditRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
@@ -1051,6 +1069,8 @@ export interface FileRouteTypes {
     | '/api/og/$kind/$id'
     | '/api/zero-ai/calls/dispatch'
     | '/api/zero-ai/calls/end'
+    | '/api/zero-ai/vapi/session'
+    | '/api/zero-ai/vapi/webhook'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1151,6 +1171,8 @@ export interface FileRouteTypes {
     | '/api/og/$kind/$id'
     | '/api/zero-ai/calls/dispatch'
     | '/api/zero-ai/calls/end'
+    | '/api/zero-ai/vapi/session'
+    | '/api/zero-ai/vapi/webhook'
     | '/app/bootcamps/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1257,6 +1279,8 @@ export interface FileRouteTypes {
     | '/api/og/$kind/$id'
     | '/api/zero-ai/calls/dispatch'
     | '/api/zero-ai/calls/end'
+    | '/api/zero-ai/vapi/session'
+    | '/api/zero-ai/vapi/webhook'
     | '/app/bootcamps_/$id/edit'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
@@ -1294,6 +1318,8 @@ export interface RootRouteChildren {
   ApiZeroAiChatRoute: typeof ApiZeroAiChatRoute
   ApiZeroAiVoiceRoute: typeof ApiZeroAiVoiceRoute
   ApiOgKindIdRoute: typeof ApiOgKindIdRoute
+  ApiZeroAiVapiSessionRoute: typeof ApiZeroAiVapiSessionRoute
+  ApiZeroAiVapiWebhookRoute: typeof ApiZeroAiVapiWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1970,6 +1996,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiZeroAiCallsEndRouteImport
       parentRoute: typeof ApiZeroAiCallsRoute
     }
+    '/api/zero-ai/vapi/session': {
+      id: '/api/zero-ai/vapi/session'
+      path: '/api/zero-ai/vapi/session'
+      fullPath: '/api/zero-ai/vapi/session'
+      preLoaderRoute: typeof ApiZeroAiVapiSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/zero-ai/vapi/webhook': {
+      id: '/api/zero-ai/vapi/webhook'
+      path: '/api/zero-ai/vapi/webhook'
+      fullPath: '/api/zero-ai/vapi/webhook'
+      preLoaderRoute: typeof ApiZeroAiVapiWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/bootcamps_/$id/edit': {
       id: '/app/bootcamps_/$id/edit'
       path: '/bootcamps/$id/edit'
@@ -2308,6 +2348,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiZeroAiChatRoute: ApiZeroAiChatRoute,
   ApiZeroAiVoiceRoute: ApiZeroAiVoiceRoute,
   ApiOgKindIdRoute: ApiOgKindIdRoute,
+  ApiZeroAiVapiSessionRoute: ApiZeroAiVapiSessionRoute,
+  ApiZeroAiVapiWebhookRoute: ApiZeroAiVapiWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

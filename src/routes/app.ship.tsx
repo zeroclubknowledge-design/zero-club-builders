@@ -11,6 +11,7 @@ import { CollaboratorPicker, type Collaborator } from "@/components/Collaborator
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { notifyMentionedUsers } from "@/lib/mentions";
+import { ProjectPublishConfirmation, preparePublication, type PublicationAttempt } from "@/features/zeroAI/ProjectPublishConfirmation";
 
 export const Route = createFileRoute("/app/ship")({
   validateSearch: (search: Record<string, unknown>): { editId?: string; versionOf?: string } => {
@@ -67,6 +68,8 @@ function ShipPage() {
   const [licensePrice, setLicensePrice] = useState("");
   
   const [uploading, setUploading] = useState(false);
+  const [confirmation, setConfirmation] = useState<PublicationAttempt | null>(null);
+  const shipPending = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -265,6 +268,7 @@ function ShipPage() {
   };
 
   const handleShip = async () => {
+    if (shipPending.current || confirmation) return;
     if (!projectName.trim()) {
       toast.error("Project Name is required!");
       return;
@@ -275,6 +279,7 @@ function ShipPage() {
     }
 
     try {
+      shipPending.current = true;
       setUploading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -309,113 +314,33 @@ function ShipPage() {
         postData.bootcamp_id = selectedBootcampId;
       }
 
-      let newPost;
-      const isSchemaCacheError = (err: any) =>
-        Boolean(
-          err?.message?.includes("schema cache") ||
-          err?.message?.includes("available_for_use") ||
-          err?.code === "PGRST204" ||
-          err?.code === "42703"
-        );
-
-      if (editId && !isNewVersion) {
-        let { data, error: postError } = await supabase
-          .from('posts')
-          .update(postData)
-          .eq('id', editId)
-          .select()
-          .single();
-
-        if (postError && isSchemaCacheError(postError)) {
-          const fallbackData = { ...postData };
-          delete fallbackData.project_root_id;
-          delete fallbackData.version_label;
-          delete fallbackData.release_notes;
-          delete fallbackData.available_for_use;
-          delete fallbackData.license_type;
-          delete fallbackData.license_price;
-
-          const retry = await supabase
-            .from('posts')
-            .update(fallbackData)
-            .eq('id', editId)
-            .select()
-            .single();
-          data = retry.data;
-          postError = retry.error;
-        }
-
-        if (postError) throw postError;
-        newPost = data;
-      } else {
-        let { data, error: postError } = await supabase
-          .from('posts')
-          .insert([postData])
-          .select()
-          .single();
-
-        if (postError && isSchemaCacheError(postError)) {
-          const fallbackData = { ...postData };
-          delete fallbackData.project_root_id;
-          delete fallbackData.version_label;
-          delete fallbackData.release_notes;
-          delete fallbackData.available_for_use;
-          delete fallbackData.license_type;
-          delete fallbackData.license_price;
-
-          const retry = await supabase
-            .from('posts')
-            .insert([fallbackData])
-            .select()
-            .single();
-          data = retry.data;
-          postError = retry.error;
-        }
-
-        if (postError) throw postError;
-        newPost = data;
-      }
-
-      // Notify bootcamp creator if applicable
-      if (selectedBootcampId && newPost) {
-        const bootcamp = enrolledBootcamps.find(b => b.id === selectedBootcampId);
-        if (bootcamp && bootcamp.creator_id) {
-          await supabase
-            .from('notifications')
-            .insert([{
-              recipient_id: bootcamp.creator_id,
-              actor_id: user.id,
-              type: 'build_tagged',
-              content: `shipped their project in ${bootcamp.title}. Click to verify!`,
-              entity_id: newPost.id
-            }]);
-        }
-      }
-
-      if (newPost) {
-        void notifyMentionedUsers({
-          content: postData.content || description || "",
-          actorId: user.id,
-          entityId: newPost.id,
-          type: 'post',
-        });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
-      queryClient.invalidateQueries({ queryKey: ['my_profile'] });
-      queryClient.invalidateQueries({ queryKey: ['profile', 'current'] });
-      queryClient.invalidateQueries({ queryKey: ['zerohub_projects'] });
-      
-      toast.success(editId && !isNewVersion ? "Project updated successfully" : "Project shipped successfully! +50 XP");
-      navigate({ to: "/app/zerohub" });
+      postData.audience = visibility === "Club Only" ? "club" : "everyone";
+      const attempt = await preparePublication(postData, editId && !isNewVersion ? editId : null);
+      setConfirmation(attempt);
     } catch (error: any) {
       toast.error(error.message || "Failed to ship project");
     } finally {
+      shipPending.current = false;
       setUploading(false);
     }
   };
 
-  const canShip = projectName.trim().length > 0 && !uploading;
+  const completePublication = async (postId: string, attempt: PublicationAttempt) => {
+    const bootcampId = attempt.payload.bootcamp_id;
+    const bootcamp = enrolledBootcamps.find(b => b.id === bootcampId);
+    // Notifications are secondary; a notification failure must never imply publication failed.
+    if (bootcamp?.creator_id && profile?.id) {
+      void supabase.from('notifications').insert([{ recipient_id: bootcamp.creator_id, actor_id: profile.id, type: 'build_tagged', content: 'shipped their project in ' + bootcamp.title + '. Click to verify!', entity_id: postId }]).then(({ error }) => { if(error) console.warn('Project notification could not be sent'); });
+    }
+    if(profile?.id) void notifyMentionedUsers({ content: attempt.payload.content || '', actorId: profile.id, entityId: postId, type: 'post' });
+    for (const key of ['feed_posts','my_profile','zerohub_projects']) void queryClient.invalidateQueries({ queryKey: [key] });
+    void queryClient.invalidateQueries({ queryKey: ['profile','current'] });
+    setConfirmation(null);
+    toast.success(attempt.target_id ? 'Project updated successfully' : 'Project published successfully!');
+    navigate({ to: '/app/zerohub' });
+  };
+
+  const canShip = projectName.trim().length > 0 && !uploading && !confirmation;
   const toolList = tools.split(',').map((tool) => tool.trim()).filter(Boolean);
   const addTool = (raw: string) => {
     const next = raw.replace(/,/g, ' ').trim();
@@ -427,6 +352,7 @@ function ShipPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
+      {confirmation && <ProjectPublishConfirmation attempt={confirmation} onReplace={setConfirmation} onClose={() => setConfirmation(null)} onPublished={completePublication} />}
       <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
