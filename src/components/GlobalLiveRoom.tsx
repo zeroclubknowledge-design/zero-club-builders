@@ -1112,6 +1112,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     ],
   });
   const isRecording = recording.phase === "recording";
+  /* Hosts can let everyone present without asking, so several learners can
+     share their screens at once without a request-and-approve round each. */
+  const [presentOpen, setPresentOpen] = useState(false);
   const presentationRequests = usePresentationRequests({
     uid: client?.uid == null ? "" : String(client.uid),
     isAdmin, peers: presenceUsers, channelRef: chatChannelRef,
@@ -1128,11 +1131,20 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     avatar_url: profile?.avatar_url || "",
     isAdmin: isAdmin,
     recording: isRecording,
+    presentOpen: isAdmin ? presentOpen : undefined,
   } : undefined;
 
   const { presenceState } = useSharedPresence(`live-presence-${channel}`, presencePayload);
+  const presentingOpen = isAdmin || Object.values(presenceState).some((users: any[]) => users.some((user) => user.isAdmin && user.presentOpen === true));
+  /* Only a host who is in the call right now, and says so in their latest
+     presence, counts — a stale entry from someone who stopped, crashed or left
+     must never keep "REC" on screen. */
   const remoteRecording = Object.values(presenceState).some((users: any[]) =>
-    users.some((user) => user.isAdmin && user.recording && String(user.agora_uid) !== String(client.uid)),
+    users.some((user) =>
+      user.isAdmin && user.recording === true &&
+      String(user.agora_uid) !== String(client.uid) &&
+      remoteUsers.some((remote) => String(remote.uid) === String(user.agora_uid)),
+    ),
   );
 
   const hasSeenOthers = useRef(false);
@@ -1305,7 +1317,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       toast.error("Phones can't share their screen from the Zero Club app yet. To present, join this class from a computer (Chrome or Edge).");
       return;
     }
-    if (!isAdmin && !presentationRequests.canStart()) {
+    if (!isAdmin && !presentingOpen && !presentationRequests.canStart()) {
       await presentationRequests.askOrCancel();
       return;
     }
@@ -1339,7 +1351,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         video = Array.isArray(track) ? track[0] : track;
       }
 
-      if (!mounted.current || leaveStartedRef.current || (!isAdmin && !presentationRequests.canStart())) {
+      if (!mounted.current || leaveStartedRef.current || (!isAdmin && !presentingOpen && !presentationRequests.canStart())) {
         video.close();
         return;
       }
@@ -1366,7 +1378,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   };
   const presentLabel = isScreenSharing ? "Stop presenting" : presentationRequests.request?.approved
     ? "Start presenting" : presentationRequests.request ? "Cancel presentation request"
-    : isAdmin ? "Present your screen" : "Request to present";
+    : isAdmin || presentingOpen ? "Present your screen" : "Request to present";
 
   useEffect(() => {
     if (!showSettings) return;
@@ -2071,8 +2083,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               </div>
             )}
 
-            <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600/90 backdrop-blur-md px-2 py-0.5 rounded-full">
-              <Radio className="w-2.5 h-2.5 text-white animate-pulse" />
+            <div className={`absolute top-2 left-2 flex items-center gap-1 backdrop-blur-md px-2 py-0.5 rounded-full ${isRecording || remoteRecording ? "bg-red-600" : "bg-[#cc208f]/90"}`}>
+              {isRecording || remoteRecording
+                ? <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                : <Radio className="w-2.5 h-2.5 text-white" />}
               <span className="text-[8px] font-medium text-white tracking-[0.08em]">{isRecording || remoteRecording ? "REC" : "LIVE"}</span>
             </div>
 
@@ -2138,10 +2152,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           </h1>
           <p className="truncate text-[12px] text-white/60">Live class</p>
         </div>
-        <span className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-[#e0245e] px-2 text-[12px] font-bold text-white">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+        {/* LIVE is brand pink with a still dot. Red and a pulsing dot are kept
+            for one thing only — recording — so the two can never be confused. */}
+        <span className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-[#cc208f] px-2 text-[12px] font-bold text-white">
+          <span className="h-1.5 w-1.5 rounded-full bg-white" />
           LIVE <SessionElapsed className="tabular-nums" />
         </span>
+        {(isRecording || remoteRecording) && (<span role="status" className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-red-600 px-2 text-[12px] font-bold text-white"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />REC{isRecording ? ` ${Math.floor(recording.elapsed / 3600) ? `${Math.floor(recording.elapsed / 3600)}:` : ""}${String(Math.floor((recording.elapsed % 3600) / 60)).padStart(Math.floor(recording.elapsed / 3600) ? 2 : 1, "0")}:${String(recording.elapsed % 60).padStart(2, "0")}` : ""}</span>)}
         <span className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-white/[0.12] px-2 text-[12px] font-semibold text-white">
           <Eye className="h-3.5 w-3.5" />
           <span className="tabular-nums">{totalCount}</span>
@@ -2165,9 +2182,22 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       </header>
       {(isAdmin || remoteRecording) && (
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-white/5 bg-white/[0.03] px-3 py-2 text-xs md:px-5">
-          {(isRecording || remoteRecording) && <span role="status" className="flex items-center gap-1.5 font-semibold text-red-300"><span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />Recording{isRecording ? ` · ${Math.floor(recording.elapsed / 60)}:${String(recording.elapsed % 60).padStart(2, "0")}` : " by tutor"}</span>}
+          {isRecording && <span role="status" className="flex items-center gap-1.5 font-semibold text-red-300"><span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />Recording</span>}
+          {!isRecording && remoteRecording && <span role="status" className="flex items-center gap-1.5 font-semibold text-red-300"><span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />This class is being recorded</span>}
           {isAdmin && <button type="button" disabled={isLeaving || recording.phase === "starting" || recording.phase === "saving"} onClick={() => void (isRecording ? recording.stop() : recording.start())} className={`rounded-full px-3 py-2 font-semibold disabled:opacity-50 ${isRecording ? "bg-red-500 text-white" : "bg-white/10 text-white hover:bg-white/20"}`} aria-pressed={isRecording}>{recording.phase === "starting" ? "Starting…" : recording.phase === "saving" ? "Saving…" : isRecording ? "Stop recording" : "Record"}</button>}
-          {isAdmin && !isRecording && <span className="text-white/50">Saves to your device · Keep this app open</span>}
+          {isAdmin && !isRecording && recording.phase === "idle" && <span className="text-white/50">Records for hours · Saves to this device as a video file</span>}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setPresentOpen((open) => !open)}
+              aria-pressed={presentOpen}
+              title="Let learners share their screens without asking first"
+              className={`ml-auto flex items-center gap-2 rounded-full px-3 py-2 font-semibold transition ${presentOpen ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/80 hover:bg-white/20"}`}
+            >
+              <MonitorUp className="h-3.5 w-3.5" />
+              {presentOpen ? "Everyone can present" : "Learners ask to present"}
+            </button>
+          )}
           {recording.saved && <a href={recording.saved.url} download={recording.saved.filename} className="rounded-full bg-emerald-500/15 px-3 py-2 font-semibold text-emerald-300 hover:bg-emerald-500/25">Download recording</a>}
         </div>
       )}
@@ -2391,10 +2421,16 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           {/* Stage overlays */}
           {stageIsLive && (
             <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
-              <span className="flex items-center gap-1 bg-red-600/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
-                <Radio className="w-2.5 h-2.5 animate-pulse" />
+              <span className="flex items-center gap-1 bg-[#cc208f]/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
+                <Radio className="w-2.5 h-2.5" />
                 <span className="text-[8px] font-medium tracking-[0.08em]">LIVE</span>
               </span>
+              {(isRecording || remoteRecording) && (
+                <span className="flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-white">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                  <span className="text-[8px] font-semibold tracking-[0.08em]">REC</span>
+                </span>
+              )}
               {(isScreenSharing || remotePresenterUser) && (
                 <span className="flex items-center gap-1 bg-emerald-500/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
                   <MonitorUp className="w-2.5 h-2.5" />

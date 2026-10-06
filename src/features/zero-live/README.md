@@ -9,27 +9,32 @@ Current route entry points include:
 
 ## Local recordings
 
-Tutors and live-room hosts can select **Record**, then **Stop recording** to
-download a video. Everyone sees the host's recording status through room
-presence, including people who join while a recording is underway.
+Hosts select **Record**, then **Stop recording** to save a video. Everyone sees a
+red **REC** badge only while a host who is connected right now is recording; the
+normal **LIVE** badge is brand pink with a still dot, so the two never look alike.
 
-`recording.ts` combines subscribed participant videos and shared screens on a
-960×540 canvas at 15 fps, and mixes live call audio through Web Audio. Muted
-local microphones are excluded. Sources update when people join, leave, mute,
-change devices or present. Up to 12 video feeds appear, with screens first;
-all connected audio feeds are mixed. Screen/system audio is included only if
-it is already published in the call; the current screen-sharing flow publishes
-video only. Original call tracks are never stopped by the recorder.
+`recording.ts` draws participant videos and shared screens on a 1280×720 canvas
+at 15 fps (a single shared screen fills the frame with cameras beside it) and
+mixes live call audio through Web Audio. Original call tracks are never stopped.
 
-No API key, recording service or upload is required. Files use WebM or MP4
-depending on browser support. A download link remains in the room after saving.
-Recording also finalizes on Leave, backgrounding or teardown. Keep the app
-visible: browser/device suspension and closing the tab can interrupt local
-recording and downloads. A local recording cannot survive a browser crash.
+Long recordings:
+- Video is written to IndexedDB every 2 seconds, not kept in memory, so a class
+  can be recorded for hours (up to 6 hours / 8 GB per file, then start another).
+  Without IndexedDB it falls back to memory, capped at 256 MB.
+- The frame timer runs in a Web Worker, so switching tabs does not slow or stop
+  the recording. Only closing the page stops and saves it.
+- If the tab crashes or is closed mid-recording, the next visit to a live room
+  offers "Save video" for the recovered recording. Saved recordings are kept on
+  the device for 24 hours, then cleared.
 
-To limit mobile memory use, each recording stops and saves at 30 minutes or
-128 MiB. Start another recording to continue. This feature records the media
-received by the host, so it cannot capture streams the host has not subscribed
-to. It does not record chat or other dashboard UI.
+Format: MP4 (H.264 + AAC) wherever the browser can make it (Chrome, Edge,
+Safari), which plays on phones, Windows, Mac, WhatsApp and editors. Firefox can
+only record WebM.
+
+## Screen sharing
+
+Several people can present at once. Hosts can switch **Everyone can present**
+on, letting learners share without the request-and-approve step. Phone browsers
+(Android and iOS) cannot share a screen at all; presenters need a computer.
 
 Run `node --test scripts/live-recording.test.mjs` for recording lifecycle tests.
