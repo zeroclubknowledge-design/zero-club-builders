@@ -858,7 +858,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   /* ── Remote presenter tracking (broadcast + heartbeat, expires when stale) ── */
   const [remotePresenters, setRemotePresenters] = useState<Record<string, number>>({});
-  const [screenChoice, setScreenChoice] = useState<string>("all");
+  /* "auto" until the viewer picks: every screen side by side on a computer,
+     one screen at a time on a phone (a grid of screens is unreadable there). */
+  const [screenChoice, setScreenChoice] = useState<string>("auto");
+  const [isPhoneWidth, setIsPhoneWidth] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsPhoneWidth(query.matches);
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+  const screenSwipeX = useRef<number | null>(null);
 
   /*
    * ── Reactions ──
@@ -1728,7 +1739,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * alone, and falls back to "all" if that person stops sharing.
    */
   const screenOptions = [...(isScreenSharing ? ["self"] : []), ...remotePresenterUsers.map((u) => String(u.uid))];
-  const screenView = screenOptions.includes(screenChoice) ? screenChoice : "all";
+  const screenView = screenOptions.includes(screenChoice)
+    ? screenChoice
+    : screenChoice === "all" || !isPhoneWidth
+      ? "all"
+      : screenOptions[0] ?? "all";
   const chosenRemoteScreen = remotePresenterUsers.find((u) => String(u.uid) === screenView);
   const remotePresenterUser = chosenRemoteScreen || remotePresenterUsers[0];
   const remoteTutor = remoteUsers.find((u) => adminUids.has(String(u.uid)));
@@ -1845,7 +1860,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const waitingExtra = Math.max(0, presenceUsers.filter((p) => !p.isAdmin).length - 3);
 
   const renderScreenPicker = () => (
-    <div className="pointer-events-auto absolute left-1/2 top-10 z-30 flex max-w-[calc(100%-24px)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-full bg-black/70 p-1 ring-1 ring-white/15 backdrop-blur-md no-scrollbar" role="tablist" aria-label="Choose which screen to watch">
+    <div className="pointer-events-auto absolute left-1/2 top-10 z-30 hidden max-w-[calc(100%-24px)] -translate-x-1/2 items-center gap-1 md:flex overflow-x-auto rounded-full bg-black/70 p-1 ring-1 ring-white/15 backdrop-blur-md no-scrollbar" role="tablist" aria-label="Choose which screen to watch">
       {[
         { id: "all", label: `All screens · ${screenOptions.length}` },
         ...(isScreenSharing ? [{ id: "self", label: "Your screen" }] : []),
@@ -1892,7 +1907,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       const tiles = screenOptions.length;
       return (
         <div className="relative h-full w-full">
-          <div className={`grid h-full w-full auto-rows-fr gap-2 overflow-auto pb-16 pt-20 ${tiles > 4 ? "grid-cols-3" : "grid-cols-2"}`}>
+          <div className={`grid h-full w-full auto-rows-fr gap-1 overflow-auto pb-1 pt-9 md:gap-2 md:pb-16 md:pt-20 ${tiles > 4 ? "grid-cols-3" : "grid-cols-2"}`}>
             {isScreenSharing && screenTrack && (
               <button type="button" onClick={(event) => { event.stopPropagation(); setScreenChoice("self"); }} className="group relative min-h-0 overflow-hidden bg-black text-left ring-[#cc208f] transition hover:ring-2" title="Watch your screen full size">
                 <LocalVideoTrack track={screenTrack} play className="pointer-events-none h-full w-full" videoPlayerConfig={SCREEN_PLAYER_CONFIG} />
@@ -2337,7 +2352,21 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       {/* ═══ STAGE + PANEL ═══ */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0 gap-2 px-2.5 md:px-4 pb-2">
         {/* ── STAGE ── */}
-        <div className={`relative overflow-hidden rounded-lg bg-black ring-1 ring-white/[0.08] min-h-0 transition-[aspect-ratio] duration-300 ${theater ? "flex-1" : presenting ? "shrink-0 aspect-video md:aspect-auto md:flex-1" : "shrink-0 aspect-[4/3] md:aspect-auto md:flex-1"}`}>
+        <div
+          className={`relative overflow-hidden rounded-lg bg-black ring-1 ring-white/[0.08] min-h-0 transition-[aspect-ratio] duration-300 ${theater ? "flex-1" : presenting ? "shrink-0 aspect-video md:aspect-auto md:flex-1" : "shrink-0 aspect-[4/3] md:aspect-auto md:flex-1"}`}
+          /* Phones: swipe left or right on the stage to move between shared screens. */
+          onTouchStart={multiplePresentations ? (event) => { screenSwipeX.current = event.touches[0]?.clientX ?? null; } : undefined}
+          onTouchEnd={multiplePresentations ? (event) => {
+            const start = screenSwipeX.current;
+            screenSwipeX.current = null;
+            const end = event.changedTouches[0]?.clientX;
+            if (start == null || end == null || Math.abs(end - start) < 50) return;
+            const order = ["all", ...screenOptions];
+            const index = Math.max(0, order.indexOf(screenView));
+            const next = order[(index + (end < start ? 1 : -1) + order.length) % order.length];
+            setScreenChoice(next);
+          } : undefined}
+        >
           {renderStage()}
 
           {/* Reactions float up the stage. pointer-events-none so they can
@@ -2525,6 +2554,32 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             </div>
           </div>
         </div>
+
+        {/* Phones: which shared screen to watch, under the video with full-size buttons. */}
+        {multiplePresentations && (
+          <div className="-mt-0.5 flex shrink-0 items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar md:hidden" role="tablist" aria-label="Choose which screen to watch">
+            {[
+              ...(isScreenSharing ? [{ id: "self", label: "Your screen", avatar: profile?.avatar_url || "", name: "You" }] : []),
+              ...remotePresenterUsers.map((u) => ({ id: String(u.uid), label: userNames[u.uid] || "Presenter", avatar: userAvatars[u.uid] || "", name: userNames[u.uid] || "P" })),
+              { id: "all", label: "All screens", avatar: "", name: "" },
+            ].map((option) => {
+              const on = screenView === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setScreenChoice(option.id)}
+                  className={`flex h-10 shrink-0 items-center gap-2 rounded-full pl-1.5 pr-3.5 text-[13px] font-semibold transition active:scale-95 ${on ? "bg-white text-[#140a12]" : "bg-white/[0.08] text-white/85 ring-1 ring-white/10"} ${option.id === "all" ? "pl-3.5" : ""}`}
+                >
+                  {option.id !== "all" && <Avatar url={option.avatar} name={option.name} className="h-7 w-7 text-[11px]" />}
+                  <span className="max-w-[140px] truncate">{option.id === "all" ? `All screens · ${screenOptions.length}` : option.id === "self" ? option.label : `${option.label}’s screen`}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* ── PANEL: Chat / Learners ── */}
         {!theater && (
