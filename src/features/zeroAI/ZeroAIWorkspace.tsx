@@ -478,17 +478,13 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
             </section>
           )}
           {chatError && <p role="alert" className="mt-4 text-sm text-destructive">{chatError} Your message is below so you can retry.</p>}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            {voice.status === "idle" ? (
-              <button type="button" disabled={sending} onClick={() => void voice.start({ purpose: "conversation" })} className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold disabled:opacity-40"><Mic className="h-4 w-4" /> Talk to Zero AI</button>
-            ) : (
-              <>
+          {voice.status !== "idle" && (
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                 <span role="status" className="text-sm text-muted-foreground">{voice.status === "connecting" ? "Connecting…" : "Voice connected"}</span>
                 {voice.status === "connected" && <button onClick={voice.toggleMute} className="rounded-full border border-border px-3 py-2 text-sm">{voice.muted ? "Unmute" : "Mute"}</button>}
                 <button onClick={voice.stop} className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-white">End voice chat</button>
-              </>
-            )}
-          </div>
+            </div>
+          )}
           <VoiceOverlay voice={voice} />
           {voice.error && <div role="alert" className="mt-2 text-center text-sm text-destructive">{voice.error}{voice.status !== "idle" && <button onClick={voice.enableAudio} className="ml-2 underline">Enable audio</button>}</div>}
           <ZeroAICalls userId={userId} />
@@ -519,14 +515,26 @@ function Workspace({ userId, name, avatar, ownMode }: { userId: string; name: st
                   </span>
                   <span className="hidden tabular-nums sm:inline">{text.length ? `${text.length.toLocaleString()} characters` : "Ctrl + Enter to send"}</span>
                 </span>
-                <button
-                  type={sending ? "button" : "submit"}
-                  onClick={sending ? () => pending.current?.abort() : undefined}
-                  disabled={!sending && (!text.trim() || voice.status !== "idle")}
-                  className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0458f] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
-                >
-                  {sending ? <>Stop reply <Loader2 className="h-4 w-4 animate-spin" /></> : <>Send <ArrowUpRight className="h-4 w-4" /></>}
-                </button>
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={sending || voice.status !== "idle"}
+                    onClick={() => void voice.start({ purpose: "conversation" })}
+                    aria-label="Talk to Zero AI"
+                    title="Talk to Zero AI"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-foreground transition hover:bg-foreground/5 active:scale-[0.98] disabled:opacity-40"
+                  >
+                    {voice.status === "connecting" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type={sending ? "button" : "submit"}
+                    onClick={sending ? () => pending.current?.abort() : undefined}
+                    disabled={!sending && (!text.trim() || voice.status !== "idle")}
+                    className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0458f] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
+                  >
+                    {sending ? <>Stop reply <Loader2 className="h-4 w-4 animate-spin" /></> : <>Send <ArrowUpRight className="h-4 w-4" /></>}
+                  </button>
+                </div>
               </div>
             </div>
           </form>
