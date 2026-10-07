@@ -807,6 +807,12 @@ function PostDetail() {
                     <span className="font-medium text-sm">Unfollow {getFirstName(post.profiles)}</span>
                   </DropdownMenuItem>
                 )}
+                {isOwnPost && (
+                  <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer text-[#cc208f] focus:text-[#cc208f]" onClick={() => router.navigate({ to: "/app/boost", search: { post: post.id, tab: undefined } })}>
+                    <Rocket className="h-4 w-4" />
+                    <span className="font-medium text-sm">Boost post</span>
+                  </DropdownMenuItem>
+                )}
                 {isEditable && (
                   <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleEditClick}>
                     <Edit3 className="h-4 w-4" />

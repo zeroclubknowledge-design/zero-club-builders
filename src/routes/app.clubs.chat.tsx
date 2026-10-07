@@ -2,6 +2,8 @@ import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-r
 import { contentPreview } from "@/lib/contentPreview";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
+import { SponsoredPostCard } from "@/features/boost/SponsoredPostCard";
+import { getSponsoredPosts, sponsoredSlots } from "@/features/boost/api";
 import { Switch } from "@/components/ui/switch";
 import { ClubNoteCard, ClubNotePicker, parseClubNote } from "@/features/clubs/ClubNotes";
 import { RichTextEditor } from "@/components/RichTextEditor";
@@ -11,7 +13,7 @@ import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
 import { BookOpen, ArrowLeft, ChevronLeft, ChevronDown, ChevronRight, Paperclip, Send, Hash, Users, Pin, ShieldAlert, GraduationCap, Mic, Settings, Trash2, Save, Camera, X, Reply, Check, UserX, Copy, Plus, Video, Radio, CalendarDays, ArrowRight, Search, User, MessageSquare, Megaphone, ClipboardCheck, HelpCircle, LockKeyhole, FileText, BookOpenCheck, Image, Film, File, Download, Square, Gift, Trophy, WalletCards, Loader2, UserPlus, Share2, Wallet, Smile, Pencil } from "@/components/icons/glyphs";
 import { copyToClipboard, shareOrCopy } from "@/lib/share";
-import { useState, useRef, useEffect, useMemo, type ReactNode } from "react";
+import { useState, useRef, useEffect, useMemo, Fragment, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
@@ -1062,6 +1064,16 @@ function ClubChat() {
       setIsCreatingGiveaway(false);
     }
   };
+
+  /* Boosted posts in clubs: one compact card after the 15th message in
+     Discussion, then every 40 — present, but never in the way. */
+  const { data: clubSponsored = [] } = useQuery({
+    queryKey: ['sponsored', 'clubs', currentUser?.id],
+    enabled: Boolean(currentUser?.id),
+    staleTime: 1000 * 60 * 10,
+    queryFn: () => getSponsoredPosts('clubs', 2),
+  });
+  const clubSponsoredSlots = sponsoredSlots(messages.length, 15, 40);
 
   /* Edit your own message. The server keeps attachments and refuses cards. */
   const handleEditMessage = async (messageId: string, text: string) => {
@@ -2624,7 +2636,13 @@ function ClubChat() {
               <p className="mt-1 text-[13px] text-muted-foreground">Be the first to post in this room.</p>
             </div>
           )}
-          {messages.map((m) => (
+          {messages.map((m, index) => (
+            <Fragment key={m.id}>
+            {activeRoom === 'general' && clubSponsoredSlots.includes(index) && clubSponsored[clubSponsoredSlots.indexOf(index)] && (
+              <div className="mx-auto my-3 w-full max-w-[520px] px-1">
+                <SponsoredPostCard compact item={clubSponsored[clubSponsoredSlots.indexOf(index)]} />
+              </div>
+            )}
             <MessageBubble
               key={m.id}
               message={m}
@@ -2639,6 +2657,7 @@ function ClubChat() {
               room={activeRoom}
               isAdmin={isAdmin}
             />
+            </Fragment>
           ))}
         </main>
       )}

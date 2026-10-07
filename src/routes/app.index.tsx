@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Plus, Flame, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck, ChevronRight } from "@/components/icons/glyphs";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { getPosts } from "@/api";
 import { PostCard } from "@/components/PostCard";
+import { SponsoredPostCard } from "@/features/boost/SponsoredPostCard";
+import { getSponsoredPosts, sponsoredSlots } from "@/features/boost/api";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { Rocket } from "@/components/icons/glyphs";
 import { getCachedSession } from "@/lib/auth";
@@ -381,16 +383,32 @@ function Feed() {
     return true;
   }), [postsData, activeTab, followingIds]);
 
+  /* Boosted posts, shown as Sponsored at intervals on Discover only — after the
+     4th post and then every 8th, never two in a row, at most three per load. */
+  const { data: sponsored = [] } = useQuery({
+    queryKey: ["sponsored", "feed", currentUser?.id],
+    enabled: Boolean(currentUser?.id) && activeTab === "Discover",
+    staleTime: 1000 * 60 * 5,
+    queryFn: () => getSponsoredPosts("feed", 3),
+  });
+
   const memoizedPostCards = useMemo(() => {
-    return filteredPosts.map((post: any) => (
-      <PostCard 
-        key={post.id} 
-        post={post} 
-        currentUser={currentUser} 
-        onCommentClick={setCommentPost} 
-      />
-    ));
-  }, [filteredPosts, currentUser]);
+    const slots = activeTab === "Discover" ? sponsoredSlots(filteredPosts.length) : [];
+    const out: ReactNode[] = [];
+    filteredPosts.forEach((post: any, index: number) => {
+      const slot = slots.indexOf(index);
+      if (slot >= 0 && sponsored[slot]) out.push(<SponsoredPostCard key={`sponsored-${sponsored[slot].boost_id}`} item={sponsored[slot]} />);
+      out.push(
+        <PostCard 
+          key={post.id} 
+          post={post} 
+          currentUser={currentUser} 
+          onCommentClick={setCommentPost} 
+        />
+      );
+    });
+    return out;
+  }, [filteredPosts, currentUser, sponsored, activeTab]);
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">

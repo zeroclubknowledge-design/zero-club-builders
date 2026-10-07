@@ -552,6 +552,7 @@ function DesktopWorkspaceRail({
             { label: "Go PRO", to: "/app/premium", Icon: IconGem },
           ]
         : [
+          { label: "Boost a post", to: "/app/boost", Icon: Rocket },
           { label: "Ship work", to: "/app/ship", Icon: Rocket },
           { label: "Find bootcamps", to: "/app/bootcamps", Icon: IconLearn },
           { label: "Create note", to: "/app/notes/create", Icon: IconNotes },

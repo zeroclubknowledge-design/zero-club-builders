@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { BoostsAdmin } from "@/features/admin/BoostsAdmin";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -87,7 +88,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "tutors", label: "Tutor applications", Icon: GraduationCap },
   { id: "rewards", label: "Rewards & games", Icon: WalletCards },
   { id: "institutions", label: "Institutions", Icon: Building2 },
-  { id: "ads", label: "Ads Manager", Icon: Megaphone },
+  { id: "ads", label: "Boosts", Icon: Megaphone },
   { id: "system", label: "System", Icon: Settings2 },
 ];
 
@@ -191,7 +192,8 @@ export function AdminDashboard() {
       if (error) throw error;
       return (data || []) as any[];
     },
-    enabled: activeTab === "ads",
+    // Admin-made ad campaigns are retired: members boost their own posts now (BoostsAdmin).
+    enabled: false,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
     retry: false,
@@ -300,7 +302,7 @@ export function AdminDashboard() {
           {activeTab === "overview" && <Overview snapshot={data} format={format} onNavigate={setActiveTab} />}
           {activeTab === "analytics" && <Analytics query={analyticsQuery} format={format} />}
           {activeTab === "institutions" && <Institutions query={institutionsQuery} format={format} busy={action.isPending} runAction={runAction} />}
-          {activeTab === "ads" && <AdsManager query={promotionsQuery} busy={action.isPending} runAction={runAction} />}
+          {activeTab === "ads" && <BoostsAdmin />}
           {activeTab === "people" && <People users={filteredUsers} search={userSearch} setSearch={setUserSearch} type={userType} setType={setUserType} busy={action.isPending} runAction={runAction} />}
           {activeTab === "moderation" && <Moderation reports={data.reports} busy={action.isPending} runAction={runAction} />}
           {activeTab === "learning" && <Learning bootcamps={data.bootcamps} format={format} busy={action.isPending} runAction={runAction} />}
