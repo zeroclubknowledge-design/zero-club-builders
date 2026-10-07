@@ -427,3 +427,11 @@ verify_jwt = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+[functions.avatar-motion]
+# The video provider calls this function back with no Supabase session, so the
+# gateway check is off. The function authenticates every call itself: members by
+# their session token (checked with auth.getUser), provider callbacks by a
+# per-job random token, after which the result is fetched from the provider with
+# our own key — the callback body is never trusted.
+verify_jwt = false

@@ -9,6 +9,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useUser } from "@/hooks/useUser";
 import { useGoBack } from "@/hooks/useGoBack";
+import { AvatarMotionSettings } from "@/features/profile/AvatarMotionSettings";
+import { requestAvatarMotion } from "@/features/profile/avatarMotionApi";
 
 export const Route = createFileRoute("/app/profile/edit")({
   component: EditProfile,
@@ -174,6 +176,13 @@ function EditProfile() {
       if (updateError) throw updateError;
 
       if (type === 'avatar') setAvatar(url);
+      // A new photo: start its animation in the background. The upload is
+      // already done — nothing here waits on it, and a failure leaves the photo as is.
+      if (type === 'avatar' && ext !== 'gif') {
+        void requestAvatarMotion('auto')
+          .catch(() => null)
+          .finally(() => queryClient.invalidateQueries({ queryKey: ['avatar-motion-status'] }));
+      }
       else setBanner(url);
       
       toast.success(ext === 'gif' ? 'Animated profile picture updated!' : `${type === 'avatar' ? 'Avatar' : 'Banner'} updated!`);
@@ -267,9 +276,13 @@ function EditProfile() {
                 Edit photo
               </button>
               {profile?.username && <p className="truncate text-[13px] text-muted-foreground">@{profile.username}</p>}
-              <p className="text-[12px] text-muted-foreground">Upload a GIF to make your photo animated.</p>
             </div>
           </div>
+          {profile?.id && (
+            <div className="px-4 pt-3">
+              <AvatarMotionSettings profileId={profile.id} enabled={profile.avatar_motion_enabled !== false} />
+            </div>
+          )}
         </section>
 
         <section className="flex flex-1 flex-col gap-4 bg-card px-4 pb-28 pt-4 md:flex-none md:rounded-xl md:border md:border-border md:pb-5">

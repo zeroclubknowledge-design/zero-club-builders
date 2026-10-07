@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { plain } from "@/lib/og/core/text";
 import { useGoBack } from "@/hooks/useGoBack";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
@@ -531,11 +532,11 @@ function ProfileDetail() {
               {/* The tint sits on a solid card-coloured base. On its own it was
                   see-through, so the dark cover showed through the top half of
                   the circle and the avatar looked cut in two. */}
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} className="h-full w-full object-cover" alt="" loading="lazy" decoding="async" />
-              ) : (
-                <span className="grid h-full w-full place-items-center bg-accent/10">{initials}</span>
-              )}
+              <AnimatedProfileImage
+                profile={profile}
+                alt={`${displayName(profile)}'s profile photo`}
+                fallback={<span className="grid h-full w-full place-items-center bg-accent/10">{initials}</span>}
+              />
             </button>
             {/* The ambassador mark sits on the photo's corner, outside the
                 clipped circle so it is never cut off. */}
@@ -785,14 +786,12 @@ function ProfileDetail() {
           >
             <X className="h-6 w-6" />
           </button>
-          <img
-            loading="lazy"
-            decoding="async"
-            src={profile.avatar_url}
-            className="max-h-[95vh] max-w-[95vw] rounded-lg object-contain shadow-2xl"
-            alt="Full avatar"
+          <span
+            className="block aspect-square w-[min(92vw,92vh,640px)] overflow-hidden rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <AnimatedProfileImage profile={profile} alt="Profile photo" className="h-full w-full object-cover" />
+          </span>
         </div>
       )}
       {/* The last card runs to the bottom of the screen, so the page never

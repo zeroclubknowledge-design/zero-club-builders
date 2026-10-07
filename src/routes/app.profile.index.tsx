@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
@@ -309,13 +310,15 @@ function Profile() {
                 className="relative flex h-[88px] w-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted ring-4 ring-background shadow-[0_14px_30px_-18px_rgba(0,0,0,0.5)] transition-opacity hover:opacity-90 sm:h-[96px] sm:w-[96px]"
                 onClick={() => setIsAvatarOpen(true)}
               >
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} className="h-full w-full object-cover" alt="Avatar" loading="lazy" decoding="async" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary sm:text-3xl">
-                    {initials}
-                  </div>
-                )}
+                <AnimatedProfileImage
+                  profile={profile}
+                  alt="Your profile photo"
+                  fallback={
+                    <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary sm:text-3xl">
+                      {initials}
+                    </div>
+                  }
+                />
               </div>
               <AvatarAffiliation profile={profile} size={26} />
             </div>
@@ -535,12 +538,12 @@ function Profile() {
           >
             <X className="w-6 h-6" />
           </button>
-          <img loading="lazy" decoding="async" 
-            src={profile?.avatar_url} 
-            className="max-w-[95vw] max-h-[95vh] object-contain rounded-lg shadow-2xl" 
-            alt="Full Avatar" 
+          <span
+            className="block aspect-square w-[min(92vw,92vh,640px)] overflow-hidden rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <AnimatedProfileImage profile={profile} alt="Your profile photo" className="h-full w-full object-cover" />
+          </span>
         </div>
       )}
     </div>
