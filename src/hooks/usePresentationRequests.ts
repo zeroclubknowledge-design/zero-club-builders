@@ -8,11 +8,13 @@ export interface PresentationRequest {
 }
 
 /** Requests belong to a call connection, so a rejoin cannot reuse an approval. */
-export function usePresentationRequests({ uid, isAdmin, peers, channelRef }: {
+export function usePresentationRequests({ uid, isAdmin, peers, channelRef, options }: {
   uid: string;
   isAdmin: boolean;
   peers: Array<{ uid: string; isAdmin: boolean }>;
   channelRef: { current: any };
+  /** autoStarts: true when a screen is already chosen and will go live on approval. */
+  options?: { autoStarts?: () => boolean };
 }) {
   const [request, setRequest] = useState<(PresentationRequest & { approved: boolean }) | null>(null);
   const [incoming, setIncoming] = useState<PresentationRequest[]>([]);
@@ -45,7 +47,8 @@ export function usePresentationRequests({ uid, isAdmin, peers, channelRef }: {
       const next = payload.action === "accept" ? { ...pending, approved: true, expiresAt: Date.now() + 60000 } : null;
       current.current = next;
       setRequest(next);
-      if (next) toast.success("Your tutor approved. Click Start presenting to choose your screen.");
+      // GlobalLiveRoom puts an already-chosen screen live straight away and says so.
+      if (next && !options?.autoStarts?.()) toast.success("Your tutor approved. Click Start presenting to choose your screen.");
       else toast.info("Your tutor declined the screen-sharing request.");
     }
   };
@@ -72,11 +75,12 @@ export function usePresentationRequests({ uid, isAdmin, peers, channelRef }: {
     }
   }, [peers]);
 
-  const askOrCancel = async () => {
-    if (sending.current) return;
+  /** Sends a request, or cancels the pending one. Resolves true when a request is now waiting. */
+  const askOrCancel = async (): Promise<boolean> => {
+    if (sending.current) return false;
     if (!uid || !peers.some(p => p.isAdmin)) {
       toast.info("Wait for your tutor to join before requesting to present.");
-      return;
+      return false;
     }
     sending.current = true;
     setBusy(true);
@@ -86,10 +90,12 @@ export function usePresentationRequests({ uid, isAdmin, peers, channelRef }: {
     setRequest(next);
     try {
       await send({ ...(previous || next), action: previous ? "cancel" : "request" });
+      return Boolean(next);
     } catch {
       current.current = previous;
       setRequest(previous);
       toast.error("Could not send your request. Check your connection and try again.");
+      return false;
     } finally {
       sending.current = false;
       setBusy(false);

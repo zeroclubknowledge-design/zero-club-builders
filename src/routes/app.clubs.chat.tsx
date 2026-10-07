@@ -2973,7 +2973,29 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
     if (replyAttachInputRef.current) replyAttachInputRef.current.value = '';
   }, [selectedCard?.id]);
 
-  const cards = messages.filter((message: any) => !message.reply_to_id);
+  const [showClosedAssignments, setShowClosedAssignments] = useState(false);
+
+  const closedAssignmentsCount = useMemo(() => {
+    if (room !== 'assignments') return 0;
+    return messages.filter((message: any) => {
+      if (message.reply_to_id) return false;
+      const card = parseClubCard(message, room);
+      const due = assignmentDue(card);
+      return Boolean(due && due.getTime() <= Date.now());
+    }).length;
+  }, [messages, room]);
+
+  const cards = messages.filter((message: any) => {
+    if (message.reply_to_id) return false;
+    if (room === 'assignments' && !showClosedAssignments) {
+      const card = parseClubCard(message, room);
+      const due = assignmentDue(card);
+      if (due && due.getTime() <= Date.now()) {
+        return false; // Remove assignment anytime it has reached its due date
+      }
+    }
+    return true;
+  });
 
   // Marks for submissions. Row-level security returns only what this person
   // may see: their own marks, or every mark for the club owner and admins.
@@ -3005,7 +3027,18 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
       toast.error(reason === 'owner_only' ? 'Only the club owner can mark assignments.' : reason === 'out_of_range' ? `Marks must be between 0 and ${fmtMark(data.max)}.` : reason === 'no_marks_set' ? 'This assignment has no total marks.' : error?.message || 'Could not save the mark.');
       return;
     }
-    toast.success(`Marked ${fmtMark(score)}/${fmtMark(max)}`);
+    const xpAwarded = Math.max(0, Math.round(score));
+    if (xpAwarded > 0 && selectedCard?.id) {
+      const replies = messages.filter((m: any) => m.reply_to_id === selectedCard.id);
+      const sub = replies.find((r: any) => r.id === submissionId);
+      if (sub?.profile_id) {
+        const res = await supabase.rpc('award_assignment_xp', { p_user_id: sub.profile_id, p_xp: xpAwarded });
+        if (res.error) {
+          await supabase.from('profiles').update({ xp: (sub.profiles?.xp || 0) + xpAwarded }).eq('id', sub.profile_id);
+        }
+      }
+    }
+    toast.success(`Marked ${fmtMark(score)}/${fmtMark(max)}${xpAwarded > 0 ? ` (+${xpAwarded} XP awarded)` : ''}`);
     setGradeDrafts((d) => { const n = { ...d }; delete n[submissionId]; return n; });
     void loadGrades();
   };
@@ -3114,6 +3147,16 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
     try {
       const result = await onPost(encodeClubReply(room === 'assignments' ? 'submission' : 'answer', threadReply.trim(), replyAttachments.length ? replyAttachments : undefined), selectedCard.id);
       if (result !== false) {
+        if (room === 'assignments') {
+          const xpEarned = 50;
+          if (currentUser?.id) {
+            const res = await supabase.rpc('award_assignment_xp', { p_user_id: currentUser.id, p_xp: xpEarned });
+            if (res.error) {
+              await supabase.from('profiles').update({ xp: ((currentUser as any)?.xp || 0) + xpEarned }).eq('id', currentUser.id);
+            }
+          }
+          toast.success(`Assignment submitted! You earned +${xpEarned} XP ⚡`);
+        }
         setThreadReply('');
         setReplyAttachments([]);
       }
@@ -3261,6 +3304,21 @@ function StructuredClubRoom({ room, messages, isAdmin, isOwner = false, currentU
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {room === 'assignments' && closedAssignmentsCount > 0 && (
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-border bg-card/60 px-4 py-2.5 text-xs">
+          <span className="text-muted-foreground">
+            {closedAssignmentsCount} assignment{closedAssignmentsCount === 1 ? '' : 's'} removed after reaching due date.
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowClosedAssignments((v) => !v)}
+            className="font-semibold text-primary hover:underline"
+          >
+            {showClosedAssignments ? 'Hide closed' : 'View closed'}
+          </button>
         </div>
       )}
 

@@ -1123,10 +1123,15 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* Hosts can let everyone present without asking, so several learners can
      share their screens at once without a request-and-approve round each. */
   const [presentOpen, setPresentOpen] = useState(false);
+  /* A screen a learner chose while asking to present; goes live on approval. */
+  const pendingScreenRef = useRef<any>(null);
   const presentationRequests = usePresentationRequests({
     uid: client?.uid == null ? "" : String(client.uid),
     isAdmin, peers: presenceUsers, channelRef: chatChannelRef,
+    options: { autoStarts: () => Boolean(pendingScreenRef.current) },
   });
+  const presentationRequestsRef = useRef(presentationRequests);
+  presentationRequestsRef.current = presentationRequests;
   presentationReceiver.current = presentationRequests.receive;
 
   const presencePayload = profile?.id && client?.uid ? {
@@ -1313,6 +1318,69 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     !!navigator.mediaDevices &&
     typeof (navigator.mediaDevices as any).getDisplayMedia === "function";
 
+  /* Open the screen picker and return a track (not yet shown to anyone). */
+  const captureScreen = async () => {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      // Bypass Agora's built-in block on mobile screen sharing
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "monitor" } });
+      const mediaStreamTrack = stream.getVideoTracks()[0];
+      return AgoraRTC.createCustomVideoTrack({ mediaStreamTrack, bitrateMin: 400, bitrateMax: 1500 });
+    }
+    const track = await AgoraRTC.createScreenVideoTrack({
+      encoderConfig: { width: 1280, height: 720, frameRate: 15, bitrateMin: 400, bitrateMax: 1200 },
+      optimizationMode: "detail",
+    });
+    return Array.isArray(track) ? track[0] : track;
+  };
+
+  /* Put a captured screen on the stage for everyone. */
+  const goLiveWithScreen = (video: any) => {
+    const stop = () => {
+      video.close();
+      setIsScreenSharing(false);
+      setScreenTrack(null);
+    };
+    video.on("track-ended", stop);
+    video.getMediaStreamTrack().onended = stop;
+    presentationRequests.consume();
+    setScreenTrack(video);
+    setIsScreenSharing(true);
+  };
+
+  /*
+   * A learner's screen chosen while asking to present. Browsers only open the
+   * screen picker straight after a tap, never later on their own, so the
+   * learner picks their screen when they ask; it waits here, unseen, and goes
+   * live the instant the tutor approves — no second tap.
+   */
+  const [awaitingApproval, setAwaitingApproval] = useState(false);
+  const dropPendingScreen = () => {
+    const pending = pendingScreenRef.current;
+    pendingScreenRef.current = null;
+    setAwaitingApproval(false);
+    try { pending?.close(); } catch { /* already closed */ }
+  };
+
+  useEffect(() => {
+    const request = presentationRequests.request;
+    const pending = pendingScreenRef.current;
+    if (!pending) return;
+    if (request?.approved) {
+      pendingScreenRef.current = null;
+      setAwaitingApproval(false);
+      if (!mounted.current || leaveStartedRef.current) { pending.close(); return; }
+      goLiveWithScreen(pending);
+      toast.success("You're presenting", { description: "Your tutor approved. Everyone can see your screen now." });
+    } else if (!request) {
+      // Declined, expired or cancelled: let go of the screen.
+      dropPendingScreen();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presentationRequests.request]);
+
+  useEffect(() => () => { try { pendingScreenRef.current?.close(); } catch { /* gone */ } }, []);
+
   const toggleScreenShare = async () => {
     if (captureBusy.current || leaveStartedRef.current) return;
     if (isScreenSharing) {
@@ -1325,55 +1393,44 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       toast.error("Phones can't share their screen from the Zero Club app yet. To present, join this class from a computer (Chrome or Edge).");
       return;
     }
-    if (!isAdmin && !presentingOpen && !presentationRequests.canStart()) {
-      await presentationRequests.askOrCancel();
+    const needsApproval = !isAdmin && !presentingOpen && !presentationRequests.canStart();
+
+    // Already waiting: tapping again cancels the request and lets go of the screen.
+    if (needsApproval && (presentationRequests.request || pendingScreenRef.current)) {
+      dropPendingScreen();
+      if (presentationRequests.request) await presentationRequests.askOrCancel();
       return;
     }
+
     captureBusy.current = true;
     setStartingPresentation(true);
     try {
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      let video;
+      const video = await captureScreen();
+      if (!mounted.current || leaveStartedRef.current) { video.close(); return; }
 
-      if (isMobile) {
-        // Bypass Agora's built-in block on mobile screen sharing
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "monitor" } });
-        const mediaStreamTrack = stream.getVideoTracks()[0];
-        video = AgoraRTC.createCustomVideoTrack({ 
-          mediaStreamTrack,
-          bitrateMin: 400,
-          bitrateMax: 1500
-        });
-        
-      } else {
-        const track = await AgoraRTC.createScreenVideoTrack({
-          encoderConfig: {
-            width: 1280,
-            height: 720,
-            frameRate: 15,
-            bitrateMin: 400,
-            bitrateMax: 1200,
-          },
-          optimizationMode: "detail",
-        });
-        video = Array.isArray(track) ? track[0] : track;
-      }
-
-      if (!mounted.current || leaveStartedRef.current || (!isAdmin && !presentingOpen && !presentationRequests.canStart())) {
-        video.close();
+      if (needsApproval && !presentingOpen && !presentationRequests.canStart()) {
+        // Hold the chosen screen and ask the tutor.
+        pendingScreenRef.current = video;
+        setAwaitingApproval(true);
+        // Stopping the share from the browser bar while waiting withdraws the request.
+        const cancelIfStopped = () => {
+          if (pendingScreenRef.current !== video) return;
+          dropPendingScreen();
+          if (presentationRequestsRef.current.request) void presentationRequestsRef.current.askOrCancel();
+        };
+        video.on("track-ended", cancelIfStopped);
+        video.getMediaStreamTrack().onended = cancelIfStopped;
+        const sent = await presentationRequests.askOrCancel();
+        if (!sent) {
+          // Not sent (no tutor yet, or no connection) — the hook has said why.
+          if (pendingScreenRef.current === video) dropPendingScreen();
+        } else if (pendingScreenRef.current === video) {
+          toast("Waiting for your tutor", { description: "Your screen will show the moment they approve." });
+        }
         return;
       }
-      const stop = () => {
-        video.close();
-        setIsScreenSharing(false);
-        setScreenTrack(null);
-      };
-      video.on("track-ended", stop);
-      video.getMediaStreamTrack().onended = stop;
-      
-      presentationRequests.consume();
-      setScreenTrack(video);
-      setIsScreenSharing(true);
+
+      goLiveWithScreen(video);
     } catch (err: any) {
       // User dismissed the OS picker — not an error
       if (err?.code === "PERMISSION_DENIED" || err?.name === "NotAllowedError") return;
@@ -1385,7 +1442,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   };
   const presentLabel = isScreenSharing ? "Stop presenting" : presentationRequests.request?.approved
-    ? "Start presenting" : presentationRequests.request ? "Cancel presentation request"
+    ? "Start presenting" : presentationRequests.request || awaitingApproval ? "Cancel presentation request"
     : isAdmin || presentingOpen ? "Present your screen" : "Request to present";
 
   useEffect(() => {
@@ -2215,7 +2272,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             </div>
           )) : (
             <div className="flex flex-wrap items-center gap-2 rounded-xl bg-[#29202e] p-3">
-              <span className="flex-1">{presentationRequests.request?.approved ? "Your tutor approved your screen sharing." : "Waiting for your tutor to approve screen sharing…"}</span>
+              <span className="flex-1">{presentationRequests.request?.approved ? "Your tutor approved your screen sharing." : awaitingApproval ? "Waiting for your tutor — your screen will show as soon as they approve." : "Waiting for your tutor to approve screen sharing…"}</span>
               {presentationRequests.request?.approved && <button disabled={startingPresentation || isLeaving} onClick={() => void toggleScreenShare()} className="rounded-lg bg-emerald-600 px-3 py-2 font-semibold disabled:opacity-50">{startingPresentation ? "Opening…" : "Start presenting"}</button>}
               <button disabled={presentationRequests.busy || startingPresentation} onClick={() => void presentationRequests.askOrCancel()} className="rounded-lg bg-white/10 px-3 py-2 disabled:opacity-50">Cancel</button>
             </div>
