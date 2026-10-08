@@ -1,3 +1,5 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-08 via Supabase MCP (migration "project_voice_confirmation").
+-- Kept as a record; do not re-run.
 -- A confirmation authorizes one immutable project snapshot, never a user-wide unlock.
 begin;
 create table public.project_publish_verifications (

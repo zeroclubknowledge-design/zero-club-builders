@@ -1569,3 +1569,64 @@ html[data-zc-focus-flow] [data-zc-bottom-nav] {
 @media (max-width: 767px) {
   body { padding-bottom: var(--zc-live-bar-h, 0px); }
 }
+
+/* ── Drawer speed ──────────────────────────────────────────────
+   vaul's default is a slow 0.5s both ways. Native sheets open in about a
+   third of a second and get out of the way in under a quarter: closing
+   (the X, a tap outside, or a swipe down) now takes 0.2s and accelerates
+   away, opening is a quick 0.3s settle. A swipe continues from wherever
+   the finger let go, because the close animation has no start frame. */
+[data-vaul-drawer][data-state="open"] {
+  animation-duration: 0.3s !important;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1) !important;
+}
+[data-vaul-drawer][data-state="closed"] {
+  animation-duration: 0.2s !important;
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1) !important;
+}
+[data-vaul-overlay][data-state="open"] {
+  animation-duration: 0.25s !important;
+}
+[data-vaul-overlay][data-state="closed"] {
+  animation-duration: 0.18s !important;
+  animation-timing-function: ease-in !important;
+}
+
+/* On desktop the sheets become a centred dialog or a side panel whose
+   position is pinned, so the slide never showed: the sheet just sat there
+   for half a second before vanishing. They get their own quick fade. */
+@keyframes zc-dialog-in {
+  from { opacity: 0; scale: 0.97; }
+  to { opacity: 1; scale: 1; }
+}
+@keyframes zc-dialog-out {
+  to { opacity: 0; scale: 0.97; }
+}
+@keyframes zc-panel-in {
+  from { opacity: 0; translate: 32px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes zc-panel-out {
+  to { opacity: 0; translate: 32px 0; }
+}
+@media (min-width: 768px) {
+  [data-zc-drawer-variant="dialog"][data-state="open"] {
+    animation: zc-dialog-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both !important;
+  }
+  [data-zc-drawer-variant="dialog"][data-state="closed"] {
+    animation: zc-dialog-out 0.13s ease-in both !important;
+  }
+  [data-zc-drawer-variant="panel"][data-state="open"] {
+    animation: zc-panel-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both !important;
+  }
+  [data-zc-drawer-variant="panel"][data-state="closed"] {
+    animation: zc-panel-out 0.15s ease-in both !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-vaul-drawer],
+  [data-vaul-overlay] {
+    animation-duration: 0.01s !important;
+  }
+}
