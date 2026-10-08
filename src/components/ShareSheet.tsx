@@ -3,6 +3,13 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Link2, Mail, MessageSquare, Share2 } from "@/components/icons/glyphs";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import { copyToClipboard } from "@/lib/share";
+import {
+  claimLinkedInReward,
+  linkedInShareText,
+  linkedInUrl,
+  openLinkedInComposer,
+  type LinkedInPayload,
+} from "@/lib/linkedinShare";
 
 /**
  * Zero Club's own share sheet, instead of the phone's.
@@ -18,6 +25,8 @@ export type ShareRequest = {
   text?: string;
   /** The sheet's heading, e.g. "Share Ada's post". */
   heading?: string;
+  /** Posts and projects: share half the post to LinkedIn with a read-more link. */
+  linkedin?: LinkedInPayload;
 };
 
 const listeners = new Set<(request: ShareRequest) => void>();
@@ -40,9 +49,21 @@ export async function openShareSheet(request: ShareRequest): Promise<void> {
 /* ── Brand marks for the targets (simple, recognisable glyphs) ─────────── */
 
 const WhatsAppGlyph = () => (
-  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
+  <svg
+    viewBox="0 0 24 24"
+    className="h-7 w-7"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinejoin="round"
+    strokeLinecap="round"
+  >
     <path d="M12 3.2a8.8 8.8 0 0 0-7.6 13.2L3.2 20.8l4.5-1.2A8.8 8.8 0 1 0 12 3.2Z" />
-    <path d="M9.1 8.3c.2-.4.4-.4.7-.4h.5c.2 0 .4 0 .5.4l.7 1.7c.1.2 0 .4-.1.6l-.5.6c-.1.1-.2.3 0 .5.4.7 1 1.4 1.7 1.9.6.4 1 .6 1.2.7.2.1.4 0 .5-.1l.7-.8c.2-.2.3-.2.6-.1l1.6.8c.2.1.4.2.4.4 0 .6-.2 1.2-.7 1.5-.5.4-1.2.6-1.9.5-1-.2-2.4-.8-3.7-2-1.4-1.3-2.2-2.7-2.4-3.6-.2-.9 0-1.6.4-2.1Z" fill="currentColor" stroke="none" />
+    <path
+      d="M9.1 8.3c.2-.4.4-.4.7-.4h.5c.2 0 .4 0 .5.4l.7 1.7c.1.2 0 .4-.1.6l-.5.6c-.1.1-.2.3 0 .5.4.7 1 1.4 1.7 1.9.6.4 1 .6 1.2.7.2.1.4 0 .5-.1l.7-.8c.2-.2.3-.2.6-.1l1.6.8c.2.1.4.2.4.4 0 .6-.2 1.2-.7 1.5-.5.4-1.2.6-1.9.5-1-.2-2.4-.8-3.7-2-1.4-1.3-2.2-2.7-2.4-3.6-.2-.9 0-1.6.4-2.1Z"
+      fill="currentColor"
+      stroke="none"
+    />
   </svg>
 );
 const XGlyph = () => (
@@ -50,13 +71,8 @@ const XGlyph = () => (
     <path d="M18.9 1.2h3.7l-8 9.2L24 22.8h-7.4l-5.8-7.6-6.6 7.6H.5l8.6-9.8L0 1.2h7.6l5.2 6.9 6.1-6.9Zm-1.3 19.5h2L6.5 3.2H4.3l13.3 17.5Z" />
   </svg>
 );
-const FacebookGlyph = () => (
-  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor">
-    <path d="M13.4 21v-7.6h2.6l.4-3h-3V8.5c0-.9.3-1.5 1.5-1.5h1.6V4.3c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.7v3h2.6V21h3.1Z" />
-  </svg>
-);
-const LinkedInGlyph = () => (
-  <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="currentColor">
+const LinkedInGlyph = ({ className = "h-[22px] w-[22px]" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
     <path d="M5.3 8.4h3.1V19H5.3V8.4Zm1.6-5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6ZM10.3 8.4h3v1.5c.4-.8 1.5-1.7 3.1-1.7 3.3 0 3.9 2.2 3.9 5V19h-3.1v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V19h-3.2V8.4Z" />
   </svg>
 );
@@ -117,42 +133,49 @@ function buildTargets(canNativeShare: boolean): Target[] {
       label: "X",
       icon: <XGlyph />,
       className: "bg-black text-white ring-1 ring-white/10",
-      onPick: (r) => openOut(`https://x.com/intent/post?text=${enc(r.text || r.title || "")}&url=${enc(r.url)}`),
-    },
-    {
-      key: "facebook",
-      label: "Facebook",
-      icon: <FacebookGlyph />,
-      className: "bg-[#1877F2] text-white",
-      onPick: (r) => openOut(`https://www.facebook.com/sharer/sharer.php?u=${enc(r.url)}`),
+      onPick: (r) =>
+        openOut(`https://x.com/intent/post?text=${enc(r.text || r.title || "")}&url=${enc(r.url)}`),
     },
     {
       key: "linkedin",
       label: "LinkedIn",
       icon: <LinkedInGlyph />,
       className: "bg-[#0A66C2] text-white",
-      onPick: (r) => openOut(`https://www.linkedin.com/sharing/share-offsite/?url=${enc(r.url)}`),
+      onPick: async (r) => {
+        if (!r.linkedin) {
+          openOut(`https://www.linkedin.com/sharing/share-offsite/?url=${enc(r.url)}`);
+          return;
+        }
+        // Half the post, then "Continue reading here" and the link back.
+        await openLinkedInComposer(linkedInShareText(r.linkedin, linkedInUrl(r.url)));
+        void claimLinkedInReward(r.linkedin);
+      },
     },
     {
       key: "telegram",
       label: "Telegram",
       icon: <TelegramGlyph />,
       className: "bg-[#229ED9] text-white",
-      onPick: (r) => openOut(`https://t.me/share/url?url=${enc(r.url)}&text=${enc(r.text || r.title || "")}`),
+      onPick: (r) =>
+        openOut(`https://t.me/share/url?url=${enc(r.url)}&text=${enc(r.text || r.title || "")}`),
     },
     {
       key: "sms",
       label: "Messages",
       icon: <MessageSquare className="h-6 w-6" />,
       className: "bg-[#34C759] text-white",
-      onPick: (r) => { window.location.href = `sms:?&body=${enc(message(r))}`; },
+      onPick: (r) => {
+        window.location.href = `sms:?&body=${enc(message(r))}`;
+      },
     },
     {
       key: "email",
       label: "Email",
       icon: <Mail className="h-6 w-6" />,
       className: "bg-foreground/[0.06] text-foreground",
-      onPick: (r) => { window.location.href = `mailto:?subject=${enc(r.title || "Shared from Zero Club")}&body=${enc(message(r))}`; },
+      onPick: (r) => {
+        window.location.href = `mailto:?subject=${enc(r.title || "Shared from Zero Club")}&body=${enc(message(r))}`;
+      },
     },
   );
   return targets;
@@ -196,9 +219,16 @@ export function ShareSheetHost() {
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerContent hideClose className="zc-share-sheet overflow-hidden rounded-t-[22px] border-border/40 bg-card pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <DrawerContent
+        hideClose
+        className="zc-share-sheet overflow-hidden rounded-t-[22px] border-border/40 bg-card pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+      >
         {/* The Zero Club mark, large and faint, behind the sheet's content. */}
-        <svg viewBox="0 0 100 100" aria-hidden="true" className="zc-share-mark pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-[#cc208f]">
+        <svg
+          viewBox="0 0 100 100"
+          aria-hidden="true"
+          className="zc-share-mark pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-[#cc208f]"
+        >
           <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
         </svg>
 
@@ -212,6 +242,12 @@ export function ShareSheetHost() {
               <span className="truncate">{displayHost(request.url)}</span>
             </p>
           )}
+          {request?.linkedin?.isOwn && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#0A66C2]/10 px-3 py-1 text-[12.5px] font-semibold text-[#0A66C2] dark:text-[#5aa2ec]">
+              <LinkedInGlyph className="h-4 w-4" />
+              Share to LinkedIn and earn {request.linkedin.isShip ? 500 : 200} ZP
+            </p>
+          )}
         </div>
 
         <div className="no-scrollbar relative mt-5 flex gap-1 overflow-x-auto px-3 pb-1">
@@ -222,10 +258,14 @@ export function ShareSheetHost() {
               onClick={() => void pick(target)}
               className="group flex w-[76px] shrink-0 flex-col items-center gap-2 rounded-2xl py-1.5 tap"
             >
-              <span className={`grid h-[58px] w-[58px] place-items-center rounded-full shadow-[0_6px_16px_-10px_rgba(0,0,0,0.45)] transition-transform duration-150 group-active:scale-90 ${target.className}`}>
+              <span
+                className={`grid h-[58px] w-[58px] place-items-center rounded-full shadow-[0_6px_16px_-10px_rgba(0,0,0,0.45)] transition-transform duration-150 group-active:scale-90 ${target.className}`}
+              >
                 {target.icon}
               </span>
-              <span className="w-full truncate text-center text-[12.5px] font-medium text-foreground/85">{target.label}</span>
+              <span className="w-full truncate text-center text-[12.5px] font-medium text-foreground/85">
+                {target.label}
+              </span>
             </button>
           ))}
         </div>

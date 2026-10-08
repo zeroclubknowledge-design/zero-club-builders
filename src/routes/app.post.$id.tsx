@@ -690,7 +690,14 @@ function PostDetail() {
     const url = window.location.href;
     if (hasShareSheet()) {
       try {
-        await openShareSheet({ heading: `Share ${post?.profiles?.full_name || post?.profiles?.username || 'this'}'s post`, title: 'Check out this build on Zero Club!', url });
+        await openShareSheet({
+          heading: `Share ${post?.profiles?.full_name || post?.profiles?.username || 'this'}'s post`,
+          title: 'Check out this build on Zero Club!',
+          url,
+          linkedin: post
+            ? { postId: post.id, body: post.content || "", isOwn: Boolean(isOwnPost), isShip: Boolean(post.is_build_post) }
+            : undefined,
+        });
       } catch (err) {}
     } else {
       await navigator.clipboard.writeText(url);

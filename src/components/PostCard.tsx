@@ -405,6 +405,13 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
           title: 'Check out this shipped work on Zero Club!',
           text: plainText.substring(0, 100) + (plainText.length > 100 ? '...' : ''),
           url: url,
+          // LinkedIn gets half the post with a "Continue reading here" link.
+          linkedin: {
+            postId,
+            body: displayContent || "",
+            isOwn: Boolean(currentUser?.id && currentUser.id === post.author_id),
+            isShip: Boolean(post.is_build_post),
+          },
         });
       } catch (err) {
         console.log('Error sharing:', err);

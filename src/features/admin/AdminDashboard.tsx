@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { AvatarMotionAdmin } from "@/features/admin/AvatarMotionAdmin";
 import { BoostsAdmin } from "@/features/admin/BoostsAdmin";
+import { GigDisputesAdmin } from "@/features/admin/GigDisputesAdmin";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -314,7 +315,12 @@ export function AdminDashboard() {
             </div>
           )}
           {activeTab === "community" && <Community clubs={data.clubs} posts={data.posts} />}
-          {activeTab === "marketplace" && <Marketplace gigs={data.gigs} format={format} busy={action.isPending} runAction={runAction} />}
+          {activeTab === "marketplace" && (
+            <div className="space-y-6">
+              <GigDisputesAdmin />
+              <Marketplace gigs={data.gigs} format={format} busy={action.isPending} runAction={runAction} />
+            </div>
+          )}
           {activeTab === "commerce" && <Commerce snapshot={data} format={format} />}
           {activeTab === "tutors" && <TutorApplicationsAdmin />}
           {activeTab === "rewards" && <PlatformRewardsAdmin />}

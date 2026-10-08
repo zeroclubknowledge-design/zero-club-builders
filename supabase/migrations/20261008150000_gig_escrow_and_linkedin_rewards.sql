@@ -1,0 +1,29 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-08 via Supabase MCP, as migrations
+-- "gig_escrow_schema", "gig_escrow_guards", "gig_escrow_actions", "admin_list_gig_disputes"
+-- and "gig_keep_proposals_until_paid". Kept as a record; do not re-run.
+--
+-- OPPORTUNITIES (gigs) WITH ESCROW
+--  * can_post_gig(): any active account can post a job (was Institutions/admins only).
+--  * gigs: + hired_application_id, hired_profile_id, escrow_amount, hired_at, completed_at,
+--          disputed_at, dispute_reason. status adds 'in_progress', 'disputed', 'completed'.
+--  * guard_gig_escrow (trigger on gigs) and guard_gig_application_status (trigger on
+--    gig_applications): hiring/escrow fields, those statuses and 'accepted' proposals can only
+--    change inside the functions below (they set zc.gig_rpc for the transaction). A job with
+--    money held cannot be removed.
+--  * hire_gig_applicant(p_application, p_amount): poster only, not themselves; debits the
+--    poster's wallet (source 'gig_escrow') and holds it on the job. Other proposals stay open.
+--  * release_gig_payment(p_gig): poster pays the hire (source 'gig_payment', counted as
+--    withdrawable earnings), job completed, other proposals closed. Poster earns 300 ZP
+--    ('gig_completed', once per job) if the job paid >= N1,000, at most 3 per 30 days.
+--  * cancel_gig_hire(p_gig): poster, within 24h of hiring; refund (source 'gig_refund'), reopen.
+--  * step_down_from_gig(p_gig): hired person; refund the poster, reopen.
+--  * dispute_gig(p_gig, p_reason): either side; status 'disputed', money stays held.
+--  * admin_list_gig_disputes() / admin_resolve_gig_dispute(p_gig, 'pay'|'refund'): admins only,
+--    audit-logged.
+--  * earning_wallet_sources() now includes 'gig_payment'.
+--  * notifications.type adds 'gig' (entity_id = gig id); gig_notify() writes them.
+--
+-- LINKEDIN SHARE REWARDS
+--  * claim_linkedin_share_reward(p_post): author only; 200 ZP ('linkedin_post_share') or 500 ZP
+--    for a shipped project ('linkedin_ship_share'); once per post; at most 5 rewarded shares
+--    in 24 hours.

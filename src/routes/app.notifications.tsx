@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, type SetStateAction } from "react";
 import {
   BellRing, UserRoundPlus, ThumbsUp, MessageSquare, Zap,
-  CheckCheck, Repeat, AtSign, Loader2, ShieldCheck, Gamepad2
+  CheckCheck, Repeat, AtSign, Loader2, ShieldCheck, Gamepad2, BriefcaseBusiness
 } from "@/components/icons/glyphs";
 import { useFollow } from "@/hooks/useFollow";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -162,6 +162,8 @@ function NotificationsPage() {
       case 'game_buzz': return { icon: Gamepad2, ...ink, action: 'buzzed you into a Zero Game' };
       // System notices carry their own message (referral ZP, tutor applications, rewards...).
       case 'system': return { icon: Zap, ...ink, action: '' };
+      // Hiring on Opportunities: the message says what happened.
+      case 'gig': return { icon: BriefcaseBusiness, ...green, action: '' };
       default: return { icon: BellRing, ...ink, action: 'interacted with you' };
     }
   };
@@ -193,7 +195,9 @@ function NotificationsPage() {
 
       const key = notification.type === 'follow'
         ? `follow:${new Date(notification.created_at).toDateString()}`
-        : `${notification.type}:${notification.type === 'comment_like' ? notification.comment_id : notification.entity_id}`;
+        : notification.type === 'gig'
+          ? `gig:${notification.id}`
+          : `${notification.type}:${notification.type === 'comment_like' ? notification.comment_id : notification.entity_id}`;
       const existing = grouped.get(key);
 
       if (!existing) {
@@ -254,7 +258,9 @@ function NotificationsPage() {
         markRead(n.id);
       }
 
-      if (n.type === 'game_buzz' && n.entity_id) {
+      if (n.type === 'gig' && n.entity_id) {
+        navigate({ to: '/app/quests', search: { gig: n.entity_id } });
+      } else if (n.type === 'game_buzz' && n.entity_id) {
         navigate({ to: '/app/games/$id', params: { id: n.entity_id } });
       } else if (n.type === 'club_mention' && n.entity_id) {
         navigate({ to: '/app/clubs/chat', search: { clubId: n.entity_id } });
@@ -303,10 +309,10 @@ function NotificationsPage() {
 
           <div className="min-w-0">
             <p className="text-[14px] leading-[1.4] text-foreground">
-              {!isReward && <span className="font-semibold">{renderActors()} </span>}
-              <span>{isReward ? (String(n.content || '').trim() || 'Zero Club update') : ui.action}</span>
+              {!isReward && n.type !== 'gig' && <span className="font-semibold">{renderActors()} </span>}
+              <span>{isReward ? (String(n.content || '').trim() || 'Zero Club update') : n.type === 'gig' ? String(n.content || '').trim() : ui.action}</span>
             </p>
-            {n.content && !isReward && (
+            {n.content && !isReward && n.type !== 'gig' && (
               <p className="mt-1 line-clamp-2 text-[13px] leading-[1.4] text-muted-foreground">“{renderText(n)}”</p>
             )}
             {n.type === 'follow' && !isActorMe && n.actor_id && <FollowBack userId={n.actor_id} />}
