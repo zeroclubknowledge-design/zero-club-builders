@@ -1,7 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
-  ArrowLeft, ShieldCheck, ArrowRight, ChevronRight, Loader2,
-  Link2 as LinkIcon, Share2, Copy, Search, Send, Check, X,
+  ArrowLeft,
+  ShieldCheck,
+  ArrowRight,
+  ChevronRight,
+  Loader2,
+  Link2 as LinkIcon,
+  Share2,
+  Copy,
+  Search,
+  Send,
+  Check,
+  X,
 } from "@/components/icons/glyphs";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,7 +20,13 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
-import { openPaystackCheckout, buildReference, paystackKeyProblem, describeVerifyFailure } from "@/lib/paystack";
+import { PaystackMark } from "@/components/icons/paystack";
+import {
+  openPaystackCheckout,
+  buildReference,
+  paystackKeyProblem,
+  describeVerifyFailure,
+} from "@/lib/paystack";
 import { fundLinkUrl, copyToClipboard, shareOrCopy } from "@/lib/share";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
@@ -93,7 +109,9 @@ function AddMoneyPage() {
       const { data, error } = await supabase.rpc("redeem_zp_to_wallet", { p_zp: points });
       if (error) throw error;
       const result = data as any;
-      toast.success(`${Number(result?.zp_used || points).toLocaleString()} ZP converted to ${format(Number(result?.credited) || 0)}`);
+      toast.success(
+        `${Number(result?.zp_used || points).toLocaleString()} ZP converted to ${format(Number(result?.credited) || 0)}`,
+      );
       setZpAmount("");
       queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
       queryClient.invalidateQueries({ queryKey: ["wallet-history"] });
@@ -254,7 +272,9 @@ function AddMoneyPage() {
   const handlePay = async () => {
     if (numericAmount <= 0) return;
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     const email = session?.user?.email;
     if (!session || !email) {
       toast.error("Please sign in again to add money");
@@ -328,7 +348,8 @@ function AddMoneyPage() {
         // wallet independently, so reassure rather than alarm, and refresh in
         // case the money has already landed.
         toast.error(message, {
-          description: "If your card was charged, the money will appear in your wallet automatically.",
+          description:
+            "If your card was charged, the money will appear in your wallet automatically.",
         });
         queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
       }
@@ -343,7 +364,11 @@ function AddMoneyPage() {
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <button onClick={() => navigate({ to: "/app/wallet" })} aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <button
+            onClick={() => navigate({ to: "/app/wallet" })}
+            aria-label="Back to wallet"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Add money</h1>
@@ -358,8 +383,12 @@ function AddMoneyPage() {
           <section className="bg-amber-500/[0.08] px-4 py-3.5 ring-1 ring-amber-500/25 md:rounded-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[14px] font-semibold text-amber-800 dark:text-amber-400">{format(pending.amount)} waiting to be confirmed</p>
-                <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">Sent the transfer? This checks with Paystack and adds it to your wallet.</p>
+                <p className="text-[14px] font-semibold text-amber-800 dark:text-amber-400">
+                  {format(pending.amount)} waiting to be confirmed
+                </p>
+                <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">
+                  Sent the transfer? This checks with Paystack and adds it to your wallet.
+                </p>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 <button
@@ -367,11 +396,18 @@ function AddMoneyPage() {
                   disabled={checking}
                   className="flex h-9 items-center gap-1.5 rounded-full bg-amber-600 px-3.5 text-[13px] font-semibold text-white tap hover:opacity-90 disabled:opacity-50"
                 >
-                  {checking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  {checking ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  )}
                   Confirm payment
                 </button>
                 <button
-                  onClick={() => { writePending(null); setPending(null); }}
+                  onClick={() => {
+                    writePending(null);
+                    setPending(null);
+                  }}
                   aria-label="Dismiss"
                   className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground tap hover:bg-foreground/[0.05]"
                 >
@@ -383,9 +419,13 @@ function AddMoneyPage() {
         )}
 
         <section className="bg-card px-4 pb-5 pt-6 text-center md:rounded-xl md:border md:border-border">
-          <label htmlFor="topup-amount" className="text-[13px] font-semibold text-muted-foreground">Amount</label>
+          <label htmlFor="topup-amount" className="text-[13px] font-semibold text-muted-foreground">
+            Amount
+          </label>
           <div className="mt-1.5 flex items-baseline justify-center gap-1">
-            <span className="font-display text-[30px] font-semibold text-muted-foreground">{details.symbol}</span>
+            <span className="font-display text-[30px] font-semibold text-muted-foreground">
+              {details.symbol}
+            </span>
             <input
               id="topup-amount"
               type="number"
@@ -400,7 +440,9 @@ function AddMoneyPage() {
             />
           </div>
           <p className="mt-1 text-[13px] text-muted-foreground">
-            {numericAmount > 0 ? `Balance after: ${format(balance + numericAmount)}` : `Balance: ${format(balance)}`}
+            {numericAmount > 0
+              ? `Balance after: ${format(balance + numericAmount)}`
+              : `Balance: ${format(balance)}`}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {QUICK_AMOUNTS.map((quick) => (
@@ -409,7 +451,9 @@ function AddMoneyPage() {
                 disabled={busy}
                 onClick={() => setAmount(String(fromBaseAmount(quick)))}
                 className={`h-9 rounded-full px-3.5 text-[14px] font-semibold tabular-nums transition disabled:opacity-50 ${
-                  numericAmount === quick ? "bg-foreground text-background" : "border border-foreground/20 text-muted-foreground hover:border-foreground/40"
+                  numericAmount === quick
+                    ? "bg-foreground text-background"
+                    : "border border-foreground/20 text-muted-foreground hover:border-foreground/40"
                 }`}
               >
                 {format(quick)}
@@ -419,11 +463,15 @@ function AddMoneyPage() {
         </section>
 
         <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
-          <h2 className="px-4 pb-2 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Pay with</h2>
+          <h2 className="px-4 pb-2 pt-4 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
+            Pay with
+          </h2>
 
           <div className="border-t border-border/60 px-4 py-3.5">
             <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#0ba4db] text-[15px] font-bold text-white">P</span>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-border/70 bg-white">
+                <PaystackMark className="h-[22px] w-[22px]" />
+              </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[15px] font-semibold">Paystack</p>
                 <p className="text-[13px] text-muted-foreground">Card, bank transfer or USSD</p>
@@ -434,12 +482,26 @@ function AddMoneyPage() {
               disabled={numericAmount <= 0 || busy}
               className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition hover:opacity-90 disabled:opacity-40"
             >
-              {status === "verifying" ? (<><Loader2 className="h-4 w-4 animate-spin" />Confirming payment</>)
-                : status === "paying" ? (<><Loader2 className="h-4 w-4 animate-spin" />Waiting for Paystack</>)
-                : (<>{numericAmount > 0 ? `Pay ${format(numericAmount)}` : "Enter an amount"}{numericAmount > 0 && <ArrowRight className="h-4 w-4" />}</>)}
+              {status === "verifying" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Confirming payment
+                </>
+              ) : status === "paying" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Waiting for Paystack
+                </>
+              ) : (
+                <>
+                  {numericAmount > 0 ? `Pay ${format(numericAmount)}` : "Enter an amount"}
+                  {numericAmount > 0 && <ArrowRight className="h-4 w-4" />}
+                </>
+              )}
             </button>
             <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5" /> Secured by Paystack. Successful payments arrive instantly.
+              <ShieldCheck className="h-3.5 w-3.5" /> Secured by Paystack. Successful payments
+              arrive instantly.
             </p>
             {paystackKeyProblem() && (
               <p className="mt-2 rounded-lg bg-amber-500/[0.08] px-3 py-2.5 text-[12px] leading-relaxed text-amber-700 ring-1 ring-amber-500/20">
@@ -452,11 +514,14 @@ function AddMoneyPage() {
           {zpBalance >= ZP_PER_NAIRA && (
             <div className="border-t border-border/60 px-4 py-3.5">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#cc208f]/10 text-[13px] font-bold text-[#cc208f]">ZP</span>
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#cc208f]/10 text-[13px] font-bold text-[#cc208f]">
+                  ZP
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[15px] font-semibold">Convert Zero Points</p>
                   <p className="text-[13px] text-muted-foreground">
-                    You have {zpBalance.toLocaleString()} ZP · worth {format(Math.floor(zpBalance / ZP_PER_NAIRA))}
+                    You have {zpBalance.toLocaleString()} ZP · worth{" "}
+                    {format(Math.floor(zpBalance / ZP_PER_NAIRA))}
                   </p>
                 </div>
               </div>
@@ -470,7 +535,9 @@ function AddMoneyPage() {
                   className="h-10 min-w-0 flex-1 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] font-semibold tabular-nums outline-none focus:border-foreground/40 disabled:opacity-50"
                 />
                 <button
-                  onClick={() => setZpAmount(String(Math.floor(zpBalance / ZP_PER_NAIRA) * ZP_PER_NAIRA))}
+                  onClick={() =>
+                    setZpAmount(String(Math.floor(zpBalance / ZP_PER_NAIRA) * ZP_PER_NAIRA))
+                  }
                   disabled={converting}
                   className="h-10 rounded-full px-3 text-[13px] font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
                 >
@@ -481,11 +548,16 @@ function AddMoneyPage() {
                   disabled={converting || zpCredit < 1}
                   className="flex h-10 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-foreground px-3.5 text-[14px] font-semibold disabled:opacity-40"
                 >
-                  {converting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Convert{zpCredit >= 1 ? ` to ${format(zpCredit)}` : ""}</>}
+                  {converting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>Convert{zpCredit >= 1 ? ` to ${format(zpCredit)}` : ""}</>
+                  )}
                 </button>
               </div>
               <p className="mt-1.5 text-[12px] text-muted-foreground">
-                {ZP_PER_NAIRA * 100} ZP = {format(100)}. Converted points can be spent anywhere on Zero Club, but can't be withdrawn to a bank.
+                {ZP_PER_NAIRA * 100} ZP = {format(100)}. Converted points can be spent anywhere on
+                Zero Club, but can't be withdrawn to a bank.
               </p>
             </div>
           )}
@@ -496,10 +568,14 @@ function AddMoneyPage() {
             disabled={busy}
             className="flex w-full items-center gap-3 border-t border-border/60 px-4 py-3.5 text-left hover:bg-foreground/[0.02] disabled:opacity-40"
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-foreground/[0.06]"><LinkIcon className="h-5 w-5" /></span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-foreground/[0.06]">
+              <LinkIcon className="h-5 w-5" />
+            </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-semibold">Ask someone to fund you</span>
-              <span className="block text-[13px] text-muted-foreground">Share a link anyone can pay, by wallet or card</span>
+              <span className="block text-[13px] text-muted-foreground">
+                Share a link anyone can pay, by wallet or card
+              </span>
             </span>
             <ChevronRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
           </button>
@@ -508,7 +584,11 @@ function AddMoneyPage() {
         {/* The amount typed above, asked for rather than paid. */}
         <section className="flex-1 bg-card px-4 pb-28 pt-3.5 md:flex-none md:rounded-xl md:border md:border-border md:pb-4">
           {numericAmount > 0 ? (
-            <RequestFundsButton amount={numericAmount} purpose="Top up my Zero Club wallet" label={`Ask someone for ${format(numericAmount)}`} />
+            <RequestFundsButton
+              amount={numericAmount}
+              purpose="Top up my Zero Club wallet"
+              label={`Ask someone for ${format(numericAmount)}`}
+            />
           ) : (
             <p className="text-[13px] leading-relaxed text-muted-foreground">
               Use your balance for memberships, bootcamps, products and payments to other builders.
@@ -538,7 +618,10 @@ function AddMoneyPage() {
             {!createdSlug ? (
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="fund-link-amount" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
+                  <label
+                    htmlFor="fund-link-amount"
+                    className="mb-1.5 block text-[13px] font-semibold text-muted-foreground"
+                  >
                     Fixed amount (optional)
                   </label>
                   <div className="relative">
@@ -559,7 +642,10 @@ function AddMoneyPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="fund-link-note" className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
+                  <label
+                    htmlFor="fund-link-note"
+                    className="mb-1.5 block text-[13px] font-semibold text-muted-foreground"
+                  >
                     What is it for? (optional)
                   </label>
                   <input
@@ -575,8 +661,8 @@ function AddMoneyPage() {
                 <div className="flex items-start gap-3 rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
                   <ShieldCheck className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" />
                   <p className="text-[13px] leading-relaxed text-muted-foreground">
-                    Anyone with the link can add money to your wallet, but nobody can take money
-                    out or see your balance.
+                    Anyone with the link can add money to your wallet, but nobody can take money out
+                    or see your balance.
                   </p>
                 </div>
               </div>
@@ -584,7 +670,9 @@ function AddMoneyPage() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <div className="rounded-2xl bg-foreground/[0.04] px-4 py-3.5">
-                    <p className="break-all text-[13px] font-medium leading-relaxed text-foreground/80">{shareUrl}</p>
+                    <p className="break-all text-[13px] font-medium leading-relaxed text-foreground/80">
+                      {shareUrl}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2.5">
@@ -632,7 +720,13 @@ function AddMoneyPage() {
                           <div key={person.id} className="flex items-center gap-3 py-3">
                             <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
                               {person.avatar_url ? (
-                                <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                                <img
+                                  src={person.avatar_url}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
                               ) : (
                                 (person.full_name || person.username || "?").charAt(0).toUpperCase()
                               )}
@@ -641,7 +735,9 @@ function AddMoneyPage() {
                               <p className="truncate text-[15px] font-semibold text-foreground">
                                 {person.full_name || person.username}
                               </p>
-                              <p className="truncate text-[13px] text-muted-foreground">@{person.username}</p>
+                              <p className="truncate text-[13px] text-muted-foreground">
+                                @{person.username}
+                              </p>
                             </div>
                             <button
                               onClick={() => sendToMember(person)}
@@ -652,7 +748,15 @@ function AddMoneyPage() {
                                   : "bg-foreground text-background hover:opacity-90"
                               }`}
                             >
-                              {sent ? <><Check className="h-4 w-4" /> Sent</> : <><Send className="h-4 w-4" /> Send</>}
+                              {sent ? (
+                                <>
+                                  <Check className="h-4 w-4" /> Sent
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="h-4 w-4" /> Send
+                                </>
+                              )}
                             </button>
                           </div>
                         );
