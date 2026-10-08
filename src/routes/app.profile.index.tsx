@@ -328,28 +328,10 @@ function Profile() {
       <div className="zc-page-width mx-auto max-w-[900px] px-0 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-6 md:pt-6">
         <div className="relative overflow-hidden bg-background sm:rounded-lg sm:border sm:border-border/60">
           {/* Banner */}
-          <div className="relative flex aspect-[16/7] w-full items-center justify-center overflow-hidden bg-[#211d21]">
+          <div className={`relative w-full overflow-hidden bg-[#211d21] ${profile?.banner_url ? "" : "flex aspect-[16/7] items-center justify-center"}`}>
             {profile?.banner_url ? (
-              <>
-                {/* The whole banner is always shown. It was cropped to 16:7, so it
-                    fills this frame exactly; an older banner of any other shape
-                    sits whole on a soft blur of itself instead of being cut. */}
-                <img
-                  src={profile.banner_url}
-                  alt=""
-                  aria-hidden
-                  className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <img
-                  src={profile.banner_url}
-                  alt="Your banner"
-                  className="relative h-full w-full object-contain"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </>
+              // The banner shows whole, at its own shape: no frame, no bars.
+              <img src={profile.banner_url} alt="Your banner" className="block h-auto w-full" loading="lazy" decoding="async" />
             ) : (
               <img
                 src="/logo.png"
