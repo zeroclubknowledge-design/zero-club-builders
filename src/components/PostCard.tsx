@@ -2,11 +2,28 @@ import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { 
-  MoreHorizontal, CheckCircle2, Bookmark, BadgeCheck, Plus,
-  UserMinus, VolumeX, Volume2, Flag, ThumbsUp, MessageSquare, Repeat, Mail, Send, Trash2, Quote, Edit3, Rocket, Play
+import {
+  MoreHorizontal,
+  CheckCircle2,
+  Bookmark,
+  BadgeCheck,
+  Plus,
+  UserMinus,
+  VolumeX,
+  Volume2,
+  Flag,
+  ThumbsUp,
+  MessageSquare,
+  Repeat,
+  Mail,
+  Send,
+  Trash2,
+  Quote,
+  Edit3,
+  Rocket,
+  Play,
 } from "@/components/icons/glyphs";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +34,7 @@ import { memo, useState, useEffect, useRef } from "react";
 import { Users as UsersIcon } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { ImageLightbox } from './ImageLightbox';
+import { ImageLightbox } from "./ImageLightbox";
 import { likePostAction, unlikePostAction } from "@/api";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
@@ -30,8 +47,11 @@ interface PostCardProps {
 }
 
 const isVideoUrl = (url: string) => {
-  const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg', '.m4v'];
-  return videoExtensions.some((extension) => url.toLowerCase().includes(extension)) || url.includes('video');
+  const videoExtensions = [".mp4", ".mov", ".webm", ".ogg", ".m4v"];
+  return (
+    videoExtensions.some((extension) => url.toLowerCase().includes(extension)) ||
+    url.includes("video")
+  );
 };
 
 function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
@@ -42,10 +62,13 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
     const video = videoRef.current;
     if (!video) return;
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) video.play().catch(() => {});
-      else video.pause();
-    }, { threshold: 0.6 });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) video.play().catch(() => {});
+        else video.pause();
+      },
+      { threshold: 0.6 },
+    );
 
     observer.observe(video);
     return () => observer.disconnect();
@@ -63,7 +86,7 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
             onOpen();
           }}
           onKeyDown={(event) => {
-            if (event.key !== 'Enter') return;
+            if (event.key !== "Enter") return;
             event.preventDefault();
             event.stopPropagation();
             onOpen();
@@ -119,11 +142,12 @@ function SingleFeedMedia({ url, onOpen }: { url: string; onOpen: () => void }) {
 function FeedMediaGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: number) => void }) {
   const visibleUrls = urls.slice(0, 4);
   const count = visibleUrls.length;
-  const gridClass = count === 2
-    ? "grid-cols-2 h-[210px] sm:h-[280px] md:h-[320px]"
-    : count === 3
-      ? "grid-cols-2 grid-rows-2 h-[260px] sm:h-[320px] md:h-[360px]"
-      : "grid-cols-2 grid-rows-2 h-[260px] sm:h-[320px] md:h-[360px]";
+  const gridClass =
+    count === 2
+      ? "grid-cols-2 h-[210px] sm:h-[280px] md:h-[320px]"
+      : count === 3
+        ? "grid-cols-2 grid-rows-2 h-[260px] sm:h-[320px] md:h-[360px]"
+        : "grid-cols-2 grid-rows-2 h-[260px] sm:h-[320px] md:h-[360px]";
 
   return (
     <div className={`mt-3 grid w-full gap-0.5 overflow-hidden bg-card ${gridClass}`}>
@@ -138,7 +162,7 @@ function FeedMediaGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: numbe
             onOpen(index);
           }}
           onKeyDown={(event) => {
-            if (event.key !== 'Enter') return;
+            if (event.key !== "Enter") return;
             event.preventDefault();
             event.stopPropagation();
             onOpen(index);
@@ -147,7 +171,13 @@ function FeedMediaGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: numbe
         >
           {isVideoUrl(url) ? (
             <>
-              <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+              <video
+                src={url}
+                className="h-full w-full object-cover"
+                muted
+                playsInline
+                preload="metadata"
+              />
               <span className="absolute left-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-full bg-black/55 text-white ring-1 ring-white/15 backdrop-blur-sm">
                 <Play className="h-3.5 w-3.5 fill-current" />
               </span>
@@ -164,7 +194,9 @@ function FeedMediaGrid({ urls, onOpen }: { urls: string[]; onOpen: (index: numbe
 
           {urls.length > 4 && index === 3 && (
             <div className="absolute inset-0 z-10 grid place-items-center bg-black/55">
-              <span className="text-2xl font-semibold tracking-tight text-white">+{urls.length - 4}</span>
+              <span className="text-2xl font-semibold tracking-tight text-white">
+                +{urls.length - 4}
+              </span>
             </div>
           )}
         </div>
@@ -185,17 +217,21 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
   const queryClient = useQueryClient();
   const cleanLegacyShipContent = (content: string) => {
     if (!content) return content;
-    return content
-      .replace(/## 🚀 /g, '**Project:** ')
-      .replace(/### 🔗 Project Links/g, '**Project Links:**\n')
-      .replace(/### 🤖 AI Prompts Used/g, '**AI Prompts Used:**\n')
-      // Ships stored before the rename keep saying "Skills Used". Rewriting on
-      // the way out means every ship reads the same without touching a single
-      // stored row.
-      .replace(/\*\*Skills Used:\*\*/g, '**Tools Used:**');
+    return (
+      content
+        .replace(/## 🚀 /g, "**Project:** ")
+        .replace(/### 🔗 Project Links/g, "**Project Links:**\n")
+        .replace(/### 🤖 AI Prompts Used/g, "**AI Prompts Used:**\n")
+        // Ships stored before the rename keep saying "Skills Used". Rewriting on
+        // the way out means every ship reads the same without touching a single
+        // stored row.
+        .replace(/\*\*Skills Used:\*\*/g, "**Tools Used:**")
+    );
   };
   const displayContent = post.is_build_post ? cleanLegacyShipContent(post.content) : post.content;
-  const quotedDisplayContent = post.quoted_posts?.is_build_post ? cleanLegacyShipContent(post.quoted_posts.content) : post.quoted_posts?.content;
+  const quotedDisplayContent = post.quoted_posts?.is_build_post
+    ? cleanLegacyShipContent(post.quoted_posts.content)
+    : post.quoted_posts?.content;
   const [liked, setLiked] = useState(post?.isLiked || false);
   const [likesCount, setLikesCount] = useState<number>(Number(post?.likes_count || 0));
   const [commentsCount, setCommentsCount] = useState<number>(Number(post?.comments_count || 0));
@@ -210,7 +246,9 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
   const isEditable = isOwnPost; // No time limit
 
   // Shared follow state, kept in sync with profiles and post detail pages.
-  const { isFollowing: isFollowingAuthor, toggleFollow: toggleFollowAuthor } = useFollow(post.author_id);
+  const { isFollowing: isFollowingAuthor, toggleFollow: toggleFollowAuthor } = useFollow(
+    post.author_id,
+  );
 
   // Sync state with props
   useEffect(() => {
@@ -220,33 +258,40 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
     setCommentsCount(post.comments_count || 0);
     setHasReposted(post.hasReposted || false);
     setHasQuoted(post.hasQuoted || false);
-  }, [post.isBookmarked, post.isLiked, post.likes_count, post.comments_count, post.hasReposted, post.hasQuoted]);
+  }, [
+    post.isBookmarked,
+    post.isLiked,
+    post.likes_count,
+    post.comments_count,
+    post.hasReposted,
+    post.hasQuoted,
+  ]);
 
   // Listen for instant comment updates
   useEffect(() => {
     const handleCommentAdded = (e: any) => {
       if (e.detail?.postId === postId) {
-        setCommentsCount(prev => prev + 1);
+        setCommentsCount((prev) => prev + 1);
       }
     };
     const handleCommentDeleted = (e: any) => {
       if (e.detail?.postId === postId) {
         const deletedCount = Math.max(1, Number(e.detail?.count || 1));
-        setCommentsCount(prev => Math.max(0, prev - deletedCount));
+        setCommentsCount((prev) => Math.max(0, prev - deletedCount));
       }
     };
-    window.addEventListener('comment-added', handleCommentAdded);
-    window.addEventListener('comment-deleted', handleCommentDeleted);
+    window.addEventListener("comment-added", handleCommentAdded);
+    window.addEventListener("comment-deleted", handleCommentDeleted);
     return () => {
-      window.removeEventListener('comment-added', handleCommentAdded);
-      window.removeEventListener('comment-deleted', handleCommentDeleted);
+      window.removeEventListener("comment-added", handleCommentAdded);
+      window.removeEventListener("comment-deleted", handleCommentDeleted);
     };
   }, [postId]);
 
   const handleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!currentUser) {
       toast.error("Sign in to bookmark shipped work!");
       return;
@@ -254,26 +299,26 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
 
     const newStatus = !isBookmarked;
     setIsBookmarked(newStatus);
-    
+
     try {
       if (newStatus) {
         const { error } = await supabase
-          .from('bookmarks')
+          .from("bookmarks")
           .insert([{ profile_id: currentUser.id, post_id: postId }]);
         if (error) throw error;
         toast.success("Saved to bookmarks!");
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
+        queryClient.invalidateQueries({ queryKey: ["post", postId] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"], refetchType: "none" });
       } else {
         const { error } = await supabase
-          .from('bookmarks')
+          .from("bookmarks")
           .delete()
-          .eq('profile_id', currentUser.id)
-          .eq('post_id', postId);
+          .eq("profile_id", currentUser.id)
+          .eq("post_id", postId);
         if (error) throw error;
         toast.success("Removed from bookmarks");
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
+        queryClient.invalidateQueries({ queryKey: ["post", postId] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"], refetchType: "none" });
       }
     } catch (err: any) {
       setIsBookmarked(!newStatus);
@@ -284,19 +329,16 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
   const handleDeletePost = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!confirm("Are you sure you want to delete this post?")) return;
 
     try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id);
+      const { error } = await supabase.from("posts").delete().eq("id", post.id);
 
       if (error) throw error;
-      
+
       toast.success("Post deleted successfully! ️");
-      queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+      queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
     } catch (err) {
       toast.error("Failed to delete post.");
     }
@@ -305,16 +347,16 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (post.is_build_post) {
-      router.navigate({ to: '/app/ship', search: { editId: postId } });
+      router.navigate({ to: "/app/ship", search: { editId: postId } });
     } else {
-      router.navigate({ to: '/app/compose', search: { editId: postId } });
+      router.navigate({ to: "/app/compose", search: { editId: postId } });
     }
   };
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!currentUser) {
       toast.error("Sign in to like shipped work!");
       return;
@@ -322,30 +364,30 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
 
     const newLiked = !liked;
     setLiked(newLiked);
-    setLikesCount(prev => newLiked ? prev + 1 : prev - 1);
-    
+    setLikesCount((prev) => (newLiked ? prev + 1 : prev - 1));
+
     try {
       if (newLiked) {
         await likePostAction({ data: { profileId: currentUser.id, postId } });
         toast.success("Added to your liked ships!");
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
+        queryClient.invalidateQueries({ queryKey: ["post", postId] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"], refetchType: "none" });
       } else {
         await unlikePostAction({ data: { profileId: currentUser.id, postId } });
         toast.success("Removed from liked ships");
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'], refetchType: 'none' });
+        queryClient.invalidateQueries({ queryKey: ["post", postId] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"], refetchType: "none" });
       }
     } catch (err: any) {
       setLiked(!newLiked);
       setLikesCount(likesCount);
-      toast.error(`Could not update like: ${err.message || 'Unknown error'}`);
+      toast.error(`Could not update like: ${err.message || "Unknown error"}`);
     }
   };
 
   const handleRepost = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (!currentUser) {
       toast.error("Sign in to repost ships!");
       return;
@@ -356,54 +398,54 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
 
     if (newHasReposted) {
       const { error } = await supabase
-        .from('reposts')
+        .from("reposts")
         .insert({ profile_id: currentUser.id, post_id: postId });
 
-      if (error && error.code !== '23505') {
+      if (error && error.code !== "23505") {
         setHasReposted(false);
         toast.error("Could not repost ship.");
       } else {
         toast.success("Reposted to your feed!");
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ["post", postId] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
       }
     } else {
       const { error } = await supabase
-        .from('reposts')
+        .from("reposts")
         .delete()
-        .eq('profile_id', currentUser.id)
-        .eq('post_id', postId);
-      
+        .eq("profile_id", currentUser.id)
+        .eq("post_id", postId);
+
       if (error) {
         setHasReposted(true);
         toast.error("Could not undo repost.");
       } else {
         toast.success("Removed repost!");
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ["post", postId] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
       }
     }
   };
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     // Include referral code if available
-    const referralSuffix = currentUser?.referral_code ? `?ref=${currentUser.referral_code}` : '';
+    const referralSuffix = currentUser?.referral_code ? `?ref=${currentUser.referral_code}` : "";
     const url = `${window.location.origin}/app/post/${postId}${referralSuffix}`;
-    
+
     if (hasShareSheet()) {
       try {
         // Strip HTML tags and Markdown asterisks before sharing
         const tmp = document.createElement("DIV");
         tmp.innerHTML = displayContent || "";
         let plainText = tmp.textContent || tmp.innerText || "";
-        plainText = plainText.replace(/\*/g, '');
-        
+        plainText = plainText.replace(/\*/g, "");
+
         await openShareSheet({
-          heading: `Share ${getFirstName(post.profiles) || 'this'}'s post`,
-          title: 'Check out this shipped work on Zero Club!',
-          text: plainText.substring(0, 100) + (plainText.length > 100 ? '...' : ''),
+          heading: `Share ${getFirstName(post.profiles) || "this"}'s post`,
+          title: "Check out this shipped work on Zero Club!",
+          text: plainText.substring(0, 100) + (plainText.length > 100 ? "..." : ""),
           url: url,
           // LinkedIn gets half the post with a "Continue reading here" link.
           linkedin: {
@@ -415,7 +457,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
           },
         });
       } catch (err) {
-        console.log('Error sharing:', err);
+        console.log("Error sharing:", err);
       }
     } else {
       await navigator.clipboard.writeText(url);
@@ -424,60 +466,100 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
   };
 
   const timeAgo = post.created_at
-    ? formatDistanceToNow(new Date(post.created_at)).replace('about ', '').replace(' minutes', 'm').replace(' minute', 'm').replace(' hours', 'h').replace(' hour', 'h').replace(' days', 'd').replace(' day', 'd').replace(' months', 'mo').replace(' month', 'mo').replace(' years', 'y').replace(' year', 'y').replace('less than am', '<1m')
-    : 'now';
+    ? formatDistanceToNow(new Date(post.created_at))
+        .replace("about ", "")
+        .replace(" minutes", "m")
+        .replace(" minute", "m")
+        .replace(" hours", "h")
+        .replace(" hour", "h")
+        .replace(" days", "d")
+        .replace(" day", "d")
+        .replace(" months", "mo")
+        .replace(" month", "mo")
+        .replace(" years", "y")
+        .replace(" year", "y")
+        .replace("less than am", "<1m")
+    : "now";
   const authorRole =
-    post.profiles?.account_type === 'Institution' ? 'Institution' : post.profiles?.account_type === 'Tutor' ? 'Tutor' : 'Builder';
-  const repostCount = Math.max(0,
-    (post.computed_reposts_count ?? post.reposts_count ?? 0) + (hasReposted && !post.hasReposted ? 1 : (!hasReposted && post.hasReposted ? -1 : 0)) +
-    (post.computed_quotes_count ?? 0) + (hasQuoted && !post.hasQuoted ? 1 : (!hasQuoted && post.hasQuoted ? -1 : 0))
+    post.profiles?.account_type === "Institution"
+      ? "Institution"
+      : post.profiles?.account_type === "Tutor"
+        ? "Tutor"
+        : "Builder";
+  const repostCount = Math.max(
+    0,
+    (post.computed_reposts_count ?? post.reposts_count ?? 0) +
+      (hasReposted && !post.hasReposted ? 1 : !hasReposted && post.hasReposted ? -1 : 0) +
+      (post.computed_quotes_count ?? 0) +
+      (hasQuoted && !post.hasQuoted ? 1 : !hasQuoted && post.hasQuoted ? -1 : 0),
   );
   const openMedia = (urls: string[], index: number) => {
     setLightboxUrls(urls);
     setLightboxIndex(index);
     setLightboxOpen(true);
   };
-  const actionClass = "flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-[14px] font-medium tap transition-colors hover:bg-foreground/[0.05]";
+  const actionClass =
+    "flex h-11 w-full min-w-0 items-center justify-start gap-1.5 rounded-full px-2.5 text-[14px] font-medium tap transition-colors hover:bg-foreground/[0.05]";
 
   return (
     <article className="mt-1 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
-      {post.type === 'repost' && (
+      {post.type === "repost" && (
         <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-[12px] text-muted-foreground">
           <Repeat className="h-3.5 w-3.5" />
-          <span className="truncate"><span className="font-semibold text-foreground">{post.reposted_by}</span> reposted this</span>
+          <span className="truncate">
+            <span className="font-semibold text-foreground">{post.reposted_by}</span> reposted this
+          </span>
         </div>
       )}
 
       <header className="flex items-start gap-2.5 px-4 pt-3">
-        <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex min-w-0 flex-1 items-start gap-2.5 tap">
+        <Link
+          to="/app/profile/$id"
+          params={{ id: post.author_id }}
+          className="flex min-w-0 flex-1 items-start gap-2.5 tap"
+        >
           <div className="relative h-12 w-12 shrink-0">
             <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
               {post.profiles?.avatar_url ? (
-                <img src={post.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                <img
+                  src={post.profiles.avatar_url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
-                (post.profiles?.full_name || post.profiles?.username || 'U').substring(0, 1).toUpperCase()
+                (post.profiles?.full_name || post.profiles?.username || "U")
+                  .substring(0, 1)
+                  .toUpperCase()
               )}
             </div>
             <AvatarAffiliation profile={post.profiles} size={18} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1">
-              <span className="truncate text-[15px] font-semibold text-foreground">{post.profiles?.full_name || post.profiles?.username}</span>
-              {(post.profiles?.tier === 'Premium' || post.profiles?.tier === 'Premium+') && (
+              <span className="truncate text-[15px] font-semibold text-foreground">
+                {post.profiles?.full_name || post.profiles?.username}
+              </span>
+              {(post.profiles?.tier === "Premium" || post.profiles?.tier === "Premium+") && (
                 <BadgeCheck
                   aria-label={post.profiles.tier}
-                  className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === 'Premium+' ? 'text-[#e0a800]' : 'text-accent'}`}
+                  className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === "Premium+" ? "text-[#e0a800]" : "text-accent"}`}
                 />
               )}
               <AffiliationBadge profile={post.profiles} size={15} />
             </div>
             <p className="truncate text-[13px] leading-snug text-muted-foreground">
-              {authorRole}{post.profiles?.username ? ` · @${post.profiles.username}` : ''}
+              {authorRole}
+              {post.profiles?.username ? ` · @${post.profiles.username}` : ""}
             </p>
             <p className="flex items-center gap-1 text-[12px] leading-snug text-muted-foreground">
               <span className="tabular-nums">{timeAgo}</span>
-              {post.audience === 'club' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#cc208f]/10 px-1.5 py-px text-[11px] font-semibold text-[#cc208f]" title="Only club members can see this post">
+              {post.audience === "club" && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-[#cc208f]/10 px-1.5 py-px text-[11px] font-semibold text-[#cc208f]"
+                  title="Only club members can see this post"
+                >
                   <UsersIcon className="h-3 w-3" /> Club
                 </span>
               )}
@@ -518,14 +600,23 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button aria-label="More options" className="-mr-2 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground">
+            <button
+              aria-label="More options"
+              className="-mr-2 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+            >
               <MoreHorizontal className="h-5 w-5" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
-            <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleBookmark}>
-              <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
-              <span className="font-medium text-sm">{isBookmarked ? 'Saved' : 'Save'}</span>
+          <DropdownMenuContent
+            align="end"
+            className="w-56 bg-popover/95 backdrop-blur-xl border-border shadow-lift"
+          >
+            <DropdownMenuItem
+              className="flex items-center gap-3 py-2.5 cursor-pointer"
+              onClick={handleBookmark}
+            >
+              <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
+              <span className="font-medium text-sm">{isBookmarked ? "Saved" : "Save"}</span>
             </DropdownMenuItem>
             {!isOwnPost && (
               <DropdownMenuItem
@@ -569,7 +660,10 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
               </DropdownMenuItem>
             )}
             {isEditable && (
-              <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleEditClick}>
+              <DropdownMenuItem
+                className="flex items-center gap-3 py-2.5 cursor-pointer"
+                onClick={handleEditClick}
+              >
                 <Edit3 className="h-4 w-4" />
                 <span className="font-medium text-sm">Edit post</span>
               </DropdownMenuItem>
@@ -601,9 +695,10 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
         <div className="px-4 pt-2.5">
           <div className="line-clamp-3 whitespace-pre-wrap text-[14px] font-normal leading-[1.43] text-foreground/90">
             <LinkifiedText text={displayContent} />
-            {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
-              <span className="ml-1.5 text-[12px] text-muted-foreground">· edited</span>
-            )}
+            {post.updated_at &&
+              new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
+                <span className="ml-1.5 text-[12px] text-muted-foreground">· edited</span>
+              )}
           </div>
           {displayContent?.length > 150 && (
             <span className="text-[14px] text-muted-foreground">…more</span>
@@ -616,7 +711,10 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
         </div>
 
         {post.media_urls && post.media_urls.length > 0 && (
-          <AdaptiveFeedMedia urls={post.media_urls} onOpen={(index) => openMedia(post.media_urls, index)} />
+          <AdaptiveFeedMedia
+            urls={post.media_urls}
+            onOpen={(index) => openMedia(post.media_urls, index)}
+          />
         )}
 
         {post.quoted_posts && (
@@ -625,18 +723,26 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              router.navigate({ to: '/app/post/$id', params: { id: post.quoted_posts.id } });
+              router.navigate({ to: "/app/post/$id", params: { id: post.quoted_posts.id } });
             }}
           >
             <div className="mb-1.5 flex items-center gap-2">
               <div className="grid h-6 w-6 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[12px] font-semibold text-muted-foreground">
                 {post.quoted_posts.profiles?.avatar_url ? (
-                  <img src={post.quoted_posts.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                  <img
+                    src={post.quoted_posts.profiles.avatar_url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
-                  (post.quoted_posts.profiles?.username || 'U')[0].toUpperCase()
+                  (post.quoted_posts.profiles?.username || "U")[0].toUpperCase()
                 )}
               </div>
-              <span className="truncate text-[14px] font-semibold">{post.quoted_posts.profiles?.full_name || post.quoted_posts.profiles?.username}</span>
+              <span className="truncate text-[14px] font-semibold">
+                {post.quoted_posts.profiles?.full_name || post.quoted_posts.profiles?.username}
+              </span>
             </div>
             <div className="line-clamp-2 text-[13.5px] leading-[1.43] text-foreground/85">
               <LinkifiedText text={quotedDisplayContent} />
@@ -651,9 +757,21 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
                 }}
               >
                 {isVideoUrl(post.quoted_posts.media_urls[0]) ? (
-                  <video src={post.quoted_posts.media_urls[0]} className="block max-h-[200px] w-full bg-black object-contain" muted playsInline preload="metadata" />
+                  <video
+                    src={post.quoted_posts.media_urls[0]}
+                    className="block max-h-[200px] w-full bg-black object-contain"
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
                 ) : (
-                  <img src={post.quoted_posts.media_urls[0]} alt="Quoted post media" loading="lazy" decoding="async" className="block max-h-[200px] w-full object-cover" />
+                  <img
+                    src={post.quoted_posts.media_urls[0]}
+                    alt="Quoted post media"
+                    loading="lazy"
+                    decoding="async"
+                    className="block max-h-[200px] w-full object-cover"
+                  />
                 )}
               </div>
             )}
@@ -665,61 +783,82 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
           no divider. On the right, a small stack shows at a glance what kind
           of activity the post has: pink for likes, ink for comments, green
           for reposts. */}
-      <footer className="flex items-center gap-0.5 px-2 pb-2 pt-1 text-muted-foreground">
-        <button
-          onClick={handleLike}
-          aria-pressed={liked}
-          aria-label={liked ? `Unlike, ${likesCount} likes` : `Like, ${likesCount} likes`}
-          className={`${actionClass} ${liked ? 'text-[#cc208f]' : 'hover:text-foreground'}`}
-        >
-          <ThumbsUp key={liked ? 'on' : 'off'} className={`h-[21px] w-[21px] ${liked ? 'zc-like-pop fill-current' : ''}`} />
-          {likesCount > 0 && <span className="tabular-nums">{compactCount(likesCount)}</span>}
-        </button>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onCommentClick?.(post);
-          }}
-          aria-label={`Comment, ${commentsCount} comments`}
-          className={`${actionClass} hover:text-foreground`}
-        >
-          <MessageSquare className="h-[21px] w-[21px]" />
-          {commentsCount > 0 && <span className="tabular-nums">{compactCount(commentsCount)}</span>}
-        </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-              aria-label={`${hasReposted ? 'Reposted' : 'Repost'}, ${repostCount} reposts`}
-              className={`${actionClass} ${hasReposted || hasQuoted ? 'text-[#1a7f4b]' : 'hover:text-foreground'}`}
+      <footer className="flex items-center px-1.5 pb-1.5 pt-0.5 text-muted-foreground">
+        {/* Four equal slots, so the actions keep an even rhythm and nothing
+            shifts when a count appears. Capped so they don't spread out
+            across a wide desktop card. */}
+        <div className="grid min-w-0 max-w-[352px] flex-1 grid-cols-4">
+          <button
+            onClick={handleLike}
+            aria-pressed={liked}
+            aria-label={liked ? `Unlike, ${likesCount} likes` : `Like, ${likesCount} likes`}
+            className={`${actionClass} ${liked ? "text-[#cc208f]" : "hover:text-foreground"}`}
+          >
+            <ThumbsUp
+              key={liked ? "on" : "off"}
+              className={`h-[21px] w-[21px] ${liked ? "zc-like-pop fill-current" : ""}`}
+            />
+            {likesCount > 0 && <span className="tabular-nums">{compactCount(likesCount)}</span>}
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onCommentClick?.(post);
+            }}
+            aria-label={`Comment, ${commentsCount} comments`}
+            className={`${actionClass} hover:text-foreground`}
+          >
+            <MessageSquare className="h-[21px] w-[21px]" />
+            {commentsCount > 0 && (
+              <span className="tabular-nums">{compactCount(commentsCount)}</span>
+            )}
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                aria-label={`${hasReposted ? "Reposted" : "Repost"}, ${repostCount} reposts`}
+                className={`${actionClass} ${hasReposted || hasQuoted ? "text-[#1a7f4b]" : "hover:text-foreground"}`}
+              >
+                <Repeat className="h-[21px] w-[21px]" />
+                {repostCount > 0 && (
+                  <span className="tabular-nums">{compactCount(repostCount)}</span>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="center"
+              className="w-48 bg-popover/95 backdrop-blur-xl border-border shadow-lift"
             >
-              <Repeat className="h-[21px] w-[21px]" />
-              {repostCount > 0 && <span className="tabular-nums">{compactCount(repostCount)}</span>}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-48 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
-            <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={handleRepost}>
-              <Repeat className="h-4 w-4" />
-              <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="gap-3 py-2.5 cursor-pointer"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                router.navigate({ to: '/app/compose', search: { quote: postId } });
-              }}
-            >
-              <Quote className="h-4 w-4" />
-              <span className="font-medium text-sm">Quote</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <button onClick={handleShare} aria-label="Send" className={`${actionClass} hover:text-foreground`}>
-          <Send className="h-[21px] w-[21px]" />
-        </button>
+              <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={handleRepost}>
+                <Repeat className="h-4 w-4" />
+                <span className="font-medium text-sm">
+                  {hasReposted ? "Undo repost" : "Repost"}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-3 py-2.5 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.navigate({ to: "/app/compose", search: { quote: postId } });
+                }}
+              >
+                <Quote className="h-4 w-4" />
+                <span className="font-medium text-sm">Quote</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <button
+            onClick={handleShare}
+            aria-label="Send"
+            className={`${actionClass} hover:text-foreground`}
+          >
+            <Send className="h-[21px] w-[21px]" />
+          </button>
+        </div>
 
         {(likesCount > 0 || commentsCount > 0 || repostCount > 0) && (
           <button
@@ -730,7 +869,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
               onCommentClick?.(post);
             }}
             aria-label="See the conversation"
-            className="ml-auto flex items-center pr-2 tap"
+            className="ml-auto flex shrink-0 items-center pl-2 pr-2.5 tap"
           >
             {likesCount > 0 && (
               <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#cc208f] text-white ring-2 ring-card">
@@ -738,12 +877,16 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
               </span>
             )}
             {commentsCount > 0 && (
-              <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-foreground text-background ring-2 ring-card ${likesCount > 0 ? '-ml-1.5' : ''}`}>
+              <span
+                className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-foreground text-background ring-2 ring-card ${likesCount > 0 ? "-ml-1.5" : ""}`}
+              >
                 <MessageSquare className="h-3 w-3" />
               </span>
             )}
             {repostCount > 0 && (
-              <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-[#1a7f4b] text-white ring-2 ring-card ${likesCount > 0 || commentsCount > 0 ? '-ml-1.5' : ''}`}>
+              <span
+                className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-[#1a7f4b] text-white ring-2 ring-card ${likesCount > 0 || commentsCount > 0 ? "-ml-1.5" : ""}`}
+              >
                 <Repeat className="h-3 w-3" />
               </span>
             )}
@@ -764,8 +907,9 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
 /** 1,907 -> "1.9K": counts stay short beside the icons. */
 function compactCount(value: number) {
   if (value < 1000) return String(value);
-  if (value < 1_000_000) return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/, '')}K`;
-  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (value < 1_000_000)
+    return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/, "")}K`;
+  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
 }
 
 /** A card only re-renders when its own post (or the viewer) changes. */

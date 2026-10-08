@@ -2,7 +2,31 @@ import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { plain } from "@/lib/og/core/text";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { MoreHorizontal, ThumbsUp, Repeat, Send, UserPlus, UserMinus, Loader2, Bookmark, MessageSquare, Mail, Flag, ShieldCheck, Trash2, Link as LinkIcon, VolumeX, Volume2, Pencil, Edit3, Rocket, ArrowLeft, Plus, Quote, BadgeCheck } from "@/components/icons/glyphs";
+import {
+  MoreHorizontal,
+  ThumbsUp,
+  Repeat,
+  Send,
+  UserPlus,
+  UserMinus,
+  Loader2,
+  Bookmark,
+  MessageSquare,
+  Mail,
+  Flag,
+  ShieldCheck,
+  Trash2,
+  Link as LinkIcon,
+  VolumeX,
+  Volume2,
+  Pencil,
+  Edit3,
+  Rocket,
+  ArrowLeft,
+  Plus,
+  Quote,
+  BadgeCheck,
+} from "@/components/icons/glyphs";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -34,10 +58,14 @@ const EMPTY_POST_COMMENTS: any[] = [];
 const EMPTY_COMMENT_LIKES: string[] = [];
 
 const findCachedPost = (queryClient: QueryClient, id: string) => {
-  const feedPosts = queryClient.getQueryData<any[]>(['feed_posts']) || [];
-  const profilePostQueries = queryClient.getQueriesData<any[]>({ queryKey: ['profilePosts'] });
-  const profilePosts = profilePostQueries.flatMap(([, posts]) => Array.isArray(posts) ? posts : []);
-  const cachedPost = [...feedPosts, ...profilePosts].find((post) => post && (post.id === id || post.original_id === id));
+  const feedPosts = queryClient.getQueryData<any[]>(["feed_posts"]) || [];
+  const profilePostQueries = queryClient.getQueriesData<any[]>({ queryKey: ["profilePosts"] });
+  const profilePosts = profilePostQueries.flatMap(([, posts]) =>
+    Array.isArray(posts) ? posts : [],
+  );
+  const cachedPost = [...feedPosts, ...profilePosts].find(
+    (post) => post && (post.id === id || post.original_id === id),
+  );
 
   if (!cachedPost) return null;
   return {
@@ -66,7 +94,7 @@ const createPostDetailShell = (post: any) => ({
  * and its counts — and nothing that belongs to a member.
  */
 const fetchPublicPostRecord = async (id: string) => {
-  const { data, error } = await supabase.rpc('get_post_public', { p_post_id: id });
+  const { data, error } = await supabase.rpc("get_post_public", { p_post_id: id });
   if (error) return null;
 
   const payload = data as any;
@@ -82,9 +110,9 @@ const fetchPublicPostRecord = async (id: string) => {
 
 const fetchPostDetailRecord = async (id: string) => {
   const { data: post, error: postError } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('id', id)
+    .from("posts")
+    .select("*")
+    .eq("id", id)
     .maybeSingle();
 
   // Signed out, or hidden by row-level security. Either way the public reader
@@ -98,14 +126,16 @@ const fetchPostDetailRecord = async (id: string) => {
   if (!post) return null;
 
   const [profileResult, bootcampResult] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', post.author_id).maybeSingle(),
+    supabase.from("profiles").select("*").eq("id", post.author_id).maybeSingle(),
     post.bootcamp_id
-      ? supabase.from('bootcamps').select('*').eq('id', post.bootcamp_id).maybeSingle()
+      ? supabase.from("bootcamps").select("*").eq("id", post.bootcamp_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
   ]);
 
-  if (profileResult.error) console.warn('Post author could not be loaded:', profileResult.error.message);
-  if (bootcampResult.error) console.warn('Tagged bootcamp could not be loaded:', bootcampResult.error.message);
+  if (profileResult.error)
+    console.warn("Post author could not be loaded:", profileResult.error.message);
+  if (bootcampResult.error)
+    console.warn("Tagged bootcamp could not be loaded:", bootcampResult.error.message);
 
   return {
     ...post,
@@ -130,9 +160,9 @@ export const Route = createFileRoute("/app/post/$id")({
     // The shared link says what it is too, so a project does not arrive in
     // somebody's timeline announced as a post.
     const title = `${authorName}'s ${post.is_build_post ? "Project" : "Post"} on Zero Club`;
-    
+
     let description = plain(post.content) || "Check out this post on Zero Club";
-    description = description.substring(0, 160) + (description.length > 160 ? '...' : '');
+    description = description.substring(0, 160) + (description.length > 160 ? "..." : "");
 
     const image = `https://www.zeroclubs.xyz/api/og/post/${post.id}`;
 
@@ -153,7 +183,7 @@ export const Route = createFileRoute("/app/post/$id")({
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: image },
-      ]
+      ],
     };
   },
   component: PostDetail,
@@ -165,34 +195,82 @@ function PostDetail() {
   const queryClient = useQueryClient();
 
   const isVideoUrl = (url: string) => {
-    const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg', '.m4v'];
-    return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url.includes('video');
+    const videoExtensions = [".mp4", ".mov", ".webm", ".ogg", ".m4v"];
+    return videoExtensions.some((ext) => url.toLowerCase().includes(ext)) || url.includes("video");
   };
-  
-  const { data, isError } = useQuery({
-    queryKey: ['post', id],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const postData = await fetchPostDetailRecord(id);
-      if (!postData) throw new Error('This post or Ship no longer exists.');
 
-      const [bookmarkRes, likeRes, followRes, commentLikesRes, repostRes, totalRepostsRes, totalQuotesRes] = await Promise.all([
-        session ? supabase.from('bookmarks').select('*').eq('profile_id', session.user.id).eq('post_id', id).maybeSingle() : Promise.resolve({ data: null }),
-        session ? supabase.from('likes').select('*').eq('profile_id', session.user.id).eq('post_id', id).maybeSingle() : Promise.resolve({ data: null }),
-        session ? supabase.from('follows').select('*').eq('follower_id', session.user.id).eq('following_id', postData.author_id).maybeSingle() : Promise.resolve({ data: null }),
-        session ? supabase.from('comment_likes').select('comment_id').eq('profile_id', session.user.id) : Promise.resolve({ data: null }),
-        session ? supabase.from('reposts').select('*').eq('profile_id', session.user.id).eq('post_id', id).maybeSingle() : Promise.resolve({ data: null }),
-        supabase.from('reposts').select('id', { count: 'exact', head: true }).eq('post_id', id),
-        supabase.from('posts').select('id', { count: 'exact', head: true }).eq('quoted_post_id', id)
+  const { data, isError } = useQuery({
+    queryKey: ["post", id],
+    queryFn: async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const postData = await fetchPostDetailRecord(id);
+      if (!postData) throw new Error("This post or Ship no longer exists.");
+
+      const [
+        bookmarkRes,
+        likeRes,
+        followRes,
+        commentLikesRes,
+        repostRes,
+        totalRepostsRes,
+        totalQuotesRes,
+      ] = await Promise.all([
+        session
+          ? supabase
+              .from("bookmarks")
+              .select("*")
+              .eq("profile_id", session.user.id)
+              .eq("post_id", id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        session
+          ? supabase
+              .from("likes")
+              .select("*")
+              .eq("profile_id", session.user.id)
+              .eq("post_id", id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        session
+          ? supabase
+              .from("follows")
+              .select("*")
+              .eq("follower_id", session.user.id)
+              .eq("following_id", postData.author_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        session
+          ? supabase.from("comment_likes").select("comment_id").eq("profile_id", session.user.id)
+          : Promise.resolve({ data: null }),
+        session
+          ? supabase
+              .from("reposts")
+              .select("*")
+              .eq("profile_id", session.user.id)
+              .eq("post_id", id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        supabase.from("reposts").select("id", { count: "exact", head: true }).eq("post_id", id),
+        supabase
+          .from("posts")
+          .select("id", { count: "exact", head: true })
+          .eq("quoted_post_id", id),
       ]);
 
-      return { 
-        post: { ...postData, computed_reposts_count: (totalRepostsRes.count || 0) + (totalQuotesRes.count || 0) },
+      return {
+        post: {
+          ...postData,
+          computed_reposts_count: (totalRepostsRes.count || 0) + (totalQuotesRes.count || 0),
+        },
         isBookmarked: !!bookmarkRes.data,
         isLiked: !!likeRes.data,
         isFollowing: !!followRes.data,
         hasReposted: !!repostRes.data,
-        commentLikes: commentLikesRes?.data ? commentLikesRes.data.map((l: any) => l.comment_id) : []
+        commentLikes: commentLikesRes?.data
+          ? commentLikesRes.data.map((l: any) => l.comment_id)
+          : [],
       };
     },
     initialData: loaderPost ? () => createPostDetailShell(loaderPost) : undefined,
@@ -203,7 +281,7 @@ function PostDetail() {
       const post = findCachedPost(queryClient, id);
       return post ? createPostDetailShell(post) : undefined;
     },
-    staleTime: 0
+    staleTime: 0,
   });
 
   const {
@@ -212,14 +290,14 @@ function PostDetail() {
     isError: commentsError,
     refetch: refetchComments,
   } = useQuery({
-    queryKey: ['post-comments', id],
+    queryKey: ["post-comments", id],
     queryFn: async () => {
       try {
         return await fetchPostComments(id);
       } catch {
         // Same reasoning as the post itself: a stranger should still see the
         // discussion, they just cannot add to it.
-        const { data } = await supabase.rpc('get_post_comments_public', { p_post_id: id });
+        const { data } = await supabase.rpc("get_post_comments_public", { p_post_id: id });
         return (data as any[]) || [];
       }
     },
@@ -251,17 +329,19 @@ function PostDetail() {
   const router = useRouter();
 
   const isOwnPost = currentUser?.id === post?.author_id;
-  
+
   const cleanLegacyShipContent = (content: string) => {
     if (!content) return content;
-    return content
-      .replace(/## 🚀 /g, '**Project:** ')
-      .replace(/### 🔗 Project Links/g, '**Project Links:**\n')
-      .replace(/### 🤖 AI Prompts Used/g, '**AI Prompts Used:**\n')
-      // Ships stored before the rename keep saying "Skills Used". Rewriting on
-      // the way out means every ship reads the same without touching a single
-      // stored row.
-      .replace(/\*\*Skills Used:\*\*/g, '**Tools Used:**');
+    return (
+      content
+        .replace(/## 🚀 /g, "**Project:** ")
+        .replace(/### 🔗 Project Links/g, "**Project Links:**\n")
+        .replace(/### 🤖 AI Prompts Used/g, "**AI Prompts Used:**\n")
+        // Ships stored before the rename keep saying "Skills Used". Rewriting on
+        // the way out means every ship reads the same without touching a single
+        // stored row.
+        .replace(/\*\*Skills Used:\*\*/g, "**Tools Used:**")
+    );
   };
   const displayContent = post?.is_build_post ? cleanLegacyShipContent(post.content) : post?.content;
 
@@ -282,21 +362,27 @@ function PostDetail() {
       toast.error("Sign in to bookmark builds!");
       return;
     }
-    
+
     const newStatus = !isBookmarked;
     setIsBookmarked(newStatus);
-    
+
     try {
       if (newStatus) {
-        const { error } = await supabase.from('bookmarks').insert([{ profile_id: currentUser.id, post_id: post.id }]);
+        const { error } = await supabase
+          .from("bookmarks")
+          .insert([{ profile_id: currentUser.id, post_id: post.id }]);
         if (error) throw error;
         toast.success("Saved to bookmarks!");
       } else {
-        const { error } = await supabase.from('bookmarks').delete().eq('profile_id', currentUser.id).eq('post_id', post.id);
+        const { error } = await supabase
+          .from("bookmarks")
+          .delete()
+          .eq("profile_id", currentUser.id)
+          .eq("post_id", post.id);
         if (error) throw error;
         toast.success("Removed from bookmarks");
       }
-      queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+      queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
       router.invalidate();
     } catch (err) {
       setIsBookmarked(!newStatus);
@@ -339,15 +425,15 @@ function PostDetail() {
     const channel = supabase
       .channel(`post-comments:${id}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'comments',
+          event: "*",
+          schema: "public",
+          table: "comments",
           filter: `post_id=eq.${id}`,
         },
         () => {
-          void queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
+          void queryClient.invalidateQueries({ queryKey: ["post-comments", id] });
         },
       )
       .subscribe();
@@ -367,33 +453,35 @@ function PostDetail() {
     const newLiked = !isLiked;
 
     // Optimistic update
-    setComments(prev => prev.map(c => 
-      c.id === comment.id 
-        ? { ...c, isLiked: newLiked, likes_count: (c.likes_count || 0) + (newLiked ? 1 : -1) } 
-        : c
-    ));
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === comment.id
+          ? { ...c, isLiked: newLiked, likes_count: (c.likes_count || 0) + (newLiked ? 1 : -1) }
+          : c,
+      ),
+    );
 
     try {
       if (newLiked) {
         const { error } = await supabase
-          .from('comment_likes')
+          .from("comment_likes")
           .insert({ comment_id: comment.id, profile_id: currentUser.id });
-        if (error && error.code !== '23505') throw error;
+        if (error && error.code !== "23505") throw error;
       } else {
         const { error } = await supabase
-          .from('comment_likes')
+          .from("comment_likes")
           .delete()
-          .eq('comment_id', comment.id)
-          .eq('profile_id', currentUser.id);
+          .eq("comment_id", comment.id)
+          .eq("profile_id", currentUser.id);
         if (error) throw error;
       }
     } catch (err: any) {
       // Revert
-      setComments(prev => prev.map(c => 
-        c.id === comment.id 
-          ? { ...c, isLiked: isLiked, likes_count: comment.likes_count } 
-          : c
-      ));
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === comment.id ? { ...c, isLiked: isLiked, likes_count: comment.likes_count } : c,
+        ),
+      );
       toast.error("Could not update like.");
     }
   }
@@ -407,19 +495,21 @@ function PostDetail() {
     if (!editingCommentId || !editCommentText.trim()) return;
     try {
       const { error } = await supabase
-        .from('comments')
+        .from("comments")
         .update({ content: editCommentText.trim() })
-        .eq('id', editingCommentId)
-        .eq('profile_id', currentUser?.id);
-      
+        .eq("id", editingCommentId)
+        .eq("profile_id", currentUser?.id);
+
       if (error) throw error;
-      
-      setComments(prev => prev.map(c => 
-        c.id === editingCommentId ? { ...c, content: editCommentText.trim() } : c
-      ));
+
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === editingCommentId ? { ...c, content: editCommentText.trim() } : c,
+        ),
+      );
       setEditingCommentId(null);
       setEditCommentText("");
-      void queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
+      void queryClient.invalidateQueries({ queryKey: ["post-comments", id] });
       toast.success("Comment updated!");
     } catch (err: any) {
       toast.error(err.message || "Failed to update comment");
@@ -435,7 +525,11 @@ function PostDetail() {
     while (foundChild) {
       foundChild = false;
       comments.forEach((item) => {
-        if (item.parent_id && deletedIds.has(String(item.parent_id)) && !deletedIds.has(String(item.id))) {
+        if (
+          item.parent_id &&
+          deletedIds.has(String(item.parent_id)) &&
+          !deletedIds.has(String(item.id))
+        ) {
           deletedIds.add(String(item.id));
           foundChild = true;
         }
@@ -444,10 +538,10 @@ function PostDetail() {
 
     try {
       const { error } = await supabase
-        .from('comments')
+        .from("comments")
         .delete()
-        .eq('id', comment.id)
-        .eq('profile_id', currentUser.id);
+        .eq("id", comment.id)
+        .eq("profile_id", currentUser.id);
 
       if (error) throw error;
 
@@ -457,11 +551,13 @@ function PostDetail() {
         setEditingCommentId(null);
         setEditCommentText("");
       }
-      window.dispatchEvent(new CustomEvent('comment-deleted', {
-        detail: { postId: post.id, count: deletedIds.size },
-      }));
-      void queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
-      queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+      window.dispatchEvent(
+        new CustomEvent("comment-deleted", {
+          detail: { postId: post.id, count: deletedIds.size },
+        }),
+      );
+      void queryClient.invalidateQueries({ queryKey: ["post-comments", id] });
+      queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
       toast.success("Comment deleted");
     } catch (error: any) {
       toast.error(error.message || "Could not delete comment.");
@@ -470,24 +566,25 @@ function PostDetail() {
 
   const handleToggleCommentFollow = async (comment: any) => {
     if (!currentUser || currentUser.id === comment.profile_id) return;
-    const isFollowingCommentAuthor = currentUser.following_ids?.includes(comment.profile_id) || false;
+    const isFollowingCommentAuthor =
+      currentUser.following_ids?.includes(comment.profile_id) || false;
 
     try {
       if (isFollowingCommentAuthor) {
         const { error } = await supabase
-          .from('follows')
+          .from("follows")
           .delete()
-          .eq('follower_id', currentUser.id)
-          .eq('following_id', comment.profile_id);
+          .eq("follower_id", currentUser.id)
+          .eq("following_id", comment.profile_id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('follows')
+          .from("follows")
           .insert([{ follower_id: currentUser.id, following_id: comment.profile_id }]);
         if (error) throw error;
       }
 
-      queryClient.setQueryData(['profile', 'current'], (old: any) => {
+      queryClient.setQueryData(["profile", "current"], (old: any) => {
         if (!old) return old;
         const followingIds: string[] = old.following_ids || [];
         return {
@@ -497,10 +594,12 @@ function PostDetail() {
             : Array.from(new Set([...followingIds, comment.profile_id])),
         };
       });
-      queryClient.invalidateQueries({ queryKey: ['profile', comment.profile_id] });
-      toast.success(isFollowingCommentAuthor
-        ? `Unfollowed ${getFirstName(comment.profiles)}`
-        : `Now following ${getFirstName(comment.profiles)}!`);
+      queryClient.invalidateQueries({ queryKey: ["profile", comment.profile_id] });
+      toast.success(
+        isFollowingCommentAuthor
+          ? `Unfollowed ${getFirstName(comment.profiles)}`
+          : `Now following ${getFirstName(comment.profiles)}!`,
+      );
     } catch (error: any) {
       toast.error(error.message || "Could not update follow.");
     }
@@ -511,15 +610,12 @@ function PostDetail() {
     if (!confirm("Are you sure you want to delete this post?")) return;
 
     try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id);
+      const { error } = await supabase.from("posts").delete().eq("id", post.id);
 
       if (error) throw error;
-      
+
       toast.success("Post deleted! ️");
-      router.navigate({ to: '/app' });
+      router.navigate({ to: "/app" });
     } catch (err) {
       toast.error("Failed to delete post.");
     }
@@ -528,9 +624,9 @@ function PostDetail() {
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (post.is_build_post) {
-      router.navigate({ to: '/app/ship', search: { editId: post.id } });
+      router.navigate({ to: "/app/ship", search: { editId: post.id } });
     } else {
-      router.navigate({ to: '/app/compose', search: { editId: post.id } });
+      router.navigate({ to: "/app/compose", search: { editId: post.id } });
     }
   };
 
@@ -540,7 +636,7 @@ function PostDetail() {
     try {
       // Server-side: marks post verified + rewards author 50 XP,
       // with tutor authorization enforced in the database.
-      const { error: verifyError } = await supabase.rpc('verify_build_post', {
+      const { error: verifyError } = await supabase.rpc("verify_build_post", {
         post_id: post.id,
       });
 
@@ -581,17 +677,17 @@ function PostDetail() {
       } else {
         await unlikePostAction({ data: { profileId: currentUser.id, postId: post.id } });
       }
-      queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+      queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
       router.invalidate();
     } catch (err: any) {
       setLiked(!newLiked);
-      toast.error(`Could not update like: ${err.message || 'Unknown error'}`);
+      toast.error(`Could not update like: ${err.message || "Unknown error"}`);
     }
   }
 
   async function handleRepost(e?: React.MouseEvent) {
     if (e) e.stopPropagation();
-    
+
     if (!currentUser) {
       toast.error("Sign in to repost builds!");
       return;
@@ -602,18 +698,24 @@ function PostDetail() {
 
     try {
       if (newHasReposted) {
-        const { error } = await supabase.from('reposts').insert({ profile_id: currentUser.id, post_id: post.id });
-        if (error && error.code !== '23505') throw error;
-        
+        const { error } = await supabase
+          .from("reposts")
+          .insert({ profile_id: currentUser.id, post_id: post.id });
+        if (error && error.code !== "23505") throw error;
+
         toast.success("Reposted to your feed!");
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
         router.invalidate();
       } else {
-        const { error } = await supabase.from('reposts').delete().eq('profile_id', currentUser.id).eq('post_id', post.id);
+        const { error } = await supabase
+          .from("reposts")
+          .delete()
+          .eq("profile_id", currentUser.id)
+          .eq("post_id", post.id);
         if (error) throw error;
-        
+
         toast.success("Removed repost!");
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
         router.invalidate();
       }
     } catch (err) {
@@ -631,22 +733,22 @@ function PostDetail() {
     setCommentLoading(true);
     try {
       const content = await buildCommentContent(commentText, mediaFiles, currentUser.id);
-      const payload: any = { 
-        profile_id: currentUser.id, 
-        post_id: post.id, 
+      const payload: any = {
+        profile_id: currentUser.id,
+        post_id: post.id,
         content,
       };
-      
+
       if (replyTo) {
         payload.parent_id = replyTo.id;
       }
 
       const { data, error } = await supabase
-        .from('comments')
+        .from("comments")
         .insert(payload)
-        .select('*, profiles(*)')
+        .select("*, profiles(*)")
         .single();
-      
+
       if (error) throw error;
       setComments((current) => [...current, data]);
       const submittedRawText = commentText;
@@ -656,24 +758,26 @@ function PostDetail() {
         content: submittedRawText || content,
         actorId: currentUser.id,
         entityId: post.id,
-        type: 'comment',
+        type: "comment",
       });
       // Reset auto-growing textarea heights in the DOM
-      const textareas = document.querySelectorAll('textarea');
-      textareas.forEach(t => {
-        t.style.height = 'auto';
+      const textareas = document.querySelectorAll("textarea");
+      textareas.forEach((t) => {
+        t.style.height = "auto";
       });
       setReplyTo(null);
-      
+
       // Dispatch event for instant UI update elsewhere
-      window.dispatchEvent(new CustomEvent('comment-added', { 
-        detail: { postId: post.id } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent("comment-added", {
+          detail: { postId: post.id },
+        }),
+      );
 
       toast.success(replyTo ? "Reply posted! 💬" : "Comment posted! 💬");
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['post-comments', post.id] }),
-        queryClient.invalidateQueries({ queryKey: ['feed_posts'] }),
+        queryClient.invalidateQueries({ queryKey: ["post-comments", post.id] }),
+        queryClient.invalidateQueries({ queryKey: ["feed_posts"] }),
       ]);
       router.invalidate();
       return true;
@@ -691,11 +795,17 @@ function PostDetail() {
     if (hasShareSheet()) {
       try {
         await openShareSheet({
-          heading: `Share ${post?.profiles?.full_name || post?.profiles?.username || 'this'}'s post`,
-          title: 'Check out this build on Zero Club!',
+          heading: `Share ${post?.profiles?.full_name || post?.profiles?.username || "this"}'s post`,
+          title: "Check out this build on Zero Club!",
           url,
           linkedin: post
-            ? { postId: post.id, body: post.content || "", isOwn: Boolean(isOwnPost), isShip: Boolean(post.is_build_post), isQuote: Boolean(post.quoted_post_id) }
+            ? {
+                postId: post.id,
+                body: post.content || "",
+                isOwn: Boolean(isOwnPost),
+                isShip: Boolean(post.is_build_post),
+                isQuote: Boolean(post.quoted_post_id),
+              }
             : undefined,
         });
       } catch (err) {}
@@ -710,7 +820,9 @@ function PostDetail() {
      opened cold, where there genuinely is no previous page. */
   const handleBack = useGoBack("/app");
 
-  const initials = (post?.profiles?.full_name || post?.profiles?.username || 'U').substring(0, 1).toUpperCase();
+  const initials = (post?.profiles?.full_name || post?.profiles?.username || "U")
+    .substring(0, 1)
+    .toUpperCase();
 
   // Threading helper to build the X-style nested hierarchy
   const getThreadedComments = (flatComments: any[]) => {
@@ -718,12 +830,12 @@ function PostDetail() {
     const roots: any[] = [];
 
     // Initialize map
-    flatComments.forEach(c => {
+    flatComments.forEach((c) => {
       map.set(c.id.toString(), { ...c, replies: [] });
     });
 
     // Populate replies and roots
-    flatComments.forEach(c => {
+    flatComments.forEach((c) => {
       const item = map.get(c.id.toString());
       if (c.parent_id && map.has(c.parent_id.toString())) {
         map.get(c.parent_id.toString()).replies.push(item);
@@ -740,19 +852,21 @@ function PostDetail() {
         targetArray.push({
           ...child,
           isReply: true,
-          parentUsername: node.profiles?.username || 'builder'
+          parentUsername: node.profiles?.username || "builder",
         });
         collectDescendants(child, node, targetArray);
       });
     };
 
-    roots.forEach(root => {
-      const thread: any[] = [{
-        ...root,
-        isReply: false,
-        parentUsername: null
-      }];
-      
+    roots.forEach((root) => {
+      const thread: any[] = [
+        {
+          ...root,
+          isReply: false,
+          parentUsername: null,
+        },
+      ];
+
       collectDescendants(root, null, thread);
 
       // Set hasMoreInThread for all except the last item in the thread
@@ -767,29 +881,49 @@ function PostDetail() {
 
   const threadedComments = getThreadedComments(comments);
 
-  const likeCount = (post?.likes_count || 0) + (liked && !initialLiked ? 1 : 0) - (!liked && initialLiked ? 1 : 0);
-  const repostCount = Math.max(0, (post?.computed_reposts_count ?? post?.reposts_count ?? 0) + (hasReposted && !data?.hasReposted ? 1 : (!hasReposted && data?.hasReposted ? -1 : 0)));
-  const authorRole = post?.profiles?.account_type === 'Institution' ? 'Institution' : post?.profiles?.account_type === 'Tutor' ? 'Tutor' : 'Builder';
+  const likeCount =
+    (post?.likes_count || 0) + (liked && !initialLiked ? 1 : 0) - (!liked && initialLiked ? 1 : 0);
+  const repostCount = Math.max(
+    0,
+    (post?.computed_reposts_count ?? post?.reposts_count ?? 0) +
+      (hasReposted && !data?.hasReposted ? 1 : !hasReposted && data?.hasReposted ? -1 : 0),
+  );
+  const authorRole =
+    post?.profiles?.account_type === "Institution"
+      ? "Institution"
+      : post?.profiles?.account_type === "Tutor"
+        ? "Tutor"
+        : "Builder";
   const focusComposer = () => {
-    const inputElement = document.querySelector<HTMLTextAreaElement>('[data-comment-composer]');
+    const inputElement = document.querySelector<HTMLTextAreaElement>("[data-comment-composer]");
     if (inputElement) inputElement.focus();
   };
-  const actionClass = "flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-[14px] font-medium tap transition-colors hover:bg-foreground/[0.05]";
+  const actionClass =
+    "flex h-11 w-full min-w-0 items-center justify-start gap-1.5 rounded-full px-2.5 text-[14px] font-medium tap transition-colors hover:bg-foreground/[0.05]";
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-canvas md:relative md:inset-auto md:z-auto md:h-screen md:min-h-screen">
       <header className="sticky top-0 z-50 shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <button onClick={handleBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <button
+            onClick={handleBack}
+            aria-label="Back"
+            className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
           {/* A shipped build is a project, and calling its page "Post"
               made the header disagree with everything under it. */}
-          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">{post?.is_build_post ? "Project" : "Post"}</h1>
+          <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">
+            {post?.is_build_post ? "Project" : "Post"}
+          </h1>
           {post && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button aria-label="More options" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+                <button
+                  aria-label="More options"
+                  className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+                >
                   <MoreHorizontal className="h-[22px] w-[22px]" />
                 </button>
               </DropdownMenuTrigger>
@@ -804,24 +938,43 @@ function PostDetail() {
                   <LinkIcon className="h-4 w-4" />
                   <span className="font-medium text-sm">Copy link</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleBookmark}>
-                  <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                  <span className="font-medium text-sm">{isBookmarked ? 'Saved' : 'Save'}</span>
+                <DropdownMenuItem
+                  className="flex items-center gap-3 py-2.5 cursor-pointer"
+                  onClick={handleBookmark}
+                >
+                  <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
+                  <span className="font-medium text-sm">{isBookmarked ? "Saved" : "Save"}</span>
                 </DropdownMenuItem>
                 {currentUser && currentUser.id !== post.author_id && isFollowing && (
-                  <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleFollow}>
+                  <DropdownMenuItem
+                    className="flex items-center gap-3 py-2.5 cursor-pointer"
+                    onClick={handleFollow}
+                  >
                     <UserMinus className="h-4 w-4" />
-                    <span className="font-medium text-sm">Unfollow {getFirstName(post.profiles)}</span>
+                    <span className="font-medium text-sm">
+                      Unfollow {getFirstName(post.profiles)}
+                    </span>
                   </DropdownMenuItem>
                 )}
                 {isOwnPost && (
-                  <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer text-[#cc208f] focus:text-[#cc208f]" onClick={() => router.navigate({ to: "/app/boost", search: { post: post.id, tab: undefined } })}>
+                  <DropdownMenuItem
+                    className="flex items-center gap-3 py-2.5 cursor-pointer text-[#cc208f] focus:text-[#cc208f]"
+                    onClick={() =>
+                      router.navigate({
+                        to: "/app/boost",
+                        search: { post: post.id, tab: undefined },
+                      })
+                    }
+                  >
                     <Rocket className="h-4 w-4" />
                     <span className="font-medium text-sm">Boost post</span>
                   </DropdownMenuItem>
                 )}
                 {isEditable && (
-                  <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={handleEditClick}>
+                  <DropdownMenuItem
+                    className="flex items-center gap-3 py-2.5 cursor-pointer"
+                    onClick={handleEditClick}
+                  >
                     <Edit3 className="h-4 w-4" />
                     <span className="font-medium text-sm">Edit post</span>
                   </DropdownMenuItem>
@@ -855,8 +1008,16 @@ function PostDetail() {
           <div className="flex flex-col items-center justify-center py-20">
             {isError ? (
               <>
-                <p className="text-[15px] font-semibold text-foreground">This build could not be loaded.</p>
-                <button type="button" onClick={() => void queryClient.invalidateQueries({ queryKey: ['post', id] })} className="mt-4 h-9 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background">Try again</button>
+                <p className="text-[15px] font-semibold text-foreground">
+                  This build could not be loaded.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void queryClient.invalidateQueries({ queryKey: ["post", id] })}
+                  className="mt-4 h-9 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background"
+                >
+                  Try again
+                </button>
               </>
             ) : (
               <>
@@ -869,11 +1030,21 @@ function PostDetail() {
           <div className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col animate-in fade-in duration-300">
             <article className="bg-card md:mt-2 md:overflow-hidden md:rounded-xl md:border md:border-border">
               <header className="flex items-start gap-2.5 px-4 pt-3">
-                <Link to="/app/profile/$id" params={{ id: post.author_id }} className="flex min-w-0 flex-1 items-start gap-2.5">
+                <Link
+                  to="/app/profile/$id"
+                  params={{ id: post.author_id }}
+                  className="flex min-w-0 flex-1 items-start gap-2.5"
+                >
                   <div className="relative h-12 w-12 shrink-0">
                     <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground">
                       {post.profiles?.avatar_url ? (
-                        <img src={post.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                        <img
+                          src={post.profiles.avatar_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
                         initials
                       )}
@@ -882,17 +1053,27 @@ function PostDetail() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1">
-                      <h2 className="truncate text-[15px] font-semibold tracking-normal text-foreground [font-family:inherit]">{post.profiles?.full_name || post.profiles?.username}</h2>
-                      {(post.profiles?.tier === 'Premium' || post.profiles?.tier === 'Premium+') && (
-                        <BadgeCheck className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === 'Premium+' ? 'text-[#e0a800]' : 'text-accent'}`} />
+                      <h2 className="truncate text-[15px] font-semibold tracking-normal text-foreground [font-family:inherit]">
+                        {post.profiles?.full_name || post.profiles?.username}
+                      </h2>
+                      {(post.profiles?.tier === "Premium" ||
+                        post.profiles?.tier === "Premium+") && (
+                        <BadgeCheck
+                          className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === "Premium+" ? "text-[#e0a800]" : "text-accent"}`}
+                        />
                       )}
                       <AffiliationBadge profile={post.profiles} size={15} />
                     </div>
                     <p className="truncate text-[13px] leading-snug text-muted-foreground">
-                      {authorRole}{post.profiles?.username ? ` · @${post.profiles.username}` : ''}
+                      {authorRole}
+                      {post.profiles?.username ? ` · @${post.profiles.username}` : ""}
                     </p>
                     <p className="flex items-center gap-1 text-[12px] leading-snug text-muted-foreground">
-                      {new Date(post.created_at).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(post.created_at).toLocaleDateString([], {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
                       {post.is_build_post && (
                         <>
                           <span aria-hidden>·</span>
@@ -902,7 +1083,9 @@ function PostDetail() {
                       {post.bootcamps && (
                         <>
                           <span aria-hidden>·</span>
-                          <span className="truncate font-semibold text-foreground">{post.bootcamps.title}</span>
+                          <span className="truncate font-semibold text-foreground">
+                            {post.bootcamps.title}
+                          </span>
                         </>
                       )}
                     </p>
@@ -914,7 +1097,11 @@ function PostDetail() {
                     disabled={followLoading}
                     className="flex h-8 shrink-0 items-center gap-0.5 text-[14px] font-semibold text-accent tap hover:opacity-80 disabled:opacity-50"
                   >
-                    {followLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    {followLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                     Follow
                   </button>
                 )}
@@ -922,10 +1109,15 @@ function PostDetail() {
 
               <div className="px-4 pt-3">
                 <div className="whitespace-pre-wrap text-[14px] font-normal leading-[1.43] text-foreground/90">
-                  <LinkifiedText text={displayContent || ""} linkColor="text-accent hover:underline" />
-                  {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 2000 && (
-                    <span className="ml-2 text-[12px] text-muted-foreground">(edited)</span>
-                  )}
+                  <LinkifiedText
+                    text={displayContent || ""}
+                    linkColor="text-accent hover:underline"
+                  />
+                  {post.updated_at &&
+                    new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() >
+                      2000 && (
+                      <span className="ml-2 text-[12px] text-muted-foreground">(edited)</span>
+                    )}
                 </div>
                 {post.is_verified_build && (
                   <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[12px] font-semibold text-success">
@@ -935,7 +1127,9 @@ function PostDetail() {
               </div>
 
               {post.media_urls && post.media_urls.length > 0 && (
-                <div className={`mt-3 ${post.media_urls.length >= 2 ? "grid grid-cols-2 gap-0.5" : ""}`}>
+                <div
+                  className={`mt-3 ${post.media_urls.length >= 2 ? "grid grid-cols-2 gap-0.5" : ""}`}
+                >
                   {post.media_urls.slice(0, 2).map((url: string, i: number) => (
                     <div
                       key={i}
@@ -947,7 +1141,11 @@ function PostDetail() {
                           <video
                             ref={videoRef}
                             src={url}
-                            className={post.media_urls.length >= 2 ? "h-full w-full object-cover" : "block max-h-[600px] w-full object-contain"}
+                            className={
+                              post.media_urls.length >= 2
+                                ? "h-full w-full object-cover"
+                                : "block max-h-[600px] w-full object-contain"
+                            }
                             autoPlay
                             loop
                             playsInline
@@ -961,7 +1159,11 @@ function PostDetail() {
                             aria-label={isMuted ? "Unmute video" : "Mute video"}
                             className="absolute bottom-3 right-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur-md tap hover:bg-black/70"
                           >
-                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                            {isMuted ? (
+                              <VolumeX className="h-4 w-4" />
+                            ) : (
+                              <Volume2 className="h-4 w-4" />
+                            )}
                           </button>
                         </div>
                       ) : (
@@ -970,12 +1172,18 @@ function PostDetail() {
                           decoding="async"
                           src={url}
                           alt={`Post media ${i + 1}`}
-                          className={post.media_urls.length >= 2 ? "h-full w-full object-cover" : "mx-auto block max-h-[600px] w-full object-contain"}
+                          className={
+                            post.media_urls.length >= 2
+                              ? "h-full w-full object-cover"
+                              : "mx-auto block max-h-[600px] w-full object-contain"
+                          }
                         />
                       )}
                       {post.media_urls.length > 2 && i === 1 && (
                         <div className="absolute inset-0 z-10 grid place-items-center bg-black/55">
-                          <span className="text-2xl font-semibold text-white">+{post.media_urls.length - 2}</span>
+                          <span className="text-2xl font-semibold text-white">
+                            +{post.media_urls.length - 2}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -988,7 +1196,8 @@ function PostDetail() {
                 <div className="mx-4 mt-3 flex items-center gap-3 rounded-xl bg-success/10 p-3">
                   <ShieldCheck className="h-[22px] w-[22px] shrink-0 text-success" />
                   <p className="min-w-0 flex-1 text-[13px] leading-snug text-foreground">
-                    You tutor <b>{post.bootcamps?.title}</b>. Verify this ship as proof of learning — the author earns XP.
+                    You tutor <b>{post.bootcamps?.title}</b>. Verify this ship as proof of learning
+                    — the author earns XP.
                   </p>
                   <button
                     onClick={handleVerifyBuild}
@@ -1002,60 +1211,99 @@ function PostDetail() {
               )}
 
               {/* Same action row as the feed: icon and count, no labels, no divider. */}
-              <div className="mt-1 flex items-center gap-0.5 px-2 pb-2 text-muted-foreground">
-                <button onClick={handleLike} aria-pressed={liked} aria-label={liked ? 'Unlike' : 'Like'} className={`${actionClass} ${liked ? 'text-[#cc208f]' : 'hover:text-foreground'}`}>
-                  <ThumbsUp key={liked ? 'on' : 'off'} className={`h-[21px] w-[21px] ${liked ? 'zc-like-pop fill-current' : ''}`} />
-                  {likeCount > 0 && <span className="tabular-nums">{compactCount(likeCount)}</span>}
-                </button>
-                <button onClick={focusComposer} aria-label="Reply" className={`${actionClass} hover:text-foreground`}>
-                  <MessageSquare className="h-[21px] w-[21px]" />
-                  {comments.length > 0 && <span className="tabular-nums">{compactCount(comments.length)}</span>}
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      aria-label={hasReposted ? 'Reposted' : 'Repost'}
-                      className={`${actionClass} ${hasReposted ? 'text-[#1a7f4b]' : 'hover:text-foreground'}`}
-                    >
-                      <Repeat className="h-[21px] w-[21px]" />
-                      {repostCount > 0 && <span className="tabular-nums">{compactCount(repostCount)}</span>}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-48">
-                    <DropdownMenuItem className="gap-3 py-2.5 cursor-pointer" onClick={(e) => handleRepost(e)}>
-                      <Repeat className="h-4 w-4" />
-                      <span className="font-medium text-sm">{hasReposted ? 'Undo repost' : 'Repost'}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="gap-3 py-2.5 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        router.navigate({ to: '/app/compose', search: { quote: post.id } });
-                      }}
-                    >
-                      <Quote className="h-4 w-4" />
-                      <span className="font-medium text-sm">Quote</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <button onClick={handleShare} aria-label="Send" className={`${actionClass} hover:text-foreground`}>
-                  <Send className="h-[21px] w-[21px]" />
-                </button>
-                {(likeCount > 0 || comments.length > 0 || repostCount > 0) && (
-                  <span className="ml-auto flex items-center pr-2" aria-hidden>
+              <div className="mt-1 flex items-center px-1.5 pb-1.5 text-muted-foreground">
+                <div className="grid min-w-0 max-w-[352px] flex-1 grid-cols-4">
+                  <button
+                    onClick={handleLike}
+                    aria-pressed={liked}
+                    aria-label={liked ? "Unlike" : "Like"}
+                    className={`${actionClass} ${liked ? "text-[#cc208f]" : "hover:text-foreground"}`}
+                  >
+                    <ThumbsUp
+                      key={liked ? "on" : "off"}
+                      className={`h-[21px] w-[21px] ${liked ? "zc-like-pop fill-current" : ""}`}
+                    />
                     {likeCount > 0 && (
-                      <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#cc208f] text-white ring-2 ring-card"><ThumbsUp className="h-3 w-3 fill-current" /></span>
+                      <span className="tabular-nums">{compactCount(likeCount)}</span>
+                    )}
+                  </button>
+                  <button
+                    onClick={focusComposer}
+                    aria-label="Reply"
+                    className={`${actionClass} hover:text-foreground`}
+                  >
+                    <MessageSquare className="h-[21px] w-[21px]" />
+                    {comments.length > 0 && (
+                      <span className="tabular-nums">{compactCount(comments.length)}</span>
+                    )}
+                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        aria-label={hasReposted ? "Reposted" : "Repost"}
+                        className={`${actionClass} ${hasReposted ? "text-[#1a7f4b]" : "hover:text-foreground"}`}
+                      >
+                        <Repeat className="h-[21px] w-[21px]" />
+                        {repostCount > 0 && (
+                          <span className="tabular-nums">{compactCount(repostCount)}</span>
+                        )}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="w-48">
+                      <DropdownMenuItem
+                        className="gap-3 py-2.5 cursor-pointer"
+                        onClick={(e) => handleRepost(e)}
+                      >
+                        <Repeat className="h-4 w-4" />
+                        <span className="font-medium text-sm">
+                          {hasReposted ? "Undo repost" : "Repost"}
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="gap-3 py-2.5 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.navigate({ to: "/app/compose", search: { quote: post.id } });
+                        }}
+                      >
+                        <Quote className="h-4 w-4" />
+                        <span className="font-medium text-sm">Quote</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <button
+                    onClick={handleShare}
+                    aria-label="Send"
+                    className={`${actionClass} hover:text-foreground`}
+                  >
+                    <Send className="h-[21px] w-[21px]" />
+                  </button>
+                </div>
+                {(likeCount > 0 || comments.length > 0 || repostCount > 0) && (
+                  <span className="ml-auto flex shrink-0 items-center pl-2 pr-2.5" aria-hidden>
+                    {likeCount > 0 && (
+                      <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#cc208f] text-white ring-2 ring-card">
+                        <ThumbsUp className="h-3 w-3 fill-current" />
+                      </span>
                     )}
                     {comments.length > 0 && (
-                      <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-foreground text-background ring-2 ring-card ${likeCount > 0 ? '-ml-1.5' : ''}`}><MessageSquare className="h-3 w-3" /></span>
+                      <span
+                        className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-foreground text-background ring-2 ring-card ${likeCount > 0 ? "-ml-1.5" : ""}`}
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                      </span>
                     )}
                     {repostCount > 0 && (
-                      <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-[#1a7f4b] text-white ring-2 ring-card ${likeCount > 0 || comments.length > 0 ? '-ml-1.5' : ''}`}><Repeat className="h-3 w-3" /></span>
+                      <span
+                        className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-[#1a7f4b] text-white ring-2 ring-card ${likeCount > 0 || comments.length > 0 ? "-ml-1.5" : ""}`}
+                      >
+                        <Repeat className="h-3 w-3" />
+                      </span>
                     )}
                   </span>
                 )}
@@ -1064,7 +1312,10 @@ function PostDetail() {
 
             <section className="mt-2 flex-1 bg-card px-4 pb-40 pt-3 md:rounded-xl md:border md:border-border">
               <h2 className="font-display text-[16px] font-semibold text-foreground">
-                Replies{comments.length > 0 && <span className="ml-1.5 text-muted-foreground">{comments.length}</span>}
+                Replies
+                {comments.length > 0 && (
+                  <span className="ml-1.5 text-muted-foreground">{comments.length}</span>
+                )}
               </h2>
               {commentsLoading && comments.length === 0 && (
                 <div className="flex items-center justify-center gap-2 py-10 text-[13px] text-muted-foreground">
@@ -1075,7 +1326,13 @@ function PostDetail() {
               {commentsError && comments.length === 0 && (
                 <div className="py-10 text-center">
                   <p className="text-[14px] text-muted-foreground">Replies could not be loaded.</p>
-                  <button type="button" onClick={() => void refetchComments()} className="mt-3 h-8 rounded-full border border-border px-4 text-[14px] font-semibold hover:bg-foreground/[0.04]">Try again</button>
+                  <button
+                    type="button"
+                    onClick={() => void refetchComments()}
+                    className="mt-3 h-8 rounded-full border border-border px-4 text-[14px] font-semibold hover:bg-foreground/[0.04]"
+                  >
+                    Try again
+                  </button>
                 </div>
               )}
               {threadedComments.map((comment: any) => {
@@ -1089,38 +1346,69 @@ function PostDetail() {
                       className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] font-semibold text-muted-foreground ${isReply ? "h-8 w-8 text-[12px]" : "h-10 w-10 text-[13px]"}`}
                     >
                       {comment.profiles?.avatar_url ? (
-                        <img src={comment.profiles.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                        <img
+                          src={comment.profiles.avatar_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
-                        (comment.profiles?.full_name || comment.profiles?.username || 'U').substring(0, 1).toUpperCase()
+                        (comment.profiles?.full_name || comment.profiles?.username || "U")
+                          .substring(0, 1)
+                          .toUpperCase()
                       )}
                     </Link>
 
                     <div className="min-w-0 flex-1">
                       <div className="rounded-[4px_12px_12px_12px] bg-foreground/[0.05] px-3 py-2">
                         <div className="flex items-center justify-between gap-2">
-                          <Link to="/app/profile/$id" params={{ id: comment.profile_id }} className="flex min-w-0 items-center gap-1.5 hover:underline">
-                            <span className="truncate text-[14px] font-semibold text-foreground">{comment.profiles?.full_name || comment.profiles?.username}</span>
-                            {isAuthor && <span className="shrink-0 rounded bg-foreground px-1.5 text-[11px] font-semibold text-background">Author</span>}
+                          <Link
+                            to="/app/profile/$id"
+                            params={{ id: comment.profile_id }}
+                            className="flex min-w-0 items-center gap-1.5 hover:underline"
+                          >
+                            <span className="truncate text-[14px] font-semibold text-foreground">
+                              {comment.profiles?.full_name || comment.profiles?.username}
+                            </span>
+                            {isAuthor && (
+                              <span className="shrink-0 rounded bg-foreground px-1.5 text-[11px] font-semibold text-background">
+                                Author
+                              </span>
+                            )}
                           </Link>
                           <span className="shrink-0 text-[12px] text-muted-foreground">
-                            {new Date(comment.created_at).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                            {new Date(comment.created_at).toLocaleDateString([], {
+                              day: "numeric",
+                              month: "short",
+                            })}
                           </span>
                         </div>
-                        {comment.profiles?.username && <p className="text-[12px] text-muted-foreground">@{comment.profiles.username}</p>}
+                        {comment.profiles?.username && (
+                          <p className="text-[12px] text-muted-foreground">
+                            @{comment.profiles.username}
+                          </p>
+                        )}
                         {editingCommentId === comment.id ? (
                           <div className="mt-2">
                             <textarea
                               value={editCommentText}
                               onChange={(e) => setEditCommentText(e.target.value)}
                               className="min-h-[80px] w-full resize-none border-0 bg-transparent p-0 text-[14px] outline-none focus:outline-none focus:ring-0 focus:border-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-                              style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                              style={{ border: "none", outline: "none", boxShadow: "none" }}
                               autoFocus
                             />
                             <div className="mt-2 flex justify-end gap-2">
-                              <button onClick={() => setEditingCommentId(null)} className="h-8 px-3 text-[14px] font-semibold text-muted-foreground hover:text-foreground">
+                              <button
+                                onClick={() => setEditingCommentId(null)}
+                                className="h-8 px-3 text-[14px] font-semibold text-muted-foreground hover:text-foreground"
+                              >
                                 Cancel
                               </button>
-                              <button onClick={handleSaveCommentEdit} className="h-8 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background tap hover:opacity-90">
+                              <button
+                                onClick={handleSaveCommentEdit}
+                                className="h-8 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background tap hover:opacity-90"
+                              >
                                 Save
                               </button>
                             </div>
@@ -1133,8 +1421,12 @@ function PostDetail() {
                       </div>
 
                       <div className="mt-1 flex items-center gap-4 pl-3 text-[12px] font-semibold text-muted-foreground">
-                        <button onClick={() => handleLikeComment(comment)} className={comment.isLiked ? "text-accent" : "hover:text-foreground"}>
-                          {comment.isLiked ? "Liked" : "Like"}{comment.likes_count > 0 ? ` · ${comment.likes_count}` : ""}
+                        <button
+                          onClick={() => handleLikeComment(comment)}
+                          className={comment.isLiked ? "text-accent" : "hover:text-foreground"}
+                        >
+                          {comment.isLiked ? "Liked" : "Like"}
+                          {comment.likes_count > 0 ? ` · ${comment.likes_count}` : ""}
                         </button>
                         <button
                           onClick={() => {
@@ -1147,40 +1439,77 @@ function PostDetail() {
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button aria-label="Reply options" className="ml-auto grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.05] hover:text-foreground">
+                            <button
+                              aria-label="Reply options"
+                              className="ml-auto grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.05] hover:text-foreground"
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={() => {
-                              navigator.clipboard.writeText(window.location.href);
-                              toast.success("Comment link copied!");
-                            }}>
+                            <DropdownMenuItem
+                              className="flex items-center gap-3 py-2.5 cursor-pointer"
+                              onClick={() => {
+                                navigator.clipboard.writeText(window.location.href);
+                                toast.success("Comment link copied!");
+                              }}
+                            >
                               <Send className="h-4 w-4" />
                               <span className="font-medium text-sm">Send</span>
                             </DropdownMenuItem>
                             {currentUser?.id === comment.profile_id ? (
                               <>
-                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => handleStartEditComment(comment)}>
+                                <DropdownMenuItem
+                                  className="flex cursor-pointer items-center gap-3 py-2.5"
+                                  onClick={() => handleStartEditComment(comment)}
+                                >
                                   <Pencil className="h-4 w-4" />
                                   <span className="text-sm font-medium">Edit reply</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive" onClick={() => handleDeleteComment(comment)}>
+                                <DropdownMenuItem
+                                  className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive"
+                                  onClick={() => handleDeleteComment(comment)}
+                                >
                                   <Trash2 className="h-4 w-4" />
                                   <span className="text-sm font-medium">Delete reply</span>
                                 </DropdownMenuItem>
                               </>
                             ) : (
                               <>
-                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => router.navigate({ to: '/app/chat/$id', params: { id: comment.profile_id } })}>
+                                <DropdownMenuItem
+                                  className="flex cursor-pointer items-center gap-3 py-2.5"
+                                  onClick={() =>
+                                    router.navigate({
+                                      to: "/app/chat/$id",
+                                      params: { id: comment.profile_id },
+                                    })
+                                  }
+                                >
                                   <Mail className="h-4 w-4" />
-                                  <span className="text-sm font-medium">Message {getFirstName(comment.profiles)}</span>
+                                  <span className="text-sm font-medium">
+                                    Message {getFirstName(comment.profiles)}
+                                  </span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5" onClick={() => handleToggleCommentFollow(comment)}>
-                                  {currentUser?.following_ids?.includes(comment.profile_id) ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                                  <span className="text-sm font-medium">{currentUser?.following_ids?.includes(comment.profile_id) ? "Unfollow" : "Follow"} {getFirstName(comment.profiles)}</span>
+                                <DropdownMenuItem
+                                  className="flex cursor-pointer items-center gap-3 py-2.5"
+                                  onClick={() => handleToggleCommentFollow(comment)}
+                                >
+                                  {currentUser?.following_ids?.includes(comment.profile_id) ? (
+                                    <UserMinus className="h-4 w-4" />
+                                  ) : (
+                                    <UserPlus className="h-4 w-4" />
+                                  )}
+                                  <span className="text-sm font-medium">
+                                    {currentUser?.following_ids?.includes(comment.profile_id)
+                                      ? "Unfollow"
+                                      : "Follow"}{" "}
+                                    {getFirstName(comment.profiles)}
+                                  </span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive" onClick={() => toast.success("Comment reported. Thank you.")}>
+                                <DropdownMenuItem
+                                  className="flex cursor-pointer items-center gap-3 py-2.5 text-destructive focus:text-destructive"
+                                  onClick={() => toast.success("Comment reported. Thank you.")}
+                                >
                                   <Flag className="h-4 w-4" />
                                   <span className="text-sm font-medium">Report reply</span>
                                 </DropdownMenuItem>
@@ -1194,7 +1523,9 @@ function PostDetail() {
                 );
               })}
               {!commentsLoading && !commentsError && comments.length === 0 && (
-                <p className="py-10 text-center text-[14px] text-muted-foreground">No replies yet. Start the conversation.</p>
+                <p className="py-10 text-center text-[14px] text-muted-foreground">
+                  No replies yet. Start the conversation.
+                </p>
               )}
             </section>
           </div>
@@ -1224,11 +1555,11 @@ function PostDetail() {
       )}
 
       {/* Fullscreen Image Preview using shared component */}
-      <ImageLightbox 
-        mediaUrls={post?.media_urls || []} 
-        initialIndex={selectedImageIndex || 0} 
-        isOpen={selectedImageIndex !== null} 
-        onClose={() => setSelectedImageIndex(null)} 
+      <ImageLightbox
+        mediaUrls={post?.media_urls || []}
+        initialIndex={selectedImageIndex || 0}
+        isOpen={selectedImageIndex !== null}
+        onClose={() => setSelectedImageIndex(null)}
       />
     </div>
   );
@@ -1237,6 +1568,7 @@ function PostDetail() {
 /** 1,907 -> "1.9K": counts stay short beside the icons. */
 function compactCount(value: number) {
   if (value < 1000) return String(value);
-  if (value < 1_000_000) return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/, '')}K`;
-  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (value < 1_000_000)
+    return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/, "")}K`;
+  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
 }
