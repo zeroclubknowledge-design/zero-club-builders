@@ -4,7 +4,7 @@ import { Link2, Mail, MessageSquare, Share2 } from "@/components/icons/glyphs";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import { copyToClipboard } from "@/lib/share";
 import {
-  claimLinkedInReward,
+  rewardWhenSharedToLinkedIn,
   linkedInRewardFor,
   linkedInShareText,
   linkedInUrl,
@@ -148,8 +148,11 @@ function buildTargets(canNativeShare: boolean): Target[] {
           return;
         }
         // Half the post, then "Continue reading here" and the link back.
-        await openLinkedInComposer(linkedInShareText(r.linkedin, linkedInUrl(r.url)));
-        void claimLinkedInReward(r.linkedin);
+        const shared = await openLinkedInComposer(
+          linkedInShareText(r.linkedin, linkedInUrl(r.url)),
+        );
+        // ZP is paid once they've posted on LinkedIn and come back, not on the tap.
+        if (shared) rewardWhenSharedToLinkedIn(r.linkedin);
       },
     },
     {
@@ -214,7 +217,9 @@ export function ShareSheetHost() {
     if (!request) return;
     setOpen(false);
     // Let the sheet start closing before handing off to another app.
-    await new Promise((r) => setTimeout(r, target.key === "native" ? 180 : 60));
+    await new Promise((r) =>
+      setTimeout(r, target.key === "native" || target.key === "linkedin" ? 180 : 60),
+    );
     await target.onPick(request);
   };
 

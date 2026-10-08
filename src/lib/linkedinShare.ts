@@ -40,7 +40,6 @@ export function linkedInRewardFor(payload: LinkedInPayload): number {
 }
 
 const MEDIA_MARKER = "$$MEDIA$$";
-const LINKEDIN_PACKAGE = "com.linkedin.android";
 /** LinkedIn's limit is 3,000 characters. Leave room for the link. */
 const MAX_EXCERPT = 1400;
 
@@ -107,8 +106,8 @@ export function linkedInShareText(payload: LinkedInPayload, url: string): string
     : payload.kind === "product"
       ? "Found this on Zero Store."
       : payload.isShip
-      ? "A new project shipped on Zero Club."
-      : "New on Zero Club.";
+        ? "A new project shipped on Zero Club."
+        : "New on Zero Club.";
   return `${head}\n\nContinue reading here 👉 ${url}`;
 }
 
@@ -125,27 +124,86 @@ export function linkedInUrl(url: string): string {
 }
 
 /**
- * Opens LinkedIn with the post already written. On Android it goes straight
- * into the LinkedIn app's composer; without the app, or on iPhone and
- * desktop, it opens LinkedIn's share box with the same text. The text is
- * also copied, so it can be pasted if LinkedIn leaves the box empty.
+ * Hands the post to LinkedIn with the text already written.
+ *
+ * On phones it opens the phone's own share menu with the text in it; picking
+ * LinkedIn opens the LinkedIn app's post screen, filled in. A web page can't
+ * open the LinkedIn app's composer directly: Chrome blocks that kind of link
+ * and falls back to linkedin.com, which is why the website kept opening.
+ *
+ * Desktops, and phones without a share menu, get LinkedIn's share box on the
+ * web. The text is copied too, in case LinkedIn leaves the box empty.
+ *
+ * Resolves true when the share went ahead, false when it was cancelled.
  */
-export async function openLinkedInComposer(text: string) {
+export async function openLinkedInComposer(text: string): Promise<boolean> {
   try {
     await navigator.clipboard?.writeText(text);
   } catch {
     /* clipboard is a fallback only */
   }
-  const web = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  if (isAndroid) {
-    window.location.href =
-      `intent:#Intent;action=android.intent.action.SEND;type=text/plain;` +
-      `S.android.intent.extra.TEXT=${encodeURIComponent(text)};` +
-      `package=${LINKEDIN_PACKAGE};S.browser_fallback_url=${encodeURIComponent(web)};end`;
-    return;
+  const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isPhone && typeof navigator.share === "function") {
+    try {
+      // Text only: with a separate url, some apps drop the text and keep the link.
+      await navigator.share({ text });
+      return true;
+    } catch (error) {
+      // Dismissed: nothing was shared.
+      if ((error as DOMException)?.name === "AbortError") return false;
+      // Anything else (e.g. share not allowed here): fall through to the web.
+    }
   }
-  window.open(web, "_blank", "noopener,noreferrer");
+  window.open(
+    `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`,
+    "_blank",
+    "noopener,noreferrer",
+  );
+  return true;
+}
+
+/** Time in LinkedIn that counts as having written and posted. */
+const MIN_TIME_IN_LINKEDIN_MS = 8000;
+/** After this, a share that never came back earns nothing. */
+const SHARE_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Pays the ZP only once the person has actually been to LinkedIn and back.
+ *
+ * LinkedIn never tells another site whether a post went out, so tapping the
+ * button can't be the trigger. Instead: Zero Club goes to the background while
+ * LinkedIn is open, and the reward is paid when the person returns after
+ * spending long enough there to write and post. Popping in and straight back
+ * out earns nothing, with a nudge to finish posting.
+ */
+export function rewardWhenSharedToLinkedIn(payload: LinkedInPayload) {
+  if (typeof document === "undefined" || linkedInRewardFor(payload) === 0) return;
+  let leftAt: number | null = document.hidden ? Date.now() : null;
+  let nudged = false;
+  const done = () => {
+    document.removeEventListener("visibilitychange", onChange);
+    window.clearTimeout(expiry);
+  };
+  const onChange = () => {
+    if (document.hidden) {
+      leftAt = Date.now();
+      return;
+    }
+    if (leftAt === null) return;
+    const away = Date.now() - leftAt;
+    leftAt = null;
+    if (away >= MIN_TIME_IN_LINKEDIN_MS) {
+      done();
+      void claimLinkedInReward(payload);
+    } else if (!nudged) {
+      nudged = true;
+      toast("Finish your LinkedIn post to earn ZP", {
+        description: `Your ${linkedInRewardFor(payload)} ZP arrives once you've posted and come back.`,
+      });
+    }
+  };
+  document.addEventListener("visibilitychange", onChange);
+  const expiry = window.setTimeout(done, SHARE_WINDOW_MS);
 }
 
 /** Credits the sharer's ZP. Quiet when nothing is due. */
@@ -162,8 +220,8 @@ export async function claimLinkedInReward(payload: LinkedInPayload) {
       description: !payload.isOwn
         ? "Thanks for spreading good work from Zero Club."
         : payload.isShip
-        ? "Thanks for showing your shipped project to your network."
-        : "Thanks for bringing your network to Zero Club.",
+          ? "Thanks for showing your shipped project to your network."
+          : "Thanks for bringing your network to Zero Club.",
     });
   } else if (result.reason === "daily_limit") {
     toast("You've reached today's LinkedIn rewards", {
