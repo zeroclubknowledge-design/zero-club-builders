@@ -201,11 +201,14 @@ function TournamentPage() {
             <div className="mt-3 space-y-2">
               {awards.map((a) => (
                 <div key={a.place} className="flex items-center gap-3 rounded-xl bg-foreground/[0.03] p-3">
-                  <Avatar url={a.avatar_url} name={a.name} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-semibold">{a.name}</p>
-                    <p className="text-[12.5px] text-muted-foreground">{placeLabel(a.place)} · {a.score.toLocaleString()} pts</p>
-                  </div>
+                  {/* Tapping a winner opens their profile. */}
+                  <Link to="/app/profile/$id" params={{ id: a.profile_id }} aria-label={`Open ${a.name}'s profile`} className="tap flex min-w-0 flex-1 items-center gap-3 rounded-lg">
+                    <Avatar url={a.avatar_url} name={a.name} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-semibold">{a.name}</p>
+                      <p className="text-[12.5px] text-muted-foreground">{placeLabel(a.place)} · {a.score.toLocaleString()} pts</p>
+                    </div>
+                  </Link>
                   <p className="shrink-0 text-[13px] font-bold text-[#1a7f4b]">{a.amount ? money(a.amount) : a.zp ? `${a.zp.toLocaleString()} ZP` : a.label}</p>
                 </div>
               ))}
@@ -239,11 +242,14 @@ function TournamentPage() {
                     <span className={`w-7 shrink-0 text-center text-[14px] font-bold tabular-nums ${row.rank <= 3 ? "" : "text-muted-foreground"}`} style={row.rank <= 3 ? { color: row.rank === 1 ? "#e3a008" : row.rank === 2 ? "#8a94a3" : "#c26d3a" } : undefined}>
                       {row.rank === 1 ? <Crown className="mx-auto h-4 w-4" /> : row.rank}
                     </span>
-                    <Avatar url={row.avatar_url} name={row.name} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] font-semibold">{row.name}{mine ? " (you)" : ""}</p>
-                      <p className="truncate text-[12px] text-muted-foreground">{row.username ? `@${row.username} · ` : ""}{row.plays} run{row.plays === 1 ? "" : "s"}</p>
-                    </div>
+                    {/* Tapping a player's photo or name opens their profile. */}
+                    <Link to="/app/profile/$id" params={{ id: row.profile_id }} aria-label={`Open ${row.name}'s profile`} className="tap flex min-w-0 flex-1 items-center gap-3 rounded-lg">
+                      <Avatar url={row.avatar_url} name={row.name} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14px] font-semibold">{row.name}{mine ? " (you)" : ""}</p>
+                        <p className="truncate text-[12px] text-muted-foreground">{row.username ? `@${row.username} · ` : ""}{row.plays} run{row.plays === 1 ? "" : "s"}</p>
+                      </div>
+                    </Link>
                     <span className="shrink-0 text-[15px] font-bold tabular-nums">{row.best_score.toLocaleString()}</span>
                   </li>
                 );
