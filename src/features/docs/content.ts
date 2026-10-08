@@ -311,13 +311,13 @@ export const docPages: DocPage[] = [
   {
     slug: "zerohub",
     group: "Build",
-    title: "ZeroHub and shipped projects",
+    title: "Zero Proofs and shipped projects",
     summary: "Maintain projects as living work with releases, access terms, and visible progress.",
     readTime: "5 min",
     sections: [
       {
         title: "A home for shipped work",
-        paragraphs: ["ZeroHub gives a project more continuity than a single announcement. A project can retain its identity while the creator adds newer versions, release context, media, links, and updated access terms."],
+        paragraphs: ["Zero Proofs gives a project more continuity than a single announcement. A project can retain its identity while the creator adds newer versions, release context, media, links, and updated access terms."],
       },
       {
         title: "Versions",

@@ -129,12 +129,13 @@ export async function shareOrCopy(options: {
   text?: string;
   url: string;
   copiedMessage?: string;
+  linkedin?: import("@/lib/linkedinShare").LinkedInPayload;
 }): Promise<void> {
-  const { title, text, url, copiedMessage } = options;
+  const { title, text, url, copiedMessage, linkedin } = options;
   // Zero Club's own share sheet (it offers the system sheet as one option).
   if (typeof window !== "undefined") {
     const { openShareSheet } = await import("@/components/ShareSheet");
-    await openShareSheet({ title, text, url });
+    await openShareSheet({ title, text, url, linkedin });
     return;
   }
   await copyToClipboard(url, copiedMessage);

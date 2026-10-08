@@ -1,0 +1,11 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-08 via Supabase MCP
+-- (migration "linkedin_rewards_others_and_products"). Kept as a record; do not re-run.
+--
+-- LinkedIn share rewards, revised:
+--   * your own post 200 ZP, your own shipped project 500 ZP
+--   * someone else's post or project 50 ZP ('linkedin_share_other')
+--   * someone else's Zero Store product 50 ZP ('linkedin_product_share',
+--     claim_linkedin_product_share_reward(p_item)); your own product earns nothing
+--   * quote posts earn nothing
+--   * once per item per sharer; 5 rewarded LinkedIn shares in any 24 hours, all kinds combined
+--     (linkedin_reward_daily_left)

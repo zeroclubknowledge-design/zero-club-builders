@@ -695,7 +695,7 @@ function PostDetail() {
           title: 'Check out this build on Zero Club!',
           url,
           linkedin: post
-            ? { postId: post.id, body: post.content || "", isOwn: Boolean(isOwnPost), isShip: Boolean(post.is_build_post) }
+            ? { postId: post.id, body: post.content || "", isOwn: Boolean(isOwnPost), isShip: Boolean(post.is_build_post), isQuote: Boolean(post.quoted_post_id) }
             : undefined,
         });
       } catch (err) {}
@@ -705,7 +705,7 @@ function PostDetail() {
     }
   };
 
-  /* Back to wherever this was opened from — ZeroHub, a profile, the feed —
+  /* Back to wherever this was opened from — Zero Proofs, a profile, the feed —
      rather than always the feed. The feed is only the fallback for a link
      opened cold, where there genuinely is no previous page. */
   const handleBack = useGoBack("/app");

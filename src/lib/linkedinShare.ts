@@ -12,14 +12,32 @@ import { supabase } from "@/lib/supabase";
  */
 
 export type LinkedInPayload = {
+  /** A post or shipped project, or a Zero Store product. */
+  kind?: "post" | "product";
+  /** The post id, or the store item id for a product. */
   postId: string;
-  /** The post's full text, as stored. */
+  /** The full text, as stored. For a product: its name and description. */
   body: string;
-  /** The sharer wrote this post, so it can earn ZP. */
+  /** The sharer made this post or product. */
   isOwn: boolean;
-  /** A shipped project on Zero Hub. */
+  /** A shipped project on Zero Proofs. */
   isShip: boolean;
+  /** A quote post. Quote posts earn nothing. */
+  isQuote?: boolean;
 };
+
+/**
+ * ZP for sharing to LinkedIn, mirroring the server: your own post 200, your
+ * own shipped project 500, anyone else's post, project or product 50; quote
+ * posts and your own product nothing. The server decides; this only labels
+ * the share sheet.
+ */
+export function linkedInRewardFor(payload: LinkedInPayload): number {
+  if (payload.kind === "product") return payload.isOwn ? 0 : 50;
+  if (payload.isQuote) return 0;
+  if (!payload.isOwn) return 50;
+  return payload.isShip ? 500 : 200;
+}
 
 const MEDIA_MARKER = "$$MEDIA$$";
 const LINKEDIN_PACKAGE = "com.linkedin.android";
@@ -86,8 +104,10 @@ export function linkedInShareText(payload: LinkedInPayload, url: string): string
   const { excerpt, truncated } = linkedInExcerpt(payload.body);
   const head = excerpt
     ? `${excerpt}${truncated ? "…" : ""}`
-    : payload.isShip
-      ? "I just shipped a new project on Zero Club."
+    : payload.kind === "product"
+      ? "Found this on Zero Store."
+      : payload.isShip
+      ? "A new project shipped on Zero Club."
       : "New on Zero Club.";
   return `${head}\n\nContinue reading here 👉 ${url}`;
 }
@@ -128,17 +148,20 @@ export async function openLinkedInComposer(text: string) {
   window.open(web, "_blank", "noopener,noreferrer");
 }
 
-/** Credits the author's ZP for sharing their own post. Quiet when nothing is due. */
+/** Credits the sharer's ZP. Quiet when nothing is due. */
 export async function claimLinkedInReward(payload: LinkedInPayload) {
-  if (!payload.isOwn) return;
-  const { data, error } = await supabase.rpc("claim_linkedin_share_reward", {
-    p_post: payload.postId,
-  });
+  if (linkedInRewardFor(payload) === 0) return;
+  const { data, error } =
+    payload.kind === "product"
+      ? await supabase.rpc("claim_linkedin_product_share_reward", { p_item: payload.postId })
+      : await supabase.rpc("claim_linkedin_share_reward", { p_post: payload.postId });
   if (error) return;
   const result = (data || {}) as { awarded?: number; reason?: string };
   if (result.awarded && result.awarded > 0) {
     toast.success(`+${result.awarded} ZP for sharing to LinkedIn`, {
-      description: payload.isShip
+      description: !payload.isOwn
+        ? "Thanks for spreading good work from Zero Club."
+        : payload.isShip
         ? "Thanks for showing your shipped project to your network."
         : "Thanks for bringing your network to Zero Club.",
     });

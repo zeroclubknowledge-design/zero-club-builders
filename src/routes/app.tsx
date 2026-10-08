@@ -86,7 +86,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/drafts": "Drafts",
   "/app/store": "Zero Store",
   "/app/zero-ai": "Zero AI",
-  "/app/zerohub": "ZeroHub",
+  "/app/zerohub": "Zero Proofs",
   "/app/admin": "Admin Control Center",
 };
 
@@ -182,7 +182,7 @@ function SidebarContent({
     { Icon: IconWallet, label: "Wallet", to: "/app/wallet" },
     { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
     { Icon: IconStore, label: "Zero Store", to: "/app/store" },
-    { Icon: IconCompass, label: "ZeroHub", to: "/app/zerohub" },
+    { Icon: IconCompass, label: "Zero Proofs", to: "/app/zerohub" },
     { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
     { Icon: IconGames, label: "Games", to: "/app/games" },
     { Icon: IconZeroAI, label: "Zero AI", to: "/app/zero-ai" },

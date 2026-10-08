@@ -863,7 +863,7 @@ function Commerce({ snapshot, format }: { snapshot: Snapshot; format: (value: nu
         <MetricCard Icon={WalletCards} label="Wallet balances" value={format(m.wallet_balance)} detail="Member balances" tone="bg-sky-500/10 text-sky-600" />
         <MetricCard Icon={Store} label="Store listings" value={compact(m.store_items)} detail="Digital products" tone="bg-violet-500/10 text-violet-600" />
         <MetricCard Icon={CircleDollarSign} label="Gift value" value={format(m.gift_value)} detail={`${compact(m.gift_cards)} gift cards`} tone="bg-emerald-500/10 text-emerald-600" />
-        <MetricCard Icon={PackageOpen} label="Licences" value={compact(m.licences)} detail="ZeroHub ownership rights" tone="bg-amber-500/10 text-amber-600" />
+        <MetricCard Icon={PackageOpen} label="Licences" value={compact(m.licences)} detail="Zero Proofs ownership rights" tone="bg-amber-500/10 text-amber-600" />
       </div>
       <section className="mt-7 border-t border-border pt-5">
         <h2 className="text-[16px] font-semibold">Recent store inventory</h2>

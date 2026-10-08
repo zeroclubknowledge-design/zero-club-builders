@@ -24,7 +24,7 @@ export const Route = createFileRoute("/docs")({
       {
         name: "description",
         content:
-          "The complete guide to Zero Club profiles, Feed, Clubs, Bootcamps, Wallet, ZeroHub, Zero Games, Zero AI, and educator workspaces.",
+          "The complete guide to Zero Club profiles, Feed, Clubs, Bootcamps, Wallet, Zero Proofs, Zero Games, Zero AI, and educator workspaces.",
       },
     ],
   }),

@@ -136,7 +136,7 @@ function ZeroHubPage() {
           <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          <h1 className="flex-1 font-display text-[18px] font-semibold">ZeroHub</h1>
+          <h1 className="flex-1 font-display text-[18px] font-semibold">Zero Proofs</h1>
           <Link to="/app/ship" className="mr-1 inline-flex h-9 items-center gap-1 rounded-full bg-[#cc208f] px-3.5 text-[14px] font-semibold text-white hover:bg-[#b01c7b]">
             <Plus className="h-4 w-4" /> Ship
           </Link>

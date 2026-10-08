@@ -158,6 +158,15 @@ function StorePage() {
       text: `${item.name || "This product"} on Zero Store`,
       url: storeProductUrl(item.id),
       copiedMessage: "Product link copied",
+      // LinkedIn gets the product's pitch and a link to it. Sharing someone
+      // else's product earns 50 ZP.
+      linkedin: {
+        kind: "product",
+        postId: item.id,
+        body: [item.name, item.description].filter(Boolean).join("\n\n"),
+        isOwn: item.seller_id === profile?.id,
+        isShip: false,
+      },
     });
 
   const priceOf = (item: any) =>

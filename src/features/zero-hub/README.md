@@ -1,4 +1,4 @@
-# Zero Hub
+# Zero Proofs
 
 Owns builder workspaces: projects, repositories, teams, hackathons, competitions, startup hub, research, funding, and showcase.
 

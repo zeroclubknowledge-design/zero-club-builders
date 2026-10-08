@@ -411,6 +411,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             body: displayContent || "",
             isOwn: Boolean(currentUser?.id && currentUser.id === post.author_id),
             isShip: Boolean(post.is_build_post),
+            isQuote: Boolean(post.quoted_post_id),
           },
         });
       } catch (err) {

@@ -5,6 +5,7 @@ import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import { copyToClipboard } from "@/lib/share";
 import {
   claimLinkedInReward,
+  linkedInRewardFor,
   linkedInShareText,
   linkedInUrl,
   openLinkedInComposer,
@@ -242,10 +243,10 @@ export function ShareSheetHost() {
               <span className="truncate">{displayHost(request.url)}</span>
             </p>
           )}
-          {request?.linkedin?.isOwn && (
+          {request?.linkedin && linkedInRewardFor(request.linkedin) > 0 && (
             <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#0A66C2]/10 px-3 py-1 text-[12.5px] font-semibold text-[#0A66C2] dark:text-[#5aa2ec]">
               <LinkedInGlyph className="h-4 w-4" />
-              Share to LinkedIn and earn {request.linkedin.isShip ? 500 : 200} ZP
+              Share to LinkedIn and earn {linkedInRewardFor(request.linkedin)} ZP
             </p>
           )}
         </div>
