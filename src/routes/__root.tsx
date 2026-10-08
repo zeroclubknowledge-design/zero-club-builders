@@ -333,6 +333,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 import { Toaster } from "sonner";
 import { ShareSheetHost } from "@/components/ShareSheet";
+import { OpenInAppBar } from "@/components/OpenInAppBar";
 import { setupMultiAccountSync } from "@/lib/multiAccount";
 
 function RootComponent() {
@@ -418,6 +419,7 @@ function RootComponent() {
           <ClientOnlyGlobalLiveRoom />
         </div>
         <ShareSheetHost />
+        <OpenInAppBar />
         <Toaster 
           position="top-center" 
           toastOptions={{

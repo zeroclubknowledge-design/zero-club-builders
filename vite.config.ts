@@ -91,6 +91,14 @@ export default defineConfig(({ command }) => {
          */
         orientation: "any",
         scope: "/",
+        // The Android app (a Trusted Web Activity for this same site). Lets
+        // Chrome tell the page when it is installed, so links opened in the
+        // browser can hand off to the app. Not preferred: people without the
+        // app still get the normal web install.
+        related_applications: [
+          { platform: "play", id: "xyz.zeroclubs.app", url: "https://play.google.com/store/apps/details?id=xyz.zeroclubs.app" },
+        ],
+        prefer_related_applications: false,
         start_url: "/app",
         // Icons are declared at their true pixel sizes. /logo.png is 1250x1250,
         // so it was previously mis-declared as 512x512 - installers and the

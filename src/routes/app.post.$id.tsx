@@ -774,7 +774,7 @@ function PostDetail() {
     const inputElement = document.querySelector<HTMLTextAreaElement>('[data-comment-composer]');
     if (inputElement) inputElement.focus();
   };
-  const actionClass = "flex h-full flex-col items-center justify-center gap-0.5 text-[12px] font-semibold tap transition-colors hover:bg-foreground/[0.03]";
+  const actionClass = "flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-[14px] font-medium tap transition-colors hover:bg-foreground/[0.05]";
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-canvas md:relative md:inset-auto md:z-auto md:h-screen md:min-h-screen">
@@ -1001,37 +1001,15 @@ function PostDetail() {
                 </div>
               )}
 
-              {(likeCount > 0 || comments.length > 0 || repostCount > 0) && (
-                <div className="flex items-center justify-between gap-3 px-4 pt-2.5 text-[12px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    {likeCount > 0 && (
-                      <>
-                        <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-accent text-accent-foreground">
-                          <ThumbsUp className="h-2.5 w-2.5 fill-current" />
-                        </span>
-                        <span className="tabular-nums">
-                          {liked ? (likeCount > 1 ? `You and ${likeCount - 1} other${likeCount - 1 === 1 ? '' : 's'}` : 'You') : likeCount}
-                        </span>
-                      </>
-                    )}
-                  </span>
-                  <span className="tabular-nums">
-                    {[comments.length > 0 && `${comments.length} ${comments.length === 1 ? 'reply' : 'replies'}`, repostCount > 0 && `${repostCount} repost${repostCount === 1 ? '' : 's'}`]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </span>
-                </div>
-              )}
-
-              <div className="mx-4 mt-2.5 h-px bg-border" />
-              <div className="grid h-[52px] grid-cols-4 text-muted-foreground">
-                <button onClick={handleLike} aria-pressed={liked} className={`${actionClass} ${liked ? 'text-accent' : 'hover:text-foreground'}`}>
-                  <ThumbsUp className={`h-5 w-5 ${liked ? 'fill-current' : ''}`} />
-                  {liked ? 'Liked' : 'Like'}
+              {/* Same action row as the feed: icon and count, no labels, no divider. */}
+              <div className="mt-1 flex items-center gap-0.5 px-2 pb-2 text-muted-foreground">
+                <button onClick={handleLike} aria-pressed={liked} aria-label={liked ? 'Unlike' : 'Like'} className={`${actionClass} ${liked ? 'text-[#cc208f]' : 'hover:text-foreground'}`}>
+                  <ThumbsUp key={liked ? 'on' : 'off'} className={`h-[21px] w-[21px] ${liked ? 'zc-like-pop fill-current' : ''}`} />
+                  {likeCount > 0 && <span className="tabular-nums">{compactCount(likeCount)}</span>}
                 </button>
-                <button onClick={focusComposer} className={`${actionClass} hover:text-foreground`}>
-                  <MessageSquare className="h-5 w-5" />
-                  Reply
+                <button onClick={focusComposer} aria-label="Reply" className={`${actionClass} hover:text-foreground`}>
+                  <MessageSquare className="h-[21px] w-[21px]" />
+                  {comments.length > 0 && <span className="tabular-nums">{compactCount(comments.length)}</span>}
                 </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -1040,10 +1018,11 @@ function PostDetail() {
                         e.preventDefault();
                         e.stopPropagation();
                       }}
-                      className={`${actionClass} ${hasReposted ? 'text-accent' : 'hover:text-foreground'}`}
+                      aria-label={hasReposted ? 'Reposted' : 'Repost'}
+                      className={`${actionClass} ${hasReposted ? 'text-[#1a7f4b]' : 'hover:text-foreground'}`}
                     >
-                      <Repeat className="h-5 w-5" />
-                      {hasReposted ? 'Reposted' : 'Repost'}
+                      <Repeat className="h-[21px] w-[21px]" />
+                      {repostCount > 0 && <span className="tabular-nums">{compactCount(repostCount)}</span>}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="center" className="w-48">
@@ -1064,10 +1043,22 @@ function PostDetail() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <button onClick={handleShare} className={`${actionClass} hover:text-foreground`}>
-                  <Send className="h-5 w-5" />
-                  Send
+                <button onClick={handleShare} aria-label="Send" className={`${actionClass} hover:text-foreground`}>
+                  <Send className="h-[21px] w-[21px]" />
                 </button>
+                {(likeCount > 0 || comments.length > 0 || repostCount > 0) && (
+                  <span className="ml-auto flex items-center pr-2" aria-hidden>
+                    {likeCount > 0 && (
+                      <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#cc208f] text-white ring-2 ring-card"><ThumbsUp className="h-3 w-3 fill-current" /></span>
+                    )}
+                    {comments.length > 0 && (
+                      <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-foreground text-background ring-2 ring-card ${likeCount > 0 ? '-ml-1.5' : ''}`}><MessageSquare className="h-3 w-3" /></span>
+                    )}
+                    {repostCount > 0 && (
+                      <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-[#1a7f4b] text-white ring-2 ring-card ${likeCount > 0 || comments.length > 0 ? '-ml-1.5' : ''}`}><Repeat className="h-3 w-3" /></span>
+                    )}
+                  </span>
+                )}
               </div>
             </article>
 
@@ -1241,4 +1232,11 @@ function PostDetail() {
       />
     </div>
   );
+}
+
+/** 1,907 -> "1.9K": counts stay short beside the icons. */
+function compactCount(value: number) {
+  if (value < 1000) return String(value);
+  if (value < 1_000_000) return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/, '')}K`;
+  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
 }

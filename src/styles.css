@@ -1648,3 +1648,17 @@ input[type="radio"],
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* A quick pop when a post is liked. */
+@keyframes zc-like-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.32) rotate(-8deg); }
+  70% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.zc-like-pop {
+  animation: zc-like-pop 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zc-like-pop { animation: none; }
+}

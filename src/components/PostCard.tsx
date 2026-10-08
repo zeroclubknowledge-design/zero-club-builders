@@ -437,10 +437,10 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
     setLightboxIndex(index);
     setLightboxOpen(true);
   };
-  const actionClass = "flex h-full flex-col items-center justify-center gap-0.5 text-[12px] font-semibold tap transition-colors hover:bg-foreground/[0.03]";
+  const actionClass = "flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-[14px] font-medium tap transition-colors hover:bg-foreground/[0.05]";
 
   return (
-    <article className="mt-2 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+    <article className="mt-1 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
       {post.type === 'repost' && (
         <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-[12px] text-muted-foreground">
           <Repeat className="h-3.5 w-3.5" />
@@ -661,42 +661,19 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
         )}
       </Link>
 
-      {/* Who reacted, and how much conversation there is — above the actions,
-          so the buttons themselves carry no numbers. */}
-      {(likesCount > 0 || commentsCount > 0 || repostCount > 0) && (
-        <div className="flex items-center justify-between gap-3 px-4 pt-2.5 text-[12px] text-muted-foreground">
-          <span className="flex min-w-0 items-center gap-1.5">
-            {likesCount > 0 && (
-              <>
-                <span className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
-                  <ThumbsUp className="h-2.5 w-2.5 fill-current" />
-                </span>
-                <span className="truncate tabular-nums">
-                  {liked ? (likesCount > 1 ? `You and ${likesCount - 1} other${likesCount - 1 === 1 ? '' : 's'}` : 'You') : likesCount}
-                </span>
-              </>
-            )}
-          </span>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onCommentClick?.(post);
-            }}
-            className="shrink-0 tabular-nums hover:text-foreground hover:underline"
-          >
-            {[commentsCount > 0 && `${commentsCount} comment${commentsCount === 1 ? '' : 's'}`, repostCount > 0 && `${repostCount} repost${repostCount === 1 ? '' : 's'}`]
-              .filter(Boolean)
-              .join(' · ')}
-          </button>
-        </div>
-      )}
-
-      <div className="mx-4 mt-2.5 h-px bg-border" />
-      <footer className="grid h-[52px] grid-cols-4 text-muted-foreground">
-        <button onClick={handleLike} aria-pressed={liked} className={`${actionClass} ${liked ? 'text-accent' : 'hover:text-foreground'}`}>
-          <ThumbsUp className={`h-5 w-5 ${liked ? 'fill-current' : ''}`} />
-          {liked ? 'Liked' : 'Like'}
+      {/* Actions, LinkedIn-style: icon and count side by side, no labels and
+          no divider. On the right, a small stack shows at a glance what kind
+          of activity the post has: pink for likes, ink for comments, green
+          for reposts. */}
+      <footer className="flex items-center gap-0.5 px-2 pb-2 pt-1 text-muted-foreground">
+        <button
+          onClick={handleLike}
+          aria-pressed={liked}
+          aria-label={liked ? `Unlike, ${likesCount} likes` : `Like, ${likesCount} likes`}
+          className={`${actionClass} ${liked ? 'text-[#cc208f]' : 'hover:text-foreground'}`}
+        >
+          <ThumbsUp key={liked ? 'on' : 'off'} className={`h-[21px] w-[21px] ${liked ? 'zc-like-pop fill-current' : ''}`} />
+          {likesCount > 0 && <span className="tabular-nums">{compactCount(likesCount)}</span>}
         </button>
         <button
           onClick={(e) => {
@@ -704,20 +681,22 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             e.stopPropagation();
             onCommentClick?.(post);
           }}
+          aria-label={`Comment, ${commentsCount} comments`}
           className={`${actionClass} hover:text-foreground`}
         >
-          <MessageSquare className="h-5 w-5" />
-          Comment
+          <MessageSquare className="h-[21px] w-[21px]" />
+          {commentsCount > 0 && <span className="tabular-nums">{compactCount(commentsCount)}</span>}
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className={`${actionClass} ${hasReposted || hasQuoted ? 'text-accent' : 'hover:text-foreground'}`}
+              aria-label={`${hasReposted ? 'Reposted' : 'Repost'}, ${repostCount} reposts`}
+              className={`${actionClass} ${hasReposted || hasQuoted ? 'text-[#1a7f4b]' : 'hover:text-foreground'}`}
             >
-              <Repeat className="h-5 w-5" />
-              {hasReposted ? 'Reposted' : 'Repost'}
+              <Repeat className="h-[21px] w-[21px]" />
+              {repostCount > 0 && <span className="tabular-nums">{compactCount(repostCount)}</span>}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center" className="w-48 bg-popover/95 backdrop-blur-xl border-border shadow-lift">
@@ -738,10 +717,38 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <button onClick={handleShare} className={`${actionClass} hover:text-foreground`}>
-          <Send className="h-5 w-5" />
-          Send
+        <button onClick={handleShare} aria-label="Send" className={`${actionClass} hover:text-foreground`}>
+          <Send className="h-[21px] w-[21px]" />
         </button>
+
+        {(likesCount > 0 || commentsCount > 0 || repostCount > 0) && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onCommentClick?.(post);
+            }}
+            aria-label="See the conversation"
+            className="ml-auto flex items-center pr-2 tap"
+          >
+            {likesCount > 0 && (
+              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#cc208f] text-white ring-2 ring-card">
+                <ThumbsUp className="h-3 w-3 fill-current" />
+              </span>
+            )}
+            {commentsCount > 0 && (
+              <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-foreground text-background ring-2 ring-card ${likesCount > 0 ? '-ml-1.5' : ''}`}>
+                <MessageSquare className="h-3 w-3" />
+              </span>
+            )}
+            {repostCount > 0 && (
+              <span className={`grid h-[22px] w-[22px] place-items-center rounded-full bg-[#1a7f4b] text-white ring-2 ring-card ${likesCount > 0 || commentsCount > 0 ? '-ml-1.5' : ''}`}>
+                <Repeat className="h-3 w-3" />
+              </span>
+            )}
+          </button>
+        )}
       </footer>
 
       <ImageLightbox
@@ -752,6 +759,13 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
       />
     </article>
   );
+}
+
+/** 1,907 -> "1.9K": counts stay short beside the icons. */
+function compactCount(value: number) {
+  if (value < 1000) return String(value);
+  if (value < 1_000_000) return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/, '')}K`;
+  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
 }
 
 /** A card only re-renders when its own post (or the viewer) changes. */
