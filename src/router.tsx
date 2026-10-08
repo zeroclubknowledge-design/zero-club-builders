@@ -26,6 +26,8 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreload: "intent",
+    // Start fetching a page the moment a finger touches its link, not 50ms later.
+    defaultPreloadDelay: 0,
     defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
     defaultPendingMs: 300, // only for loads you would notice; no flash on quick taps
     defaultPendingMinMs: 400,

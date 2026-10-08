@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { CreateHub, openCreateSheet } from "@/features/create/CreateHub";
 import { IconZeroAI } from "@/components/icons/zeroAI";
 import {
   MoreHorizontal,
@@ -442,6 +443,20 @@ type BottomNavProps = {
 const TAB_BAR_FONT = 'var(--font-sans)';
 
 function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }: BottomNavProps) {
+  const router = useRouter();
+  // Once the app is idle, fetch the other tabs and the writing screens in the
+  // background, so the first tap on each one opens at once instead of waiting
+  // for its code to download.
+  useEffect(() => {
+    const targets = ["/app", "/app/bootcamps", "/app/clubs", "/app/notifications", "/app/compose", "/app/ship"] as const;
+    const warm = () => targets.forEach((to) => void router.preloadRoute({ to }).catch(() => {}));
+    const hasIdle = typeof window.requestIdleCallback === "function";
+    const handle = hasIdle ? window.requestIdleCallback(warm, { timeout: 4000 }) : window.setTimeout(warm, 2500);
+    return () => {
+      if (hasIdle) window.cancelIdleCallback(handle);
+      else window.clearTimeout(handle);
+    };
+  }, [router]);
   return (
     <nav
       data-zc-bottom-nav
@@ -1586,9 +1601,11 @@ function AppLayout() {
             isChat={isChat}
             isDetail={isDetail}
             unreadCount={unreadNotificationsCount}
-            onPost={() => navigate({ to: "/app", search: { create: 1 } })}
+            onPost={openCreateSheet}
           />
         )}
+        {/* The create sheet lives here so the Post tab opens it on the same tap, on any page. */}
+        <CreateHub />
         <PushPrompt userId={profile?.id} hidden={isChat || pathname.startsWith("/app/settings/notifications")} />
       </div>
       {!isWideWorkspace && (

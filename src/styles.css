@@ -1630,3 +1630,21 @@ html[data-zc-focus-flow] [data-zc-bottom-nav] {
     animation-duration: 0.01s !important;
   }
 }
+
+/* ── Instant taps ─────────────────────────────────────────────
+   Tells the phone every button and link is tap-only (no double-tap zoom to
+   wait for), so the press registers on touch, and drops the grey Android
+   tap flash in favour of each control's own pressed state. */
+a,
+button,
+summary,
+label,
+input[type="checkbox"],
+input[type="radio"],
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+[role="option"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

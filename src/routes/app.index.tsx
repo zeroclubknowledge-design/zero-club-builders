@@ -12,6 +12,7 @@ import { Rocket } from "@/components/icons/glyphs";
 import { getCachedSession } from "@/lib/auth";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
+import { openCreateSheet, openLivePicker, useLiveClubs } from "@/features/create/CreateHub";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/app/")({
@@ -312,42 +313,19 @@ function Feed() {
   const [activeTab, setActiveTab] = useState("Discover");
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [commentPost, setCommentPost] = useState<any>(null);
-  const [createOpen, setCreateOpen] = useState(false);
   const { create } = Route.useSearch();
 
   // The Post tab lands here with ?create=1. Open the sheet, then drop the
   // flag so a refresh or a back navigation does not open it again.
   useEffect(() => {
     if (!create) return;
-    setCreateOpen(true);
+    openCreateSheet();
     router.navigate({ to: "/app", search: {}, replace: true });
   }, [create]);
-  const [livePickerOpen, setLivePickerOpen] = useState(false);
 
-  const { data: liveClubs = [], isLoading: liveClubsLoading } = useQuery({
-    queryKey: ['feed_live_clubs', currentUser?.id],
-    enabled: Boolean(currentUser?.id),
-    staleTime: 1000 * 60 * 3,
-    queryFn: async () => {
-      const [ownedResult, membershipsResult] = await Promise.all([
-        supabase.from('clubs').select('*').eq('creator_id', currentUser!.id),
-        supabase.from('club_members').select('role, clubs(*)').eq('profile_id', currentUser!.id),
-      ]);
-      const clubsById = new Map<string, any>();
-      (ownedResult.data || []).forEach((club: any) => clubsById.set(club.id, { ...club, member_role: 'Administrator' }));
-      (membershipsResult.data || []).forEach((membership: any) => {
-        if (membership.clubs) clubsById.set(membership.clubs.id, { ...membership.clubs, member_role: membership.role });
-      });
-      return Array.from(clubsById.values());
-    },
-  });
-
-  const hostClubs = liveClubs.filter((club: any) => (
-    club.creator_id === currentUser?.id || ['administrator', 'admin', 'moderator'].includes((club.member_role || '').toLowerCase())
-  ));
+  const { data: liveClubs = [], isLoading: liveClubsLoading } = useLiveClubs(currentUser?.id);
 
   const openLiveRoom = (clubId: string) => {
-    setLivePickerOpen(false);
     router.navigate({ to: '/app/live/$classId', params: { classId: clubId } });
   };
 
@@ -431,7 +409,7 @@ function Feed() {
             ))}
           </div>
           <button
-            onClick={() => setCreateOpen(true)}
+            onClick={openCreateSheet}
             className="my-auto ml-4 hidden h-8 items-center gap-1.5 rounded-full bg-foreground px-4 text-[14px] font-semibold text-background tap hover:opacity-90 md:inline-flex"
           >
             <Plus className="h-4 w-4" />
@@ -480,7 +458,7 @@ function Feed() {
                         <Radio className="h-6 w-6" />
                       </div>
                     </div>
-                    <button onClick={() => setLivePickerOpen(true)} className="mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[12.5px] font-semibold text-[#12101a] shadow-[0_12px_26px_-14px_rgba(0,0,0,0.9)] transition hover:bg-white/92 active:scale-[0.98]">
+                    <button onClick={openLivePicker} className="mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[12.5px] font-semibold text-[#12101a] shadow-[0_12px_26px_-14px_rgba(0,0,0,0.9)] transition hover:bg-white/92 active:scale-[0.98]">
                       <Radio className="h-4 w-4" /> Go live now
                     </button>
                   </div>
@@ -522,7 +500,7 @@ function Feed() {
                 )}
               </div>
               <button
-                onClick={() => setCreateOpen(true)}
+                onClick={openCreateSheet}
                 className="h-11 min-w-0 flex-1 truncate rounded-full border border-foreground/20 px-4 text-left text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.03]"
               >
                 Share what you shipped
@@ -590,112 +568,6 @@ function Feed() {
         }}
       />
 
-      {/* The create sheet, opened by the Post tab, the composer strip and the
-          desktop Create button. */}
-      <Drawer open={createOpen} onOpenChange={setCreateOpen}>
-        <DrawerContent className="mx-auto max-h-[72dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] focus:ring-0">
-          {/* One shape for every option, so nothing looks like an
-              afterthought — Go live sits in the same row as the rest rather
-              than as a hand-built tile with a warning-red chip. */}
-          <div className="pb-2 pt-1">
-            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Create something</DrawerTitle>
-            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Choose a format and get straight to work.</p>
-          </div>
-
-          <div className="-mx-4 flex flex-col">
-            {[
-              {
-                to: "/app/compose",
-                Icon: PenLine,
-                label: "Post",
-                copy: "Start a conversation",
-                tint: "bg-foreground/[0.06] text-foreground",
-              },
-              {
-                to: "/app/ship",
-                Icon: Rocket,
-                label: "Ship",
-                copy: "Share proof of work",
-                tint: "bg-[#cc208f]/10 text-[#cc208f]",
-              },
-              {
-                to: "/app/notes/create",
-                Icon: NotebookPen,
-                label: "Note",
-                copy: "Write something longer",
-                tint: "bg-[#1a7f4b]/10 text-[#1a7f4b]",
-              },
-              {
-                onClick: () => { setCreateOpen(false); window.setTimeout(() => setLivePickerOpen(true), 180); },
-                Icon: Radio,
-                label: "Go live",
-                copy: "Open a community room",
-                tint: "bg-[#e0245e]/10 text-[#e0245e]",
-              },
-            ].map(({ to, onClick, Icon, label, copy, tint }) => {
-              const inner = (
-                <>
-                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${tint}`}>
-                    <Icon className="h-[22px] w-[22px]" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[16px] font-medium text-foreground">{label}</span>
-                    <span className="mt-0.5 block text-[13px] text-muted-foreground">{copy}</span>
-                  </span>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                </>
-              );
-              const className =
-                "flex w-full items-center gap-3.5 px-4 py-3 text-left transition-colors hover:bg-foreground/[0.04] active:bg-foreground/[0.06]";
-
-              return to ? (
-                <Link key={label} to={to} className={className}>{inner}</Link>
-              ) : (
-                <button key={label} type="button" onClick={onClick} className={className}>{inner}</button>
-              );
-            })}
-          </div>
-        </DrawerContent>
-      </Drawer>
-
-      <Drawer open={livePickerOpen} onOpenChange={setLivePickerOpen}>
-        <DrawerContent className="mx-auto max-h-[76dvh] w-full max-w-[520px] overflow-hidden rounded-t-lg border border-border bg-background p-0 focus:ring-0">
-          <div className="px-5 pb-3 pt-1">
-            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight">Go live</DrawerTitle>
-            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Choose the community that will host this session.</p>
-          </div>
-          <div className="max-h-[55dvh] overflow-y-auto overscroll-contain px-5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            {liveClubsLoading ? (
-              <div className="grid min-h-32 place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-            ) : hostClubs.length > 0 ? (
-              <>
-                <p className="pb-1 text-[13px] font-semibold text-muted-foreground">Clubs you host</p>
-                {hostClubs.map((club: any) => (
-                  <button key={club.id} onClick={() => openLiveRoom(club.id)} className="-mx-5 flex w-[calc(100%+2.5rem)] items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-foreground/[0.04]">
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-foreground/[0.06]">
-                      {club.banner_url ? <img src={club.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <div className="grid h-full w-full place-items-center"><Radio className="h-5 w-5 text-[#e0245e]" /></div>}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold">{club.name}</p>
-                      <p className="mt-0.5 text-[13px] text-muted-foreground">Start an instant session</p>
-                    </div>
-                    <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                  </button>
-                ))}
-              </>
-            ) : (
-              <div className="flex flex-col items-center py-8 text-center">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
-                  <Radio className="h-6 w-6" />
-                </div>
-                <h3 className="mt-4 text-[16px] font-semibold">No community to host yet</h3>
-                <p className="mx-auto mt-1 max-w-xs text-[14px] leading-relaxed text-muted-foreground">Create a club or ask an administrator to make you an admin before starting a live room.</p>
-                <Link to="/app/clubs" className="mt-5 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[15px] font-semibold text-background">Open Clubs</Link>
-              </div>
-            )}
-          </div>
-        </DrawerContent>
-      </Drawer>
       {/* The last card runs to the bottom of the screen, so the page never
           ends in a strip of bare background under the tab bar. */}
       <div aria-hidden className="min-h-24 flex-1 bg-card md:bg-transparent" />
