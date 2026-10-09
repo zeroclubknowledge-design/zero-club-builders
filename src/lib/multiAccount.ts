@@ -1,3 +1,4 @@
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { forgetPushSubscription } from "@/lib/pushSubscription";
 
@@ -147,53 +148,64 @@ export async function logoutCurrentAccount(userId: string) {
 }
 
 export function setupMultiAccountSync() {
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  /*
+   * The callback must stay synchronous. Supabase runs auth listeners while it
+   * holds its session lock; awaiting a query in here (which itself needs the
+   * session) waited on that same lock forever. Every later getSession() then
+   * queued behind it, so pages hung on "Couldn't load your account".
+   * The work is deferred to run after the lock is released.
+   */
+  supabase.auth.onAuthStateChange((event, session) => {
     if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
-      try {
-        const accounts = getSavedAccounts();
-        const existing = accounts.find(a => a.id === session.user.id);
-        
-        let username = existing?.username || "unknown";
-        let full_name = existing?.full_name || "";
-        let avatar_url = existing?.avatar_url || "";
-
-        // Only fetch if we don't have it (e.g. initial sign in or missing data)
-        if (!existing || existing.username === "unknown") {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, full_name, avatar_url')
-            .eq('id', session.user.id)
-            .maybeSingle();
-            
-          if (profile) {
-            username = profile.username || "unknown";
-            full_name = profile.full_name || "";
-            avatar_url = profile.avatar_url || "";
-          }
-        }
-
-        addOrUpdateSavedAccount({
-          id: session.user.id,
-          email: session.user.email || "",
-          username,
-          full_name,
-          avatar_url,
-          session: session
-        });
-      } catch (e) {
-        console.error("Failed to sync account profile details", e);
-        // Fallback: save at least the session so refresh tokens aren't lost!
-        const existingAccounts = getSavedAccounts();
-        const existing = existingAccounts.find(a => a.id === session.user.id);
-        addOrUpdateSavedAccount({
-          id: session.user.id,
-          email: session.user.email || "",
-          username: existing?.username || "unknown",
-          full_name: existing?.full_name || "",
-          avatar_url: existing?.avatar_url || "",
-          session: session
-        });
-      }
+      setTimeout(() => void syncSavedAccount(session), 0);
     }
   });
+}
+
+async function syncSavedAccount(session: Session) {
+  try {
+    const accounts = getSavedAccounts();
+    const existing = accounts.find(a => a.id === session.user.id);
+    
+    let username = existing?.username || "unknown";
+    let full_name = existing?.full_name || "";
+    let avatar_url = existing?.avatar_url || "";
+
+    // Only fetch if we don't have it (e.g. initial sign in or missing data)
+    if (!existing || existing.username === "unknown") {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, full_name, avatar_url')
+        .eq('id', session.user.id)
+        .maybeSingle();
+        
+      if (profile) {
+        username = profile.username || "unknown";
+        full_name = profile.full_name || "";
+        avatar_url = profile.avatar_url || "";
+      }
+    }
+
+    addOrUpdateSavedAccount({
+      id: session.user.id,
+      email: session.user.email || "",
+      username,
+      full_name,
+      avatar_url,
+      session: session
+    });
+  } catch (e) {
+    console.error("Failed to sync account profile details", e);
+    // Fallback: save at least the session so refresh tokens aren't lost!
+    const existingAccounts = getSavedAccounts();
+    const existing = existingAccounts.find(a => a.id === session.user.id);
+    addOrUpdateSavedAccount({
+      id: session.user.id,
+      email: session.user.email || "",
+      username: existing?.username || "unknown",
+      full_name: existing?.full_name || "",
+      avatar_url: existing?.avatar_url || "",
+      session: session
+    });
+  }
 }

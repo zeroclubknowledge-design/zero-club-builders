@@ -2,9 +2,8 @@ import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { addPostToPortfolio } from "@/features/portfolio/api";
+import { PortfolioMenuItem, canPutOnPortfolio } from "@/features/portfolio/PortfolioMenuItem";
 import {
-  BriefcaseBusiness,
   MoreHorizontal,
   CheckCircle2,
   Bookmark,
@@ -661,27 +660,8 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
                 <span className="font-medium text-sm">Boost post</span>
               </DropdownMenuItem>
             )}
-            {isOwnPost && post.audience !== "club" && !post.quoted_post_id && (
-              <DropdownMenuItem
-                className="flex items-center gap-3 py-2.5 cursor-pointer"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    const result = await addPostToPortfolio(currentUser.id, {
-                      id: postId,
-                      is_build_post: post.is_build_post,
-                    });
-                    toast.success(result === "added" ? "Added to your portfolio" : "Already in your portfolio", {
-                      action: { label: "Open", onClick: () => router.navigate({ to: "/app/portfolio" }) },
-                    });
-                  } catch (error: any) {
-                    toast.error(error?.message || "Could not add to portfolio");
-                  }
-                }}
-              >
-                <BriefcaseBusiness className="h-4 w-4" />
-                <span className="font-medium text-sm">Add to portfolio</span>
-              </DropdownMenuItem>
+            {currentUser?.id && canPutOnPortfolio(post, currentUser.id) && (
+              <PortfolioMenuItem postId={postId} isShip={Boolean(post.is_build_post)} currentUserId={currentUser.id} />
             )}
             {isEditable && (
               <DropdownMenuItem

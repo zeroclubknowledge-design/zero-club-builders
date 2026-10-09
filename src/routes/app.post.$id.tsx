@@ -35,6 +35,7 @@ import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-quer
 import { useUser } from "@/hooks/useUser";
 import { useFollow } from "@/hooks/useFollow";
 import { useGoBack } from "@/hooks/useGoBack";
+import { PortfolioMenuItem, canPutOnPortfolio } from "@/features/portfolio/PortfolioMenuItem";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -969,6 +970,9 @@ function PostDetail() {
                     <Rocket className="h-4 w-4" />
                     <span className="font-medium text-sm">Boost post</span>
                   </DropdownMenuItem>
+                )}
+                {currentUser?.id && canPutOnPortfolio(post, currentUser.id) && (
+                  <PortfolioMenuItem postId={id} isShip={Boolean(post.is_build_post)} currentUserId={currentUser.id} />
                 )}
                 {isEditable && (
                   <DropdownMenuItem

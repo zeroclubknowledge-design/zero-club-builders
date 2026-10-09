@@ -137,7 +137,7 @@ export function PortfolioRenderer({ data, preview, onOpenItem }: Props) {
             <dl className="relative mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.07] @lg:grid-cols-4">
               <Stat label="Projects shipped" value={stats.ships} />
               <Stat label="Tutor-verified" value={stats.verified} />
-              <Stat label="Zero Proofs" value={stats.proofs} />
+              <Stat label="Highlights" value={proofs.length} />
               <Stat label="XP earned" value={stats.xp} />
             </dl>
           )}
@@ -317,7 +317,7 @@ export function PortfolioRenderer({ data, preview, onOpenItem }: Props) {
             Built with <span className="font-semibold text-white/80">Zero Club</span>
           </a>
           <p className="text-[12px] text-white/30">
-            Projects and Zero Proofs are published on Zero Club. Experience and certificates are
+            Projects and highlights are published on Zero Club. Experience and certificates are
             self-reported.
           </p>
         </footer>

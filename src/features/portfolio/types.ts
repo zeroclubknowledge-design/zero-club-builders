@@ -20,7 +20,7 @@ export const SECTION_LABELS: Record<PortfolioSectionKey, string> = {
   skills: "Skills & tools",
   learning: "Learning",
   certificates: "Certificates",
-  proofs: "Zero Proofs",
+  proofs: "Highlights",
   contact: "Contact",
 };
 

@@ -159,7 +159,7 @@ export function SetupWizard({
         </span>
         <p className="font-display text-[20px] font-semibold">Scanning your work…</p>
         <p className="max-w-[300px] text-[14px] text-muted-foreground">
-          Reading your projects, Zero Proofs, skills and learning on Zero Club.
+          Reading your projects, posts, skills and learning on Zero Club.
         </p>
       </div>
     );
@@ -167,7 +167,7 @@ export function SetupWizard({
 
   const counts = [
     { Icon: Rocket, n: projects.length, one: "project", many: "projects" },
-    { Icon: Zap, n: proofs.length, one: "Zero Proof", many: "Zero Proofs" },
+    { Icon: Zap, n: proofs.length, one: "post", many: "posts" },
     { Icon: Tag, n: tools.length, one: "tool", many: "tools" },
     { Icon: BriefcaseBusiness, n: experiences.length, one: "role", many: "roles" },
     { Icon: Award, n: certificates.length, one: "certificate", many: "certificates" },
@@ -249,7 +249,7 @@ export function SetupWizard({
 
       {proofs.length > 0 && (
         <>
-          <SectionTitle title="Zero Proofs" hint="Posts that show your work in progress." />
+          <SectionTitle title="Highlights" hint="Posts worth showing off. You can also highlight any post from its menu on Zero Club." />
           <div className="space-y-2.5">
             {visibleProofs.map((rec) => (
               <PickRow

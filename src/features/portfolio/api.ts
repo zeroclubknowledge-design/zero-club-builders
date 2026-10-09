@@ -181,3 +181,27 @@ export async function fetchMyPortfolioStats(): Promise<{
   if (error) throw error;
   return (data || { total: 0, last_30_days: 0, last_7_days: 0 }) as any;
 }
+
+/** Ids of the posts already on the person's portfolio (projects and highlights). */
+export async function fetchMyPortfolioPostIds(profileId: string): Promise<string[]> {
+  const portfolio = await fetchMyPortfolio(profileId);
+  if (!portfolio) return [];
+  const { data, error } = await supabase
+    .from("portfolio_items" as any)
+    .select("post_id")
+    .eq("portfolio_id", portfolio.id);
+  if (error) throw error;
+  return ((data || []) as unknown as { post_id: string }[]).map((row) => row.post_id);
+}
+
+/** Takes a post off the portfolio. RLS only lets the owner do this. */
+export async function removePostFromPortfolio(profileId: string, postId: string) {
+  const portfolio = await fetchMyPortfolio(profileId);
+  if (!portfolio) return;
+  const { error } = await supabase
+    .from("portfolio_items" as any)
+    .delete()
+    .eq("portfolio_id", portfolio.id)
+    .eq("post_id", postId);
+  if (error) throw error;
+}

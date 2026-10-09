@@ -135,7 +135,7 @@ export function describePost(post: Pick<PortfolioPost, "content" | "is_build_pos
     title:
       firstSentence.length > 70
         ? `${firstSentence.slice(0, 67).trimEnd()}…`
-        : firstSentence || "Zero Proof",
+        : firstSentence || "Highlight",
     summary: plain,
     ship: null,
   };

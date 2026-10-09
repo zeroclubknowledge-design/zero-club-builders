@@ -17,13 +17,13 @@ import {
   Plus,
   Rocket,
   Share2,
-  Sparkles,
   Star,
   Trash2,
   X,
   Zap,
 } from "@/components/icons/glyphs";
 import { Switch } from "@/components/ui/switch";
+import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import {
   Drawer,
   DrawerContent,
@@ -77,6 +77,8 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [publishOpen, setPublishOpen] = useState(false);
   const [liveOpen, setLiveOpen] = useState(false);
+  // True right after publishing; false when opened from the Share button.
+  const [justPublished, setJustPublished] = useState(false);
   const [addKind, setAddKind] = useState<"project" | "proof" | null>(null);
   const [publishing, setPublishing] = useState(false);
 
@@ -262,6 +264,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
       void queryClient.invalidateQueries({ queryKey: ["my_portfolio"] });
       if (status === "published") {
         setPublishOpen(false);
+        setJustPublished(true);
         setLiveOpen(true);
       } else toast.success("Your portfolio is offline. Only you can see it now.");
     } catch (error: any) {
@@ -333,7 +336,10 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           {isLive ? (
             <button
               type="button"
-              onClick={() => setLiveOpen(true)}
+              onClick={() => {
+                setJustPublished(false);
+                setLiveOpen(true);
+              }}
               className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-[13.5px] font-semibold"
             >
               <Share2 className="h-4 w-4" /> Share
@@ -471,7 +477,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           </Card>
 
           <Card
-            title="Zero Proofs"
+            title="Highlights"
             action={
               <button type="button" onClick={() => setAddKind("proof")} className={chip}>
                 <Plus className="h-4 w-4" /> Add
@@ -479,7 +485,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
             }
           >
             {proofs.length === 0 ? (
-              <EmptyLine>Posts that show your work in progress. Optional.</EmptyLine>
+              <EmptyLine>Posts you highlight show here. Tap Add, or open the ⋯ menu on any of your posts and choose Highlight.</EmptyLine>
             ) : (
               <ul className="space-y-2">
                 {proofs.map((item, index) => (
@@ -605,7 +611,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           <Card title="Settings">
             <ToggleRow
               label="Show my numbers"
-              hint="Projects shipped, verified, Zero Proofs and XP"
+              hint="Projects shipped, verified, highlights and XP"
               checked={draft.portfolio.show_stats}
               onChange={(show_stats) => patchPortfolio({ show_stats })}
             />
@@ -669,21 +675,59 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
       </Drawer>
 
       <Drawer open={liveOpen} onOpenChange={setLiveOpen}>
-        <DrawerContent className="mx-auto max-w-[520px]">
-          <DrawerHeader className="items-center text-center">
-            <span className="mb-2 grid h-14 w-14 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-500">
-              <Sparkles className="h-7 w-7" />
+        <DrawerContent
+          hideClose
+          className="zc-share-sheet mx-auto max-w-[520px] overflow-hidden rounded-t-[22px] border-border/40 bg-card pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+        >
+          {/* The Zero Club mark, large and faint, as on every share sheet. */}
+          <svg
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+            className="zc-share-mark pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-[#cc208f]"
+          >
+            <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
+          </svg>
+
+          <div className="relative flex flex-col items-center px-5 pt-2 text-center">
+            {/* The owner's photo in their accent ring, with the Zero Club mark. */}
+            <span className="relative">
+              <span
+                className="grid h-[84px] w-[84px] place-items-center rounded-full p-[3px]"
+                style={{
+                  background: `linear-gradient(145deg, ${ACCENT_HEX[draft.portfolio.accent] || "#cc208f"} 0%, #cc208f 100%)`,
+                }}
+              >
+                {draft.profile.avatar_url ? (
+                  <img
+                    src={draft.profile.avatar_url}
+                    alt=""
+                    className="h-full w-full rounded-full border-[3px] border-card object-cover"
+                  />
+                ) : (
+                  <span className="grid h-full w-full place-items-center rounded-full border-[3px] border-card bg-foreground/[0.06] text-[28px] font-semibold">
+                    {(draft.profile.full_name || username).charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-7 w-7 place-items-center rounded-full border-2 border-card bg-[#cc208f]">
+                <svg viewBox="0 0 100 100" className="h-4 w-4 text-white" aria-hidden="true">
+                  <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
+                </svg>
+              </span>
             </span>
-            <DrawerTitle>Your portfolio is live</DrawerTitle>
-            <DrawerDescription>
+            <DrawerTitle className="mt-3.5 text-[18px] font-semibold tracking-[-0.01em] text-foreground">
+              {justPublished ? "Your portfolio is live" : "Share your portfolio"}
+            </DrawerTitle>
+            <DrawerDescription className="mt-1 text-[13.5px] text-muted-foreground">
               Put it in your bio, your CV and your applications.
             </DrawerDescription>
-          </DrawerHeader>
-          <div className="space-y-2 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+          </div>
+
+          <div className="relative mt-5 space-y-2 px-4">
             <button
               type="button"
               onClick={copyLink}
-              className="flex h-12 w-full items-center gap-2 rounded-2xl border border-border bg-foreground/[0.03] px-4 text-left"
+              className="flex h-12 w-full items-center gap-2 rounded-2xl border border-border bg-background/70 px-4 text-left backdrop-blur-sm"
             >
               <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
               <span className="flex-1 truncate text-[14.5px] font-semibold">
@@ -696,14 +740,14 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                 href={`/@${username}`}
                 target="_blank"
                 rel="noopener"
-                className="flex h-12 items-center justify-center gap-2 rounded-full border border-border text-[14.5px] font-semibold"
+                className="flex h-12 items-center justify-center gap-2 rounded-full border border-border bg-background/70 text-[14.5px] font-semibold"
               >
                 <Eye className="h-4 w-4" /> View
               </a>
               <button
                 type="button"
                 onClick={share}
-                className="flex h-12 items-center justify-center gap-2 rounded-full bg-foreground text-[14.5px] font-semibold text-background"
+                className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[14.5px] font-semibold text-white"
               >
                 <Share2 className="h-4 w-4" /> Share
               </button>
@@ -715,6 +759,13 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
             >
               Keep editing
             </button>
+          </div>
+
+          <div className="relative mx-5 mt-1 flex items-center justify-center gap-1.5 text-[11px] font-medium text-muted-foreground/80">
+            <svg viewBox="0 0 100 100" className="h-3 w-3 text-[#cc208f]" aria-hidden="true">
+              <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
+            </svg>
+            Built with Zero Club
           </div>
         </DrawerContent>
       </Drawer>
@@ -1127,7 +1178,7 @@ function AddDrawer({
     <Drawer open={Boolean(kind)} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent className="mx-auto max-h-[85vh] max-w-[560px]">
         <DrawerHeader className="text-left">
-          <DrawerTitle>{kind === "project" ? "Add projects" : "Add Zero Proofs"}</DrawerTitle>
+          <DrawerTitle>{kind === "project" ? "Add projects" : "Add highlights"}</DrawerTitle>
           <DrawerDescription>
             Only things you've shared with everyone can go on your portfolio.
           </DrawerDescription>
