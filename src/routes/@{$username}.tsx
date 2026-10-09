@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Pencil } from "@/components/icons/glyphs";
 import { PortfolioRenderer } from "@/features/portfolio/PortfolioRenderer";
 import { fetchPublicPortfolio, recordPortfolioView } from "@/features/portfolio/api";
-import { clip, postImages } from "@/features/portfolio/parse";
+import { clip } from "@/features/portfolio/parse";
 import { portfolioUrl, type PortfolioLookup } from "@/features/portfolio/types";
 
 /**
@@ -31,14 +31,15 @@ export const Route = createFileRoute("/@{$username}")({
         ],
       };
     }
-    const { profile, portfolio, items } = loaderData;
+    const { profile, portfolio } = loaderData;
     const name = profile.full_name || profile.username;
     const title = `${name} — Portfolio`;
     const description =
       clip(portfolio.headline || portfolio.about || profile.bio || "", 200) ||
       `${name}'s projects and proof of work on Zero Club.`;
-    const cover = items.map((item) => postImages(item.post)[0]).find(Boolean);
-    const image = cover || profile.avatar_url || "https://www.zeroclubs.xyz/api/og-default";
+    // The branded portfolio card (photo, name, headline), drawn by lib/og.
+    // Versioned so crawlers that cached the old project screenshot refetch.
+    const image = `https://www.zeroclubs.xyz/api/og/portfolio/${encodeURIComponent(profile.username)}?v=2`;
     const url = portfolioUrl(params.username);
     const meta: Array<Record<string, string>> = [
       { title },
@@ -49,8 +50,12 @@ export const Route = createFileRoute("/@{$username}")({
       { property: "og:url", content: url },
       { property: "og:site_name", content: "Zero Club" },
       { property: "og:image", content: image },
+      { property: "og:image:secure_url", content: image },
+      { property: "og:image:type", content: "image/png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: title },
-      { name: "twitter:card", content: cover ? "summary_large_image" : "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
       { name: "twitter:image", content: image },

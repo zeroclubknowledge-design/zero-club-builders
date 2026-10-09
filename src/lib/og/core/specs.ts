@@ -125,6 +125,44 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
       };
     }
 
+    case "portfolio": {
+      // Only published portfolios come back to an anonymous caller.
+      const data = await rpc("get_public_portfolio", { p_username: id });
+      if (!data?.found) return DEFAULT_SPEC;
+      const profile = data.profile || {};
+      const portfolio = data.portfolio || {};
+      const stats = data.stats || {};
+      const name = profile.full_name || profile.username || "A builder";
+      const accents: Record<string, [string, string]> = {
+        pink: ["#e0329f", "#7a1e66"],
+        violet: ["#8b5cf6", "#3b1f7a"],
+        emerald: ["#10b981", "#065f46"],
+        amber: ["#f59e0b", "#7c2d12"],
+        sky: ["#38bdf8", "#1e3a8a"],
+        mono: ["#cc208f", "#7a1e66"],
+      };
+      const [accent, accent2] = accents[portfolio.accent] || accents.pink;
+      const ships = Number(stats.ships) || 0;
+      const verified = Number(stats.verified) || 0;
+      return {
+        variant: "portfolio",
+        kicker: "Portfolio",
+        title: name,
+        subtitle: plain(portfolio.headline) || plain(profile.bio) || "Projects and proof of work, built on Zero Club.",
+        chips: [
+          ships ? plural(ships, "project") + " shipped" : null,
+          verified ? `${verified} tutor-verified` : null,
+          profile.username ? `@${profile.username}` : null,
+        ],
+        cta: "View portfolio",
+        image: profile.avatar_url,
+        imageShape: "circle",
+        monogram: initial(name),
+        accent,
+        accent2,
+      };
+    }
+
     case "note": {
       const note = await one("notes", "title,cover_url,blocks,profiles(full_name,username,avatar_url)", {
         [isUuid(id) ? "id" : "slug"]: `eq.${id}`,

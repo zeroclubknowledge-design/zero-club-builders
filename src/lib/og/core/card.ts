@@ -36,6 +36,8 @@ export type PreviewSpec = {
   /** Brand light colours. Defaults to Zero Club pink. */
   accent?: string;
   accent2?: string;
+  /** "portfolio" adds a drafting-grid backdrop and a ringed portrait. */
+  variant?: "default" | "portfolio";
 };
 
 const W = 1200;
@@ -137,6 +139,18 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
     box({ position: "absolute", bottom: "-380px", right: "-260px", width: "980px", height: "860px", background: `radial-gradient(circle at 50% 50%, ${accent2}66 0%, transparent 64%)` }),
     // A fine frame, like a card held in the light.
     box({ position: "absolute", top: "24px", left: "24px", right: "24px", bottom: "24px", borderRadius: "36px", border: "1px solid rgba(255,255,255,0.09)", background: "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.01) 100%)" }),
+    // Portfolio: a faint drafting grid, so a portfolio link reads as a
+    // personal site rather than another app screen.
+    ...(spec.variant === "portfolio"
+      ? [
+          ...Array.from({ length: 11 }, (_, i) =>
+            box({ position: "absolute", top: "0px", bottom: "0px", left: `${(i + 1) * 100}px`, width: "1px", background: "rgba(255,255,255,0.035)" }),
+          ),
+          ...Array.from({ length: 6 }, (_, i) =>
+            box({ position: "absolute", left: "0px", right: "0px", top: `${(i + 1) * 90}px`, height: "1px", background: "rgba(255,255,255,0.035)" }),
+          ),
+        ]
+      : []),
     // Watermark mark, barely there.
     h("img", { src: ZERO_CLUB_MARK, width: 520, height: 520, style: { position: "absolute", right: "-150px", top: "-120px", opacity: 0.05 } }),
 
@@ -189,7 +203,12 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
           { position: "relative", width: "340px", height: "340px", alignItems: "center", justifyContent: "center" },
           box({ position: "absolute", top: "-30px", left: "-30px", width: "400px", height: "400px", borderRadius: "999px", background: `radial-gradient(circle, ${accent}66 0%, transparent 66%)` }),
           visual
-            ? h("img", { src: visual, width: circle ? 300 : 330, height: circle ? 300 : 330, style: { borderRadius: circle ? "999px" : "40px", objectFit: "cover", border: "2px solid rgba(255,255,255,0.18)" } })
+            ? spec.variant === "portfolio"
+              ? box(
+                  { width: "320px", height: "320px", borderRadius: "999px", alignItems: "center", justifyContent: "center", background: `linear-gradient(145deg, ${accent} 0%, ${accent2} 100%)` },
+                  h("img", { src: visual, width: 300, height: 300, style: { borderRadius: "999px", objectFit: "cover", border: "6px solid #0a0609" } }),
+                )
+              : h("img", { src: visual, width: circle ? 300 : 330, height: circle ? 300 : 330, style: { borderRadius: circle ? "999px" : "40px", objectFit: "cover", border: "2px solid rgba(255,255,255,0.18)" } })
             : box(
                 { width: "300px", height: "300px", borderRadius: circle ? "999px" : "48px", alignItems: "center", justifyContent: "center", background: `linear-gradient(145deg, ${accent} 0%, ${accent2} 100%)`, border: "2px solid rgba(255,255,255,0.18)", fontSize: "140px", fontWeight: 800 },
                 monogram ? monogram : h("img", { src: ZERO_CLUB_MARK, width: 150, height: 150 }),

@@ -5,7 +5,7 @@ import { previewResponse } from "@/lib/og/core/respond";
  * Every link preview in Zero Club, drawn by one design system.
  *
  *   /api/og/<kind>/<id>     kind: default | club | live | game | post |
- *                                 profile | note | product | form | fund | gift
+ *                                 profile | portfolio | note | product | form | fund | gift
  *
  * lib/og/core/specs gathers each kind's facts; lib/og/core/card draws the card.
  * In production vercel.json sends these URLs to the edge function api/og.ts.
