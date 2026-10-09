@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import {
@@ -71,9 +71,9 @@ export function MessageActionsSheet({
     media.length === 0 &&
     Date.now() - new Date(message.created_at).getTime() < 30 * 60 * 1000;
   const run = (fn: () => void) => () => {
+    // Clipboard and downloads must run inside the original click gesture.
+    fn();
     onOpenChange(false);
-    // Let the sheet start closing before the next thing opens.
-    window.setTimeout(fn, 120);
   };
 
   const rows: {
@@ -138,8 +138,9 @@ export function MessageActionsSheet({
   ];
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto w-full max-w-[520px] border-border bg-background px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+    // Content clicks must not become drag-dismiss gestures in centered dialogs.
+    <Drawer handleOnly open={open} onOpenChange={onOpenChange}>
+      <DrawerContent data-zc-message-actions="menu" overlayClassName="z-[200]" className="z-[210] mx-auto max-h-[90dvh] w-full max-w-[520px] overflow-y-auto border-border bg-background px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <DrawerTitle className="sr-only">Message options</DrawerTitle>
         {/* Quick reactions first, like every chat app. */}
         <div className="flex items-center justify-between rounded-full bg-foreground/[0.05] px-2 py-1.5">
@@ -202,7 +203,9 @@ export function ForwardSheet({
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
-  const { data: conversations = [], isLoading } = useQuery({
+  const queryClient = useQueryClient();
+  useEffect(() => { setQuery(""); setPicked([]); }, [message]);
+  const { data: conversations = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["conversations"],
     queryFn: getConversations,
     enabled: Boolean(message),
@@ -228,11 +231,21 @@ export function ForwardSheet({
     if (!message || picked.length === 0) return;
     setSending(true);
     try {
-      await Promise.all(
+      const results = await Promise.allSettled(
         picked.map((receiverId) =>
           sendMessageAction({ receiverId, content: message.content, forwarded: true }),
         ),
       );
+      const failed = picked.filter((_, index) => results[index].status === "rejected");
+      const succeeded = picked.length - failed.length;
+      picked.forEach((id, index) => { if (results[index].status === "fulfilled") void queryClient.invalidateQueries({ queryKey: ["messages", id] }); });
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      if (failed.length) {
+        // Retry only unsuccessful recipients; don't duplicate successful sends.
+        setPicked(failed);
+        toast.error(succeeded ? `Forwarded to ${succeeded} chats. Retry the ${failed.length} remaining.` : "Could not forward. Please try again.");
+        return;
+      }
       toast.success(
         picked.length === 1 ? "Message forwarded" : `Forwarded to ${picked.length} chats`,
       );
@@ -246,14 +259,15 @@ export function ForwardSheet({
   };
 
   return (
-    <Drawer open={Boolean(message)} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="mx-auto flex max-h-[85dvh] w-full max-w-[520px] flex-col border-border bg-background">
+    <Drawer handleOnly open={Boolean(message)} dismissible={!sending} onOpenChange={(open) => !open && !sending && onClose()}>
+      <DrawerContent data-zc-message-actions="forward" hideClose={sending} overlayClassName="z-[200]" className="z-[210] mx-auto flex max-h-[85dvh] w-full max-w-[520px] flex-col border-border bg-background">
         <div className="px-4 pb-2 pt-1">
           <DrawerTitle className="font-display text-[19px] font-semibold">Forward to…</DrawerTitle>
           <label className="mt-3 flex h-10 items-center gap-2 rounded-full bg-foreground/[0.05] px-3.5">
             <Search className="h-[18px] w-[18px] text-muted-foreground" />
             <input
               value={query}
+              disabled={sending}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search chats"
               className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
@@ -265,6 +279,8 @@ export function ForwardSheet({
             <div className="grid min-h-24 place-items-center">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
+          ) : isError ? (
+            <div role="alert" className="px-3 py-8 text-center text-sm">Couldn't load chats. <button type="button" onClick={() => void refetch()} className="font-semibold text-[#cc208f] underline">Try again</button></div>
           ) : list.length === 0 ? (
             <p className="px-3 py-8 text-center text-[14px] text-muted-foreground">
               No chats to forward to yet.
@@ -279,6 +295,8 @@ export function ForwardSheet({
                 <button
                   key={c.user!.id}
                   type="button"
+                  disabled={sending}
+                  aria-pressed={on}
                   onClick={() => toggle(c.user!.id)}
                   className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left hover:bg-foreground/[0.04]"
                 >

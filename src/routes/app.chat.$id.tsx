@@ -99,6 +99,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
       longPressTimer.current = null;
     }
   };
+  useEffect(() => () => cancelLongPress(), []);
 
   const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
     if (!('touches' in e) && e.button !== 0) return;
@@ -206,7 +207,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
     <>
     <div 
       id={`message-${m.id}`}
-      className={`group/row relative flex w-full select-none md:select-text transition-colors duration-500 ${groupStart ? 'mt-2.5' : 'mt-[3px]'} ${isMe ?'justify-end' : 'justify-start'}`}
+      className={`group/row relative flex w-full select-none [@media(hover:hover)_and_(pointer:fine)]:select-text transition-colors duration-500 ${groupStart ? 'mt-2.5' : 'mt-[3px]'} ${isMe ?'justify-end' : 'justify-start'}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -214,7 +215,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
       onMouseMove={handleTouchMove}
       onMouseUp={handleTouchEnd}
       onMouseLeave={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
+      onTouchCancel={() => { cancelLongPress(); isSwiping.current = false; setSwipeOffset(0); }}
       // Android's own long-press and a desktop right-click both open the menu.
       onContextMenu={(event) => {
         if ((event.target as HTMLElement).closest('a, video, audio, input, textarea')) return;
@@ -440,7 +441,10 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                   type="button"
                   onClick={(event) => { event.stopPropagation(); setActionsOpen(true); }}
                   aria-label="Message options"
-                  className={`absolute top-1/2 hidden h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm ring-1 ring-border transition-opacity hover:text-foreground group-hover/row:opacity-100 focus-visible:opacity-100 md:grid ${isMe ? '-left-10' : '-right-10'}`}
+                  title="Message options"
+                  aria-haspopup="dialog"
+                  aria-expanded={actionsOpen}
+                  className={`absolute top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card text-muted-foreground shadow-sm ring-1 ring-border transition-opacity hover:text-foreground [@media(hover:hover)_and_(pointer:fine)]:opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 ${isMe ? '-left-9' : '-right-9'}`}
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
@@ -573,17 +577,22 @@ function ChatViewPage() {
     queryKey: ["message-highlights", currentUserProfile?.id],
     enabled: Boolean(currentUserProfile?.id),
     queryFn: async () => {
-      const { data } = await supabase.from("message_highlights").select("message_id");
+      const { data, error } = await supabase.from("message_highlights").select("message_id").eq("profile_id", currentUserProfile!.id);
+      if (error) throw error;
       return new Set<string>((data || []).map((row: { message_id: string }) => row.message_id));
     },
   });
   const toggleHighlight = async (message: any) => {
     if (!currentUserProfile?.id || String(message.id).startsWith("pending-")) return;
     const on = highlightIds.has(message.id);
+    const key = ["message-highlights", currentUserProfile.id];
+    const next = new Set(highlightIds);
+    if (on) next.delete(message.id); else next.add(message.id);
+    queryClient.setQueryData(key, next);
     const { error } = on
       ? await supabase.from("message_highlights").delete().eq("message_id", message.id).eq("profile_id", currentUserProfile.id)
       : await supabase.from("message_highlights").insert({ message_id: message.id, profile_id: currentUserProfile.id });
-    if (error) return toast.error("Could not update the highlight");
+    if (error) { queryClient.setQueryData(key, highlightIds); return toast.error("Could not save the highlight. Please try again."); }
     toast.success(on ? "Highlight removed" : "Message highlighted");
     void refetchHighlights();
   };

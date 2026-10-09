@@ -2,6 +2,8 @@ import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-r
 import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { ForwardSheet, MessageActionsSheet } from "@/features/chat/MessageActions";
+import { useClubHighlights } from "@/features/chat/useClubHighlights";
 import { useOnlineSet } from "@/lib/realtime/presence";
 import { typingLabel, useTyping } from "@/lib/realtime/typing";
 import { contentPreview } from "@/lib/contentPreview";
@@ -36,6 +38,8 @@ import {
   Camera,
   X,
   Reply,
+  MoreHorizontal,
+  Star,
   Check,
   UserX,
   Copy,
@@ -5027,6 +5031,11 @@ function MessageBubble({
   onReplyText,
 }: any) {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [forwarding, setForwarding] = useState<{ content: string } | null>(null);
+  const highlights = useClubHighlights(currentUser?.id);
+  const highlighted = highlights.ids.has(message.id);
+  const actionMessage = { ...message, content: String(message.content || "").startsWith("::ZEROCLUB_") ? contentPreview(message.content) : message.content };
   const canEdit = Boolean(
     isMe && onEdit && !message.pending && !String(message.content || "").startsWith("::ZEROCLUB_"),
   );
@@ -5178,9 +5187,13 @@ function MessageBubble({
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const startLongPress = () => {
+    cancelLongPress();
     longPressTimer.current = setTimeout(() => {
+      longPressTimer.current = null;
       if (isSwiping.current) {
-        setShowEmojiPicker(true);
+        isSwiping.current = false;
+        setSwipeOffset(0);
+        setActionsOpen(true);
         if (window.navigator.vibrate) window.navigator.vibrate(50);
       }
     }, 400);
@@ -5194,6 +5207,8 @@ function MessageBubble({
   };
 
   const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!("touches" in e) && e.button !== 0) return;
+    if ((e.target as HTMLElement).closest('button, a, input, textarea, audio, video, [role="slider"]')) return;
     if ("touches" in e) {
       startX.current = e.touches[0].clientX;
       startY.current = e.touches[0].clientY;
@@ -5257,10 +5272,13 @@ function MessageBubble({
     isSwiping.current = false;
   };
 
+  useEffect(() => () => cancelLongPress(), []);
   return (
+    <>
     <div
       id={`message-${message.id}`}
-      className={`group/msg relative py-1.5 flex w-full transition-colors duration-500 ${isMe ? "justify-end" : "justify-start"}`}
+      className={`group/msg relative py-1.5 flex w-full select-none [@media(hover:hover)_and_(pointer:fine)]:select-text transition-colors duration-500 ${isMe ? "justify-end" : "justify-start"}`}
+      style={{ WebkitTouchCallout: "none" }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -5268,6 +5286,11 @@ function MessageBubble({
       onMouseMove={handleTouchMove}
       onMouseUp={handleTouchEnd}
       onMouseLeave={handleTouchEnd}
+      onTouchCancel={() => { cancelLongPress(); isSwiping.current = false; setSwipeOffset(0); }}
+      onContextMenu={(event) => {
+        if ((event.target as HTMLElement).closest('a, video, audio, input, textarea')) return;
+        event.preventDefault(); cancelLongPress(); isSwiping.current = false; setSwipeOffset(0); setActionsOpen(true);
+      }}
     >
       {/* Swipe reply icon for received */}
       {!isMe && (
@@ -5331,53 +5354,10 @@ function MessageBubble({
           </button>
         )}
 
-        {/* Computer: hover a message to reply or react (phones swipe instead). */}
-        <div
-          className={`order-last hidden shrink-0 items-center gap-1 self-center opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover/msg:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:flex ${isMe ? "mr-1" : "ml-1"}`}
-        >
-          <button
-            type="button"
-            title="Reply"
-            aria-label="Reply to this message"
-            onMouseDown={(event) => event.stopPropagation()}
-            onClick={() => {
-              onReply(message);
-              requestAnimationFrame(() =>
-                (
-                  document.querySelector("[data-club-composer]") as HTMLTextAreaElement | null
-                )?.focus(),
-              );
-            }}
-            className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition hover:border-[#cc208f]/40 hover:text-[#cc208f]"
-          >
-            <Reply className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            title="React"
-            aria-label="React to this message"
-            onMouseDown={(event) => event.stopPropagation()}
-            onClick={() => setShowEmojiPicker((open) => !open)}
-            className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition hover:border-[#cc208f]/40 hover:text-[#cc208f]"
-          >
-            <Smile className="h-4 w-4" />
-          </button>
-          {canEdit && !editing && (
-            <button
-              type="button"
-              title="Edit"
-              aria-label="Edit your message"
-              onMouseDown={(event) => event.stopPropagation()}
-              onClick={startEdit}
-              className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition hover:border-[#cc208f]/40 hover:text-[#cc208f]"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
         {/* Content Container */}
-        <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} min-w-0`}>
+        <div className={`relative flex flex-col ${isMe ? "items-end" : "items-start"} min-w-0 ${highlighted ? "rounded-xl ring-2 ring-[#cc208f]/70" : ""}`}>
+          <button type="button" aria-label="Message options" title="Message options" aria-haspopup="dialog" aria-expanded={actionsOpen} onClick={(event) => { event.stopPropagation(); setActionsOpen(true); }} className={`absolute top-1/2 z-20 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card text-muted-foreground shadow-sm ring-1 ring-border [@media(hover:hover)_and_(pointer:fine)]:opacity-0 group-hover/msg:opacity-100 focus-visible:opacity-100 ${isMe ? "-left-9" : "-right-9"}`}><MoreHorizontal className="h-4 w-4" /></button>
+          {highlighted && <span className="flex items-center gap-1 px-2 py-1 text-xs text-[#cc208f]"><Star className="h-3 w-3 fill-current" />Highlighted</span>}
           {/* Reply preview */}
           {repliedMessage && (
             <div
@@ -6012,6 +5992,9 @@ function MessageBubble({
         />
       )}
     </div>
+    <MessageActionsSheet open={actionsOpen} onOpenChange={setActionsOpen} message={actionMessage} isMe={canEdit} highlighted={highlighted} onReact={(emoji) => onReact(message.id, emoji)} onReply={() => onReply(message)} onEdit={startEdit} onForward={() => setForwarding({ content: actionMessage.content })} onToggleHighlight={() => highlights.toggle(message.id)} />
+    {forwarding && <ForwardSheet message={forwarding} onClose={() => setForwarding(null)} />}
+    </>
   );
 }
 

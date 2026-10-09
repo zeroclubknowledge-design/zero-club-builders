@@ -106,12 +106,14 @@ export async function copyToClipboard(text: string, message = "Link copied"): Pr
       field.style.opacity = "0";
       document.body.appendChild(field);
       field.select();
-      document.execCommand("copy");
-      document.body.removeChild(field);
+      let copied = false;
+      try { copied = document.execCommand("copy"); }
+      finally { document.body.removeChild(field); }
+      if (!copied) throw new Error("Clipboard unavailable");
       toast.success(message);
       return true;
     } catch {
-      toast.error("Couldn't copy the link — you can copy it from the address bar");
+      toast.error("Couldn't copy. Please allow clipboard access and try again.");
       return false;
     }
   }
