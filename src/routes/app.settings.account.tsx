@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { toast } from "sonner";
-import { getFirstName } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import { Users, LogOut, PlusCircle } from "@/components/icons/glyphs";
 import { getSavedAccounts, switchAccount, prepareAddAccount, removeSavedAccount, SavedAccount } from "@/lib/multiAccount";
 
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/app/settings/account")({
 });
 
 function AccountSettings() {
+  const queryClient = useQueryClient();
   const [profile, setProfile] = useState<any>(null);
   const [email, setEmail] = useState<string>("");
   const [newUsername, setNewUsername] = useState("");
@@ -49,7 +50,8 @@ function AccountSettings() {
   }, []);
 
   const handleUpdateUsername = async () => {
-    if (!newUsername.trim() || newUsername === profile?.username) {
+    const username = newUsername.trim().toLowerCase();
+    if (!username || username === profile?.username) {
       setIsSheetOpen(false);
       return;
     }
@@ -57,7 +59,7 @@ function AccountSettings() {
     setLoading(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ username: newUsername.toLowerCase() })
+      .update({ username })
       .eq('id', profile.id);
       
     if (error) {
@@ -67,7 +69,9 @@ function AccountSettings() {
         toast.error(error.message);
       }
     } else {
-      setProfile({ ...profile, username: newUsername.toLowerCase() });
+      setProfile({ ...profile, username });
+      setNewUsername(username);
+      queryClient.setQueryData(["profile", "current"], (current: any) => current ? { ...current, username } : current);
       toast.success("Username updated!");
       setIsSheetOpen(false);
     }
@@ -96,12 +100,6 @@ function AccountSettings() {
     setLoading(false);
   };
 
-  const accountInfo = [
-    { label: "Username", value: profile?.username ? `${getFirstName(profile)}` : "...", icon: User },
-    { label: "Email", value: email || "...", icon: Mail },
-    { label: "Country", value: profile?.location || "Nigeria", icon: Globe },
-  ];
-
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center">
@@ -127,7 +125,7 @@ function AccountSettings() {
                 </div>
                 <div className="flex-1">
                   <div className="text-[10px] text-muted-foreground">Username</div>
-                  <div className="text-[15px] font-medium text-foreground">{profile?.username ? `${getFirstName(profile)}` : "..."}</div>
+                  <div className="text-[15px] font-medium text-foreground">{profile?.username ? `@${profile.username}` : "..."}</div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>

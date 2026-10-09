@@ -301,7 +301,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas">
+    <div className="@container/portfolio flex min-h-screen w-full min-w-0 flex-col bg-canvas">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-card/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center gap-1 px-2 md:px-4">
           <button
@@ -348,7 +348,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
             </button>
           )}
         </div>
-        <div className="flex gap-1 px-3 pb-2 md:hidden">
+        <div className="flex gap-1 px-3 pb-2 @min-[960px]/portfolio:hidden">
           {(["edit", "preview"] as const).map((key) => (
             <button
               key={key}
@@ -364,9 +364,9 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-[1400px] flex-1 md:grid-cols-[440px_1fr] md:gap-6 md:px-4 md:py-5">
+      <div className="mx-auto grid w-full min-w-0 max-w-[1400px] flex-1 grid-cols-[minmax(0,1fr)] @min-[960px]/portfolio:grid-cols-[minmax(0,400px)_minmax(0,1fr)] @min-[960px]/portfolio:gap-6 @min-[960px]/portfolio:px-4 @min-[960px]/portfolio:py-5">
         <div
-          className={`${tab === "edit" ? "block" : "hidden"} space-y-3 px-3 pb-28 pt-3 md:block md:px-0 md:pb-10 md:pt-0`}
+          className={`${tab === "edit" ? "block" : "hidden"} min-w-0 space-y-3 px-3 pb-28 pt-3 @min-[960px]/portfolio:block @min-[960px]/portfolio:px-0 @min-[960px]/portfolio:pb-10 @min-[960px]/portfolio:pt-0`}
         >
           {/* Status */}
           <Card>
@@ -579,7 +579,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
               </div>
             </div>
             <p className="mt-4 text-[13px] text-muted-foreground">Accent</p>
-            <div className="mt-2 flex gap-2.5">
+            <div className="mt-2 flex flex-wrap gap-2.5">
               {ACCENTS.map((accent) => (
                 <button
                   key={accent}
@@ -618,8 +618,8 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           </Card>
         </div>
 
-        <div className={`${tab === "preview" ? "block" : "hidden"} md:block`}>
-          <div className="overflow-hidden md:sticky md:top-[76px] md:h-[calc(100vh-96px)] md:overflow-y-auto md:rounded-3xl md:border md:border-border">
+        <div className={`${tab === "preview" ? "block" : "hidden"} min-w-0 @min-[960px]/portfolio:block`}>
+          <div className="min-w-0 overflow-hidden @min-[960px]/portfolio:sticky @min-[960px]/portfolio:top-[76px] @min-[960px]/portfolio:h-[calc(100vh-96px)] @min-[960px]/portfolio:overflow-y-auto @min-[960px]/portfolio:rounded-3xl @min-[960px]/portfolio:border @min-[960px]/portfolio:border-border">
             {preview}
           </div>
         </div>
@@ -727,7 +727,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
 const chip =
   "inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-[13.5px] font-medium transition hover:bg-foreground/[0.04] active:scale-[0.98]";
 const field =
-  "mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14.5px] outline-none transition focus:border-foreground/40";
+  "mt-1.5 h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3.5 text-[16px] outline-none transition focus:border-foreground/40";
 
 function Card({
   title,
@@ -739,7 +739,7 @@ function Card({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-4">
+    <section className="min-w-0 rounded-2xl border border-border bg-card p-4">
       {(title || action) && (
         <div className="mb-3 flex items-center justify-between gap-2">
           {title && <h2 className="text-[15px] font-semibold">{title}</h2>}
@@ -753,10 +753,10 @@ function Card({
 
 function Label({ text, count }: { text: string; count?: string }) {
   return (
-    <div className="mt-3 flex items-center justify-between first:mt-0">
+    <div className="mt-3 flex min-w-0 items-center justify-between gap-2 first:mt-0">
       <span className="text-[13px] font-medium text-muted-foreground">{text}</span>
       {count && (
-        <span className="text-[11.5px] tabular-nums text-muted-foreground/70">{count}</span>
+        <span className="shrink-0 text-[11.5px] tabular-nums text-muted-foreground/70">{count}</span>
       )}
     </div>
   );
@@ -814,7 +814,7 @@ function ToggleRow({
 }) {
   return (
     <label className="flex items-center gap-3 py-2">
-      <span className="flex-1">
+      <span className="min-w-0 flex-1">
         <span className="block text-[14px] font-medium">{label}</span>
         <span className="block text-[12.5px] text-muted-foreground">{hint}</span>
       </span>
@@ -1041,9 +1041,9 @@ function StrengthCard({ strength }: { strength: Strength }) {
   const list = all ? strength.checks : todo.slice(0, 4);
   return (
     <Card>
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-[15px] font-semibold">Portfolio strength</h2>
-        <span className="text-[20px] font-semibold tabular-nums">{strength.score}%</span>
+        <span className="shrink-0 text-[20px] font-semibold tabular-nums">{strength.score}%</span>
       </div>
       <div className="mt-2">
         <StrengthMeter score={strength.score} />
