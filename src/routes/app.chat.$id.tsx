@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { contentPreview } from "@/lib/contentPreview";
 import { Forward, ForwardSheet, MessageActionsSheet } from "@/features/chat/MessageActions";
 import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
@@ -593,7 +594,7 @@ function ChatViewPage() {
       ? await supabase.from("message_highlights").delete().eq("message_id", message.id).eq("profile_id", currentUserProfile.id)
       : await supabase.from("message_highlights").insert({ message_id: message.id, profile_id: currentUserProfile.id });
     if (error) { queryClient.setQueryData(key, highlightIds); return toast.error("Could not save the highlight. Please try again."); }
-    toast.success(on ? "Highlight removed" : "Message highlighted");
+    toast.success(on ? "Removed from favourites" : "Added to favourites", on ? undefined : { description: "Find it any time in this chat's details." });
     void refetchHighlights();
   };
   // Replying from the photo viewer: sends the text as a reply to that photo.
@@ -681,6 +682,57 @@ function ChatViewPage() {
     } finally {
       setLoadingOlder(false);
     }
+  };
+
+  /* Favourites: messages in this chat starred to come back to. */
+  const { data: favourites = [] } = useQuery({
+    queryKey: ["chat-favourites", currentUserId, id, highlightIds.size],
+    enabled: Boolean(currentUserId && id && highlightIds.size > 0),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("id, content, sender_id, created_at")
+        .in("id", [...highlightIds])
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${currentUserId})`)
+        .order("created_at", { ascending: false });
+      return (data || []) as { id: string; content: string; sender_id: string; created_at: string }[];
+    },
+  });
+
+  /** Close the details, load back far enough if needed, then scroll to the message and flash it. */
+  const jumpToMessage = async (message: { id: string; created_at: string }) => {
+    setInfoOpen(false);
+    const flash = () => {
+      const el = document.getElementById(`message-${message.id}`);
+      if (!el) return false;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("zc-message-flash");
+      window.setTimeout(() => el.classList.remove("zc-message-flash"), 1800);
+      return true;
+    };
+    if (flash()) return;
+    // Older than what's on screen: fetch everything from it up to the oldest loaded message.
+    const oldest = messages[0]?.created_at;
+    if (oldest) {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${currentUserId})`)
+        .gte("created_at", message.created_at)
+        .lt("created_at", oldest)
+        .order("created_at", { ascending: true })
+        .limit(1000);
+      if (data?.length) {
+        setMessages((current) => {
+          const known = new Set(current.map((m: any) => m.id));
+          return [...data.filter((m: any) => !known.has(m.id)), ...current];
+        });
+      }
+    }
+    // Give the newly loaded messages a moment to render.
+    window.setTimeout(() => {
+      if (!flash()) toast.error("Could not find that message");
+    }, 350);
   };
 
   const toggleVoiceRecording = async () => {
@@ -1199,6 +1251,43 @@ function ChatViewPage() {
               <div className="rounded-lg border border-border bg-card p-3 text-center"><p className="text-[18px] font-semibold tabular-nums">{messages.length}</p><p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Messages</p></div>
               <div className="rounded-lg border border-border bg-card p-3 text-center"><p className="text-[18px] font-semibold tabular-nums">{messages.filter((message) => message.content?.includes('$$MEDIA$$')).length}</p><p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Attachments</p></div>
             </div>
+
+            {/* Favourites: starred messages in this chat. Tap one to jump to it. */}
+            <section className="mt-5">
+              <h4 className="mb-2 flex items-center gap-1.5 px-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                <Star className="h-3.5 w-3.5 fill-[#cc208f] text-[#cc208f]" /> Favourites
+                {favourites.length > 0 && <span className="ml-auto tabular-nums normal-case tracking-normal">{favourites.length}</span>}
+              </h4>
+              {favourites.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border px-4 py-4 text-center text-[13px] leading-relaxed text-muted-foreground">
+                  Press and hold a message, then tap <span className="font-semibold text-foreground">Add to favourites</span> to keep it here.
+                </p>
+              ) : (
+                <div className="max-h-[300px] overflow-y-auto rounded-lg border border-border bg-card no-scrollbar">
+                  {favourites.map((fav) => {
+                    const mine = fav.sender_id === currentUserId;
+                    const text = contentPreview(fav.content) || 'Message';
+                    return (
+                      <button
+                        key={fav.id}
+                        type="button"
+                        onClick={() => void jumpToMessage(fav)}
+                        className="flex w-full items-start gap-3 border-b border-border/60 px-4 py-3 text-left last:border-b-0 hover:bg-accent/40"
+                      >
+                        <Star className="mt-0.5 h-4 w-4 shrink-0 fill-[#cc208f] text-[#cc208f]" />
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center justify-between gap-2 text-[12px] text-muted-foreground">
+                            <span className="truncate font-semibold text-foreground">{mine ? 'You' : otherUserDisplayName}</span>
+                            <span className="shrink-0 tabular-nums">{new Date(fav.created_at).toLocaleDateString([], { day: 'numeric', month: 'short' })}</span>
+                          </span>
+                          <span className="mt-0.5 line-clamp-2 block text-[13.5px] leading-snug text-foreground/90">{text}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
 
             <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
               <Link to="/app/profile/$id" params={{ id }} onClick={() => setInfoOpen(false)} className="flex items-center gap-3 border-b border-border/60 px-4 py-3.5 text-[13px] font-medium hover:bg-accent/40"><UserRound className="h-4 w-4 text-muted-foreground" /> View profile <ChevronLeft className="ml-auto h-4 w-4 rotate-180 text-muted-foreground" /></Link>

@@ -1693,3 +1693,13 @@ input[type="radio"],
 @media (prefers-reduced-motion: reduce) {
   .zc-typing-dots > span { animation: none; opacity: 0.8; }
 }
+
+/* A message you jumped to from Favourites glows pink for a moment. */
+@keyframes zc-message-flash {
+  0%, 100% { background-color: transparent; }
+  20%, 60% { background-color: rgb(204 32 143 / 0.16); }
+}
+.zc-message-flash {
+  animation: zc-message-flash 1.8s ease-in-out;
+  border-radius: 14px;
+}

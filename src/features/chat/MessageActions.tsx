@@ -112,7 +112,7 @@ export function MessageActionsSheet({
     },
     {
       key: "highlight",
-      label: highlighted ? "Remove highlight" : "Highlight",
+      label: highlighted ? "Remove from favourites" : "Add to favourites",
       icon: (
         <Star
           className={`h-[21px] w-[21px] ${highlighted ? "fill-[#cc208f] text-[#cc208f]" : ""}`}
