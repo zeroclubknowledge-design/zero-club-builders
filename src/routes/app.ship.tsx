@@ -4,6 +4,7 @@ import {
 } from "@/components/icons/glyphs";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { addPostToPortfolio } from "@/features/portfolio/api";
 import { uploadMedia } from "@/lib/storage";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
@@ -336,7 +337,30 @@ function ShipPage() {
     for (const key of ['feed_posts','my_profile','zerohub_projects']) void queryClient.invalidateQueries({ queryKey: [key] });
     void queryClient.invalidateQueries({ queryKey: ['profile','current'] });
     setConfirmation(null);
-    toast.success(attempt.target_id ? 'Project updated successfully' : 'Project published successfully!');
+    const isNewPublicProject =
+      !attempt.target_id && !attempt.payload.project_root_id && attempt.payload.audience !== 'club';
+    if (isNewPublicProject && profile?.id) {
+      // Nudge toward the portfolio while the work is fresh. One tap, nothing automatic.
+      const ownerId = profile.id;
+      toast.success('Project published successfully!', {
+        description: 'Show it on your portfolio?',
+        duration: 8000,
+        action: {
+          label: 'Add to portfolio',
+          onClick: () => {
+            void addPostToPortfolio(ownerId, { id: postId, is_build_post: true })
+              .then(() =>
+                toast.success('Added to your portfolio', {
+                  action: { label: 'Open', onClick: () => navigate({ to: '/app/portfolio' }) },
+                }),
+              )
+              .catch((error: any) => toast.error(error?.message || 'Could not add to portfolio'));
+          },
+        },
+      });
+    } else {
+      toast.success(attempt.target_id ? 'Project updated successfully' : 'Project published successfully!');
+    }
     navigate({ to: '/app/zerohub' });
   };
 

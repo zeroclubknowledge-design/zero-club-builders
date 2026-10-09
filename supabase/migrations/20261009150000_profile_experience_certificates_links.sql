@@ -1,0 +1,8 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-09 via Supabase MCP
+-- (migration "profile_experience_certificates_links"). Kept as a record; do not re-run.
+-- Self-reported profile credentials, later read by the Smart Portfolio:
+--   profiles.social_links jsonb  (cleaned by trigger clean_social_links: only linkedin, github,
+--     x, instagram, behance, dribbble, youtube, tiktok, medium as http(s) links, plus email)
+--   profile_experiences  (title, company, employment_type, location, start/end, is_current, description)
+--   profile_certificates (name, issuer, issued_on, expires_on, credential_id, credential_url http(s) only)
+-- RLS: anyone can read; only the owner can add, change or remove their own rows.

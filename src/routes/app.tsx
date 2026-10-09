@@ -3,6 +3,7 @@ import { useBroadcastOnline } from "@/lib/realtime/presence";
 import { useMarkMessagesDelivered } from "@/lib/realtime/receipts";
 import { CreateHub, openCreateSheet } from "@/features/create/CreateHub";
 import { IconZeroAI } from "@/components/icons/zeroAI";
+import { IconPortfolio } from "@/features/portfolio/icon";
 import {
   MoreHorizontal,
   Zap,
@@ -89,6 +90,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/store": "Zero Store",
   "/app/zero-ai": "Zero AI",
   "/app/zerohub": "Zero Proofs",
+  "/app/portfolio": "Portfolio",
   "/app/admin": "Admin Control Center",
 };
 
@@ -185,6 +187,7 @@ function SidebarContent({
     { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
     { Icon: IconStore, label: "Zero Store", to: "/app/store" },
     { Icon: IconCompass, label: "Zero Proofs", to: "/app/zerohub" },
+    { Icon: IconPortfolio, label: "Portfolio", to: "/app/portfolio" },
     { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
     { Icon: IconGames, label: "Games", to: "/app/games" },
     { Icon: IconZeroAI, label: "Zero AI", to: "/app/zero-ai" },
@@ -1348,7 +1351,7 @@ function AppLayout() {
   // product grid. In the reading column that left the grid about 430px wide,
   // which is narrower than one product card wants.
   const isMyStore = pathname.startsWith("/app/my-store");
-  const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio || isMyStore || pathname.startsWith("/app/zero-ai");
+  const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio || isMyStore || pathname.startsWith("/app/zero-ai") || pathname.startsWith("/app/portfolio");
   const hideHeader = !isFeed;
 
   /*

@@ -879,23 +879,23 @@ function FeaturesSection() {
 const faqs = [
   {
     q: "What is Zero Club?",
-    a: "Zero Club is a social learning platform where you build skill, build proof and build opportunities for yourself.",
+    a: "Zero Club is a social network and professional development ecosystem built around skills, experience, and verifiable competence. It combines learning, building, portfolio development, skills verification, networking, and interactive experiences to help individuals develop their abilities, demonstrate what they can do, build verifiable professional experience, and connect their skills to meaningful opportunities. It also provides a platform for institutions and organizations to participate in this ecosystem.",
   },
   {
     q: "Who can join Zero Club?",
-    a: "Whether you're a student learning new skills, a tutor looking to monetize your expertise, or an institution managing bootcamps, Zero Club is built for you.",
+    a: "Zero Club is open to individuals, educational institutions, and organizations. Whether you're a student, tutor, creator, freelancer, professional, entrepreneur, school, training center, or business, you can join to develop skills, share knowledge, build experience, verify competence, connect with others, and access opportunities relevant to your goals.",
   },
   {
-    q: "How does the Creator Wallet work?",
-    a: "The built-in wallet lets you manage earnings from paid bootcamps, digital products, and private access seamlessly directly within the platform.",
+    q: "How does Zero Wallet work?",
+    a: "Zero Wallet is designed to facilitate financial activities within the Zero ecosystem. It provides a dedicated space for managing supported payments, funds, and eligible rewards, depending on the features available to your account. As Zero's financial ecosystem develops, the wallet will support more ways for members to transact and participate in the platform.",
   },
   {
     q: "Can I host my own bootcamps?",
-    a: "Yes! Tutors and Institutions have access to dedicated studios where they can create, manage, and monetize their own bootcamps — including live video classes.",
+    a: "Yes. Zero Club supports tutors, educators, professionals, and organizations that want to share knowledge and facilitate practical learning experiences. You can organize bootcamps, train participants, build learning communities, and help people develop skills and practical experience. Availability and management options depend on the hosting features enabled on the platform.",
   },
   {
     q: "Is Zero Club free to use?",
-    a: "It is free to join and start building your network. We also offer Premium memberships for advanced features, and creators can charge for their own content.",
+    a: "Zero Club offers access to its available features, while certain premium memberships, specialized services, learning programs, and paid activities may require payment. The features you can access and any applicable fees depend on your membership plan and the service you choose.",
   },
 ];
 
@@ -1082,7 +1082,7 @@ function FaqSection() {
         <div className="mb-10 text-center md:mb-14">
           <p className="zc-eyebrow">Questions</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
-            Everything you're wondering
+            Everything You're Wondering About Zero Club
           </h2>
         </div>
         <div className="mx-auto flex max-w-[760px] flex-col gap-3">

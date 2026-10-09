@@ -11,6 +11,8 @@ import { useUser } from "@/hooks/useUser";
 import { useGoBack } from "@/hooks/useGoBack";
 import { AvatarMotionSettings } from "@/features/profile/AvatarMotionSettings";
 import { requestAvatarMotion } from "@/features/profile/avatarMotionApi";
+import { CertificatesEditor, ExperienceEditor, SocialLinksEditor } from "@/features/profile/CredentialsEditor";
+import { normaliseSocialLink } from "@/features/profile/credentials";
 
 export const Route = createFileRoute("/app/profile/edit")({
   component: EditProfile,
@@ -30,6 +32,8 @@ function EditProfile() {
     location: "",
     website: ""
   });
+  // LinkedIn, GitHub, X… saved with the rest of the form.
+  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
   const [avatar, setAvatar] = useState("");
   const [banner, setBanner] = useState("");
   const [draftProfileId, setDraftProfileId] = useState<string | null>(null);
@@ -61,6 +65,7 @@ function EditProfile() {
     }
 
     setFormData(nextFormData);
+    setSocialLinks((profile as { social_links?: Record<string, string> }).social_links || {});
     setAvatar(profile.avatar_url || "");
     setBanner(profile.banner_url || "");
     setDraftProfileId(profile.id);
@@ -76,6 +81,14 @@ function EditProfile() {
       // form still works normally in that case.
     }
   }, [formData, profile?.id, draftProfileId]);
+
+  // Arriving from "Add experience" / "Add certificate" on the profile: go straight there.
+  useEffect(() => {
+    const hash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+    if (!hash || !profile?.id) return;
+    const timer = window.setTimeout(() => document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+    return () => window.clearTimeout(timer);
+  }, [profile?.id]);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -95,9 +108,16 @@ function EditProfile() {
       // Removing the cover only ever cleared it on screen: the form never sent
       // it, so the old picture came back on the next load.
       const coverRemoved = !banner && Boolean(profile.banner_url);
+      // Handles become full links ("@ada" -> https://x.com/ada); empty ones are dropped.
+      const social_links = Object.fromEntries(
+        Object.entries(socialLinks)
+          .map(([key, value]) => [key, normaliseSocialLink(key, value || "")])
+          .filter(([, value]) => value),
+      );
+      const payload = { ...formData, social_links };
       const { error } = await supabase
         .from('profiles')
-        .update(coverRemoved ? { ...formData, banner_url: null } : formData)
+        .update(coverRemoved ? { ...payload, banner_url: null } : payload)
         .eq('id', profile.id);
 
       if (error) throw error;
@@ -285,7 +305,7 @@ function EditProfile() {
           )}
         </section>
 
-        <section className="flex flex-1 flex-col gap-4 bg-card px-4 pb-28 pt-4 md:flex-none md:rounded-xl md:border md:border-border md:pb-5">
+        <section className="flex flex-col gap-4 bg-card px-4 pb-5 pt-4 md:rounded-xl md:border md:border-border">
           <h2 className="font-display text-[18px] font-semibold">About you</h2>
           <label className="block">
             <span className={LABEL}>Full name</span>
@@ -331,6 +351,13 @@ function EditProfile() {
             />
           </label>
         </section>
+
+        {/* Links are saved with the button at the top. Experience and
+            certificates save on their own, one entry at a time. */}
+        <SocialLinksEditor value={socialLinks} onChange={setSocialLinks} disabled={loading} />
+        {profile?.id && <ExperienceEditor profileId={profile.id} />}
+        {profile?.id && <CertificatesEditor profileId={profile.id} />}
+        <div aria-hidden className="min-h-24 flex-1 bg-card md:hidden" />
       </main>
 
       {cropImage && (

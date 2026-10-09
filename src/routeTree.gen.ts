@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AtChar123usernameChar125RouteImport } from './routes/@{$username}'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as DocsRouteImport } from './routes/docs'
@@ -32,6 +33,7 @@ import { Route as AppMetricsRouteImport } from './routes/app.metrics'
 import { Route as AppMyStoreRouteImport } from './routes/app.my-store'
 import { Route as AppNotesRouteImport } from './routes/app.notes'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppPortfolioRouteImport } from './routes/app.portfolio'
 import { Route as AppPremiumRouteImport } from './routes/app.premium'
 import { Route as AppQuestsRouteImport } from './routes/app.quests'
 import { Route as AppSearchRouteImport } from './routes/app.search'
@@ -121,6 +123,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AtChar123usernameChar125Route =
+  AtChar123usernameChar125RouteImport.update({
+    id: '/@{$username}',
+    path: '/@{$username}',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -229,6 +237,11 @@ const AppNotesRoute = AppNotesRouteImport.update({
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPortfolioRoute = AppPortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPremiumRoute = AppPremiumRouteImport.update({
@@ -653,6 +666,7 @@ const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/@{$username}': typeof AtChar123usernameChar125Route
   '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
   '/docs': typeof DocsRoute
@@ -674,6 +688,7 @@ export interface FileRoutesByFullPath {
   '/app/my-store': typeof AppMyStoreRoute
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/portfolio': typeof AppPortfolioRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
   '/app/search': typeof AppSearchRoute
@@ -761,6 +776,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/@{$username}': typeof AtChar123usernameChar125Route
   '/admin': typeof AdminRoute
   '/docs': typeof DocsRoute
   '/privacy': typeof PrivacyRoute
@@ -778,6 +794,7 @@ export interface FileRoutesByTo {
   '/app/metrics': typeof AppMetricsRoute
   '/app/my-store': typeof AppMyStoreRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/portfolio': typeof AppPortfolioRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
   '/app/search': typeof AppSearchRoute
@@ -864,6 +881,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/@{$username}': typeof AtChar123usernameChar125Route
   '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
   '/docs': typeof DocsRoute
@@ -885,6 +903,7 @@ export interface FileRoutesById {
   '/app/my-store': typeof AppMyStoreRoute
   '/app/notes': typeof AppNotesRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/portfolio': typeof AppPortfolioRoute
   '/app/premium': typeof AppPremiumRoute
   '/app/quests': typeof AppQuestsRoute
   '/app/search': typeof AppSearchRoute
@@ -974,6 +993,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/@{$username}'
     | '/admin'
     | '/app'
     | '/docs'
@@ -995,6 +1015,7 @@ export interface FileRouteTypes {
     | '/app/my-store'
     | '/app/notes'
     | '/app/notifications'
+    | '/app/portfolio'
     | '/app/premium'
     | '/app/quests'
     | '/app/search'
@@ -1082,6 +1103,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/@{$username}'
     | '/admin'
     | '/docs'
     | '/privacy'
@@ -1099,6 +1121,7 @@ export interface FileRouteTypes {
     | '/app/metrics'
     | '/app/my-store'
     | '/app/notifications'
+    | '/app/portfolio'
     | '/app/premium'
     | '/app/quests'
     | '/app/search'
@@ -1184,6 +1207,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/@{$username}'
     | '/admin'
     | '/app'
     | '/docs'
@@ -1205,6 +1229,7 @@ export interface FileRouteTypes {
     | '/app/my-store'
     | '/app/notes'
     | '/app/notifications'
+    | '/app/portfolio'
     | '/app/premium'
     | '/app/quests'
     | '/app/search'
@@ -1293,6 +1318,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AtChar123usernameChar125Route: typeof AtChar123usernameChar125Route
   AdminRoute: typeof AdminRoute
   AppRoute: typeof AppRouteWithChildren
   DocsRoute: typeof DocsRoute
@@ -1329,6 +1355,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/@{$username}': {
+      id: '/@{$username}'
+      path: '/@{$username}'
+      fullPath: '/@{$username}'
+      preLoaderRoute: typeof AtChar123usernameChar125RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -1483,6 +1516,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/app/notifications'
       preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/portfolio': {
+      id: '/app/portfolio'
+      path: '/portfolio'
+      fullPath: '/app/portfolio'
+      preLoaderRoute: typeof AppPortfolioRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/premium': {
@@ -2173,6 +2213,7 @@ interface AppRouteChildren {
   AppMyStoreRoute: typeof AppMyStoreRoute
   AppNotesRoute: typeof AppNotesRouteWithChildren
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppPortfolioRoute: typeof AppPortfolioRoute
   AppPremiumRoute: typeof AppPremiumRoute
   AppQuestsRoute: typeof AppQuestsRoute
   AppSearchRoute: typeof AppSearchRoute
@@ -2233,6 +2274,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMyStoreRoute: AppMyStoreRoute,
   AppNotesRoute: AppNotesRouteWithChildren,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppPortfolioRoute: AppPortfolioRoute,
   AppPremiumRoute: AppPremiumRoute,
   AppQuestsRoute: AppQuestsRoute,
   AppSearchRoute: AppSearchRoute,
@@ -2323,6 +2365,7 @@ const ApiZeroAiCallsRouteWithChildren = ApiZeroAiCallsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AtChar123usernameChar125Route: AtChar123usernameChar125Route,
   AdminRoute: AdminRoute,
   AppRoute: AppRouteWithChildren,
   DocsRoute: DocsRoute,

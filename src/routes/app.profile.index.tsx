@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { ProfileCredentials, SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
@@ -371,7 +372,13 @@ function Profile() {
             </div>
 
             {/* Right side actions */}
-            <div className="flex h-[44px] items-center justify-end gap-4 sm:h-[48px]">
+            <div className="flex h-[44px] items-center justify-end gap-2 sm:h-[48px]">
+              <Link
+                to="/app/portfolio"
+                className="flex h-10 items-center gap-2 rounded-lg border border-border px-4 text-[13px] font-semibold tracking-tight text-foreground tap hover:bg-foreground/[0.04]"
+              >
+                Portfolio
+              </Link>
               <Link
                 to="/app/profile/edit"
                 className="flex h-10 items-center gap-2 rounded-lg bg-foreground px-5 text-[13px] font-semibold tracking-tight text-background tap hover:opacity-90"
@@ -466,9 +473,15 @@ function Profile() {
                   </a>
                 </div>
               )}
+              <SocialLinksRow links={profile?.social_links} className="mt-3" />
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Experience and certificates, added by the person. */}
+      <div className="zc-page-width mx-auto mt-3 max-w-[760px] md:px-0 [&>section]:md:rounded-lg">
+        <ProfileCredentials profileId={profile?.id} isOwner />
       </div>
 
       {/* ═══════════════════════════════════════════

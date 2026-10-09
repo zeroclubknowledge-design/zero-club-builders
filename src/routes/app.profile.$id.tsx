@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { ProfileCredentials, SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { plain } from "@/lib/og/core/text";
@@ -165,6 +166,22 @@ function ProfileDetail() {
 
   const profile = loaderProfile ?? fetchedProfile ?? null;
   const queryClient = useQueryClient();
+
+  // Only published portfolios are readable by others (RLS), so a row means it's live.
+  const { data: hasPortfolio } = useQuery({
+    queryKey: ["has_portfolio", profile?.id],
+    enabled: Boolean(profile?.id),
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("portfolios" as any)
+        .select("id")
+        .eq("profile_id", profile.id)
+        .eq("status", "published")
+        .maybeSingle();
+      return Boolean(data);
+    },
+  });
 
   const { data: networkStats } = useQuery({
     queryKey: ["networkStats", profile.id],
@@ -703,6 +720,16 @@ function ProfileDetail() {
                 </>
               )}
             </p>
+            <SocialLinksRow links={profile?.social_links} className="mt-2.5" />
+            {hasPortfolio && profile?.username && (
+              <a
+                href={`/@${profile.username}`}
+                className="mt-2.5 inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-[13px] font-semibold text-foreground transition hover:bg-foreground/[0.04]"
+              >
+                View portfolio
+                <span aria-hidden>↗</span>
+              </a>
+            )}
             <Link
               to="/app/profile/$id/network"
               params={{ id: networkId }}
@@ -863,6 +890,9 @@ function ProfileDetail() {
             </div>
           </section>
         )}
+
+        {/* ── Experience and certificates (added by the person) ── */}
+        <ProfileCredentials profileId={profile?.id} isOwner={isOwnProfile} />
 
         {/* ── Activity ── */}
         <section
