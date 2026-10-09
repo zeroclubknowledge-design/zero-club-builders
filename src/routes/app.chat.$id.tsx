@@ -75,14 +75,22 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
 
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
+  // Opening the menu cancels any swipe in progress, so lifting the finger
+  // afterwards doesn't also trigger a reply or snap the bubble.
+  const openActions = () => {
+    isSwiping.current = false;
+    setSwipeOffset(0);
+    setActionsOpen(true);
+    if (window.navigator.vibrate) window.navigator.vibrate(30);
+  };
+
   const startLongPress = () => {
+    cancelLongPress();
     longPressTimer.current = setTimeout(() => {
-      if (isSwiping.current) {
-        // Long-press: the message menu (react, reply, copy, forward, highlight…).
-        setActionsOpen(true);
-        if (window.navigator.vibrate) window.navigator.vibrate(30);
-      }
-    }, 400);
+      longPressTimer.current = null;
+      // Long-press: the message menu (react, reply, copy, forward, highlight…).
+      if (isSwiping.current) openActions();
+    }, 380);
   };
 
   const cancelLongPress = () => {
@@ -93,6 +101,9 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
   };
 
   const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!('touches' in e) && e.button !== 0) return;
+    // Taps on buttons, links and players inside the bubble aren't a long-press.
+    if ((e.target as HTMLElement).closest('button, a, input, textarea, [role="slider"]')) return;
     if ('touches' in e) {
       startX.current = e.touches[0].clientX;
       startY.current = e.touches[0].clientY;
@@ -192,9 +203,10 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
   };
 
   return (
+    <>
     <div 
       id={`message-${m.id}`}
-      className={`group/row relative flex w-full transition-colors duration-500 ${groupStart ? 'mt-2.5' : 'mt-[3px]'} ${isMe ?'justify-end' : 'justify-start'}`}
+      className={`group/row relative flex w-full select-none md:select-text transition-colors duration-500 ${groupStart ? 'mt-2.5' : 'mt-[3px]'} ${isMe ?'justify-end' : 'justify-start'}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -202,7 +214,17 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
       onMouseMove={handleTouchMove}
       onMouseUp={handleTouchEnd}
       onMouseLeave={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      // Android's own long-press and a desktop right-click both open the menu.
+      onContextMenu={(event) => {
+        if ((event.target as HTMLElement).closest('a, video, audio, input, textarea')) return;
+        event.preventDefault();
+        cancelLongPress();
+        openActions();
+      }}
       style={{ 
+        // No text-selection callout on long-press: the menu has Copy instead.
+        WebkitTouchCallout: 'none',
         transform: `translateX(${swipeOffset}px)`,
         transition: isSwiping.current ? 'none' : 'transform 0.2s ease-out'
       }}
@@ -418,7 +440,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                   type="button"
                   onClick={(event) => { event.stopPropagation(); setActionsOpen(true); }}
                   aria-label="Message options"
-                  className={`absolute top-1/2 hidden h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm ring-1 ring-border transition-opacity hover:text-foreground group-hover/row:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:grid ${isMe ? '-left-10' : '-right-10'}`}
+                  className={`absolute top-1/2 hidden h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm ring-1 ring-border transition-opacity hover:text-foreground group-hover/row:opacity-100 focus-visible:opacity-100 md:grid ${isMe ? '-left-10' : '-right-10'}`}
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
@@ -477,6 +499,30 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 )}
               </div>
 
+
+              {/* Reactions display */}
+              {Object.keys(groupedReactions).length > 0 && (
+                <div className={`flex flex-wrap gap-1 mt-1 ${isMe ?'justify-end' : 'justify-start'}`}>
+                  {Object.entries(groupedReactions).map(([emoji, data]: [string, any]) => (
+                    <button
+                      key={emoji}
+                      onClick={() => onReact(m.id, emoji)}
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[12px] font-semibold transition-colors ${
+                        data.me ? 'bg-accent/10 border-accent/30 text-accent' : 'bg-card border-border text-muted-foreground hover:bg-foreground/[0.04]'
+                      }`}
+                    >
+                      <span>{emoji}</span>
+                      <span>{data.count}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+        </div>
+      </div>
+    </div>
+    {/* Outside the swipe/long-press area: taps inside the menu or the photo
+        viewer must not start another long-press or swipe on the message. */}
               {viewer && (
                 <ImageLightbox
                   mediaUrls={viewer.urls}
@@ -505,28 +551,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 onForward={() => onForward?.(m)}
                 onToggleHighlight={() => onToggleHighlight?.(m)}
               />
-
-              {/* Reactions display */}
-              {Object.keys(groupedReactions).length > 0 && (
-                <div className={`flex flex-wrap gap-1 mt-1 ${isMe ?'justify-end' : 'justify-start'}`}>
-                  {Object.entries(groupedReactions).map(([emoji, data]: [string, any]) => (
-                    <button
-                      key={emoji}
-                      onClick={() => onReact(m.id, emoji)}
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[12px] font-semibold transition-colors ${
-                        data.me ? 'bg-accent/10 border-accent/30 text-accent' : 'bg-card border-border text-muted-foreground hover:bg-foreground/[0.04]'
-                      }`}
-                    >
-                      <span>{emoji}</span>
-                      <span>{data.count}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 
