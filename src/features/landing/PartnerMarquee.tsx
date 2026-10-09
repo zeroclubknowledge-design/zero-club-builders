@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 /**
  * The tools row under the hero.
  *
@@ -35,39 +33,15 @@ const PARTNERS: Record<string, Partner> = {
 
 const ORDER = ["google", "claude", "paystack", "canva", "lovable", "capcut"];
 
-/**
- * Whether the dark theme is on, read from the class the pre-paint script sets.
- *
- * Used so only ONE file per logo is requested. Rendering both and hiding one
- * in CSS is simpler, but it makes the browser fetch twelve images to show six
- * — which is exactly the wrong trade on the connection this is meant to fix.
+/*
+ * Both versions of each logo are in the page from the first paint, and the
+ * theme class shows one. Picking the file in JavaScript meant the server sent
+ * the light logos, then the page noticed dark mode after loading and swapped
+ * every src, so in dark mode the row appeared late. The files are small
+ * (15-25 KB each), so showing the right one immediately is worth it.
  */
-function useIsDark() {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const read = () => setDark(root.classList.contains("dark"));
-    read();
-    const observer = new MutationObserver(read);
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  return dark;
-}
-
 export function PartnerMarquee() {
-  const dark = useIsDark();
-
-  const items = ORDER.map((slug) => {
-    const p = PARTNERS[slug];
-    return {
-      slug,
-      ...p,
-      src: `/partners/${slug}${dark ? "-dark" : ""}.png`,
-    };
-  });
+  const items = ORDER.map((slug) => ({ slug, ...PARTNERS[slug] }));
 
   return (
     /* Even rhythm: a smaller step down from the line above, a larger one
@@ -96,18 +70,22 @@ export function PartnerMarquee() {
             >
               {items.map((item) => (
                 <li key={item.slug} className="flex shrink-0 items-center">
+                  {(["", "-dark"] as const).map((variant) => (
                   <img
-                    src={item.src}
-                    alt={item.name}
+                    key={variant || "light"}
+                    src={`/partners/${item.slug}${variant}.png`}
+                    alt={variant ? "" : item.name}
                     width={item.w}
                     height={item.h}
+                    fetchPriority={copy === 0 ? "high" : "auto"}
                     /* Not lazy. These sit in the hero, so deferring them means
                        deferring something already on screen — and on a slow
                        connection lazy loading in a moving track is the other
                        reason logos arrived late or not at all. */
                     decoding="async"
-                    className="h-6 w-auto max-w-[122px] object-contain opacity-85 transition-opacity duration-300 hover:opacity-100 sm:h-7 sm:max-w-[138px]"
+                    className={`h-6 w-auto max-w-[122px] object-contain opacity-85 transition-opacity duration-300 hover:opacity-100 sm:h-7 sm:max-w-[138px] ${variant ? "hidden dark:block" : "dark:hidden"}`}
                   />
+                  ))}
                 </li>
               ))}
             </ul>

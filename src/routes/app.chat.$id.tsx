@@ -1,13 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Forward, ForwardSheet, MessageActionsSheet } from "@/features/chat/MessageActions";
 import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
-import { lastSeenLabel, useIsOnline } from "@/lib/realtime/presence";
+import { isRecentlySeen, lastSeenLabel, useIsOnline } from "@/lib/realtime/presence";
 import { useInboxTyping, useSendTypingTo } from "@/lib/realtime/typing";
 import { MentionField } from "@/components/MentionField";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { useGoBack } from "@/hooks/useGoBack";
-import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones, CheckCheck, Clock } from "@/components/icons/glyphs";
+import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones, CheckCheck, Clock, Star } from "@/components/icons/glyphs";
 import React, { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
@@ -54,8 +55,9 @@ function MessageTicks({ message }: { message: any }) {
   return <Check className="h-[14px] w-[14px]" strokeWidth={2.4} aria-label="Sent" />;
 }
 
-function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser, groupStart = true, groupEnd = true }: any) {
+function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser, groupStart = true, groupEnd = true, highlighted = false, onToggleHighlight, onForward, onReplyText }: any) {
   const [viewer, setViewer] = React.useState<{ urls: string[]; index: number } | null>(null);
+  const [actionsOpen, setActionsOpen] = useState(false);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
@@ -76,8 +78,9 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
   const startLongPress = () => {
     longPressTimer.current = setTimeout(() => {
       if (isSwiping.current) {
-        setShowEmojiPicker(true);
-        if (window.navigator.vibrate) window.navigator.vibrate(50);
+        // Long-press: the message menu (react, reply, copy, forward, highlight…).
+        setActionsOpen(true);
+        if (window.navigator.vibrate) window.navigator.vibrate(30);
       }
     }, 400);
   };
@@ -191,7 +194,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
   return (
     <div 
       id={`message-${m.id}`}
-      className={`relative flex w-full transition-colors duration-500 ${groupStart ? 'mt-3' : 'mt-0.5'} ${isMe ?'justify-end' : 'justify-start'}`}
+      className={`group/row relative flex w-full transition-colors duration-500 ${groupStart ? 'mt-2.5' : 'mt-[3px]'} ${isMe ?'justify-end' : 'justify-start'}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -248,31 +251,19 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
         )}
 
         <div className={`flex flex-col ${isMe ?"items-end" : "items-start"} min-w-0`}>
-          {/* Action menu for my messages */}
-          {isMe && !fundLink && (new Date().getTime() - new Date(m.created_at).getTime() < 30 * 60 * 1000) && (
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity mb-1 flex justify-end w-full">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-1 text-muted-foreground hover:text-foreground">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => startEditing(m)} className="gap-2">
-                    <Pencil className="h-4 w-4" /> Edit
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-
           <>
-              <div className={`relative group px-3.5 py-2 flex flex-col rounded-[18px] ${
+              <div className={`relative group px-3.5 py-2 flex flex-col rounded-[18px] ${highlighted ? 'ring-2 ring-[#cc208f]/70' : ''} ${
                 isMe
                   ? `bg-foreground text-right text-background ${groupEnd ? 'rounded-br-[4px]' : ''} ${!groupStart ? 'rounded-tr-[4px]' : ''}`
                   : `bg-foreground/[0.06] text-left ${groupEnd ? 'rounded-bl-[4px]' : ''} ${!groupStart ? 'rounded-tl-[4px]' : ''}`
               }`}>
                 
+                {(m.forwarded || highlighted) && (
+                  <span className={`mb-0.5 flex items-center gap-1.5 text-[11.5px] italic ${isMe ? 'justify-end text-background/65' : 'text-muted-foreground'}`}>
+                    {m.forwarded && <><Forward className="h-3.5 w-3.5" /> Forwarded</>}
+                    {highlighted && <Star className="h-3.5 w-3.5 fill-[#cc208f] text-[#cc208f]" aria-label="Highlighted" />}
+                  </span>
+                )}
                 {/* Replied Message Preview */}
                 {repliedMessage && (
                   <div 
@@ -368,7 +359,16 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 ) : (
                   <p className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ?'text-background' : 'text-foreground'}`}>
                     <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-background underline font-semibold hover:opacity-80" : "text-[#cc208f] underline font-semibold hover:opacity-80"} />
-                    {!m.content.includes('$$MEDIA$$') && <span className="inline-block w-12" />} {/* Space for timestamp */}
+                    {/* Time and ticks float to the end of the last line, or
+                        drop to their own line when the text fills it, so
+                        they never sit on top of the words. */}
+                    {!m.content.includes('$$MEDIA$$') && (
+                      <span className={`float-right ml-2.5 mt-[6px] -mb-[3px] inline-flex items-center gap-1 text-[11px] leading-none tabular-nums ${isMe ? 'text-background/65' : 'text-muted-foreground'}`}>
+                        {m.is_edited && <span>edited</span>}
+                        {time}
+                        {isMe && <MessageTicks message={m} />}
+                      </span>
+                    )}
                   </p>
                 )}
                 
@@ -404,13 +404,24 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                   </div>
                 )}
                 
-                {m.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
-                
-                <span className={`absolute bottom-1.5 right-3 flex items-center gap-1 text-[11px] tabular-nums ${isMe ?'text-background/65' : 'text-muted-foreground'}`}>
-                  {m.is_edited && <span>edited</span>}
-                  {time}
-                  {isMe && <MessageTicks message={m} />}
-                </span>
+                {/* Media and cards: time and ticks on their own line under them. */}
+                {(m.content.includes('$$MEDIA$$') || fundLink || m.content.startsWith('ACCEPTED_TUTOR_INVITE:') || m.content.startsWith('REJECTED_TUTOR_INVITE:') || m.content.startsWith('CLUB_REQUEST:') || m.content.startsWith('TUTOR_INVITE:')) && (
+                  <span className={`mt-1 flex items-center justify-end gap-1 text-[11px] leading-none tabular-nums ${isMe ? 'text-background/65' : 'text-muted-foreground'}`}>
+                    {m.is_edited && <span>edited</span>}
+                    {time}
+                    {isMe && <MessageTicks message={m} />}
+                  </span>
+                )}
+
+                {/* Desktop: the message menu on hover, without taking up any room. */}
+                <button
+                  type="button"
+                  onClick={(event) => { event.stopPropagation(); setActionsOpen(true); }}
+                  aria-label="Message options"
+                  className={`absolute top-1/2 hidden h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm ring-1 ring-border transition-opacity hover:text-foreground group-hover/row:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:grid ${isMe ? '-left-10' : '-right-10'}`}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
 
                 {/* Tap outside overlay */}
                 {(showEmojiPicker || showFullPicker) && (
@@ -467,8 +478,33 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
               </div>
 
               {viewer && (
-                <ImageLightbox mediaUrls={viewer.urls} initialIndex={viewer.index} isOpen onClose={() => setViewer(null)} />
+                <ImageLightbox
+                  mediaUrls={viewer.urls}
+                  initialIndex={viewer.index}
+                  isOpen
+                  onClose={() => setViewer(null)}
+                  allowDownload
+                  sender={{
+                    name: isMe ? 'You' : otherUser?.full_name || otherUser?.username || 'Photo',
+                    avatarUrl: isMe ? currentUser?.avatar_url : otherUser?.avatar_url,
+                    time: new Date(m.created_at).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' }),
+                  }}
+                  onReply={(text: string) => onReplyText?.(m, text)}
+                />
               )}
+
+              <MessageActionsSheet
+                open={actionsOpen}
+                onOpenChange={setActionsOpen}
+                message={m}
+                isMe={isMe}
+                highlighted={highlighted}
+                onReact={(emoji: string) => onReact(m.id, emoji)}
+                onReply={() => onReply(m)}
+                onEdit={() => startEditing(m)}
+                onForward={() => onForward?.(m)}
+                onToggleHighlight={() => onToggleHighlight?.(m)}
+              />
 
               {/* Reactions display */}
               {Object.keys(groupedReactions).length > 0 && (
@@ -505,6 +541,33 @@ function ChatViewPage() {
   const typingToMe = useInboxTyping(currentUserProfile?.id);
   const otherTyping = typingToMe.has(id);
   const { notifyTyping, stopTyping } = useSendTypingTo(id, currentUserProfile?.id);
+
+  // Highlighted messages (private to me) and the message being forwarded.
+  const [forwarding, setForwarding] = useState<any | null>(null);
+  const { data: highlightIds = new Set<string>(), refetch: refetchHighlights } = useQuery({
+    queryKey: ["message-highlights", currentUserProfile?.id],
+    enabled: Boolean(currentUserProfile?.id),
+    queryFn: async () => {
+      const { data } = await supabase.from("message_highlights").select("message_id");
+      return new Set<string>((data || []).map((row: { message_id: string }) => row.message_id));
+    },
+  });
+  const toggleHighlight = async (message: any) => {
+    if (!currentUserProfile?.id || String(message.id).startsWith("pending-")) return;
+    const on = highlightIds.has(message.id);
+    const { error } = on
+      ? await supabase.from("message_highlights").delete().eq("message_id", message.id).eq("profile_id", currentUserProfile.id)
+      : await supabase.from("message_highlights").insert({ message_id: message.id, profile_id: currentUserProfile.id });
+    if (error) return toast.error("Could not update the highlight");
+    toast.success(on ? "Highlight removed" : "Message highlighted");
+    void refetchHighlights();
+  };
+  // Replying from the photo viewer: sends the text as a reply to that photo.
+  const replyWithText = async (message: any, text: string) => {
+    const saved = await sendMessageAction({ receiverId: id, content: text, reply_to_id: message.id });
+    setMessages((previous) => (previous.some((m) => m.id === saved.id) ? previous : [...previous, saved]));
+    void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+  };
   const navigate = useNavigate();
 
   const { data: otherUser } = useQuery({
@@ -512,7 +575,10 @@ function ChatViewPage() {
     queryFn: async () => {
       const { data } = await supabase.from('profiles').select('*').eq('id', id).single();
       return data;
-    }
+    },
+    // Keeps "Online" / "last seen" current while the chat is open.
+    refetchInterval: 30_000,
+    staleTime: 15_000,
   });
 
   const { data: loadedMessages, isLoading: messagesLoading } = useQuery({
@@ -1000,7 +1066,7 @@ function ChatViewPage() {
   const presence = (() => {
     if (otherTyping) return { tone: 'typing', label: 'typing' };
     if (isSupportChat) return { tone: 'support', label: 'Official Zero Club support' };
-    if (otherOnline) return { tone: 'active', label: 'Online' };
+    if (otherOnline || isRecentlySeen(otherUser?.last_seen_at)) return { tone: 'active', label: 'Online' };
     return { tone: 'offline', label: lastSeenLabel(otherUser?.last_seen_at) || 'Tap for profile' };
   })();
 
@@ -1179,11 +1245,16 @@ function ChatViewPage() {
             messages={messages}
             onReply={(msg: any) => { setReplyingTo(msg); setEditingId(null); setInput(""); }}
             onReact={handleReact}
-            currentUser={{ id: currentUserId }}
+            currentUser={{ id: currentUserId, avatar_url: currentUserProfile?.avatar_url }}
+            highlighted={highlightIds.has(m.id)}
+            onToggleHighlight={toggleHighlight}
+            onForward={(msg: any) => setForwarding(msg)}
+            onReplyText={replyWithText}
           />
           </React.Fragment>
           );
         })}
+        <ForwardSheet message={forwarding} onClose={() => setForwarding(null)} />
         {/* The other person is writing: a bubble on their side, like WhatsApp. */}
         {otherTyping && (
           <div className="mt-1 flex items-end gap-2" aria-live="polite" aria-label={`${otherUserDisplayName || 'They'} is typing`}>

@@ -3472,6 +3472,7 @@ function ClubChat() {
                   getRoleColor={getRoleColor}
                   room={activeRoom}
                   isAdmin={isAdmin}
+                  onReplyText={(text: string) => handleSendMessage(text, m.id)}
                 />
               </Fragment>
             ))}
@@ -5023,6 +5024,7 @@ function MessageBubble({
   getRoleColor,
   room,
   isAdmin,
+  onReplyText,
 }: any) {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const canEdit = Boolean(
@@ -5994,7 +5996,21 @@ function MessageBubble({
           )}
         </div>
       </div>
-      {viewerUrl && <ImageLightbox mediaUrls={[viewerUrl]} initialIndex={0} isOpen onClose={() => setViewerUrl(null)} />}
+      {viewerUrl && (
+        <ImageLightbox
+          mediaUrls={[viewerUrl]}
+          initialIndex={0}
+          isOpen
+          onClose={() => setViewerUrl(null)}
+          allowDownload
+          sender={{
+            name: isMe ? "You" : message.profiles?.full_name || message.profiles?.username || "Member",
+            avatarUrl: message.profiles?.avatar_url,
+            time: new Date(message.created_at).toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" }),
+          }}
+          onReply={onReplyText ? (text: string) => onReplyText(text) : undefined}
+        />
+      )}
     </div>
   );
 }

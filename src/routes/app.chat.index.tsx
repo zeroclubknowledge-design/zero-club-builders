@@ -317,7 +317,7 @@ function ChatInboxPage() {
                   (chat.user?.full_name || chat.user?.username || "U").substring(0, 1).toUpperCase()
                 )}
               </div>
-              {onlineIds.has(chat.user?.id) && (
+              {(onlineIds.has(chat.user?.id) || chat.status === 'online') && (
                 <span
                   className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-[2.5px] border-card bg-success"
                   aria-label="Online"

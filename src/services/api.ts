@@ -762,7 +762,7 @@ export const claimQuestRewardAction = async ({ data: questId }: { data: string }
 };
 
 // Send a message
-export const sendMessageAction = async ({ receiverId, content, reply_to_id }: { receiverId: string; content: string; reply_to_id?: string }) => {
+export const sendMessageAction = async ({ receiverId, content, reply_to_id, forwarded }: { receiverId: string; content: string; reply_to_id?: string; forwarded?: boolean }) => {
   const { data: { session } } = await getCachedSession();
   const user = session?.user;
   if (!user) throw new Error("Unauthorized");
@@ -773,7 +773,8 @@ export const sendMessageAction = async ({ receiverId, content, reply_to_id }: { 
       sender_id: user.id, 
       receiver_id: receiverId, 
       content,
-      reply_to_id
+      reply_to_id,
+      ...(forwarded ? { forwarded: true } : {})
     }])
     .select()
     .single();
@@ -877,7 +878,7 @@ export const getConversations = async () => {
 
   const { data, error } = await supabase
     .from('messages')
-    .select('*, sender:sender_id(id, username, full_name, avatar_url, updated_at), receiver:receiver_id(id, username, full_name, avatar_url, updated_at)')
+    .select('*, sender:sender_id(id, username, full_name, avatar_url, updated_at, last_seen_at), receiver:receiver_id(id, username, full_name, avatar_url, updated_at, last_seen_at)')
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .not('content', 'like', 'CLUB_REQUEST:%')
     .not('content', 'eq', 'DISMISSED_CLUB_REQUEST')
@@ -907,13 +908,10 @@ export const getConversations = async () => {
     const otherUser = msg.sender_id === user.id ? msg.receiver : msg.sender;
     if (otherUser) {
       if (!conversationsMap.has(otherUser.id)) {
-        const lastSeen = otherUser.updated_at ? new Date(otherUser.updated_at).getTime() : 0;
-        const now = Date.now();
-        const diffMins = (now - lastSeen) / (1000 * 60);
-        
-        let status = 'offline';
-        if (diffMins < 5) status = 'online';
-        else if (diffMins < 15) status = 'away';
+        // Online = the app checked in within the last 90 seconds (it does
+        // every 45s while open). Live presence refines this in the inbox.
+        const lastSeen = otherUser.last_seen_at ? new Date(otherUser.last_seen_at).getTime() : 0;
+        const status = Date.now() - lastSeen < 90_000 ? 'online' : 'offline';
 
         conversationsMap.set(otherUser.id, {
           id: otherUser.id,

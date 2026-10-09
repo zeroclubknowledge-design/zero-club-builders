@@ -62,13 +62,19 @@ export function useBroadcastOnline(userId?: string | null) {
           if (document.visibilityState === "visible") show();
         }
       });
-    const onVisibility = () => (document.visibilityState === "visible" ? show() : hide());
+    // Check in straight away and keep checking in, whether or not the live
+    // channel connects: "online" also counts anyone seen in the last 90s.
+    void supabase.rpc("touch_last_seen");
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void supabase.rpc("touch_last_seen");
+      return document.visibilityState === "visible" ? show() : hide();
+    };
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pagehide", hide);
     // Keeps "last seen" fresh while the app stays open.
     const beat = window.setInterval(() => {
       if (document.visibilityState === "visible") void supabase.rpc("touch_last_seen");
-    }, 60_000);
+    }, 45_000);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", hide);
@@ -97,6 +103,11 @@ export function useOnlineSet() {
     () => online,
     () => online,
   );
+}
+
+/** Checked in within the last 90 seconds: still online, even if the live channel missed them. */
+export function isRecentlySeen(iso?: string | null) {
+  return Boolean(iso && Date.now() - new Date(iso).getTime() < 90_000);
 }
 
 /** "last seen 5m ago", "last seen yesterday at 21:04". */
