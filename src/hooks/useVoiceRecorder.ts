@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useVoiceRecorder(onRecorded: (file: File) => void) {
   const [isRecording, setIsRecording] = useState(false);
@@ -8,24 +8,29 @@ export function useVoiceRecorder(onRecorded: (file: File) => void) {
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const onRecordedRef = useRef(onRecorded);
+  const startedAtRef = useRef(0);
 
   useEffect(() => {
     onRecordedRef.current = onRecorded;
   }, [onRecorded]);
 
   const stopRecording = useCallback(() => {
-    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
   }, []);
 
   const startRecording = useCallback(async () => {
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      throw new Error('Voice recording is not supported on this device.');
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      throw new Error("Voice recording is not supported on this device.");
     }
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const preferredType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
-      .find((type) => MediaRecorder.isTypeSupported(type));
-    const recorder = new MediaRecorder(stream, preferredType ? { mimeType: preferredType } : undefined);
+    const preferredType = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"].find(
+      (type) => MediaRecorder.isTypeSupported(type),
+    );
+    const recorder = new MediaRecorder(
+      stream,
+      preferredType ? { mimeType: preferredType } : undefined,
+    );
 
     streamRef.current = stream;
     recorderRef.current = recorder;
@@ -36,11 +41,16 @@ export function useVoiceRecorder(onRecorded: (file: File) => void) {
       if (event.data.size > 0) chunksRef.current.push(event.data);
     };
     recorder.onstop = () => {
-      const mimeType = recorder.mimeType || preferredType || 'audio/webm';
-      const extension = mimeType.includes('ogg') ? 'ogg' : 'webm';
+      const mimeType = recorder.mimeType || preferredType || "audio/webm";
+      const extension = mimeType.includes("ogg") ? "ogg" : "webm";
       const blob = new Blob(chunksRef.current, { type: mimeType });
+      // The length goes into the name: WebM files don't record their own
+      // length, and the voice note player reads it from here.
+      const seconds = Math.max(1, Math.round((Date.now() - startedAtRef.current) / 1000));
       if (blob.size > 0) {
-        onRecordedRef.current(new File([blob], `voice-note-${Date.now()}.${extension}`, { type: mimeType }));
+        onRecordedRef.current(
+          new File([blob], `voice-note-${Date.now()}-${seconds}s.${extension}`, { type: mimeType }),
+        );
       }
       stream.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -52,46 +62,63 @@ export function useVoiceRecorder(onRecorded: (file: File) => void) {
       setRecordingSeconds(0);
     };
 
+    startedAtRef.current = Date.now();
     recorder.start(250);
     setIsRecording(true);
-    timerRef.current = window.setInterval(() => setRecordingSeconds((seconds) => seconds + 1), 1000);
+    timerRef.current = window.setInterval(
+      () => setRecordingSeconds((seconds) => seconds + 1),
+      1000,
+    );
   }, []);
 
-  useEffect(() => () => {
-    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    if (timerRef.current) window.clearInterval(timerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      if (timerRef.current) window.clearInterval(timerRef.current);
+    },
+    [],
+  );
 
   return { isRecording, recordingSeconds, startRecording, stopRecording };
 }
 
 export const getChatMediaType = (file: File) => {
-  if (file.type.startsWith('image/')) return 'image';
-  if (file.type.startsWith('video/')) return 'video';
-  if (file.type.startsWith('audio/')) return 'audio';
-  return 'file';
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return "file";
 };
 
 export const encodeChatMedia = (type: string, url: string, name: string) =>
   `${type}|${encodeURIComponent(name)}|${url}`;
 
 export const decodeChatMedia = (token: string) => {
-  const [explicitType, encodedName, ...urlParts] = token.split('|');
-  if (urlParts.length > 0 && ['image', 'video', 'audio', 'file'].includes(explicitType)) {
-    return { type: explicitType, name: decodeURIComponent(encodedName || 'Attachment'), url: urlParts.join('|') };
+  const [explicitType, encodedName, ...urlParts] = token.split("|");
+  if (urlParts.length > 0 && ["image", "video", "audio", "file"].includes(explicitType)) {
+    return {
+      type: explicitType,
+      name: decodeURIComponent(encodedName || "Attachment"),
+      url: urlParts.join("|"),
+    };
   }
 
   const url = token;
-  const cleanUrl = url.split('?')[0].toLowerCase();
+  const cleanUrl = url.split("?")[0].toLowerCase();
   const type = /\.(mp3|m4a|wav|aac|flac)$/.test(cleanUrl)
-    ? 'audio'
+    ? "audio"
     : /\.(mp4|mov|m4v)$/.test(cleanUrl)
-      ? 'video'
+      ? "video"
       : /\.(jpg|jpeg|png|gif|webp|avif|svg)$/.test(cleanUrl)
-        ? 'image'
+        ? "image"
         : /\.webm$/.test(cleanUrl)
-          ? 'video'
-          : 'file';
-  return { type, name: decodeURIComponent(url.split('/').pop()?.split('?')[0] || 'Attachment'), url };
+          ? /voice-note/.test(cleanUrl)
+            ? "audio"
+            : "video"
+          : "file";
+  return {
+    type,
+    name: decodeURIComponent(url.split("/").pop()?.split("?")[0] || "Attachment"),
+    url,
+  };
 };

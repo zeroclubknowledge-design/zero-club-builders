@@ -1,4 +1,9 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
+import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
+import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
+import { ImageLightbox } from "@/components/ImageLightbox";
+import { useOnlineSet } from "@/lib/realtime/presence";
+import { typingLabel, useTyping } from "@/lib/realtime/typing";
 import { contentPreview } from "@/lib/contentPreview";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
@@ -175,11 +180,16 @@ function ClubMessageComposer({
   onSend,
   members = [],
   avatar,
+  onTyping,
+  onStopTyping,
 }: {
   placeholder: string;
   hasMedia: boolean;
   controls: ReactNode;
   onSend: (text: string) => Promise<boolean>;
+  /** Called as the person types, so others see "typing…". */
+  onTyping?: () => void;
+  onStopTyping?: () => void;
   members?: any[];
   /** Rendered inside the composer, not beside it. */
   avatar?: ReactNode;
@@ -258,6 +268,7 @@ function ClubMessageComposer({
 
   const submit = async () => {
     if ((!draft.trim() && !hasMedia) || sending) return;
+    onStopTyping?.();
     const text = draft;
     setDraft("");
     setMentionQuery(null);
@@ -284,6 +295,8 @@ function ClubMessageComposer({
         peopleLabel="In this club"
         onChange={(event) => {
           setDraft(event.target.value);
+          if (event.target.value.trim()) onTyping?.();
+          else onStopTyping?.();
           event.target.style.height = "auto";
           event.target.style.height = `${Math.min(event.target.scrollHeight, 80)}px`;
         }}
@@ -359,12 +372,6 @@ const giveawayPrizeLine = (g: ClubGiveaway, money: (n: number) => string) =>
         ? `${money(g.amountPerWinner)} per winner`
         : g.prize || "";
 
-const isUserOnline = (profile: any) => {
-  if (!profile || !profile.updated_at) return false;
-  const lastSeen = new Date(profile.updated_at);
-  const diffMins = (new Date().getTime() - lastSeen.getTime()) / 60000;
-  return diffMins < 15;
-};
 
 function ClubChat() {
   const navigate = useNavigate();
@@ -381,6 +388,13 @@ function ClubChat() {
   const [club, setClub] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { data: currentUserProfile, refetch: refetchCurrentUser } = useUser();
+  // Who else in this room is typing right now (one channel per club room).
+  const { typists: roomTypists, notifyTyping, stopTyping } = useTyping(
+    club?.id ? `club:${club.id}:${activeRoom}` : null,
+    { id: currentUserProfile?.id, name: currentUserProfile?.full_name || currentUserProfile?.username },
+  );
+  // Real online status, from the app-wide presence channel.
+  const onlineSet = useOnlineSet();
   const { details: walletCurrency, format: formatWalletAmount, toBaseAmount } = useWalletCurrency();
   const [showMembers, setShowMembers] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
@@ -1043,7 +1057,15 @@ function ClubChat() {
   const handleChatMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const newFiles = Array.from(files);
+    const newFiles = Array.from(files).filter((file) => {
+      // Too big to upload: say so now, not after a long failed upload.
+      if (file.size > UPLOAD_LIMIT_MB * 1024 * 1024) {
+        toast.error(tooLargeMessage(file));
+        return false;
+      }
+      return true;
+    });
+    if (newFiles.length === 0) return;
     setMediaFiles((prev) => [...prev, ...newFiles]);
     newFiles.forEach((file) => {
       const reader = new FileReader();
@@ -1563,7 +1585,7 @@ function ClubChat() {
     }
   };
 
-  const onlineMembersCount = members.filter((m) => isUserOnline(m.profiles)).length;
+  const onlineMembersCount = members.filter((m) => onlineSet.has(m.profiles?.id || m.profile_id)).length;
 
   // --- Grandfathering & Grace Period Logic ---
   const isCreator = club?.creator_id === currentUser?.id;
@@ -2532,7 +2554,7 @@ function ClubChat() {
                                       </span>
                                     )}
                                   </span>
-                                  {isUserOnline(m.profiles) && (
+                                  {onlineSet.has(m.profiles?.id || m.profile_id) && (
                                     <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-[#1a7f4b]" />
                                   )}
                                 </button>
@@ -3636,6 +3658,26 @@ function ClubChat() {
           keyboard causes. */}
       {!["assignments", "announcements", "q-and-a", QUIZ_ROOM].includes(activeRoom) && (
         <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
+          {/* "Ada is typing…", WhatsApp-style, just above the box. */}
+          {roomTypists.length > 0 && (
+            <div className="mb-1.5 flex" aria-live="polite">
+              <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-background/95 py-1 pl-1.5 pr-3 text-[12.5px] font-medium text-muted-foreground shadow-[0_6px_18px_-10px_rgba(0,0,0,0.5)] backdrop-blur">
+                <span className="flex -space-x-1.5">
+                  {roomTypists.slice(0, 3).map((typist) => {
+                    const member = members.find((m: any) => m.profile_id === typist.id || m.profiles?.id === typist.id);
+                    const avatarUrl = member?.profiles?.avatar_url;
+                    return (
+                      <span key={typist.id} className="grid h-5 w-5 place-items-center overflow-hidden rounded-full bg-foreground/[0.08] text-[9px] font-bold ring-2 ring-background">
+                        {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : typist.name.charAt(0).toUpperCase()}
+                      </span>
+                    );
+                  })}
+                </span>
+                <span className="truncate">{typingLabel(roomTypists)}</span>
+                <span className="zc-typing-dots inline-flex items-center gap-[3px] text-[#cc208f]"><span /><span /><span /></span>
+              </span>
+            </div>
+          )}
           {replyingTo && (
             /* Solid on purpose: messages scroll underneath the composer, and a
              see-through bar let them show through the reply preview. */
@@ -3670,7 +3712,7 @@ function ClubChat() {
                   className={`relative shrink-0 overflow-hidden rounded-lg border border-border bg-card ${mediaFiles[idx]?.type.startsWith("audio/") || (!mediaFiles[idx]?.type.startsWith("image/") && !mediaFiles[idx]?.type.startsWith("video/")) ? "min-w-[190px] p-2 pr-7" : "h-16 w-16"}`}
                 >
                   {mediaFiles[idx]?.type.startsWith("audio/") ? (
-                    <audio src={preview} controls className="h-10 w-[180px]" />
+                    <VoiceNotePlayer src={preview} name={mediaFiles[idx]?.name} />
                   ) : mediaFiles[idx]?.type.startsWith("video/") ? (
                     <video src={preview} className="h-full w-full object-cover" />
                   ) : mediaFiles[idx]?.type.startsWith("image/") ? (
@@ -3706,6 +3748,8 @@ function ClubChat() {
             hasMedia={mediaFiles.length > 0}
             members={members}
             onSend={(text) => handleSendMessage(text)}
+            onTyping={notifyTyping}
+            onStopTyping={stopTyping}
             avatar={
               <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
                 {currentUserProfile?.avatar_url ? (
@@ -4980,6 +5024,7 @@ function MessageBubble({
   room,
   isAdmin,
 }: any) {
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const canEdit = Boolean(
     isMe && onEdit && !message.pending && !String(message.content || "").startsWith("::ZEROCLUB_"),
   );
@@ -5680,19 +5725,12 @@ function MessageBubble({
                                 className="h-full w-full object-cover"
                               />
                             ) : media.type === "audio" ? (
-                              <div className="flex min-w-0 flex-col gap-2 text-left">
-                                <div className="flex items-center gap-2">
-                                  <Mic className="h-4 w-4 shrink-0" />
-                                  <span className="truncate text-[11px] font-semibold">
-                                    Voice message
-                                  </span>
-                                </div>
-                                <audio
-                                  src={media.url}
-                                  controls
-                                  className="h-10 w-full min-w-[190px]"
-                                />
-                              </div>
+                              <VoiceNotePlayer
+                                src={media.url}
+                                name={media.name}
+                                mine={isMe}
+                                avatarUrl={isMe ? null : message.profiles?.avatar_url}
+                              />
                             ) : media.type === "file" ? (
                               <a
                                 href={media.url}
@@ -5712,7 +5750,11 @@ function MessageBubble({
                                 decoding="async"
                                 src={media.url}
                                 className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90"
-                                onClick={() => window.open(media.url, "_blank")}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  // The app's photo viewer, never a browser tab.
+                                  setViewerUrl(media.url);
+                                }}
                               />
                             )}
                           </div>
@@ -5952,6 +5994,7 @@ function MessageBubble({
           )}
         </div>
       </div>
+      {viewerUrl && <ImageLightbox mediaUrls={[viewerUrl]} initialIndex={0} isOpen onClose={() => setViewerUrl(null)} />}
     </div>
   );
 }

@@ -1,8 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
+import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
+import { ImageLightbox } from "@/components/ImageLightbox";
+import { lastSeenLabel, useIsOnline } from "@/lib/realtime/presence";
+import { useInboxTyping, useSendTypingTo } from "@/lib/realtime/typing";
 import { MentionField } from "@/components/MentionField";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { useGoBack } from "@/hooks/useGoBack";
-import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones } from "@/components/icons/glyphs";
+import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones, CheckCheck, Clock } from "@/components/icons/glyphs";
 import React, { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
@@ -35,7 +40,22 @@ export const Route = createFileRoute("/app/chat/$id")({
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
 
+/**
+ * WhatsApp-style receipts on my messages:
+ * a clock while sending, one tick once saved, two ticks when it has reached
+ * their phone, two pink ticks once they have opened the chat and seen it.
+ */
+function MessageTicks({ message }: { message: any }) {
+  if (message.pending) return <Clock className="h-3 w-3" aria-label="Sending" />;
+  if (message.is_read || message.read_at) {
+    return <CheckCheck className="h-[15px] w-[15px] text-[#ff5fc4]" strokeWidth={2.4} aria-label="Seen" />;
+  }
+  if (message.delivered_at) return <CheckCheck className="h-[15px] w-[15px]" strokeWidth={2.2} aria-label="Delivered" />;
+  return <Check className="h-[14px] w-[14px]" strokeWidth={2.4} aria-label="Sent" />;
+}
+
 function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser, groupStart = true, groupEnd = true }: any) {
+  const [viewer, setViewer] = React.useState<{ urls: string[]; index: number } | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
@@ -367,11 +387,16 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                           {media.type === 'video' ? (
                             <video src={media.url} controls className="h-full w-full object-cover" />
                           ) : media.type === 'audio' ? (
-                            <div className="flex min-w-0 flex-col gap-1.5 text-left"><div className="flex items-center gap-1.5"><Mic className="h-4 w-4 shrink-0" /><span className="truncate text-[13px] font-semibold">Voice message</span></div><audio src={media.url} controls className="h-10 w-full min-w-[190px]" /></div>
+                            <VoiceNotePlayer src={media.url} name={media.name} mine={isMe} avatarUrl={isMe ? null : otherUser?.avatar_url} />
                           ) : media.type === 'file' ? (
                             <a href={media.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 text-left"><FileText className="h-6 w-6 shrink-0" /><span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{media.name}</span><Download className="h-4 w-4 shrink-0" /></a>
                           ) : (
-                            <img loading="lazy" decoding="async" src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={() => window.open(media.url, '_blank')} />
+                            <img loading="lazy" decoding="async" src={media.url} className="h-full w-full cursor-pointer object-cover transition-opacity hover:opacity-90" onClick={(event) => {
+                              event.stopPropagation();
+                              // Opens in the app's photo viewer, never a browser tab.
+                              const images = m.content.split('$$MEDIA$$')[1].split(',').map((t: string) => decodeChatMedia(t)).filter((x: any) => x.type === 'image').map((x: any) => x.url);
+                              setViewer({ urls: images, index: Math.max(0, images.indexOf(media.url)) });
+                            }} />
                           )}
                         </div>
                       );
@@ -381,8 +406,10 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 
                 {m.content.includes('$$MEDIA$$') && <div className="h-4" />} {/* Space for timestamp when media is present */}
                 
-                <span className={`text-[11px] absolute bottom-1.5 right-3 tabular-nums ${isMe ?'text-background/65' : 'text-muted-foreground'}`}>
-                  {time} {m.is_edited && "(edited)"}
+                <span className={`absolute bottom-1.5 right-3 flex items-center gap-1 text-[11px] tabular-nums ${isMe ?'text-background/65' : 'text-muted-foreground'}`}>
+                  {m.is_edited && <span>edited</span>}
+                  {time}
+                  {isMe && <MessageTicks message={m} />}
                 </span>
 
                 {/* Tap outside overlay */}
@@ -439,6 +466,10 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 )}
               </div>
 
+              {viewer && (
+                <ImageLightbox mediaUrls={viewer.urls} initialIndex={viewer.index} isOpen onClose={() => setViewer(null)} />
+              )}
+
               {/* Reactions display */}
               {Object.keys(groupedReactions).length > 0 && (
                 <div className={`flex flex-wrap gap-1 mt-1 ${isMe ?'justify-end' : 'justify-start'}`}>
@@ -469,6 +500,11 @@ function ChatViewPage() {
   const queryClient = useQueryClient();
   const [enterToSend] = useEnterToSend();
   const { data: currentUserProfile } = useUser();
+  // Online status and "typing…" for this conversation.
+  const otherOnline = useIsOnline(id);
+  const typingToMe = useInboxTyping(currentUserProfile?.id);
+  const otherTyping = typingToMe.has(id);
+  const { notifyTyping, stopTyping } = useSendTypingTo(id, currentUserProfile?.id);
   const navigate = useNavigate();
 
   const { data: otherUser } = useQuery({
@@ -640,6 +676,23 @@ function ChatViewPage() {
           event: 'UPDATE',
           schema: 'public',
           table: 'messages',
+          filter: `sender_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          // My message was delivered or seen: update its ticks.
+          const updated = payload.new as any;
+          if (updated.receiver_id !== id) return;
+          setMessages((previous) => previous.map((message) =>
+            message.id === updated.id ? { ...message, ...updated } : message
+          ));
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
           filter: `receiver_id=eq.${currentUserId}`,
         },
         (payload) => {
@@ -685,7 +738,15 @@ function ChatViewPage() {
   const handleChatMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const newFiles = Array.from(files);
+    const newFiles = Array.from(files).filter((file) => {
+      // Too big to upload: say so now, not after a long failed upload.
+      if (file.size > UPLOAD_LIMIT_MB * 1024 * 1024) {
+        toast.error(tooLargeMessage(file));
+        return false;
+      }
+      return true;
+    });
+    if (newFiles.length === 0) return;
     setMediaFiles(prev => [...prev, ...newFiles]);
     newFiles.forEach((file) => {
       const reader = new FileReader();
@@ -739,6 +800,7 @@ function ChatViewPage() {
 
   const handleSendMessage = async () => {
     if ((!input.trim() && mediaFiles.length === 0) || sending) return;
+    stopTyping();
 
     let pendingMessageId: string | null = null;
     const originalInput = input;
@@ -934,13 +996,12 @@ function ChatViewPage() {
     ? "Zero Club Support"
     : otherUser?.full_name || otherUser?.username;
 
+  // Live: "typing…" beats "online" beats "last seen".
   const presence = (() => {
+    if (otherTyping) return { tone: 'typing', label: 'typing' };
     if (isSupportChat) return { tone: 'support', label: 'Official Zero Club support' };
-    const lastSeen = otherUser?.updated_at ? new Date(otherUser.updated_at).getTime() : 0;
-    const diffMins = (Date.now() - lastSeen) / (1000 * 60);
-    if (diffMins < 5) return { tone: 'active', label: 'Active now' };
-    if (diffMins < 15) return { tone: 'away', label: 'Away' };
-    return { tone: 'offline', label: 'Offline' };
+    if (otherOnline) return { tone: 'active', label: 'Online' };
+    return { tone: 'offline', label: lastSeenLabel(otherUser?.last_seen_at) || 'Tap for profile' };
   })();
 
   const dayLabel = (iso: string) => {
@@ -983,8 +1044,9 @@ function ChatViewPage() {
               <span className="truncate">{otherUserDisplayName}</span>
               {isSupportChat && <BadgeCheck className="h-4 w-4 shrink-0 fill-current text-accent" />}
             </span>
-            <span className={`block truncate text-[12px] font-medium ${presence.tone === 'active' ? 'text-success' : 'text-muted-foreground'}`}>
+            <span className={`flex items-center gap-1 truncate text-[12px] font-medium ${presence.tone === 'active' || presence.tone === 'typing' ? 'text-success' : 'text-muted-foreground'}`}>
               {presence.label}
+              {presence.tone === 'typing' && <span className="zc-typing-dots inline-flex items-center gap-[3px]"><span /><span /><span /></span>}
             </span>
           </span>
         </Link>
@@ -1122,6 +1184,17 @@ function ChatViewPage() {
           </React.Fragment>
           );
         })}
+        {/* The other person is writing: a bubble on their side, like WhatsApp. */}
+        {otherTyping && (
+          <div className="mt-1 flex items-end gap-2" aria-live="polite" aria-label={`${otherUserDisplayName || 'They'} is typing`}>
+            <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[11px] font-semibold text-muted-foreground">
+              {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.full_name || otherUser?.username || 'U').substring(0, 1).toUpperCase()}
+            </span>
+            <span className="zc-typing-dots flex h-9 items-center gap-1 rounded-2xl rounded-bl-md bg-foreground/[0.07] px-3.5 text-muted-foreground">
+              <span /><span /><span />
+            </span>
+          </div>
+        )}
       </div>
 
       {/* An overlay, not a footer. The thread keeps the full height and the
@@ -1156,7 +1229,7 @@ function ChatViewPage() {
             {mediaPreviews.map((preview, idx) => (
               <div key={idx} className={`relative shrink-0 overflow-hidden rounded-lg border border-border bg-card ${mediaFiles[idx]?.type.startsWith('audio/') || (!mediaFiles[idx]?.type.startsWith('image/') && !mediaFiles[idx]?.type.startsWith('video/')) ? 'min-w-[190px] p-2 pr-7' : 'h-16 w-16'}`}>
                 {mediaFiles[idx]?.type.startsWith('audio/') ? (
-                  <audio src={preview} controls className="h-10 w-[180px]" />
+                  <VoiceNotePlayer src={preview} name={mediaFiles[idx]?.name} />
                 ) : mediaFiles[idx]?.type.startsWith('video/') ? (
                   <video src={preview} className="h-full w-full object-cover" />
                 ) : mediaFiles[idx]?.type.startsWith('image/') ? (
@@ -1195,6 +1268,8 @@ function ChatViewPage() {
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
+                if (e.target.value.trim()) notifyTyping();
+                else stopTyping();
                 const target = e.target;
                 target.style.height = 'auto';
                 target.style.height = `${Math.min(target.scrollHeight, 80)}px`;

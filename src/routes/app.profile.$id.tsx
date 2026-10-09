@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { plain } from "@/lib/og/core/text";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -590,14 +591,13 @@ function ProfileDetail() {
       <div className="zc-page-width mx-auto w-full max-w-[680px] pt-[calc(3.5rem+env(safe-area-inset-top))] md:pt-2">
         {/* ── Who this is ── */}
         <section className="bg-card pb-4 md:overflow-hidden md:rounded-xl md:border md:border-border">
-          <div className={`relative w-full overflow-hidden bg-[#221d22] ${profile?.banner_url ? "" : "flex aspect-[16/7] items-center justify-center"}`}>
-            {profile?.banner_url ? (
-              // The banner shows whole, at its own shape: no frame, no bars.
-              <img src={profile.banner_url} alt="Profile banner" className="block h-auto w-full" loading="lazy" decoding="async" />
-            ) : (
+          <ProfileBanner
+            url={profile?.banner_url}
+            alt="Profile banner"
+            empty={
               <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(204,32,143,0.35),transparent_60%)]" />
-            )}
-          </div>
+            }
+          />
 
           <div className="relative px-4">
             {/* A slow brand-pink light circling the photo. */}

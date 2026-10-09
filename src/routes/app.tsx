@@ -1,4 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { useBroadcastOnline } from "@/lib/realtime/presence";
+import { useMarkMessagesDelivered } from "@/lib/realtime/receipts";
 import { CreateHub, openCreateSheet } from "@/features/create/CreateHub";
 import { IconZeroAI } from "@/components/icons/zeroAI";
 import {
@@ -815,6 +817,10 @@ function AppLayout() {
   }, []);
 
   const { data: profile, isLoading: profileLoading } = useUser();
+  // Shows this person as online to others while the app is open.
+  useBroadcastOnline(profile?.id);
+  // Two grey ticks for people who message me, as soon as it reaches this phone.
+  useMarkMessagesDelivered(profile?.id);
 
   // Credit a ZeroStart ambassador when this member arrived through their
   // campaign link. The database decides whether it counts (brand-new account,

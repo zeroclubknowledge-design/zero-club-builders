@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -328,20 +329,21 @@ function Profile() {
       <div className="zc-page-width mx-auto max-w-[900px] px-0 pt-[calc(3.5rem+env(safe-area-inset-top))] md:px-6 md:pt-6">
         <div className="relative overflow-hidden bg-background sm:rounded-lg sm:border sm:border-border/60">
           {/* Banner */}
-          <div className={`relative w-full overflow-hidden bg-[#211d21] ${profile?.banner_url ? "" : "flex aspect-[16/7] items-center justify-center"}`}>
-            {profile?.banner_url ? (
-              // The banner shows whole, at its own shape: no frame, no bars.
-              <img src={profile.banner_url} alt="Your banner" className="block h-auto w-full" loading="lazy" decoding="async" />
-            ) : (
-              <img
-                src="/logo.png"
-                alt=""
-                className="h-20 w-20 object-contain opacity-35"
-                loading="lazy"
-                decoding="async"
-              />
-            )}
-          </div>
+          <ProfileBanner
+            url={profile?.banner_url}
+            alt="Your banner"
+            empty={
+              <div className="absolute inset-0 grid place-items-center">
+                <img
+                  src="/logo.png"
+                  alt=""
+                  className="h-20 w-20 object-contain opacity-35"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            }
+          />
 
           {/* Profile Info Section */}
           <div className="relative px-6 pb-6">

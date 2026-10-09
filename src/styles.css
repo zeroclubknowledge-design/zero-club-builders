@@ -1662,3 +1662,22 @@ input[type="radio"],
 @media (prefers-reduced-motion: reduce) {
   .zc-like-pop { animation: none; }
 }
+
+/* WhatsApp-style "typing" dots. */
+@keyframes zc-typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+.zc-typing-dots > span {
+  display: inline-block;
+  height: 5px;
+  width: 5px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: zc-typing-dot 1.2s infinite ease-in-out;
+}
+.zc-typing-dots > span:nth-child(2) { animation-delay: 0.15s; }
+.zc-typing-dots > span:nth-child(3) { animation-delay: 0.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .zc-typing-dots > span { animation: none; opacity: 0.8; }
+}

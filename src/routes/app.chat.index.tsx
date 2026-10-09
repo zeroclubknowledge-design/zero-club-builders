@@ -1,5 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, Edit3, MoreHorizontal, ArrowLeft, CheckCheck, Settings, MessageCircle, BadgeCheck, Headphones, Loader2 } from "@/components/icons/glyphs";
+import { useOnlineSet } from "@/lib/realtime/presence";
+import { useInboxTyping } from "@/lib/realtime/typing";
+import {
+  Search,
+  Edit3,
+  MoreHorizontal,
+  ArrowLeft,
+  CheckCheck,
+  Settings,
+  MessageCircle,
+  BadgeCheck,
+  Headphones,
+  Loader2,
+} from "@/components/icons/glyphs";
 import { useGoBack } from "@/hooks/useGoBack";
 import { getConversations } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +21,12 @@ import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { directMessagePreview } from "@/lib/directMessage";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/app/chat/")({
   component: ChatInboxPage,
@@ -19,7 +37,7 @@ function ChatInboxPage() {
   const goBack = useGoBack("/app");
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<'All' | 'Unread'>('All');
+  const [activeTab, setActiveTab] = useState<"All" | "Unread">("All");
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ["conversations"],
@@ -29,6 +47,9 @@ function ChatInboxPage() {
     refetchInterval: 30000,
   });
   const { data: currentUser } = useUser();
+  // Green dot for who's online, "typing…" for who's writing to me.
+  const onlineIds = useOnlineSet();
+  const typingToMe = useInboxTyping(currentUser?.id);
   const supportConversation = conversations.find((conversation: any) => conversation.isSupport);
 
   useEffect(() => {
@@ -72,13 +93,13 @@ function ChatInboxPage() {
     if (!currentUser) return;
     try {
       const { error } = await supabase
-        .from('messages')
+        .from("messages")
         .update({ is_read: true })
-        .eq('receiver_id', currentUser.id)
-        .eq('is_read', false);
-        
+        .eq("receiver_id", currentUser.id)
+        .eq("is_read", false);
+
       if (error) throw error;
-      
+
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
       toast.success("All messages marked as read!");
     } catch (e) {
@@ -88,23 +109,33 @@ function ChatInboxPage() {
 
   const filteredConversations = useMemo(() => {
     // Completely remove club requests from personal inbox
-    let filtered = conversations.filter((c: any) => !c.isSupport && !c.lastMessage?.startsWith('CLUB_REQUEST:') && c.lastMessage !== 'DISMISSED_CLUB_REQUEST');
-    
+    let filtered = conversations.filter(
+      (c: any) =>
+        !c.isSupport &&
+        !c.lastMessage?.startsWith("CLUB_REQUEST:") &&
+        c.lastMessage !== "DISMISSED_CLUB_REQUEST",
+    );
+
     // Search filtering
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter((c: any) => 
-        c.user?.full_name?.toLowerCase().includes(q) || 
-        c.user?.username?.toLowerCase().includes(q) ||
-        directMessagePreview(c.lastMessage, { sentByCurrentUser: c.lastSenderId === currentUser?.id }).toLowerCase().includes(q)
+      filtered = filtered.filter(
+        (c: any) =>
+          c.user?.full_name?.toLowerCase().includes(q) ||
+          c.user?.username?.toLowerCase().includes(q) ||
+          directMessagePreview(c.lastMessage, {
+            sentByCurrentUser: c.lastSenderId === currentUser?.id,
+          })
+            .toLowerCase()
+            .includes(q),
       );
     }
 
     // Tab filtering
-    if (activeTab === 'Unread') {
+    if (activeTab === "Unread") {
       filtered = filtered.filter((c: any) => c.unread);
     }
-    
+
     return filtered;
   }, [conversations, searchQuery, activeTab, currentUser?.id]);
 
@@ -120,9 +151,15 @@ function ChatInboxPage() {
   }
 
   const preview = (chat: any) =>
-    directMessagePreview(chat.lastMessage, { sentByCurrentUser: chat.lastSenderId === currentUser?.id });
+    directMessagePreview(chat.lastMessage, {
+      sentByCurrentUser: chat.lastSenderId === currentUser?.id,
+    });
   const unreadCount = conversations.filter(
-    (c: any) => c.unread && !c.isSupport && !c.lastMessage?.startsWith('CLUB_REQUEST:') && c.lastMessage !== 'DISMISSED_CLUB_REQUEST',
+    (c: any) =>
+      c.unread &&
+      !c.isSupport &&
+      !c.lastMessage?.startsWith("CLUB_REQUEST:") &&
+      c.lastMessage !== "DISMISSED_CLUB_REQUEST",
   ).length;
 
   return (
@@ -136,10 +173,15 @@ function ChatInboxPage() {
           >
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
-          <h1 className="flex-1 font-display text-[20px] font-semibold text-foreground">Messages</h1>
+          <h1 className="flex-1 font-display text-[20px] font-semibold text-foreground">
+            Messages
+          </h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button aria-label="Message options" className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+              <button
+                aria-label="Message options"
+                className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+              >
                 <MoreHorizontal className="h-[22px] w-[22px]" />
               </button>
             </DropdownMenuTrigger>
@@ -148,13 +190,20 @@ function ChatInboxPage() {
                 <CheckCheck className="h-4 w-4" />
                 <span className="text-sm font-medium">Mark all as read</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate({ to: "/app/chat/settings" })} className="gap-3 py-2.5">
+              <DropdownMenuItem
+                onClick={() => navigate({ to: "/app/chat/settings" })}
+                className="gap-3 py-2.5"
+              >
                 <Settings className="h-4 w-4" />
                 <span className="text-sm font-medium">Message settings</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link to="/app/chat/new" aria-label="New message" className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <Link
+            to="/app/chat/new"
+            aria-label="New message"
+            className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
             <Edit3 className="h-[22px] w-[22px]" />
           </Link>
         </div>
@@ -172,16 +221,18 @@ function ChatInboxPage() {
             />
           </label>
           <div className="mt-2.5 flex gap-2">
-            {(['All', 'Unread'] as const).map((tab) => (
+            {(["All", "Unread"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`h-8 rounded-full px-3.5 text-[14px] font-semibold tap ${
-                  activeTab === tab ? 'bg-foreground text-background' : 'border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]'
+                  activeTab === tab
+                    ? "bg-foreground text-background"
+                    : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
                 }`}
               >
                 {tab}
-                {tab === 'Unread' && unreadCount > 0 ? ` · ${unreadCount}` : ''}
+                {tab === "Unread" && unreadCount > 0 ? ` · ${unreadCount}` : ""}
               </button>
             ))}
           </div>
@@ -189,7 +240,7 @@ function ChatInboxPage() {
       </header>
 
       <div className="zc-page-width flex flex-1 flex-col border-t border-border md:mx-6 md:max-w-[820px]">
-        {supportConversation && activeTab === 'All' && !searchQuery && (
+        {supportConversation && activeTab === "All" && !searchQuery && (
           <Link
             to="/app/chat/$id"
             params={{ id: supportConversation.id }}
@@ -197,7 +248,13 @@ function ChatInboxPage() {
           >
             <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground text-background">
               {supportConversation.user?.avatar_url ? (
-                <img src={supportConversation.user.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                <img
+                  src={supportConversation.user.avatar_url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <Headphones className="h-6 w-6" />
               )}
@@ -205,13 +262,28 @@ function ChatInboxPage() {
             <div className="min-w-0 flex-1 border-b border-border py-3">
               <div className="flex items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-1.5">
-                  <span className={`truncate text-[15px] text-foreground ${supportConversation.unread ? 'font-bold' : 'font-semibold'}`}>Zero Club Support</span>
-                  <span className="shrink-0 rounded bg-foreground/[0.06] px-1.5 py-px text-[11px] font-semibold text-foreground/70">Official</span>
+                  <span
+                    className={`truncate text-[15px] text-foreground ${supportConversation.unread ? "font-bold" : "font-semibold"}`}
+                  >
+                    Zero Club Support
+                  </span>
+                  <span className="shrink-0 rounded bg-foreground/[0.06] px-1.5 py-px text-[11px] font-semibold text-foreground/70">
+                    Official
+                  </span>
                 </span>
-                {supportConversation.unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-label="Unread" />}
+                {supportConversation.unread && (
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent"
+                    aria-label="Unread"
+                  />
+                )}
               </div>
-              <p className={`mt-0.5 truncate text-[14px] ${supportConversation.unread ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
-                {supportConversation.lastMessage ? preview(supportConversation) : "Message the Zero Club team for help"}
+              <p
+                className={`mt-0.5 truncate text-[14px] ${supportConversation.unread ? "font-medium text-foreground" : "text-muted-foreground"}`}
+              >
+                {supportConversation.lastMessage
+                  ? preview(supportConversation)
+                  : "Message the Zero Club team for help"}
               </p>
             </div>
           </Link>
@@ -226,57 +298,101 @@ function ChatInboxPage() {
           >
             <div
               className="relative shrink-0"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate({ to: '/app/profile/$id', params: { id: chat.user?.id } }); }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate({ to: "/app/profile/$id", params: { id: chat.user?.id } });
+              }}
             >
               <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[17px] font-semibold text-muted-foreground">
                 {chat.user?.avatar_url ? (
-                  <img src={chat.user.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                  <img
+                    src={chat.user.avatar_url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
-                  (chat.user?.full_name || chat.user?.username || 'U').substring(0, 1).toUpperCase()
+                  (chat.user?.full_name || chat.user?.username || "U").substring(0, 1).toUpperCase()
                 )}
               </div>
-              {chat.status === 'online' && (
-                <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-[2.5px] border-card bg-success" aria-label="Online" />
+              {onlineIds.has(chat.user?.id) && (
+                <span
+                  className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-[2.5px] border-card bg-success"
+                  aria-label="Online"
+                />
               )}
             </div>
 
             <div className="min-w-0 flex-1 border-b border-border py-3">
               <div className="flex items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-1">
-                  <span className={`truncate text-[15px] text-foreground ${chat.unread ? 'font-bold' : 'font-semibold'}`}>
+                  <span
+                    className={`truncate text-[15px] text-foreground ${chat.unread ? "font-bold" : "font-semibold"}`}
+                  >
                     {chat.user?.full_name || chat.user?.username}
                   </span>
-                  {chat.user?.verified && <BadgeCheck className="h-4 w-4 shrink-0 fill-current text-accent" />}
+                  {chat.user?.verified && (
+                    <BadgeCheck className="h-4 w-4 shrink-0 fill-current text-accent" />
+                  )}
                 </span>
-                <span className={`shrink-0 text-[12px] ${chat.unread ? 'font-semibold text-accent' : 'text-muted-foreground'}`}>{chat.time}</span>
+                <span
+                  className={`shrink-0 text-[12px] ${chat.unread ? "font-semibold text-accent" : "text-muted-foreground"}`}
+                >
+                  {chat.time}
+                </span>
               </div>
               <div className="mt-0.5 flex items-center gap-2">
-                <p className={`min-w-0 flex-1 truncate text-[14px] ${chat.unread ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
-                  {preview(chat)}
-                </p>
-                {chat.unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-label="Unread" />}
+                {typingToMe.has(chat.user?.id) ? (
+                  <p className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-[14px] font-medium text-success">
+                    typing
+                    <span className="zc-typing-dots inline-flex items-center gap-[3px]">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                  </p>
+                ) : (
+                  <p
+                    className={`min-w-0 flex-1 truncate text-[14px] ${chat.unread ? "font-medium text-foreground" : "text-muted-foreground"}`}
+                  >
+                    {preview(chat)}
+                  </p>
+                )}
+                {chat.unread && (
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent"
+                    aria-label="Unread"
+                  />
+                )}
               </div>
             </div>
           </Link>
         ))}
 
-        {filteredConversations.length === 0 && !(supportConversation && activeTab === 'All' && !searchQuery) && (
-          <div className="flex flex-1 flex-col items-center justify-center px-10 py-24 text-center">
-            <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
-              <MessageCircle className="h-6 w-6 text-muted-foreground" />
+        {filteredConversations.length === 0 &&
+          !(supportConversation && activeTab === "All" && !searchQuery) && (
+            <div className="flex flex-1 flex-col items-center justify-center px-10 py-24 text-center">
+              <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
+                <MessageCircle className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="mb-1.5 font-display text-[18px] font-semibold text-foreground">
+                {searchQuery
+                  ? "No matches"
+                  : activeTab === "Unread"
+                    ? "All caught up"
+                    : "No conversations yet"}
+              </h3>
+              <p className="max-w-[260px] text-[14px] leading-relaxed text-muted-foreground">
+                {searchQuery
+                  ? "Try a different name or word."
+                  : activeTab === "Unread"
+                    ? "You have read every message."
+                    : "Start a conversation with someone you follow."}
+              </p>
             </div>
-            <h3 className="mb-1.5 font-display text-[18px] font-semibold text-foreground">
-              {searchQuery ? 'No matches' : activeTab === 'Unread' ? 'All caught up' : 'No conversations yet'}
-            </h3>
-            <p className="max-w-[260px] text-[14px] leading-relaxed text-muted-foreground">
-              {searchQuery
-                ? 'Try a different name or word.'
-                : activeTab === 'Unread'
-                ? 'You have read every message.'
-                : 'Start a conversation with someone you follow.'}
-            </p>
-          </div>
-        )}
+          )}
       </div>
 
       <Link

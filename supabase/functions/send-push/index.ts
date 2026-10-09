@@ -82,9 +82,15 @@ function readableChat(raw: string) {
     const text = content.split("$$MEDIA$$")[0].trim();
     if (text) return text;
     const media = (content.split("$$MEDIA$$")[1] || "").toLowerCase();
-    if (media.startsWith("image") || /\.(jpe?g|png|gif|webp)/.test(media)) return "📷 Photo";
-    if (media.startsWith("video") || /\.(mp4|webm|mov)/.test(media)) return "🎥 Video";
-    if (media.startsWith("audio") || /\.(mp3|m4a|wav|ogg|aac)/.test(media)) return "🎤 Voice note";
+    // The attachment's declared type wins. Voice notes are .webm files, and
+    // checking the extension first used to announce them as "Video".
+    if (media.startsWith("audio") || media.includes("voice-note")) return "🎤 Voice note";
+    if (media.startsWith("image")) return "📷 Photo";
+    if (media.startsWith("video")) return "🎥 Video";
+    if (media.startsWith("file")) return "📎 Attachment";
+    if (/\.(jpe?g|png|gif|webp)/.test(media)) return "📷 Photo";
+    if (/\.(mp3|m4a|wav|ogg|aac)/.test(media)) return "🎤 Voice note";
+    if (/\.(mp4|webm|mov)/.test(media)) return "🎥 Video";
     return "📎 Attachment";
   }
   if (content.startsWith("FUND_LINK:")) return "💸 Sent a wallet fund link";
