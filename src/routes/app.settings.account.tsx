@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, User, Mail, Globe, Trash2, ChevronRight, AlertCircle, Check, Loader2 } from "@/components/icons/glyphs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { toast } from "sonner";
@@ -22,6 +22,16 @@ function AccountSettings() {
   const [isAccountsSheetOpen, setIsAccountsSheetOpen] = useState(false);
   const [newAccountType, setNewAccountType] = useState<string>("");
   const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>([]);
+  const usernameInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus the field only once the sheet has finished sliding up. Focusing
+  // while it animates opens the keyboard mid-animation, and the sheet was
+  // being pushed off the top of the screen, leaving a blank page.
+  useEffect(() => {
+    if (!isSheetOpen) return;
+    const timer = window.setTimeout(() => usernameInputRef.current?.focus({ preventScroll: true }), 420);
+    return () => window.clearTimeout(timer);
+  }, [isSheetOpen]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -109,7 +119,7 @@ function AccountSettings() {
         </section>
 
         <section className="flex flex-col border-b border-border">
-          <Drawer open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <Drawer open={isSheetOpen} onOpenChange={setIsSheetOpen} repositionInputs={false}>
             <DrawerTrigger asChild>
               <button className="flex items-center gap-5 px-5 py-4 transition active:bg-accent/10 text-left group">
                 <div className="shrink-0">
@@ -122,8 +132,8 @@ function AccountSettings() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             </DrawerTrigger>
-            <DrawerContent desktopVariant="panel" hideClose className="h-[90vh] border-none bg-background p-0">
-              <div className="flex h-full flex-col">
+            <DrawerContent desktopVariant="panel" hideClose className="border-none bg-background p-0 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+              <div className="flex flex-col">
                 <DrawerHeader className="flex flex-row items-center justify-between gap-3 space-y-0 px-5 pb-3 pt-1 text-left sm:px-5 sm:pb-3 sm:pt-1">
                   <DrawerTitle className="font-display text-[20px] font-semibold leading-tight sm:text-[20px]">Change username</DrawerTitle>
                   <button
@@ -140,8 +150,15 @@ function AccountSettings() {
                   <div className="relative">
                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-muted-foreground">@</span>
                     <input
-                      autoFocus
+                      ref={usernameInputRef}
                       type="text"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      enterKeyHint="done"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void handleUpdateUsername();
+                      }}
                       value={newUsername}
                       onChange={(e) => setNewUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
                       className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card pl-7 pr-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"

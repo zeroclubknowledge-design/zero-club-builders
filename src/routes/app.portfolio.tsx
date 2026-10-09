@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "@/components/icons/glyphs";
 import { useUser } from "@/hooks/useUser";
 import { Builder } from "@/features/portfolio/Builder";
 import { SetupWizard } from "@/features/portfolio/SetupWizard";
-import { fetchMyPortfolio, fetchPublicPortfolio } from "@/features/portfolio/api";
+import { fetchMyPortfolio, fetchPublicPortfolio, loadPortfolio } from "@/features/portfolio/api";
 
 /**
  * /app/portfolio — the Smart Portfolio builder.
@@ -17,13 +18,26 @@ export const Route = createFileRoute("/app/portfolio")({
 });
 
 function PortfolioPage() {
-  const { data: user, isLoading: userLoading } = useUser() as { data: any; isLoading: boolean };
+  const userQuery = useUser();
+  const user = userQuery.data as any;
+  const userLoading = userQuery.isLoading;
+  const [profileTimedOut, setProfileTimedOut] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!userLoading) {
+      setProfileTimedOut(false);
+      return;
+    }
+    const timeout = setTimeout(() => setProfileTimedOut(true), 12_000);
+    return () => clearTimeout(timeout);
+  }, [userLoading]);
 
   const mine = useQuery({
     queryKey: ["my_portfolio", user?.id],
     enabled: Boolean(user?.id),
-    queryFn: () => fetchMyPortfolio(user.id),
+    retry: false,
+    queryFn: () => loadPortfolio((signal) => fetchMyPortfolio(user.id, signal)),
   });
 
   // The owner's view of the full page, draft or live, from the same RPC the
@@ -34,8 +48,19 @@ function PortfolioPage() {
     // Always fresh on entry: the builder keeps its own copy while open.
     gcTime: 0,
     refetchOnWindowFocus: false,
-    queryFn: () => fetchPublicPortfolio(user.username),
+    retry: false,
+    queryFn: () => loadPortfolio((signal) => fetchPublicPortfolio(user.username, signal)),
   });
+
+  if (profileTimedOut && userLoading) {
+    return (
+      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center">
+        <p className="font-display text-[20px] font-semibold">Couldn't load your account</p>
+        <p className="max-w-sm text-[14px] text-muted-foreground">Please check your connection and try again.</p>
+        <button type="button" onClick={() => void userQuery.refetch()} className="inline-flex h-11 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">Try again</button>
+      </div>
+    );
+  }
 
   if (userLoading || (user && mine.isLoading) || (mine.data && full.isLoading)) {
     return (
@@ -55,6 +80,25 @@ function PortfolioPage() {
         >
           Sign in
         </Link>
+      </div>
+    );
+  }
+
+  if (mine.isError || full.isError) {
+    const failed = mine.isError ? mine : full;
+    return (
+      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center">
+        <p className="font-display text-[20px] font-semibold">Couldn't load your portfolio</p>
+        <p className="max-w-sm text-[14px] text-muted-foreground">
+          {failed.error instanceof Error ? failed.error.message : "Please check your connection and try again."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void failed.refetch()}
+          className="inline-flex h-11 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background"
+        >
+          Try again
+        </button>
       </div>
     );
   }

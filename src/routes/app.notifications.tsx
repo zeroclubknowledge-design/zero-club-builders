@@ -273,7 +273,9 @@ function NotificationsPage() {
 
     const avatarPerson = isActorMe && n.type === 'mention' ? n.recipient : n.isGroup ? n.groupActors[0] : n.actor;
     const avatarId = isActorMe && n.type === 'mention' ? n.recipient_id : avatarPerson?.id || n.actor_id;
-    const isReward = n.type === 'system';
+    const isSystem = n.type === 'system';
+    const isTutorApproval = isSystem && String(n.content || '').includes('approved as a Zero Club Tutor');
+    const hasActor = Boolean(avatarPerson?.id);
 
     return (
       <SwipeToDelete key={n.id} onDelete={() => deleteNotification(n.isGroup ? n.groupIds : [n.id])}>
@@ -284,8 +286,8 @@ function NotificationsPage() {
           }`}
         >
           <div className="relative h-12 w-12">
-            {isReward ? (
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-foreground font-display text-[14px] font-bold text-background">ZP</span>
+            {isSystem && !hasActor ? (
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-foreground font-display text-[14px] font-bold text-background">{isTutorApproval ? 'ZC' : 'ZP'}</span>
             ) : (
               <Link
                 to="/app/profile/$id"
@@ -300,7 +302,7 @@ function NotificationsPage() {
                 )}
               </Link>
             )}
-            {!isReward && (
+            {!isSystem && (
               <span className={`absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 ${unread ? "border-[color-mix(in_oklab,var(--accent)_6%,var(--card))]" : "border-card"} ${ui.bg} ${ui.text}`}>
                 <Icon className="h-2.5 w-2.5" />
               </span>
@@ -309,10 +311,10 @@ function NotificationsPage() {
 
           <div className="min-w-0">
             <p className="text-[14px] leading-[1.4] text-foreground">
-              {!isReward && n.type !== 'gig' && <span className="font-semibold">{renderActors()} </span>}
-              <span>{isReward ? (String(n.content || '').trim() || 'Zero Club update') : n.type === 'gig' ? String(n.content || '').trim() : ui.action}</span>
+              {!isSystem && n.type !== 'gig' && <span className="font-semibold">{renderActors()} </span>}
+              <span>{isSystem ? (String(n.content || '').trim() || 'Zero Club update') : n.type === 'gig' ? String(n.content || '').trim() : ui.action}</span>
             </p>
-            {n.content && !isReward && n.type !== 'gig' && (
+            {n.content && !isSystem && n.type !== 'gig' && (
               <p className="mt-1 line-clamp-2 text-[13px] leading-[1.4] text-muted-foreground">“{renderText(n)}”</p>
             )}
             {n.type === 'follow' && !isActorMe && n.actor_id && <FollowBack userId={n.actor_id} />}

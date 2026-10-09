@@ -17,7 +17,7 @@ import {
 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useProfileCredentials } from "@/features/profile/credentials";
-import { createPortfolio, fetchMyCandidates } from "./api";
+import { createPortfolio, fetchMyCandidates, loadPortfolio } from "./api";
 import { clip, postImages } from "./parse";
 import { recommendWork, toolsFrom, type Recommendation } from "./recommend";
 import type { Portfolio } from "./types";
@@ -36,7 +36,8 @@ export function SetupWizard({
 }) {
   const candidates = useQuery({
     queryKey: ["portfolio_candidates", profile.id],
-    queryFn: () => fetchMyCandidates(profile.id),
+    retry: false,
+    queryFn: () => loadPortfolio((signal) => fetchMyCandidates(profile.id, signal)),
   });
   const credentials = useProfileCredentials(profile.id);
   const experiences = credentials.data?.experiences || [];
@@ -127,6 +128,24 @@ export function SetupWizard({
           >
             Set a username
           </Link>
+        }
+      />
+    );
+  }
+
+  if (candidates.isError) {
+    return (
+      <Empty
+        title="Couldn't scan your work"
+        body={candidates.error instanceof Error ? candidates.error.message : "Please try again."}
+        action={
+          <button
+            type="button"
+            onClick={() => void candidates.refetch()}
+            className="inline-flex h-11 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background"
+          >
+            Try again
+          </button>
         }
       />
     );

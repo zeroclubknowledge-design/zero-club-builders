@@ -2,24 +2,38 @@ import { supabase } from "@/lib/supabase";
 import type { Candidate } from "./recommend";
 import type { Portfolio, PortfolioItem, PortfolioLookup } from "./types";
 
+export async function loadPortfolio<T>(request: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12_000);
+  try {
+    return await request(controller.signal);
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("The portfolio took too long to load. Please try again.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Data access for the Smart Portfolio. Every write goes through RLS:
  * owners can only touch their own portfolio, and only add their own posts.
  */
 
-export async function fetchPublicPortfolio(username: string): Promise<PortfolioLookup> {
+export async function fetchPublicPortfolio(username: string, signal?: AbortSignal): Promise<PortfolioLookup> {
   const { data, error } = await supabase.rpc("get_public_portfolio" as any, {
     p_username: username,
-  });
+  }).abortSignal(signal ?? new AbortController().signal);
   if (error) throw error;
   return (data || { found: false }) as PortfolioLookup;
 }
 
-export async function fetchMyPortfolio(profileId: string): Promise<Portfolio | null> {
+export async function fetchMyPortfolio(profileId: string, signal?: AbortSignal): Promise<Portfolio | null> {
   const { data, error } = await supabase
     .from("portfolios" as any)
     .select("*")
     .eq("profile_id", profileId)
+    .abortSignal(signal ?? new AbortController().signal)
     .maybeSingle();
   if (error) throw error;
   return (data as unknown as Portfolio) || null;
@@ -29,7 +43,7 @@ const POST_FIELDS =
   "id, content, media_urls, likes_count, comments_count, created_at, is_build_post, is_verified_build, version_label, project_root_id";
 
 /** Everything the owner has published to everyone, with version counts on each project. */
-export async function fetchMyCandidates(profileId: string): Promise<Candidate[]> {
+export async function fetchMyCandidates(profileId: string, signal?: AbortSignal): Promise<Candidate[]> {
   const { data, error } = await supabase
     .from("posts")
     .select(POST_FIELDS)
@@ -37,7 +51,8 @@ export async function fetchMyCandidates(profileId: string): Promise<Candidate[]>
     .eq("audience", "everyone")
     .is("quoted_post_id", null)
     .order("created_at", { ascending: false })
-    .limit(300);
+    .limit(300)
+    .abortSignal(signal ?? new AbortController().signal);
   if (error) throw error;
   const rows = (data || []) as unknown as Candidate[];
   const versions = new Map<string, number>();

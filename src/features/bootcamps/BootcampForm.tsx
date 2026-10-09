@@ -551,7 +551,7 @@ export function BootcampForm({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-24 text-foreground">
+    <div className="flex min-h-screen flex-col bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] text-foreground md:pb-0">
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-50 bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="zc-page-width mx-auto flex max-w-[1040px] items-center justify-between">
@@ -1311,7 +1311,7 @@ export function BootcampForm({
       </main>
 
       {/* ─── Footer Controls ─── */}
-      <footer className="fixed bottom-0 left-0 right-0 z-50 md:sticky border-t hairline bg-background/95 px-4 py-3 backdrop-blur-xl md:px-7">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 md:sticky border-t hairline bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl md:px-7 md:pb-3">
         <div className="zc-page-width mx-auto flex max-w-[820px] items-center justify-between">
           <button
             onClick={() => step > 1 && setStep(step - 1)}

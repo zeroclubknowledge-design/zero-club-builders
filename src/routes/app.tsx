@@ -1353,6 +1353,13 @@ function AppLayout() {
   const isMyStore = pathname.startsWith("/app/my-store");
   const isWideWorkspace = isInstitutionStudio || isAdminStudio || isTutorStudio || isMyStore || pathname.startsWith("/app/zero-ai") || pathname.startsWith("/app/portfolio");
   const hideHeader = !isFeed;
+  /* Full-screen editors bring their own bottom action bar (Continue, Launch,
+     Publish). The floating tab bar sat on top of it and hid those buttons on
+     phones, so it is left out of these screens entirely. */
+  const isFocusedEditor =
+    pathname.startsWith("/app/tutor-studio/create") ||
+    /^\/app\/bootcamps\/[^/]+\/edit/.test(pathname) ||
+    pathname.startsWith("/app/portfolio");
 
   /*
    * Publish the header's real height as --zc-header-h.
@@ -1603,7 +1610,7 @@ function AppLayout() {
           <Outlet />
         </div>
 
-        {!isAdminStudio && (
+        {!isAdminStudio && !isFocusedEditor && (
           <BottomNav
             pathname={pathname}
             visible={visible}
