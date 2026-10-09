@@ -37,7 +37,7 @@ export type PreviewSpec = {
   accent?: string;
   accent2?: string;
   /** "portfolio" adds a drafting-grid backdrop and a ringed portrait. */
-  variant?: "default" | "portfolio";
+  variant?: "default" | "portfolio" | "photo";
 };
 
 const W = 1200;
@@ -91,20 +91,32 @@ export function fonts() {
   return fontsPromise;
 }
 
-/* ── Images: resized to a small JPEG first, so they are quick to fetch and draw. ── */
-function resized(url: string | null | undefined, size: number) {
-  if (!url) return null;
-  if (url.startsWith("data:")) return url;
-  if (!/^https:\/\//i.test(url)) return null;
-  const params = new URLSearchParams({ url, w: String(size), h: String(size), fit: "cover", output: "jpg", q: "80" });
-  return `https://images.weserv.nl/?${params.toString()}`;
+/* ── Images: converted to a small JPEG first, so they are quick to fetch and draw. ──
+   The renderer only reads JPEG and PNG, and most uploads are WebP. Two
+   converters are asked at once and the first good answer wins: one slow
+   service no longer costs a post its picture. */
+const SUPABASE_PUBLIC = "/storage/v1/object/public/";
+
+function converted(url: string | null | undefined, width: number, height: number): string[] {
+  if (!url) return [];
+  if (url.startsWith("data:")) return [url];
+  if (!/^https:\/\//i.test(url)) return [];
+  const sources: string[] = [];
+  if (url.includes(SUPABASE_PUBLIC)) {
+    const render = url.replace(SUPABASE_PUBLIC, "/storage/v1/render/image/public/");
+    sources.push(`${render}${render.includes("?") ? "&" : "?"}width=${width}&height=${height}&resize=cover&quality=80`);
+  }
+  const params = new URLSearchParams({ url, w: String(width), h: String(height), fit: "cover", output: "jpg", q: "80" });
+  sources.push(`https://images.weserv.nl/?${params.toString()}`);
+  // Already a JPEG or PNG: the original works too.
+  if (/\.(jpe?g|png)(\?|$)/i.test(url)) sources.push(url);
+  return sources;
 }
 
-async function embed(url: string | null): Promise<string | null> {
-  if (!url) return null;
+async function embedOne(url: string): Promise<string | null> {
   if (url.startsWith("data:")) return url;
-  return withTimeout(2500, async (signal) => {
-    const response = await fetch(url, { signal });
+  return withTimeout(4000, async (signal) => {
+    const response = await fetch(url, { signal, headers: { Accept: "image/jpeg,image/png;q=0.9" } });
     const type = response.headers.get("content-type") || "";
     if (!response.ok || !/^image\/(jpe?g|png)/.test(type)) return null;
     const bytes = new Uint8Array(await response.arrayBuffer());
@@ -115,12 +127,28 @@ async function embed(url: string | null): Promise<string | null> {
   });
 }
 
+/** First source to come back as a usable image, or null. */
+function embed(sources: string[]): Promise<string | null> {
+  if (!sources.length) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    let pending = sources.length;
+    for (const source of sources) {
+      void embedOne(source).then((data) => {
+        if (data) resolve(data);
+        else if (--pending === 0) resolve(null);
+      });
+    }
+  });
+}
+
 /** Title size steps down as the title gets longer, so it always fits. */
 const titleSize = (t: string) => (t.length <= 22 ? 72 : t.length <= 40 ? 62 : t.length <= 64 ? 52 : 44);
 
 /** Start fetching the visual for a spec (call early, await in drawCard). */
 export function visualFor(spec: PreviewSpec) {
-  return embed(resized(spec.image, spec.imageShape === "circle" ? 520 : 720));
+  if (spec.variant === "photo") return embed(converted(spec.image, 640, 720));
+  const size = spec.imageShape === "circle" ? 520 : 720;
+  return embed(converted(spec.image, size, size));
 }
 
 export function cardTree(spec: PreviewSpec, visual: string | null, family: string): Node {
@@ -131,6 +159,8 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
   const chips = (spec.chips || []).filter(Boolean).slice(0, 3) as string[];
   const circle = spec.imageShape === "circle";
   const monogram = spec.monogram ? clip(spec.monogram, 2) : null;
+  // A post or project with a picture: the picture leads, filling the right side.
+  const photo = spec.variant === "photo" && Boolean(visual);
 
   return box(
     { width: `${W}px`, height: `${H}px`, position: "relative", fontFamily: family, color: "#ffffff", background: "linear-gradient(160deg, #140a12 0%, #0a0609 55%, #050305 100%)" },
@@ -151,6 +181,14 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
           ),
         ]
       : []),
+    photo
+      ? box(
+          { position: "absolute", top: "24px", right: "24px", bottom: "24px", width: "560px", overflow: "hidden", borderTopRightRadius: "36px", borderBottomRightRadius: "36px" },
+          h("img", { src: visual, width: 560, height: 582, style: { objectFit: "cover" } }),
+          // Fades the picture into the card so the words never sit on a hard edge.
+          box({ position: "absolute", top: "0px", left: "0px", bottom: "0px", width: "260px", background: "linear-gradient(90deg, #0d070b 0%, rgba(13,7,11,0.75) 35%, rgba(13,7,11,0) 100%)" }),
+        )
+      : null,
     // Watermark mark, barely there.
     h("img", { src: ZERO_CLUB_MARK, width: 520, height: 520, style: { position: "absolute", right: "-150px", top: "-120px", opacity: 0.05 } }),
 
@@ -165,7 +203,7 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
           box({ fontSize: "30px", fontWeight: 800, letterSpacing: "-0.5px" }, h("span", {}, "Zero"), h("span", { style: { color: "#ff4fc3", marginLeft: "8px" } }, "Club")),
         ),
         box(
-          { alignItems: "center", gap: "10px", padding: "10px 20px", borderRadius: "999px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", fontSize: "18px", fontWeight: 700, letterSpacing: "3px", color: "rgba(255,255,255,0.85)" },
+          { alignItems: "center", gap: "10px", padding: "10px 20px", borderRadius: "999px", background: photo ? "rgba(10,6,9,0.72)" : "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", fontSize: "18px", fontWeight: 700, letterSpacing: "3px", color: "rgba(255,255,255,0.9)" },
           box({ width: "9px", height: "9px", borderRadius: "999px", background: accent }),
           clip(spec.kicker, 34).toUpperCase(),
         ),
@@ -175,7 +213,7 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
       box(
         { flex: 1, alignItems: "center", justifyContent: "space-between", marginTop: "18px" },
         box(
-          { flexDirection: "column", width: "650px" },
+          { flexDirection: "column", width: photo ? "540px" : "650px" },
           spec.badge
             ? box(
                 { alignSelf: "flex-start", alignItems: "center", gap: "10px", padding: "8px 18px", borderRadius: "999px", background: "#ffffff", color: accent, fontSize: "20px", fontWeight: 800, marginBottom: "20px" },
@@ -183,7 +221,7 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
                 clip(spec.badge, 32),
               )
             : null,
-          box({ fontSize: `${titleSize(title)}px`, fontWeight: 800, lineHeight: 1.06, letterSpacing: "-1.5px" }, title),
+          box({ fontSize: `${photo ? Math.min(titleSize(title), 56) : titleSize(title)}px`, fontWeight: 800, lineHeight: 1.08, letterSpacing: "-1.5px" }, photo ? clip(title, 80) : title),
           subtitle ? box({ marginTop: "18px", fontSize: "26px", fontWeight: 500, lineHeight: 1.4, color: "rgba(255,255,255,0.66)" }, subtitle) : null,
           chips.length
             ? box(
@@ -198,8 +236,8 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
             : null,
         ),
 
-        // The visual, framed and lit from behind.
-        box(
+        // The visual, framed and lit from behind (the photo layout has it already).
+        photo ? null : box(
           { position: "relative", width: "340px", height: "340px", alignItems: "center", justifyContent: "center" },
           box({ position: "absolute", top: "-30px", left: "-30px", width: "400px", height: "400px", borderRadius: "999px", background: `radial-gradient(circle, ${accent}66 0%, transparent 66%)` }),
           visual
@@ -220,7 +258,7 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
       box(
         { alignItems: "center", justifyContent: "space-between" },
         box({ padding: "16px 32px", borderRadius: "999px", background: `linear-gradient(90deg, ${accent} 0%, #ff4fc3 100%)`, fontSize: "24px", fontWeight: 800 }, `${clip(spec.cta || "Open on Zero Club", 30)} →`),
-        box({ fontSize: "22px", fontWeight: 700, letterSpacing: "1px", color: "rgba(255,255,255,0.45)" }, "zeroclubs.xyz"),
+        photo ? null : box({ fontSize: "22px", fontWeight: 700, letterSpacing: "1px", color: "rgba(255,255,255,0.45)" }, "zeroclubs.xyz"),
       ),
     ),
   );

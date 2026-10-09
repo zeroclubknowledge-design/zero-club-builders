@@ -105,6 +105,8 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
         cta: post.is_build_post ? "See the project" : "Read the post",
         image: media || author.avatar_url,
         imageShape: media ? "card" : "circle",
+        // A post with a picture shows that picture, large.
+        variant: media ? "photo" : "default",
         monogram: initial(name),
       };
     }

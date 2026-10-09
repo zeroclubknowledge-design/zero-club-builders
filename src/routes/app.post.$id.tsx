@@ -165,7 +165,8 @@ export const Route = createFileRoute("/app/post/$id")({
     let description = plain(post.content) || "Check out this post on Zero Club";
     description = description.substring(0, 160) + (description.length > 160 ? "..." : "");
 
-    const image = `https://www.zeroclubs.xyz/api/og/post/${post.id}`;
+    // Versioned so apps that cached the older, picture-less card fetch the new one.
+    const image = `https://www.zeroclubs.xyz/api/og/post/${post.id}?v=3`;
 
     return {
       meta: [

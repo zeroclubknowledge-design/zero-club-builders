@@ -4,8 +4,6 @@ import { Link2, Mail, MessageSquare, Share2 } from "@/components/icons/glyphs";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import { copyToClipboard } from "@/lib/share";
 import {
-  rewardWhenSharedToLinkedIn,
-  linkedInRewardFor,
   linkedInShareText,
   linkedInUrl,
   openLinkedInComposer,
@@ -148,11 +146,7 @@ function buildTargets(canNativeShare: boolean): Target[] {
           return;
         }
         // Half the post, then "Continue reading here" and the link back.
-        const shared = await openLinkedInComposer(
-          linkedInShareText(r.linkedin, linkedInUrl(r.url)),
-        );
-        // ZP is paid once they've posted on LinkedIn and come back, not on the tap.
-        if (shared) rewardWhenSharedToLinkedIn(r.linkedin);
+        await openLinkedInComposer(linkedInShareText(r.linkedin, linkedInUrl(r.url)));
       },
     },
     {
@@ -246,12 +240,6 @@ export function ShareSheetHost() {
             <p className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
               <Link2 className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{displayHost(request.url)}</span>
-            </p>
-          )}
-          {request?.linkedin && linkedInRewardFor(request.linkedin) > 0 && (
-            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#0A66C2]/10 px-3 py-1 text-[12.5px] font-semibold text-[#0A66C2] dark:text-[#5aa2ec]">
-              <LinkedInGlyph className="h-4 w-4" />
-              Share to LinkedIn and earn {linkedInRewardFor(request.linkedin)} ZP
             </p>
           )}
         </div>

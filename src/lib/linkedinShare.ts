@@ -1,6 +1,3 @@
-import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
-
 /**
  * Sharing a Zero Club post to LinkedIn, blog-style.
  *
@@ -9,6 +6,9 @@ import { supabase } from "@/lib/supabase";
  * clickable word in a post, so the link sits on its own line right after
  * "Continue reading here 👉", and LinkedIn draws the post's preview card
  * under it. Readers tap through to Zero Club for the rest.
+ *
+ * Sharing earns no ZP. (It used to; that was removed so rewards can't be
+ * farmed by sharing, since LinkedIn never confirms that a post went out.)
  */
 
 export type LinkedInPayload = {
@@ -22,22 +22,9 @@ export type LinkedInPayload = {
   isOwn: boolean;
   /** A shipped project on Zero Proofs. */
   isShip: boolean;
-  /** A quote post. Quote posts earn nothing. */
+  /** A quote post. */
   isQuote?: boolean;
 };
-
-/**
- * ZP for sharing to LinkedIn, mirroring the server: your own post 200, your
- * own shipped project 500, anyone else's post, project or product 50; quote
- * posts and your own product nothing. The server decides; this only labels
- * the share sheet.
- */
-export function linkedInRewardFor(payload: LinkedInPayload): number {
-  if (payload.kind === "product") return payload.isOwn ? 0 : 50;
-  if (payload.isQuote) return 0;
-  if (!payload.isOwn) return 50;
-  return payload.isShip ? 500 : 200;
-}
 
 const MEDIA_MARKER = "$$MEDIA$$";
 /** LinkedIn's limit is 3,000 characters. Leave room for the link. */
@@ -160,72 +147,4 @@ export async function openLinkedInComposer(text: string): Promise<boolean> {
     "noopener,noreferrer",
   );
   return true;
-}
-
-/** Time in LinkedIn that counts as having written and posted. */
-const MIN_TIME_IN_LINKEDIN_MS = 8000;
-/** After this, a share that never came back earns nothing. */
-const SHARE_WINDOW_MS = 15 * 60 * 1000;
-
-/**
- * Pays the ZP only once the person has actually been to LinkedIn and back.
- *
- * LinkedIn never tells another site whether a post went out, so tapping the
- * button can't be the trigger. Instead: Zero Club goes to the background while
- * LinkedIn is open, and the reward is paid when the person returns after
- * spending long enough there to write and post. Popping in and straight back
- * out earns nothing, with a nudge to finish posting.
- */
-export function rewardWhenSharedToLinkedIn(payload: LinkedInPayload) {
-  if (typeof document === "undefined" || linkedInRewardFor(payload) === 0) return;
-  let leftAt: number | null = document.hidden ? Date.now() : null;
-  let nudged = false;
-  const done = () => {
-    document.removeEventListener("visibilitychange", onChange);
-    window.clearTimeout(expiry);
-  };
-  const onChange = () => {
-    if (document.hidden) {
-      leftAt = Date.now();
-      return;
-    }
-    if (leftAt === null) return;
-    const away = Date.now() - leftAt;
-    leftAt = null;
-    if (away >= MIN_TIME_IN_LINKEDIN_MS) {
-      done();
-      void claimLinkedInReward(payload);
-    } else if (!nudged) {
-      nudged = true;
-      toast("Finish your LinkedIn post to earn ZP", {
-        description: `Your ${linkedInRewardFor(payload)} ZP arrives once you've posted and come back.`,
-      });
-    }
-  };
-  document.addEventListener("visibilitychange", onChange);
-  const expiry = window.setTimeout(done, SHARE_WINDOW_MS);
-}
-
-/** Credits the sharer's ZP. Quiet when nothing is due. */
-export async function claimLinkedInReward(payload: LinkedInPayload) {
-  if (linkedInRewardFor(payload) === 0) return;
-  const { data, error } =
-    payload.kind === "product"
-      ? await supabase.rpc("claim_linkedin_product_share_reward", { p_item: payload.postId })
-      : await supabase.rpc("claim_linkedin_share_reward", { p_post: payload.postId });
-  if (error) return;
-  const result = (data || {}) as { awarded?: number; reason?: string };
-  if (result.awarded && result.awarded > 0) {
-    toast.success(`+${result.awarded} ZP for sharing to LinkedIn`, {
-      description: !payload.isOwn
-        ? "Thanks for spreading good work from Zero Club."
-        : payload.isShip
-          ? "Thanks for showing your shipped project to your network."
-          : "Thanks for bringing your network to Zero Club.",
-    });
-  } else if (result.reason === "daily_limit") {
-    toast("You've reached today's LinkedIn rewards", {
-      description: "Shares still go out. Rewards pick up again tomorrow.",
-    });
-  }
 }

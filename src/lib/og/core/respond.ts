@@ -31,12 +31,17 @@ export async function previewResponse(kind: string, rawId: string, url: URL): Pr
   }
 
   const fresh = kind === "game" || kind === "live" ? 600 : 3600;
+  // The picture didn't arrive in time: serve this card, but don't let the CDN
+  // keep it, so the next request tries again instead of repeating it for days.
+  const missedImage = Boolean(spec.image) && !visual;
   return new Response(png, {
     status: 200,
     headers: {
       "Content-Type": "image/png",
       "Content-Length": String(png.byteLength),
-      "Cache-Control": `public, max-age=300, s-maxage=${fresh}, stale-while-revalidate=604800`,
+      "Cache-Control": missedImage
+        ? "public, max-age=0, s-maxage=30, stale-while-revalidate=30"
+        : `public, max-age=300, s-maxage=${fresh}, stale-while-revalidate=604800`,
       "Access-Control-Allow-Origin": "*",
     },
   });

@@ -158,8 +158,7 @@ function StorePage() {
       text: `${item.name || "This product"} on Zero Store`,
       url: storeProductUrl(item.id),
       copiedMessage: "Product link copied",
-      // LinkedIn gets the product's pitch and a link to it. Sharing someone
-      // else's product earns 50 ZP.
+      // LinkedIn gets the product's pitch and a link to it.
       linkedin: {
         kind: "product",
         postId: item.id,
