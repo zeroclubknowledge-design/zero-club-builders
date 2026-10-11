@@ -751,7 +751,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                                         if (error) throw error;
                                         toast.success(`Unfollowed ${getFirstName(comment.profiles)}`);
                                       } else {
-                                        const { error } = await supabase.from('follows').insert([{ follower_id: currentUser.id, following_id: comment.profile_id }]);
+                                        const { error } = await supabase.from('follows').upsert([{ follower_id: currentUser.id, following_id: comment.profile_id }], { onConflict: "follower_id,following_id", ignoreDuplicates: true });
                                         if (error) throw error;
                                         toast.success(`Now following ${getFirstName(comment.profiles)}!`);
                                       }

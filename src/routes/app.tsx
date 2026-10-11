@@ -1306,14 +1306,18 @@ function AppLayout() {
               fee > 0 ? "This club charges to join" : error?.message || "Could not join that club",
               { description: fee > 0 ? "Top up your wallet, then open the link again." : undefined },
             );
-            router.navigate({ to: "/app/clubs" });
+            router.navigate({ to: "/app/clubs", replace: true });
             return;
           }
         }
 
+        // Replace the invite address instead of stacking on top of it. Left in
+        // history, pressing Back landed on it again, which re-ran this join
+        // and pushed the club (and its rules popup) straight back open.
         router.navigate({
           to: "/app/clubs/chat",
           search: { showRules: "true", clubId: clubId },
+          replace: true,
         });
       };
 

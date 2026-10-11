@@ -740,12 +740,18 @@ function ClubChat() {
     };
   }, [activeRoom, club?.id]);
 
-  // Handle invite showRules param
+  // Handle invite showRules param. Shown once, then taken out of the address,
+  // so going back, reloading or re-rendering never brings the popup back.
   useEffect(() => {
     if (showRulesParam === "true") {
       setShowRules(true);
+      navigate({
+        to: "/app/clubs/chat",
+        search: (prev: any) => ({ ...prev, showRules: undefined }),
+        replace: true,
+      });
     }
-  }, [showRulesParam]);
+  }, [showRulesParam, navigate]);
 
   // Auto-resize textareas
   useEffect(() => {

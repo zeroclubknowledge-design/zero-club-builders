@@ -59,7 +59,7 @@ export function SponsoredPostCard({ item, compact = false, preview = false }: { 
         await claim();
       } else if (item.goal === "follow") {
         if (!following) {
-          const { error } = await supabase.from("follows").insert({ follower_id: me.id, following_id: item.author.id });
+          const { error } = await supabase.from("follows").upsert({ follower_id: me.id, following_id: item.author.id }, { onConflict: "follower_id,following_id", ignoreDuplicates: true });
           if (error && !/duplicate/i.test(error.message)) throw error;
           setFollowing(true);
         }

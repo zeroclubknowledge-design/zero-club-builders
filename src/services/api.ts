@@ -559,8 +559,12 @@ export const updateProfileAction = createServerFn({ method: 'POST' }).inputValid
 export const followUserAction = createServerFn({ method: 'POST' }).inputValidator((data: { followerId: string; followingId: string }) => data).handler(async ({ data: { followerId, followingId } }) => {
   const { error } = await supabase
     .from('follows')
-    .insert([{ follower_id: followerId, following_id: followingId }]);
-  if (error) throw new Error(error.message);
+    .upsert([{ follower_id: followerId, following_id: followingId }], {
+      onConflict: 'follower_id,following_id',
+      ignoreDuplicates: true,
+    });
+  // Already following is success, not an error.
+  if (error && error.code !== '23505') throw new Error(error.message);
   return { success: true };
 });
 

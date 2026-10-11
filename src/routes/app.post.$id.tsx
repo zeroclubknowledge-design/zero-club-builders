@@ -582,7 +582,7 @@ function PostDetail() {
       } else {
         const { error } = await supabase
           .from("follows")
-          .insert([{ follower_id: currentUser.id, following_id: comment.profile_id }]);
+          .upsert([{ follower_id: currentUser.id, following_id: comment.profile_id }], { onConflict: "follower_id,following_id", ignoreDuplicates: true });
         if (error) throw error;
       }
 

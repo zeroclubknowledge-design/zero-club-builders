@@ -21,6 +21,8 @@ export function useFollow(targetUserId?: string) {
 
   const refreshEverywhere = (id: string) => {
     queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
+    // useUser reads following_ids from this summary, not from the profile row.
+    queryClient.invalidateQueries({ queryKey: ["profile", "follow-summary"] });
     queryClient.invalidateQueries({ queryKey: ["profile", id] });
     queryClient.invalidateQueries({ queryKey: ["networkStats", id] });
     queryClient.invalidateQueries({ queryKey: ["followStatus", id] });
@@ -34,24 +36,36 @@ export function useFollow(targetUserId?: string) {
     if (!currentUser?.id || !targetUserId || isSelf || loading) return null;
     setLoading(true);
 
-    // Optimistic: flip the id in the cached profile so the UI responds instantly.
+    // Optimistic: flip the id so the button responds instantly. useUser merges
+    // following_ids from the follow summary over the profile, so that is the
+    // copy that has to change — flipping only the profile left the button on
+    // "Follow", and a second tap tried to follow the same person twice.
     const next = !isFollowing;
-    queryClient.setQueryData(["profile", "current"], (old: any) => {
+    const flip = (old: any) => {
       if (!old) return old;
       const ids: string[] = old.following_ids || [];
       return {
         ...old,
-        following_ids: next ? [...ids, targetUserId] : ids.filter((id) => id !== targetUserId),
+        following_ids: next
+          ? Array.from(new Set([...ids, targetUserId]))
+          : ids.filter((id) => id !== targetUserId),
         following_count: Math.max(0, (old.following_count || 0) + (next ? 1 : -1)),
       };
-    });
+    };
+    queryClient.setQueryData(["profile", "current"], flip);
+    queryClient.setQueryData(["profile", "follow-summary", currentUser.id], flip);
 
     try {
       if (next) {
+        // Already following (another tab, a double tap, a stale screen) is
+        // the result we wanted, not an error.
         const { error } = await supabase
           .from("follows")
-          .insert([{ follower_id: currentUser.id, following_id: targetUserId }]);
-        if (error) throw error;
+          .upsert([{ follower_id: currentUser.id, following_id: targetUserId }], {
+            onConflict: "follower_id,following_id",
+            ignoreDuplicates: true,
+          });
+        if (error && error.code !== "23505") throw error;
       } else {
         const { error } = await supabase
           .from("follows")

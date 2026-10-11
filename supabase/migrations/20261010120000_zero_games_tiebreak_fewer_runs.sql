@@ -1,0 +1,17 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration "zero_games_tiebreak_fewer_runs").
+-- Kept as a record. Do not re-run.
+--
+-- Zero Games ranking, every game type:
+--   1. higher best_score first
+--   2. equal score: fewer runs (plays) ranks higher
+--   3. still equal: whoever reached the score first (best_at)
+--
+-- Changed in three places so they always agree:
+--   zero_tournament_detail  - leaderboard row_number() and its ORDER BY
+--                             ("order by p.best_score desc, p.plays asc, p.best_at asc nulls last")
+--   zero_tournament_detail  - the caller's own rank (counts players with a higher score,
+--                             or the same score in fewer runs, or same score and runs but earlier)
+--   settle_zero_tournament  - prize winners ("order by best_score desc, plays asc, best_at asc")
+--
+-- Full function bodies are as in the database; only the ordering above changed
+-- from the previous version (which broke ties on best_at alone).
