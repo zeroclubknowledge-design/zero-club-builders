@@ -546,7 +546,13 @@ function AddMoneyPage() {
                 <button
                   onClick={handleConvertZp}
                   disabled={converting || zpCredit < 1}
-                  className="flex h-10 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-foreground px-3.5 text-[14px] font-semibold disabled:opacity-40"
+                  className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-semibold transition-colors active:scale-[0.98] ${
+                    // Solid Zero Club pink once there's an amount to convert;
+                    // an outline while there isn't.
+                    zpCredit >= 1
+                      ? "border-[1.5px] border-[#cc208f] bg-[#cc208f] text-white hover:bg-[#b01c7b]"
+                      : "border-[1.5px] border-foreground/30 text-foreground disabled:opacity-40"
+                  }`}
                 >
                   {converting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
