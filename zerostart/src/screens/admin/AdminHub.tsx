@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, Pause, Play, Trash2 } from "lucide-react";
+import { ExternalLink, Pause, Play, Trash2 } from "../../components/icons/glyphs";
 import { useAuth } from "@/lib/auth";
 import {
   adminCampaignReviews, adminPayoutPreview, adminReviewCampaign, adminRunPayouts, adminSetCampaignStatus,
@@ -19,7 +19,7 @@ export function AdminHub() {
   const { isAdmin, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("applications");
 
-  if (loading) return <Skeleton className="h-80 rounded-[18px]" />;
+  if (loading) return <Skeleton className="h-80 rounded-[20px]" />;
   if (!isAdmin) return <EmptyState title="Admins only" body="This area is for the Zero Club team." />;
 
   return (
@@ -95,7 +95,7 @@ function CampaignChecks() {
 
       <div className="mt-5">
         {error && <ErrorState message={error} onRetry={load} />}
-        {!error && !rows && <Skeleton className="h-60 rounded-[18px]" />}
+        {!error && !rows && <Skeleton className="h-60 rounded-[20px]" />}
         {rows && rows.length === 0 && (
           <EmptyState
             title={filter === "pending" ? "Nothing to check" : "No campaigns here"}
@@ -327,7 +327,7 @@ function PayoutsAdmin() {
   };
 
   if (error && !rows) return <ErrorState message={error} onRetry={load} />;
-  if (!rows) return <Skeleton className="h-60 rounded-[18px]" />;
+  if (!rows) return <Skeleton className="h-60 rounded-[20px]" />;
 
   return (
     <div>

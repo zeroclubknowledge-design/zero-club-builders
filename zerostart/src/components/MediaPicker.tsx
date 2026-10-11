@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2, Play, X } from "lucide-react";
+import { Image as ImagePlus, Loader2, Play, X } from "./icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { compressImage } from "@/lib/imageCompression";
 

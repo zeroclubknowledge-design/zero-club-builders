@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronRight, Handshake, Users, Wallet } from "lucide-react";
+import { CalendarClock, ChevronRight, HandCoins as Handshake, Users, Wallet } from "../../components/icons/glyphs";
 import { money, type PayoutCurrency } from "@/lib/money";
 import { GOAL_LABEL, PHASE_CLASS, campaignPhase, daysLeft, type CampaignBase, type MyCampaign } from "@/types/campaign";
 

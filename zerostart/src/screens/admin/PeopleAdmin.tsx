@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BadgeCheck, ExternalLink, Gift, MapPin } from "lucide-react";
+import { BadgeCheck, ExternalLink, Gift, MapPin } from "../../components/icons/glyphs";
 import {
   adminAddBonus, adminAmbassadors, adminApplications, adminReviewApplication, adminSetDefaultRate,
   adminUpdateAmbassador, getDefaultRate, type AmbassadorRow, type ApplicationRow,
@@ -62,7 +62,7 @@ export function ApplicationsAdmin() {
       </div>
 
       {error && <p className="mt-4 rounded-xl bg-bad/10 px-4 py-3 text-[13px] font-medium text-bad">{error}</p>}
-      {!rows && !error && <Skeleton className="mt-5 h-60 rounded-[18px]" />}
+      {!rows && !error && <Skeleton className="mt-5 h-60 rounded-[20px]" />}
       {rows && rows.length === 0 && (
         <div className="mt-5"><EmptyState title={status === "pending" ? "No applications waiting" : `No ${status} applications`} body="Applications from people who want to be Zero Ambassadors land here." /></div>
       )}
@@ -175,7 +175,7 @@ export function AmbassadorsAdmin() {
       </section>
 
       {error && <div className="mt-5"><ErrorState message={error} onRetry={load} /></div>}
-      {!rows && !error && <Skeleton className="mt-5 h-60 rounded-[18px]" />}
+      {!rows && !error && <Skeleton className="mt-5 h-60 rounded-[20px]" />}
       {rows && rows.length === 0 && <div className="mt-5"><EmptyState title="No ambassadors yet" body="Approve applications to add ambassadors." /></div>}
 
       {rows && rows.length > 0 && (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ClipboardList, Hourglass, MapPin, Plus, Rocket, Trophy, Wallet } from "lucide-react";
+import { ArrowRight, ClipboardList, Clock as Hourglass, MapPin, Plus, Rocket, Trophy, Wallet } from "../components/icons/glyphs";
 import { useAuth } from "@/lib/auth";
 import { getMe } from "@/lib/ambassadorApi";
 import { getEarnings, getLeaderboard, listMyCampaigns } from "@/lib/campaignApi";
@@ -114,7 +114,7 @@ export function Home() {
         <h2 className="text-[12px] font-bold uppercase tracking-wider text-ink-faint">Your campaigns</h2>
         <Link to="/campaigns" className="text-[12.5px] font-semibold text-accent">All campaigns</Link>
       </div>
-      {!campaigns && <Skeleton className="h-28 rounded-[18px]" />}
+      {!campaigns && <Skeleton className="h-28 rounded-[20px]" />}
       {campaigns && shown.length === 0 && (
         <Card className="flex items-center gap-4 p-5">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent">
@@ -151,7 +151,7 @@ export function Home() {
             );
           })}
           {canStart && (
-            <button onClick={() => setForm({})} className="flex h-12 w-full items-center justify-center gap-2 rounded-[18px] border border-dashed border-line text-[13px] font-semibold text-ink-muted transition hover:text-ink">
+            <button onClick={() => setForm({})} className="flex h-12 w-full items-center justify-center gap-2 rounded-[20px] border border-dashed border-line text-[13px] font-semibold text-ink-muted transition hover:text-ink">
               <Plus className="h-4 w-4" /> Start another campaign
             </button>
           )}

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ImagePlus, LoaderCircle, X } from "lucide-react";
+import { Image as ImagePlus, LoaderCircle, X } from "../../components/icons/glyphs";
 import { Sheet } from "@/components/ui/Sheet";
 import { useAuth } from "@/lib/auth";
 import { createCampaign, updateMyCampaign, uploadCampaignCover, type CampaignInput } from "@/lib/campaignApi";

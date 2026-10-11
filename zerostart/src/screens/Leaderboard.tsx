@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Crown, MapPin } from "lucide-react";
+import { Crown, MapPin } from "../components/icons/glyphs";
 import { useAuth } from "@/lib/auth";
 import { getLeaderboard } from "@/lib/campaignApi";
 import type { LeaderRow } from "@/types/campaign";
@@ -41,7 +41,7 @@ export function Leaderboard() {
       </div>
 
       {error && <div className="mt-5"><ErrorState message={error} onRetry={load} /></div>}
-      {!rows && !error && <Skeleton className="mt-5 h-80 rounded-[18px]" />}
+      {!rows && !error && <Skeleton className="mt-5 h-80 rounded-[20px]" />}
 
       {rows && ranked.length === 0 && (
         <div className="mt-5">

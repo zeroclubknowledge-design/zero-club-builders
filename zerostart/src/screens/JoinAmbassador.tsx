@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { BadgeCheck, Check, Clock, MapPin, XCircle } from "lucide-react";
+import { BadgeCheck, Check, Clock, MapPin, Ban as XCircle } from "../components/icons/glyphs";
 import {
   applyAmbassador, getMe, listFocusAreas, listPushableBootcamps, saveAmbassador,
 } from "@/lib/ambassadorApi";
@@ -127,7 +127,7 @@ export function JoinAmbassador() {
     }
   };
 
-  if (authLoading) return <Skeleton className="h-[520px] rounded-[18px]" />;
+  if (authLoading) return <Skeleton className="h-[520px] rounded-[20px]" />;
   if (!session) {
     return (
       <EmptyState
@@ -141,7 +141,7 @@ export function JoinAmbassador() {
   const valid =
     location.trim().length >= 2 && focus.length > 0 && (isAmbassador || motivation.trim().length >= 20);
 
-  if (isAmbassador === null) return <Skeleton className="h-[520px] rounded-[18px]" />;
+  if (isAmbassador === null) return <Skeleton className="h-[520px] rounded-[20px]" />;
 
   // An application is waiting (or was decided) and they are not editing it.
   if (!isAmbassador && application && !editingApplication && application.status !== "approved") {
@@ -210,7 +210,7 @@ export function JoinAmbassador() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Yaba, Lagos"
-              className="h-12 w-full rounded-lg border border-line bg-bg pl-10 pr-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+              className="h-12 w-full rounded-xl border border-line bg-surface pl-10 pr-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
             />
           </span>
           <span className="mt-1.5 block text-[11.5px] text-ink-faint">
@@ -224,7 +224,7 @@ export function JoinAmbassador() {
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             placeholder="Nigeria"
-            className="mt-2 h-12 w-full rounded-lg border border-line bg-bg px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2 h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
         </label>
 
@@ -235,7 +235,7 @@ export function JoinAmbassador() {
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             placeholder="Who you can reach, and why they'd listen to you."
-            className="mt-2 w-full resize-y rounded-lg border border-line bg-bg px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2 w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
         </label>
 
@@ -248,7 +248,7 @@ export function JoinAmbassador() {
                 onChange={(e) => setMotivation(e.target.value)}
                 rows={4}
                 placeholder="Who can you reach, what have you organised before, and how would you grow Zero Club where you are?"
-                className="mt-2 w-full resize-y rounded-lg border border-line bg-bg px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                className="mt-2 w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
               />
               <span className="mt-1.5 block text-[11.5px] text-ink-faint">A few sentences — at least 20 characters.</span>
             </label>
@@ -259,7 +259,7 @@ export function JoinAmbassador() {
                 value={links}
                 onChange={(e) => setLinks(e.target.value)}
                 placeholder="x.com/you, instagram.com/you, your WhatsApp community…"
-                className="mt-2 h-12 w-full rounded-lg border border-line bg-bg px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                className="mt-2 h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
               />
             </label>
 

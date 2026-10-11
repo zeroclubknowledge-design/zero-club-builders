@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, MapPin } from "lucide-react";
+import { ExternalLink, MapPin } from "../components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { Card, EmptyState, ErrorState, Skeleton, ZpBadge } from "@/components/ui/primitives";
@@ -69,7 +69,7 @@ export function AdminReview() {
     load();
   };
 
-  if (loading) return <Skeleton className="h-[300px] rounded-[18px]" />;
+  if (loading) return <Skeleton className="h-[300px] rounded-[20px]" />;
   if (!isAdmin) return <EmptyState title="Not for you" body="This page is for Zero Club admins." />;
 
   return (
@@ -103,7 +103,7 @@ export function AdminReview() {
 
       <div className={`mt-6 ${tab === "tasks" ? "" : "hidden"}`}>
         {error && <ErrorState message={error} onRetry={load} />}
-        {!error && !rows && <Skeleton className="h-[200px] rounded-[18px]" />}
+        {!error && !rows && <Skeleton className="h-[200px] rounded-[20px]" />}
         {rows && rows.length === 0 && (
           <EmptyState title="Nothing waiting" body="Submissions appear here as ambassadors send work in." />
         )}
@@ -156,7 +156,7 @@ export function AdminReview() {
                     value={notes[row.log_id] || ""}
                     onChange={(e) => setNotes((n) => ({ ...n, [row.log_id]: e.target.value }))}
                     placeholder="A note for the ambassador (optional)"
-                    className="h-10 w-full rounded-lg border border-line bg-bg px-3.5 text-[12.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                    className="h-10 w-full rounded-xl border border-line bg-surface px-3.5 text-[12.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
                   />
                   <div className="mt-3 flex gap-3">
                     <button
@@ -226,7 +226,7 @@ function InitiativeQueue({
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  if (!rows) return <Skeleton className="mt-6 h-[200px] rounded-[18px]" />;
+  if (!rows) return <Skeleton className="mt-6 h-[200px] rounded-[20px]" />;
   if (rows.length === 0) {
     return (
       <div className="mt-6">
@@ -334,14 +334,14 @@ function InitiativeQueue({
                   value={amounts[row.id] ?? "100"}
                   onChange={(e) => setAmounts((a) => ({ ...a, [row.id]: e.target.value }))}
                   aria-label="ZP to award"
-                  className="h-10 w-24 rounded-lg border border-line bg-bg px-3 text-[12.5px] text-ink outline-none focus:border-accent/50"
+                  className="h-10 w-24 rounded-xl border border-line bg-surface px-3 text-[12.5px] text-ink outline-none focus:border-accent/50"
                 />
                 <span className="text-[11.5px] text-ink-faint">ZP</span>
                 <input
                   value={notes[row.id] || ""}
                   onChange={(e) => setNotes((n) => ({ ...n, [row.id]: e.target.value }))}
                   placeholder="A note for the ambassador (optional)"
-                  className="h-10 min-w-0 flex-1 rounded-lg border border-line bg-bg px-3.5 text-[12.5px] text-ink outline-none focus:border-accent/50"
+                  className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3.5 text-[12.5px] text-ink outline-none focus:border-accent/50"
                 />
               </div>
               <div className="mt-3 flex gap-3">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "../components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { config } from "@/lib/config";
 import { useAuth } from "@/lib/auth";

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, Hourglass, Info, Wallet } from "lucide-react";
+import { Check, Clock as Hourglass, Info, Wallet } from "../components/icons/glyphs";
 import { useAuth } from "@/lib/auth";
 import { getEarnings } from "@/lib/campaignApi";
 import { config } from "@/lib/config";

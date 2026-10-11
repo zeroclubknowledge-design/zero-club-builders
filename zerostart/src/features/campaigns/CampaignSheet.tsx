@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarClock, Check, CircleAlert, Copy, ExternalLink, Gift, Hourglass, MapPin, Pencil, Send, Share2, Square } from "lucide-react";
+import { CalendarClock, Check, AlertCircle as CircleAlert, Copy, ExternalLink, Gift, Clock as Hourglass, MapPin, Pencil, Send, Share2, Square } from "../../components/icons/glyphs";
 import { Sheet } from "@/components/ui/Sheet";
 import { campaignLink, endMyCampaign, submitProof } from "@/lib/campaignApi";
 import { externalUrl } from "@/lib/links";
@@ -165,18 +165,18 @@ export function CampaignSheet({
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">Your campaign link</p>
           <p className="mt-2 break-all font-display text-[15px] font-semibold text-white">{link.replace(/^https?:\/\//, "")}</p>
           <div className="mt-4 grid grid-cols-3 gap-2">
-            <button onClick={() => copy("link")} className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-white/10 text-[12.5px] font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15">
+            <button onClick={() => copy("link")} className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-white/10 text-[12.5px] font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15">
               {copied === "link" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied === "link" ? "Copied" : "Copy"}
             </button>
             <a
               href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${link}`)}`}
               target="_blank"
               rel="noreferrer"
-              className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-[#25d366] text-[12.5px] font-semibold text-white transition hover:opacity-90"
+              className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-[#25d366] text-[12.5px] font-semibold text-white transition hover:opacity-90"
             >
               <Send className="h-4 w-4" /> WhatsApp
             </a>
-            <button onClick={share} className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-white text-[12.5px] font-semibold text-ink transition hover:opacity-90">
+            <button onClick={share} className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-white text-[12.5px] font-semibold text-ink transition hover:opacity-90">
               <Share2 className="h-4 w-4" /> Share
             </button>
           </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Check, Clock, MapPin, Plus, X } from "lucide-react";
+import { ArrowUpRight, Check, Clock, MapPin, Plus, X } from "../components/icons/glyphs";
 import {
   abandonInitiative, getMe, listFocusAreas, listMyInitiatives, listTasks,
   submitInitiative, submitTask,
@@ -40,7 +40,7 @@ export function AmbassadorHome() {
 
   useEffect(load, [session?.user?.id]);
 
-  if (authLoading) return <Skeleton className="h-[420px] rounded-[18px]" />;
+  if (authLoading) return <Skeleton className="h-[420px] rounded-[20px]" />;
 
   if (!session) {
     return (
@@ -57,7 +57,7 @@ export function AmbassadorHome() {
   }
 
   if (error) return <ErrorState message={error} onRetry={load} />;
-  if (!me) return <Skeleton className="h-[420px] rounded-[18px]" />;
+  if (!me) return <Skeleton className="h-[420px] rounded-[20px]" />;
 
   if (!me.found) {
     return (
@@ -163,7 +163,7 @@ export function AmbassadorHome() {
         Tasks from Zero Club
       </h2>
 
-      {!tasks && <Skeleton className="h-[160px] rounded-[18px]" />}
+      {!tasks && <Skeleton className="h-[160px] rounded-[20px]" />}
 
       {tasks && tasks.length === 0 && (
         <EmptyState
@@ -298,13 +298,13 @@ function TaskCard({ task, onDone }: { task: AmbassadorTask; onDone: () => void }
             onChange={(e) => setEvidence(e.target.value)}
             rows={3}
             placeholder="What did you do? Numbers help — how many people, where, when."
-            className="w-full resize-y rounded-lg border border-line bg-bg px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Link to a post, photo, or screenshot (optional)"
-            className="mt-2.5 h-11 w-full rounded-lg border border-line bg-bg px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
 
           {error && (
@@ -462,7 +462,7 @@ function InitiativeCard({
             onChange={(e) => setSummary(e.target.value)}
             rows={3}
             placeholder="What happened? Numbers help — how many, where, when."
-            className="w-full resize-y rounded-lg border border-line bg-bg px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
           {item.target_count && (
             <input
@@ -471,14 +471,14 @@ function InitiativeCard({
               value={count}
               onChange={(e) => setCount(e.target.value)}
               placeholder={`How many ${item.target_label || "in the end"}?`}
-              className="mt-2.5 h-11 w-full rounded-lg border border-line bg-bg px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+              className="mt-2.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
             />
           )}
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Link to proof — a post, photos, a signup list (optional)"
-            className="mt-2.5 h-11 w-full rounded-lg border border-line bg-bg px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
 
           {error && (

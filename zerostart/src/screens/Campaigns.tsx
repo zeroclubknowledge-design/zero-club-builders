@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Plus, Rocket } from "lucide-react";
+import { Plus, Rocket } from "../components/icons/glyphs";
 import { useAuth } from "@/lib/auth";
 import { getMe } from "@/lib/ambassadorApi";
 import { getEarnings, listMyCampaigns } from "@/lib/campaignApi";
@@ -32,7 +32,7 @@ export function Campaigns() {
   };
   useEffect(load, [session?.user?.id]);
 
-  if (loading) return <Skeleton className="h-[420px] rounded-[18px]" />;
+  if (loading) return <Skeleton className="h-[420px] rounded-[20px]" />;
   if (!session) {
     return (
       <EmptyState
@@ -46,7 +46,7 @@ export function Campaigns() {
   if (!me || !items) {
     return (
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {[0, 1, 2].map((i) => <Skeleton key={i} className="h-72 rounded-[18px]" />)}
+        {[0, 1, 2].map((i) => <Skeleton key={i} className="h-72 rounded-[20px]" />)}
       </div>
     );
   }

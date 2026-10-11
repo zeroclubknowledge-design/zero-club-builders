@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { X } from "../icons/glyphs";
 
 /**
  * A bottom sheet on phones, a centred dialog on larger screens.

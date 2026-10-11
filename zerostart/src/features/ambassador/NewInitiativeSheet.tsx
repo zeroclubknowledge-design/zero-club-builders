@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, X } from "../../components/icons/glyphs";
 import { createInitiative } from "@/lib/ambassadorApi";
 import { INITIATIVE_KINDS, type FocusArea, type InitiativeKind } from "@/types/ambassador";
 
@@ -163,7 +163,7 @@ export function NewInitiativeSheet({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Zero Club table at the UNILAG tech fair"
-                className="mt-2 h-12 w-full rounded-lg border border-line bg-bg px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                className="mt-2 h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
               />
             </label>
 
@@ -174,7 +174,7 @@ export function NewInitiativeSheet({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="What you'll do, who it reaches, and what it should get Zero Club."
-                className="mt-2 w-full resize-y rounded-lg border border-line bg-bg px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                className="mt-2 w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
               />
             </label>
 
@@ -189,7 +189,7 @@ export function NewInitiativeSheet({
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
                   placeholder="50"
-                  className="mt-2 h-12 w-full rounded-lg border border-line bg-bg px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                  className="mt-2 h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
                 />
                 <span className="mt-1.5 block text-[11.5px] text-ink-faint">
                   A number you actually think you can hit. You'll report what happened either way.

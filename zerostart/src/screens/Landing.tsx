@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Gift, Megaphone, Share2, Wallet } from "lucide-react";
+import { ArrowRight, Gift, Megaphone, Share2, Wallet } from "../components/icons/glyphs";
 import { getLeaderboard } from "@/lib/campaignApi";
 import { CURRENCIES, CURRENCY_ORDER } from "@/lib/money";
 import type { LeaderRow } from "@/types/campaign";
