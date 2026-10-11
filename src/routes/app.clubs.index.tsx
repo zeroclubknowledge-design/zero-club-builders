@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
 import { fallbackClubCapacity, isBootcampCohortClub, type ClubCapacity } from "@/features/membership/plans";
 import { getCachedSession } from "@/lib/auth";
+import { CLUBS_DATA_KEY, fetchClubsData, readClubsSnapshot, saveClubsSnapshot, storedSessionUserId } from "@/features/clubs/clubsData";
 
 function SwipeableNotification({ children, onDismiss }: { children: React.ReactNode, onDismiss: () => void }) {
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -142,118 +143,20 @@ function Clubs() {
     }
   }, [clubDraftReady, isPaid, newClub]);
 
+  // The person's id is read synchronously from the cached profile so the
+  // snapshot can be matched to them before anything loads.
+  const cachedMe = queryClient.getQueryData<any>(["profile", "current"]);
+  const [clubsSnapshot] = useState(() => readClubsSnapshot(cachedMe?.id || storedSessionUserId()));
+
   // Move heavy data fetching to React Query to prevent route blocking
   const { data: clubData, isLoading: isClubsLoading } = useQuery({
-    queryKey: ['clubs_data'],
+    queryKey: CLUBS_DATA_KEY,
     staleTime: 1000 * 60 * 3,
     gcTime: 1000 * 60 * 15,
-    queryFn: async () => {
-      const { data: { session } } = await getCachedSession();
-      if (!session) {
-        window.location.href = "/signin";
-        return null;
-      }
-
-      const [
-        { data: profile },
-        { data: userCreatedClubs },
-        { data: joinedClubs },
-        { data: featuredClubData },
-        { data: sentRequests },
-        { data: incomingRequestsData },
-        { data: outgoingRequestsData },
-        { data: capacityData }
-      ] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-        supabase.from('clubs').select('*, bootcamps(ends_at)').eq('creator_id', session.user.id),
-        supabase.from('club_members').select('club_id, clubs(*, bootcamps(ends_at))').eq('profile_id', session.user.id),
-        supabase.from('clubs').select('*').eq('name', 'Zero K Bootcamp').maybeSingle(),
-        supabase.from('messages').select('content').eq('sender_id', session.user.id).like('content', 'CLUB_REQUEST:%'),
-        supabase.from('messages').select('*, sender:sender_id(id, username, full_name, avatar_url)').eq('receiver_id', session.user.id).like('content', 'CLUB_REQUEST:%:pending'),
-        supabase.from('messages').select('*, receiver:receiver_id(id, username, full_name, avatar_url)').eq('sender_id', session.user.id).like('content', 'CLUB_REQUEST:%'),
-        supabase.rpc('get_my_club_capacity')
-      ]);
-
-      let joinedIds = joinedClubs?.map(jc => jc.club_id) || [];
-      const { data: discoverClubs } = await supabase
-        .from('clubs')
-        .select('*')
-        .not('id', 'in', `(${joinedIds.length > 0 ? joinedIds.join(',') : '00000000-0000-0000-0000-000000000000'})`)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      let discoverClubsCombined = discoverClubs || [];
-      if (featuredClubData && !discoverClubsCombined.some(c => c.id === featuredClubData.id)) {
-        discoverClubsCombined = [featuredClubData, ...discoverClubsCombined];
-      }
-
-      const requestedClubIds = sentRequests
-        ?.map(m => {
-          const parts = m.content.split(':');
-          return { clubId: parts[1], status: parts[3] };
-        })
-        .filter(r => r.clubId && (r.status === 'pending' || r.status === 'accepted'))
-        .map(r => r.clubId) || [];
-
-      const allRelevantClubIds = [
-        ...joinedIds,
-        ...discoverClubsCombined.map(c => c.id),
-        ...(userCreatedClubs?.map(c => c.id) || [])
-      ];
-      const uniqueClubIds = [...new Set(allRelevantClubIds)];
-      
-      let membersCountMap: Record<string, number> = {};
-      let onlineCountMap: Record<string, number> = {};
-      let uniqueOnlineProfiles = new Set<string>();
-
-      if (uniqueClubIds.length > 0) {
-        const batches = await Promise.all(Array.from({ length: Math.ceil(uniqueClubIds.length / 200) }, (_, index) =>
-          supabase.rpc('club_directory_counts', { p_club_ids: uniqueClubIds.slice(index * 200, (index + 1) * 200) })
-        ));
-        if (batches.every((result) => !result.error)) {
-          batches.flatMap((result) => result.data || []).forEach((row: any) => { membersCountMap[row.club_id] = Number(row.member_count); });
-        } else {
-          // Older databases stay usable until the migration is applied.
-          const { data: memberRows } = await supabase.from('club_members').select('club_id').in('club_id', uniqueClubIds);
-          memberRows?.forEach(row => {
-            membersCountMap[row.club_id] = (membersCountMap[row.club_id] || 0) + 1;
-          });
-        }
-      }
-
-      const enrich = (clubsArray: any[]) => clubsArray.map(c => ({ 
-        ...c, 
-        members_count: membersCountMap[c.id] || 0,
-        online_count: onlineCountMap[c.id] || 0
-      }));
-
-      // Cohort clubs are filtered out of My Clubs and Discover above, because
-      // they are temporary and belong to a bootcamp rather than being joinable
-      // communities. That left them with nowhere to appear at all, so they get
-      // their own section. Joined and created are merged: a tutor sees the club
-      // for a bootcamp they run even before anyone joins it.
-      const cohortClubs = [
-        ...(joinedClubs?.map(jc => jc.clubs as any) || []),
-        ...(userCreatedClubs || []),
-      ].filter(c => c && isBootcampCohortClub(c));
-
-      const bootClubs = enrich(
-        Array.from(new Map(cohortClubs.map(c => [c.id, c])).values())
-      );
-
-      return {
-        bootClubs,
-        myClubs: enrich(joinedClubs?.map(jc => jc.clubs as any).filter(c => c && !isBootcampCohortClub(c)) || []),
-        discover: enrich(discoverClubsCombined.filter(c => c && !isBootcampCohortClub(c))),
-        profile,
-        userCreatedClubs: enrich(userCreatedClubs?.filter(c => c && !isBootcampCohortClub(c)) || []),
-        capacityData,
-        requestedClubIds,
-        initialIncomingRequests: incomingRequestsData || [],
-        outgoingAccepted: (outgoingRequestsData || []).filter(m => m.content.split(':')[3] === 'accepted'),
-        totalOnlineBuilders: uniqueOnlineProfiles.size,
-      };
-    }
+    queryFn: fetchClubsData,
+    // Paint the last result kept on this device at once; refresh behind it.
+    initialData: () => clubsSnapshot?.data,
+    initialDataUpdatedAt: () => clubsSnapshot?.savedAt,
   });
 
   const {
@@ -274,6 +177,11 @@ function Clubs() {
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<any[]>([]);
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+
+  // Keep the latest result on the device for the next instant open.
+  useEffect(() => {
+    if (clubData && clubData !== clubsSnapshot?.data) saveClubsSnapshot(clubData);
+  }, [clubData, clubsSnapshot]);
 
   useEffect(() => {
     if (clubData) {

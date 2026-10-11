@@ -4,6 +4,7 @@ import { useMarkMessagesDelivered } from "@/lib/realtime/receipts";
 import { CreateHub, openCreateSheet } from "@/features/create/CreateHub";
 import { IconZeroAI } from "@/components/icons/zeroAI";
 import { IconPortfolio } from "@/features/portfolio/icon";
+import { prefetchClubsData, storedSessionUserId } from "@/features/clubs/clubsData";
 import {
   MoreHorizontal,
   Zap,
@@ -51,7 +52,7 @@ import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
 import { ZeroLoader, ZeroMark } from "@/components/ZeroLoader";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listTournaments, previewPrizeLine } from "@/features/games/v2/api";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { getDeviceId } from "@/lib/device";
@@ -449,19 +450,24 @@ const TAB_BAR_FONT = 'var(--font-sans)';
 
 function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }: BottomNavProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   // Once the app is idle, fetch the other tabs and the writing screens in the
   // background, so the first tap on each one opens at once instead of waiting
   // for its code to download.
   useEffect(() => {
     const targets = ["/app", "/app/bootcamps", "/app/clubs", "/app/notifications", "/app/compose", "/app/ship"] as const;
-    const warm = () => targets.forEach((to) => void router.preloadRoute({ to }).catch(() => {}));
+    const warm = () => {
+      targets.forEach((to) => void router.preloadRoute({ to }).catch(() => {}));
+      // Clubs' data too, not just its code, so the tab opens with its lists.
+      if (storedSessionUserId()) void prefetchClubsData(queryClient).catch(() => {});
+    };
     const hasIdle = typeof window.requestIdleCallback === "function";
     const handle = hasIdle ? window.requestIdleCallback(warm, { timeout: 4000 }) : window.setTimeout(warm, 2500);
     return () => {
       if (hasIdle) window.cancelIdleCallback(handle);
       else window.clearTimeout(handle);
     };
-  }, [router]);
+  }, [router, queryClient]);
   return (
     <nav
       data-zc-bottom-nav
