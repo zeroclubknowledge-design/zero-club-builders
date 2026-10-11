@@ -29,6 +29,7 @@ import {
   Hash,
   Users,
   Pin,
+  ShieldCheck,
   ShieldAlert,
   GraduationCap,
   Mic,
@@ -488,6 +489,28 @@ function ClubChat() {
     ? members.find((mem) => mem.profile_id === currentUser.id)?.role
     : undefined;
   const isAdmin = club?.creator_id === currentUser?.id || currentUserRole === "Administrator";
+
+  /* Pinned messages: admins pin from a message's menu; everyone sees the
+     newest pin at the top of the room, and tapping it jumps to the message. */
+  const togglePin = async (message: any) => {
+    const next = !message.pinned_at;
+    const apply = (pinnedAt: string | null) =>
+      setMessages((current) =>
+        current.map((m) => (m.id === message.id ? { ...m, pinned_at: pinnedAt } : m)),
+      );
+    apply(next ? new Date().toISOString() : null);
+    const { error } = await supabase.rpc("set_club_message_pin" as any, {
+      p_message: message.id,
+      p_pinned: next,
+    });
+    if (error) {
+      apply(message.pinned_at || null);
+      toast.error(error.message || "Could not update the pin");
+      return;
+    }
+    toast.success(next ? "Message pinned for everyone" : "Message unpinned");
+  };
+  const [pinCursor, setPinCursor] = useState(0);
   const giveawayWinnerCount = Math.max(1, Math.min(20, Number(giveaway.winners) || 1));
   const { data: giveawayBootcamps = [] } = useQuery({
     queryKey: ["giveaway-bootcamps", currentUser?.id],
@@ -650,7 +673,12 @@ function ClubChat() {
           current.length === msgsWithReactions.length &&
           current.every((message, index) => {
             const incoming = msgsWithReactions[index];
-            if (!incoming || message.id !== incoming.id || message.content !== incoming.content)
+            if (
+              !incoming ||
+              message.id !== incoming.id ||
+              message.content !== incoming.content ||
+              message.pinned_at !== incoming.pinned_at
+            )
               return false;
             const currentReactions = (message.reactions || [])
               .map((reaction: any) => reaction.id)
@@ -3346,20 +3374,47 @@ function ClubChat() {
           </Drawer>
         </div>
 
-        {/* Pinned Rules */}
-        <button
-          onClick={() => setShowRules(true)}
-          className="mx-3 mt-3 flex shrink-0 items-start gap-2.5 rounded-xl bg-[#cc208f]/[0.06] px-3 py-2.5 text-left transition-colors active:bg-[#cc208f]/10"
-        >
-          <Pin className="mt-px h-4 w-4 shrink-0 text-[#cc208f]" />
-          <p className="line-clamp-2 flex-1 text-[13px] leading-snug text-foreground">
-            <span className="font-semibold">Pinned · Club rules</span>
-            <br />
-            <span className="text-muted-foreground">
-              {club?.rules || "Be respectful, help others, and share your work!"}
-            </span>
-          </p>
-        </button>
+        {/* Pinned messages. Shown once the club rules have been seen at join
+            (they are in the club menu after that), so the top of each room
+            shows what admins chose to keep in view instead of repeating rules. */}
+        {(() => {
+          const isChatRoom = !["assignments", "announcements", "q-and-a", QUIZ_ROOM].includes(activeRoom);
+          const pinned = isChatRoom
+            ? messages
+                .filter((m) => m.pinned_at)
+                .sort((a, b) => String(b.pinned_at).localeCompare(String(a.pinned_at)))
+            : [];
+          if (pinned.length === 0) return null;
+          const index = pinCursor % pinned.length;
+          const current = pinned[index];
+          const who = current.profiles?.full_name || current.profiles?.username || "Member";
+          return (
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById(`message-${current.id}`);
+                if (el) {
+                  el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  el.classList.add("zc-message-flash");
+                  window.setTimeout(() => el.classList.remove("zc-message-flash"), 1600);
+                }
+                // Next tap shows the next pin, when there are several.
+                setPinCursor((c) => c + 1);
+              }}
+              className="mx-3 mt-3 flex shrink-0 items-center gap-2.5 rounded-xl bg-[#cc208f]/[0.06] px-3 py-2.5 text-left transition-colors active:bg-[#cc208f]/10"
+            >
+              <Pin className="h-4 w-4 shrink-0 fill-current text-[#cc208f]" />
+              <p className="min-w-0 flex-1 text-[13px] leading-snug text-foreground">
+                <span className="font-semibold">
+                  Pinned{pinned.length > 1 ? ` · ${index + 1} of ${pinned.length}` : ""}
+                </span>
+                <span className="block truncate text-muted-foreground">
+                  {who}: {contentPreview(current.content) || "Message"}
+                </span>
+              </p>
+            </button>
+          );
+        })()}
 
         {/* Rules Modal */}
         {showRules && (
@@ -3483,6 +3538,7 @@ function ClubChat() {
                   room={activeRoom}
                   isAdmin={isAdmin}
                   onReplyText={(text: string) => handleSendMessage(text, m.id)}
+                  onTogglePin={isAdmin && !m.pending ? () => void togglePin(m) : undefined}
                 />
               </Fragment>
             ))}
@@ -3638,6 +3694,19 @@ function ClubChat() {
                       <Users className="h-[19px] w-[19px]" />
                     </span>
                     <span className="flex-1 text-[16px] font-medium text-foreground">Members</span>
+                  </button>
+                  {/* The rules used to be pinned above every room; they live here now. */}
+                  <button
+                    onClick={() => {
+                      setShowQuickNav(false);
+                      setShowRules(true);
+                    }}
+                    className="flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition hover:bg-foreground/[0.04] active:scale-[0.99]"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.05] text-foreground">
+                      <ShieldCheck className="h-[19px] w-[19px]" />
+                    </span>
+                    <span className="flex-1 text-[16px] font-medium text-foreground">Club rules</span>
                   </button>
                   <EnterToSendRow />
                   {club?.creator_id === currentUser?.id && (
@@ -4145,23 +4214,9 @@ function StructuredClubRoom({
       );
       return;
     }
+    // The student's XP for this mark is awarded by the database when the
+    // grade is saved (once per submission), not from here.
     const xpAwarded = Math.max(0, Math.round(score));
-    if (xpAwarded > 0 && selectedCard?.id) {
-      const replies = messages.filter((m: any) => m.reply_to_id === selectedCard.id);
-      const sub = replies.find((r: any) => r.id === submissionId);
-      if (sub?.profile_id) {
-        const res = await supabase.rpc("award_assignment_xp", {
-          p_user_id: sub.profile_id,
-          p_xp: xpAwarded,
-        });
-        if (res.error) {
-          await supabase
-            .from("profiles")
-            .update({ xp: (sub.profiles?.xp || 0) + xpAwarded })
-            .eq("id", sub.profile_id);
-        }
-      }
-    }
     toast.success(
       `Marked ${fmtMark(score)}/${fmtMark(max)}${xpAwarded > 0 ? ` (+${xpAwarded} XP awarded)` : ""}`,
     );
@@ -4320,20 +4375,9 @@ function StructuredClubRoom({
       );
       if (result !== false) {
         if (room === "assignments") {
-          const xpEarned = 50;
-          if (currentUser?.id) {
-            const res = await supabase.rpc("award_assignment_xp", {
-              p_user_id: currentUser.id,
-              p_xp: xpEarned,
-            });
-            if (res.error) {
-              await supabase
-                .from("profiles")
-                .update({ xp: ((currentUser as any)?.xp || 0) + xpEarned })
-                .eq("id", currentUser.id);
-            }
-          }
-          toast.success(`Assignment submitted! You earned +${xpEarned} XP ⚡`);
+          // 50 XP is awarded by the database on the first submission to each
+          // assignment; resubmitting doesn't earn it again.
+          toast.success("Assignment submitted! First submissions earn +50 XP ⚡");
         }
         setThreadReply("");
         setReplyAttachments([]);
@@ -4347,7 +4391,11 @@ function StructuredClubRoom({
 
   return (
     <section className="zc-page-width mx-auto w-full min-w-0 max-w-[760px] overflow-hidden">
-      <div className="mb-5 flex flex-col gap-4 border-b border-border pb-5 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
+      {/* Announcements skip the room's intro: the tab already says what it is,
+          and members only need the updates themselves. */}
+      {(room !== "announcements" || canCreate) && (
+      <div className={`mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-start sm:justify-between ${room === "announcements" ? "" : "border-b border-border pb-5"}`}>
+        {room !== "announcements" && (
         <div className="flex min-w-0 items-start gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
             <RoomIcon className="h-5 w-5 fill-current" />
@@ -4361,6 +4409,7 @@ function StructuredClubRoom({
             </p>
           </div>
         </div>
+        )}
         {canCreate && (
           <button
             onClick={() => setShowComposer((open) => !open)}
@@ -4371,13 +4420,8 @@ function StructuredClubRoom({
           </button>
         )}
       </div>
-
-      {!canCreate && room === "announcements" && (
-        <div className="mb-5 flex items-center gap-2 border-l-2 border-primary bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
-          <LockKeyhole className="h-4 w-4 shrink-0 text-primary" />
-          Only club admins can publish here. Members can read every update.
-        </div>
       )}
+
 
       {showComposer && canCreate && (
         <div className="mb-6 max-w-full overflow-hidden border border-border bg-card p-3 sm:p-5">
@@ -4609,9 +4653,15 @@ function StructuredClubRoom({
                         <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                       )}
                     </div>
-                    <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
-                      {card.body}
-                    </p>
+                    {interactive ? (
+                      <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
+                        {card.body}
+                      </p>
+                    ) : (
+                      // Announcements have no detail view, so the full text is
+                      // here: long ones fold, with Read more to open them.
+                      <AnnouncementBody body={card.body} />
+                    )}
                     <CardMedia media={card.media} compact={interactive} />
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <Link
@@ -5035,6 +5085,7 @@ function MessageBubble({
   room,
   isAdmin,
   onReplyText,
+  onTogglePin,
 }: any) {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [actionsOpen, setActionsOpen] = useState(false);
@@ -5998,7 +6049,7 @@ function MessageBubble({
         />
       )}
     </div>
-    <MessageActionsSheet open={actionsOpen} onOpenChange={setActionsOpen} message={actionMessage} isMe={canEdit} highlighted={highlighted} onReact={(emoji) => onReact(message.id, emoji)} onReply={() => onReply(message)} onEdit={startEdit} onForward={() => setForwarding({ content: actionMessage.content })} onToggleHighlight={() => highlights.toggle(message.id)} />
+    <MessageActionsSheet open={actionsOpen} onOpenChange={setActionsOpen} message={actionMessage} isMe={canEdit} highlighted={highlighted} onReact={(emoji) => onReact(message.id, emoji)} onReply={() => onReply(message)} onEdit={startEdit} onForward={() => setForwarding({ content: actionMessage.content })} onToggleHighlight={() => highlights.toggle(message.id)} pinned={Boolean(message.pinned_at)} onTogglePin={onTogglePin} />
     {forwarding && <ForwardSheet message={forwarding} onClose={() => setForwarding(null)} />}
     </>
   );
@@ -6024,5 +6075,35 @@ function EnterToSendRow() {
         aria-label="Press Enter to send"
       />
     </label>
+  );
+}
+
+/** An announcement's full text, folded after a few lines with Read more. */
+function AnnouncementBody({ body }: { body: string }) {
+  const [open, setOpen] = useState(false);
+  const text = String(body || "");
+  const long = text.length > 320 || text.split("\n").length > 6;
+  return (
+    <div className="mt-2">
+      <p
+        className={`whitespace-pre-wrap break-words text-sm leading-6 text-foreground/80 [overflow-wrap:anywhere] ${
+          long && !open ? "line-clamp-6" : ""
+        }`}
+      >
+        <LinkifiedText text={text} />
+      </p>
+      {long && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setOpen((v) => !v);
+          }}
+          className="mt-1 text-[13px] font-semibold text-primary"
+        >
+          {open ? "Show less" : "Read more"}
+        </button>
+      )}
+    </div>
   );
 }

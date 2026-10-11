@@ -9,7 +9,7 @@ import { useInboxTyping, useSendTypingTo } from "@/lib/realtime/typing";
 import { MentionField } from "@/components/MentionField";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { useGoBack } from "@/hooks/useGoBack";
-import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones, CheckCheck, Clock, Star } from "@/components/icons/glyphs";
+import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones, CheckCheck, Clock, Star, Pin } from "@/components/icons/glyphs";
 import React, { useState, useRef, useEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
@@ -56,7 +56,7 @@ function MessageTicks({ message }: { message: any }) {
   return <Check className="h-[14px] w-[14px]" strokeWidth={2.4} aria-label="Sent" />;
 }
 
-function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser, groupStart = true, groupEnd = true, highlighted = false, onToggleHighlight, onForward, onReplyText }: any) {
+function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser, groupStart = true, groupEnd = true, highlighted = false, onToggleHighlight, onForward, onReplyText, onTogglePin }: any) {
   const [viewer, setViewer] = React.useState<{ urls: string[]; index: number } | null>(null);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -555,6 +555,12 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 onEdit={() => startEditing(m)}
                 onForward={() => onForward?.(m)}
                 onToggleHighlight={() => onToggleHighlight?.(m)}
+                pinned={Boolean(m.pinned_at)}
+                onTogglePin={
+                  onTogglePin && !m.pending && !String(m.content || "").startsWith("CLUB_REQUEST:")
+                    ? () => onTogglePin(m)
+                    : undefined
+                }
               />
     </>
   );
@@ -682,6 +688,46 @@ function ChatViewPage() {
     } finally {
       setLoadingOlder(false);
     }
+  };
+
+  /* Pins: either person pins a message for both to see, shown under the
+     header. Read from the database (not only what's loaded), so a pin on an
+     old message still shows. At most 3 per chat; the newest is first. */
+  const pinsKey = ["dm-pins", currentUserId, id];
+  const { data: pins = [] } = useQuery({
+    queryKey: pinsKey,
+    enabled: Boolean(currentUserId && id),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("id, content, sender_id, created_at, pinned_at")
+        .not("pinned_at", "is", null)
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${currentUserId})`)
+        .order("pinned_at", { ascending: false })
+        .limit(3);
+      return (data || []) as { id: string; content: string; sender_id: string; created_at: string; pinned_at: string }[];
+    },
+  });
+  const [pinCursor, setPinCursor] = useState(0);
+  // Pins change on either phone; any update to this chat refreshes them.
+  const pinsSignature = messages.map((m) => (m.pinned_at ? m.id : "")).join("");
+  useEffect(() => {
+    void queryClient.invalidateQueries({ queryKey: ["dm-pins", currentUserId, id] });
+  }, [pinsSignature, queryClient, currentUserId, id]);
+
+  const togglePin = async (message: any) => {
+    const next = !message.pinned_at;
+    const apply = (pinnedAt: string | null) =>
+      setMessages((previous) => previous.map((m) => (m.id === message.id ? { ...m, pinned_at: pinnedAt } : m)));
+    apply(next ? new Date().toISOString() : null);
+    const { error } = await supabase.rpc("set_direct_message_pin" as any, { p_message: message.id, p_pinned: next });
+    if (error) {
+      apply(message.pinned_at || null);
+      toast.error("Could not update the pin");
+      return;
+    }
+    void queryClient.invalidateQueries({ queryKey: ["dm-pins", currentUserId, id] });
+    toast.success(next ? "Pinned for both of you" : "Unpinned");
   };
 
   /* Favourites: messages in this chat starred to come back to. */
@@ -1233,6 +1279,31 @@ function ChatViewPage() {
         </DropdownMenu>
       </header>
 
+      {pins.length > 0 && (() => {
+        const index = pinCursor % pins.length;
+        const current = pins[index];
+        return (
+          <button
+            type="button"
+            onClick={() => {
+              void jumpToMessage(current);
+              setPinCursor((c) => c + 1);
+            }}
+            className="flex w-full shrink-0 items-center gap-2.5 border-b border-border bg-card px-4 py-2 text-left transition-colors active:bg-foreground/[0.03]"
+          >
+            <Pin className="h-4 w-4 shrink-0 fill-current text-[#cc208f]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[12px] font-semibold text-[#cc208f]">
+                Pinned{pins.length > 1 ? ` · ${index + 1} of ${pins.length}` : ""}
+              </span>
+              <span className="block truncate text-[13.5px] text-foreground/85">
+                {directMessagePreview(current.content) || contentPreview(current.content) || "Message"}
+              </span>
+            </span>
+          </button>
+        );
+      })()}
+
       <Sheet open={infoOpen} onOpenChange={setInfoOpen}>
         <SheetContent side="right" overlayClassName="z-[90]" className="z-[100] w-[min(92vw,380px)] border-l border-border bg-background p-0">
           <SheetHeader className="border-b border-border/60 px-5 py-5 text-left">
@@ -1373,6 +1444,7 @@ function ChatViewPage() {
             onToggleHighlight={toggleHighlight}
             onForward={(msg: any) => setForwarding(msg)}
             onReplyText={replyWithText}
+            onTogglePin={togglePin}
           />
           </React.Fragment>
           );

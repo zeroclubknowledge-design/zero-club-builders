@@ -1,0 +1,25 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP. Kept as a record. Do not re-run.
+-- Migrations: message_pins_and_dm_guard, dm_guard_pin_check_fix, club_counts_and_assignment_xp.
+--
+-- 1. Pins
+--    club_messages.pinned_at / pinned_by, messages.pinned_at / pinned_by (+ partial indexes).
+--    set_club_message_pin(p_message, p_pinned): club creator or Administrator only; max 3 per room.
+--    set_direct_message_pin(p_message, p_pinned): either person in the DM; max 3 per conversation.
+--
+-- 2. Direct-message guard (trigger guard_direct_message_update, BEFORE UPDATE on messages)
+--    sender/receiver/created_at never change; only the sender changes the text, except the
+--    receiver deciding a CLUB_REQUEST; pins only via set_direct_message_pin
+--    (a direct update running as "authenticated" may not change pinned_at/pinned_by).
+--    Server jobs (auth.uid() null) are unaffected.
+--
+-- 3. club_directory_counts(p_club_ids uuid[]) -> (club_id, member_count): the Clubs list's
+--    member counts in one call (the app already called it; it did not exist).
+--
+-- 4. Assignment XP awarded by the database (the app's direct writes were blocked):
+--    on_assignment_submission_xp (club_messages AFTER INSERT): 50 XP once per student per
+--      assignment, for a ::ZEROCLUB_REPLY:: in 'assignments' replying to someone else's card.
+--    on_assignment_grade_xp (club_assignment_grades AFTER INSERT): XP = score, once per submission.
+--    award_assignment_xp(uuid, int): kept for old app builds, awards nothing.
+--
+-- Tested in rolled-back transactions: receiver can't edit sender's text, read receipts still
+-- work, pins via RPC only, members can't pin in clubs, submission XP awarded once.

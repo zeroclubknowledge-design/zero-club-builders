@@ -8,6 +8,7 @@ import {
   Download,
   Loader2,
   Pencil,
+  Pin,
   Reply,
   Search,
   Send,
@@ -51,6 +52,8 @@ export function MessageActionsSheet({
   onEdit,
   onForward,
   onToggleHighlight,
+  pinned,
+  onTogglePin,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -62,6 +65,9 @@ export function MessageActionsSheet({
   onEdit: () => void;
   onForward: () => void;
   onToggleHighlight: () => void;
+  /** Pinning: offered only when the viewer is allowed to pin here. */
+  pinned?: boolean;
+  onTogglePin?: () => void;
 }) {
   const text = messageText(message.content);
   const media = messageMedia(message.content);
@@ -109,6 +115,13 @@ export function MessageActionsSheet({
       icon: <Forward className="h-[21px] w-[21px]" />,
       onClick: run(onForward),
       show: true,
+    },
+    {
+      key: "pin",
+      label: pinned ? "Unpin" : "Pin",
+      icon: <Pin className={`h-[21px] w-[21px] ${pinned ? "fill-current text-[#cc208f]" : ""}`} />,
+      onClick: run(() => onTogglePin?.()),
+      show: Boolean(onTogglePin),
     },
     {
       key: "highlight",
