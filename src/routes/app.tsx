@@ -92,6 +92,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/zero-ai": "Zero AI",
   "/app/zerohub": "Zero Proofs",
   "/app/portfolio": "Portfolio",
+  "/app/challenge": "Challenge",
   "/app/admin": "Admin Control Center",
 };
 
@@ -1369,7 +1370,9 @@ function AppLayout() {
   const isFocusedEditor =
     pathname.startsWith("/app/tutor-studio/create") ||
     /^\/app\/bootcamps\/[^/]+\/edit/.test(pathname) ||
-    pathname.startsWith("/app/portfolio");
+    pathname.startsWith("/app/portfolio") ||
+    // Challenges have their own bottom action bar (Enter, Pick the winner).
+    pathname.startsWith("/app/challenge");
 
   /*
    * Publish the header's real height as --zc-header-h.

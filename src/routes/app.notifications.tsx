@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useMemo, type SetStateAction } from "react";
 import {
   BellRing, UserRoundPlus, ThumbsUp, MessageSquare, Zap,
-  CheckCheck, Repeat, AtSign, Loader2, ShieldCheck, Gamepad2, BriefcaseBusiness
+  CheckCheck, Repeat, AtSign, Loader2, ShieldCheck, Gamepad2, BriefcaseBusiness, Trophy
 } from "@/components/icons/glyphs";
 import { useFollow } from "@/hooks/useFollow";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -164,6 +164,8 @@ function NotificationsPage() {
       case 'system': return { icon: Zap, ...ink, action: '' };
       // Hiring on Opportunities: the message says what happened.
       case 'gig': return { icon: BriefcaseBusiness, ...green, action: '' };
+      // Challenges on Zero Proofs: the message says what happened.
+      case 'challenge': return { icon: Trophy, ...pink, action: '' };
       default: return { icon: BellRing, ...ink, action: 'interacted with you' };
     }
   };
@@ -258,7 +260,9 @@ function NotificationsPage() {
         markRead(n.id);
       }
 
-      if (n.type === 'gig' && n.entity_id) {
+      if (n.type === 'challenge' && n.entity_id) {
+        navigate({ to: '/app/challenge/$id', params: { id: n.entity_id }, search: { created: undefined } });
+      } else if (n.type === 'gig' && n.entity_id) {
         navigate({ to: '/app/quests', search: { gig: n.entity_id } });
       } else if (n.type === 'game_buzz' && n.entity_id) {
         navigate({ to: '/app/games/$id', params: { id: n.entity_id } });
@@ -311,10 +315,10 @@ function NotificationsPage() {
 
           <div className="min-w-0">
             <p className="text-[14px] leading-[1.4] text-foreground">
-              {!isSystem && n.type !== 'gig' && <span className="font-semibold">{renderActors()} </span>}
-              <span>{isSystem ? (String(n.content || '').trim() || 'Zero Club update') : n.type === 'gig' ? String(n.content || '').trim() : ui.action}</span>
+              {!isSystem && n.type !== 'gig' && !(n.type === 'challenge' && !/^[a-z]/.test(String(n.content || '').trim())) && <span className="font-semibold">{renderActors()} </span>}
+              <span>{isSystem ? (String(n.content || '').trim() || 'Zero Club update') : n.type === 'gig' || n.type === 'challenge' ? String(n.content || '').trim() : ui.action}</span>
             </p>
-            {n.content && !isSystem && n.type !== 'gig' && (
+            {n.content && !isSystem && n.type !== 'gig' && n.type !== 'challenge' && (
               <p className="mt-1 line-clamp-2 text-[13px] leading-[1.4] text-muted-foreground">“{renderText(n)}”</p>
             )}
             {n.type === 'follow' && !isActorMe && n.actor_id && <FollowBack userId={n.actor_id} />}

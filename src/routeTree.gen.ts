@@ -62,6 +62,8 @@ import { Route as ApiZeroAiVoiceRouteImport } from './routes/api.zero-ai.voice'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
+import { Route as AppChallengeIdRouteImport } from './routes/app.challenge.$id'
+import { Route as AppChallengeNewRouteImport } from './routes/app.challenge.new'
 import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
 import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
@@ -382,6 +384,16 @@ const AppBootcampsIndexRoute = AppBootcampsIndexRouteImport.update({
 const AppBootcampsIdRoute = AppBootcampsIdRouteImport.update({
   id: '/bootcamps/$id',
   path: '/bootcamps/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChallengeIdRoute = AppChallengeIdRouteImport.update({
+  id: '/challenge/$id',
+  path: '/challenge/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChallengeNewRoute = AppChallengeNewRouteImport.update({
+  id: '/challenge/new',
+  path: '/challenge/new',
   getParentRoute: () => AppRoute,
 } as any)
 const AppChatIndexRoute = AppChatIndexRouteImport.update({
@@ -716,6 +728,8 @@ export interface FileRoutesByFullPath {
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
+  '/app/challenge/$id': typeof AppChallengeIdRoute
+  '/app/challenge/new': typeof AppChallengeNewRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
@@ -820,6 +834,8 @@ export interface FileRoutesByTo {
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
+  '/app/challenge/$id': typeof AppChallengeIdRoute
+  '/app/challenge/new': typeof AppChallengeNewRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
@@ -931,6 +947,8 @@ export interface FileRoutesById {
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
+  '/app/challenge/$id': typeof AppChallengeIdRoute
+  '/app/challenge/new': typeof AppChallengeNewRoute
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
@@ -1043,6 +1061,8 @@ export interface FileRouteTypes {
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
+    | '/app/challenge/$id'
+    | '/app/challenge/new'
     | '/app/chat/$id'
     | '/app/chat/new'
     | '/app/chat/settings'
@@ -1147,6 +1167,8 @@ export interface FileRouteTypes {
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
+    | '/app/challenge/$id'
+    | '/app/challenge/new'
     | '/app/chat/$id'
     | '/app/chat/new'
     | '/app/chat/settings'
@@ -1257,6 +1279,8 @@ export interface FileRouteTypes {
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
+    | '/app/challenge/$id'
+    | '/app/challenge/new'
     | '/app/chat/$id'
     | '/app/chat/new'
     | '/app/chat/settings'
@@ -1719,6 +1743,20 @@ declare module '@tanstack/react-router' {
       path: '/bootcamps/$id'
       fullPath: '/app/bootcamps/$id'
       preLoaderRoute: typeof AppBootcampsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/challenge/$id': {
+      id: '/app/challenge/$id'
+      path: '/challenge/$id'
+      fullPath: '/app/challenge/$id'
+      preLoaderRoute: typeof AppChallengeIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/challenge/new': {
+      id: '/app/challenge/new'
+      path: '/challenge/new'
+      fullPath: '/app/challenge/new'
+      preLoaderRoute: typeof AppChallengeNewRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/chat/': {
@@ -2227,6 +2265,8 @@ interface AppRouteChildren {
   AppZerohubRoute: typeof AppZerohubRoute
   AppIndexRoute: typeof AppIndexRoute
   AppBootcampsIdRoute: typeof AppBootcampsIdRoute
+  AppChallengeIdRoute: typeof AppChallengeIdRoute
+  AppChallengeNewRoute: typeof AppChallengeNewRoute
   AppChatIdRoute: typeof AppChatIdRoute
   AppChatNewRoute: typeof AppChatNewRoute
   AppChatSettingsRoute: typeof AppChatSettingsRoute
@@ -2288,6 +2328,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppZerohubRoute: AppZerohubRoute,
   AppIndexRoute: AppIndexRoute,
   AppBootcampsIdRoute: AppBootcampsIdRoute,
+  AppChallengeIdRoute: AppChallengeIdRoute,
+  AppChallengeNewRoute: AppChallengeNewRoute,
   AppChatIdRoute: AppChatIdRoute,
   AppChatNewRoute: AppChatNewRoute,
   AppChatSettingsRoute: AppChatSettingsRoute,

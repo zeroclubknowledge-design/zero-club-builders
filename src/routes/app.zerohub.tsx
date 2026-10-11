@@ -12,6 +12,8 @@ import { format, subDays, isSameDay } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useGoBack } from "@/hooks/useGoBack";
+import { ProjectChallengeStrip, useChallengeBadges } from "@/features/challenges/ProjectChallenge";
+import { OpenChallengesList } from "@/features/challenges/OpenChallengesList";
 
 export const Route = createFileRoute("/app/zerohub")({
   component: ZeroHubPage,
@@ -33,7 +35,7 @@ function ZeroHubPage() {
   const goBack = useGoBack("/app");
   const queryClient = useQueryClient();
   const { data: currentUser } = useUser();
-  const [view, setView] = useState<'mine' | 'explore' | 'history'>('mine');
+  const [view, setView] = useState<'mine' | 'explore' | 'challenges' | 'history'>('mine');
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [commentingPost, setCommentingPost] = useState<any>(null);
   const [acquiringId, setAcquiringId] = useState<string | null>(null);
@@ -82,6 +84,9 @@ function ZeroHubPage() {
       : releases[0].author_id !== currentUser?.id
   ));
 
+  // Running challenges on the projects in view (one request).
+  const { data: badges } = useChallengeBadges(projectGroups.map((group) => group.rootId));
+
   const totalShips = myShips.length;
   const xpEarned = totalShips * 50;
   let streak = 0;
@@ -126,6 +131,7 @@ function ZeroHubPage() {
   const tabs = [
     { id: 'mine' as const, label: 'My projects' },
     { id: 'explore' as const, label: 'Explore' },
+    { id: 'challenges' as const, label: 'Challenges' },
     { id: 'history' as const, label: 'Shipping history' },
   ];
 
@@ -155,7 +161,9 @@ function ZeroHubPage() {
       </header>
 
       <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
-        {view === 'history' ? (
+        {view === 'challenges' ? (
+          <OpenChallengesList />
+        ) : view === 'history' ? (
           <>
             <section className="grid grid-cols-3 bg-card py-4 text-center md:rounded-xl md:border md:border-border">
               {[
@@ -234,6 +242,7 @@ function ZeroHubPage() {
                       <span className="font-semibold text-foreground">What changed:</span> {latest.release_notes}
                     </p>
                   )}
+                  <ProjectChallengeStrip projectId={rootId} badge={badges?.get(rootId)} isOwner={view === 'mine'} />
                   {/* The drawer the comment button opens is the same one the
                       feed uses, so replies behave here as anywhere else. */}
                   <PostCard post={latest} currentUser={currentUser} onCommentClick={setCommentingPost} />

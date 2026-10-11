@@ -1,0 +1,26 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP. Kept as a record. Do not re-run.
+-- Migrations: challenges_schema, challenges_core_helpers, challenges_lifecycle, challenges_owner_actions,
+-- challenges_entrant_and_reads, challenge_detail_paid_filter_fix, finalize_challenge_alias_fix,
+-- challenge_portfolio_confirmed_publish. Full bodies live in the database.
+--
+-- Tables: challenges, challenge_entries, challenge_scores, challenge_disputes, challenge_ledger (unique reference),
+--   challenge_events (audit); portfolio_items.challenge_entry_id; notifications type 'challenge'.
+-- RLS: read-only for clients. Entries sealed (entrant + owner + admin) until result_posted/completed.
+-- Money: challenge_move() -> wallet_apply (funds) / zp update + award_profile_zp (ZP), recorded once per reference:
+--   chal-fund-<id>, chal-prize-<id>-<place>, chal-refund-<id>[-unused], chal-share-<id>-<entrant>.
+-- Lifecycle (challenge_tick, run on every read; no pg_cron):
+--   open --deadline--> judging (7 days) or, with no entries, cancelled + full refund
+--   judging --7 days--> admin_review
+--   result_posted --48h, no open dispute--> payout -> completed/paid
+-- RPCs (authenticated): create_challenge (client_key idempotent, holds prize atomically), update_challenge,
+--   submit_challenge_entry, withdraw_challenge_entry, score_challenge_entry, disqualify_challenge_entry,
+--   finalize_challenge, close_challenge (20% shared / 80% refunded; entries < 1h old excluded),
+--   dispute_challenge (freezes payout), admin_resolve_challenge (release or overturn -> split),
+--   mark_challenge_adopted, add_challenge_entry_to_portfolio (publishes a confirmed ship once + portfolio item).
+-- Reads (anon+authenticated): challenge_detail, project_challenge, challenge_badges, list_open_challenges.
+-- earning_wallet_sources() now includes challenge_prize, challenge_share.
+--
+-- Tested in rolled-back transactions: duplicate create holds once; underfunded/non-owner blocked; sealed entries;
+-- owner can't enter; no early finalize; late entries blocked; dispute freezes; payout once (unused place refunded);
+-- 20/80 split incl. 1-hour rule; split twice no-op; ZP prizes; unsafe URLs dropped; missed judging -> admin_review;
+-- portfolio add once, creates a real ship.

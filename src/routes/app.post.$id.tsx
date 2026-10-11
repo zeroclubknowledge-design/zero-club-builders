@@ -36,6 +36,7 @@ import { useUser } from "@/hooks/useUser";
 import { useFollow } from "@/hooks/useFollow";
 import { useGoBack } from "@/hooks/useGoBack";
 import { PortfolioMenuItem, canPutOnPortfolio } from "@/features/portfolio/PortfolioMenuItem";
+import { ProjectChallengeStrip, useChallengeBadges } from "@/features/challenges/ProjectChallenge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1315,6 +1316,14 @@ function PostDetail() {
               </div>
             </article>
 
+            {/* A challenge on this project (or, for the owner, the option to start one). */}
+            {post?.is_build_post && (
+              <PostChallengeStrip
+                projectId={post.project_root_id || id}
+                isOwner={Boolean(currentUser?.id && currentUser.id === post.author_id && !post.project_root_id && (post.audience || "everyone") === "everyone")}
+              />
+            )}
+
             <section className="mt-2 flex-1 bg-card px-4 pb-40 pt-3 md:rounded-xl md:border md:border-border">
               <h2 className="font-display text-[16px] font-semibold text-foreground">
                 Replies
@@ -1576,4 +1585,17 @@ function compactCount(value: number) {
   if (value < 1_000_000)
     return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/, "")}K`;
   return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+}
+
+/** Challenge strip under a shipped project on its own page. */
+function PostChallengeStrip({ projectId, isOwner }: { projectId: string; isOwner: boolean }) {
+  const { data: badges, isLoading } = useChallengeBadges([projectId]);
+  if (isLoading) return null;
+  const badge = badges?.get(projectId);
+  if (!badge && !isOwner) return null;
+  return (
+    <div className="mt-2 overflow-hidden bg-card md:rounded-xl md:border md:border-border [&>a]:border-t-0">
+      <ProjectChallengeStrip projectId={projectId} badge={badge} isOwner={isOwner} />
+    </div>
+  );
 }
