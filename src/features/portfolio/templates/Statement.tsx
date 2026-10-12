@@ -7,8 +7,9 @@ import { describePost, postImages } from "../parse";
 import { SECTION_LABELS } from "../types";
 import { AboutBlock, ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
+  FitText,
   Footer,
-  fitName,
+  fitSize,
   RotatingBadge,
   TemplateStyles,
   WorkLinks,
@@ -69,22 +70,21 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
 
         {/* Hero */}
         <header className="relative pt-6 @3xl:pt-12">
-          <h1
-            className="pf-rise text-[length:var(--pf-n1)] leading-[0.82] tracking-[-0.04em] @3xl:text-[length:var(--pf-n2)]"
-            style={{
-              ...heavy,
-              ["--pf-n1" as string]: fitName(`${top} ${bottom}`, 21, 0.72),
-              ["--pf-n2" as string]: fitName(`${top} ${bottom}`, 15, 0.72),
-            }}
-          >
-            {top}
-            {bottom && (
-              <>
-                <br />
-                {bottom}
-              </>
-            )}
-          </h1>
+          <div className="@container">
+            <FitText
+              as="h1"
+              className="pf-rise leading-[0.82] tracking-[-0.04em]"
+              style={{ ...heavy, fontSize: fitSize(`${top} ${bottom}`, 220, 0.86) }}
+            >
+              {top}
+              {bottom && (
+                <>
+                  <br />
+                  {bottom}
+                </>
+              )}
+            </FitText>
+          </div>
           <div className="mt-6 grid gap-6 @3xl:max-w-[420px]">
             <div>
               {v.role && (
@@ -138,15 +138,16 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
         {v.on("skills") && (
           <section id="pf-skills" className="mt-16 border-t border-white/10 pt-10">
             <Kicker>{SECTION_LABELS.skills}</Kicker>
-            <ul className="mt-6">
+            <ul className="mt-6 @container">
               {v.skills.slice(0, 8).map((s, i) => (
-                <li
+                <FitText
+                  as="li"
                   key={s}
-                  className={`leading-[0.95] tracking-[-0.03em] text-[11cqw] @3xl:text-[7cqw] ${i % 2 ? "text-transparent [-webkit-text-stroke:1px_rgb(255_255_255/0.35)]" : ""}`}
-                  style={heavy}
+                  className={`leading-[0.95] tracking-[-0.03em] ${i % 2 ? "text-transparent [-webkit-text-stroke:1px_rgb(255_255_255/0.35)]" : ""}`}
+                  style={{ ...heavy, fontSize: fitSize(s, 96, 0.86) }}
                 >
                   {s.toUpperCase()}
-                </li>
+                </FitText>
               ))}
             </ul>
             {v.skills.length > 8 && (
@@ -179,7 +180,10 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
                     )}
                     <div className="mt-4 flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <h3 className="text-[26px] leading-none tracking-[-0.02em]" style={heavy}>
+                        <h3
+                          className="break-words [overflow-wrap:anywhere] text-[26px] leading-none tracking-[-0.02em]"
+                          style={heavy}
+                        >
                           {title.toUpperCase()}
                         </h3>
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -218,13 +222,16 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
         {/* About + numbers */}
         {v.on("about") && (
           <section id="pf-about" className="mt-24">
-            <p
-              className="leading-[0.92] tracking-[-0.03em] text-[10cqw] @3xl:text-[6.5cqw]"
-              style={heavy}
-            >
-              {(v.role || "Builder").toUpperCase()}
-              <span className="text-[var(--pf-accent)]"> /</span>
-            </p>
+            <div className="@container">
+              <FitText
+                as="p"
+                className="leading-[0.92] tracking-[-0.03em]"
+                style={{ ...heavy, fontSize: fitSize(`${v.role || "Builder"} /`, 88, 0.86) }}
+              >
+                {(v.role || "Builder").toUpperCase()}
+                <span className="text-[var(--pf-accent)]"> /</span>
+              </FitText>
+            </div>
             <AboutBlock v={v} skin={skin} className="mt-6 max-w-[620px]" />
             {v.numbers.length > 0 && (
               <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-white/10 pt-6 @3xl:grid-cols-4">
@@ -247,15 +254,16 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
         {rest.map((s) => (
           <section key={s.key} id={`pf-${s.key}`} className="mt-24">
             {s.key === "contact" ? (
-              <div className="relative overflow-hidden pb-40 pt-6 text-center">
-                <p
-                  className="leading-[0.9] tracking-[-0.03em] text-[12cqw] @3xl:text-[8cqw]"
-                  style={heavy}
+              <div className="@container relative overflow-hidden pb-40 pt-6 text-center">
+                <FitText
+                  as="p"
+                  className="leading-[0.9] tracking-[-0.03em]"
+                  style={{ ...heavy, fontSize: fitSize("COLLABORATE?", 110, 0.86) }}
                 >
                   READY TO
                   <br />
                   COLLABORATE?
-                </p>
+                </FitText>
                 <div className="mt-8 flex justify-center">
                   <ContactButtons v={v} dark size="lg" />
                 </div>

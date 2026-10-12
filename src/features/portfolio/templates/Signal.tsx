@@ -36,7 +36,7 @@ function Highlighted({ text }: { text: string }) {
   return (
     <>
       {words.join(" ")}{" "}
-      <span className="whitespace-nowrap rounded-full border border-[var(--pf-accent)]/40 bg-[var(--pf-accent)]/15 px-3 text-[var(--pf-accent)]">
+      <span className="rounded-full border [box-decoration-break:clone] [-webkit-box-decoration-break:clone] border-[var(--pf-accent)]/40 bg-[var(--pf-accent)]/15 px-3 text-[var(--pf-accent)]">
         {tail}
       </span>
     </>

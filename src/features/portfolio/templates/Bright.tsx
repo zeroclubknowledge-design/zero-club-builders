@@ -9,9 +9,11 @@ import { SECTION_LABELS } from "../types";
 import { ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
   Avatar,
+  FitText,
   Footer,
   TemplateStyles,
   WorkLinks,
+  fitSize,
   portfolioView,
   themeVars,
   useTemplateFont,
@@ -60,10 +62,11 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
 
         {/* Hero */}
         <header className="grid items-center gap-10 pb-12 pt-4 @3xl:grid-cols-2 @3xl:pt-10">
-          <div className="pf-rise order-2 @3xl:order-1">
-            <h1
-              className="text-[44px] font-semibold leading-[1.02] tracking-[-0.04em] @3xl:text-[64px]"
-              style={display}
+          <div className="pf-rise order-2 @container min-w-0 @3xl:order-1">
+            <FitText
+              as="h1"
+              className="font-semibold leading-[1.02] tracking-[-0.04em]"
+              style={{ ...display, fontSize: fitSize(`is ${v.firstName} My name`, 64, 0.66, 92) }}
             >
               My name
               <br />
@@ -72,7 +75,7 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
                 {v.firstName}
                 <span className="absolute -bottom-1 left-0 h-[0.18em] w-full rounded-full bg-[var(--pf-accent)]/80" />
               </span>
-            </h1>
+            </FitText>
             {v.headline && (
               <p className="mt-5 max-w-[460px] text-[16px] leading-relaxed text-black/60">
                 {v.headline}
@@ -161,7 +164,10 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
                         {String(i + 1).padStart(2, "0")}
                       </span>
                     </div>
-                    <h3 className="mt-5 text-[18px] font-semibold tracking-tight" style={display}>
+                    <h3
+                      className="break-words [overflow-wrap:anywhere] mt-5 text-[18px] font-semibold tracking-tight"
+                      style={display}
+                    >
                       {title}
                     </h3>
                     <p className="mt-0.5 text-[12.5px] text-black/45">

@@ -7,7 +7,7 @@
  * records, and anything self-reported (experience, certificates) is shown as
  * written and labelled as such in the footer.
  */
-import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Trophy, Medal } from "@/components/icons/glyphs";
 import { clip, describePost, postImages } from "../parse";
@@ -325,10 +325,66 @@ export function Footer({ dark }: { dark: boolean }) {
 export const year = (iso?: string | null) => (iso ? new Date(iso).getFullYear() : null);
 
 /**
- * A display size, in container widths, that keeps the longest word of a name
- * on one line. `perChar` is roughly how wide one letter is at 1cqw.
+ * A font size that keeps the longest word of `text` on one line inside its
+ * own container (wrap the element in an `@container`), capped at `maxPx`.
+ *
+ * `perChar` is the average advance of one letter in em, measured with the
+ * real web fonts (tracking included), e.g. Syne ExtraBold caps ≈ 1.1,
+ * Archivo Black expanded caps ≈ 0.85, Instrument Serif ≈ 0.4.
  */
-export function fitName(text: string, max: number, perChar = 0.62, room = 92) {
+export function fitSize(text: string, maxPx: number, perChar: number, room = 96) {
   const longest = Math.max(1, ...text.split(/\s+/).map((w) => w.length));
-  return `${Math.min(max, room / (longest * perChar)).toFixed(2)}cqw`;
+  return `calc(min(${maxPx}px, ${(room / (longest * perChar)).toFixed(2)}cqw) * var(--pf-shrink, 1))`;
+}
+
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * The safety net under `fitSize`: once the real web font has loaded, shrink
+ * the text a little more if a word still runs past its box (very wide
+ * letters like W, or a font that never loaded).
+ */
+export function useFitRef<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let alive = true;
+    const run = () => {
+      if (!alive) return;
+      el.style.removeProperty("--pf-shrink");
+      const over = el.scrollWidth / Math.max(1, el.clientWidth);
+      if (over > 1.005) el.style.setProperty("--pf-shrink", (0.98 / over).toFixed(3));
+    };
+    run();
+    void document.fonts?.ready.then(run);
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(run);
+    ro?.observe(el);
+    return () => {
+      alive = false;
+      ro?.disconnect();
+    };
+  }, []);
+  return ref;
+}
+
+/** Text sized by `fitSize` that also shrinks itself if a word still overflows. */
+export function FitText({
+  as = "p",
+  className,
+  style,
+  children,
+}: {
+  as?: "h1" | "h2" | "p" | "li";
+  className?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  const ref = useFitRef<HTMLParagraphElement>();
+  const Tag = as as "p";
+  return (
+    <Tag ref={ref} className={className} style={style}>
+      {children}
+    </Tag>
+  );
 }

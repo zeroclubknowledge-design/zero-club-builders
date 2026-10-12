@@ -9,9 +9,11 @@ import { SECTION_LABELS } from "../types";
 import { AboutBlock, ContactButtons, SectionBody, type Skin } from "./blocks";
 import {
   Avatar,
+  FitText,
   Footer,
   TemplateStyles,
   WorkLinks,
+  fitSize,
   portfolioView,
   themeVars,
   useTemplateFont,
@@ -70,13 +72,16 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
           <p className="text-[12px] font-semibold uppercase tracking-[0.3em] text-white/55">
             @{v.profile.username}
           </p>
-          <h1
-            className="pf-rise mt-4 text-[13cqw] font-extrabold leading-[0.9] tracking-[-0.03em] @3xl:text-[7.5cqw]"
-            style={display}
-          >
-            I Am {v.firstName}
-            <span className="text-[var(--pf-accent)]">.</span>
-          </h1>
+          <div className="@container w-full">
+            <FitText
+              as="h1"
+              className="pf-rise mt-4 font-extrabold leading-[0.95] tracking-[-0.03em]"
+              style={{ ...display, fontSize: fitSize(`I Am ${v.firstName}.`, 104, 0.88) }}
+            >
+              I Am {v.firstName}
+              <span className="text-[var(--pf-accent)]">.</span>
+            </FitText>
+          </div>
           {v.role && (
             <p className="mt-3 text-[13px] font-semibold uppercase tracking-[0.35em] text-white/70">
               {v.role}
@@ -106,12 +111,15 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
           id="pf-about"
           className="grid gap-8 py-14 @3xl:grid-cols-[1fr_1.3fr] @3xl:items-center"
         >
-          <h2
-            className="text-[22cqw] font-extrabold leading-none tracking-[-0.05em] @3xl:text-[11cqw]"
-            style={display}
-          >
-            HELL<span className="text-[var(--pf-accent)]">O</span>
-          </h2>
+          <div className="@container min-w-0">
+            <FitText
+              as="h2"
+              className="font-extrabold leading-none tracking-[-0.05em]"
+              style={{ ...display, fontSize: fitSize("HELLO", 180, 1.12) }}
+            >
+              HELL<span className="text-[var(--pf-accent)]">O</span>
+            </FitText>
+          </div>
           <div>
             {v.headline && (
               <p className="text-[20px] font-semibold leading-snug tracking-tight" style={display}>
@@ -179,7 +187,10 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
                   const { title, summary } = describePost(item.post);
                   return (
                     <article key={item.id} className={`p-5 ${skin.card}`}>
-                      <h3 className="text-[18px] font-bold tracking-tight" style={display}>
+                      <h3
+                        className="break-words [overflow-wrap:anywhere] text-[18px] font-bold tracking-tight"
+                        style={display}
+                      >
                         {title}
                       </h3>
                       {summary && (

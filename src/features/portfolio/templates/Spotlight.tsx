@@ -8,8 +8,9 @@ import { SECTION_LABELS } from "../types";
 import { AboutBlock, ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
   Avatar,
+  FitText,
   Footer,
-  fitName,
+  fitSize,
   Marquee,
   TemplateStyles,
   WorkLinks,
@@ -74,16 +75,15 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
           <p className="mt-auto text-[18px] italic text-white/80" style={serif}>
             Hi there!
           </p>
-          <h1
-            className="pf-rise -ml-[0.04em] text-[length:var(--pf-n1)] font-normal leading-[0.86] tracking-[-0.03em] @3xl:text-[length:var(--pf-n2)]"
-            style={{
-              ...serif,
-              ["--pf-n1" as string]: fitName(v.name, 18, 0.46),
-              ["--pf-n2" as string]: fitName(v.name, 13, 0.46),
-            }}
-          >
-            {v.name}
-          </h1>
+          <div className="@container">
+            <FitText
+              as="h1"
+              className="pf-rise -ml-[0.04em] font-normal leading-[0.86] tracking-[-0.03em]"
+              style={{ ...serif, fontSize: fitSize(v.name, 200, 0.44) }}
+            >
+              {v.name}
+            </FitText>
+          </div>
           <div className="mt-6 grid gap-5 @3xl:grid-cols-[1fr_380px] @3xl:items-end">
             <div>
               {v.role && <p className="text-[19px] font-semibold">{v.role}</p>}
