@@ -8,6 +8,7 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { copyToClipboard, fundLinkUrl } from "@/lib/share";
 import { ShareMenu } from "@/components/ShareMenu";
 import { toast } from "sonner";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 
 /**
  * Ask anyone for money, whether or not they are on Zero Club.
@@ -40,7 +41,7 @@ function RequestPage() {
   const { details, format, toBaseAmount } = useWalletCurrency();
 
   const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
+  const [note, setNote] = usePersistentDraft(draftKey(profile?.id, "fund-request", "note"), "");
   const [creating, setCreating] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
 

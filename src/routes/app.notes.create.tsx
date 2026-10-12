@@ -162,8 +162,8 @@ function NotesCreatePage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState(restored.current?.isPaid ?? false);
   /* Who the note is for: everyone, or learners of chosen bootcamps. */
-  const [noteMode, setNoteMode] = useState<NoteAudienceMode>("free");
-  const [noteBootcampIds, setNoteBootcampIds] = useState<string[]>([]);
+  const [noteMode, setNoteMode] = useState<NoteAudienceMode>((restored.current?.noteMode as NoteAudienceMode) || "free");
+  const [noteBootcampIds, setNoteBootcampIds] = useState<string[]>(restored.current?.noteBootcampIds || []);
 
   const [blocks, setBlocks] = useState<NoteBlock[]>(
     restored.current?.blocks?.length
@@ -212,7 +212,7 @@ function NotesCreatePage() {
    * keystroke. Saving `blocks` would therefore have written empty text and the
    * whole feature would have looked like it worked while saving nothing.
    *
-   * Debounced, and it also saves on the way out: pagehide and
+   * Saved after every edit, and it also saves on the way out: pagehide and
    * visibilitychange are exactly when the app is backgrounded and Android may
    * decide to reclaim the process.
    *
@@ -239,21 +239,20 @@ function NotesCreatePage() {
         return;
       }
 
-      writeNoteDraft({ title, isPaid, blocks: materialised, at: Date.now() });
+      writeNoteDraft({ title, isPaid, noteMode, noteBootcampIds, blocks: materialised, at: Date.now() });
       setDraftSavedAt(Date.now());
     };
 
-    const timer = window.setTimeout(snapshot, 800);
-    const onLeave = () => { window.clearTimeout(timer); snapshot(); };
+    snapshot();
+    const onLeave = snapshot;
 
     window.addEventListener('pagehide', onLeave);
     document.addEventListener('visibilitychange', onLeave);
     return () => {
-      window.clearTimeout(timer);
       window.removeEventListener('pagehide', onLeave);
       document.removeEventListener('visibilitychange', onLeave);
     };
-  }, [title, blocks, isPaid, contentRevision]);
+  }, [title, blocks, isPaid, noteMode, noteBootcampIds, contentRevision]);
 
   // Automatically scroll to bottom when adding a new block
   const endOfBlocksRef = useRef<HTMLDivElement>(null);

@@ -7,6 +7,7 @@ import { uploadMedia } from "@/lib/storage";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
 import { useKeyboardInset } from "@/hooks/useKeyboardInset";
+import { useDraftMedia } from "@/hooks/useDraftMedia";
 import { MediaCropper } from "@/components/MediaCropper";
 import { VideoEditor } from "@/components/VideoEditor";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
 import { notifyMentionedUsers } from "@/lib/mentions";
 import { toPlainText } from "@/lib/contentPreview";
+import { clearDraftGroup, draftKey, readDraft, writeDraft, usePersistentDraft } from "@/lib/draftStorage";
 
 const MentionMark = Mark.create({
   name: 'mentionMark',
@@ -47,18 +49,20 @@ function ComposePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: profile } = useUser();
+  const { quote: quoteId, draftId, editId } = Route.useSearch();
+  const postDraftKey = draftKey(profile?.id, "post", editId ? `edit-${editId}` : draftId ? `draft-${draftId}` : quoteId ? `quote-${quoteId}` : "new");
+  const bodyDraftKey = postDraftKey && postDraftKey + ":body";
   
   // Single Post State
   const [bodyText, setBodyText] = useState("");
   const bodyTextRef = useRef('');
   const [hasBodyText, setHasBodyText] = useState(false);
-  const [images, setImages] = useState<(File | null)[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const { files: images, setFiles: setImages, previews, setPreviews, clear: clearMediaDraft } = useDraftMedia<File | null>(postDraftKey && postDraftKey + ":media");
   
   const [uploading, setUploading] = useState(false);
   const [enrolledBootcamps, setEnrolledBootcamps] = useState<any[]>([]);
-  const [selectedBootcampId, setSelectedBootcampId] = useState<string | null>(null);
-  const [isBuild, setIsBuild] = useState(false);
+  const [selectedBootcampId, setSelectedBootcampId] = usePersistentDraft<string | null>(postDraftKey && postDraftKey + ":bootcamp", null);
+  const [isBuild, setIsBuild] = usePersistentDraft(postDraftKey && postDraftKey + ":build", false);
   
   const [mentionSearch, setMentionSearch] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
@@ -67,11 +71,10 @@ function ComposePage() {
   const [croppingInfo, setCroppingInfo] = useState<number | null>(null);
   const [trimmingInfo, setTrimmingInfo] = useState<number | null>(null);
   
-  const { quote: quoteId, draftId, editId } = Route.useSearch();
   const [quotedPost, setQuotedPost] = useState<any>(null);
 
   // Who can see the post: "Everyone", or the id of one club whose members can.
-  const [audience, setAudience] = useState("Everyone");
+  const [audience, setAudience] = usePersistentDraft(postDraftKey && postDraftKey + ":audience", "Everyone");
   const [audienceOpen, setAudienceOpen] = useState(false);
   const [myClubs, setMyClubs] = useState<{ id: string; name: string; logo_url: string | null }[]>([]);
 
@@ -90,7 +93,14 @@ function ComposePage() {
   const audienceClub = audience !== "Everyone" ? myClubs.find((c) => c.id === audience) : null;
 
   useEffect(() => {
-    if (draftId) {
+    const html = readDraft(bodyDraftKey, "");
+    setBodyText(html);
+    bodyTextRef.current = html;
+    setHasBodyText(Boolean(toPlainText(html).trim()));
+  }, [bodyDraftKey]);
+
+  useEffect(() => {
+    if (draftId && bodyDraftKey && readDraft(bodyDraftKey, null) === null) {
       const activeDraft = JSON.parse(localStorage.getItem('zero_club_active_draft') || 'null');
       if (activeDraft && activeDraft.id === draftId) {
         setBodyText(activeDraft.bodyText || "");
@@ -99,11 +109,11 @@ function ComposePage() {
         setAudience(activeDraft.audience || "Everyone");
       }
     }
-  }, [draftId]);
+  }, [draftId, bodyDraftKey]);
 
   useEffect(() => {
     async function fetchEditPost() {
-      if (!editId) return;
+      if (!editId || !bodyDraftKey || readDraft(bodyDraftKey, null) !== null) return;
       const { data } = await supabase
         .from('posts')
         .select('*')
@@ -112,6 +122,7 @@ function ComposePage() {
       
       if (data) {
         setBodyText(data.content || "");
+        writeDraft(bodyDraftKey, data.content || "");
         bodyTextRef.current = data.content || "";
         setHasBodyText(!!(data.content || "").replace(/<[^>]*>?/gm, '').trim());
         
@@ -130,7 +141,7 @@ function ComposePage() {
       }
     }
     fetchEditPost();
-  }, [editId]);
+  }, [editId, bodyDraftKey]);
 
   const saveDraft = () => {
     /* A draft names itself from its first line.
@@ -158,6 +169,7 @@ function ComposePage() {
 
   const updateBodyText = (html: string, textBeforeCursor?: string) => {
     bodyTextRef.current = html;
+    writeDraft(bodyDraftKey, html);
     
     const textOnly = html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim();
     if ((textOnly.length > 0) !== hasBodyText) {
@@ -424,6 +436,8 @@ function ComposePage() {
       queryClient.invalidateQueries({ queryKey: ['my_profile'] });
       
       toast.success("Post created successfully!");
+      clearDraftGroup(postDraftKey);
+      clearMediaDraft();
       navigate({ to: "/app" });
     } catch (error: any) {
       console.error("Post creation error:", error);

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Plus, Flame, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck, ChevronRight } from "@/components/icons/glyphs";
 import { useState, useEffect, useMemo, type ReactNode } from "react";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { getPosts } from "@/api";
@@ -310,9 +311,9 @@ function Feed() {
   const posts = postsData || [];
   const { data: currentUser } = useUser();
   
-  const [activeTab, setActiveTab] = useState("Discover");
+  const [activeTab, setActiveTab] = usePersistentDraft(draftKey(currentUser?.id, "feed-tab"), "Discover");
   const [followingIds, setFollowingIds] = useState<string[]>([]);
-  const [commentPost, setCommentPost] = useState<any>(null);
+  const [commentPost, setCommentPost] = usePersistentDraft<any>(draftKey(currentUser?.id, "feed-comment-panel"), null);
   const { create } = Route.useSearch();
 
   // The Post tab lands here with ?create=1. Open the sheet, then drop the

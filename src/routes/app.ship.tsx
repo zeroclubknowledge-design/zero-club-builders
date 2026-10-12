@@ -8,6 +8,8 @@ import { addPostToPortfolio } from "@/features/portfolio/api";
 import { uploadMedia } from "@/lib/storage";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
+import { useDraftMedia } from "@/hooks/useDraftMedia";
+import { clearDraftGroup, draftKey, readDraft, usePersistentDraft } from "@/lib/draftStorage";
 import { CollaboratorPicker, type Collaborator } from "@/components/CollaboratorPicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
@@ -38,35 +40,37 @@ function ShipPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: profile } = useUser();
+  const { editId, versionOf } = Route.useSearch();
+  const shipDraftKey = draftKey(profile?.id, "ship", editId ? `edit-${editId}` : versionOf ? `version-${versionOf}` : "new");
+  const fieldKey = (field: string) => shipDraftKey && shipDraftKey + ":" + field;
   
-  const [category, setCategory] = useState("Web App");
-  const [projectName, setProjectName] = useState("");
-  const [description, setDescription] = useState("");
+  const [category, setCategory] = usePersistentDraft(fieldKey("category"), "Web App");
+  const [projectName, setProjectName] = usePersistentDraft(fieldKey("name"), "");
+  const [description, setDescription] = usePersistentDraft(fieldKey("description"), "");
   
-  const [images, setImages] = useState<(File | null)[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const { files: images, setFiles: setImages, previews, setPreviews, clear: clearMediaDraft } = useDraftMedia<File | null>(fieldKey("media"));
   
-  const [links, setLinks] = useState([{ title: "Live URL", url: "" }]);
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [links, setLinks] = usePersistentDraft(fieldKey("links"), [{ title: "Live URL", url: "" }]);
+  const [collaborators, setCollaborators] = usePersistentDraft<Collaborator[]>(fieldKey("collaborators"), []);
 
   /* "Tools", not "Skills". What a reader wants from a shipped project is what
      it was built with, which is a fact about the work; a skill is a claim
      about the person, and the two were being collected in one box. */
-  const [tools, setTools] = useState("");
+  const [tools, setTools] = usePersistentDraft(fieldKey("tools"), "");
   
-  const [usedAi, setUsedAi] = useState(false);
-  const [prompts, setPrompts] = useState("");
+  const [usedAi, setUsedAi] = usePersistentDraft(fieldKey("usedAi"), false);
+  const [prompts, setPrompts] = usePersistentDraft(fieldKey("prompts"), "");
   
   const [enrolledBootcamps, setEnrolledBootcamps] = useState<any[]>([]);
-  const [selectedBootcampId, setSelectedBootcampId] = useState<string | null>(null);
+  const [selectedBootcampId, setSelectedBootcampId] = usePersistentDraft<string | null>(fieldKey("bootcamp"), null);
   
-  const [visibility, setVisibility] = useState<"Public" | "Club Only">("Public");
-  const [projectRootId, setProjectRootId] = useState<string | null>(null);
-  const [versionLabel, setVersionLabel] = useState("1.0.0");
-  const [releaseNotes, setReleaseNotes] = useState("");
-  const [availableForUse, setAvailableForUse] = useState(false);
-  const [licenseType, setLicenseType] = useState<"standard" | "commercial" | "full_ownership">("standard");
-  const [licensePrice, setLicensePrice] = useState("");
+  const [visibility, setVisibility] = usePersistentDraft<"Public" | "Club Only">(fieldKey("visibility"), "Public");
+  const [projectRootId, setProjectRootId] = usePersistentDraft<string | null>(fieldKey("root"), null);
+  const [versionLabel, setVersionLabel] = usePersistentDraft(fieldKey("version"), "1.0.0");
+  const [releaseNotes, setReleaseNotes] = usePersistentDraft(fieldKey("releaseNotes"), "");
+  const [availableForUse, setAvailableForUse] = usePersistentDraft(fieldKey("available"), false);
+  const [licenseType, setLicenseType] = usePersistentDraft<"standard" | "commercial" | "full_ownership">(fieldKey("license"), "standard");
+  const [licensePrice, setLicensePrice] = usePersistentDraft(fieldKey("price"), "");
   
   const [uploading, setUploading] = useState(false);
   const [confirmation, setConfirmation] = useState<PublicationAttempt | null>(null);
@@ -91,13 +95,12 @@ function ShipPage() {
     fetchEnrolledBootcamps();
   }, []);
 
-  const { editId, versionOf } = Route.useSearch();
   const isNewVersion = Boolean(versionOf);
 
   useEffect(() => {
     async function fetchEditPost() {
       const sourceId = editId || versionOf;
-      if (!sourceId) return;
+      if (!sourceId || !shipDraftKey || readDraft(fieldKey("name"), null) !== null) return;
       const { data } = await supabase
         .from('posts')
         .select('*')
@@ -214,7 +217,7 @@ function ShipPage() {
       }
     }
     fetchEditPost();
-  }, [editId, versionOf, isNewVersion]);
+  }, [editId, versionOf, isNewVersion, shipDraftKey]);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -327,6 +330,8 @@ function ShipPage() {
   };
 
   const completePublication = async (postId: string, attempt: PublicationAttempt) => {
+    clearDraftGroup(shipDraftKey);
+    clearMediaDraft();
     const bootcampId = attempt.payload.bootcamp_id;
     const bootcamp = enrolledBootcamps.find(b => b.id === bootcampId);
     // Notifications are secondary; a notification failure must never imply publication failed.
@@ -371,7 +376,7 @@ function ShipPage() {
     if (!next || toolList.some((tool) => tool.toLowerCase() === next.toLowerCase())) return;
     setTools([...toolList, next].join(', '));
   };
-  const [toolDraft, setToolDraft] = useState("");
+  const [toolDraft, setToolDraft] = usePersistentDraft(fieldKey("toolInput"), "");
   const shipLabel = isNewVersion ? `Release ${versionLabel || 'update'}` : editId ? "Save" : "Publish";
 
   return (

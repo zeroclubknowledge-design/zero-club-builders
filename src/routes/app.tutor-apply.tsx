@@ -9,6 +9,7 @@ import {
 } from "@/components/icons/glyphs";
 import { ZeroLoader, ZeroMark } from "@/components/ZeroLoader";
 import { useUser } from "@/hooks/useUser";
+import { draftKey, storedDraftOwner, usePersistentDraft } from "@/lib/draftStorage";
 import { INTEREST_OPTIONS, switchMode } from "@/lib/modes";
 import {
   EMPTY_DRAFT, SUBMIT_REFUSAL, getTutorStatus, submitTutorApplication,
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/app/tutor-apply")({
   component: TutorApplyPage,
 });
 
-const DRAFT_KEY = "zc-tutor-application-draft";
+const draftStorageKey = () => `zc-tutor-application-draft:${storedDraftOwner() || "guest"}`;
 const PINK = "#cc208f";
 
 const EXPERIENCE = ["Under 1 year", "1–2 years", "3–5 years", "6–10 years", "10+ years"];
@@ -38,7 +39,12 @@ const STEPS = [
 
 function readDraft(): TutorApplicationDraft {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY);
+    const key = draftStorageKey();
+    const raw = localStorage.getItem(key) || localStorage.getItem("zc-tutor-application-draft");
+    if (raw) {
+      localStorage.setItem(key, raw);
+      localStorage.removeItem("zc-tutor-application-draft");
+    }
     if (raw) return { ...EMPTY_DRAFT, ...JSON.parse(raw) };
   } catch {
     /* storage unavailable */
@@ -48,8 +54,8 @@ function readDraft(): TutorApplicationDraft {
 
 function saveDraft(draft: TutorApplicationDraft | null) {
   try {
-    if (draft) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    else localStorage.removeItem(DRAFT_KEY);
+    if (draft) localStorage.setItem(draftStorageKey(), JSON.stringify(draft));
+    else localStorage.removeItem(draftStorageKey());
   } catch {
     /* storage unavailable */
   }
@@ -220,7 +226,7 @@ function StickyFooter({ children }: { children: ReactNode }) {
 
 function ApplicationForm({ prefill, onExit, onSubmitted }: { prefill: TutorApplication | null; onExit: () => void; onSubmitted: () => void }) {
   const queryClient = useQueryClient();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = usePersistentDraft(draftKey(storedDraftOwner(), "tutor-application-step"), 0);
   const [draft, setDraft] = useState<TutorApplicationDraft>(() => {
     if (prefill) {
       return {
@@ -278,6 +284,7 @@ function ApplicationForm({ prefill, onExit, onSubmitted }: { prefill: TutorAppli
         return;
       }
       saveDraft(null);
+      setStep(0);
       toast.success("Application submitted");
       await queryClient.invalidateQueries({ queryKey: ["tutor-status"] });
       onSubmitted();

@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { likePostAction, unlikePostAction } from "@/api";
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useFollow } from "@/hooks/useFollow";
 import { useGoBack } from "@/hooks/useGoBack";
 import { PortfolioMenuItem, canPutOnPortfolio } from "@/features/portfolio/PortfolioMenuItem";
@@ -312,16 +313,17 @@ function PostDetail() {
 
   const post = data?.post;
   const [comments, setComments] = useState<any[]>([]);
-  const [commentText, setCommentText] = useState("");
-  const [replyTo, setReplyTo] = useState<any>(null); // Tracks the comment being replied to
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editCommentText, setEditCommentText] = useState("");
+  const { data: currentUser } = useUser();
+  const commentDraftKey = draftKey(currentUser?.id, "comment", "post", id);
+  const [commentText, setCommentText] = usePersistentDraft(commentDraftKey, "");
+  const [replyTo, setReplyTo] = usePersistentDraft<any>(commentDraftKey && commentDraftKey + ":reply", null);
+  const [editingCommentId, setEditingCommentId] = usePersistentDraft<string | null>(commentDraftKey && commentDraftKey + ":editing", null);
+  const [editCommentText, setEditCommentText] = usePersistentDraft(commentDraftKey && commentDraftKey + ":edit-text", "");
   const [liked, setLiked] = useState(post?.isLiked || false);
   const [initialLiked, setInitialLiked] = useState(post?.isLiked || false);
   const [isBookmarked, setIsBookmarked] = useState(post?.isBookmarked || false);
   const [hasReposted, setHasReposted] = useState(data?.hasReposted || false);
   const [commentLoading, setCommentLoading] = useState(false);
-  const { data: currentUser } = useUser();
   // Shared follow state — stays in sync with the feed, profiles, and every other screen.
   const { isFollowing, loading: followLoading, toggleFollow } = useFollow(post?.author_id);
   const [isTutor, setIsTutor] = useState(false);
@@ -1556,6 +1558,7 @@ function PostDetail() {
       {post && currentUser && (
         <ComposerOverlay position="absolute" maxWidthClassName="max-w-[860px]">
           <CommentComposer
+            storageKey={commentDraftKey && commentDraftKey + ":media"}
             value={commentText}
             onChange={setCommentText}
             onSubmit={handleComment}

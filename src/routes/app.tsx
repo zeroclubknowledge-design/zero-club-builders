@@ -4,6 +4,7 @@ import { useMarkMessagesDelivered } from "@/lib/realtime/receipts";
 import { CreateHub, openCreateSheet } from "@/features/create/CreateHub";
 import { IconZeroAI } from "@/components/icons/zeroAI";
 import { IconPortfolio } from "@/features/portfolio/icon";
+import { useAppResume } from "@/hooks/useAppResume";
 import { prefetchClubsData, storedSessionUserId } from "@/features/clubs/clubsData";
 import {
   MoreHorizontal,
@@ -827,6 +828,7 @@ function AppLayout() {
   }, []);
 
   const { data: profile, isLoading: profileLoading } = useUser();
+  useAppResume(profile?.id);
   // Shows this person as online to others while the app is open.
   useBroadcastOnline(profile?.id);
   // Two grey ticks for people who message me, as soon as it reaches this phone.

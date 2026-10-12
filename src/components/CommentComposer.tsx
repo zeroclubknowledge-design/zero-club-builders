@@ -12,8 +12,10 @@ import { supabase } from "@/lib/supabase";
 import { compressImage } from "@/lib/imageCompression";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { toast } from "sonner";
+import { useDraftMedia } from "@/hooks/useDraftMedia";
 
 type CommentComposerProps = {
+  storageKey?: string | null;
   value: string;
   onChange: (value: string) => void;
   onSubmit: (files: File[]) => Promise<boolean>;
@@ -76,6 +78,7 @@ export function CommentContent({ content }: { content?: string | null }) {
 }
 
 export function CommentComposer({
+  storageKey = null,
   value,
   onChange,
   onSubmit,
@@ -88,8 +91,7 @@ export function CommentComposer({
   const galleryRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
   const previewsRef = useRef<string[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const { files, setFiles, previews, setPreviews } = useDraftMedia(storageKey);
   const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder((file) => {
     setFiles((current) => [...current, file]);
     setPreviews((current) => [...current, URL.createObjectURL(file)]);

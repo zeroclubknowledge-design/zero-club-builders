@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import {
   ArrowLeft,
@@ -309,11 +310,12 @@ function Workspace({
   ownMode: Mode;
 }) {
   const mode = ownMode;
-  const [text, setText] = useState("");
+  const aiDraftKey = draftKey(userId, "ai", ownMode);
+  const [text, setText] = usePersistentDraft(aiDraftKey, "");
   const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = usePersistentDraft<string | null>(aiDraftKey && aiDraftKey + ":selected", null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = usePersistentDraft<ChatMessage[]>(aiDraftKey && aiDraftKey + ":messages", []);
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState("");
   const pending = useRef<AbortController | null>(null);

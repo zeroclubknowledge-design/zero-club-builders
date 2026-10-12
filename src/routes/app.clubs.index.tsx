@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useState, useEffect, useRef, useMemo } from "react";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { AnimatePresence, motion } from "framer-motion";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { toast } from "sonner";
@@ -84,20 +85,21 @@ function Clubs() {
   };
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const draftOwner = queryClient.getQueryData<any>(["profile", "current"])?.id || storedSessionUserId();
+  const clubFieldKey = (field: string) => draftKey(draftOwner, "clubs", field);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = usePersistentDraft(clubFieldKey("create-open"), false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedClub, setSelectedClub] = useState<any>(null);
 
   /* Private clubs have always been by request. Public ones can now ask for the
      same, without having to hide themselves to get it. */
   const joinNeedsApproval = Boolean(selectedClub?.is_private || selectedClub?.requires_approval);
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [clubSearch, setClubSearch] = useState("");
-  const [clubScope, setClubScope] = useState<"all" | "discover" | "mine" | "boot">("all");
-  const [newClub, setNewClub] = useState({ name: "", description: "", category: "Study Group", price: 0 });
-  const [isPaid, setIsPaid] = useState(false);
-  const [clubDraftReady, setClubDraftReady] = useState(false);
+  const [activeCategory, setActiveCategory] = usePersistentDraft(clubFieldKey("category"), "All");
+  const [clubSearch, setClubSearch] = usePersistentDraft(clubFieldKey("search"), "");
+  const [clubScope, setClubScope] = usePersistentDraft<"all" | "discover" | "mine" | "boot">(clubFieldKey("scope"), "all");
+  const [newClub, setNewClub] = usePersistentDraft(clubFieldKey("create"), { name: "", description: "", category: "Study Group", price: 0 });
+  const [isPaid, setIsPaid] = usePersistentDraft(clubFieldKey("paid"), false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [joiningClubId, setJoiningClubId] = useState<string | null>(null);
   
@@ -108,40 +110,7 @@ function Clubs() {
   // Which of the two peer tabs is showing. Falls back to My Clubs below when
   // there are no bootcamp clubs, so the Boot Clubs tab can never be selected
   // while hidden - which would leave the page looking empty.
-  const [clubsTabRaw, setClubsTab] = useState<"mine" | "boot">("mine");
-
-  useEffect(() => {
-    try {
-      const storedDraft = sessionStorage.getItem("zc:club-create-draft");
-      if (storedDraft) {
-        const parsedDraft = JSON.parse(storedDraft);
-        setNewClub((current) => ({
-          name: typeof parsedDraft.name === "string" ? parsedDraft.name : current.name,
-          description: typeof parsedDraft.description === "string" ? parsedDraft.description : current.description,
-          category: typeof parsedDraft.category === "string" ? parsedDraft.category : current.category,
-          price: typeof parsedDraft.price === "number" ? parsedDraft.price : current.price,
-        }));
-        setIsPaid(parsedDraft.isPaid === true);
-      }
-    } catch {
-      // Ignore malformed drafts and browsers that disable session storage.
-    } finally {
-      setClubDraftReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!clubDraftReady) return;
-
-    try {
-      sessionStorage.setItem(
-        "zc:club-create-draft",
-        JSON.stringify({ ...newClub, isPaid }),
-      );
-    } catch {
-      // Keep the form usable when session storage is unavailable.
-    }
-  }, [clubDraftReady, isPaid, newClub]);
+  const [clubsTabRaw, setClubsTab] = usePersistentDraft<"mine" | "boot">(clubFieldKey("tab"), "mine");
 
   // The person's id is read synchronously from the cached profile so the
   // snapshot can be matched to them before anything loads.

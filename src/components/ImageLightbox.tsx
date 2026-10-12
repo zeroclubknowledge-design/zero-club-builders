@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useUser } from "@/hooks/useUser";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal } from "@/components/ui/dialog";
 import {
   Carousel,
@@ -59,7 +61,8 @@ export function ImageLightbox({
 }: ImageLightboxProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [index, setIndex] = useState(initialIndex);
-  const [reply, setReply] = useState("");
+  const { data: currentUser } = useUser();
+  const [reply, setReply] = usePersistentDraft(draftKey(currentUser?.id, "photo-reply", typeof window === "undefined" ? "" : window.location.pathname, mediaUrls?.[0] || ""), "");
   const [sending, setSending] = useState(false);
   const [downloading, setDownloading] = useState(false);
 

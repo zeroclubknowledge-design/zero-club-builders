@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { shareOrCopy, giftLinkUrl } from "@/lib/share";
+import { draftKey, storedDraftOwner, usePersistentDraft } from "@/lib/draftStorage";
 
 const GIFT_SERVICE_DESTINATIONS: Record<string, { href?: string; action: string }> = {
   bootcamps: { href: "/app/bootcamps", action: "Use for a bootcamp" },
@@ -27,12 +28,13 @@ const GIFT_SERVICE_DESTINATIONS: Record<string, { href?: string; action: string 
 export const Route = createFileRoute("/app/gifts/")({ component: GiftCardsPage });
 
 function GiftCardsPage() {
+  const giftKey = (field: string) => draftKey(storedDraftOwner(), "gift-card", field);
   const [amount, setAmount] = useState("");
-  const [templateId, setTemplateId] = useState("signature");
-  const [service, setService] = useState("bootcamps");
-  const [message, setMessage] = useState("");
-  const [customPurpose, setCustomPurpose] = useState("");
-  const [createdCard, setCreatedCard] = useState<any>(null);
+  const [templateId, setTemplateId] = usePersistentDraft(giftKey("template"), "signature");
+  const [service, setService] = usePersistentDraft(giftKey("service"), "bootcamps");
+  const [message, setMessage] = usePersistentDraft(giftKey("message"), "");
+  const [customPurpose, setCustomPurpose] = usePersistentDraft(giftKey("purpose"), "");
+  const [createdCard, setCreatedCard] = usePersistentDraft<any>(giftKey("created"), null);
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const displayAmount = Number(amount) || 0;
   const numericAmount = toBaseAmount(displayAmount);
@@ -119,6 +121,8 @@ function GiftCardsPage() {
     onSuccess: (card) => {
       refetchUnclaimed();
       setCreatedCard(card);
+      setMessage("");
+      setCustomPurpose("");
       toast.success("Your Zero Card is ready.");
     },
     onError: (error: Error) => toast.error(error.message),

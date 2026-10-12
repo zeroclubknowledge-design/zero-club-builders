@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useEffect, useMemo, useState, useRef } from "react";
@@ -512,7 +513,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* ── Panel / chat state ── */
   const [activeTab, setActiveTab] = useState<"chat" | "learners">("chat");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState("");
+  const [chatInput, setChatInput] = usePersistentDraft(draftKey(profile?.id, "live-message", channel), "");
+  const chatSendPending = useRef(false);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   /* The word being typed after an @, or null when the picker is closed. */
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
@@ -1684,9 +1686,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
   };
 
-  const sendMessage = (attachment?: string) => {
+  const sendMessage = async (attachment?: string) => {
     const body = attachment ? `${chatInput.trim()}${chatInput.trim() ? "\n\n" : ""}${attachment}` : chatInput.trim();
-    if (!body || !chatChannelRef.current) return;
+    if (!body || !chatChannelRef.current || chatSendPending.current) return;
+    const originalInput = chatInput;
+    chatSendPending.current = true;
     const msg: ChatMessage = {
       id: Date.now().toString(),
       sender_name: profile?.full_name || profile?.username || "You",
@@ -1702,11 +1706,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           }
         : undefined,
     };
-    setChatMessages((prev) => appendLiveMessage(prev, msg));
-    chatChannelRef.current.send({ type: "broadcast", event: "chat", payload: msg });
-    setChatInput("");
-    setReplyingTo(null);
-    setMentionQuery(null);
+    try {
+      const result = await chatChannelRef.current.send({ type: "broadcast", event: "chat", payload: msg });
+      if (result !== "ok") throw new Error("Could not send your message. Your draft has been kept.");
+      setChatMessages((prev) => appendLiveMessage(prev, msg));
+      setChatInput(current => current === originalInput ? "" : current);
+      setReplyingTo(null);
+      setMentionQuery(null);
+    } catch (error: any) {
+      toast.error(error?.message || "Could not send your message.");
+    } finally {
+      chatSendPending.current = false;
+    }
   };
 
   const livePeople = useMemo<MentionPerson[]>(() => presenceUsers

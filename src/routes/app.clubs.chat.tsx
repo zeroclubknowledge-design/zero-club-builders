@@ -14,6 +14,8 @@ import { getSponsoredPosts, sponsoredSlots } from "@/features/boost/api";
 import { Switch } from "@/components/ui/switch";
 import { ClubNoteCard, ClubNotePicker, parseClubNote } from "@/features/clubs/ClubNotes";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
+import { useDraftMedia } from "@/hooks/useDraftMedia";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
@@ -179,6 +181,7 @@ const getClubRooms = (rooms: any) => {
 
 /** Keeps draft keystrokes from redrawing the full club and message history. */
 function ClubMessageComposer({
+  storageKey,
   placeholder,
   hasMedia,
   controls,
@@ -188,6 +191,7 @@ function ClubMessageComposer({
   onTyping,
   onStopTyping,
 }: {
+  storageKey: string | null;
   placeholder: string;
   hasMedia: boolean;
   controls: ReactNode;
@@ -199,7 +203,7 @@ function ClubMessageComposer({
   /** Rendered inside the composer, not beside it. */
   avatar?: ReactNode;
 }) {
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = usePersistentDraft(storageKey, "");
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [enterToSend] = useEnterToSend();
@@ -275,13 +279,12 @@ function ClubMessageComposer({
     if ((!draft.trim() && !hasMedia) || sending) return;
     onStopTyping?.();
     const text = draft;
-    setDraft("");
     setMentionQuery(null);
     if (textareaRef.current) textareaRef.current.style.height = "36px";
     setSending(true);
     try {
       const sent = await onSend(text);
-      if (!sent && text.trim()) setDraft((current) => current || text);
+      if (sent) setDraft((current) => current === text ? "" : current);
     } catch {
       if (text.trim()) setDraft((current) => current || text);
       toast.error("Could not send message");
@@ -386,13 +389,14 @@ function ClubChat() {
     clubId,
     room: roomParam,
   } = useSearch({ from: "/app/clubs/chat" });
-  const [activeRoom, setActiveRoom] = useState(roomParam || "general");
   const [showQuickNav, setShowQuickNav] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [club, setClub] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { data: currentUserProfile, refetch: refetchCurrentUser } = useUser();
+  const [activeRoom, setActiveRoom] = usePersistentDraft(draftKey(currentUserProfile?.id, "club-room", clubId || "joined"), roomParam || "general");
+  useEffect(() => { if (roomParam) setActiveRoom(roomParam); }, [roomParam, clubId, setActiveRoom]);
   // Who else in this room is typing right now (one channel per club room).
   const { typists: roomTypists, notifyTyping, stopTyping } = useTyping(
     club?.id ? `club:${club.id}:${activeRoom}` : null,
@@ -406,7 +410,7 @@ function ClubChat() {
   const [squadActionMember, setSquadActionMember] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [replyingTo, setReplyingTo] = usePersistentDraft<any>(draftKey(currentUserProfile?.id, "club-message", clubId || "joined", activeRoom, "reply"), null);
   const [editClub, setEditClub] = useState({
     name: "",
     description: "",
@@ -426,8 +430,7 @@ function ClubChat() {
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+  const { files: mediaFiles, setFiles: setMediaFiles, previews: mediaPreviews, setPreviews: setMediaPreviews } = useDraftMedia(draftKey(currentUserProfile?.id, "club-message", club?.id || clubId || "", activeRoom, "media"));
   const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder(
     (file) => {
       setMediaFiles((files) => [...files, file]);
@@ -1146,6 +1149,11 @@ function ClubChat() {
             cacheControl: "31536000",
             contentType: file.type || undefined,
           });
+        if (uploadError) {
+          toast.dismiss("upload");
+          toast.error("Could not upload your attachment. Your draft has been kept.");
+          return false;
+        }
         if (!uploadError) {
           const {
             data: { publicUrl },
@@ -1169,10 +1177,6 @@ function ClubChat() {
       toast.error("Only club admins can create assignments.");
       return false;
     }
-    setMediaFiles([]);
-    setMediaPreviews([]);
-    setReplyingTo(null);
-
     // Optimistic Update
     const tempId = crypto.randomUUID();
     const optimisticMsg = {
@@ -1210,6 +1214,9 @@ function ClubChat() {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       return false;
     } else {
+      setMediaFiles([]);
+      setMediaPreviews([]);
+      setReplyingTo(null);
       // Replace optimistic message with real data from server
       setMessages((prev) => {
         const next = prev
@@ -3490,6 +3497,7 @@ function ClubChat() {
         ) : ["assignments", "announcements", "q-and-a"].includes(activeRoom) ? (
           <main className="w-full shrink-0 px-4 py-5 md:px-6 md:py-7">
             <StructuredClubRoom
+              clubId={club?.id}
               key={activeRoom}
               room={activeRoom}
               messages={messages}
@@ -3822,6 +3830,7 @@ function ClubChat() {
           )}
 
           <ClubMessageComposer
+            storageKey={draftKey(currentUser?.id, "club-message", club?.id || clubId || "", activeRoom)}
             placeholder={
               activeRoom === "general" ? "Write a message..." : `Post in ${activeRoom}...`
             }
@@ -4107,6 +4116,7 @@ const parseClubReply = (message: any) => {
 };
 
 function StructuredClubRoom({
+  clubId,
   room,
   messages,
   isAdmin,
@@ -4114,14 +4124,16 @@ function StructuredClubRoom({
   currentUser,
   onPost,
 }: any) {
-  const [showComposer, setShowComposer] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<any>(null);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [dueTime, setDueTime] = useState("");
-  const [maxMarks, setMaxMarks] = useState("");
-  const [attachments, setAttachments] = useState<NonNullable<ClubCardPayload["media"]>>([]);
+  const roomDraftKey = draftKey(currentUser?.id, "club-work", clubId || "", room);
+  const fieldKey = (field: string) => roomDraftKey && roomDraftKey + ":" + field;
+  const [showComposer, setShowComposer] = usePersistentDraft(fieldKey("composer"), false);
+  const [selectedCard, setSelectedCard] = usePersistentDraft<any>(fieldKey("card"), null);
+  const [title, setTitle] = usePersistentDraft(fieldKey("title"), "");
+  const [body, setBody] = usePersistentDraft(fieldKey("body"), "");
+  const [dueDate, setDueDate] = usePersistentDraft(fieldKey("dueDate"), "");
+  const [dueTime, setDueTime] = usePersistentDraft(fieldKey("dueTime"), "");
+  const [maxMarks, setMaxMarks] = usePersistentDraft(fieldKey("marks"), "");
+  const [attachments, setAttachments] = usePersistentDraft<NonNullable<ClubCardPayload["media"]>>(fieldKey("media"), []);
   const [attaching, setAttaching] = useState(false);
   const attachInputRef = useRef<HTMLInputElement>(null);
   const [grades, setGrades] = useState<Record<string, any>>({});
@@ -4129,18 +4141,15 @@ function StructuredClubRoom({
     Record<string, { score: string; feedback: string }>
   >({});
   const [gradingId, setGradingId] = useState<string | null>(null);
-  const [threadReply, setThreadReply] = useState("");
-  const [replyAttachments, setReplyAttachments] = useState<NonNullable<ClubCardPayload["media"]>>(
-    [],
-  );
+  const replyKey = selectedCard?.id ? fieldKey(`submission:${selectedCard.id}`) : null;
+  const [threadReply, setThreadReply] = usePersistentDraft(replyKey, "");
+  const [replyAttachments, setReplyAttachments] = usePersistentDraft<NonNullable<ClubCardPayload["media"]>>(replyKey && replyKey + ":media", []);
   const [replyAttaching, setReplyAttaching] = useState(false);
   const replyAttachInputRef = useRef<HTMLInputElement>(null);
   const uploadBusy = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setThreadReply("");
-    setReplyAttachments([]);
     if (replyAttachInputRef.current) replyAttachInputRef.current.value = "";
   }, [selectedCard?.id]);
 
@@ -5096,8 +5105,8 @@ function MessageBubble({
   const canEdit = Boolean(
     isMe && onEdit && !message.pending && !String(message.content || "").startsWith("::ZEROCLUB_"),
   );
-  const [editing, setEditing] = useState(false);
-  const [editText, setEditText] = useState("");
+  const [editing, setEditing] = usePersistentDraft(draftKey(currentUser?.id, "club-edit", message.id, "open"), false);
+  const [editText, setEditText] = usePersistentDraft(draftKey(currentUser?.id, "club-edit", message.id, "text"), "");
   const [savingEdit, setSavingEdit] = useState(false);
   const startEdit = () => {
     setEditText(

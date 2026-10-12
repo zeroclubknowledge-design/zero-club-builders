@@ -33,6 +33,8 @@ interface CommentDrawerProps {
   onCommentAdded?: () => void;
 }
 
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
+
 const commentCache = new Map<string, { comments: any[]; cachedAt: number }>();
 type CommentSort = "top" | "newest";
 
@@ -53,15 +55,16 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
   const router = useRouter();
   const queryClient = useQueryClient();
   const [comments, setComments] = useState<any[]>([]);
-  const [newComment, setNewComment] = useState("");
+  const { data: currentUser } = useUser();
+  const commentDraftKey = draftKey(currentUser?.id, "comment", type, String(post?.original_id || post?.id || ""));
+  const [newComment, setNewComment] = usePersistentDraft(commentDraftKey, "");
   const [loading, setLoading] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
-  const [replyTo, setReplyTo] = useState<any>(null);
+  const [replyTo, setReplyTo] = usePersistentDraft<any>(commentDraftKey && commentDraftKey + ":reply", null);
   const [activePickerId, setActivePickerId] = useState<string | null>(null);
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editCommentText, setEditCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = usePersistentDraft<string | null>(commentDraftKey && commentDraftKey + ":editing", null);
+  const [editCommentText, setEditCommentText] = usePersistentDraft(commentDraftKey && commentDraftKey + ":edit-text", "");
   const [commentSort, setCommentSort] = useState<CommentSort>("top");
-  const { data: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
   const fetchRequestRef = useRef(0);
 
@@ -101,11 +104,6 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
       // Render cached comments immediately, then always revalidate. A notification
       // can arrive while an empty cache entry is still considered fresh.
       void fetchComments(cacheKey, !cached);
-    }
-    if (!isOpen && !inline) {
-      setReplyTo(null);
-      setNewComment("");
-      setEditingCommentId(null);
     }
   }, [isOpen, inline, post?.id, post?.original_id, type]);
 
@@ -804,6 +802,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
           <ComposerOverlay position={inline ? "fixed" : "absolute"}>
             <CommentComposer
+              storageKey={commentDraftKey && commentDraftKey + ":media"}
               value={newComment}
               onChange={setNewComment}
               onSubmit={handleSubmit}

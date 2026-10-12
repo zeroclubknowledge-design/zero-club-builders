@@ -30,6 +30,8 @@ import EmojiPicker from 'emoji-picker-react';
 import { Popover } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { directMessagePreview, parseFundLinkMessage } from "@/lib/directMessage";
+import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
+import { useDraftMedia } from "@/hooks/useDraftMedia";
 
 // A stable loading fallback. Creating [] inside the useQuery destructure gives
 // the message-sync effect a new dependency on every render and can trigger
@@ -630,16 +632,16 @@ function ChatViewPage() {
   const initialMessages = loadedMessages ?? EMPTY_DIRECT_MESSAGES;
 
   const [messages, setMessages] = useState<any[]>([]);
-  const [input, setInput] = useState("");
+  const messageDraftKey = draftKey(currentUserProfile?.id, "dm", id);
+  const [input, setInput] = usePersistentDraft(messageDraftKey, "");
   const [sending, setSending] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [editingId, setEditingId] = usePersistentDraft<string | null>(messageDraftKey && messageDraftKey + ":editing", null);
+  const [replyingTo, setReplyingTo] = usePersistentDraft<any>(messageDraftKey && messageDraftKey + ":reply", null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+  const { files: mediaFiles, setFiles: setMediaFiles, previews: mediaPreviews, setPreviews: setMediaPreviews } = useDraftMedia(messageDraftKey && messageDraftKey + ":media");
   const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder((file) => {
     setMediaFiles((files) => [...files, file]);
     setMediaPreviews((previews) => [...previews, URL.createObjectURL(file)]);
@@ -1023,6 +1025,7 @@ function ChatViewPage() {
             const { error: uploadError } = await supabase.storage
               .from('post-media')
               .upload(filePath, file, { cacheControl: '31536000', contentType: file.type || undefined });
+            if (uploadError) throw uploadError;
             if (!uploadError) {
               const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(filePath);
               uploadedUrls.push(encodeChatMedia(getChatMediaType(file), publicUrl, original.name));
@@ -1050,7 +1053,6 @@ function ChatViewPage() {
 
         // Show text immediately while the database request completes.
         setMessages((previous) => [...previous, optimisticMessage]);
-        setInput("");
         const savedMessage = await sendMessageAction({ receiverId: id, content, reply_to_id: replyToId });
         setMessages((previous) => {
           const withoutPending = previous.filter((message) => message.id !== pendingId);
@@ -1065,7 +1067,7 @@ function ChatViewPage() {
         setMediaFiles([]);
         setMediaPreviews([]);
       }
-      setInput("");
+      setInput((current) => current === originalInput ? "" : current);
       const textareas = document.querySelectorAll('textarea');
       textareas.forEach(t => { t.style.height = 'auto'; });
       void queryClient.invalidateQueries({ queryKey: ["conversations"] });
@@ -1076,6 +1078,7 @@ function ChatViewPage() {
       }
       toast.error(err.message || "Failed to process message");
     } finally {
+      toast.dismiss("upload");
       setSending(false);
     }
   };
@@ -1437,7 +1440,7 @@ function ChatViewPage() {
             startEditing={startEditing}
             handleDecideClubRequest={handleDecideClubRequest}
             messages={messages}
-            onReply={(msg: any) => { setReplyingTo(msg); setEditingId(null); setInput(""); }}
+            onReply={(msg: any) => { setReplyingTo(msg); setEditingId(null); }}
             onReact={handleReact}
             currentUser={{ id: currentUserId, avatar_url: currentUserProfile?.avatar_url }}
             highlighted={highlightIds.has(m.id)}

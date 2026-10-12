@@ -11,14 +11,14 @@
  * on, it should survive a crash, and it should cost nothing while you type.
  */
 
-const KEY = "zc_note_draft";
-
-/** A week. Long enough to come back to, short enough not to haunt you. */
-const MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+import { storedDraftOwner } from "./draftStorage";
+const noteKey = () => `zc_note_draft:${storedDraftOwner() || "guest"}`;
 
 export type NoteDraft = {
   title: string;
   isPaid: boolean;
+  noteMode?: string;
+  noteBootcampIds?: string[];
   blocks: any[];
   at: number;
 };
@@ -31,14 +31,17 @@ export function stripHtml(value: string): string {
 export function readNoteDraft(): NoteDraft | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(KEY);
+    const key = noteKey();
+    const raw = localStorage.getItem(key) || localStorage.getItem("zc_note_draft");
     if (!raw) return null;
     const parsed = JSON.parse(raw) as NoteDraft;
-    if (!parsed || typeof parsed.at !== "number" || Date.now() - parsed.at > MAX_AGE) {
-      localStorage.removeItem(KEY);
+    if (!parsed || typeof parsed.at !== "number") {
+      localStorage.removeItem(key);
       return null;
     }
     if (!Array.isArray(parsed.blocks)) return null;
+    localStorage.setItem(key, JSON.stringify(parsed));
+    localStorage.removeItem("zc_note_draft");
     return parsed;
   } catch {
     // Corrupt or unreadable storage must never stop the editor opening.
@@ -48,7 +51,7 @@ export function readNoteDraft(): NoteDraft | null {
 
 export function writeNoteDraft(draft: NoteDraft): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(draft));
+    localStorage.setItem(noteKey(), JSON.stringify(draft));
   } catch {
     /* quota or private mode — losing the draft is bad, breaking typing is worse */
   }
@@ -56,7 +59,8 @@ export function writeNoteDraft(draft: NoteDraft): void {
 
 export function clearNoteDraft(): void {
   try {
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(noteKey());
+    localStorage.removeItem("zc_note_draft");
   } catch {
     /* nothing to do */
   }
