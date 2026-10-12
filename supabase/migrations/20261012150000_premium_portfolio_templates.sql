@@ -1,0 +1,13 @@
+-- ALREADY APPLIED to tiyifgfsuzhcvdvntjmp via MCP on 2026-10-12. Do not re-run.
+-- Premium portfolio templates (Signal, Spotlight, Statement, Bright, Gallery).
+--
+-- * portfolios.template accepts: minimal, studio, signal, spotlight, statement, bright, gallery
+-- * portfolio_premium_allowed(uuid): zero_club_plan_key(uuid) not in ('learner_basic','tutor_basic')
+-- * can_use_premium_portfolio(): the caller's flag, for the builder
+-- * trigger portfolios_template_guard (SECURITY INVOKER, so current_user is 'authenticated'):
+--   choosing a premium template without membership raises PREMIUM_TEMPLATE_REQUIRED
+-- * get_public_portfolio: serves 'minimal' when a premium template's membership lapsed
+--   (stored_template keeps the owner's choice; premium_active flag), and adds
+--   'achievements' — completed Zero Proofs Challenge wins and public Zero Games awards,
+--   read from results, never typed by the owner.
+-- Tested in rolled-back transactions: basic user blocked; premium user saves; lapse serves minimal.

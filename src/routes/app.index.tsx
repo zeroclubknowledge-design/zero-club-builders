@@ -9,7 +9,6 @@ import { PostCard } from "@/components/PostCard";
 import { SponsoredPostCard } from "@/features/boost/SponsoredPostCard";
 import { getSponsoredPosts, sponsoredSlots } from "@/features/boost/api";
 import { CommentDrawer } from "@/components/CommentDrawer";
-import { Rocket } from "@/components/icons/glyphs";
 import { getCachedSession } from "@/lib/auth";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
@@ -488,33 +487,6 @@ function Feed() {
               </div>
             ) : (
               <>
-            {/* The composer strip. Tapping it opens the same create sheet as
-                the Post tab; the rocket goes straight to shipping a project. */}
-            <div className="zc-feed-composer mt-2 flex items-center gap-3 bg-card px-4 py-3">
-              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
-                {currentUser?.avatar_url ? (
-                  <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                ) : (
-                  <div className="grid h-full w-full place-items-center bg-accent/10 text-[14px] font-semibold uppercase text-accent">
-                    {currentUser?.username?.substring(0, 1) || "U"}
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={openCreateSheet}
-                className="h-11 min-w-0 flex-1 truncate rounded-full border border-foreground/20 px-4 text-left text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.03]"
-              >
-                Share what you shipped
-              </button>
-              <Link
-                to="/app/ship"
-                aria-label="Ship a project"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground"
-              >
-                <Rocket className="h-[22px] w-[22px]" />
-              </Link>
-            </div>
-
             {isLoading ? (
               <div className="flex flex-col">
                 {[0, 1, 2].map((i) => (

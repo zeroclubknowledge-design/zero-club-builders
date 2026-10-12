@@ -44,6 +44,8 @@ import {
 } from "./api";
 import { describePost, postImages } from "./parse";
 import { PortfolioRenderer } from "./PortfolioRenderer";
+import { TEMPLATE_CATALOG } from "./templates/catalog";
+import { supabase } from "@/lib/supabase";
 import { recommendWork, toolsFrom } from "./recommend";
 import { portfolioStrength } from "./strength";
 import {
@@ -53,8 +55,10 @@ import {
   normaliseSections,
   portfolioDisplayUrl,
   portfolioUrl,
+  isPremiumTemplate,
   type Portfolio,
   type PortfolioItem,
+  type PortfolioTemplate,
   type PublicPortfolio,
 } from "./types";
 
@@ -74,6 +78,19 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
     items: ordered(initial.items),
   }));
   const [tab, setTab] = useState<"edit" | "preview">("edit");
+  /* A premium look the owner is trying on without a membership: shown in the
+     preview only, never saved (the server would refuse it anyway). */
+  const [tryTemplate, setTryTemplate] = useState<PortfolioTemplate | null>(null);
+  const premium = useQuery({
+    queryKey: ["can_use_premium_portfolio"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("can_use_premium_portfolio" as any);
+      if (error) return false;
+      return Boolean(data);
+    },
+    staleTime: 60_000,
+  });
+  const canPremium = premium.data === true;
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [publishOpen, setPublishOpen] = useState(false);
   const [liveOpen, setLiveOpen] = useState(false);
@@ -291,10 +308,22 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
     });
 
   /* ── Render ───────────────────────────────────────────── */
+  const previewTemplate = tryTemplate || draft.portfolio.template;
+  const tryName = TEMPLATE_CATALOG.find((t) => t.id === tryTemplate)?.name;
+  const chooseTemplate = (template: PortfolioTemplate) => {
+    if (isPremiumTemplate(template) && !canPremium) {
+      setTryTemplate(template);
+      setTab("preview");
+      return;
+    }
+    setTryTemplate(null);
+    if (template !== draft.portfolio.template) patchPortfolio({ template });
+  };
   const preview = (
     <PortfolioRenderer
       data={{
         ...draft,
+        portfolio: { ...draft.portfolio, template: previewTemplate },
         items: [...draft.items].sort(
           (a, b) => Number(b.featured) - Number(a.featured) || a.sort_order - b.sort_order,
         ),
@@ -485,7 +514,10 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
             }
           >
             {proofs.length === 0 ? (
-              <EmptyLine>Posts you highlight show here. Tap Add, or open the ⋯ menu on any of your posts and choose Highlight.</EmptyLine>
+              <EmptyLine>
+                Posts you highlight show here. Tap Add, or open the ⋯ menu on any of your posts and
+                choose Highlight.
+              </EmptyLine>
             ) : (
               <ul className="space-y-2">
                 {proofs.map((item, index) => (
@@ -574,16 +606,58 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           {/* Look */}
           <Card title="Look">
             <p className="text-[13px] text-muted-foreground">Template</p>
+            {draft.portfolio.stored_template &&
+              draft.portfolio.stored_template !== draft.portfolio.template &&
+              isPremiumTemplate(draft.portfolio.stored_template) && (
+                <p className="mt-2 rounded-xl bg-[#cc208f]/[0.08] px-3 py-2 text-[12.5px] leading-snug text-foreground">
+                  Your{" "}
+                  {TEMPLATE_CATALOG.find((t) => t.id === draft.portfolio.stored_template)?.name}{" "}
+                  template is paused while your membership is inactive.{" "}
+                  <Link to="/app/premium" className="font-semibold text-[#cc208f]">
+                    Renew to bring it back
+                  </Link>
+                </p>
+              )}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <div className="rounded-xl border-2 border-foreground p-3">
-                <p className="text-[14px] font-semibold">Zero Minimal</p>
-                <p className="text-[12px] text-muted-foreground">Dark, quiet, work first</p>
-              </div>
-              <div className="rounded-xl border border-dashed border-border p-3 opacity-60">
-                <p className="text-[14px] font-semibold">Zero Studio</p>
-                <p className="text-[12px] text-muted-foreground">Coming soon</p>
-              </div>
+              {TEMPLATE_CATALOG.map((t) => {
+                const selected = (tryTemplate || draft.portfolio.template) === t.id;
+                const locked = t.premium && !canPremium;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => chooseTemplate(t.id)}
+                    className={`relative overflow-hidden rounded-xl p-2 text-left transition ${selected ? "ring-2 ring-foreground" : "ring-1 ring-border hover:ring-foreground/30"}`}
+                  >
+                    <TemplateSwatch
+                      id={t.id}
+                      swatch={t.swatch}
+                      accent={ACCENT_HEX[draft.portfolio.accent]}
+                    />
+                    <div className="mt-2 flex items-center gap-1.5 px-0.5">
+                      <p className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">
+                        {t.name}
+                      </p>
+                      {t.premium && (
+                        <span
+                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${locked ? "bg-foreground/[0.08] text-muted-foreground" : "bg-[#cc208f]/12 text-[#cc208f]"}`}
+                        >
+                          {locked ? "Pro" : "Pro ✓"}
+                        </span>
+                      )}
+                    </div>
+                    <p className="line-clamp-2 px-0.5 text-[11.5px] leading-snug text-muted-foreground">
+                      {t.blurb}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
+            {!canPremium && (
+              <p className="mt-2 text-[12px] text-muted-foreground">
+                Tap a Pro template to preview it with your own work.
+              </p>
+            )}
             <p className="mt-4 text-[13px] text-muted-foreground">Accent</p>
             <div className="mt-2 flex flex-wrap gap-2.5">
               {ACCENTS.map((accent) => (
@@ -624,8 +698,33 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           </Card>
         </div>
 
-        <div className={`${tab === "preview" ? "block" : "hidden"} min-w-0 @min-[960px]/portfolio:block`}>
+        <div
+          className={`${tab === "preview" ? "block" : "hidden"} min-w-0 @min-[960px]/portfolio:block`}
+        >
           <div className="min-w-0 overflow-hidden @min-[960px]/portfolio:sticky @min-[960px]/portfolio:top-[76px] @min-[960px]/portfolio:h-[calc(100vh-96px)] @min-[960px]/portfolio:overflow-y-auto @min-[960px]/portfolio:rounded-3xl @min-[960px]/portfolio:border @min-[960px]/portfolio:border-border">
+            {tryTemplate && (
+              <div className="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-border bg-card/95 px-4 py-3 backdrop-blur">
+                <p className="min-w-0 flex-1 text-[13px]">
+                  <span className="font-semibold">Previewing {tryName}.</span>{" "}
+                  <span className="text-muted-foreground">
+                    Premium templates are for Zero Club members.
+                  </span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setTryTemplate(null)}
+                  className="h-9 rounded-full border border-border px-3.5 text-[13px] font-semibold"
+                >
+                  Back to mine
+                </button>
+                <Link
+                  to="/app/premium"
+                  className="inline-flex h-9 items-center rounded-full bg-[#cc208f] px-4 text-[13px] font-semibold text-white"
+                >
+                  Go Premium
+                </Link>
+              </div>
+            )}
             {preview}
           </div>
         </div>
@@ -780,6 +879,141 @@ const chip =
 const field =
   "mt-1.5 h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3.5 text-[16px] outline-none transition focus:border-foreground/40";
 
+/** A tiny drawing of each template so the picker shows a shape, not just a name. */
+function TemplateSwatch({
+  id,
+  swatch,
+  accent,
+}: {
+  id: PortfolioTemplate;
+  swatch: { bg: string; fg: string; light: boolean };
+  accent: string;
+}) {
+  const a = swatch.light && accent === ACCENT_HEX.mono ? "#18181b" : accent;
+  const line = (w: string, o = 0.5, h = 3) => (
+    <span
+      className="block rounded-full"
+      style={{ width: w, height: h, background: swatch.fg, opacity: o }}
+    />
+  );
+  return (
+    <div className="relative h-[74px] overflow-hidden rounded-lg" style={{ background: swatch.bg }}>
+      {id === "minimal" && (
+        <div className="space-y-1.5 p-2.5">
+          <span
+            className="block h-4 w-4 rounded-full"
+            style={{ background: swatch.fg, opacity: 0.25 }}
+          />
+          {line("70%", 0.9, 5)}
+          {line("50%", 0.4)}
+          <div className="grid grid-cols-2 gap-1 pt-0.5">
+            <span className="h-4 rounded" style={{ background: swatch.fg, opacity: 0.1 }} />
+            <span className="h-4 rounded" style={{ background: swatch.fg, opacity: 0.1 }} />
+          </div>
+        </div>
+      )}
+      {id === "signal" && (
+        <div className="flex h-full gap-1.5 p-2">
+          <div className="w-[34%] rounded-md p-1" style={{ background: "#ffffff10" }}>
+            <span className="block h-7 rounded" style={{ background: "#ffffff22" }} />
+            <span
+              className="mt-1 block h-1.5 w-3/4 rounded-full"
+              style={{ background: swatch.fg, opacity: 0.6 }}
+            />
+            <span className="mt-1 block h-2 w-1/2 rounded-full" style={{ background: a }} />
+          </div>
+          <div className="flex-1 space-y-1 rounded-md p-1.5" style={{ background: "#ffffff10" }}>
+            {line("90%", 0.8, 4)}
+            <span className="block h-[5px] w-2/5 rounded-full" style={{ background: a }} />
+            <div className="grid grid-cols-2 gap-1 pt-1">
+              <span className="h-5 rounded" style={{ background: "#ffffff14" }} />
+              <span className="h-5 rounded" style={{ background: "#ffffff14" }} />
+            </div>
+          </div>
+        </div>
+      )}
+      {id === "spotlight" && (
+        <div className="relative h-full">
+          <div
+            className="absolute inset-0"
+            style={{ background: `radial-gradient(60% 80% at 70% 40%, ${a}88, transparent 70%)` }}
+          />
+          <p
+            className="absolute bottom-3 left-1.5 right-0 whitespace-nowrap font-serif text-[22px] leading-none"
+            style={{ color: swatch.fg }}
+          >
+            Name Sur
+          </p>
+          <span className="absolute bottom-1 left-0 right-0 h-[3px]" style={{ background: a }} />
+        </div>
+      )}
+      {id === "statement" && (
+        <div className="relative h-full p-2">
+          <p
+            className="text-[19px] font-black leading-[0.85] tracking-tight"
+            style={{ color: swatch.fg }}
+          >
+            NAME
+            <br />
+            .SUR
+          </p>
+          <span
+            className="absolute bottom-2 right-2 grid h-7 w-7 place-items-center rounded-full border text-[7px] font-bold"
+            style={{ borderColor: `${swatch.fg}55`, color: swatch.fg }}
+          >
+            ✦
+          </span>
+          <span
+            className="absolute bottom-0 left-1/2 h-6 w-10 -translate-x-1/2 rounded-t-full"
+            style={{ background: `radial-gradient(circle at 50% 100%, #ffd59a, ${a})` }}
+          />
+        </div>
+      )}
+      {id === "bright" && (
+        <div className="flex h-full items-center gap-2 p-2.5">
+          <div className="flex-1 space-y-1">
+            {line("85%", 0.9, 4)}
+            {line("60%", 0.9, 4)}
+            <span className="block h-2 w-8 rounded-sm" style={{ background: a }} />
+          </div>
+          <div className="relative h-12 w-12">
+            <span
+              className="absolute -right-1 -top-1 h-8 w-8 rotate-12 rounded-lg"
+              style={{ background: a }}
+            />
+            <span
+              className="absolute inset-1 rounded-full border-2"
+              style={{ background: "#d9d6cf", borderColor: swatch.bg }}
+            />
+          </div>
+        </div>
+      )}
+      {id === "gallery" && (
+        <div className="h-full">
+          <div
+            className="flex h-[42%] items-center justify-center gap-1"
+            style={{ background: "#0d0f1a" }}
+          >
+            <span className="text-[9px] font-extrabold text-white">
+              I Am You<span style={{ color: a }}>.</span>
+            </span>
+            <span className="h-4 w-4 rounded-full" style={{ background: a }} />
+          </div>
+          <div className="grid grid-cols-3 gap-0.5 p-1">
+            {[10, 16, 12, 14, 9, 13].map((h, i) => (
+              <span
+                key={i}
+                className="rounded-sm"
+                style={{ height: h, background: i % 2 ? `${a}55` : "#00000018" }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Card({
   title,
   action,
@@ -807,7 +1041,9 @@ function Label({ text, count }: { text: string; count?: string }) {
     <div className="mt-3 flex min-w-0 items-center justify-between gap-2 first:mt-0">
       <span className="text-[13px] font-medium text-muted-foreground">{text}</span>
       {count && (
-        <span className="shrink-0 text-[11.5px] tabular-nums text-muted-foreground/70">{count}</span>
+        <span className="shrink-0 text-[11.5px] tabular-nums text-muted-foreground/70">
+          {count}
+        </span>
       )}
     </div>
   );

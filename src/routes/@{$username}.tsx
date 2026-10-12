@@ -110,7 +110,19 @@ function PublicPortfolioPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0b]">
+    <main
+      className="min-h-screen"
+      style={{
+        background:
+          data.portfolio.template === "bright"
+            ? "#faf9f6"
+            : data.portfolio.template === "gallery"
+              ? "#f7f6f3"
+              : data.portfolio.template === "spotlight"
+                ? "#000000"
+                : "#0a0a0b",
+      }}
+    >
       {data.is_owner && (
         <div className="sticky top-0 z-20 border-b border-white/10 bg-[#0a0a0b]/90 backdrop-blur-xl">
           <div className="mx-auto flex h-12 max-w-[1040px] items-center justify-between gap-3 px-5 text-[13px] text-white/70">

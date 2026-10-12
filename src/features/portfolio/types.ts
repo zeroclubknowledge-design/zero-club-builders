@@ -8,6 +8,7 @@ export const SECTION_KEYS = [
   "learning",
   "certificates",
   "proofs",
+  "achievements",
   "contact",
 ] as const;
 export type PortfolioSectionKey = (typeof SECTION_KEYS)[number];
@@ -21,6 +22,7 @@ export const SECTION_LABELS: Record<PortfolioSectionKey, string> = {
   learning: "Learning",
   certificates: "Certificates",
   proofs: "Highlights",
+  achievements: "Wins & awards",
   contact: "Contact",
 };
 
@@ -35,10 +37,29 @@ export const ACCENT_HEX: Record<PortfolioAccent, string> = {
   mono: "#f4f4f5",
 };
 
+export const PREMIUM_TEMPLATES = ["signal", "spotlight", "statement", "bright", "gallery"] as const;
+export type PremiumTemplate = (typeof PREMIUM_TEMPLATES)[number];
+export type PortfolioTemplate = "minimal" | "studio" | PremiumTemplate;
+export const isPremiumTemplate = (t: string | null | undefined): t is PremiumTemplate =>
+  (PREMIUM_TEMPLATES as readonly string[]).includes(t || "");
+
+/** Verified wins, read from Zero Club results — never typed in by the owner. */
+export type Achievement = {
+  kind: "challenge" | "zero_games";
+  title: string;
+  place: number | null;
+  label: string;
+  at: string | null;
+  ref: string;
+};
+
 export type Portfolio = {
   id: string;
   status: "draft" | "published";
-  template: "minimal" | "studio";
+  template: PortfolioTemplate;
+  /** What the owner saved; differs from `template` when a premium look lapsed. */
+  stored_template?: PortfolioTemplate;
+  premium_active?: boolean;
   headline: string | null;
   about: string | null;
   accent: PortfolioAccent;
@@ -106,6 +127,7 @@ export type PublicPortfolio = {
   experiences: Experience[];
   certificates: Certificate[];
   learning: LearningEntry[];
+  achievements?: Achievement[];
   stats: { ships: number; verified: number; proofs: number; xp: number };
 };
 

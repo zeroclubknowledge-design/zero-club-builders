@@ -21,6 +21,13 @@ import {
   type PortfolioSectionKey,
   type PublicPortfolio,
 } from "./types";
+import { SignalTemplate } from "./templates/Signal";
+import { SpotlightTemplate } from "./templates/Spotlight";
+import { StatementTemplate } from "./templates/Statement";
+import { BrightTemplate } from "./templates/Bright";
+import { GalleryTemplate } from "./templates/Gallery";
+import { achievementSource, year } from "./templates/kit";
+import { Trophy } from "@/components/icons/glyphs";
 
 /**
  * Zero Minimal: the portfolio template.
@@ -41,7 +48,25 @@ type Props = {
   onOpenItem?: (item: PortfolioItem) => void;
 };
 
-export function PortfolioRenderer({ data, preview, onOpenItem }: Props) {
+/** Picks the template the server says this portfolio may show. */
+export function PortfolioRenderer(props: Props) {
+  switch (props.data.portfolio.template) {
+    case "signal":
+      return <SignalTemplate {...props} />;
+    case "spotlight":
+      return <SpotlightTemplate {...props} />;
+    case "statement":
+      return <StatementTemplate {...props} />;
+    case "bright":
+      return <BrightTemplate {...props} />;
+    case "gallery":
+      return <GalleryTemplate {...props} />;
+    default:
+      return <MinimalTemplate {...props} />;
+  }
+}
+
+function MinimalTemplate({ data, preview, onOpenItem }: Props) {
   const { profile, portfolio, items, experiences, certificates, learning, stats } = data;
   const accent = ACCENT_HEX[portfolio.accent] || ACCENT_HEX.pink;
   const name = profile.full_name || profile.username;
@@ -69,6 +94,7 @@ export function PortfolioRenderer({ data, preview, onOpenItem }: Props) {
     learning: learning.length > 0,
     certificates: certificates.length > 0,
     proofs: proofs.length > 0,
+    achievements: (data.achievements || []).length > 0,
     contact: Boolean(email || profile.website || Object.keys(profile.social_links || {}).length),
   };
   const shown = sections.filter((s) => has[s.key]);
@@ -271,6 +297,27 @@ export function PortfolioRenderer({ data, preview, onOpenItem }: Props) {
                   <ProofCard key={item.id} item={item} preview={preview} onOpen={onOpenItem} />
                 ))}
               </div>
+            )}
+            {section.key === "achievements" && (
+              <ul className="grid gap-3 @2xl:grid-cols-2">
+                {(data.achievements || []).map((a, i) => (
+                  <li
+                    key={`${a.ref}-${i}`}
+                    className="flex gap-3.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4"
+                  >
+                    <Trophy className="mt-0.5 h-5 w-5 shrink-0" style={{ color: accent }} />
+                    <div className="min-w-0">
+                      <p className="text-[14.5px] font-semibold">
+                        {a.label} · {a.title}
+                      </p>
+                      <p className="text-[13px] text-white/55">
+                        {achievementSource(a.kind)}
+                        {a.at ? ` · ${year(a.at)}` : ""}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
             {section.key === "contact" && (
               <div className="rounded-3xl border border-white/[0.07] bg-white/[0.025] p-6 @2xl:p-8">
