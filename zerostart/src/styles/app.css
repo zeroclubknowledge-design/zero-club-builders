@@ -40,10 +40,55 @@
   --font-display: "Montserrat", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-sans: "Montserrat", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
 
+  --color-input: oklch(18% 0.005 260 / 0.1);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 22px -12px rgb(0 0 0 / 0.22);
 }
 
 html { background: var(--color-bg); color-scheme: light; }
+
+/*
+ * Zero Club's dark themes, value for value. ZeroStart takes whichever the
+ * account uses (profiles.theme_mode / dark_theme), so someone in Rose Noir on
+ * Zero Club lands in Rose Noir here too.
+ */
+html.dark {
+  color-scheme: dark;
+  --color-bg: oklch(16% 0.02 330);
+  --color-canvas: oklch(16% 0.02 330);
+  --color-surface: oklch(19% 0.02 330);
+  --color-surface-2: oklch(22% 0.02 330);
+  --color-line: oklch(100% 0 0 / 8%);
+  --color-input: oklch(100% 0 0 / 12%);
+  --color-ink: oklch(98% 0 0);
+  --color-ink-muted: oklch(70% 0 0);
+  --color-ink-faint: oklch(56% 0 0);
+  --color-accent-soft: #cc208f26;
+  --color-ok: #4ade80;
+  --color-warn: #fbbf24;
+  --color-bad: #f87171;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.55), 0 14px 32px -14px rgb(0 0 0 / 0.85);
+}
+html.dark.lights-out {
+  --color-bg: oklch(0 0 0);
+  --color-canvas: oklch(0 0 0);
+  --color-surface: oklch(0.08 0.01 330);
+  --color-surface-2: oklch(0.12 0.01 330);
+  --color-line: oklch(1 0 0 / 15%);
+}
+html.dark.dim {
+  --color-bg: oklch(0.22 0.04 250);
+  --color-canvas: oklch(0.22 0.04 250);
+  --color-surface: oklch(0.26 0.04 250);
+  --color-surface-2: oklch(0.3 0.04 250);
+}
+html.dark.rose-noir {
+  --color-bg: oklch(0.09 0.035 350);
+  --color-canvas: oklch(0.09 0.035 350);
+  --color-surface: oklch(0.145 0.042 348);
+  --color-surface-2: oklch(0.185 0.045 348);
+  --color-ink-muted: oklch(0.75 0.03 350);
+  --color-line: oklch(0.72 0.16 350 / 18%);
+}
 
 body {
   margin: 0;
@@ -139,7 +184,7 @@ input, textarea { font-weight: 500; }
 .zs-input {
   width: 100%;
   border-radius: 14px;
-  border: 1px solid oklch(18% 0.005 260 / 0.1);
+  border: 1px solid var(--color-input);
   background: var(--color-surface);
   padding: 0 16px;
   height: 48px;

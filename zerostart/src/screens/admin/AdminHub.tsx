@@ -37,7 +37,7 @@ export function AdminHub() {
           <button
             key={value}
             onClick={() => setTab(value)}
-            className={`h-9 shrink-0 rounded-full px-4 text-[13px] font-semibold transition ${tab === value ? "bg-ink text-white" : "bg-ink/[0.05] text-ink-muted hover:text-ink"}`}
+            className={`h-9 shrink-0 rounded-full px-4 text-[13px] font-semibold transition ${tab === value ? "bg-ink text-bg" : "bg-ink/[0.05] text-ink-muted hover:text-ink"}`}
           >
             {label}
           </button>
@@ -339,12 +339,12 @@ function PayoutsAdmin() {
           immediately — this is for everything that comes in after.
         </p>
         {rows.length > 0 && !confirming && (
-          <button onClick={() => setConfirming(true)} className="mt-5 h-11 rounded-full bg-white px-6 text-[13.5px] font-semibold text-ink">Pay everyone now</button>
+          <button onClick={() => setConfirming(true)} className="mt-5 h-11 rounded-full bg-white px-6 text-[13.5px] font-semibold text-[#16161b]">Pay everyone now</button>
         )}
         {confirming && (
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <span className="text-[13px] text-white/80">Credit {money(total)} to {rows.length} wallet{rows.length === 1 ? "" : "s"}?</span>
-            <button onClick={run} disabled={running} className="h-10 rounded-full bg-white px-5 text-[13px] font-semibold text-ink disabled:opacity-50">{running ? "Paying…" : "Yes, pay"}</button>
+            <button onClick={run} disabled={running} className="h-10 rounded-full bg-white px-5 text-[13px] font-semibold text-[#16161b] disabled:opacity-50">{running ? "Paying…" : "Yes, pay"}</button>
             <button onClick={() => setConfirming(false)} className="h-10 rounded-full bg-white/10 px-5 text-[13px] font-semibold text-white">Cancel</button>
           </div>
         )}

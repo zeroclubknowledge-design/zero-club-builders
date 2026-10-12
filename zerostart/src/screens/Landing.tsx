@@ -32,7 +32,7 @@ export function Landing({ signedIn = false, applicationStatus }: { signedIn?: bo
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <Link
             to={signedIn ? "/join" : "/signin"}
-            className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[14.5px] font-semibold text-ink transition hover:-translate-y-0.5"
+            className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[14.5px] font-semibold text-[#16161b] transition hover:-translate-y-0.5"
           >
             {!signedIn ? "Get started" : pending ? "View my application" : applicationStatus === "rejected" ? "Apply again" : "Apply to be an ambassador"}{" "}
             <ArrowRight className="h-4 w-4" />

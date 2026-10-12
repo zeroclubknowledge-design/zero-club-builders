@@ -176,7 +176,7 @@ export function CampaignSheet({
             >
               <Send className="h-4 w-4" /> WhatsApp
             </a>
-            <button onClick={share} className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-white text-[12.5px] font-semibold text-ink transition hover:opacity-90">
+            <button onClick={share} className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-white text-[12.5px] font-semibold text-[#16161b] transition hover:opacity-90">
               <Share2 className="h-4 w-4" /> Share
             </button>
           </div>
@@ -254,7 +254,7 @@ export function CampaignSheet({
       {/* ── Manage ── */}
       {running && (
         <section className="mt-5 flex flex-wrap gap-2">
-          <button onClick={onEdit} className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-[13.5px] font-semibold text-white transition hover:opacity-90">
+          <button onClick={onEdit} className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-[13.5px] font-semibold text-bg transition hover:opacity-90">
             <Pencil className="h-4 w-4" /> Edit
           </button>
           {!confirmEnd ? (

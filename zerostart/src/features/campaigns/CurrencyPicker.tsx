@@ -28,7 +28,7 @@ export function CurrencyPicker({ value, onChange }: { value: PayoutCurrency; onC
             role="radio"
             aria-checked={active}
             onClick={() => pick(c)}
-            className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition ${active ? "bg-ink text-white" : "zs-inset text-ink hover:bg-ink/[0.04]"} ${saving === c ? "opacity-60" : ""}`}
+            className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition ${active ? "bg-ink text-bg" : "zs-inset text-ink hover:bg-ink/[0.04]"} ${saving === c ? "opacity-60" : ""}`}
           >
             <img src={CURRENCIES[c].flag} alt="" className="h-4 w-6 shrink-0 rounded-[3px] object-cover" />
             <span className="min-w-0">

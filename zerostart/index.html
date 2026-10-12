@@ -6,6 +6,17 @@
     <meta name="theme-color" content="#f8f7f5" />
     <title>ZeroStart — Zero Ambassadors</title>
     <meta name="description" content="Zero Ambassadors run campaigns that bring people to Zero Club and its partners, and get paid every week with volume bonuses." />
+    <script>
+      /* Paint the account's Zero Club theme before React loads (src/lib/theme.ts). */
+      (function () {
+        try {
+          var t = JSON.parse(localStorage.getItem("zs-theme") || "null");
+          if (!t) return;
+          var dark = t.mode === "on" || (t.mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark", t.theme || "lights-out");
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

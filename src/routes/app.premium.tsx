@@ -18,7 +18,7 @@ import {
   Wallet,
   Zap,
 } from "@/components/icons/glyphs";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
@@ -226,7 +226,6 @@ function featureIcon(text: string) {
 function MembershipPage() {
   const queryClient = useQueryClient();
   const goBack = useGoBack("/app");
-  const [audience, setAudience] = useState<Audience>("Learner");
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [showInstitutionForm, setShowInstitutionForm] = useState(Route.useSearch().institution === 1);
   const [applyZeroGift, setApplyZeroGift] = useState(false);
@@ -256,12 +255,18 @@ function MembershipPage() {
     },
   });
 
-  useEffect(() => {
+  /*
+   * Each account sees only its own plans: Learner plans in Learner mode,
+   * Creator in Creator mode, Tutor for tutors, Institution for institutions.
+   * Derived from the profile, so switching mode elsewhere changes it here.
+   */
+  const audience: Audience = (() => {
     const accountType = String(profile?.account_type || "").toLowerCase();
-    if (accountType === "institution") setAudience("Institution");
-    else if (accountType === "tutor") setAudience("Tutor");
-    else if (String(profile?.tier || "").toLowerCase() === "creator") setAudience("Creator");
-  }, [profile?.account_type, profile?.tier]);
+    if (accountType === "institution") return "Institution";
+    if (accountType === "tutor") return "Tutor";
+    if (String(profile?.active_mode || "").toLowerCase() === "creator" || String(profile?.tier || "").toLowerCase() === "creator") return "Creator";
+    return "Learner";
+  })();
 
   const visiblePlans = useMemo(
     () => plans.filter((plan) => plan.audiences.includes(audience)),
@@ -404,24 +409,9 @@ function MembershipPage() {
         <h2 className="mt-3 font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em]">{copy.title}</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{copy.description}</p>
 
-        {/* Audience tabs — underlined, one row, scrollable rather than
-            wrapping, so the row never changes height. */}
-        <div role="tablist" aria-label="Choose your pathway" className="no-scrollbar mt-5 flex gap-5 overflow-x-auto border-b border-foreground/10 text-[14px] font-semibold">
-          {(["Learner", "Creator", "Tutor", "Institution"] as Audience[]).map((item) => {
-            const active = audience === item;
-            return (
-              <button
-                key={item}
-                role="tab"
-                aria-selected={active}
-                onClick={() => { setAudience(item); setSelectedPlanId(null); }}
-                className={`flex h-10 shrink-0 items-center transition-colors ${active ? "text-foreground shadow-[inset_0_-2px_0_currentColor]" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                {item}
-              </button>
-            );
-          })}
-        </div>
+        <span className="mt-4 inline-flex h-7 w-fit items-center rounded-full bg-foreground/[0.06] px-3 text-[12.5px] font-semibold text-foreground">
+          {audience} plans
+        </span>
 
         <div className="mt-5 flex flex-col gap-3">
           {visiblePlans.map((plan) => {
@@ -553,6 +543,20 @@ function MembershipPage() {
               {renewMutation.isPending ? "Renewing…" : "Renew now"}
             </button>
           </section>
+        )}
+
+        {audience !== "Institution" && (
+          <button
+            type="button"
+            onClick={() => setShowInstitutionForm(true)}
+            className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-foreground/12 bg-card p-4 text-left transition hover:border-foreground/30"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-foreground/[0.05]"><Building2 className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-semibold">Registering a school, academy or company?</span>
+              <span className="mt-0.5 block text-[13px] leading-snug text-muted-foreground">Set up a Digital Hub for your institution with a free 30-day trial.</span>
+            </span>
+          </button>
         )}
 
         <p className="mt-5 text-[12px] leading-relaxed text-muted-foreground">

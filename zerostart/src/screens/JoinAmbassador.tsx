@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { BadgeCheck, Check, Clock, MapPin, Ban as XCircle } from "../components/icons/glyphs";
+import { BadgeCheck, BriefcaseBusiness, Camera, Check, Clock, Link2, MapPin, MessageCircle, Plus, Users, X, Ban as XCircle } from "../components/icons/glyphs";
+import { OTHER_KINDS, SOCIALS, SOCIAL_PLACEHOLDER, parseLinks, serializeLinks, type LinkEntry, type Social } from "@/lib/socialLinks";
 import {
   applyAmbassador, getMe, listFocusAreas, listPushableBootcamps, saveAmbassador,
 } from "@/lib/ambassadorApi";
@@ -8,6 +9,17 @@ import { useAuth } from "@/lib/auth";
 import { CURRENCIES, CURRENCY_ORDER, type PayoutCurrency } from "@/lib/money";
 import type { AmbassadorApplication, FocusArea, PushableBootcamp } from "@/types/ambassador";
 import { Card, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
+
+const EMPTY_SOCIALS: Record<Social, string> = { WhatsApp: "", LinkedIn: "", X: "", Instagram: "", Facebook: "" };
+
+/* Neutral glyphs on each network's own colour, so the row reads at a glance. */
+const SOCIAL_META: Record<Social, { color: string; icon: typeof Link2 }> = {
+  WhatsApp: { color: "#25d366", icon: MessageCircle },
+  LinkedIn: { color: "#0a66c2", icon: BriefcaseBusiness },
+  X: { color: "#000000", icon: X },
+  Instagram: { color: "linear-gradient(45deg,#f9a825,#e1306c 55%,#833ab4)", icon: Camera },
+  Facebook: { color: "#1877f2", icon: Users },
+};
 
 const REFUSAL: Record<string, string> = {
   location_required: "Tell us where you'll be representing Zero Club.",
@@ -45,7 +57,8 @@ export function JoinAmbassador() {
   const [application, setApplication] = useState<AmbassadorApplication | null>(null);
   const [editingApplication, setEditingApplication] = useState(false);
   const [motivation, setMotivation] = useState("");
-  const [links, setLinks] = useState("");
+  const [socials, setSocials] = useState<Record<Social, string>>(EMPTY_SOCIALS);
+  const [others, setOthers] = useState<LinkEntry[]>([]);
   const [currency, setCurrency] = useState<PayoutCurrency>("NGN");
 
   const load = () => {
@@ -68,7 +81,16 @@ export function JoinAmbassador() {
             setFocus(app.focus || []);
             setPicked(app.bootcamps || []);
             setMotivation(app.motivation || "");
-            setLinks(app.links || "");
+            const parsed = parseLinks(app.links);
+            const nextSocials = { ...EMPTY_SOCIALS };
+            const rest: LinkEntry[] = [];
+            for (const entry of parsed) {
+              const social = SOCIALS.find((n) => n.toLowerCase() === entry.label.toLowerCase());
+              if (social && !nextSocials[social]) nextSocials[social] = entry.value;
+              else rest.push(entry);
+            }
+            setSocials(nextSocials);
+            setOthers(rest);
             if (app.payout_currency) setCurrency(app.payout_currency);
           }
           return;
@@ -105,7 +127,10 @@ export function JoinAmbassador() {
             country: country.trim() || undefined,
             bio: bio.trim() || undefined,
             motivation: motivation.trim(),
-            links: links.trim() || undefined,
+            links: serializeLinks([
+              ...SOCIALS.map((name) => ({ label: name, value: socials[name] })),
+              ...others,
+            ]) || undefined,
             focus,
             bootcamps: picked,
             currency,
@@ -165,7 +190,7 @@ export function JoinAmbassador() {
           )}
           <button
             onClick={() => setEditingApplication(true)}
-            className="mt-6 h-11 rounded-full bg-ink px-6 text-[13.5px] font-semibold text-white"
+            className="mt-6 h-11 rounded-full bg-ink px-6 text-[13.5px] font-semibold text-bg"
           >
             {pending ? "Edit my application" : "Apply again"}
           </button>
@@ -253,15 +278,82 @@ export function JoinAmbassador() {
               <span className="mt-1.5 block text-[11.5px] text-ink-faint">A few sentences — at least 20 characters.</span>
             </label>
 
-            <label className="mt-5 block">
-              <span className="text-[13px] font-medium text-ink">Links (socials, communities, portfolio)</span>
-              <input
-                value={links}
-                onChange={(e) => setLinks(e.target.value)}
-                placeholder="x.com/you, instagram.com/you, your WhatsApp community…"
-                className="mt-2 h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
-              />
-            </label>
+            <div className="mt-5">
+              <span className="text-[13px] font-medium text-ink">Your socials</span>
+              <span className="mt-0.5 block text-[11.5px] text-ink-faint">Add the ones you use — leave the rest empty.</span>
+              <div className="mt-2.5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+                {SOCIALS.map((name) => {
+                  const meta = SOCIAL_META[name];
+                  const Icon = meta.icon;
+                  return (
+                    <label key={name} className="flex items-center gap-3 px-3.5 py-2">
+                      <span className="flex w-[108px] shrink-0 items-center gap-2.5">
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white" style={{ background: meta.color }}>
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="text-[13px] font-semibold text-ink">{name}</span>
+                      </span>
+                      <input
+                        value={socials[name]}
+                        onChange={(e) => setSocials((prev) => ({ ...prev, [name]: e.target.value }))}
+                        placeholder={SOCIAL_PLACEHOLDER[name]}
+                        inputMode="url"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        className="h-11 min-w-0 flex-1 rounded-xl bg-bg px-3 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:ring-2 focus:ring-accent/30"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+
+              <span className="mt-5 block text-[13px] font-medium text-ink">Other links</span>
+              <span className="mt-0.5 block text-[11.5px] text-ink-faint">Communities you run, your portfolio, a website…</span>
+              {others.length > 0 && (
+                <div className="mt-2.5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+                  {others.map((entry, i) => (
+                    <div key={i} className="flex items-center gap-2 px-3.5 py-2">
+                      <span className="relative w-[108px] shrink-0">
+                        <select
+                          value={(OTHER_KINDS as readonly string[]).includes(entry.label) ? entry.label : "Other"}
+                          onChange={(e) => setOthers((prev) => prev.map((o, j) => (j === i ? { ...o, label: e.target.value } : o)))}
+                          aria-label="Link type"
+                          className="h-11 w-full appearance-none rounded-xl bg-ink/[0.05] pl-3 pr-6 text-[13px] font-semibold text-ink outline-none"
+                        >
+                          {OTHER_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}
+                        </select>
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-faint">▾</span>
+                      </span>
+                      <input
+                        value={entry.value}
+                        onChange={(e) => setOthers((prev) => prev.map((o, j) => (j === i ? { ...o, value: e.target.value } : o)))}
+                        placeholder="Paste the link"
+                        inputMode="url"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        className="h-11 min-w-0 flex-1 rounded-xl bg-bg px-3 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:ring-2 focus:ring-accent/30"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setOthers((prev) => prev.filter((_, j) => j !== i))}
+                        aria-label="Remove link"
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-faint transition hover:bg-ink/[0.05] hover:text-ink"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setOthers((prev) => [...prev, { label: prev.length === 0 ? "Community" : "Portfolio", value: "" }])}
+                disabled={others.length >= 8}
+                className="mt-2.5 inline-flex h-10 items-center gap-2 rounded-full border border-dashed border-ink/20 px-4 text-[13px] font-semibold text-ink transition hover:border-ink/40 disabled:opacity-40"
+              >
+                <Plus className="h-4 w-4" /> Add another link
+              </button>
+            </div>
 
             <div className="mt-5">
               <span className="text-[13px] font-medium text-ink">Get paid in</span>
@@ -271,7 +363,7 @@ export function JoinAmbassador() {
                     key={c}
                     type="button"
                     onClick={() => setCurrency(c)}
-                    className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition ${currency === c ? "bg-ink text-white" : "zs-inset text-ink"}`}
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition ${currency === c ? "bg-ink text-bg" : "zs-inset text-ink"}`}
                   >
                     <img src={CURRENCIES[c].flag} alt="" className="h-4 w-6 rounded-[3px] object-cover" />
                     <span className="text-[13px] font-bold">{c}</span>

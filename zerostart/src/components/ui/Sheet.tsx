@@ -31,7 +31,7 @@ export function Sheet({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
-      <button aria-label="Close" onClick={onClose} className="zs-fade absolute inset-0 bg-ink/45 backdrop-blur-[2px]" />
+      <button aria-label="Close" onClick={onClose} className="zs-fade absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
       <div
         role="dialog"
         aria-modal="true"

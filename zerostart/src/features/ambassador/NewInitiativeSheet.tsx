@@ -77,7 +77,7 @@ export function NewInitiativeSheet({
       <button
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
       />
 
       <div className="zs-card relative z-10 max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] p-5 sm:max-w-[560px] sm:rounded-[24px] sm:p-7">

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
+import { applyAccountTheme, resetTheme } from "./theme";
 import type { Profile } from "@/types";
 
 /**
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!alive) return;
       setSession(next);
       if (!next) {
+        resetTheme();
         setProfile(null);
         setIsAdmin(false);
         setLoading(false);
@@ -60,18 +62,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let alive = true;
     supabase
       .from("profiles")
-      .select("id, username, full_name, avatar_url, is_admin")
+      .select("id, username, full_name, avatar_url, is_admin, theme_mode, dark_theme")
       .eq("id", uid)
       .maybeSingle()
       .then(({ data }) => {
         if (!alive) return;
-        const row = data as (Profile & { is_admin?: boolean }) | null;
+        const row = data as (Profile & { is_admin?: boolean; theme_mode?: string | null; dark_theme?: string | null }) | null;
+        if (row) applyAccountTheme(row.theme_mode, row.dark_theme);
         setProfile(row);
         setIsAdmin(Boolean(row?.is_admin));
         setLoading(false);
       });
 
-    return () => { alive = false; };
+    /* Changed the theme in Zero Club in another tab? Pick it up on return. */
+    const refreshTheme = () => {
+      if (document.visibilityState !== "visible") return;
+      supabase.from("profiles").select("theme_mode, dark_theme").eq("id", uid).maybeSingle()
+        .then(({ data }) => { if (alive && data) applyAccountTheme(data.theme_mode, data.dark_theme); });
+    };
+    document.addEventListener("visibilitychange", refreshTheme);
+
+    return () => { alive = false; document.removeEventListener("visibilitychange", refreshTheme); };
   }, [session?.user?.id]);
 
   const signOut = async () => { await supabase.auth.signOut(); };

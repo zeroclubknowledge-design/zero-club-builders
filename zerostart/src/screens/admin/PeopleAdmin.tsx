@@ -6,6 +6,7 @@ import {
 } from "@/lib/campaignApi";
 import { config } from "@/lib/config";
 import { externalUrl } from "@/lib/links";
+import { parseLinks } from "@/lib/socialLinks";
 import { money } from "@/lib/money";
 import { Card, EmptyState, ErrorState, Skeleton, StatusBadge } from "@/components/ui/primitives";
 import { Sheet } from "@/components/ui/Sheet";
@@ -69,7 +70,7 @@ export function ApplicationsAdmin() {
 
       <div className="mt-5 space-y-3">
         {(rows || []).map((row) => {
-          const links = (row.links || "").split(/[\s,]+/).map((l) => externalUrl(l)).filter(Boolean) as string[];
+          const links = parseLinks(row.links).map((e) => ({ ...e, url: externalUrl(e.value) }));
           return (
             <Card key={row.id} className="p-5">
               <div className="flex items-start gap-3">
@@ -97,11 +98,16 @@ export function ApplicationsAdmin() {
               </div>
               {links.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-3">
-                  {links.map((l) => (
-                    <a key={l} href={l} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent">
-                      {new URL(l).hostname.replace(/^www\./, "")} <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ))}
+                  {links.map((l, i) => {
+                    const label = l.label === "Link" && l.url ? new URL(l.url).hostname.replace(/^www\./, "") : l.label;
+                    return l.url ? (
+                      <a key={i} href={l.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent">
+                        {label} <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <span key={i} className="text-[12.5px] text-ink-muted"><span className="font-semibold text-ink">{label}:</span> {l.value}</span>
+                    );
+                  })}
                 </div>
               )}
 
@@ -167,7 +173,7 @@ export function AmbassadorsAdmin() {
             <input value={defaultRate} onChange={(e) => setDefaultRate(e.target.value.replace(/[^\d.]/g, ""))} inputMode="decimal" className="w-14 bg-transparent font-display text-[24px] font-bold text-white outline-none" />
             <span className="font-display text-[20px] font-bold text-white/70">%</span>
           </div>
-          <button onClick={saveDefault} disabled={String(savedRate) === defaultRate} className="h-11 rounded-full bg-white px-5 text-[13px] font-semibold text-ink disabled:opacity-50">Save</button>
+          <button onClick={saveDefault} disabled={String(savedRate) === defaultRate} className="h-11 rounded-full bg-white px-5 text-[13px] font-semibold text-[#16161b] disabled:opacity-50">Save</button>
         </div>
         <p className="mt-3 max-w-[52ch] text-[12.5px] leading-relaxed text-white/65">
           Each ambassador keeps the rate they were approved at. Lower this (e.g. 20% → 15% → 10%) and only people approved afterwards get the new rate.
@@ -253,7 +259,7 @@ function AmbassadorEditor({ row, onClose, onSaved }: { row: AmbassadorRow; onClo
             </select>
           </label>
         </div>
-        <button onClick={save} disabled={busy} className="h-11 w-full rounded-full bg-ink text-[13.5px] font-semibold text-white disabled:opacity-40">Save changes</button>
+        <button onClick={save} disabled={busy} className="h-11 w-full rounded-full bg-ink text-[13.5px] font-semibold text-bg disabled:opacity-40">Save changes</button>
 
         <div className="zs-inset rounded-2xl p-4">
           <p className="flex items-center gap-2 text-[13px] font-semibold text-ink"><Gift className="h-4 w-4 text-accent" /> Give a bonus</p>

@@ -1203,6 +1203,28 @@ function AppLayout() {
   }, [darkMode, darkTheme]);
 
   /*
+   * The appearance belongs to the account, not just this browser: ZeroStart
+   * reads it from the profile on sign-in so both apps look the same. Written
+   * only when it differs, and once per value, so this never loops.
+   */
+  const syncedThemeRef = useRef<string | null>(null);
+  useEffect(() => {
+    const id = (profile as any)?.id;
+    if (!id) return;
+    const key = `${id}:${darkMode}:${darkTheme}`;
+    if (syncedThemeRef.current === key) return;
+    syncedThemeRef.current = key;
+    if ((profile as any).theme_mode === darkMode && (profile as any).dark_theme === darkTheme) return;
+    void supabase
+      .from("profiles")
+      .update({ theme_mode: darkMode, dark_theme: darkTheme } as any)
+      .eq("id", id)
+      .then(({ error }) => {
+        if (error) syncedThemeRef.current = null;
+      });
+  }, [(profile as any)?.id, darkMode, darkTheme]);
+
+  /*
    * Rose Noir when the free month is over and there is no membership.
    *
    * Checked here rather than only at the moment of selection, because the

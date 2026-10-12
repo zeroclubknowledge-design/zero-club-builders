@@ -100,7 +100,7 @@ export function Campaigns() {
           <button
             onClick={() => setForm({})}
             disabled={!canStart}
-            className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[14px] font-semibold text-ink transition hover:opacity-90 disabled:opacity-40"
+            className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[14px] font-semibold text-[#16161b] transition hover:opacity-90 disabled:opacity-40"
           >
             <Plus className="h-4 w-4" /> Start a campaign
           </button>
