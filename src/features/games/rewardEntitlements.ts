@@ -16,6 +16,7 @@ export const ZERO_GAME_REWARD_LIMITS: Record<string, { weekly: number; daily: nu
   learner_basic: { weekly: 2, daily: null },
   learner_premium: { weekly: 5, daily: null },
   creator: { weekly: 12, daily: 2 },
+  creator_max: { weekly: 12, daily: 2 },
   tutor_basic: { weekly: 3, daily: null },
   tutor_premium: { weekly: 8, daily: 2 },
   tutor_premium_plus: { weekly: 20, daily: 3 },
@@ -46,10 +47,11 @@ export function fallbackZeroGameRewardAllowance(profile: any): ZeroGameRewardAll
 export function zeroGameAllowanceName(planKey: string) {
   switch (planKey) {
     case "learner_premium": return "Learner Premium";
-    case "creator": return "Creator";
+    case "creator": return "Creator PRO";
+    case "creator_max": return "Creator Max";
     case "tutor_basic": return "Tutor Basic";
-    case "tutor_premium": return "Tutor Premium";
-    case "tutor_premium_plus": return "Tutor Premium+";
+    case "tutor_premium": return "Tutor Pro";
+    case "tutor_premium_plus": return "Tutor Max";
     case "institution_small": return "Institution Small";
     case "institution_large": return "Institution Large";
     case "institution_custom": return "Institution Custom";

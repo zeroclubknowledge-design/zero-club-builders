@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, Zap, Star, Shield, ChevronRight, Loader2 } from "@/components/icons/glyphs";
 import { Switch } from "@/components/ui/switch";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { PLAN_NAMES, resolvePlanKey } from "@/features/membership/plans";
+import { useUser } from "@/hooks/useUser";
 
 export const Route = createFileRoute("/app/settings/premium")({
   component: PremiumSettings,
@@ -13,15 +14,7 @@ export const Route = createFileRoute("/app/settings/premium")({
 function PremiumSettings() {
   const queryClient = useQueryClient();
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['my_profile'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-      return data;
-    }
-  });
+  const { data: profile, isLoading } = useUser();
 
   const toggleEarlyAccess = useMutation({
     mutationFn: async (enabled: boolean) => {
@@ -35,6 +28,7 @@ function PremiumSettings() {
     },
     onSuccess: (enabled) => {
       queryClient.invalidateQueries({ queryKey: ['my_profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       toast.success(enabled ? "Early Access enabled" : "Early Access disabled");
     },
     onError: () => {

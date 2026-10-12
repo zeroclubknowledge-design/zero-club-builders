@@ -31,7 +31,7 @@ export function isPremiumMember(profile: any): boolean {
   if (accountType === "institution") return true;
 
   const tier = String(profile?.tier || "").toLowerCase().replace(/\s+/g, "");
-  return tier === "premium" || tier === "premium+" || tier === "creator";
+  return tier === "premium" || tier === "premium+" || tier === "creator" || tier === "creatormax";
 }
 
 function readTrialStart(): number | null {

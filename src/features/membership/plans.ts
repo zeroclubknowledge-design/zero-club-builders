@@ -1,5 +1,5 @@
 export type AccountAudience = "Learner" | "Creator" | "Tutor" | "Institution";
-export type IndividualPlanKey = "learner_basic" | "learner_premium" | "creator" | "tutor_basic" | "tutor_premium" | "tutor_premium_plus";
+export type IndividualPlanKey = "learner_basic" | "learner_premium" | "creator_basic" | "creator" | "creator_max" | "tutor_basic" | "tutor_premium" | "tutor_premium_plus";
 export type SubscriptionStatus = "active" | "past_due" | "grace_period" | "expired" | "cancelled";
 
 export type ClubCapacity = {
@@ -17,6 +17,8 @@ export const CLUB_LIMITS: Record<IndividualPlanKey, number> = {
   learner_basic: 0,
   learner_premium: 0,
   creator: 3,
+  creator_basic: 0,
+  creator_max: 3,
   tutor_basic: 1,
   tutor_premium: 5,
   tutor_premium_plus: 10,
@@ -25,23 +27,34 @@ export const CLUB_LIMITS: Record<IndividualPlanKey, number> = {
 export const PLAN_NAMES: Record<IndividualPlanKey, string> = {
   learner_basic: "Learner Basic",
   learner_premium: "Learner Premium",
-  creator: "Creator",
+  creator: "Creator PRO",
+  creator_basic: "Creator Basic",
+  creator_max: "Creator Max",
   tutor_basic: "Tutor Basic",
-  tutor_premium: "Tutor Premium",
-  tutor_premium_plus: "Tutor Premium+",
+  tutor_premium: "Tutor Pro",
+  tutor_premium_plus: "Tutor Max",
 };
 
-export function resolvePlanKey(profile: any): IndividualPlanKey | "institution" {
-  const accountType = String(profile?.account_type || "learner").toLowerCase();
-  const tier = String(profile?.tier || "basic").toLowerCase().replace(/\s+/g, "");
+export function membershipAudience(profile: any): AccountAudience {
+  const type = String(profile?.account_type || "learner").toLowerCase();
+  if (type === "institution") return "Institution";
+  if (type === "tutor") return "Tutor";
+  if (String(profile?.active_mode || "").toLowerCase() === "creator" || type === "creator") return "Creator";
+  return "Learner";
+}
 
-  if (accountType === "institution") return "institution";
-  if (accountType === "tutor") {
+export function resolvePlanKey(profile: any): IndividualPlanKey | "institution" {
+  const tier = String(profile?.tier || "basic").toLowerCase().replace(/\s+/g, "");
+  const audience = membershipAudience(profile);
+
+  if (audience === "Institution") return "institution";
+  if (audience === "Tutor") {
     if (tier === "premium+") return "tutor_premium_plus";
     if (tier === "premium") return "tutor_premium";
     return "tutor_basic";
   }
-  if (tier === "creator") return "creator";
+  if (audience === "Creator") return tier === "creatormax" ? "creator_max" : tier === "creator" ? "creator" : "creator_basic";
+  if (tier === "creator" || tier === "creatormax") return "learner_premium";
   if (tier === "premium" || tier === "premium+") return "learner_premium";
   return "learner_basic";
 }
@@ -50,18 +63,31 @@ export function clubUpgradeMessage(planKey: string) {
   switch (planKey) {
     case "learner_basic":
     case "learner_premium":
-      return "Build your own community with Creator. The Creator plan unlocks up to 3 permanent Clubs.";
+      return "Learners can join clubs but cannot create them. Switch to Creator mode to view Creator PRO and Max.";
+    case "creator_basic":
+      return "Choose Creator PRO or Creator Max to create up to 3 permanent clubs.";
     case "creator":
-      return "You've reached your Creator plan limit of 3 Clubs.";
+      return "You've reached your Creator PRO plan limit of 3 Clubs.";
+    case "creator_max":
+      return "You've reached your Creator Max plan limit of 3 Clubs.";
     case "tutor_basic":
-      return "You've reached your 1-Club limit. Upgrade to Tutor Premium to create up to 5 Clubs.";
+      return "You've reached your 1-Club limit. Upgrade to Tutor Pro to create up to 5 Clubs.";
     case "tutor_premium":
-      return "You've reached your 5-Club limit. Upgrade to Tutor Premium+ to create up to 10 Clubs.";
+      return "You've reached your 5-Club limit. Upgrade to Tutor Max to create up to 10 Clubs.";
     case "tutor_premium_plus":
-      return "You've reached your Tutor Premium+ limit of 10 Clubs.";
+      return "You've reached your Tutor Max limit of 10 Clubs.";
     default:
       return null;
   }
+}
+
+export function canUseZeroAI(profile: any): boolean {
+  const audience = membershipAudience(profile);
+  const key = resolvePlanKey(profile);
+  if (profile?.is_admin) return true;
+  if (audience === "Creator") return key === "creator_max";
+  if (audience === "Tutor") return key === "tutor_premium_plus";
+  return true;
 }
 
 export function fallbackClubCapacity(profile: any, permanentClubCount: number): ClubCapacity {
@@ -79,7 +105,7 @@ export function fallbackClubCapacity(profile: any, permanentClubCount: number): 
     };
   }
 
-  const limit = CLUB_LIMITS[planKey];
+  const limit = membershipAudience(profile) === "Learner" ? 0 : (membershipAudience(profile) === "Creator" && !["creator", "creatormax"].includes(String(profile?.tier || "").toLowerCase().replace(/\s+/g, "")) ? 0 : CLUB_LIMITS[planKey]);
   return {
     plan_key: planKey,
     plan_name: PLAN_NAMES[planKey],

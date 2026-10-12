@@ -11,7 +11,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
-import { fallbackClubCapacity, isBootcampCohortClub, type ClubCapacity } from "@/features/membership/plans";
+import { fallbackClubCapacity, membershipAudience, isBootcampCohortClub, type ClubCapacity } from "@/features/membership/plans";
+import { useUser } from "@/hooks/useUser";
 import { getCachedSession } from "@/lib/auth";
 import { CLUBS_DATA_KEY, fetchClubsData, readClubsSnapshot, saveClubsSnapshot, storedSessionUserId } from "@/features/clubs/clubsData";
 
@@ -73,6 +74,7 @@ export const Route = createFileRoute("/app/clubs/")({
 });
 
 function Clubs() {
+  const { data: liveProfile } = useUser();
   const { details: currencyDetails, format } = useWalletCurrency();
 
   /* What it costs to get in, in one short phrase. A club with free access set
@@ -409,7 +411,10 @@ function Clubs() {
     }
   };
 
-  const clubCapacity: ClubCapacity = capacityData || fallbackClubCapacity(profile, userCreatedClubs.length);
+  const currentProfile = liveProfile || profile;
+  const clubCapacity: ClubCapacity = membershipAudience(currentProfile) === "Learner" && !currentProfile?.is_admin
+    ? fallbackClubCapacity(currentProfile, userCreatedClubs.length)
+    : capacityData || fallbackClubCapacity(currentProfile, userCreatedClubs.length);
   const capacityLabel = `${clubCapacity.permanent_club_count} owned`;
   const capacityCaption = clubCapacity.permanent_club_limit === null
     ? "Permanent Clubs"
@@ -430,6 +435,10 @@ function Clubs() {
 
   const handleCreateClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (membershipAudience(currentProfile) === "Learner" && !currentProfile?.is_admin) {
+      toast.error("Learners can join clubs but cannot create them. Switch to Creator mode from your menu to view Creator plans.");
+      return;
+    }
     if (!clubCapacity.can_create) {
       setShowUpgrade(true);
     } else {
@@ -472,7 +481,7 @@ function Clubs() {
         role: 'Administrator'
       }]);
 
-      const firstClubPremium = String(clubCapacity.plan_key) === 'creator' && clubCapacity.permanent_club_count === 0 && !profile?.first_club_benefit_redeemed;
+      const firstClubPremium = ['creator', 'creator_max'].includes(String(clubCapacity.plan_key)) && clubCapacity.permanent_club_count === 0 && !profile?.first_club_benefit_redeemed;
       try {
         sessionStorage.removeItem("zc:club-create-draft");
       } catch {

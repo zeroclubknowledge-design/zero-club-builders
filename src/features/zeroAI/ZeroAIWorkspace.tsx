@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { canUseZeroAI, membershipAudience } from "@/features/membership/plans";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import {
@@ -277,6 +280,17 @@ function timeAgo(ms: number) {
 
 export function ZeroAIWorkspace() {
   const { data: profile, isLoading } = useUser();
+  const access = useQuery({
+    queryKey: ["zero-ai-access", profile?.id, profile?.tier, profile?.active_mode, profile?.account_type], enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("can_use_zero_ai");
+      if (error) {
+        if (error.code === "PGRST202") return canUseZeroAI(profile);
+        throw error;
+      }
+      return data === true;
+    },
+  });
   if (isLoading || !profile?.id)
     return (
       <div className="grid min-h-[60dvh] place-items-center" role="status">
@@ -287,6 +301,9 @@ export function ZeroAIWorkspace() {
       </div>
     );
   const own: Mode = isInstitution(profile) ? "institution" : modeOf(profile) || "learner";
+  if (access.isPending) return <div className="grid min-h-[60dvh] place-items-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+  if (access.isError) return <div className="p-6 text-center"><p>Could not check your Zero AI access.</p><button onClick={() => access.refetch()} className="mt-3 underline">Try again</button></div>;
+  if (!access.data) return <div className="mx-auto flex min-h-[60dvh] max-w-lg flex-col items-center justify-center gap-4 px-5 text-center"><Sparkles className="h-10 w-10 text-primary" /><h1 className="text-2xl font-semibold">Zero AI comes with {membershipAudience(profile) === "Tutor" ? "Tutor" : "Creator"} Max</h1><p className="text-muted-foreground">Upgrade to Max for personalized AI assistance and voice conversations.</p><Link to="/app/premium" className="rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">View your plans</Link></div>;
   return (
     <Workspace
       key={`${profile.id}:${own}`}

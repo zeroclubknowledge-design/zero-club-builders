@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, ChevronLeft, UsersRound } from "@/components/icons/glyphs";
-import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
 import { CLUB_LIMITS, PLAN_NAMES, resolvePlanKey } from "@/features/membership/plans";
+import { useUser } from "@/hooks/useUser";
 
 export const Route = createFileRoute("/app/settings/premium/features")({
   component: PlanFeatures,
@@ -11,23 +10,17 @@ export const Route = createFileRoute("/app/settings/premium/features")({
 const planFeatures: Record<string, string[]> = {
   learner_basic: ["Builder profile and Feed", "Join and participate in public Clubs", "ZeroNotes publishing", "Zero AI starter access", "2 rewarded Zero Games competitions weekly", "Standard XP earning"],
   learner_premium: ["Everything in Learner Basic", "Zero AI learning assistant", "5 rewarded Zero Games competitions weekly", "2x daily XP multiplier", "3% Bootcamp discount", "Post editing and longer posts", "Private Club access", "Premium profile badge"],
-  creator: ["Relevant Learner Premium experience", "12 rewarded Zero Games competitions weekly, maximum 2 daily", "Create and manage 3 permanent Clubs", "Club customization and member management", "Moderation and analytics", "Community growth and activity insights", "First Club receives 6 months premium experience", "Creator Rewards eligibility"],
+  creator_basic: ["Join and participate in Clubs", "Publish projects and posts", "Upgrade to Creator PRO or Max to create permanent Clubs"],
+  creator: ["12 rewarded Zero Games competitions weekly, maximum 2 daily", "Create and manage 3 permanent Clubs", "Club customization and member management", "Moderation and analytics", "Community growth and activity insights", "First Club receives 6 months premium experience", "Creator Rewards eligibility"],
+  creator_max: ["Everything in Creator PRO", "Create and manage 3 permanent Clubs", "Zero AI creator assistant", "AI content, community, and launch planning", "Zero AI voice conversations"],
   tutor_basic: ["Create and sell Bootcamps", "3 rewarded Zero Games competitions weekly", "Temporary cohort Club for each Bootcamp", "Curriculum, learner, pricing, and coupon management", "Create 1 permanent Club", "Tutor profile, Feed, and community access"],
-  tutor_premium: ["Everything in Tutor Basic", "8 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 5 permanent Clubs", "Connect Bootcamps to existing Clubs", "Zero AI knowledge interview", "Approved Bootcamp verification", "Zero AI curriculum and teaching assistance"],
-  tutor_premium_plus: ["Everything in Tutor Premium", "20 rewarded Zero Games competitions weekly, maximum 3 daily", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-Bootcamp verification support", "Unlimited existing-Club connections", "Priority interview access and tutor support"],
+  tutor_premium: ["Everything in Tutor Basic", "8 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 5 permanent Clubs", "Connect Bootcamps to existing Clubs", "Verified badge for approved Bootcamps"],
+  tutor_premium_plus: ["Everything in Tutor Pro", "20 rewarded Zero Games competitions weekly, maximum 3 daily", "Create up to 10 permanent Clubs", "Zero AI curriculum, assessment, and teaching assistance", "Zero AI voice conversations", "Advanced Zero AI cohort assistance", "Multi-Bootcamp verification support", "Unlimited existing-Club connections", "Priority tutor support"],
   institution: ["30-day Digital Hub trial", "21 to 84 rewarded Zero Games competitions weekly based on organisation plan", "Tutor and role management", "Multi-Bootcamp oversight", "Cohort participation analytics", "Organisation-specific Club capacity", "Priority onboarding and support"],
 };
 
 function PlanFeatures() {
-  const { data: profile } = useQuery({
-    queryKey: ['my_profile'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-      return data;
-    }
-  });
+  const { data: profile } = useUser();
 
   const planKey = resolvePlanKey(profile);
   const planName = planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
@@ -58,7 +51,7 @@ function PlanFeatures() {
           ))}
         </section>
 
-        {planKey === "creator" && (
+        {["creator", "creator_max"].includes(planKey) && (
           <Link to="/app/creator" className="mt-5 flex h-11 items-center justify-center gap-2 rounded-md border border-border text-[11.5px] font-semibold">Open Creator Workspace <ArrowRight className="h-4 w-4" /></Link>
         )}
         <Link to="/app/premium" className="mt-3 flex h-11 items-center justify-center gap-2 rounded-md bg-foreground text-[11.5px] font-semibold text-background">Compare all plans <ArrowRight className="h-4 w-4" /></Link>

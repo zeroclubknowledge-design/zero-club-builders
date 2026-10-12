@@ -91,7 +91,11 @@ export function createZeroAIHandlers(runtime: Runtime) {
       body: JSON.stringify({ p_kind: kind }),
       signal: AbortSignal.timeout(10000),
     });
-    if (!quotaResponse.ok) return failure("Zero AI is being set up. Please try again later.");
+    if (!quotaResponse.ok) {
+      const error = await quotaResponse.json().catch(() => ({}));
+      if (String(error.message || "").includes("ZERO_AI_MAX_REQUIRED")) return failure("Zero AI assistance requires Creator Max or Tutor Max for your account.", 403);
+      return failure("Zero AI is being set up. Please try again later.");
+    }
     if ((await quotaResponse.json()) !== true)
       return failure("You've reached today's Zero AI limit. Please try again tomorrow.", 429);
     return { role, userId: user.id };

@@ -42,7 +42,11 @@ export function createVapiHandlers({ fetch: send, env }: Runtime) {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(10000),
     });
-    if (!response.ok) throw new Error("Database request failed");
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      if (String(error.message || "").includes("ZERO_AI_MAX_REQUIRED")) throw new Error("ZERO_AI_MAX_REQUIRED");
+      throw new Error("Database request failed");
+    }
     return response.json();
   }
   async function vapi(path: string, init: RequestInit = {}) {
@@ -94,7 +98,7 @@ export function createVapiHandlers({ fetch: send, env }: Runtime) {
         if (!userResponse.ok) return failure("Your session expired. Sign in again.", 401);
         const user = await userResponse.json();
         if (!uuid.test(user.id || "")) return failure("Please sign in again.", 401);
-        const quota = await rpc("claim_zero_ai_request", { p_kind: "voice" }, userHeaders(token));
+        const quota = await rpc("claim_zero_ai_request", { p_kind: verification ? "verification" : "voice" }, userHeaders(token));
         if (!quota)
           return failure("You have used today's voice sessions. Text is still available.", 429);
         const assistantResponse = await vapi(`/assistant/${encodeURIComponent(assistantId)}`);
@@ -205,7 +209,8 @@ export function createVapiHandlers({ fetch: send, env }: Runtime) {
           call: { id: call.id, webCallUrl: call.webCallUrl },
           maxDurationSeconds: verification ? 120 : 600,
         });
-      } catch {
+      } catch (error) {
+        if (error instanceof Error && error.message === "ZERO_AI_MAX_REQUIRED") return failure("Zero AI conversations require Creator Max or Tutor Max for your account.", 403);
         return failure("Couldn't connect to voice. You can use text instead.");
       }
     },

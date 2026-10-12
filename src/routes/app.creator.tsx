@@ -49,8 +49,8 @@ function CreatorWorkspace() {
     );
   }
 
-  const isCreator = data?.capacity?.plan_key === "creator";
-  if (!isCreator) {
+  const isCreator = ["creator", "creator_max"].includes(data?.capacity?.plan_key);
+  if (!data || !isCreator) {
     return (
       <div className="flex min-h-screen flex-col bg-canvas text-foreground">
         <Header />
@@ -62,7 +62,7 @@ function CreatorWorkspace() {
             Creator unlocks three permanent Clubs, community management, insight, Creator Rewards eligibility, and six months of premium Club experience for your first Club.
           </p>
           <Link to="/app/premium" className="mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition hover:opacity-90">
-            View Creator plan <ArrowRight className="h-4 w-4" />
+            View Creator PRO and Max <ArrowRight className="h-4 w-4" />
           </Link>
         </main>
       </div>

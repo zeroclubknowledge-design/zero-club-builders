@@ -24,7 +24,8 @@ import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { toast } from "sonner";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
-import { formatNaira, resolvePlanKey } from "@/features/membership/plans";
+import { formatNaira, resolvePlanKey, membershipAudience } from "@/features/membership/plans";
+import { useUser } from "@/hooks/useUser";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 import { useGoBack } from "@/hooks/useGoBack";
 import { Switch } from "@/components/ui/switch";
@@ -89,16 +90,23 @@ const plans: Plan[] = [
   {
     id: "creator",
     planKey: "creator",
-    name: "Creator",
+    name: "Creator PRO",
     eyebrow: "Build communities",
-    priceValue: 7000,
+    priceValue: 3000,
     description: "For learners ready to build, manage, and grow permanent communities on Zero Club.",
     audiences: ["Creator"],
     recommendedFor: "Creator",
     storedTier: undefined,
     featured: true,
     billingLabel: "/ month",
-    features: ["Relevant Learner Premium experience", "12 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
+    features: ["12 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 3 permanent Clubs", "Club customization and member management", "Moderation tools and Club analytics", "Community growth and activity insights", "6 months premium experience for your first Club", "Creator Rewards eligibility"],
+    limitations: ["Creator Zero AI assistance is available with Creator Max"],
+  },
+  {
+    id: "creator-max", planKey: "creator_max", name: "Creator Max", eyebrow: "Create with Zero AI",
+    priceValue: 5000, description: "Everything in Creator PRO, with Zero AI for content, communities, and launches.",
+    audiences: ["Creator"], recommendedFor: "Creator", billingLabel: "/ month",
+    features: ["Everything in Creator PRO", "Create up to 3 permanent Clubs", "Zero AI creator assistant", "AI content, community, and launch planning", "Zero AI voice conversations"],
   },
   {
     id: "tutor-basic",
@@ -117,21 +125,22 @@ const plans: Plan[] = [
   {
     id: "tutor-premium",
     planKey: "tutor_premium",
-    name: "Premium",
+    name: "Tutor Pro",
     eyebrow: "Teach with confidence",
-    priceValue: 5000,
+    priceValue: 7000,
     description: "Add trusted verification and connect each cohort to the community you already lead.",
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Premium",
     billingLabel: "/ month",
     featured: true,
-    features: ["Everything in Tutor Basic", "8 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 5 permanent Clubs", "Connect bootcamps to existing clubs", "Zero AI tutor knowledge interview", "Verified badge for approved bootcamps", "Zero AI curriculum and teaching assistance"],
+    features: ["Everything in Tutor Basic", "8 rewarded Zero Games competitions weekly, maximum 2 daily", "Create up to 5 permanent Clubs", "Connect bootcamps to existing clubs", "Verified badge for approved bootcamps"],
+    limitations: ["Zero AI teaching assistance is available with Tutor Max"],
   },
   {
     id: "tutor-premium-plus",
     planKey: "tutor_premium_plus",
-    name: "Premium+",
+    name: "Tutor Max",
     eyebrow: "Scale your teaching",
     priceValue: 12000,
     description: "Advanced Zero AI and verification support for tutors running multiple programs and communities.",
@@ -139,7 +148,7 @@ const plans: Plan[] = [
     recommendedFor: "Tutor",
     storedTier: "Premium+",
     billingLabel: "/ month",
-    features: ["Everything in Tutor Premium", "20 rewarded Zero Games competitions weekly, maximum 3 daily", "Create up to 10 permanent Clubs", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority Zero AI interview access", "Priority tutor support"],
+    features: ["Everything in Tutor Pro", "20 rewarded Zero Games competitions weekly, maximum 3 daily", "Create up to 10 permanent Clubs", "Zero AI curriculum, assessment, and teaching assistance", "Zero AI voice conversations", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority tutor support"],
   },
   {
     id: "institution-small",
@@ -231,19 +240,10 @@ function MembershipPage() {
   const [showInstitutionForm, setShowInstitutionForm] = useState(Route.useSearch().institution === 1);
   const [applyZeroGift, setApplyZeroGift] = useState(false);
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ["my_profile"],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: profile, isLoading } = useUser();
 
   const { data: membershipDashboard } = useQuery({
-    queryKey: ["membership-dashboard", profile?.id],
+    queryKey: ["membership-dashboard", profile?.id, profile?.account_type, profile?.active_mode, profile?.tier],
     enabled: Boolean(profile?.id),
     retry: false,
     queryFn: async () => {
@@ -261,13 +261,7 @@ function MembershipPage() {
    * Creator in Creator mode, Tutor for tutors, Institution for institutions.
    * Derived from the profile, so switching mode elsewhere changes it here.
    */
-  const audience: Audience = (() => {
-    const accountType = String(profile?.account_type || "").toLowerCase();
-    if (accountType === "institution") return "Institution";
-    if (accountType === "tutor") return "Tutor";
-    if (String(profile?.active_mode || "").toLowerCase() === "creator" || String(profile?.tier || "").toLowerCase() === "creator") return "Creator";
-    return "Learner";
-  })();
+  const audience: Audience = membershipAudience(profile);
 
   const visiblePlans = useMemo(
     () => plans.filter((plan) => plan.audiences.includes(audience)),
@@ -314,6 +308,7 @@ function MembershipPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["my_profile"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       queryClient.invalidateQueries({ queryKey: ["membership-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["clubs_data"] });
       queryClient.invalidateQueries({ queryKey: zeroGiftBalanceQueryKey("membership") });
