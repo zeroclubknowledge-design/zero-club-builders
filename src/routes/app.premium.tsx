@@ -28,6 +28,7 @@ import { formatNaira, resolvePlanKey } from "@/features/membership/plans";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 import { useGoBack } from "@/hooks/useGoBack";
 import { Switch } from "@/components/ui/switch";
+import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 
 export const Route = createFileRoute("/app/premium")({
   component: MembershipPage,
@@ -408,6 +409,7 @@ function MembershipPage() {
         </span>
         <h2 className="mt-3 font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em]">{copy.title}</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{copy.description}</p>
+        <MembershipGiftInbox userId={profile?.id} />
 
         <span className="mt-4 inline-flex h-7 w-fit items-center rounded-full bg-foreground/[0.06] px-3 text-[12.5px] font-semibold text-foreground">
           {audience} plans

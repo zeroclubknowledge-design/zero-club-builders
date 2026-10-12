@@ -54,11 +54,12 @@ import {
 import { toast } from "sonner";
 import { TutorApplicationsAdmin } from "./TutorApplicationsAdmin";
 import { PlatformRewardsAdmin } from "./PlatformRewardsAdmin";
+import { MembershipGiftsAdmin } from "./MembershipGiftsAdmin";
 import { contentPreview, toPlainText } from "@/lib/contentPreview";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
-type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "tutors" | "rewards" | "system";
+type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "tutors" | "rewards" | "gifts" | "system";
 
 type Snapshot = {
   metrics: Record<string, number>;
@@ -87,6 +88,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "community", label: "Community", Icon: UsersRound },
   { id: "marketplace", label: "Marketplace", Icon: BriefcaseBusiness },
   { id: "commerce", label: "Commerce", Icon: CircleDollarSign },
+  { id: "gifts", label: "Membership gifts", Icon: WalletCards },
   { id: "tutors", label: "Tutor applications", Icon: GraduationCap },
   { id: "rewards", label: "Rewards & games", Icon: WalletCards },
   { id: "institutions", label: "Institutions", Icon: Building2 },
@@ -324,6 +326,7 @@ export function AdminDashboard() {
           {activeTab === "commerce" && <Commerce snapshot={data} format={format} />}
           {activeTab === "tutors" && <TutorApplicationsAdmin />}
           {activeTab === "rewards" && <PlatformRewardsAdmin />}
+          {activeTab === "gifts" && <MembershipGiftsAdmin />}
           {activeTab === "system" && <System snapshot={data} busy={action.isPending} runAction={runAction} />}
         </main>
       </div>
