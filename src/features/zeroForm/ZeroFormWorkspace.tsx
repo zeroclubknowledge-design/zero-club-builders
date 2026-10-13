@@ -325,6 +325,28 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
     onError: (error: any) => toast.error(error.message || "Could not save this Zero Form"),
   });
 
+  /* Why saving would fail, in plain words — checked on click instead of
+     silently greying the button out, so it is never a mystery. */
+  const [showBlockers, setShowBlockers] = useState(false);
+  const blockers: string[] = [];
+  if (!existing && !bootcampId) blockers.push("Choose the bootcamp this form is for (top of the page).");
+  if (!fields.length) blockers.push("Add at least one question.");
+  if (fields.some((f) => !String(f.label || "").trim())) blockers.push("Give every question a title.");
+  if (pricingEnabled) {
+    if (!startsAt) blockers.push("Set when the bootcamp starts — or switch Pricing and dates off to just collect details.");
+    if (Number(early) > Number(regular)) blockers.push("The early-bird price can't be higher than the regular price.");
+    if (deadline && startsAt && new Date(deadline) > new Date(startsAt)) blockers.push("The registration deadline must be before the bootcamp starts.");
+  }
+  const attemptSave = (status: "draft" | "published") => {
+    if (blockers.length) {
+      setShowBlockers(true);
+      toast.error(blockers[0]);
+      return;
+    }
+    setShowBlockers(false);
+    save.mutate(status);
+  };
+
   const saving = earlyBirdSaving(Number(regular), Number(early));
   const input = "h-11 w-full rounded-lg border border-border bg-background px-3 text-[13px] outline-none focus:border-primary/50";
   const label = "text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground";
@@ -592,19 +614,28 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
 
           <div className="space-y-2">
             <button
-              onClick={() => save.mutate("published")}
-              disabled={save.isPending || uploadingBanner || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
+              onClick={() => attemptSave("published")}
+              disabled={save.isPending || uploadingBanner}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground disabled:opacity-50"
             >
-              {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Publish Zero Form
+              {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {uploadingBanner ? "Uploading image…" : "Publish Zero Form"}
             </button>
             <button
-              onClick={() => save.mutate("draft")}
-              disabled={save.isPending || uploadingBanner || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
+              onClick={() => attemptSave("draft")}
+              disabled={save.isPending || uploadingBanner}
               className="h-11 w-full rounded-lg border border-border text-[12.5px] font-semibold disabled:opacity-50"
             >
               Save as draft
             </button>
+            {showBlockers && blockers.length > 0 && (
+              <div role="alert" className="rounded-lg bg-destructive/[0.06] p-3 ring-1 ring-destructive/20">
+                <p className="text-[11.5px] font-semibold text-destructive">Before you can publish:</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] leading-4 text-muted-foreground">
+                  {blockers.map((b) => <li key={b}>{b}</li>)}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
