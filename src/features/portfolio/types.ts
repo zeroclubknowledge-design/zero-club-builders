@@ -92,6 +92,10 @@ export type PortfolioItem = {
   sort_order: number;
   problem: string | null;
   outcome: string | null;
+  /** The owner's own wording and cover for this card; the post itself is untouched. */
+  display_title?: string | null;
+  display_summary?: string | null;
+  cover_url?: string | null;
   post: PortfolioPost;
 };
 

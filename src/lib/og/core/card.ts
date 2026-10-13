@@ -97,16 +97,16 @@ export function fonts() {
    service no longer costs a post its picture. */
 const SUPABASE_PUBLIC = "/storage/v1/object/public/";
 
-function converted(url: string | null | undefined, width: number, height: number): string[] {
+function converted(url: string | null | undefined, width: number, height: number, fit = "cover"): string[] {
   if (!url) return [];
   if (url.startsWith("data:")) return [url];
   if (!/^https:\/\//i.test(url)) return [];
   const sources: string[] = [];
   if (url.includes(SUPABASE_PUBLIC)) {
     const render = url.replace(SUPABASE_PUBLIC, "/storage/v1/render/image/public/");
-    sources.push(`${render}${render.includes("?") ? "&" : "?"}width=${width}&height=${height}&resize=cover&quality=80`);
+    sources.push(`${render}${render.includes("?") ? "&" : "?"}width=${width}&height=${height}&resize=${fit}&quality=80`);
   }
-  const params = new URLSearchParams({ url, w: String(width), h: String(height), fit: "cover", output: "jpg", q: "80" });
+  const params = new URLSearchParams({ url, w: String(width), h: String(height), fit, output: "jpg", q: "80" });
   sources.push(`https://images.weserv.nl/?${params.toString()}`);
   // Already a JPEG or PNG: the original works too.
   if (/\.(jpe?g|png)(\?|$)/i.test(url)) sources.push(url);
@@ -149,6 +149,18 @@ export function visualFor(spec: PreviewSpec) {
   if (spec.variant === "photo") return embed(converted(spec.image, 640, 720));
   const size = spec.imageShape === "circle" ? 520 : 720;
   return embed(converted(spec.image, size, size));
+}
+
+/** A social-sized copy of the attached photo, with no branding or text. */
+export async function drawPostPhoto(image: string): Promise<ArrayBuffer | null> {
+  const visual = await embed(converted(image, W, H, "contain"));
+  if (!visual) return null;
+  const response = new ImageResponse(
+    box({ width: W, height: H, background: "#ffffff" },
+      h("img", { src: visual, width: W, height: H, style: { objectFit: "contain" } })) as any,
+    { width: W, height: H, fonts: [] },
+  );
+  return response.arrayBuffer();
 }
 
 export function cardTree(spec: PreviewSpec, visual: string | null, family: string): Node {

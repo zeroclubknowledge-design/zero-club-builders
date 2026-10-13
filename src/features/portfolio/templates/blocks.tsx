@@ -13,7 +13,7 @@ import {
 } from "@/components/icons/glyphs";
 import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { experienceSpan, monthYear } from "@/features/profile/credentials";
-import { clip, describePost, postImages } from "../parse";
+import { clip, describeItem, itemImages } from "../parse";
 import type { PortfolioItem } from "../types";
 import { AchievementIcon, achievementSource, WorkLinks, year, type View } from "./kit";
 
@@ -200,8 +200,8 @@ export function ProofsBlock({
   return (
     <div className="grid gap-3 @2xl:grid-cols-2">
       {v.proofs.map((item) => {
-        const { summary } = describePost(item.post);
-        const image = postImages(item.post)[0];
+        const { summary } = describeItem(item);
+        const image = itemImages(item)[0];
         return (
           <article key={item.id} className={`flex gap-4 p-4 ${skin.card}`}>
             {image && (
@@ -294,7 +294,7 @@ export function ContactDetails({ v, skin }: { v: View; skin: Skin }) {
 
 /** A project's facts: category, verification, versions, year. */
 export function WorkMeta({ item }: { item: PortfolioItem }) {
-  const { ship } = describePost(item.post);
+  const { ship } = describeItem(item);
   const versions = Number(item.post.versions || 0);
   const bits = [
     ship?.category,

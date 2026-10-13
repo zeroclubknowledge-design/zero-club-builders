@@ -1,4 +1,3 @@
-import { postPreviewImage } from "@/lib/og/core/post";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -186,7 +185,7 @@ function ErrorComponent({ error: rawError, reset }: { error: unknown; reset: () 
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: ({ matches }) => ({
+  head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" },
@@ -212,11 +211,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
          scrapers — WhatsApp and LinkedIn among them — will fall back to a
          small square thumbnail rather than the wide card if they have to
          download the image before they know its shape. */
-      ...(!matches.some(match => String(match.routeId) === "/app/post/$id" && postPreviewImage((match.loaderData as any)?.post)) ? [
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:type", content: "image/png" },
-      ] : []),
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:type", content: "image/png" },
       { property: "og:image:alt", content: "Zero Club — Build skills. Build proof. Build opportunities." },
       { property: "og:site_name", content: "Zero Club" },
       { property: "og:url", content: "https://www.zeroclubs.xyz" },

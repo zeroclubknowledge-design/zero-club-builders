@@ -1,5 +1,5 @@
 import { toPlainText } from "@/lib/contentPreview";
-import type { PortfolioPost } from "./types";
+import type { PortfolioItem, PortfolioPost } from "./types";
 
 /**
  * Reads a ship's stored markdown back into its parts. The ship form writes:
@@ -155,4 +155,23 @@ export function clip(text: string, max: number) {
   const value = (text || "").trim();
   if (value.length <= max) return value;
   return `${value.slice(0, max).replace(/\s+\S*$/, "")}…`;
+}
+
+/** A portfolio card's title and summary: the owner's wording if set, else the post's. */
+export function describeItem(
+  item: Pick<PortfolioItem, "post" | "display_title" | "display_summary">,
+) {
+  const base = describePost(item.post);
+  return {
+    ...base,
+    title: item.display_title?.trim() || base.title,
+    summary: item.display_summary?.trim() || base.summary,
+  };
+}
+
+/** The card's images, with the chosen cover first (always one of the post's own). */
+export function itemImages(item: Pick<PortfolioItem, "post" | "cover_url">): string[] {
+  const images = postImages(item.post);
+  if (!item.cover_url || !images.includes(item.cover_url)) return images;
+  return [item.cover_url, ...images.filter((url) => url !== item.cover_url)];
 }

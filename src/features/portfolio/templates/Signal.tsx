@@ -4,7 +4,7 @@
  */
 import { ArrowUpRight, MapPin } from "@/components/icons/glyphs";
 import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
-import { describePost, postImages } from "../parse";
+import { describeItem, itemImages } from "../parse";
 import { SECTION_LABELS } from "../types";
 import { ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
@@ -152,8 +152,8 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
               <Heading>{SECTION_LABELS.work}</Heading>
               <div className="grid gap-3 @2xl:grid-cols-2">
                 {v.projects.map((item, i) => {
-                  const { title, summary, ship } = describePost(item.post);
-                  const img = postImages(item.post)[0];
+                  const { title, summary, ship } = describeItem(item);
+                  const img = itemImages(item)[0];
                   const wide = item.featured || (i === 0 && v.projects.length % 2 === 1);
                   return (
                     <article

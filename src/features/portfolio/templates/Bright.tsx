@@ -4,7 +4,7 @@
  */
 import { ArrowRight, ArrowUpRight, MapPin } from "@/components/icons/glyphs";
 import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
-import { describePost, postImages } from "../parse";
+import { describeItem, itemImages } from "../parse";
 import { SECTION_LABELS } from "../types";
 import { ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
@@ -137,8 +137,8 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
             </div>
             <div className="mt-8 grid gap-6 @xl:grid-cols-2 @4xl:grid-cols-3">
               {v.projects.map((item, i) => {
-                const { title, summary } = describePost(item.post);
-                const img = postImages(item.post)[0];
+                const { title, summary } = describeItem(item);
+                const img = itemImages(item)[0];
                 return (
                   <article key={item.id} className="group">
                     <div className="relative">

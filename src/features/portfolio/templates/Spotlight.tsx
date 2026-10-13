@@ -3,7 +3,7 @@
  * image, then the work reads as a numbered index.
  */
 import { ArrowUpRight, MapPin } from "@/components/icons/glyphs";
-import { describePost, postImages } from "../parse";
+import { describeItem, itemImages } from "../parse";
 import { SECTION_LABELS } from "../types";
 import { AboutBlock, ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
@@ -161,8 +161,8 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
             </p>
             <ol className="mt-10 border-t border-white/10">
               {v.projects.map((item, i) => {
-                const { title, summary } = describePost(item.post);
-                const img = postImages(item.post)[0];
+                const { title, summary } = describeItem(item);
+                const img = itemImages(item)[0];
                 return (
                   <li
                     key={item.id}

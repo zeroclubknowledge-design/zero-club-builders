@@ -23,8 +23,7 @@ export function postPreviewHead(post: any) {
   const title = `${authorName}'s ${post.is_build_post ? "Project" : "Post"} on Zero Club`;
   const text = plain(post.content) || "Check out this post on Zero Club";
   const description = text.substring(0, 160) + (text.length > 160 ? "..." : "");
-  const photo = postPreviewImage(post);
-  const image = photo || `${ORIGIN}/api/og/post/${encodeURIComponent(post.id)}?v=4`;
+  const image = `${ORIGIN}/api/og/post/${encodeURIComponent(post.id)}?v=5`;
   return { meta: [
     { title },
     { name: "description", content: description },
@@ -32,15 +31,13 @@ export function postPreviewHead(post: any) {
     { property: "og:description", content: description },
     { property: "og:image", content: image },
     ...(image.startsWith("https:") ? [{ property: "og:image:secure_url", content: image }] : []),
-    // Only the generated fallback is guaranteed to be a 1200x630 PNG.
-    ...(!photo ? [
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:type", content: "image/png" },
-    ] : []),
+    // Both photos and the text-only fallback are served as 1200x630 PNGs.
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    { property: "og:image:type", content: "image/png" },
     { property: "og:image:alt", content: title },
     { property: "og:type", content: "article" },
-    { property: "og:url", content: `${ORIGIN}/app/post/${encodeURIComponent(post.id)}?preview=4` },
+    { property: "og:url", content: `${ORIGIN}/app/post/${encodeURIComponent(post.id)}?preview=5` },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },

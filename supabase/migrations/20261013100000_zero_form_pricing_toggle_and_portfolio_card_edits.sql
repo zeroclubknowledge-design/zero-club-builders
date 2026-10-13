@@ -1,0 +1,19 @@
+-- ALREADY APPLIED to tiyifgfsuzhcvdvntjmp via MCP on 2026-10-13. Do not re-run.
+--
+-- 1. zero_form_pricing_toggle
+--    * zero_forms.pricing_enabled boolean not null default true
+--    * save_zero_form: payload.pricing_enabled=false → prices 0, no deadline, no seat limit,
+--      start date not required, and the bootcamp's own price/start are left untouched
+--    * zero_form_state: data-only forms stay 'open' until the owner closes or unpublishes them
+--    * process_zero_form_launch: only closes forms that sell the bootcamp
+--    * submit_zero_form_v2: data-only → amount 0, registration 'interested' (never auto-enrolled),
+--      returns status 'submitted'
+--    * get_zero_form_public: form.pricing_enabled exposed
+--    Tested (rolled back): data-only publish w/o dates, bootcamp price unchanged, submit → submitted/interested/0;
+--    paid form still requires a start date.
+--
+-- 2. portfolio_item_display_overrides
+--    * portfolio_items.display_title (≤120), display_summary (≤600), cover_url
+--    * trigger portfolio_items_cover_guard: cover must be one of the post's own media_urls; blanks → null
+--    * get_public_portfolio items include display_title, display_summary, cover_url
+--    Tested (rolled back): own image accepted, foreign URL rejected, whitespace trimmed.

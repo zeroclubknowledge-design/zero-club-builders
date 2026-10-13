@@ -8,7 +8,8 @@ export async function loadPortfolio<T>(request: (signal: AbortSignal) => Promise
   try {
     return await request(controller.signal);
   } catch (error) {
-    if (controller.signal.aborted) throw new Error("The portfolio took too long to load. Please try again.");
+    if (controller.signal.aborted)
+      throw new Error("The portfolio took too long to load. Please try again.");
     throw error;
   } finally {
     clearTimeout(timeout);
@@ -20,15 +21,23 @@ export async function loadPortfolio<T>(request: (signal: AbortSignal) => Promise
  * owners can only touch their own portfolio, and only add their own posts.
  */
 
-export async function fetchPublicPortfolio(username: string, signal?: AbortSignal): Promise<PortfolioLookup> {
-  const { data, error } = await supabase.rpc("get_public_portfolio" as any, {
-    p_username: username,
-  }).abortSignal(signal ?? new AbortController().signal);
+export async function fetchPublicPortfolio(
+  username: string,
+  signal?: AbortSignal,
+): Promise<PortfolioLookup> {
+  const { data, error } = await supabase
+    .rpc("get_public_portfolio" as any, {
+      p_username: username,
+    })
+    .abortSignal(signal ?? new AbortController().signal);
   if (error) throw error;
   return (data || { found: false }) as PortfolioLookup;
 }
 
-export async function fetchMyPortfolio(profileId: string, signal?: AbortSignal): Promise<Portfolio | null> {
+export async function fetchMyPortfolio(
+  profileId: string,
+  signal?: AbortSignal,
+): Promise<Portfolio | null> {
   const { data, error } = await supabase
     .from("portfolios" as any)
     .select("*")
@@ -43,7 +52,10 @@ const POST_FIELDS =
   "id, content, media_urls, likes_count, comments_count, created_at, is_build_post, is_verified_build, version_label, project_root_id";
 
 /** Everything the owner has published to everyone, with version counts on each project. */
-export async function fetchMyCandidates(profileId: string, signal?: AbortSignal): Promise<Candidate[]> {
+export async function fetchMyCandidates(
+  profileId: string,
+  signal?: AbortSignal,
+): Promise<Candidate[]> {
   const { data, error } = await supabase
     .from("posts")
     .select(POST_FIELDS)
@@ -114,7 +126,19 @@ export async function insertItems(portfolioId: string, items: ItemDraft[]) {
 
 export async function updateItem(
   id: string,
-  patch: Partial<Pick<PortfolioItem, "featured" | "sort_order" | "problem" | "outcome" | "kind">>,
+  patch: Partial<
+    Pick<
+      PortfolioItem,
+      | "featured"
+      | "sort_order"
+      | "problem"
+      | "outcome"
+      | "kind"
+      | "display_title"
+      | "display_summary"
+      | "cover_url"
+    >
+  >,
 ) {
   const { error } = await supabase
     .from("portfolio_items" as any)

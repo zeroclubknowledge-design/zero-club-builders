@@ -10,7 +10,7 @@
 import { useEffect, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Trophy, Medal } from "@/components/icons/glyphs";
-import { clip, describePost, postImages } from "../parse";
+import { clip, describeItem, itemImages } from "../parse";
 import {
   ACCENT_HEX,
   normaliseSections,
@@ -90,7 +90,7 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
 
   /** Images from the work, newest-featured first — for hero collages and galleries. */
   const gallery = projects.flatMap((item) =>
-    postImages(item.post)
+    itemImages(item)
       .slice(0, 3)
       .map((url) => ({ url, item })),
   );
@@ -266,7 +266,7 @@ export function WorkLinks({
   className?: string;
   proofLabel?: string;
 }) {
-  const { ship } = describePost(item.post);
+  const { ship } = describeItem(item);
   return (
     <div
       className={`flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] font-semibold ${className}`}

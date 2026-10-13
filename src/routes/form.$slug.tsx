@@ -331,7 +331,7 @@ function ZeroFormPublicPage() {
   const [intent, setIntent] = useState<"interest" | "pay">("pay");
   const [session, setSession] = useState<any>(null);
   const [checkedSession, setCheckedSession] = useState(false);
-  const [done, setDone] = useState<null | "confirmed" | "interested">(null);
+  const [done, setDone] = useState<null | "confirmed" | "interested" | "submitted">(null);
   const [shortfall, setShortfall] = useState<number | null>(null);
   const registerRef = useRef<HTMLDivElement>(null);
 
@@ -363,7 +363,9 @@ function ZeroFormPublicPage() {
   const fields = (data?.fields || []) as any[];
   const curriculum = (data?.curriculum || []) as any[];
 
-  const price = Number(form?.early_bird_price || 0);
+  // Pricing switched off: the form only collects details.
+  const dataOnly = form?.pricing_enabled === false;
+  const price = dataOnly ? 0 : Number(form?.early_bird_price || 0);
   const isPaid = price > 0;
   const saving = earlyBirdSaving(form?.regular_price, form?.early_bird_price);
   const countdown = formatCountdown(bootcamp?.starts_at);
@@ -403,7 +405,7 @@ function ZeroFormPublicPage() {
       const { data: result, error } = await supabase.rpc("submit_zero_form_v2", {
         form_slug: slug,
         answers,
-        intent,
+        intent: dataOnly ? "interest" : intent,
         guest: session ? null : { name: guest.name, email: guest.email, phone: guest.phone },
       });
       if (error) throw error;
@@ -449,7 +451,9 @@ function ZeroFormPublicPage() {
       }
 
       setShortfall(null);
-      setDone(result?.status === "interested" ? "interested" : "confirmed");
+      setDone(
+        result?.status === "submitted" ? "submitted" : result?.status === "interested" ? "interested" : "confirmed",
+      );
       queryClient.invalidateQueries({ queryKey: ["zero-form-public", slug] });
       queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
     },
@@ -484,32 +488,85 @@ function ZeroFormPublicPage() {
   // ── Success ──────────────────────────────────────────────────────────────
   const alreadyIn = ["confirmed", "enrolled", "interested"].includes(data?.my_registration?.registration_status);
   if (done || alreadyIn) {
-    const interested = done === "interested" || data?.my_registration?.registration_status === "interested";
+    const kind: "submitted" | "interested" | "confirmed" =
+      done === "submitted" || (dataOnly && alreadyIn)
+        ? "submitted"
+        : done === "interested" || data?.my_registration?.registration_status === "interested"
+          ? "interested"
+          : "confirmed";
+    const formTitle = form?.title || bootcamp?.title || "this Zero Form";
+    const lead =
+      kind === "submitted"
+        ? "Your details have been received."
+        : kind === "interested"
+          ? "You're on the list — your details were saved."
+          : "Your registration is confirmed.";
+    const next =
+      kind === "submitted"
+        ? "The organiser has your details and will reach out if there's anything next."
+        : kind === "interested"
+          ? "Nothing to pay now — the organiser will contact you before it starts."
+          : "You'll get full access automatically when the bootcamp starts.";
     return (
       <Shell>
-        <div className="mx-auto max-w-[560px] px-5 py-16 text-center">
-          <div className={`mx-auto grid h-14 w-14 place-items-center rounded-full ${interested ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600"}`}>
-            <CheckCircle2 className="h-7 w-7" />
+        <div className="mx-auto max-w-[560px] px-5 py-12 sm:py-16">
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card text-center shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)]">
+            {/* Celebration band */}
+            <div className="relative h-32 overflow-hidden bg-[linear-gradient(135deg,#cc208f,#7c3aed)]">
+              {[
+                ["8%", "22%", 10, "#ffd23f"], ["22%", "64%", 6, "#ffffff"], ["38%", "18%", 8, "#7cf3c6"],
+                ["62%", "70%", 10, "#ffd23f"], ["76%", "26%", 6, "#ffffff"], ["90%", "58%", 9, "#7cf3c6"],
+                ["50%", "40%", 5, "#ffffff"], ["14%", "80%", 7, "#ffffff"], ["84%", "84%", 5, "#ffd23f"],
+              ].map(([l, t, size, c], i) => (
+                <span
+                  key={i}
+                  aria-hidden
+                  className="zf-confetti absolute rounded-sm"
+                  style={{ left: l as string, top: t as string, width: size as number, height: (size as number) * 1.6, background: c as string, transform: `rotate(${i * 37}deg)`, animationDelay: `${i * 90}ms` }}
+                />
+              ))}
+            </div>
+            <div className="-mt-10 px-6 pb-7 sm:px-8">
+              <div className="mx-auto grid h-20 w-20 place-items-center rounded-full border-4 border-card bg-emerald-500 text-white shadow-lg">
+                <CheckCircle2 className="h-9 w-9" />
+              </div>
+              <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.18em] text-[#cc208f]">Congratulations</p>
+              <h1 className="mt-2 font-display text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">
+                You've signed up for {formTitle}
+              </h1>
+              <p className="mt-3 text-[15px] leading-7 text-muted-foreground">{lead}</p>
+
+              <div className="mt-6 rounded-2xl border border-border bg-background/60 p-4 text-left">
+                <Row label="Zero Form" value={formTitle} />
+                {!dataOnly && bootcamp?.title && bootcamp.title !== formTitle && <Row label="Bootcamp" value={bootcamp.title} />}
+                {!dataOnly && bootcamp?.starts_at && (
+                  <Row label="Starts" value={new Date(bootcamp.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} />
+                )}
+                {!dataOnly && (
+                  <Row
+                    label={kind === "interested" ? "Amount" : "Amount paid"}
+                    value={kind === "interested" ? "Not paid yet" : isPaid ? money(price) : "Free"}
+                  />
+                )}
+                <Row
+                  label="Status"
+                  value={kind === "submitted" ? "Details received" : kind === "interested" ? "Interest registered" : "Confirmed"}
+                />
+              </div>
+
+              <p className="mt-5 text-[13px] leading-6 text-muted-foreground">{next}</p>
+              <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
+                <Link to="/" className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-7 text-[14px] font-semibold text-background">
+                  Explore Zero Club
+                </Link>
+              </div>
+            </div>
           </div>
-          <h1 className="mt-6 font-display text-[30px] font-semibold tracking-tight">
-            {interested ? "You're on the list" : "You're registered"}
-          </h1>
-          <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
-            {interested
-              ? <>We've saved your details for <span className="font-semibold text-foreground">{bootcamp?.title}</span>. The organiser will contact you before it starts.</>
-              : <>You have successfully registered for <span className="font-semibold text-foreground">{bootcamp?.title}</span>.</>}
-          </p>
-          <div className="mt-8 rounded-lg border border-border bg-card p-5 text-left">
-            <Row label="Bootcamp" value={bootcamp?.title} />
-            {bootcamp?.starts_at && <Row label="Starts" value={new Date(bootcamp.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} />}
-            <Row label={interested ? "Amount" : "Amount paid"} value={interested ? "Not paid yet" : isPaid ? money(price) : "Free"} />
-            <Row label="Status" value={interested ? "Interest registered" : "Confirmed"} />
-          </div>
-          <p className="mt-6 text-[13px] leading-6 text-muted-foreground">
-            {interested
-              ? "Nothing else to do for now — you'll hear from the organiser."
-              : "You'll get full access automatically when the bootcamp starts."}
-          </p>
+          <style>{`
+            @keyframes zf-fall { from { opacity: 0; transform: translateY(-24px) rotate(0deg) } to { opacity: 1 } }
+            .zf-confetti { animation: zf-fall .9s cubic-bezier(.16,1,.3,1) both }
+            @media (prefers-reduced-motion: reduce) { .zf-confetti { animation: none } }
+          `}</style>
         </div>
       </Shell>
     );
@@ -598,14 +655,14 @@ function ZeroFormPublicPage() {
               {owner.account_type === "Institution" && <BadgeCheck className="h-3.5 w-3.5 text-primary" />}
             </span>
           )}
-          {bootcamp?.starts_at && (
+          {!dataOnly && bootcamp?.starts_at && (
             <span className="flex items-center gap-1.5">
               <CalendarDays className="h-3.5 w-3.5" />
               Starts {new Date(bootcamp.starts_at).toLocaleDateString(undefined, { month: "long", day: "numeric" })}
               {countdown && ` · in ${countdown}`}
             </span>
           )}
-          {form?.seats_left !== null && form?.seats_left !== undefined && (
+          {!dataOnly && form?.seats_left !== null && form?.seats_left !== undefined && (
             <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{form.seats_left} seats left</span>
           )}
         </div>
@@ -614,7 +671,7 @@ function ZeroFormPublicPage() {
         <div className="mt-6 border-b border-border pb-6">
           <div className="flex flex-wrap items-baseline gap-3">
             <span className="text-[34px] font-semibold leading-none tracking-tight tabular-nums">
-              {isPaid ? money(price) : "Free"}
+              {dataOnly ? "Sign up" : isPaid ? money(price) : "Free"}
             </span>
             {isPaid && Number(form.regular_price) > price && (
               <>
@@ -623,14 +680,14 @@ function ZeroFormPublicPage() {
               </>
             )}
           </div>
-          {form?.registration_deadline && (
+          {!dataOnly && form?.registration_deadline && (
             <p className="mt-3 flex items-center gap-2 text-[12.5px] text-muted-foreground">
               <Clock3 className="h-3.5 w-3.5 shrink-0" />
               Register before {new Date(form.registration_deadline).toLocaleDateString(undefined, { month: "long", day: "numeric" })} to secure this price.
             </p>
           )}
           <button onClick={goRegister} className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-foreground px-8 text-[14.5px] font-semibold text-background transition hover:opacity-90">
-            {isPaid ? "Register now" : "Register free"} <ArrowRight className="h-4 w-4" />
+            {dataOnly ? "Sign up" : isPaid ? "Register now" : "Register free"} <ArrowRight className="h-4 w-4" />
           </button>
         </div>
 
@@ -743,13 +800,14 @@ function ZeroFormPublicPage() {
                 className="mt-7 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-[15px] font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
               >
                 {submit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {!isPaid ? "Register free"
+                {dataOnly ? "Submit my details"
+                  : !isPaid ? "Register free"
                   : intent === "interest" ? "Save my details"
                   : `Pay ${money(price)} and register`}
               </button>
 
               <p className="mt-4 text-center text-[11.5px] leading-5 text-muted-foreground">
-                {intent === "interest"
+                {dataOnly || intent === "interest"
                   ? "Your details go straight to the organiser. No payment is taken."
                   : session
                     ? "Paid securely from your Zero Club wallet."

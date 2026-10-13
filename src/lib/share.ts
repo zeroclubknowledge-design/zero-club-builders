@@ -5,7 +5,7 @@ import { toast } from "sonner";
 // the corrected card instead of keeping an older image-less result.
 export const PRODUCT_PREVIEW_VERSION = "4";
 export const NOTE_PREVIEW_VERSION = "1";
-export const POST_PREVIEW_VERSION = "4";
+export const POST_PREVIEW_VERSION = "5";
 
 /** Fresh post metadata, retaining referral attribution when shared from a feed. */
 export function postLinkUrl(postId: string, referralCode?: string | null): string {

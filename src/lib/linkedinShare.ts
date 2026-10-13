@@ -111,29 +111,24 @@ export function linkedInUrl(url: string): string {
 }
 
 /**
- * Hands the post to LinkedIn with the text already written.
+ * Hands the post link to LinkedIn, with an excerpt available alongside it.
  *
  * On phones it opens the phone's own share menu with the text in it; picking
- * LinkedIn opens the LinkedIn app's post screen, filled in. A web page can't
+ * LinkedIn opens the LinkedIn app's post screen with the link. A web page can't
  * open the LinkedIn app's composer directly: Chrome blocks that kind of link
  * and falls back to linkedin.com, which is why the website kept opening.
  *
- * Desktops, and phones without a share menu, get LinkedIn's share box on the
- * web. The text is copied too, in case LinkedIn leaves the box empty.
+ * Desktops, and phones without a share menu, get LinkedIn's URL share box on
+ * the web so it requests the preview. The excerpt is copied for pasting.
  *
  * Resolves true when the share went ahead, false when it was cancelled.
  */
-export async function openLinkedInComposer(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard?.writeText(text);
-  } catch {
-    /* clipboard is a fallback only */
-  }
+export async function openLinkedInComposer(text: string, url: string): Promise<boolean> {
   const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isPhone && typeof navigator.share === "function") {
     try {
-      // Text only: with a separate url, some apps drop the text and keep the link.
-      await navigator.share({ text });
+      // A separate URL lets the target app recognize and scrape the link card.
+      await navigator.share({ text: text.replace(url, "").trim(), url });
       return true;
     } catch (error) {
       // Dismissed: nothing was shared.
@@ -142,9 +137,11 @@ export async function openLinkedInComposer(text: string): Promise<boolean> {
     }
   }
   window.open(
-    `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`,
+    `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     "_blank",
     "noopener,noreferrer",
   );
+  // Keep the excerpt available to paste; LinkedIn's URL sharer cannot prefill it.
+  try { await navigator.clipboard?.writeText(text); } catch { /* Optional. */ }
   return true;
 }

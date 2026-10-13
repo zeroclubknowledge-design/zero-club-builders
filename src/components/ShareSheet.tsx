@@ -146,7 +146,8 @@ function buildTargets(canNativeShare: boolean): Target[] {
           return;
         }
         // Half the post, then "Continue reading here" and the link back.
-        await openLinkedInComposer(linkedInShareText(r.linkedin, linkedInUrl(r.url)));
+        const url = linkedInUrl(r.url);
+        await openLinkedInComposer(linkedInShareText(r.linkedin, url), url);
       },
     },
     {
@@ -210,10 +211,7 @@ export function ShareSheetHost() {
   const pick = async (target: Target) => {
     if (!request) return;
     setOpen(false);
-    // Let the sheet start closing before handing off to another app.
-    await new Promise((r) =>
-      setTimeout(r, target.key === "native" || target.key === "linkedin" ? 180 : 60),
-    );
+    // Open from the tap itself: delaying can lose browser share/popup permission.
     await target.onPick(request);
   };
 

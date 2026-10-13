@@ -4,7 +4,7 @@
  */
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "@/components/icons/glyphs";
-import { describePost, postImages } from "../parse";
+import { describeItem, itemImages } from "../parse";
 import { SECTION_LABELS } from "../types";
 import { AboutBlock, ContactButtons, SectionBody, type Skin } from "./blocks";
 import {
@@ -43,8 +43,8 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
   const v = portfolioView(data, { light: true });
   const display = { fontFamily: "'Syne', Montserrat, sans-serif" };
   const rest = v.sections.filter((s) => s.key !== "work" && s.key !== "about");
-  const withImages = v.projects.filter((p) => postImages(p.post).length > 0);
-  const textOnly = v.projects.filter((p) => postImages(p.post).length === 0);
+  const withImages = v.projects.filter((p) => itemImages(p).length > 0);
+  const textOnly = v.projects.filter((p) => itemImages(p).length === 0);
 
   return (
     <div
@@ -150,8 +150,8 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
             {withImages.length > 0 && (
               <div className="mt-8 columns-2 gap-3 @3xl:columns-3 @3xl:gap-4">
                 {withImages.map((item) => {
-                  const { title } = describePost(item.post);
-                  const img = postImages(item.post)[0];
+                  const { title } = describeItem(item);
+                  const img = itemImages(item)[0];
                   return (
                     <Link
                       key={item.id}
@@ -184,7 +184,7 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
             {textOnly.length > 0 && (
               <div className="mt-4 grid gap-3 @2xl:grid-cols-2">
                 {textOnly.map((item) => {
-                  const { title, summary } = describePost(item.post);
+                  const { title, summary } = describeItem(item);
                   return (
                     <article key={item.id} className={`p-5 ${skin.card}`}>
                       <h3

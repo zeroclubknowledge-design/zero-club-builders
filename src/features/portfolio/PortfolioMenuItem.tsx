@@ -28,7 +28,12 @@ export function canPutOnPortfolio(
   post: { author_id?: string | null; audience?: string | null; quoted_post_id?: string | null },
   currentUserId?: string | null,
 ) {
-  return Boolean(currentUserId) && post.author_id === currentUserId && post.audience !== "club" && !post.quoted_post_id;
+  return (
+    Boolean(currentUserId) &&
+    post.author_id === currentUserId &&
+    post.audience !== "club" &&
+    !post.quoted_post_id
+  );
 }
 
 export function PortfolioMenuItem({

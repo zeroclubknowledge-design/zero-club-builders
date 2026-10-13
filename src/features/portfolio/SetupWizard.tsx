@@ -249,7 +249,10 @@ export function SetupWizard({
 
       {proofs.length > 0 && (
         <>
-          <SectionTitle title="Highlights" hint="Posts worth showing off. You can also highlight any post from its menu on Zero Club." />
+          <SectionTitle
+            title="Highlights"
+            hint="Posts worth showing off. You can also highlight any post from its menu on Zero Club."
+          />
           <div className="space-y-2.5">
             {visibleProofs.map((rec) => (
               <PickRow

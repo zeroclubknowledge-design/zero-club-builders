@@ -3,7 +3,7 @@
  * sunset to sign off. For people whose projects are visual.
  */
 import { ArrowUpRight, MapPin } from "@/components/icons/glyphs";
-import { describePost, postImages } from "../parse";
+import { describeItem, itemImages } from "../parse";
 import { SECTION_LABELS } from "../types";
 import { AboutBlock, ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
@@ -162,8 +162,8 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
             <Rule>{"Featured works"}</Rule>
             <div className="mt-10 grid gap-x-8 gap-y-14 @3xl:grid-cols-12">
               {v.projects.map((item, i) => {
-                const { title, summary, ship } = describePost(item.post);
-                const img = postImages(item.post)[0];
+                const { title, summary, ship } = describeItem(item);
+                const img = itemImages(item)[0];
                 const big = i % 3 === 0;
                 return (
                   <article

@@ -22,6 +22,7 @@ test('real PostgreSQL gifts enforce recipient privacy, expiry, idempotency and a
     await db.exec(`create role authenticated;create role anon;create schema auth;
       create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
       grant usage on schema auth to authenticated;
+      create table auth.users(id uuid primary key,raw_user_meta_data jsonb);
       create table profiles(id uuid primary key,username text,full_name text,avatar_url text,account_type text default 'Learner',account_status text default 'active',tutor_enabled boolean default false,is_admin boolean default false,coins numeric default 0,zp integer default 0);
       create function is_zero_club_admin() returns boolean language sql stable security definer as $$select coalesce((select is_admin from profiles where id=auth.uid()),false)$$;
       create table notifications(id uuid default gen_random_uuid(),recipient_id uuid,actor_id uuid,type text,entity_id uuid,content text);
@@ -40,6 +41,7 @@ test('real PostgreSQL gifts enforce recipient privacy, expiry, idempotency and a
       await db.exec(creditSql.slice(start,creditSql.indexOf('$$;',start)+3));
     }
     await db.exec(read('supabase/migrations/20261012210000_admin_user_gifts.sql'));
+    await db.exec(read('supabase/migrations/20261013110000_gift_recipient_preview.sql'));
     const user=async id => db.exec(`reset role;select set_config('test.uid','${id}',false);set role authenticated;`);
     const value=async (sql,args=[]) => (await db.query(sql,args)).rows[0].value;
     const send=async(kind,amount,username='alice',message='Well done!',deadline=new Date(Date.now()+86400000).toISOString(),request=crypto.randomUUID()) => {
@@ -61,6 +63,23 @@ test('real PostgreSQL gifts enforce recipient privacy, expiry, idempotency and a
       assert.equal((await value("select admin_gift_recipient(' @ALICE ') as value")).username,'alice');
     });
     const first=await send('support',500);
+    await t.test('recipient photo works with @, case and sign-in metadata without exposing auth data',async()=>{
+      await db.exec('reset role');
+      await db.query('insert into auth.users values($1,$2)',[alice,{avatar_url:'https://example.com/provider.jpg',email:'private@example.com'}]);
+      await user(admin);
+      for(const username of ['alice','@alice',' @ALICE ']) {
+        const recipient=await value('select admin_gift_recipient($1) as value',[username]);
+        assert.equal(recipient.avatar_url,'https://example.com/provider.jpg');
+        assert.equal(recipient.email,undefined);
+      }
+      await db.exec('reset role');
+      await db.query('update profiles set avatar_url=$1 where id=$2',['https://example.com/current.jpg',alice]);
+      await user(admin);
+      assert.equal((await value("select admin_gift_recipient('alice') as value")).avatar_url,'https://example.com/current.jpg');
+      assert.equal(await value("select admin_gift_recipient('missing') as value"),null);
+      await user(bob);
+      await assert.rejects(value("select admin_gift_recipient('alice') as value"),/Only Zero Club admins/);
+    });
     await t.test('recipient-only gifts cannot be claimed or modified by other users',async()=>{
       await user(bob);
       assert.equal((await db.query('select * from admin_user_gifts')).rows.length,0);

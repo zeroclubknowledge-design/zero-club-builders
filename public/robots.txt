@@ -11,6 +11,8 @@ Allow: /favicon.ico
 
 # Signed-in areas hold nothing useful to a crawler and should not be indexed.
 Disallow: /app/
+# Shared posts have a public, signed-out view and social preview metadata.
+Allow: /app/post/
 # Link-preview images live under /api, and some chat apps check robots.txt
 # before fetching a preview image.
 Allow: /api/og/

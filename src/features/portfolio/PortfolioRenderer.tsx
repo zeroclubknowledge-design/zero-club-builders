@@ -12,7 +12,7 @@ import {
 } from "@/components/icons/glyphs";
 import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { experienceSpan, monthYear } from "@/features/profile/credentials";
-import { clip, describePost, postImages } from "./parse";
+import { clip, describeItem, itemImages } from "./parse";
 import {
   ACCENT_HEX,
   SECTION_LABELS,
@@ -446,8 +446,8 @@ function ProjectCard({
   onOpen?: (item: PortfolioItem) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const { title, summary, ship } = describePost(item.post);
-  const images = postImages(item.post);
+  const { title, summary, ship } = describeItem(item);
+  const images = itemImages(item);
   const limit = wide ? 420 : 220;
   const long = summary.length > limit;
   const versions = Number(item.post.versions || 0);
@@ -586,8 +586,8 @@ function ProofCard({
   preview?: boolean;
   onOpen?: (item: PortfolioItem) => void;
 }) {
-  const { summary } = describePost(item.post);
-  const image = postImages(item.post)[0];
+  const { summary } = describeItem(item);
+  const image = itemImages(item)[0];
   return (
     <article className="flex gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
       {image && (

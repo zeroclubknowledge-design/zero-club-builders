@@ -23,6 +23,8 @@ import {
   X,
 } from "@/components/icons/glyphs";
 import { toast } from "sonner";
+import { SortableList } from "@/components/SortableList";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import {
@@ -214,6 +216,8 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
   const [startsAt, setStartsAt] = useState(toLocalInput(existing?.bootcamp?.starts_at));
   const [deadline, setDeadline] = useState(toLocalInput(existing?.form?.registration_deadline));
   const [seatLimit, setSeatLimit] = useState(String(existing?.form?.seat_limit ?? ""));
+  // Off = the form only collects details: no price, dates, deadline or seats.
+  const [pricingEnabled, setPricingEnabled] = useState<boolean>(existing?.form?.pricing_enabled !== false);
 
   const bootcamps = useQuery({
     queryKey: ["my-bootcamps-for-zero-form"],
@@ -254,11 +258,12 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
           template_id: templateId,
           title,
           description,
-          regular_price: Number(regular) || 0,
-          early_bird_price: Number(early) || 0,
-          starts_at: startsAt ? new Date(startsAt).toISOString() : null,
-          registration_deadline: deadline ? new Date(deadline).toISOString() : null,
-          seat_limit: seatLimit || null,
+          regular_price: pricingEnabled ? Number(regular) || 0 : 0,
+          early_bird_price: pricingEnabled ? Number(early) || 0 : 0,
+          starts_at: pricingEnabled && startsAt ? new Date(startsAt).toISOString() : null,
+          registration_deadline: pricingEnabled && deadline ? new Date(deadline).toISOString() : null,
+          seat_limit: pricingEnabled ? seatLimit || null : null,
+          pricing_enabled: pricingEnabled,
           status,
           fields: fields.map((f, index) => ({ ...f, position: index })),
         },
@@ -326,16 +331,24 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
           </Section>
 
           <Section title="Questions" detail="Keep it short — long forms lose registrations.">
-            <div className="space-y-2">
-              {fields.map((field, index) => {
+            <SortableList
+              items={fields}
+              getKey={(field) => field.field_key}
+              onChange={setFields}
+              className="space-y-2"
+              renderItem={(field, tools) => {
                 const updateField = (patch: Partial<typeof field>) =>
-                  setFields((current) => current.map((f, i) => (i === index ? { ...f, ...patch } : f)));
+                  setFields((current) => current.map((f) => (f.field_key === field.field_key ? { ...f, ...patch } : f)));
 
                 const options: string[] = Array.isArray(field.options) ? field.options : [];
 
                 return (
-                  <div key={field.field_key} className="rounded-lg border border-border bg-background p-2.5">
+                  <div className="rounded-lg border border-border bg-background p-2.5">
                     <div className="flex items-center gap-2">
+                      <div className="-ml-1.5 flex shrink-0 items-center">
+                        {tools.handle}
+                        <span className="w-4 text-center text-[10.5px] font-semibold tabular-nums text-muted-foreground">{tools.index + 1}</span>
+                      </div>
                       <input
                         value={field.label}
                         onChange={(e) => updateField({ label: e.target.value })}
@@ -351,7 +364,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                         Required
                       </label>
                       <button
-                        onClick={() => setFields((current) => current.filter((_, i) => i !== index))}
+                        onClick={() => setFields((current) => current.filter((f) => f.field_key !== field.field_key))}
                         className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -424,8 +437,9 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                     )}
                   </div>
                 );
-              })}
-            </div>
+              }}
+            />
+            <p className="mt-2 text-[10.5px] text-muted-foreground">Drag the ⋮⋮ handle to change the order questions appear in.</p>
             <button
               onClick={() => setFields((current) => [...current, {
                 field_key: `question_${current.length + 1}_${Date.now().toString(36)}`,
@@ -446,8 +460,20 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
             </div>
           </Section>
 
-          <Section title="Pricing and dates">
-            <div className="space-y-3">
+          <section className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-[13px] font-semibold">Pricing and dates</h3>
+                <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+                  {pricingEnabled
+                    ? "Sell seats with a price, early-bird offer and deadline."
+                    : "Off — this form only collects details. No payment, dates or seat limit."}
+                </p>
+              </div>
+              <Switch checked={pricingEnabled} onCheckedChange={setPricingEnabled} aria-label="Pricing and dates" />
+            </div>
+            {pricingEnabled && (
+            <div className="mt-4 space-y-3">
               <div><p className={label}>Regular price</p><input type="number" value={regular} onChange={(e) => setRegular(e.target.value)} placeholder="20000" className={`${input} mt-1.5`} /></div>
               <div>
                 <p className={label}>Early-bird price</p>
@@ -465,19 +491,20 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
               </div>
               <div><p className={label}>Seat limit (optional)</p><input type="number" value={seatLimit} onChange={(e) => setSeatLimit(e.target.value)} placeholder="100" className={`${input} mt-1.5`} /></div>
             </div>
-          </Section>
+            )}
+          </section>
 
           <div className="space-y-2">
             <button
               onClick={() => save.mutate("published")}
-              disabled={save.isPending || (!existing && !bootcampId) || !startsAt}
+              disabled={save.isPending || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground disabled:opacity-50"
             >
               {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Publish Zero Form
             </button>
             <button
               onClick={() => save.mutate("draft")}
-              disabled={save.isPending || (!existing && !bootcampId) || !startsAt}
+              disabled={save.isPending || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
               className="h-11 w-full rounded-lg border border-border text-[12.5px] font-semibold disabled:opacity-50"
             >
               Save as draft
@@ -590,6 +617,11 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
               />
             </div>
 
+            {form?.pricing_enabled === false ? (
+              <div className="mt-6">
+                <InfoCard title="Data collection" value="No payment" sub="Pricing and dates are switched off — this form only collects details." />
+              </div>
+            ) : (
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <InfoCard title="Early-bird price" value={money(form?.early_bird_price)} sub={`Regular ${money(form?.regular_price)}`} />
               <InfoCard
@@ -598,6 +630,7 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
                 sub={bootcamp?.starts_at ? `Bootcamp starts ${new Date(bootcamp.starts_at).toLocaleDateString(undefined, { month: "long", day: "numeric" })}` : ""}
               />
             </div>
+            )}
           </div>
         )}
 

@@ -42,7 +42,8 @@ import {
   updateItem,
   updatePortfolio,
 } from "./api";
-import { describePost, postImages } from "./parse";
+import { describeItem, describePost, postImages } from "./parse";
+import { SortableList } from "@/components/SortableList";
 import { PortfolioRenderer } from "./PortfolioRenderer";
 import { TEMPLATE_CATALOG } from "./templates/catalog";
 import { useUser } from "@/hooks/useUser";
@@ -156,7 +157,9 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
 
   const patchItemText = (
     id: string,
-    patch: Partial<Pick<PortfolioItem, "problem" | "outcome">>,
+    patch: Partial<
+      Pick<PortfolioItem, "problem" | "outcome" | "display_title" | "display_summary" | "cover_url">
+    >,
   ) => {
     setDraft((d) => ({
       ...d,
@@ -188,16 +191,6 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
     }));
     setDraft((d) => ({ ...d, items: all }));
     void runNow(() => saveOrder(all.map((item) => item.id)), "Could not reorder");
-  };
-
-  const move = (item: PortfolioItem, delta: -1 | 1) => {
-    const list = item.kind === "project" ? [...projects] : [...proofs];
-    const from = list.findIndex((entry) => entry.id === item.id);
-    const to = from + delta;
-    if (to < 0 || to >= list.length) return;
-    [list[from], list[to]] = [list[to], list[from]];
-    if (item.kind === "project") applyOrder(list, proofs);
-    else applyOrder(projects, list);
   };
 
   const toggleFeatured = (item: PortfolioItem) => {
@@ -491,20 +484,21 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                 or add one you've shipped.
               </EmptyLine>
             ) : (
-              <ul className="space-y-2">
-                {projects.map((item, index) => (
+              <SortableList
+                items={projects}
+                getKey={(item) => item.id}
+                onChange={(next) => applyOrder(next, proofs)}
+                className="space-y-2"
+                renderItem={(item, tools) => (
                   <ItemRow
-                    key={item.id}
                     item={item}
-                    first={index === 0}
-                    last={index === projects.length - 1}
-                    onMove={(d) => move(item, d)}
+                    handle={tools.handle}
                     onFeature={() => toggleFeatured(item)}
                     onRemove={() => remove(item)}
                     onText={(patch) => patchItemText(item.id, patch)}
                   />
-                ))}
-              </ul>
+                )}
+              />
             )}
           </Card>
 
@@ -522,18 +516,20 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                 choose Highlight.
               </EmptyLine>
             ) : (
-              <ul className="space-y-2">
-                {proofs.map((item, index) => (
+              <SortableList
+                items={proofs}
+                getKey={(item) => item.id}
+                onChange={(next) => applyOrder(projects, next)}
+                className="space-y-2"
+                renderItem={(item, tools) => (
                   <ItemRow
-                    key={item.id}
                     item={item}
-                    first={index === 0}
-                    last={index === proofs.length - 1}
-                    onMove={(d) => move(item, d)}
+                    handle={tools.handle}
                     onRemove={() => remove(item)}
+                    onText={(patch) => patchItemText(item.id, patch)}
                   />
-                ))}
-              </ul>
+                )}
+              />
             )}
           </Card>
 
@@ -562,48 +558,43 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
 
           {/* Sections */}
           <Card title="Sections">
-            <ul className="divide-y divide-border">
-              {draft.portfolio.sections.map((section, index, all) => (
-                <li key={section.key} className="flex items-center gap-2 py-2">
+            <p className="mb-2 text-[12.5px] text-muted-foreground">
+              Drag <span className="font-semibold">⋮⋮</span> to set the order your portfolio shows
+              them in.
+            </p>
+            <SortableList
+              items={draft.portfolio.sections}
+              getKey={(section) => section.key}
+              onChange={(next) => patchPortfolio({ sections: next })}
+              className="divide-y divide-border"
+              renderItem={(section, tools) => (
+                <div className="flex items-center gap-2 bg-card py-1.5">
+                  {tools.handle}
                   <span
                     className={`flex-1 text-[14px] ${section.visible ? "" : "text-muted-foreground line-through"}`}
                   >
                     {SECTION_LABELS[section.key]}
                   </span>
-                  <IconBtn
-                    label="Move up"
-                    disabled={index === 0}
-                    onClick={() => {
-                      const next = [...all];
-                      [next[index - 1], next[index]] = [next[index], next[index - 1]];
-                      patchPortfolio({ sections: next });
-                    }}
-                  >
+                  <IconBtn label="Move up" disabled={tools.first} onClick={tools.moveUp}>
                     <ChevronUp className="h-4 w-4" />
                   </IconBtn>
-                  <IconBtn
-                    label="Move down"
-                    disabled={index === all.length - 1}
-                    onClick={() => {
-                      const next = [...all];
-                      [next[index + 1], next[index]] = [next[index], next[index + 1]];
-                      patchPortfolio({ sections: next });
-                    }}
-                  >
+                  <IconBtn label="Move down" disabled={tools.last} onClick={tools.moveDown}>
                     <ChevronDown className="h-4 w-4" />
                   </IconBtn>
                   <Switch
                     checked={section.visible}
                     onCheckedChange={(visible) =>
                       patchPortfolio({
-                        sections: all.map((s) => (s.key === section.key ? { ...s, visible } : s)),
+                        sections: draft.portfolio.sections.map((s) =>
+                          s.key === section.key ? { ...s, visible } : s,
+                        ),
                       })
                     }
                     aria-label={`Show ${SECTION_LABELS[section.key]}`}
                   />
-                </li>
-              ))}
-            </ul>
+                </div>
+              )}
+            />
           </Card>
 
           {/* Look */}
@@ -1115,48 +1106,52 @@ function ToggleRow({
 
 function ItemRow({
   item,
-  first,
-  last,
-  onMove,
+  handle,
   onFeature,
   onRemove,
   onText,
 }: {
   item: PortfolioItem;
-  first: boolean;
-  last: boolean;
-  onMove: (delta: -1 | 1) => void;
+  handle: ReactNode;
   onFeature?: () => void;
   onRemove: () => void;
-  onText?: (patch: Partial<Pick<PortfolioItem, "problem" | "outcome">>) => void;
+  onText?: (
+    patch: Partial<
+      Pick<PortfolioItem, "problem" | "outcome" | "display_title" | "display_summary" | "cover_url">
+    >,
+  ) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const { title, summary } = describePost(item.post);
-  const image = postImages(item.post)[0];
-  const story = Boolean(item.problem && item.outcome);
+  const original = describePost(item.post);
+  const { title, summary } = describeItem(item);
+  const images = postImages(item.post);
+  const cover = item.cover_url && images.includes(item.cover_url) ? item.cover_url : images[0];
+  const project = item.kind === "project";
+  const edited = Boolean(item.display_title || item.display_summary || item.cover_url);
   return (
-    <li className="rounded-xl border border-border bg-background/60">
-      <div className="flex items-center gap-2.5 p-2.5">
-        {image ? (
+    <div className="rounded-xl border border-border bg-card">
+      <div className="flex items-center gap-1.5 p-2 pl-1">
+        {handle}
+        {cover ? (
           <img
-            src={image}
+            src={cover}
             alt=""
             className="h-11 w-11 shrink-0 rounded-lg object-cover"
             loading="lazy"
           />
         ) : (
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-foreground/[0.06] text-muted-foreground">
-            {item.kind === "project" ? <Rocket className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+            {project ? <Rocket className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
           </span>
         )}
         <button
           type="button"
           onClick={() => onText && setOpen((v) => !v)}
-          className="min-w-0 flex-1 text-left"
+          className="ml-1 min-w-0 flex-1 text-left"
         >
           <span className="flex items-center gap-1">
             <span className="truncate text-[14px] font-semibold">
-              {item.kind === "project" ? title : summary || title}
+              {project ? title : summary || title}
             </span>
             {item.post.is_verified_build && (
               <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
@@ -1164,7 +1159,7 @@ function ItemRow({
           </span>
           {onText && (
             <span className="text-[12px] text-muted-foreground">
-              {story ? "Story added" : "Add problem & outcome"} · {open ? "close" : "edit"}
+              {open ? "Close" : edited ? "Edited · tap to change" : "Tap to edit this card"}
             </span>
           )}
         </button>
@@ -1177,56 +1172,97 @@ function ItemRow({
             <Star className={`h-4 w-4 ${item.featured ? "fill-current" : ""}`} />
           </IconBtn>
         )}
-        <div className="flex flex-col">
-          <button
-            type="button"
-            aria-label="Move up"
-            disabled={first}
-            onClick={() => onMove(-1)}
-            className="grid h-5 w-7 place-items-center text-muted-foreground disabled:opacity-25"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Move down"
-            disabled={last}
-            onClick={() => onMove(1)}
-            className="grid h-5 w-7 place-items-center text-muted-foreground disabled:opacity-25"
-          >
-            <ChevronDown className="h-4 w-4" />
-          </button>
-        </div>
         <IconBtn label="Remove from portfolio" onClick={onRemove}>
           <Trash2 className="h-4 w-4" />
         </IconBtn>
       </div>
       {open && onText && (
         <div className="space-y-2 border-t border-border p-3">
+          <p className="text-[12px] leading-snug text-muted-foreground">
+            Changes here only affect how this card looks on your portfolio. Your post stays as it
+            is.
+          </p>
+          {project && (
+            <>
+              <Label text="Title" count={`${(item.display_title || "").length}/120`} />
+              <input
+                value={item.display_title || ""}
+                maxLength={120}
+                onChange={(e) => onText({ display_title: e.target.value || null })}
+                placeholder={original.title}
+                className={field}
+              />
+            </>
+          )}
           <Label
-            text="Problem — what needed solving?"
-            count={`${(item.problem || "").length}/1500`}
+            text={project ? "Short description" : "Caption"}
+            count={`${(item.display_summary || "").length}/600`}
           />
           <textarea
-            value={item.problem || ""}
-            maxLength={1500}
+            value={item.display_summary || ""}
+            maxLength={600}
             rows={3}
-            onChange={(e) => onText({ problem: e.target.value || null })}
-            placeholder="e.g. Small shops lost orders because customers' WhatsApp messages went unanswered"
+            onChange={(e) => onText({ display_summary: e.target.value || null })}
+            placeholder={original.summary.slice(0, 160) || "Describe this in a sentence or two"}
             className={`${field} h-auto resize-none py-2.5`}
           />
-          <Label text="Outcome — what changed?" count={`${(item.outcome || "").length}/1500`} />
-          <textarea
-            value={item.outcome || ""}
-            maxLength={1500}
-            rows={3}
-            onChange={(e) => onText({ outcome: e.target.value || null })}
-            placeholder="Only what really happened: users, results, what you learned"
-            className={`${field} h-auto resize-none py-2.5`}
-          />
+          {images.length > 1 && (
+            <>
+              <Label text="Cover image" />
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {images.map((url) => (
+                  <button
+                    key={url}
+                    type="button"
+                    onClick={() => onText({ cover_url: url === images[0] ? null : url })}
+                    className={`shrink-0 overflow-hidden rounded-lg ring-offset-2 ring-offset-card ${url === cover ? "ring-2 ring-foreground" : "opacity-70 hover:opacity-100"}`}
+                    aria-label="Use as cover"
+                  >
+                    <img src={url} alt="" className="h-14 w-20 object-cover" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {project && (
+            <>
+              <Label
+                text="Problem — what needed solving?"
+                count={`${(item.problem || "").length}/1500`}
+              />
+              <textarea
+                value={item.problem || ""}
+                maxLength={1500}
+                rows={3}
+                onChange={(e) => onText({ problem: e.target.value || null })}
+                placeholder="e.g. Small shops lost orders because customers' WhatsApp messages went unanswered"
+                className={`${field} h-auto resize-none py-2.5`}
+              />
+              <Label text="Outcome — what changed?" count={`${(item.outcome || "").length}/1500`} />
+              <textarea
+                value={item.outcome || ""}
+                maxLength={1500}
+                rows={3}
+                onChange={(e) => onText({ outcome: e.target.value || null })}
+                placeholder="Only what really happened: users, results, what you learned"
+                className={`${field} h-auto resize-none py-2.5`}
+              />
+            </>
+          )}
+          {edited && (
+            <button
+              type="button"
+              onClick={() =>
+                onText({ display_title: null, display_summary: null, cover_url: null })
+              }
+              className="text-[12.5px] font-semibold text-muted-foreground hover:text-foreground"
+            >
+              Reset to the original post
+            </button>
+          )}
         </div>
       )}
-    </li>
+    </div>
   );
 }
 
