@@ -160,7 +160,7 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">{ownerLabel}</p>
           <h2 className="mt-1 font-display text-[22px] font-semibold tracking-tight">Zero Forms</h2>
           <p className="mt-1 text-[12px] text-muted-foreground">
-            Collect registrations and early-bird payments before your bootcamp starts.
+            Register learners for a bootcamp, or run a waitlist for anything you're launching.
           </p>
         </div>
         <button onClick={() => setCreating(true)} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-[13px] font-semibold text-primary-foreground">
@@ -184,9 +184,9 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
             <article key={form.id} className="rounded-lg border border-border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-[14px] font-semibold">{form.bootcamp_title}</p>
+                  <p className="truncate text-[14px] font-semibold">{form.form_kind === "waitlist" ? form.title : form.bootcamp_title || form.title}</p>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {form.category || "Bootcamp"}
+                    {form.form_kind === "waitlist" ? "Waitlist" : form.bootcamp_id ? form.category || "Bootcamp" : "Bootcamp form · no bootcamp chosen yet"}
                     {form.starts_at && ` · starts ${new Date(form.starts_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`}
                   </p>
                 </div>
@@ -194,10 +194,19 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-4">
-                <Stat label="Registrations" value={form.total_registrations} />
-                <Stat label="Paid" value={form.confirmed_registrations} />
-                <Stat label="Interested" value={form.interested_registrations ?? 0} />
-                <Stat label="Revenue" value={money(form.revenue)} isText />
+                {form.form_kind === "waitlist" || form.pricing_enabled === false ? (
+                  <>
+                    <Stat label="Sign-ups" value={form.total_registrations} />
+                    <Stat label="Views" value={form.views ?? 0} />
+                  </>
+                ) : (
+                  <>
+                    <Stat label="Registrations" value={form.total_registrations} />
+                    <Stat label="Paid" value={form.confirmed_registrations} />
+                    <Stat label="Interested" value={form.interested_registrations ?? 0} />
+                    <Stat label="Revenue" value={money(form.revenue)} isText />
+                  </>
+                )}
               </div>
 
               <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
@@ -218,6 +227,11 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
 
 function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void; onSaved: (id: string) => void; existing?: any }) {
   const [bootcampId, setBootcampId] = useState<string>(existing?.form?.bootcamp_id || "");
+  /* Bootcamp: registers learners for one bootcamp (needs it to publish).
+     Waitlist: collects sign-ups, no bootcamp needed, never takes payment. */
+  const [formKind, setFormKind] = useState<"bootcamp" | "waitlist">(existing?.form?.form_kind === "waitlist" ? "waitlist" : "bootcamp");
+  const isWaitlist = formKind === "waitlist";
+  const lockedBootcamp = Boolean(existing?.form?.bootcamp_id);
   const [templateId, setTemplateId] = useState(existing?.form?.template_id || "standard");
   const [fields, setFields] = useState<ZeroFormField[]>(existing?.fields || getTemplate("standard").fields);
   const [title, setTitle] = useState(existing?.form?.title || "");
@@ -260,12 +274,12 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
       if (error) throw error;
       return data || [];
     },
-    enabled: !existing,
+    enabled: !lockedBootcamp,
   });
 
   // Selecting a bootcamp seeds the pricing and title from it.
   useEffect(() => {
-    if (existing || !bootcampId) return;
+    if (lockedBootcamp || !bootcampId) return;
     const picked = (bootcamps.data || []).find((b: any) => b.id === bootcampId);
     if (!picked) return;
     setTitle((current: string) => current || `${picked.title} — early registration`);
@@ -296,11 +310,14 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
     setFields(getTemplate(id).fields);
   };
 
+  const [createdId, setCreatedId] = useState<string | null>(null);
   const save = useMutation({
     mutationFn: async (status: "draft" | "published") => {
       const { data, error } = await supabase.rpc("save_zero_form", {
         payload: {
-          bootcamp_id: bootcampId,
+          form_id: existing?.form?.id || createdId || null,
+          form_kind: formKind,
+          bootcamp_id: bootcampId || null,
           template_id: templateId,
           title,
           description,
@@ -310,7 +327,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
           starts_at: pricingEnabled && startsAt ? new Date(startsAt).toISOString() : null,
           registration_deadline: pricingEnabled && deadline ? new Date(deadline).toISOString() : null,
           seat_limit: pricingEnabled ? seatLimit || null : null,
-          pricing_enabled: pricingEnabled,
+          pricing_enabled: pricingEnabled && !isWaitlist,
           status,
           fields: fields.map((f, index) => ({ ...f, position: index })),
         },
@@ -319,6 +336,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
       return data as any;
     },
     onSuccess: (data, status) => {
+      if (data?.form?.id) setCreatedId(data.form.id);
       toast.success(status === "published" ? "Zero Form published" : "Draft saved");
       onSaved(data?.form?.id);
     },
@@ -328,19 +346,26 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
   /* Why saving would fail, in plain words — checked on click instead of
      silently greying the button out, so it is never a mystery. */
   const [showBlockers, setShowBlockers] = useState(false);
-  const blockers: string[] = [];
-  if (!existing && !bootcampId) blockers.push("Choose the bootcamp this form is for (top of the page).");
-  if (!fields.length) blockers.push("Add at least one question.");
-  if (fields.some((f) => !String(f.label || "").trim())) blockers.push("Give every question a title.");
-  if (pricingEnabled) {
-    if (!startsAt) blockers.push("Set when the bootcamp starts — or switch Pricing and dates off to just collect details.");
-    if (Number(early) > Number(regular)) blockers.push("The early-bird price can't be higher than the regular price.");
-    if (deadline && startsAt && new Date(deadline) > new Date(startsAt)) blockers.push("The registration deadline must be before the bootcamp starts.");
-  }
+  const blockersFor = (status: "draft" | "published") => {
+    const list: string[] = [];
+    const publishing = status === "published";
+    if (publishing && !isWaitlist && !bootcampId)
+      list.push("Choose the bootcamp this form is for — or make it a waitlist, which doesn't need one.");
+    if (publishing && !fields.length) list.push("Add at least one question.");
+    if (publishing && !title.trim() && isWaitlist) list.push("Give your waitlist a title.");
+    if (pricingEnabled && !isWaitlist) {
+      if (publishing && !startsAt) list.push("Set when the bootcamp starts — or switch Pricing and dates off to just collect details.");
+      if (Number(early) > Number(regular)) list.push("The early-bird price can't be higher than the regular price.");
+      if (deadline && startsAt && new Date(deadline) > new Date(startsAt)) list.push("The registration deadline must be before the bootcamp starts.");
+    }
+    return list;
+  };
+  const blockers = blockersFor("published");
   const attemptSave = (status: "draft" | "published") => {
-    if (blockers.length) {
+    const problems = blockersFor(status);
+    if (problems.length) {
       setShowBlockers(true);
-      toast.error(blockers[0]);
+      toast.error(problems[0]);
       return;
     }
     setShowBlockers(false);
@@ -358,21 +383,46 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
       </button>
 
       <h2 className="font-display text-[22px] font-semibold tracking-tight">
-        {existing ? "Edit Zero Form" : "New Zero Form"}
+        {existing ? (isWaitlist ? "Edit waitlist" : "Edit Zero Form") : isWaitlist ? "New waitlist" : "New Zero Form"}
       </h2>
       <p className="mt-1 text-[12px] text-muted-foreground">
-        Every Zero Form belongs to one bootcamp and inherits its details.
+        {isWaitlist
+          ? "A waitlist collects sign-ups. No bootcamp or payment needed."
+          : "A bootcamp form registers learners for one of your bootcamps. Drafts can be saved before you pick it."}
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          {!existing && (
-            <Section title="Bootcamp" detail="Which bootcamp is this form collecting learners for?">
+          <Section title="What is this form for?">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {([
+                ["bootcamp", "Bootcamp registration", "Register learners for one of your bootcamps, with optional pricing and dates. Needs a bootcamp to publish."],
+                ["waitlist", "Waitlist", "Collect sign-ups for anything — a launch, a cohort, an event. No bootcamp needed, no payment."],
+              ] as const).map(([value, name, hint]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFormKind(value)}
+                  aria-pressed={formKind === value}
+                  className={`rounded-lg border p-3.5 text-left transition ${formKind === value ? "border-primary bg-primary/[0.05] ring-2 ring-primary/15" : "border-border hover:bg-muted/60"}`}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-[12.5px] font-semibold">{name}</span>
+                    {formKind === value && <Check className="h-4 w-4 text-primary" />}
+                  </span>
+                  <span className="mt-1 block text-[10.5px] leading-4 text-muted-foreground">{hint}</span>
+                </button>
+              ))}
+            </div>
+          </Section>
+
+          {!isWaitlist && !lockedBootcamp && (
+            <Section title="Bootcamp" detail="Which bootcamp is this form collecting learners for? You can save a draft without one.">
               {bootcamps.isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               ) : (bootcamps.data || []).length === 0 ? (
                 <p className="text-[12px] text-muted-foreground">
-                  You have no bootcamps yet. Create one first, then come back to build its Zero Form.
+                  You have no bootcamps yet. Create one to publish this form — or save it as a draft, or make it a waitlist instead.
                 </p>
               ) : (
                 <select value={bootcampId} onChange={(e) => setBootcampId(e.target.value)} className={input}>
@@ -578,6 +628,14 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
             </div>
           </Section>
 
+          {isWaitlist ? (
+          <section className="rounded-lg border border-border bg-card p-4">
+            <h3 className="text-[13px] font-semibold">Pricing and dates</h3>
+            <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+              Waitlists only collect sign-ups — nobody is charged and there are no dates or seat limits.
+            </p>
+          </section>
+          ) : (
           <section className="rounded-lg border border-border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -611,6 +669,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
             </div>
             )}
           </section>
+          )}
 
           <div className="space-y-2">
             <button
@@ -702,7 +761,7 @@ function ZeroFormDetail({ formId, onBack }: { formId: string; onBack: () => void
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="font-display text-[22px] font-semibold tracking-tight">{bootcamp?.title}</h2>
+          <h2 className="font-display text-[22px] font-semibold tracking-tight">{form?.form_kind === "waitlist" ? form?.title : bootcamp?.title || form?.title}</h2>
           <p className="mt-1 text-[12px] text-muted-foreground">
             {form?.title}
             {bootcamp?.starts_at && ` · starts ${new Date(bootcamp.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`}

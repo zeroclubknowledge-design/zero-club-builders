@@ -214,9 +214,9 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
       return {
         kicker: "Zero Form",
         title,
-        subtitle: plain(data.bootcamp?.description || data.form?.description) || "Register on Zero Club.",
-        chips: ["Bootcamp", "Register now"],
-        cta: "Register now",
+        subtitle: plain(data.form?.description || data.bootcamp?.description) || "Sign up on Zero Club.",
+        chips: data.form?.form_kind === "waitlist" ? ["Waitlist", "Join now"] : ["Bootcamp", "Register now"],
+        cta: data.form?.form_kind === "waitlist" ? "Join the waitlist" : "Register now",
         image: cover,
         // The form's own cover shows large, exactly like a post's photo.
         variant: cover ? "photo" : "default",

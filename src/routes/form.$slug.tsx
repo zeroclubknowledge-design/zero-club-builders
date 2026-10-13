@@ -367,7 +367,8 @@ function ZeroFormPublicPage() {
   const curriculum = (data?.curriculum || []) as any[];
 
   // Pricing switched off: the form only collects details.
-  const dataOnly = form?.pricing_enabled === false;
+  const isWaitlist = form?.form_kind === "waitlist" || (!bootcamp?.id && !!form);
+  const dataOnly = form?.pricing_enabled === false || isWaitlist;
   const price = dataOnly ? 0 : Number(form?.early_bird_price || 0);
   const isPaid = price > 0;
   const saving = earlyBirdSaving(form?.regular_price, form?.early_bird_price);
@@ -642,10 +643,10 @@ function ZeroFormPublicPage() {
         ) : null}
 
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-          {bootcamp?.category || "Bootcamp"} · Early registration
+          {isWaitlist ? "Waitlist" : `${bootcamp?.category || "Bootcamp"} · ${dataOnly ? "Sign up" : "Early registration"}`}
         </p>
         <h1 className="mt-3 font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.02em] sm:text-[36px]">
-          {bootcamp?.title}
+          {isWaitlist ? form?.title : bootcamp?.title || form?.title}
         </h1>
 
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
@@ -696,7 +697,10 @@ function ZeroFormPublicPage() {
 
         {/* ── Three sections ──────────────────────────────────────────────── */}
         <div className="mt-6 flex gap-1 border-b border-border">
-          {([["details", "Details"], ["content", "Course content"], ["register", "Register"]] as const).map(([key, label]) => (
+          {(isWaitlist
+            ? ([["details", "Details"], ["register", "Join the waitlist"]] as const)
+            : ([["details", "Details"], ["content", "Course content"], ["register", "Register"]] as const)
+          ).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -713,10 +717,14 @@ function ZeroFormPublicPage() {
             <section>
               {/* whitespace-pre-line keeps the paragraphs and line breaks the
                   creator typed when they built the bootcamp. */}
-              {bootcamp?.description
-                ? <RichText content={bootcamp.description} className="text-[15px] leading-[1.85] text-foreground/90" />
-                : <Empty text="The organiser has not added a description yet." />}
-              {showFormNote && (
+              {isWaitlist
+                ? form?.description
+                  ? <RichText content={form.description} className="text-[15px] leading-[1.85] text-foreground/90" />
+                  : <Empty text="Join the waitlist to hear first when it opens." />
+                : bootcamp?.description
+                  ? <RichText content={bootcamp.description} className="text-[15px] leading-[1.85] text-foreground/90" />
+                  : <Empty text="The organiser has not added a description yet." />}
+              {!isWaitlist && showFormNote && (
                 <div className="mt-6 border-t border-border pt-6">
                   <RichText content={form.description} className="text-[14px] leading-[1.85] text-muted-foreground" />
                 </div>

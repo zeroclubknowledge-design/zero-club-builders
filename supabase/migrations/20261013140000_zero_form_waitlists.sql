@@ -1,0 +1,13 @@
+-- ALREADY APPLIED to tiyifgfsuzhcvdvntjmp via MCP on 2026-10-13. Do not re-run.
+-- Zero Form kinds: 'bootcamp' and 'waitlist'.
+-- * zero_forms.bootcamp_id and zero_form_registrations.bootcamp_id are now nullable
+-- * zero_forms.form_kind text not null default 'bootcamp' check in ('bootcamp','waitlist')
+-- * save_zero_form rewritten: payload.form_id edits a form directly; bootcamp optional for drafts;
+--   publishing a 'bootcamp' form requires a bootcamp; 'waitlist' never priced, no bootcamp needed;
+--   start date only required when publishing a priced form; one form per bootcamp enforced with a clear error
+-- * submit_zero_form_v2: names notifications after the form when there is no bootcamp
+-- * get_my_zero_forms / get_my_zero_form_registrations: LEFT JOIN bootcamps; form_kind + pricing_enabled exposed
+-- * get_zero_form_public: form.form_kind exposed
+-- Tested (rolled back): waitlist published without bootcamp (pricing forced off), bootcamp draft without bootcamp,
+-- bootcamp publish without bootcamp blocked, draft converted to waitlist and published, list shows waitlists,
+-- public state open, sign-up recorded; existing paid bootcamp form edit unchanged.
