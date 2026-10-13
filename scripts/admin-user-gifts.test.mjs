@@ -42,6 +42,7 @@ test('real PostgreSQL gifts enforce recipient privacy, expiry, idempotency and a
     }
     await db.exec(read('supabase/migrations/20261012210000_admin_user_gifts.sql'));
     await db.exec(read('supabase/migrations/20261013110000_gift_recipient_preview.sql'));
+    await db.exec(read('supabase/migrations/20261013120000_gift_recipient_suggestions.sql'));
     const user=async id => db.exec(`reset role;select set_config('test.uid','${id}',false);set role authenticated;`);
     const value=async (sql,args=[]) => (await db.query(sql,args)).rows[0].value;
     const send=async(kind,amount,username='alice',message='Well done!',deadline=new Date(Date.now()+86400000).toISOString(),request=crypto.randomUUID()) => {
@@ -79,6 +80,33 @@ test('real PostgreSQL gifts enforce recipient privacy, expiry, idempotency and a
       assert.equal(await value("select admin_gift_recipient('missing') as value"),null);
       await user(bob);
       await assert.rejects(value("select admin_gift_recipient('alice') as value"),/Only Zero Club admins/);
+    });
+    await t.test('suggestions match from the first letter, normalize @, limit results and stay admin-only',async()=>{
+      await user(admin);
+      for(const prefix of ['a','@A',' @a ']) {
+        const matches=await value('select admin_search_gift_recipients($1) as value',[prefix]);
+        assert.deepEqual(matches.map(member=>member.username),['admin','alice']);
+        assert.equal(matches.find(member=>member.username==='alice').avatar_url,'https://example.com/current.jpg');
+      }
+      assert.deepEqual(await value("select admin_search_gift_recipients('') as value"),[]);
+      assert.deepEqual(await value("select admin_search_gift_recipients('@') as value"),[]);
+      assert.deepEqual(await value("select admin_search_gift_recipients('zzz') as value"),[]);
+      await db.exec('reset role');
+      for(const username of ['a_b','axb',...Array.from({length:12},(_,i)=>'aa'+String(i).padStart(2,'0'))]) {
+        await db.query('insert into profiles(id,username) values($1,$2)',[crypto.randomUUID(),username]);
+      }
+      await db.query("insert into profiles(id,username,account_status) values($1,'asuspended','suspended')",[crypto.randomUUID()]);
+      await user(admin);
+      const matches=await value("select admin_search_gift_recipients('a') as value");
+      assert.equal(matches.length,10);
+      assert.deepEqual(matches.map(member=>member.username),matches.map(member=>member.username).sort());
+      assert.deepEqual((await value("select admin_search_gift_recipients('a_') as value")).map(member=>member.username),['a_b']);
+      assert.deepEqual(await value("select admin_search_gift_recipients('a%') as value"),[]);
+      assert.deepEqual(await value("select admin_search_gift_recipients('as') as value"),[]);
+      await user(bob);
+      await assert.rejects(value("select admin_search_gift_recipients('a') as value"),/Only Zero Club admins/);
+      await db.exec('reset role;set role anon');
+      await assert.rejects(value("select admin_search_gift_recipients('a') as value"),/permission denied/);
     });
     await t.test('recipient-only gifts cannot be claimed or modified by other users',async()=>{
       await user(bob);

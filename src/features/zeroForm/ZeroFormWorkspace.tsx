@@ -21,6 +21,16 @@ import {
   Users,
   Wallet,
   X,
+  Type,
+  FileText,
+  CheckCircle2,
+  ListChecks,
+  ChevronDown,
+  ThumbsUp,
+  Globe,
+  Hash,
+  UploadCloud,
+  type LucideIcon,
 } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { SortableList } from "@/components/SortableList";
@@ -245,6 +255,24 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
     if (picked.starts_at) setStartsAt((current: string) => current || toLocalInput(picked.starts_at));
   }, [bootcampId, bootcamps.data, existing]);
 
+  /* Insert a question of a chosen type at a position, then focus it. */
+  const [insertAt, setInsertAt] = useState<number | null>(null);
+  const [focusKey, setFocusKey] = useState<string | null>(null);
+  const insertQuestion = (index: number, type: ZeroFormFieldType) => {
+    const key = `question_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+    const next: ZeroFormField = {
+      field_key: key,
+      field_type: type,
+      label: QUESTION_STARTERS[type] || "New question",
+      required: false,
+      position: index,
+      ...(isChoiceField(type) ? { options: ["Option 1", "Option 2"] } : {}),
+    } as ZeroFormField;
+    setFields((current) => [...current.slice(0, index), next, ...current.slice(index)]);
+    setInsertAt(null);
+    setFocusKey(key);
+  };
+
   const applyTemplate = (id: string) => {
     setTemplateId(id);
     setFields(getTemplate(id).fields);
@@ -343,13 +371,25 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                 const options: string[] = Array.isArray(field.options) ? field.options : [];
 
                 return (
-                  <div className="rounded-lg border border-border bg-background p-2.5">
+                  <div>
+                  <InsertQuestion
+                    open={insertAt === tools.index}
+                    onOpen={() => setInsertAt(tools.index)}
+                    onClose={() => setInsertAt(null)}
+                    onPick={(type) => insertQuestion(tools.index, type)}
+                  />
+                  <div
+                    className={`rounded-lg border bg-background p-2.5 transition-shadow ${focusKey === field.field_key ? "border-primary/50 ring-2 ring-primary/15" : "border-border"}`}
+                  >
                     <div className="flex items-center gap-2">
                       <div className="-ml-1.5 flex shrink-0 items-center">
                         {tools.handle}
                         <span className="w-4 text-center text-[10.5px] font-semibold tabular-nums text-muted-foreground">{tools.index + 1}</span>
                       </div>
                       <input
+                        autoFocus={focusKey === field.field_key}
+                        onFocus={(e) => { if (focusKey === field.field_key) { e.currentTarget.select(); e.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" }); } }}
+                        onBlur={() => setFocusKey((k) => (k === field.field_key ? null : k))}
                         value={field.label}
                         onChange={(e) => updateField({ label: e.target.value })}
                         className="min-w-0 flex-1 bg-transparent text-[12.5px] font-semibold outline-none"
@@ -436,19 +476,20 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                       </div>
                     )}
                   </div>
+                  </div>
                 );
               }}
             />
-            <p className="mt-2 text-[10.5px] text-muted-foreground">Drag the ⋮⋮ handle to change the order questions appear in.</p>
-            <button
-              onClick={() => setFields((current) => [...current, {
-                field_key: `question_${current.length + 1}_${Date.now().toString(36)}`,
-                field_type: "text", label: "New question", required: false, position: current.length,
-              }])}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[11.5px] font-semibold hover:bg-muted"
-            >
-              <Plus className="h-3.5 w-3.5" /> Add question
-            </button>
+            <InsertQuestion
+              last
+              open={insertAt === fields.length}
+              onOpen={() => setInsertAt(fields.length)}
+              onClose={() => setInsertAt(null)}
+              onPick={(type) => insertQuestion(fields.length, type)}
+            />
+            <p className="mt-2 text-[10.5px] text-muted-foreground">
+              Tap + between questions to add one there. Drag ⋮⋮ to change the order.
+            </p>
           </Section>
         </div>
 
@@ -873,6 +914,111 @@ function StatusPill({ status }: { status?: string }) {
   const warn = ["pending", "payment_pending"].includes(status || "");
   const tone = good ? "bg-emerald-500/10 text-emerald-600" : warn ? "bg-amber-500/10 text-amber-600" : "bg-rose-500/10 text-rose-600";
   return <span className={`rounded-full px-2 py-0.5 text-[9.5px] font-semibold capitalize ${tone}`}>{(status || "unknown").replaceAll("_", " ")}</span>;
+}
+
+const QUESTION_STARTERS: Partial<Record<ZeroFormFieldType, string>> = {
+  text: "Short answer question",
+  textarea: "Tell us a bit more",
+  multiple_choice: "Choose one",
+  checkboxes: "Select all that apply",
+  select: "Pick from the list",
+  yes_no: "Yes or no?",
+  email: "Email address",
+  phone: "Phone number",
+  number: "How many?",
+  country: "Country",
+  file_upload: "Upload a file",
+};
+
+const TYPE_ICONS: Partial<Record<ZeroFormFieldType, LucideIcon>> = {
+  text: Type,
+  textarea: FileText,
+  multiple_choice: CheckCircle2,
+  checkboxes: ListChecks,
+  select: ChevronDown,
+  yes_no: ThumbsUp,
+  email: Mail,
+  phone: Phone,
+  number: Hash,
+  country: Globe,
+  file_upload: UploadCloud,
+};
+
+/**
+ * The "+" that lives between questions. On a desktop it fades in on hover; on
+ * touch screens it is always faintly visible. Opening it shows the question
+ * types right there, so a new question lands exactly where it was asked for.
+ */
+function InsertQuestion({
+  open,
+  onOpen,
+  onClose,
+  onPick,
+  last,
+}: {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onPick: (type: ZeroFormFieldType) => void;
+  last?: boolean;
+}) {
+  if (open) {
+    return (
+      <div className="my-2 rounded-xl border border-primary/30 bg-card p-3 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.35)]">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-[12px] font-semibold">What kind of question?</p>
+          <button type="button" onClick={onClose} aria-label="Cancel" className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-muted">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+          {ZERO_FORM_FIELD_TYPES.map((type) => {
+            const Icon = TYPE_ICONS[type.value] || Type;
+            return (
+              <button
+                key={type.value}
+                type="button"
+                onClick={() => onPick(type.value)}
+                className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5 text-left transition hover:border-primary/40 hover:bg-primary/[0.04]"
+              >
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[11.5px] font-semibold leading-tight">{type.label}</span>
+                  <span className="mt-0.5 block text-[10px] leading-snug text-muted-foreground">{type.hint}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  if (last) {
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        className="mt-2 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-[11.5px] font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
+      >
+        <Plus className="h-3.5 w-3.5" /> Add question
+      </button>
+    );
+  }
+  return (
+    <div className="group/insert relative -my-1 flex h-4 items-center justify-center">
+      <span className="absolute inset-x-6 top-1/2 h-px -translate-y-1/2 bg-primary/40 opacity-0 transition group-hover/insert:opacity-100" />
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="Add a question here"
+        className="relative z-10 grid h-6 w-6 place-items-center rounded-full border border-border bg-card text-muted-foreground opacity-60 shadow-sm transition hover:scale-110 hover:border-primary hover:text-primary group-hover/insert:opacity-100 [@media(hover:hover)]:opacity-0"
+      >
+        <Plus className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
 }
 
 function Section({ title, detail, children }: { title: string; detail?: string; children: React.ReactNode }) {

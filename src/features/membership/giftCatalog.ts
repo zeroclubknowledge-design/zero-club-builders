@@ -17,6 +17,6 @@ export const giftType = (kind: string) => ADMIN_GIFT_TYPES.find(type => type.id 
 export const giftStatus = (gift: Pick<AdminUserGift, "status" | "claim_deadline">, now = Date.now()) => gift.status === "pending" && new Date(gift.claim_deadline).getTime() <= now ? "expired" : gift.status;
 export function eligibleGiftPlans(plans: GiftPlan[], recipient?: GiftRecipient | null) {
   if (!recipient || recipient.is_admin) return [];
-  const account = recipient.account_type.toLowerCase();
+  const account = String(recipient.account_type || "learner").toLowerCase();
   return plans.filter(plan => plan.audience === "institution" ? account === "institution" : plan.audience === "tutor" ? account === "tutor" || recipient.tutor_enabled : ["learner", "builder", "user", "creator"].includes(account));
 }
