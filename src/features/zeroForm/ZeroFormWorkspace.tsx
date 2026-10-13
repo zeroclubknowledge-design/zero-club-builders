@@ -35,6 +35,7 @@ import {
 import { toast } from "sonner";
 import { SortableList } from "@/components/SortableList";
 import { Switch } from "@/components/ui/switch";
+import { uploadMedia } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import {
@@ -221,6 +222,23 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
   const [fields, setFields] = useState<ZeroFormField[]>(existing?.fields || getTemplate("standard").fields);
   const [title, setTitle] = useState(existing?.form?.title || "");
   const [description, setDescription] = useState(existing?.form?.description || "");
+  const [bannerUrl, setBannerUrl] = useState<string>(existing?.form?.banner_url || "");
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const uploadBanner = async (file?: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Choose an image (JPG, PNG or WebP).");
+    setUploadingBanner(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Please sign in again.");
+      const [url] = await uploadMedia([file], session.user.id);
+      setBannerUrl(url);
+    } catch (error: any) {
+      toast.error(error?.message || "Could not upload that image");
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
   const [regular, setRegular] = useState(String(existing?.form?.regular_price ?? ""));
   const [early, setEarly] = useState(String(existing?.form?.early_bird_price ?? ""));
   const [startsAt, setStartsAt] = useState(toLocalInput(existing?.bootcamp?.starts_at));
@@ -286,6 +304,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
           template_id: templateId,
           title,
           description,
+          banner_url: bannerUrl || null,
           regular_price: pricingEnabled ? Number(regular) || 0 : 0,
           early_bird_price: pricingEnabled ? Number(early) || 0 : 0,
           starts_at: pricingEnabled && startsAt ? new Date(startsAt).toISOString() : null,
@@ -497,6 +516,42 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
           <Section title="Form details">
             <div className="space-y-3">
               <div><p className={label}>Title</p><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Frontend Bootcamp — early registration" className={`${input} mt-1.5`} /></div>
+              <div>
+                <p className={label}>Cover image</p>
+                <p className="mt-0.5 text-[10.5px] leading-4 text-muted-foreground">
+                  Shown at the top of your form and as the preview when the link is shared on WhatsApp, X, LinkedIn and more.
+                </p>
+                {bannerUrl ? (
+                  <div className="relative mt-1.5 overflow-hidden rounded-lg border border-border">
+                    <img src={bannerUrl} alt="" className="aspect-[1200/630] w-full object-cover" />
+                    {uploadingBanner && (
+                      <div className="absolute inset-0 grid place-items-center bg-black/40"><Loader2 className="h-5 w-5 animate-spin text-white" /></div>
+                    )}
+                    <div className="absolute bottom-2 right-2 flex gap-1.5">
+                      <label className="inline-flex h-8 cursor-pointer items-center rounded-full bg-black/65 px-3 text-[11px] font-semibold text-white backdrop-blur">
+                        Replace
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => { void uploadBanner(e.target.files?.[0]); e.target.value = ""; }} />
+                      </label>
+                      <button type="button" onClick={() => setBannerUrl("")} className="h-8 rounded-full bg-black/65 px-3 text-[11px] font-semibold text-white backdrop-blur">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="mt-1.5 flex aspect-[1200/630] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border bg-muted/30 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]">
+                    {uploadingBanner ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    ) : (
+                      <>
+                        <span className="grid h-9 w-9 place-items-center rounded-full bg-primary/10 text-primary"><UploadCloud className="h-4 w-4" /></span>
+                        <span className="text-[12px] font-semibold">Upload a cover image</span>
+                        <span className="text-[10.5px] text-muted-foreground">Landscape works best · 1200 × 630</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" disabled={uploadingBanner} onChange={(e) => { void uploadBanner(e.target.files?.[0]); e.target.value = ""; }} />
+                  </label>
+                )}
+              </div>
               <div><p className={label}>Description</p><textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className={`${input} h-auto resize-none py-2.5 mt-1.5`} /></div>
             </div>
           </Section>
@@ -538,14 +593,14 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
           <div className="space-y-2">
             <button
               onClick={() => save.mutate("published")}
-              disabled={save.isPending || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
+              disabled={save.isPending || uploadingBanner || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-[13px] font-semibold text-primary-foreground disabled:opacity-50"
             >
               {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Publish Zero Form
             </button>
             <button
               onClick={() => save.mutate("draft")}
-              disabled={save.isPending || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
+              disabled={save.isPending || uploadingBanner || (!existing && !bootcampId) || (pricingEnabled && !startsAt)}
               className="h-11 w-full rounded-lg border border-border text-[12.5px] font-semibold disabled:opacity-50"
             >
               Save as draft

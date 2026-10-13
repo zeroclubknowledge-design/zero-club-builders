@@ -53,8 +53,8 @@ export const Route = createFileRoute("/form/$slug")({
       const { data, error } = await supabase.rpc("get_zero_form_public", { form_slug: params.slug });
       if (error || !data?.found) return null;
       return {
-        title: data.bootcamp?.title ?? null,
-        description: data.bootcamp?.description ?? null,
+        title: data.form?.title || data.bootcamp?.title || null,
+        description: data.form?.description || data.bootcamp?.description || null,
         image: data.form?.banner_url || data.bootcamp?.banner_url || null,
       };
     } catch {
@@ -83,7 +83,10 @@ export const Route = createFileRoute("/form/$slug")({
 
     // Only override the site-wide preview image when this bootcamp has one of
     // its own, otherwise the generic Zero Club image still shows.
-    const image = `https://www.zeroclubs.xyz/api/og/form/${encodeURIComponent(params.slug)}`;
+    // Versioned by the cover, so a new cover is not hidden behind a cached preview.
+    let v = 0;
+    for (const ch of String(loaderData.image || "")) v = (v * 31 + ch.charCodeAt(0)) >>> 0;
+    const image = `https://www.zeroclubs.xyz/api/og/form/${encodeURIComponent(params.slug)}?v=${v.toString(36)}`;
     meta.push(
       { property: "og:image", content: image },
       { property: "og:image:secure_url", content: image },

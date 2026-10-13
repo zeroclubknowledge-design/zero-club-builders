@@ -209,14 +209,17 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
     case "form": {
       const data = await rpc("get_zero_form_public", { form_slug: id });
       if (!data?.found) return DEFAULT_SPEC;
-      const title = data.bootcamp?.title || data.form?.title || "Registration";
+      const title = data.form?.title || data.bootcamp?.title || "Registration";
+      const cover = data.form?.banner_url || data.bootcamp?.banner_url;
       return {
-        kicker: "Registration",
+        kicker: "Zero Form",
         title,
         subtitle: plain(data.bootcamp?.description || data.form?.description) || "Register on Zero Club.",
         chips: ["Bootcamp", "Register now"],
         cta: "Register now",
-        image: data.form?.banner_url || data.bootcamp?.banner_url,
+        image: cover,
+        // The form's own cover shows large, exactly like a post's photo.
+        variant: cover ? "photo" : "default",
         monogram: initial(title),
       };
     }
