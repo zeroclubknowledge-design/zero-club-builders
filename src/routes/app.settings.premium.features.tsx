@@ -8,6 +8,7 @@ export const Route = createFileRoute("/app/settings/premium/features")({
 });
 
 const planFeatures: Record<string, string[]> = {
+  administrator: ["All Learner, Creator, Tutor, and Institution features", "Zero AI chat and voice without membership quotas", "Unlimited permanent Clubs and rewarded competition creation", "All premium portfolio designs and display themes", "Administration and moderation tools", "No subscription payment, renewal, or expiry"],
   learner_basic: ["Builder profile and Feed", "Join and participate in public Clubs", "ZeroNotes publishing", "Zero AI starter access", "2 rewarded Zero Games competitions weekly", "Standard XP earning"],
   learner_premium: ["Everything in Learner Basic", "Zero AI learning assistant", "5 rewarded Zero Games competitions weekly", "2x daily XP multiplier", "3% Bootcamp discount", "Post editing and longer posts", "Private Club access", "Premium profile badge"],
   creator_basic: ["Join and participate in Clubs", "Publish projects and posts", "Upgrade to Creator PRO or Max to create permanent Clubs"],
@@ -23,15 +24,16 @@ function PlanFeatures() {
   const { data: profile } = useUser();
 
   const planKey = resolvePlanKey(profile);
-  const planName = planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
-  const clubLimit = planKey === "institution" ? null : CLUB_LIMITS[planKey];
+  const isAdmin = planKey === "administrator";
+  const planName = isAdmin ? "Zero Club Administrator" : planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
+  const clubLimit = isAdmin || planKey === "institution" ? null : CLUB_LIMITS[planKey];
   const features = planFeatures[planKey] || planFeatures.learner_basic;
 
   return (
     <div className="min-h-screen bg-background pb-20 text-foreground">
       <header className="sticky top-0 z-40 flex items-center bg-background/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
         <Link to="/app/settings/premium" className="mr-4 grid h-9 w-9 place-items-center rounded-md border border-border" aria-label="Back"><ChevronLeft className="h-4 w-4" /></Link>
-        <div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Membership</p><h1 className="text-[18px] font-semibold">Current plan features</h1></div>
+        <div><p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-primary">Membership</p><h1 className="text-[18px] font-semibold">{isAdmin ? "Administrator features" : "Current plan features"}</h1></div>
       </header>
 
       <main className="zc-page-width mx-auto max-w-[760px] px-4 py-7 sm:px-6">
@@ -39,7 +41,7 @@ function PlanFeatures() {
           <span className="grid h-11 w-11 place-items-center rounded-md bg-primary/10 text-primary"><UsersRound className="h-5 w-5 fill-current" /></span>
           <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Current plan</p>
           <h2 className="mt-1 font-display text-[29px] font-semibold tracking-tight">{planName}</h2>
-          <p className="mt-2 text-[11.5px] text-muted-foreground">Permanent Club capacity: {clubLimit === null ? "organisation-specific" : clubLimit}</p>
+          <p className="mt-2 text-[11.5px] text-muted-foreground">Permanent Club capacity: {isAdmin ? "Unlimited" : clubLimit === null ? "organisation-specific" : clubLimit}</p>
         </section>
 
         <section className="mt-6 divide-y divide-border border-y border-border">
@@ -54,7 +56,7 @@ function PlanFeatures() {
         {["creator", "creator_max"].includes(planKey) && (
           <Link to="/app/creator" className="mt-5 flex h-11 items-center justify-center gap-2 rounded-md border border-border text-[11.5px] font-semibold">Open Creator Workspace <ArrowRight className="h-4 w-4" /></Link>
         )}
-        <Link to="/app/premium" className="mt-3 flex h-11 items-center justify-center gap-2 rounded-md bg-foreground text-[11.5px] font-semibold text-background">Compare all plans <ArrowRight className="h-4 w-4" /></Link>
+        <Link to="/app/premium" className="mt-3 flex h-11 items-center justify-center gap-2 rounded-md bg-foreground text-[11.5px] font-semibold text-background">{isAdmin ? "Administrator access" : "Compare all plans"} <ArrowRight className="h-4 w-4" /></Link>
       </main>
     </div>
   );

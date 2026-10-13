@@ -1,5 +1,6 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
-import { plain } from "@/lib/og/core/text";
+import { postPreviewHead } from "@/lib/og/core/post";
+import { postLinkUrl } from "@/lib/share";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
@@ -152,44 +153,12 @@ export const Route = createFileRoute("/app/post/$id")({
     const cachedPost = findCachedPost(queryClient, id);
     if (cachedPost) return { post: cachedPost };
 
-    const post = await fetchPostDetailRecord(id);
+    const post = typeof window === "undefined"
+      ? await fetchPublicPostRecord(id)
+      : await fetchPostDetailRecord(id);
     return { post };
   },
-  head: ({ loaderData }) => {
-    const post = loaderData?.post;
-    if (!post) return {};
-
-    const authorName = post.profiles?.full_name || post.profiles?.username || "Zero Club Builder";
-    // The shared link says what it is too, so a project does not arrive in
-    // somebody's timeline announced as a post.
-    const title = `${authorName}'s ${post.is_build_post ? "Project" : "Post"} on Zero Club`;
-
-    let description = plain(post.content) || "Check out this post on Zero Club";
-    description = description.substring(0, 160) + (description.length > 160 ? "..." : "");
-
-    // Versioned so apps that cached the older, picture-less card fetch the new one.
-    const image = `https://www.zeroclubs.xyz/api/og/post/${post.id}?v=3`;
-
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: image },
-        { property: "og:image:secure_url", content: image },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:type", content: "image/png" },
-        { property: "og:image:alt", content: title },
-        { property: "og:type", content: "article" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: image },
-      ],
-    };
-  },
+  head: ({ loaderData }) => postPreviewHead(loaderData?.post),
   component: PostDetail,
 });
 
@@ -796,7 +765,7 @@ function PostDetail() {
   }
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const url = postLinkUrl(id, new URL(window.location.href).searchParams.get("ref"));
     if (hasShareSheet()) {
       try {
         await openShareSheet({
@@ -936,7 +905,7 @@ function PostDetail() {
                 <DropdownMenuItem
                   className="flex items-center gap-3 py-2.5 cursor-pointer"
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
+                    navigator.clipboard.writeText(postLinkUrl(id, new URL(window.location.href).searchParams.get("ref")));
                     toast.success("Link copied!");
                   }}
                 >
@@ -1466,7 +1435,7 @@ function PostDetail() {
                             <DropdownMenuItem
                               className="flex items-center gap-3 py-2.5 cursor-pointer"
                               onClick={() => {
-                                navigator.clipboard.writeText(window.location.href);
+                                navigator.clipboard.writeText(postLinkUrl(id, new URL(window.location.href).searchParams.get("ref")));
                                 toast.success("Comment link copied!");
                               }}
                             >

@@ -37,7 +37,8 @@ function PremiumSettings() {
   });
 
   const planKey = resolvePlanKey(profile);
-  const tier = planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
+  const isAdmin = planKey === "administrator";
+  const tier = isAdmin ? "Zero Club Administrator" : planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
@@ -45,7 +46,7 @@ function PremiumSettings() {
         <Link to="/app/settings" className="mr-6 p-2 rounded-full transition active:bg-accent/10">
           <ChevronLeft className="h-5 w-5 text-foreground" />
         </Link>
-        <h1 className="text-lg font-bold text-foreground">Premium</h1>
+        <h1 className="text-lg font-bold text-foreground">{isAdmin ? "Administrator access" : "Premium"}</h1>
       </header>
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-5">
@@ -56,14 +57,14 @@ function PremiumSettings() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{tier}</h2>
-              <p className="text-xs text-primary">Current Plan</p>
+              <p className="text-xs text-primary">{isAdmin ? "All features included" : "Current Plan"}</p>
             </div>
           </div>
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-            Your membership follows the Zero Club pathway for how you learn, build communities, teach, or operate programmes.
+            {isAdmin ? "You have access to every Zero Club feature without a subscription, payment, or renewal." : "Your membership follows the Zero Club pathway for how you learn, build communities, teach, or operate programmes."}
           </p>
           <Link to="/app/premium" className="mt-6 block rounded-md bg-foreground py-3 text-center text-sm font-bold text-background transition active:scale-95">
-            Manage membership
+            {isAdmin ? "View administrator access" : "Manage membership"}
           </Link>
         </section>
 
@@ -73,7 +74,7 @@ function PremiumSettings() {
               <Star className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
             </div>
             <div className="flex-1">
-              <div className="text-sm font-bold text-foreground">Plan Features</div>
+              <div className="text-sm font-bold text-foreground">{isAdmin ? "All features" : "Plan Features"}</div>
               <div className="text-[11px] text-muted-foreground leading-tight">See everything you can do with your current plan</div>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />

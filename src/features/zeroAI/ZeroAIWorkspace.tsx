@@ -281,8 +281,9 @@ function timeAgo(ms: number) {
 export function ZeroAIWorkspace() {
   const { data: profile, isLoading } = useUser();
   const access = useQuery({
-    queryKey: ["zero-ai-access", profile?.id, profile?.tier, profile?.active_mode, profile?.account_type], enabled: !!profile?.id,
+    queryKey: ["zero-ai-access", profile?.id, profile?.tier, profile?.active_mode, profile?.account_type, profile?.is_admin], enabled: !!profile?.id,
     queryFn: async () => {
+      if (profile?.is_admin) return true;
       const { data, error } = await supabase.rpc("can_use_zero_ai");
       if (error) {
         if (error.code === "PGRST202") return canUseZeroAI(profile);

@@ -20,8 +20,8 @@ function InstitutionStudioLayout() {
         router.navigate({ to: "/signin" });
         return;
       }
-      const { data: profile } = await supabase.from("profiles").select("account_type").eq("id", session.user.id).single();
-      if (profile?.account_type !== "Institution") {
+      const { data: profile } = await supabase.from("profiles").select("account_type, is_admin").eq("id", session.user.id).single();
+      if (!profile?.is_admin && profile?.account_type !== "Institution") {
         toast.error("You do not have access to the Digital Hub.");
         router.navigate({ to: "/app" });
         return;

@@ -5,6 +5,14 @@ import { toast } from "sonner";
 // the corrected card instead of keeping an older image-less result.
 export const PRODUCT_PREVIEW_VERSION = "4";
 export const NOTE_PREVIEW_VERSION = "1";
+export const POST_PREVIEW_VERSION = "4";
+
+/** Fresh post metadata, retaining referral attribution when shared from a feed. */
+export function postLinkUrl(postId: string, referralCode?: string | null): string {
+  const params = new URLSearchParams({ preview: POST_PREVIEW_VERSION });
+  if (referralCode) params.set("ref", referralCode);
+  return `${appOrigin()}/app/post/${encodeURIComponent(postId)}?${params}`;
+}
 
 /**
  * Sharing helpers, kept in one place so the store page and the seller's own

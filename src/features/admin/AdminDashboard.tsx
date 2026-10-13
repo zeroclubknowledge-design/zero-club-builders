@@ -88,7 +88,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "community", label: "Community", Icon: UsersRound },
   { id: "marketplace", label: "Marketplace", Icon: BriefcaseBusiness },
   { id: "commerce", label: "Commerce", Icon: CircleDollarSign },
-  { id: "gifts", label: "Membership gifts", Icon: WalletCards },
+  { id: "gifts", label: "Gifts", Icon: WalletCards },
   { id: "tutors", label: "Tutor applications", Icon: GraduationCap },
   { id: "rewards", label: "Rewards & games", Icon: WalletCards },
   { id: "institutions", label: "Institutions", Icon: Building2 },

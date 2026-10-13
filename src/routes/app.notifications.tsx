@@ -260,7 +260,9 @@ function NotificationsPage() {
         markRead(n.id);
       }
 
-      if (n.membership_gift_id) {
+      if (n.admin_gift_id) {
+        navigate({ to: "/app/gifts" });
+      } else if (n.membership_gift_id) {
         navigate({ to: '/app/premium' });
       } else if (n.type === 'challenge' && n.entity_id) {
         navigate({ to: '/app/challenge/$id', params: { id: n.entity_id }, search: { created: undefined } });

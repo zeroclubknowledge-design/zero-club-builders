@@ -288,7 +288,7 @@ function BootcampDetail() {
   }
 
   const totalLessons = modules.reduce((sum: number, module: any) => sum + (module.lessons?.length || 0), 0);
-  const basePrice = Number(bootcamp.price) || 0;
+  const basePrice = currentUser?.is_admin ? 0 : Number(bootcamp.price) || 0;
   const tier = currentUser?.tier || "Basic";
   let discountPct = 0;
   if (tier === "Premium") discountPct = 0.03;

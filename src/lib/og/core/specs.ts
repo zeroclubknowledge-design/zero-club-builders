@@ -1,4 +1,5 @@
 import { one, rpc } from "./db";
+import { postPreviewImage } from "./post";
 import { initial, naira, plain, plural } from "./text";
 import type { PreviewSpec } from "./card";
 import { ZERO_GAMES, isZeroGameKey, type ZeroGameKey } from "../../../features/games/v2/catalog";
@@ -91,11 +92,12 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
 
     case "post": {
       if (!isUuid(id)) return DEFAULT_SPEC;
-      const post = await one("posts", "content,media_urls,is_build_post,profiles:author_id(full_name,username,avatar_url)", { id: `eq.${id}` });
-      if (!post) return DEFAULT_SPEC;
-      const author = post.profiles || {};
+      const payload = await rpc("get_post_public", { p_post_id: id });
+      if (!payload?.found || !payload.post) return DEFAULT_SPEC;
+      const post = payload.post;
+      const author = payload.author || {};
       const name = author.full_name || author.username || "A builder";
-      const media = (post.media_urls || []).find((u: string) => typeof u === "string" && !/\.(mp4|mov|webm|m4v|ogg)|video/i.test(u));
+      const media = postPreviewImage(post);
       const text = plain(post.content) || "Shared on Zero Club";
       return {
         kicker: post.is_build_post ? "Project" : "Post",

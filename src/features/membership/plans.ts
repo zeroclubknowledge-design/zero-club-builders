@@ -43,7 +43,8 @@ export function membershipAudience(profile: any): AccountAudience {
   return "Learner";
 }
 
-export function resolvePlanKey(profile: any): IndividualPlanKey | "institution" {
+export function resolvePlanKey(profile: any): IndividualPlanKey | "institution" | "administrator" {
+  if (profile?.is_admin) return "administrator";
   const tier = String(profile?.tier || "basic").toLowerCase().replace(/\s+/g, "");
   const audience = membershipAudience(profile);
 
@@ -92,7 +93,7 @@ export function canUseZeroAI(profile: any): boolean {
 
 export function fallbackClubCapacity(profile: any, permanentClubCount: number): ClubCapacity {
   const planKey = resolvePlanKey(profile);
-  if (planKey === "institution" || profile?.is_admin) {
+  if (planKey === "institution" || planKey === "administrator") {
     return {
       plan_key: String(planKey),
       plan_name: planKey === "institution" ? "Institution" : "Administrator",

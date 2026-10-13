@@ -1,3 +1,4 @@
+import { postLinkUrl } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
 import { Link, useRouter } from "@tanstack/react-router";
@@ -432,8 +433,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
     e.stopPropagation();
 
     // Include referral code if available
-    const referralSuffix = currentUser?.referral_code ? `?ref=${currentUser.referral_code}` : "";
-    const url = `${window.location.origin}/app/post/${postId}${referralSuffix}`;
+    const url = postLinkUrl(postId, currentUser?.referral_code);
 
     if (hasShareSheet()) {
       try {

@@ -243,7 +243,7 @@ function MembershipPage() {
   const { data: profile, isLoading } = useUser();
 
   const { data: membershipDashboard } = useQuery({
-    queryKey: ["membership-dashboard", profile?.id, profile?.account_type, profile?.active_mode, profile?.tier],
+    queryKey: ["membership-dashboard", profile?.id, profile?.account_type, profile?.active_mode, profile?.tier, profile?.is_admin],
     enabled: Boolean(profile?.id),
     retry: false,
     queryFn: async () => {
@@ -382,6 +382,27 @@ function MembershipPage() {
         : formatNaira(selectedPlan?.priceValue || 0);
 
   const ctaBusy = subscribeMutation.isPending && subscribeMutation.variables?.id === selectedPlan?.id;
+
+  if (isLoading) return <div className="grid min-h-[60dvh] place-items-center" role="status"><Loader2 className="h-6 w-6 animate-spin" /><span className="sr-only">Loading account access</span></div>;
+
+  if (profile?.is_admin) return (
+    <div className="min-h-screen bg-background pb-24 text-foreground">
+      <header className="flex items-center gap-3 px-4 py-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+        <button onClick={goBack} aria-label="Back" className="grid h-11 w-11 place-items-center"><ArrowLeft className="h-5 w-5" /></button>
+        <h1 className="text-lg font-semibold">Administrator access</h1>
+      </header>
+      <main className="zc-page-width mx-auto w-full max-w-[680px] px-5 py-8">
+        <Crown className="h-10 w-10 text-primary" />
+        <h2 className="mt-5 text-3xl font-semibold">Everything is already unlocked</h2>
+        <p className="mt-3 text-muted-foreground">Your Zero Club administrator account has full access for free. No subscription, renewal, or expiry.</p>
+        <ul className="mt-7 space-y-4">
+          {["All Learner, Creator, Tutor, and Institution features", "Zero AI chat and voice", "Unlimited Clubs and competition creation", "All portfolio designs and display themes", "Administration and moderation tools"].map(feature => <li key={feature} className="flex items-start gap-3"><Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" />{feature}</li>)}
+        </ul>
+        <Link to="/app/admin" className="mt-8 block rounded-full bg-primary px-5 py-3 text-center font-semibold text-primary-foreground">Open Admin Control Center</Link>
+        <Link to="/app/zero-ai" className="mt-3 block rounded-full border border-border px-5 py-3 text-center font-semibold">Open Zero AI</Link>
+      </main>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f1e6] text-foreground dark:bg-background">

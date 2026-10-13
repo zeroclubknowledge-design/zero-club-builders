@@ -2,9 +2,9 @@ import { resolvePlanKey } from "@/features/membership/plans";
 
 export type ZeroGameRewardAllowance = {
   plan_key: string;
-  weekly_limit: number;
+  weekly_limit: number | null;
   weekly_used: number;
-  weekly_remaining: number;
+  weekly_remaining: number | null;
   daily_limit: number | null;
   daily_used: number;
   daily_remaining: number | null;
@@ -12,7 +12,7 @@ export type ZeroGameRewardAllowance = {
   resets_at?: string | null;
 };
 
-export const ZERO_GAME_REWARD_LIMITS: Record<string, { weekly: number; daily: number | null }> = {
+export const ZERO_GAME_REWARD_LIMITS: Record<string, { weekly: number | null; daily: number | null }> = {
   learner_basic: { weekly: 2, daily: null },
   learner_premium: { weekly: 5, daily: null },
   creator: { weekly: 12, daily: 2 },
@@ -24,7 +24,7 @@ export const ZERO_GAME_REWARD_LIMITS: Record<string, { weekly: number; daily: nu
   institution_small: { weekly: 21, daily: 3 },
   institution_large: { weekly: 56, daily: 8 },
   institution_custom: { weekly: 84, daily: 12 },
-  administrator: { weekly: 84, daily: 12 },
+  administrator: { weekly: null, daily: null },
 };
 
 export function fallbackZeroGameRewardAllowance(profile: any): ZeroGameRewardAllowance {

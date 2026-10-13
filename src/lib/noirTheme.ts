@@ -27,6 +27,7 @@ export type NoirAccess = {
 
 /** Anything above Basic — including Creator and institutional accounts. */
 export function isPremiumMember(profile: any): boolean {
+  if (profile?.is_admin) return true;
   const accountType = String(profile?.account_type || "").toLowerCase();
   if (accountType === "institution") return true;
 

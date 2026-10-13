@@ -199,11 +199,11 @@ function SidebarContent({
   const workspaceLinks: any[] = [
     { Icon: IconStore, label: "My Store", to: "/app/my-store" },
     { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
-    ...(mode === "creator" || String(profile?.tier || "").toLowerCase() === "creator"
+    ...(profile?.is_admin || mode === "creator" || String(profile?.tier || "").toLowerCase() === "creator"
       ? [{ Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" }]
       : []),
-    ...(profile?.account_type === "Tutor" ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
-    ...(profile?.account_type === "Institution" ? [{ Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" }] : []),
+    ...(profile?.is_admin || profile?.account_type === "Tutor" ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
+    ...(profile?.is_admin || profile?.account_type === "Institution" ? [{ Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" }] : []),
     ...(profile?.is_admin ? [{ Icon: IconShield, label: "Admin Control Center", to: "/app/admin" }] : []),
   ];
 
@@ -414,8 +414,8 @@ function SidebarContent({
                 <IconGem active className="h-5 w-5" />
               </span>
               <span className="min-w-0">
-                <span className="block text-[15px] font-semibold text-foreground">Go PRO</span>
-                <span className="block truncate text-[12px] text-muted-foreground">More clubs, Zero AI help, verified badge</span>
+                <span className="block text-[15px] font-semibold text-foreground">{profile?.is_admin ? "Administrator access" : "Go PRO"}</span>
+                <span className="block truncate text-[12px] text-muted-foreground">{profile?.is_admin ? "All features included for free" : "More clubs, Zero AI help, verified badge"}</span>
               </span>
             </Link>
           </nav>

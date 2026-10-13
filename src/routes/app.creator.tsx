@@ -49,7 +49,7 @@ function CreatorWorkspace() {
     );
   }
 
-  const isCreator = ["creator", "creator_max"].includes(data?.capacity?.plan_key);
+  const isCreator = ["administrator", "creator", "creator_max"].includes(data?.capacity?.plan_key);
   if (!data || !isCreator) {
     return (
       <div className="flex min-h-screen flex-col bg-canvas text-foreground">
@@ -78,7 +78,7 @@ function CreatorWorkspace() {
     { label: "Messages, 30 days", value: data.messageRows.length.toLocaleString(), Icon: BarChart3 },
     { label: "Rewards paid", value: rewardTotal.toLocaleString(), Icon: Gift },
   ];
-  const used = Math.min(1, capacity.permanent_club_count / Math.max(1, capacity.permanent_club_limit));
+  const used = capacity.permanent_club_limit === null ? 0 : Math.min(1, capacity.permanent_club_count / Math.max(1, capacity.permanent_club_limit));
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
@@ -95,13 +95,13 @@ function CreatorWorkspace() {
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-[14px] font-semibold">Permanent club capacity</p>
             <p className="font-display text-[20px] font-semibold tabular-nums">
-              {capacity.permanent_club_count}<span className="text-muted-foreground"> / {capacity.permanent_club_limit}</span>
+              {capacity.permanent_club_count}<span className="text-muted-foreground"> / {capacity.permanent_club_limit ?? "Unlimited"}</span>
             </p>
           </div>
           <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-foreground/[0.07]">
             <div className="h-full rounded-full bg-[#cc208f]" style={{ width: `${used * 100}%` }} />
           </div>
-          <p className="mt-2 text-[13px] text-muted-foreground">{capacity.remaining} {capacity.remaining === 1 ? "club" : "clubs"} remaining on the Creator plan</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">{capacity.remaining === null ? "Unlimited club creation with administrator access" : `${capacity.remaining} ${capacity.remaining === 1 ? "club" : "clubs"} remaining on the Creator plan`}</p>
 
           <div className="mt-4 grid grid-cols-3 gap-2">
             {stats.map(({ label, value, Icon }) => (

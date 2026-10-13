@@ -45,6 +45,7 @@ import {
 import { describePost, postImages } from "./parse";
 import { PortfolioRenderer } from "./PortfolioRenderer";
 import { TEMPLATE_CATALOG } from "./templates/catalog";
+import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { recommendWork, toolsFrom } from "./recommend";
 import { portfolioStrength } from "./strength";
@@ -81,8 +82,10 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
   /* A premium look the owner is trying on without a membership: shown in the
      preview only, never saved (the server would refuse it anyway). */
   const [tryTemplate, setTryTemplate] = useState<PortfolioTemplate | null>(null);
+  const { data: profile } = useUser();
   const premium = useQuery({
-    queryKey: ["can_use_premium_portfolio"],
+    queryKey: ["can_use_premium_portfolio", profile?.id, profile?.is_admin],
+    enabled: !!profile?.id,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("can_use_premium_portfolio" as any);
       if (error) return false;
@@ -90,7 +93,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
     },
     staleTime: 60_000,
   });
-  const canPremium = premium.data === true;
+  const canPremium = Boolean(profile?.is_admin) || premium.data === true;
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [publishOpen, setPublishOpen] = useState(false);
   const [liveOpen, setLiveOpen] = useState(false);

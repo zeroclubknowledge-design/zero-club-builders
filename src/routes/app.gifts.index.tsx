@@ -12,6 +12,8 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { AdminGiftInbox } from "@/features/membership/AdminGiftInbox";
+import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { shareOrCopy, giftLinkUrl } from "@/lib/share";
@@ -168,6 +170,7 @@ function GiftCardsPage() {
       <div className="flex min-h-screen flex-col bg-canvas">
         {header("Zero Card ready")}
         <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-4 pb-28 pt-8 text-center md:my-2 md:rounded-xl md:border md:border-border md:pb-8">
+          <div className="mb-6 w-full"><AdminGiftInbox userId={profile?.id} /><MembershipGiftInbox userId={profile?.id} /></div>
           <span className="grid h-12 w-12 place-items-center rounded-full bg-[#1a7f4b]/10 text-[#1a7f4b]">
             <Check className="h-6 w-6" />
           </span>
@@ -209,9 +212,11 @@ function GiftCardsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
-      {header("Send a Zero Card")}
+      {header("Gifts & Zero Cards")}
 
       <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
+        <AdminGiftInbox userId={profile?.id} />
+        <MembershipGiftInbox userId={profile?.id} />
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           <div className="mx-auto w-full max-w-[420px]">
             <GiftCardVisual

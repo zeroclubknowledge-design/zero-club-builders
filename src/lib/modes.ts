@@ -57,7 +57,7 @@ export class TutorNotApprovedError extends Error {
 
 /** True once a Zero Club admin has approved this person to teach. */
 export function isApprovedTutor(profile: any) {
-  return Boolean(profile?.tutor_enabled) || String(profile?.account_type || "").toLowerCase() === "tutor";
+  return Boolean(profile?.is_admin) || Boolean(profile?.tutor_enabled) || String(profile?.account_type || "").toLowerCase() === "tutor";
 }
 
 /**
