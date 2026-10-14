@@ -53,13 +53,14 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { TutorApplicationsAdmin } from "./TutorApplicationsAdmin";
+import { AmbassadorsAdmin } from "./AmbassadorsAdmin";
 import { PlatformRewardsAdmin } from "./PlatformRewardsAdmin";
 import { MembershipGiftsAdmin } from "./MembershipGiftsAdmin";
 import { contentPreview, toPlainText } from "@/lib/contentPreview";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
-type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "tutors" | "rewards" | "gifts" | "system";
+type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "tutors" | "ambassadors" | "rewards" | "gifts" | "system";
 
 type Snapshot = {
   metrics: Record<string, number>;
@@ -90,6 +91,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; Icon: any }[] = [
   { id: "commerce", label: "Commerce", Icon: CircleDollarSign },
   { id: "gifts", label: "Gifts", Icon: WalletCards },
   { id: "tutors", label: "Tutor applications", Icon: GraduationCap },
+  { id: "ambassadors", label: "Ambassadors", Icon: BadgeCheck },
   { id: "rewards", label: "Rewards & games", Icon: WalletCards },
   { id: "institutions", label: "Institutions", Icon: Building2 },
   { id: "ads", label: "Boosts", Icon: Megaphone },
@@ -325,6 +327,7 @@ export function AdminDashboard() {
           )}
           {activeTab === "commerce" && <Commerce snapshot={data} format={format} />}
           {activeTab === "tutors" && <TutorApplicationsAdmin />}
+          {activeTab === "ambassadors" && <AmbassadorsAdmin />}
           {activeTab === "rewards" && <PlatformRewardsAdmin />}
           {activeTab === "gifts" && <MembershipGiftsAdmin />}
           {activeTab === "system" && <System snapshot={data} busy={action.isPending} runAction={runAction} />}
