@@ -27,6 +27,18 @@ export function useAppResume(userId: string | undefined) {
     const key = draftKey(userId, "last-screen");
     if (initialized.current !== userId) {
       initialized.current = userId;
+      // "Return to feed" on the error screen asks for the feed itself. Resuming
+      // here would reopen the very screen that just crashed, in a loop.
+      let skipResume = false;
+      try {
+        skipResume = new URLSearchParams(window.location.search).has("fresh") || sessionStorage.getItem("zc:no-resume") === "1";
+        sessionStorage.removeItem("zc:no-resume");
+      } catch { /* storage unavailable */ }
+      if (skipResume) {
+        writeDraft(key, "/app");
+        if (window.location.search.includes("fresh")) void router.navigate({ to: "/app" as any, replace: true });
+        return;
+      }
       if (/^\/app\/?$/.test(initialPath.current) && /^\/app\/?$/.test(location.pathname)) {
         const previous = resumeUrl(readDraft(key, ""));
         if (previous && previous !== location.href) {

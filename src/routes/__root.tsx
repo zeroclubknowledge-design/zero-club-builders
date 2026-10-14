@@ -193,9 +193,10 @@ function ErrorComponent({ error: rawError, reset }: { error: unknown; reset: () 
             <button
               type="button"
               onClick={() => {
-                const onFeed = /^\/app\/?$/.test(window.location.pathname);
-                if (onFeed) window.location.reload();
-                else window.location.assign("/app");
+                // The app reopens the last screen when it starts on /app, which
+                // was this broken screen — so say "the feed, no resuming".
+                try { sessionStorage.setItem("zc:no-resume", "1"); } catch { /* storage unavailable */ }
+                window.location.assign("/app?fresh=1");
               }}
               className="flex h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 text-[13px] font-semibold text-foreground transition hover:bg-accent active:scale-[0.98]"
             >

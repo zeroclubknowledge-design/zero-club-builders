@@ -147,7 +147,7 @@ function ProfileDetail() {
    * not ready — this fetches the profile again with proper retries instead of
    * leaving the page broken until somebody reloads the app.
    */
-  const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
+  const { data: fetchedProfile, isLoading: profileLoading, isError: profileError } = useQuery({
     queryKey: ["profile-detail", id],
     enabled: !loaderProfile,
     retry: 3,
@@ -165,6 +165,62 @@ function ProfileDetail() {
   });
 
   const profile = loaderProfile ?? fetchedProfile ?? null;
+
+  /*
+   * No profile yet, or none at all — e.g. an @mention of a username that was
+   * never created or has since changed (@zeroclubapp). Everything below reads
+   * profile.id while rendering, so it must never run with a null profile:
+   * that crashed the whole page with "Cannot read properties of null".
+   */
+  if (!profile) {
+    return <ProfileUnavailable username={id} loading={profileLoading} failed={profileError} onBack={goBackSmart} />;
+  }
+  return <ProfileDetailBody profile={profile} goBackSmart={goBackSmart} />;
+}
+
+function ProfileUnavailable({ username, loading, failed, onBack }: { username: string; loading: boolean; failed: boolean; onBack: () => void }) {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(username);
+  return (
+    <div className="flex min-h-[100dvh] flex-col bg-background">
+      <header className="flex h-14 items-center px-2 pt-[env(safe-area-inset-top)]">
+        <button onClick={onBack} aria-label="Go back" className="grid h-10 w-10 place-items-center rounded-full hover:bg-foreground/[0.06]">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      </header>
+      <div className="flex flex-1 flex-col items-center justify-center px-8 pb-24 text-center">
+        {loading ? (
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        ) : (
+          <>
+            <div className="grid h-16 w-16 place-items-center rounded-full bg-foreground/[0.06] text-[26px] font-semibold text-muted-foreground">@</div>
+            <h1 className="mt-5 text-[20px] font-semibold tracking-tight">
+              {failed ? "Couldn't load this profile" : "This account doesn't exist"}
+            </h1>
+            <p className="mt-2 max-w-[300px] text-[13.5px] leading-relaxed text-muted-foreground">
+              {failed
+                ? "Check your connection and try again."
+                : isUuid
+                  ? "It may have been removed."
+                  : `No one on Zero Club is using @${username} right now. The name may have changed.`}
+            </p>
+            <div className="mt-6 flex gap-2">
+              {failed && (
+                <button onClick={() => window.location.reload()} className="h-10 rounded-full bg-primary px-5 text-[13px] font-semibold text-primary-foreground">
+                  Try again
+                </button>
+              )}
+              <Link to="/app" className="inline-flex h-10 items-center rounded-full border border-border px-5 text-[13px] font-semibold">
+                Go to feed
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProfileDetailBody({ profile, goBackSmart }: { profile: NonNullable<ReturnType<typeof Route.useLoaderData>["profile"]>; goBackSmart: () => void }) {
   const queryClient = useQueryClient();
 
   // Only published portfolios are readable by others (RLS), so a row means it's live.
