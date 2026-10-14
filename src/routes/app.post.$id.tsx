@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { SignalDots, SignalSummary, usePostSignal, recordPostView, SIGNAL_COPY } from "@/features/postSignal/signal";
 import { postPreviewHead } from "@/lib/og/core/post";
 import { postLinkUrl } from "@/lib/share";
 import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
@@ -164,6 +165,12 @@ export const Route = createFileRoute("/app/post/$id")({
 
 function PostDetail() {
   const { id } = Route.useParams();
+  const signal = usePostSignal(id);
+  const signalLevel = signal.data?.level ?? 0;
+  // Opening the full post counts as seeing it (the server ignores your own posts).
+  useEffect(() => {
+    if (id) recordPostView(id);
+  }, [id]);
   const { post: loaderPost } = Route.useLoaderData();
   const queryClient = useQueryClient();
 
@@ -895,13 +902,15 @@ function PostDetail() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  aria-label="More options"
+                  aria-label={`More options · post signal: ${SIGNAL_COPY[signalLevel].name}`}
                   className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
                 >
-                  <MoreHorizontal className="h-[22px] w-[22px]" />
+                  <SignalDots level={signalLevel} size={22} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-64">
+                <SignalSummary signal={signal.data} />
+                <div className="-mx-1 my-1 h-px bg-border" />
                 <DropdownMenuItem
                   className="flex items-center gap-3 py-2.5 cursor-pointer"
                   onClick={() => {

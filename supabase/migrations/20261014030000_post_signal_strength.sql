@@ -1,0 +1,12 @@
+-- ALREADY APPLIED to tiyifgfsuzhcvdvntjmp via MCP on 2026-10-14. Do not re-run.
+-- Post signal strength.
+-- * post_views(post_id → posts on delete cascade, viewer_id, day) PK (post_id, viewer_id, day); RLS on, no policies
+--   NOTE: viewer_id deliberately has NO foreign key to profiles. With keys to both posts and profiles inside the
+--   primary key, PostgREST treated post_views as a many-to-many junction, the feed's
+--   posts?select=*,profiles(...) embed became ambiguous and returned HTTP 300 with no posts (2026-10-14 02:52–03:4x).
+--   Fixed by migration post_views_unambiguous_embeds (constraint removed + schema reload).
+-- * record_post_views(uuid[]) security definer: once per post per viewer per day, skips own posts, max 60 ids
+-- * post_signals(uuid[]) → level 0–3, score, reach %, viewers, engaged, shares
+--   active base = members active in the last 30 days (views, likes, comments, posts, reposts), at least 50
+--   score = 50% reach (full at 60%) + 30% engagement (full at 20%) + 20% shares (full at max(5, 5% of active))
+--   level 1 ≥ 30, level 2 ≥ 50, level 3 ≥ 95

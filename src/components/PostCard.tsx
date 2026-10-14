@@ -5,7 +5,6 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { PortfolioMenuItem, canPutOnPortfolio } from "@/features/portfolio/PortfolioMenuItem";
 import {
-  MoreHorizontal,
   CheckCircle2,
   Bookmark,
   BadgeCheck,
@@ -41,6 +40,7 @@ import { likePostAction, unlikePostAction } from "@/api";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
 import { useFollow } from "@/hooks/useFollow";
+import { SignalDots, SignalSummary, usePostSignal, useRecordView, SIGNAL_COPY } from "@/features/postSignal/signal";
 
 interface PostCardProps {
   post: any;
@@ -244,6 +244,11 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxUrls, setLightboxUrls] = useState<string[]>([]);
   const postId = post.original_id || post.id;
+  // Post signal: the ⋯ button lights up as the post travels.
+  const cardRef = useRef<HTMLElement>(null);
+  const signal = usePostSignal(postId);
+  useRecordView(cardRef, postId, Boolean(currentUser?.id));
+  const signalLevel = signal.data?.level ?? 0;
   const isOwnPost = currentUser?.id === post.author_id;
   const isEditable = isOwnPost; // No time limit
 
@@ -503,7 +508,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
     "flex h-11 w-full min-w-0 items-center justify-start gap-1.5 rounded-full px-2.5 text-[14px] font-medium tap transition-colors hover:bg-foreground/[0.05]";
 
   return (
-    <article className="mt-1 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
+    <article ref={cardRef} className="mt-1 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
       {post.type === "repost" && (
         <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-[12px] text-muted-foreground">
           <Repeat className="h-3.5 w-3.5" />
@@ -602,16 +607,18 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              aria-label="More options"
+              aria-label={`More options · post signal: ${SIGNAL_COPY[signalLevel].name}`}
               className="-mr-2 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
             >
-              <MoreHorizontal className="h-5 w-5" />
+              <SignalDots level={signalLevel} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-56 bg-popover/95 backdrop-blur-xl border-border shadow-lift"
+            className="w-64 bg-popover/95 backdrop-blur-xl border-border shadow-lift"
           >
+            <SignalSummary signal={signal.data} />
+            <div className="-mx-1 my-1 h-px bg-border" />
             <DropdownMenuItem
               className="flex items-center gap-3 py-2.5 cursor-pointer"
               onClick={handleBookmark}

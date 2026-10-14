@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { ScanIcon, ZeroScanner } from "@/features/scanner/ZeroScanner";
 import { useBroadcastOnline } from "@/lib/realtime/presence";
 import { useMarkMessagesDelivered } from "@/lib/realtime/receipts";
 import { CreateHub, openCreateSheet } from "@/features/create/CreateHub";
@@ -790,6 +791,7 @@ function AppLayout() {
   const [loading, setLoading] = useState(!getInitialSession());
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
@@ -1486,6 +1488,7 @@ function AppLayout() {
           onReceived={() => setUnreadNotificationsCount((count) => count + 1)}
           onRead={() => setUnreadNotificationsCount((count) => Math.max(0, count - 1))}
         />
+        {scannerOpen && <ZeroScanner onClose={() => setScannerOpen(false)} />}
         {!hideHeader && (
           <header
             ref={headerRef}
@@ -1515,10 +1518,18 @@ function AppLayout() {
               <span className="truncate">Search people, clubs, notes</span>
             </Link>
 
+            <button
+              type="button"
+              onClick={() => setScannerOpen(true)}
+              aria-label="Scan a Zero Club code"
+              className="-mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04] md:ml-auto md:mr-0"
+            >
+              <ScanIcon className="h-6 w-6" />
+            </button>
             <Link
               to="/app/chat"
               aria-label={unreadMessagesCount > 0 ? `Messages, ${unreadMessagesCount} unread` : "Messages"}
-              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04] md:ml-auto"
+              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
             >
               <IconMessages className="h-6 w-6" active={pathname.startsWith("/app/chat")} />
               {unreadMessagesCount > 0 && (
