@@ -72,6 +72,11 @@ export interface Payout {
 }
 
 export interface Earnings {
+  payout_frequency?: "weekly" | "monthly";
+  /** Already withdrew in the current weekly/monthly cycle. */
+  cycle_paid?: boolean;
+  /** Today when a withdrawal is open, otherwise when the next one opens. */
+  next_withdraw_on?: string;
   found: boolean;
   currency: PayoutCurrency;
   commission_rate: number;

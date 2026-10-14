@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Megaphone, ShieldCheck, Trophy, User, type LucideIcon } from "./icons/glyphs";
-import { IconHome, IconProfile, IconWallet } from "./icons/nav";
+import { Megaphone, ShieldCheck, Trophy, type LucideIcon } from "./icons/glyphs";
+import { IconHome, IconWallet } from "./icons/nav";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { getZpBalance } from "@/lib/api";
@@ -29,11 +29,10 @@ const NAV: readonly { to: string; label: string; icon: TabIcon; exact: boolean }
   { to: "/campaigns", label: "Campaigns", icon: glyphTab(Megaphone), exact: false },
   { to: "/earnings", label: "Earnings", icon: IconWallet, exact: false },
   { to: "/leaderboard", label: "Leaders", icon: glyphTab(Trophy), exact: false },
-  { to: "/join", label: "Profile", icon: IconProfile, exact: false },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { session, profile, isAdmin, signOut } = useAuth();
+  const { session, profile, isAdmin } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [zp, setZp] = useState<number | null>(null);
 
@@ -102,17 +101,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
             {zp !== null && <ZpBadge amount={zp} className="hidden md:inline-flex" />}
             {session ? (
-              <button
-                onClick={signOut}
-                className="flex items-center gap-2 rounded-full bg-ink/[0.05] px-3 py-1.5 text-[12px] font-semibold text-ink-muted transition hover:text-ink"
+              <Link
+                to="/profile"
+                aria-label="Your ambassador profile"
+                className={`relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-ink/[0.06] ring-2 transition active:scale-95 ${
+                  isActive("/profile", false) ? "ring-accent" : "ring-transparent hover:ring-line"
+                }`}
               >
                 {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
+                  <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <User className="h-3.5 w-3.5" />
+                  <span className="text-[15px] font-bold uppercase text-ink">
+                    {(profile?.full_name || profile?.username || "?").charAt(0)}
+                  </span>
                 )}
-                Sign out
-              </button>
+              </Link>
             ) : (
               <Link
                 to="/signin"
@@ -134,7 +137,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         data-zc-bottom-nav
         className="fixed bottom-[calc(max(10px,env(safe-area-inset-bottom)))] left-1/2 z-40 w-[calc(100%-20px)] -translate-x-1/2 md:hidden"
       >
-        <div className="grid grid-cols-5 gap-1 rounded-xl border border-line bg-bg/95 p-1.5 shadow-[0_18px_48px_-20px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+        <div className="grid grid-cols-4 gap-1 rounded-xl border border-line bg-bg/95 p-1.5 shadow-[0_18px_48px_-20px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           {NAV.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.to, item.exact);

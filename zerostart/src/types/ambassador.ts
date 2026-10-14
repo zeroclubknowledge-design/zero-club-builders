@@ -36,6 +36,7 @@ export interface AmbassadorMe {
   level?: AmbassadorLevel;
   commission_rate?: number;
   payout_currency?: "NGN" | "GHS" | "USD";
+  payout_frequency?: "weekly" | "monthly";
   /** Only when found is false: the person's latest application, if any. */
   application?: AmbassadorApplication;
   default_rate?: number;
@@ -52,6 +53,7 @@ export interface AmbassadorApplication {
   focus?: string[];
   bootcamps?: string[];
   payout_currency?: "NGN" | "GHS" | "USD";
+  payout_frequency?: "weekly" | "monthly";
   review_note?: string | null;
   created_at?: string;
   reviewed_at?: string | null;

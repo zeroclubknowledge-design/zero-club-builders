@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, Clock as Hourglass, Info, Wallet } from "../components/icons/glyphs";
 import { useAuth } from "@/lib/auth";
 import { getEarnings } from "@/lib/campaignApi";
+import { withdrawEarnings } from "@/lib/ambassadorApi";
 import { config } from "@/lib/config";
 import { isCurrency, money, type PayoutCurrency } from "@/lib/money";
 import type { Earnings as EarningsData } from "@/types/campaign";
@@ -53,17 +54,16 @@ export function Earnings() {
 
         <div className="mt-6 grid grid-cols-3 gap-2">
           <Stage icon={<Hourglass className="h-3.5 w-3.5" />} label="In review" value={money(data.in_review_total, currency, true)} hint="Campaigns running or being checked" />
-          <Stage icon={<Check className="h-3.5 w-3.5" />} label="Ready to pay" value={money(data.ready_total, currency, true)} hint="Approved, in the next payout" />
+          <Stage icon={<Check className="h-3.5 w-3.5" />} label="Ready to pay" value={money(data.ready_total, currency, true)} hint="Approved — withdraw it from your Zero Wallet" />
           <Stage icon={<Wallet className="h-3.5 w-3.5" />} label="Paid" value={money(data.paid_total, currency, true)} hint="In your wallet" />
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2 text-[12.5px] text-white/70">
           <p><span className="font-semibold text-white">{data.referred_members}</span> members brought in</p>
           <p><span className="font-semibold text-white">{data.paying_members}</span> of them paying</p>
         </div>
-        <a href={`${config.zeroClubUrl}/app/wallet`} className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-white">
-          <Wallet className="h-4 w-4" /> Open my wallet
-        </a>
       </section>
+
+      <ZeroWalletCard data={data} currency={currency} onDone={load} />
 
       <h2 className="mb-3 mt-8 text-[12px] font-bold uppercase tracking-wider text-ink-faint">Latest commissions</h2>
       {data.recent_commissions.length === 0 ? (
@@ -136,11 +136,96 @@ export function Earnings() {
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-ink-faint" />
         <p className="text-[12px] leading-relaxed text-ink-muted">
           You earn {data.commission_rate}% of every payment made by members who joined through your campaign links — locked in for as long
-          as you're an ambassador. When a campaign ends, the Zero Club team checks it and pays its commission, plus any bonus, straight
-          to your wallet. Members who keep paying after that keep earning you commission, paid in the regular payouts.
+          as you're an ambassador. When a campaign ends, the Zero Club team checks it and approves its commission, plus any bonus. Approved
+          earnings wait in your Zero Wallet, and you withdraw them once per {data.payout_frequency === "monthly" ? "month" : "week"} into
+          your Zero Club wallet — change the schedule any time in your profile settings.
         </p>
       </Card>
     </div>
+  );
+}
+
+function ZeroWalletCard({ data, currency, onDone }: { data: EarningsData; currency: PayoutCurrency; onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
+  const monthly = data.payout_frequency === "monthly";
+  const ready = Number(data.ready_total) || 0;
+  const paidThisCycle = !!data.cycle_paid;
+  const nextOn = data.next_withdraw_on ? fmtDay(data.next_withdraw_on, { weekday: "short", month: "short", day: "numeric" }) : null;
+  const canWithdraw = ready > 0 && !paidThisCycle && !busy;
+
+  const withdraw = async () => {
+    setBusy(true);
+    setNote(null);
+    try {
+      const r = await withdrawEarnings();
+      if (r.ok) {
+        setNote({ tone: "ok", text: `${money(r.amount ?? ready, currency)} is on its way to your Zero Club wallet.` });
+        onDone();
+      } else if (r.reason === "already_withdrawn") {
+        setNote({ tone: "warn", text: `You've already withdrawn this ${monthly ? "month" : "week"}.${r.next_on ? ` Next withdrawal opens ${fmtDay(r.next_on, { weekday: "short", month: "short", day: "numeric" })}.` : ""}` });
+      } else if (r.reason === "nothing_to_withdraw") {
+        setNote({ tone: "warn", text: "Nothing approved to withdraw yet." });
+      } else {
+        setNote({ tone: "warn", text: "Withdrawal isn't available right now." });
+      }
+    } catch (e) {
+      setNote({ tone: "warn", text: e instanceof Error ? e.message : "Withdrawal failed — try again." });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="relative mt-5 overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#1a0f2e_0%,#3b1257_45%,#cc208f_100%)] p-6 text-white shadow-[0_24px_60px_-30px_rgba(204,32,143,0.6)] ring-1 ring-white/10 sm:p-7">
+      <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-[#ff7ac8]/20 blur-2xl" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/20"><Wallet className="h-5 w-5" /></span>
+          <div>
+            <p className="text-[15px] font-bold leading-tight">Zero Wallet</p>
+            <p className="text-[11.5px] text-white/60">Ambassador earnings</p>
+          </div>
+        </div>
+        <Link to="/profile" hash="payouts" className="rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider ring-1 ring-white/20 hover:bg-white/25">
+          {monthly ? "Monthly" : "Weekly"} · Change
+        </Link>
+      </div>
+
+      <p className="relative mt-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/55">Available to withdraw</p>
+      <p className="relative mt-1.5 font-display text-[40px] font-bold leading-none tracking-tight">{money(ready, currency)}</p>
+      <p className="relative mt-2 text-[12.5px] text-white/65">
+        {money(data.in_review_total, currency)} still in review · {money(data.paid_total, currency)} withdrawn so far
+      </p>
+
+      <div className="relative mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center">
+        <button
+          type="button"
+          onClick={withdraw}
+          disabled={!canWithdraw}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-[13.5px] font-bold text-[#3b1257] shadow-lg transition hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/25 disabled:text-white/70 disabled:shadow-none"
+        >
+          <Wallet className="h-4 w-4" />
+          {busy ? "Withdrawing…" : paidThisCycle ? "Withdrawn this " + (monthly ? "month" : "week") : "Withdraw to Zero Club wallet"}
+        </button>
+        <a href={`${config.zeroClubUrl}/app/wallet`} className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-3 text-[13px] font-semibold text-white/85 ring-1 ring-white/25 hover:bg-white/10">
+          Open Zero Club wallet
+        </a>
+      </div>
+
+      <p className="relative mt-4 flex items-center gap-1.5 text-[11.5px] text-white/60">
+        <Hourglass className="h-3.5 w-3.5" />
+        {paidThisCycle && nextOn
+          ? `Next withdrawal opens ${nextOn}`
+          : `You can withdraw once per ${monthly ? "month (from the 1st)" : "week (from Monday)"}${ready > 0 ? "" : " — approved earnings appear here"}`}
+      </p>
+      {note && (
+        <p className={`relative mt-3 rounded-2xl px-3.5 py-2.5 text-[12.5px] font-medium ring-1 ${note.tone === "ok" ? "bg-emerald-400/15 text-emerald-100 ring-emerald-300/30" : "bg-white/10 text-white ring-white/20"}`}>
+          {note.text}
+        </p>
+      )}
+    </section>
   );
 }
 

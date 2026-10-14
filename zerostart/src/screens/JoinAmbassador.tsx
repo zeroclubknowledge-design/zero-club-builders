@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, BriefcaseBusiness, Camera, Check, Clock, Link2, MapPin, MessageCircle, Plus, Users, X, Ban as XCircle } from "../components/icons/glyphs";
 import { OTHER_KINDS, SOCIALS, SOCIAL_PLACEHOLDER, parseLinks, serializeLinks, type LinkEntry, type Social } from "@/lib/socialLinks";
 import {
+  setPayoutFrequency,
   applyAmbassador, getMe, listFocusAreas, listPushableBootcamps, saveAmbassador,
 } from "@/lib/ambassadorApi";
 import { useAuth } from "@/lib/auth";
@@ -60,6 +61,7 @@ export function JoinAmbassador() {
   const [socials, setSocials] = useState<Record<Social, string>>(EMPTY_SOCIALS);
   const [others, setOthers] = useState<LinkEntry[]>([]);
   const [currency, setCurrency] = useState<PayoutCurrency>("NGN");
+  const [frequency, setFrequency] = useState<"weekly" | "monthly">("weekly");
 
   const load = () => {
     setLoadError(null);
@@ -92,6 +94,7 @@ export function JoinAmbassador() {
             setSocials(nextSocials);
             setOthers(rest);
             if (app.payout_currency) setCurrency(app.payout_currency);
+            if (app.payout_frequency === "monthly" || app.payout_frequency === "weekly") setFrequency(app.payout_frequency);
           }
           return;
         }
@@ -139,6 +142,7 @@ export function JoinAmbassador() {
         setError(REFUSAL[result.reason || ""] || "Could not save that.");
         return;
       }
+      if (!isAmbassador) await setPayoutFrequency(frequency).catch(() => undefined);
       if (isAmbassador) navigate({ to: "/" });
       else {
         setApplication({ ...(application || {}), status: "pending", created_at: application?.created_at || new Date().toISOString() });
@@ -201,13 +205,24 @@ export function JoinAmbassador() {
 
   return (
     <div className="zs-rise mx-auto max-w-2xl">
+      {!isAmbassador && (
+        <div className="relative mb-7 overflow-hidden rounded-[24px] shadow-[0_24px_60px_-30px_rgba(204,32,143,0.55)] ring-1 ring-black/5">
+          <img
+            src="/ambassador-banner.jpg"
+            alt="Zero Club — The Student Ambassador Program, for the top 1,000 Nigerian students"
+            width={1600}
+            height={1066}
+            className="block aspect-[3/2] w-full object-cover"
+          />
+        </div>
+      )}
       <h1 className="text-[26px] font-bold text-ink sm:text-[32px]">
         {isAmbassador ? "Your ambassador profile" : "Apply to be a Zero Ambassador"}
       </h1>
       <p className="mt-2 max-w-[54ch] text-[14px] leading-relaxed text-ink-muted">
         {isAmbassador
           ? "Where you represent and what you push. Keep it current so the team knows where you represent Zero Club."
-          : "Ambassadors are approved by the Zero Club team. Approved ambassadors earn commission on what the members they bring in pay, get weekly payouts, and wear the Zero Club Ambassador badge."}
+          : "Ambassadors are approved by the Zero Club team. Approved ambassadors earn commission on what the members they bring in pay, withdraw weekly or monthly, and wear the Zero Club Ambassador badge."}
       </p>
 
       {rate !== null && (
@@ -370,6 +385,28 @@ export function JoinAmbassador() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="mt-5">
+              <span className="text-[13px] font-medium text-ink">How often do you want to withdraw?</span>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {([
+                  ["weekly", "Weekly", "Withdraw your approved earnings every week"],
+                  ["monthly", "Monthly", "Let it build up and withdraw once a month"],
+                ] as const).map(([value, name, hint]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setFrequency(value)}
+                    aria-pressed={frequency === value}
+                    className={`rounded-xl px-3.5 py-3 text-left transition ${frequency === value ? "bg-ink text-bg" : "zs-inset text-ink"}`}
+                  >
+                    <span className="block text-[13.5px] font-bold">{name}</span>
+                    <span className={`mt-0.5 block text-[11.5px] leading-snug ${frequency === value ? "text-bg/70" : "text-ink-faint"}`}>{hint}</span>
+                  </button>
+                ))}
+              </div>
+              <span className="mt-1.5 block text-[11.5px] text-ink-faint">You can change this any time in your profile settings.</span>
             </div>
           </>
         )}

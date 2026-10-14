@@ -1,4 +1,5 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import { Profile } from "@/screens/Profile";
 import { AppShell } from "@/components/AppShell";
 import { AmbassadorHome } from "@/screens/AmbassadorHome";
 import { JoinAmbassador } from "@/screens/JoinAmbassador";
@@ -52,6 +53,9 @@ const joinRoute = createRoute({
 const rosterRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/ambassadors", component: Leaderboard,
 });
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute, path: "/profile", component: Profile,
+});
 const signInRoute = createRoute({
   getParentRoute: () => rootRoute, path: "/signin", component: SignIn,
 });
@@ -67,6 +71,7 @@ const routeTree = rootRoute.addChildren([
   tasksRoute,
   joinRoute,
   rosterRoute,
+  profileRoute,
   signInRoute,
   adminRoute,
 ]);
