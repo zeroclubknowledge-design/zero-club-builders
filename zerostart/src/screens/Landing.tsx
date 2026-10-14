@@ -23,11 +23,11 @@ export function Landing({ signedIn = false, applicationStatus }: { signedIn?: bo
           <img src="/logo.png" alt="" className="h-4 w-4" /> Zero Ambassadors
         </span>
         <h1 className="mt-5 max-w-[560px] font-display text-[34px] font-bold leading-[1.05] tracking-tight sm:text-[52px]">
-          Rep Zero Club. <span className="text-[#f28fd0]">Get paid every week.</span>
+          Rep Zero Club. <span className="text-[#f28fd0]">Get paid weekly or monthly.</span>
         </h1>
         <p className="mt-4 max-w-[480px] text-[15px] leading-relaxed text-white/70">
           Bring people to Zero Club and our partners — in your campus, city or community. Earn commission on
-          everything the members you bring in pay, get paid weekly, and wear the Zero Club Ambassador badge.
+          everything the members you bring in pay, get paid weekly or monthly, and wear the Zero Club Ambassador badge.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <Link
@@ -52,7 +52,7 @@ export function Landing({ signedIn = false, applicationStatus }: { signedIn?: bo
         {[
           { icon: Megaphone, title: "Apply & get approved", body: "Tell us where you'll represent. Once the Zero Club team approves you, start your own campaigns and share your link." },
           { icon: Share2, title: "Share your link", body: "Everyone who joins through your link is yours — you earn a share of every bootcamp, membership and purchase they pay for." },
-          { icon: Wallet, title: "Get paid weekly", body: "Commission is paid into your Zero Club wallet every week, with bonuses from the Zero Club team on top." },
+          { icon: Wallet, title: "Get paid weekly or monthly", body: "Choose your payout schedule. Withdraw your commission into your Zero Club wallet every week or every month, with bonuses from the Zero Club team on top." },
         ].map((step, i) => (
           <div key={step.title} className="zs-card p-5">
             <div className="flex items-center gap-3">

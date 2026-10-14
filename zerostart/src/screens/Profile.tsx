@@ -26,6 +26,7 @@ export function Profile() {
   const [areas, setAreas] = useState<FocusArea[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [savingFreq, setSavingFreq] = useState(false);
+  const [freqNote, setFreqNote] = useState<string | null>(null);
 
   const load = () => {
     if (!session) return;
@@ -58,17 +59,27 @@ export function Profile() {
   const currency: PayoutCurrency = isCurrency(earn?.currency || me.payout_currency || "") ? ((earn?.currency || me.payout_currency) as PayoutCurrency) : "NGN";
   const frequency = (earn?.payout_frequency || me.payout_frequency || app?.payout_frequency || "weekly") as "weekly" | "monthly";
   const total = earn?.found ? Number(earn.in_review_total) + Number(earn.ready_total) + Number(earn.paid_total) : 0;
+  const changesLeft = me.frequency_changes_left ?? 4;
   const focusLabels = (me.focus || app?.focus || []).map((slug) => areas.find((a) => a.slug === slug)?.label || slug);
 
   const changeFrequency = async (f: "weekly" | "monthly") => {
-    if (f === frequency || savingFreq) return;
+    if (f === frequency || savingFreq || changesLeft <= 0) return;
     setSavingFreq(true);
+    setFreqNote(null);
     try {
       const res = await setPayoutFrequency(f);
+      const left = typeof res.changes_left === "number" ? res.changes_left : changesLeft;
       if (res.ok) {
-        setMe((m) => (m ? { ...m, payout_frequency: f, application: m.application ? { ...m.application, payout_frequency: f } : m.application } : m));
+        setMe((m) => (m ? { ...m, payout_frequency: f, frequency_changes_left: left, application: m.application ? { ...m.application, payout_frequency: f } : m.application } : m));
         setEarn((e) => (e ? { ...e, payout_frequency: f } : e));
+      } else if (res.reason === "limit_reached") {
+        setMe((m) => (m ? { ...m, frequency_changes_left: 0 } : m));
+        setFreqNote(`You've used all 4 changes this month. You can change it again from ${res.next_on ? new Date(res.next_on + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "next month"}.`);
+      } else {
+        setFreqNote("Couldn't change your schedule — try again.");
       }
+    } catch (e) {
+      setFreqNote(e instanceof Error ? e.message : "Couldn't change your schedule — try again.");
     } finally {
       setSavingFreq(false);
     }
@@ -78,8 +89,13 @@ export function Profile() {
     <div className="zs-rise mx-auto max-w-3xl">
       {/* Identity */}
       <section className="relative overflow-hidden rounded-[28px] bg-surface shadow-[var(--shadow-card)] ring-1 ring-line">
-        <div className="zs-hero relative h-32 rounded-none sm:h-40">
-          <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_120%,#ffd23f_0,transparent_40%),radial-gradient(circle_at_90%_-20%,#cc208f_0,transparent_45%)]" />
+        {/* The same cover the person uses on Zero Club; the brand gradient when they haven't set one. */}
+        <div className="zs-hero relative z-0 h-36 overflow-hidden rounded-none sm:h-48">
+          {profile?.banner_url ? (
+            <img src={profile.banner_url} alt="Profile banner" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_120%,#ffd23f_0,transparent_40%),radial-gradient(circle_at_90%_-20%,#cc208f_0,transparent_45%)]" />
+          )}
           {isAmb && (
             <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11.5px] font-semibold text-white backdrop-blur">
               <Crown className="h-3.5 w-3.5" /> {me.level || "Ambassador"}
@@ -87,7 +103,8 @@ export function Profile() {
           )}
         </div>
         <div className="px-5 pb-6 sm:px-7">
-          <div className="-mt-12 flex items-end justify-between gap-3">
+          {/* Positioned above the cover so the photo sits on top of it, not under it. */}
+          <div className="relative z-10 -mt-12 flex items-end justify-between gap-3">
             <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full bg-ink/[0.06] ring-4 ring-surface">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -150,12 +167,6 @@ export function Profile() {
         </div>
       )}
 
-      {!isAmb && !pending && (
-        <Link to="/join" className="mt-4 block overflow-hidden rounded-[24px] ring-1 ring-line">
-          <img src="/ambassador-banner.jpg" alt="The Student Ambassador Program — apply now" className="aspect-[3/2] w-full object-cover" />
-        </Link>
-      )}
-
       {/* Payout settings */}
       <h2 id="payouts" className="mb-3 mt-8 scroll-mt-24 text-[12px] font-bold uppercase tracking-wider text-ink-faint">Payout settings</h2>
       <Card className="p-5">
@@ -171,7 +182,7 @@ export function Profile() {
               type="button"
               role="radio"
               aria-checked={frequency === value}
-              disabled={savingFreq}
+              disabled={savingFreq || (changesLeft <= 0 && frequency !== value)}
               onClick={() => changeFrequency(value)}
               className={`rounded-xl px-3.5 py-3 text-left transition disabled:opacity-60 ${frequency === value ? "bg-ink text-bg" : "zs-inset text-ink"}`}
             >
@@ -180,6 +191,12 @@ export function Profile() {
             </button>
           ))}
         </div>
+        <p className={`mt-2 text-[11.5px] ${changesLeft <= 0 ? "font-semibold text-warn" : "text-ink-faint"}`}>
+          {changesLeft <= 0
+            ? "No changes left this month — your schedule unlocks again on the 1st."
+            : `You can change your schedule 4 times a month · ${changesLeft} ${changesLeft === 1 ? "change" : "changes"} left this month.`}
+        </p>
+        {freqNote && <p className="mt-1.5 text-[12px] font-medium text-warn">{freqNote}</p>}
 
         {isAmb && (
           <>

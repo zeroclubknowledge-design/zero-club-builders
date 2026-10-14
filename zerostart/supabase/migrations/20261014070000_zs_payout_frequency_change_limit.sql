@@ -1,0 +1,18 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-14 (migration "zs_payout_frequency_change_limit").
+-- Kept as a record only. Do not re-run.
+--
+-- Payout schedule (weekly/monthly) can be changed at most 4 times per calendar month
+-- (Africa/Lagos). Enforced in zs_set_payout_frequency; every real change is logged.
+--
+-- * table zs_payout_frequency_changes (id, profile_id, from_frequency, to_frequency, changed_at)
+--   RLS on; owner can read own rows; no client writes (only the security-definer RPC inserts).
+-- * zs_frequency_month_start(at)      -> start of the Lagos calendar month.
+-- * zs_frequency_changes_left(profile)-> 4 minus this month's changes, floored at 0.
+-- * zs_set_payout_frequency(p_frequency):
+--     advisory-locked per profile; same value -> {ok, unchanged, changes_left} (not counted);
+--     an applicant's very first pick isn't counted; otherwise logs the change and returns
+--     {ok, ambassador, changes_left}; at 0 left -> {ok:false, reason:'limit_reached', next_on}.
+-- * zs_ambassador_me: also returns frequency_changes_left (both found / not-found branches).
+--
+-- Verified in a rolled-back test: 4 changes succeeded (left 3,2,1,0), the 5th returned
+-- limit_reached with next_on 2026-11-01; a new applicant's first pick left 4.

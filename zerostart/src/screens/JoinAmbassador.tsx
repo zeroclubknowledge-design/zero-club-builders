@@ -406,7 +406,7 @@ export function JoinAmbassador() {
                   </button>
                 ))}
               </div>
-              <span className="mt-1.5 block text-[11.5px] text-ink-faint">You can change this any time in your profile settings.</span>
+              <span className="mt-1.5 block text-[11.5px] text-ink-faint">You can change this later in your profile settings — up to 4 times a month.</span>
             </div>
           </>
         )}

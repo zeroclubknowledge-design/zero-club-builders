@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let alive = true;
     supabase
       .from("profiles")
-      .select("id, username, full_name, avatar_url, is_admin, theme_mode, dark_theme")
+      .select("id, username, full_name, avatar_url, banner_url, is_admin, theme_mode, dark_theme")
       .eq("id", uid)
       .maybeSingle()
       .then(({ data }) => {

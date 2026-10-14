@@ -37,6 +37,8 @@ export interface AmbassadorMe {
   commission_rate?: number;
   payout_currency?: "NGN" | "GHS" | "USD";
   payout_frequency?: "weekly" | "monthly";
+  /** Schedule changes still allowed this calendar month (4 per month). */
+  frequency_changes_left?: number;
   /** Only when found is false: the person's latest application, if any. */
   application?: AmbassadorApplication;
   default_rate?: number;

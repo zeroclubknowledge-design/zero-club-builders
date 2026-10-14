@@ -167,11 +167,15 @@ export async function abandonInitiative(id: string) {
 
 /* ── Payout schedule and wallet ─────────────────────────────────────────── */
 
-/** Weekly or monthly — for an ambassador, or saved on a pending application. */
+/**
+ * Weekly or monthly — for an ambassador, or saved on a pending application.
+ * The server allows 4 changes per calendar month; past that it answers
+ * `limit_reached` with the date changes open again.
+ */
 export async function setPayoutFrequency(frequency: "weekly" | "monthly") {
   const { data, error } = await supabase.rpc("zs_set_payout_frequency", { p_frequency: frequency });
   if (error) throw error;
-  return data as { ok: boolean; reason?: string };
+  return data as { ok: boolean; reason?: string; unchanged?: boolean; changes_left?: number; next_on?: string };
 }
 
 /** Move approved earnings into the Zero Club wallet — once per weekly/monthly cycle. */

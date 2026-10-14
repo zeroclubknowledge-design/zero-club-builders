@@ -21,6 +21,8 @@ export interface Profile {
   username: string | null;
   full_name: string | null;
   avatar_url: string | null;
+  /** The cover image from the person's Zero Club profile. */
+  banner_url?: string | null;
 }
 
 export interface Mvp {
