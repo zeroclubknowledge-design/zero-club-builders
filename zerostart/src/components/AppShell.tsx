@@ -53,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh bg-bg">
       <header className="sticky top-0 z-40 border-b border-line bg-surface/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:h-16 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6 md:h-16">
           <Link to="/" className="flex shrink-0 items-center gap-2">
             {/* The real Zero mark, not a letter in a box. It is transparent and
                 already the brand pink, so it needs no plate behind it — a tinted
@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="font-display text-[17px]/[18px] font-bold tracking-tight text-ink">ZeroStart</span>
           </Link>
 
-          <nav className="hidden flex-1 items-center gap-1 sm:flex">
+          <nav className="hidden flex-1 items-center gap-1 md:flex">
             {NAV.map((item) => (
               <Link
                 key={item.to}
@@ -96,11 +96,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="ml-auto flex items-center gap-3">
             {isAdmin && (
-              <Link to="/admin" aria-label="Admin" className="grid h-10 w-10 place-items-center rounded-full text-ink-muted active:scale-95 sm:hidden">
+              <Link to="/admin" aria-label="Admin" className="grid h-10 w-10 place-items-center rounded-full text-ink-muted active:scale-95 md:hidden">
                 <ShieldCheck className="h-[20px] w-[20px]" />
               </Link>
             )}
-            {zp !== null && <ZpBadge amount={zp} className="hidden sm:inline-flex" />}
+            {zp !== null && <ZpBadge amount={zp} className="hidden md:inline-flex" />}
             {session ? (
               <button
                 onClick={signOut}
@@ -125,11 +125,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-16 sm:pt-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 md:pb-16 sm:pt-6">{children}</main>
 
-      {/* Phone nav: Zero Club's floating tab bar. Same data as above, so a
-          link can never exist in one and not the other. */}
-      <nav className="fixed bottom-[calc(max(10px,env(safe-area-inset-bottom)))] left-1/2 z-40 w-[calc(100%-20px)] max-w-md -translate-x-1/2 sm:hidden">
+      {/* Phone nav: Zero Club's floating tab bar, class for class (src/routes/app.tsx
+          BottomNav). Same data as the desktop nav, so a link can never exist in one
+          and not the other. */}
+      <nav
+        data-zc-bottom-nav
+        className="fixed bottom-[calc(max(10px,env(safe-area-inset-bottom)))] left-1/2 z-40 w-[calc(100%-20px)] -translate-x-1/2 md:hidden"
+      >
         <div className="grid grid-cols-5 gap-1 rounded-xl border border-line bg-bg/95 p-1.5 shadow-[0_18px_48px_-20px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           {NAV.map((item) => {
             const Icon = item.icon;
@@ -139,14 +143,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.to}
                 to={item.to}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex h-12 flex-col items-center justify-center gap-0.5 rounded-lg transition active:scale-95 ${
-                  active ? "bg-ink/[0.12] text-ink" : "text-ink-muted"
+                className={`relative flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                  active
+                    ? "bg-primary/[0.12] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                    : "text-ink-muted hover:bg-ink/[0.04] hover:text-ink"
                 }`}
               >
-                <span className={`transition-transform ${active ? "-translate-y-px scale-110" : ""}`}>
-                  <Icon className="h-[20px] w-[20px]" active={active} />
+                <Icon
+                  className={`h-[20px] w-[20px] shrink-0 transition-transform duration-300 ease-out ${active ? "-translate-y-px scale-110" : ""}`}
+                  active={active}
+                />
+                <span className="max-w-full truncate px-0.5 text-[9px] font-semibold leading-none tracking-tight">
+                  {item.label}
                 </span>
-                <span className="text-[9px] font-semibold leading-none tracking-tight">{item.label}</span>
               </Link>
             );
           })}
