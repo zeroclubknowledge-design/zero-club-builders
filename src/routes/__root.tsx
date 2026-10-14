@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { LiveSessionProvider, useLiveSession } from "@/contexts/LiveSessionContext";
 import { isChunkLoadError, isRecovering, isStaleShellError, recoverFromChunkError } from "@/lib/chunk-recovery";
+import { supabase } from "@/lib/supabase";
 
 const GlobalLiveRoom = lazy(() => 
   import("@/components/GlobalLiveRoom")
@@ -102,6 +103,20 @@ function ErrorComponent({ error: rawError, reset }: { error: unknown; reset: () 
       error,
     });
 
+    // Report it, so a crash someone hits on their phone can be found and fixed.
+    // Network failures and app updates aren't bugs; skip those.
+    if (typeof window !== "undefined" && !isNetworkFailure(error) && !isChunkLoadError(error) && !isStaleShellError(error)) {
+      void Promise.resolve(
+        supabase.rpc("log_client_error", {
+          p_path: window.location.pathname + window.location.search,
+          p_message: `${error.name}: ${error.message}`,
+          p_stack: error.stack || null,
+          p_user_agent: navigator.userAgent,
+          p_build: (document.querySelector('script[type="module"][src*="/assets/"]') as HTMLScriptElement | null)?.src.split("/").pop() || null,
+        }),
+      ).catch(() => undefined);
+    }
+
     // Guarded, so a build that stays broken eventually shows this screen
     // rather than reloading forever. A manual reload remains available below.
     if (isChunkLoadError(error) || isStaleShellError(error)) {
@@ -171,13 +186,28 @@ function ErrorComponent({ error: rawError, reset }: { error: unknown; reset: () 
             >
               {retrying ? "Reconnecting…" : !online ? "Waiting for connection…" : needsRefresh ? "Reload Zero Club" : "Try again"}
             </button>
-            <Link
-              to="/app"
+            {/* A full page load, not a router Link. The error screen lives in the
+                root, so a client-side navigation — especially to /app while already
+                on /app — kept the same broken state on screen and the button did
+                nothing. Loading the page fresh always gets you out. */}
+            <button
+              type="button"
+              onClick={() => {
+                const onFeed = /^\/app\/?$/.test(window.location.pathname);
+                if (onFeed) window.location.reload();
+                else window.location.assign("/app");
+              }}
               className="flex h-11 w-full items-center justify-center rounded-xl border border-border bg-background px-5 text-[13px] font-semibold text-foreground transition hover:bg-accent active:scale-[0.98]"
             >
               Return to feed
-            </Link>
+            </button>
           </div>
+          <details className="mt-5 w-full text-left">
+            <summary className="cursor-pointer text-center text-[11.5px] font-medium text-muted-foreground">Error details</summary>
+            <p className="mt-2 break-words rounded-lg bg-foreground/[0.04] px-3 py-2 font-mono text-[10.5px] leading-snug text-muted-foreground">
+              {error.message || error.name}
+            </p>
+          </details>
         </div>
       </div>
     </div>

@@ -1,0 +1,11 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-14 (migration "client_error_reports").
+-- Kept as a record only. Do not re-run.
+--
+-- Crash reports from the "This page couldn't open" screen, so errors people hit on
+-- their phones can be found and fixed.
+--
+-- * table client_errors (profile_id, path, message, stack, user_agent, build, created_at)
+--   RLS on; only Zero Club admins can read; clients can't write directly.
+-- * log_client_error(p_path, p_message, p_stack, p_user_agent, p_build) — security definer,
+--   fields length-capped, throttled to 20/min per signed-in person (60/min for all signed-out).
+--   Granted to anon and authenticated.
