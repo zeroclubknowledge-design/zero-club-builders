@@ -190,11 +190,10 @@ export function VoiceNotePlayer({
   const shownTime =
     playing || position > 0 ? format(Math.max(0, duration - position)) : format(duration);
 
-  // My bubbles are ink-coloured (text-background on bg-foreground), so the
-  // player inverts there.
-  const ink = mine ? "text-background" : "text-foreground";
-  const filled = mine ? "bg-background" : "bg-[#cc208f]";
-  const empty = mine ? "bg-background/35" : "bg-foreground/25";
+  // My bubbles are brand pink with white ink, so the player goes white there.
+  const ink = mine ? "text-white" : "text-foreground";
+  const filled = mine ? "bg-white" : "bg-[#cc208f]";
+  const empty = mine ? "bg-white/35" : "bg-foreground/25";
 
   return (
     <div className={`flex w-[min(78vw,280px)] items-center gap-2.5 py-1 ${ink}`}>
@@ -244,19 +243,19 @@ export function VoiceNotePlayer({
           {/* The playhead, so the exact spot is clear while it moves. */}
           <span
             aria-hidden
-            className={`pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow ${mine ? "bg-background" : "bg-[#cc208f]"}`}
+            className={`pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow ${mine ? "bg-white" : "bg-[#cc208f]"}`}
             style={{ left: `${progress * 100}%` }}
           />
         </div>
         <div
-          className={`mt-0.5 flex items-center justify-between text-[11.5px] tabular-nums ${mine ? "text-background/75" : "text-muted-foreground"}`}
+          className={`mt-0.5 flex items-center justify-between text-[11.5px] tabular-nums ${mine ? "text-white/75" : "text-muted-foreground"}`}
         >
           <span>{shownTime}</span>
           <button
             type="button"
             onClick={cycleSpeed}
             aria-label={`Playback speed ${speed}×`}
-            className={`rounded-full px-2 py-px text-[11px] font-bold ${mine ? "bg-background/15 text-background" : "bg-foreground/[0.08] text-foreground"}`}
+            className={`rounded-full px-2 py-px text-[11px] font-bold ${mine ? "bg-white/15 text-white" : "bg-foreground/[0.08] text-foreground"}`}
           >
             {speed}×
           </button>
@@ -267,7 +266,7 @@ export function VoiceNotePlayer({
         <span className="relative h-9 w-9 shrink-0">
           <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
           <span
-            className={`absolute -bottom-0.5 -left-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#cc208f] text-white ring-2 ${mine ? "ring-foreground" : "ring-card"}`}
+            className={`absolute -bottom-0.5 -left-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#cc208f] text-white ring-2 ${mine ? "ring-[#c21f8c]" : "ring-card"}`}
           >
             <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="currentColor" aria-hidden>
               <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z" />
