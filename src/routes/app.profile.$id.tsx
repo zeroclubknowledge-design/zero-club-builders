@@ -4,7 +4,7 @@ import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { plain } from "@/lib/og/core/text";
 import { useGoBack } from "@/hooks/useGoBack";
-import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
+import { AffiliationBadge, AmbassadorChip } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
@@ -699,7 +699,6 @@ function ProfileDetailBody({ profile, goBackSmart }: { profile: NonNullable<Retu
             {/* The ambassador mark sits on the photo's corner, outside the
                 clipped circle so it is never cut off. */}
             <span className="pointer-events-none absolute -top-14 left-3 h-28 w-28">
-              <AvatarAffiliation profile={profile} size={30} />
             </span>
 
             <div className="flex h-16 items-center justify-end">

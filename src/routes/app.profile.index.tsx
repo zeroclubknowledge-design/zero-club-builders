@@ -2,7 +2,7 @@ import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { ProfileCredentials, SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
-import { AffiliationBadge, AmbassadorChip, AvatarAffiliation } from "@/components/AffiliationBadge";
+import { AffiliationBadge, AmbassadorChip } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
@@ -368,7 +368,6 @@ function Profile() {
                   }
                 />
               </div>
-              <AvatarAffiliation profile={profile} size={26} />
             </div>
 
             {/* Right side actions */}
@@ -405,10 +404,10 @@ function Profile() {
                   )}
                   <AffiliationBadge profile={profile} size={18} />
                 </div>
+                <AmbassadorChip profile={profile} />
                 <span className="text-[14px] text-muted-foreground mt-1.5 font-medium">
                   {profileHandle}
                 </span>
-                <AmbassadorChip profile={profile} />
               </div>
 
               <div className="mt-3 text-[15px] text-foreground/90 leading-[1.55] pr-4">

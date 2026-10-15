@@ -2,7 +2,7 @@ import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { SignalDots, SignalSummary, usePostSignal, recordPostView, SIGNAL_COPY } from "@/features/postSignal/signal";
 import { postPreviewHead } from "@/lib/og/core/post";
 import { postLinkUrl } from "@/lib/share";
-import { AffiliationBadge, AvatarAffiliation } from "@/components/AffiliationBadge";
+import { AvatarAffiliation } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   MoreHorizontal,
@@ -1048,7 +1048,6 @@ function PostDetail() {
                           className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === "Premium+" ? "text-[#e0a800]" : "text-accent"}`}
                         />
                       )}
-                      <AffiliationBadge profile={post.profiles} size={15} />
                     </div>
                     <p className="truncate text-[13px] leading-snug text-muted-foreground">
                       {authorRole}

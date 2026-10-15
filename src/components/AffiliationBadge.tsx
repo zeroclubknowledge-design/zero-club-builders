@@ -45,7 +45,7 @@ export function AvatarAffiliation({ profile, size = 18 }: { profile: { affiliati
   );
 }
 
-/** A labelled chip for profile pages, linking to ZeroStart. */
+/** The small "Zero Ambassador" label under the name on profile pages, linking to ZeroStart. */
 export function AmbassadorChip({ profile }: { profile: { affiliation?: string | null } | null | undefined }) {
   if (!isAmbassador(profile)) return null;
   return (
@@ -53,12 +53,9 @@ export function AmbassadorChip({ profile }: { profile: { affiliation?: string | 
       href={ZEROSTART_URL}
       target="_blank"
       rel="noreferrer"
-      className="mt-2 inline-flex h-7 items-center gap-1.5 rounded-full bg-[#cc208f]/10 pl-1 pr-3 text-[12.5px] font-semibold text-[#a3186f] dark:text-[#f28fd0]"
+      className="mt-0.5 inline-block text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[#b81b80] dark:text-[#f28fd0]"
     >
-      <span className="grid h-5 w-5 place-items-center overflow-hidden rounded-[5px] bg-white">
-        <img src="/logo.png" alt="" className="h-4 w-4 object-contain" />
-      </span>
-      Zero Club Ambassador
+      Zero Ambassador
     </a>
   );
 }
