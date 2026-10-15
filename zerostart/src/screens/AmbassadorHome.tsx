@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import type {
   AmbassadorMe, AmbassadorTask, FocusArea, Initiative,
 } from "@/types/ambassador";
-import { INITIATIVE_KINDS, nextLevel } from "@/types/ambassador";
+import { INITIATIVE_KINDS, nextLevel, rankBadge } from "@/types/ambassador";
 import { NewInitiativeSheet } from "@/features/ambassador/NewInitiativeSheet";
 import { Card, EmptyState, ErrorState, Skeleton, ZpBadge } from "@/components/ui/primitives";
 
@@ -74,7 +74,8 @@ export function AmbassadorHome() {
   }
 
   const approved = me.tasks_approved ?? 0;
-  const next = nextLevel(approved);
+  const members = me.members_brought_in ?? 0;
+  const next = nextLevel(members);
   const labelFor = (slug: string) => areas.find((a) => a.slug === slug)?.label ?? slug;
 
   return (
@@ -82,7 +83,9 @@ export function AmbassadorHome() {
       <Card className="p-6 sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-accent">{me.level}</p>
+            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-accent">
+              <img src={rankBadge(me.level)} alt="" className="h-5 w-5 object-contain" /> {me.level} · Zero Ambassador
+            </p>
             <h1 className="mt-1.5 text-[24px] font-bold leading-tight text-ink sm:text-[28px]">
               Tasks & initiatives
             </h1>
@@ -111,15 +114,15 @@ export function AmbassadorHome() {
           <div className="mt-5">
             <div className="flex items-baseline justify-between gap-3 text-[12px]">
               <span className="text-ink-muted">
-                <span className="font-semibold text-ink">{next.approved - approved}</span> more
-                approved {next.approved - approved === 1 ? "task" : "tasks"} to reach{" "}
+                <span className="font-semibold text-ink">{(next.members - members).toLocaleString()}</span> more
+                {next.members - members === 1 ? " member" : " members"} to reach{" "}
                 <span className="font-semibold text-ink">{next.level}</span>
               </span>
             </div>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/[0.06]">
               <div
                 className="h-full rounded-full bg-accent transition-[width] duration-500"
-                style={{ width: `${Math.min(100, (approved / next.approved) * 100)}%` }}
+                style={{ width: `${Math.min(100, (members / next.members) * 100)}%` }}
               />
             </div>
           </div>

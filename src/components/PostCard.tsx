@@ -1,6 +1,6 @@
 import { postLinkUrl } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
-import { AvatarAffiliation } from "@/components/AffiliationBadge";
+import { AvatarAffiliation, SubscriptionBadge } from "@/components/AffiliationBadge";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { PortfolioMenuItem, canPutOnPortfolio } from "@/features/portfolio/PortfolioMenuItem";
@@ -547,12 +547,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
               <span className="truncate text-[15px] font-semibold text-foreground">
                 {post.profiles?.full_name || post.profiles?.username}
               </span>
-              {(post.profiles?.tier === "Premium" || post.profiles?.tier === "Premium+") && (
-                <BadgeCheck
-                  aria-label={post.profiles.tier}
-                  className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === "Premium+" ? "text-[#e0a800]" : "text-accent"}`}
-                />
-              )}
+              <SubscriptionBadge profile={post.profiles} size={17} />
             </div>
             <p className="truncate text-[13px] leading-snug text-muted-foreground">
               {authorRole}

@@ -4,7 +4,7 @@ import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
 import { plain } from "@/lib/og/core/text";
 import { useGoBack } from "@/hooks/useGoBack";
-import { AffiliationBadge, AmbassadorChip } from "@/components/AffiliationBadge";
+import { AffiliationBadge, AmbassadorChip, SubscriptionBadge } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
@@ -734,13 +734,8 @@ function ProfileDetailBody({ profile, goBackSmart }: { profile: NonNullable<Retu
               <h1 className="truncate font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">
                 {shownName}
               </h1>
-              {(profile?.tier === "Premium" || profile?.tier === "Premium+") && (
-                <BadgeCheck
-                  aria-label={profile.tier}
-                  className={`h-5 w-5 shrink-0 fill-current ${profile.tier === "Premium+" ? "text-[#e0a800]" : "text-accent"}`}
-                />
-              )}
-              <AffiliationBadge profile={profile} size={19} />
+              <SubscriptionBadge profile={profile} size={22} />
+              <AffiliationBadge profile={profile} size={22} />
             </div>
             <AmbassadorChip profile={profile} />
             {profile?.bio ? (

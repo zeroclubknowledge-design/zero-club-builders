@@ -8,7 +8,7 @@ import { getMe, listFocusAreas, setPayoutFrequency } from "@/lib/ambassadorApi";
 import { getEarnings } from "@/lib/campaignApi";
 import { config } from "@/lib/config";
 import { isCurrency, money, type PayoutCurrency } from "@/lib/money";
-import type { AmbassadorMe, FocusArea } from "@/types/ambassador";
+import { LEVELS, nextLevel, rankBadge, type AmbassadorMe, type FocusArea } from "@/types/ambassador";
 import type { Earnings } from "@/types/campaign";
 import { Card, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { CurrencyPicker } from "@/features/campaigns/CurrencyPicker";
@@ -98,7 +98,7 @@ export function Profile() {
           )}
           {isAmb && (
             <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11.5px] font-semibold text-white backdrop-blur">
-              <Crown className="h-3.5 w-3.5" /> {me.level || "Ambassador"}
+              <img src={rankBadge(me.level)} alt="" className="h-4 w-4 object-contain" /> {me.level || "Associate"}
             </span>
           )}
         </div>
@@ -166,6 +166,8 @@ export function Profile() {
           <StatTile label="Tasks approved" value={String(me.tasks_approved ?? 0)} />
         </div>
       )}
+
+      {isAmb && <RankLadder current={me.level} members={me.members_brought_in ?? 0} />}
 
       {/* Payout settings */}
       <h2 id="payouts" className="mb-3 mt-8 scroll-mt-24 text-[12px] font-bold uppercase tracking-wider text-ink-faint">Payout settings</h2>
@@ -244,5 +246,42 @@ function StatTile({ label, value }: { label: string; value: string }) {
       <p className="truncate font-display text-[20px] font-bold tracking-tight text-ink">{value}</p>
       <p className="mt-0.5 text-[11.5px] font-medium text-ink-faint">{label}</p>
     </div>
+  );
+}
+
+/** All six ranks, the current one lit, and what the next one takes. */
+function RankLadder({ current, members }: { current?: string; members: number }) {
+  const next = nextLevel(members);
+  const at = Math.max(0, LEVELS.findIndex((l) => l.level === current));
+  return (
+    <>
+      <h2 className="mb-3 mt-8 text-[12px] font-bold uppercase tracking-wider text-ink-faint">Ambassador rank</h2>
+      <Card className="p-5">
+        <div className="flex items-center gap-3">
+          <img src={rankBadge(current)} alt="" className="h-14 w-14 shrink-0 object-contain" />
+          <div className="min-w-0">
+            <p className="text-[18px] font-bold leading-tight text-ink">{LEVELS[at].level}</p>
+            <p className="mt-0.5 text-[12.5px] text-ink-muted">
+              {members.toLocaleString()} {members === 1 ? "member" : "members"} brought in
+              {next ? ` · ${(next.members - members).toLocaleString()} more to ${next.level}` : " · top rank"}
+            </p>
+          </div>
+        </div>
+        {next && (
+          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-ink/[0.06]">
+            <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${Math.min(100, Math.max(2, ((members - LEVELS[at].members) / (next.members - LEVELS[at].members)) * 100))}%` }} />
+          </div>
+        )}
+        <ol className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {LEVELS.map((l, i) => (
+            <li key={l.level} className={`flex flex-col items-center rounded-2xl px-1.5 py-3 text-center ${i === at ? "bg-accent-soft ring-1 ring-accent/30" : i < at ? "" : "opacity-45"}`}>
+              <img src={rankBadge(l.level)} alt="" className="h-9 w-9 object-contain" />
+              <span className="mt-1.5 text-[11.5px] font-bold text-ink">{l.level}</span>
+              <span className="mt-0.5 text-[9.5px] leading-tight text-ink-faint">{l.range}</span>
+            </li>
+          ))}
+        </ol>
+      </Card>
+    </>
   );
 }

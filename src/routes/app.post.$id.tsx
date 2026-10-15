@@ -2,7 +2,7 @@ import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { SignalDots, SignalSummary, usePostSignal, recordPostView, SIGNAL_COPY } from "@/features/postSignal/signal";
 import { postPreviewHead } from "@/lib/og/core/post";
 import { postLinkUrl } from "@/lib/share";
-import { AvatarAffiliation } from "@/components/AffiliationBadge";
+import { AvatarAffiliation, SubscriptionBadge } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   MoreHorizontal,
@@ -1042,12 +1042,7 @@ function PostDetail() {
                       <h2 className="truncate text-[15px] font-semibold tracking-normal text-foreground [font-family:inherit]">
                         {post.profiles?.full_name || post.profiles?.username}
                       </h2>
-                      {(post.profiles?.tier === "Premium" ||
-                        post.profiles?.tier === "Premium+") && (
-                        <BadgeCheck
-                          className={`h-4 w-4 shrink-0 fill-current ${post.profiles.tier === "Premium+" ? "text-[#e0a800]" : "text-accent"}`}
-                        />
-                      )}
+                      <SubscriptionBadge profile={post.profiles} size={17} />
                     </div>
                     <p className="truncate text-[13px] leading-snug text-muted-foreground">
                       {authorRole}

@@ -1,0 +1,15 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15 (migration "zero_ambassador_ranks").
+-- Kept as a record only. Do not re-run.
+--
+-- Six Zero Ambassador ranks by members brought in (verified signups in zs_campaign_results):
+--   Associate 0–100 · Representative 101–1,000 · Specialist 1,001–10,000 ·
+--   Manager 10,001–100,000 · Director 100,001–1,000,000 · Executive 1,000,001+
+--
+-- * zs_rank_for(members) -> rank name.
+-- * profiles.ambassador_rank text — null unless affiliation = 'zero_ambassador'.
+--   Clients can't set it: guard_profile_affiliation now also pins ambassador_rank.
+-- * zs_refresh_ambassador_rank(profile) (definer, not executable by clients).
+-- * Triggers: zs_campaign_results_rank (insert/delete/update of status, kind, ambassador_id)
+--   and profiles_ambassador_rank (insert/update of affiliation) keep it current. Backfilled.
+-- * ZeroStart: zs_ambassador_me 'level' is now the rank, plus 'members_brought_in';
+--   zs_ambassador_roster and zs_campaign_leaderboard 'level' columns are now the rank.

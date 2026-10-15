@@ -2,7 +2,7 @@ import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { ProfileCredentials, SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
-import { AffiliationBadge, AmbassadorChip } from "@/components/AffiliationBadge";
+import { AffiliationBadge, AmbassadorChip, SubscriptionBadge } from "@/components/AffiliationBadge";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
@@ -392,17 +392,8 @@ function Profile() {
                   <h2 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
                     {shownName}
                   </h2>
-                  {profile?.tier === "Premium" && (
-                    <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-primary shrink-0">
-                      <BadgeCheck className="h-3 w-3 text-primary-foreground" strokeWidth={2.5} />
-                    </span>
-                  )}
-                  {profile?.tier === "Premium+" && (
-                    <span className="grid h-[18px] w-[18px] place-items-center rounded-full bg-[#ffcf00] shrink-0">
-                      <BadgeCheck className="h-3 w-3 text-black" strokeWidth={2.5} />
-                    </span>
-                  )}
-                  <AffiliationBadge profile={profile} size={18} />
+                  <SubscriptionBadge profile={profile} size={21} />
+                  <AffiliationBadge profile={profile} size={21} />
                 </div>
                 <AmbassadorChip profile={profile} />
                 <span className="text-[14px] text-muted-foreground mt-1.5 font-medium">

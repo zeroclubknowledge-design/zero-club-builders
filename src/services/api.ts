@@ -190,12 +190,12 @@ export const getPosts = async () => {
     const [{ data: posts, error: postsError }, { data: reposts, error: repostsError }, { data: { session } }] = await Promise.all([
       supabase
         .from('posts')
-        .select('*, profiles!posts_author_id_fkey(username, full_name, avatar_url, account_type, tier, affiliation), quoted_posts:quoted_post_id(*, profiles!posts_author_id_fkey(username, full_name, avatar_url))')
+        .select('*, profiles!posts_author_id_fkey(username, full_name, avatar_url, account_type, tier, affiliation, ambassador_rank), quoted_posts:quoted_post_id(*, profiles!posts_author_id_fkey(username, full_name, avatar_url))')
         .order('created_at', { ascending: false })
         .limit(50),
       supabase
         .from('reposts')
-        .select('*, posts!reposts_post_id_fkey(*, profiles!posts_author_id_fkey(username, full_name, avatar_url, account_type, tier, affiliation)), profiles!reposts_profile_id_fkey(username, full_name)')
+        .select('*, posts!reposts_post_id_fkey(*, profiles!posts_author_id_fkey(username, full_name, avatar_url, account_type, tier, affiliation, ambassador_rank)), profiles!reposts_profile_id_fkey(username, full_name)')
         .order('created_at', { ascending: false })
         .limit(50),
       getCachedSession(),
@@ -992,7 +992,7 @@ export const searchEverything = async (query: string) => {
   const [posts, bootcamps, profiles, clubs] = await Promise.all([
     supabase
       .from('posts')
-      .select('*, profiles(username, full_name, avatar_url, account_type, tier, affiliation)')
+      .select('*, profiles(username, full_name, avatar_url, account_type, tier, affiliation, ambassador_rank)')
       .or(`content.ilike.${q}`)
       .order('created_at', { ascending: false })
       .limit(20),

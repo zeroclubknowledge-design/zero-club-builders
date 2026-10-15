@@ -1,4 +1,5 @@
 import { useLoaderData, createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { AffiliationBadge, SubscriptionBadge } from "@/components/AffiliationBadge";
 import { useState, useEffect } from "react";
 import { ArrowLeft, BadgeCheck, Users, Loader2, Hash, Search, Shield } from "@/components/icons/glyphs";
 import { useFollow } from "@/hooks/useFollow";
@@ -180,8 +181,8 @@ function ProfileNetwork() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
                       <span className="truncate text-[15px] font-semibold text-foreground">{user.full_name || user.username}</span>
-                      {user.tier === 'Premium' && <BadgeCheck className="h-4 w-4 shrink-0 fill-[#cc208f] text-white" />}
-                      {user.tier === 'Premium+' && <BadgeCheck className="h-4 w-4 shrink-0 fill-[#e0a800] text-white" />}
+                      <SubscriptionBadge profile={user} size={17} />
+                      <AffiliationBadge profile={user} size={17} />
                     </div>
                     <p className="truncate text-[13px] text-muted-foreground">
                       {user.bio ? String(user.bio).replace(/\s+/g, " ") : `@${user.username || user.id.substring(0, 8)}`}

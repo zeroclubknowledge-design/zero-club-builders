@@ -13,12 +13,14 @@ export interface FocusArea {
 
 export type AmbassadorStatus = "active" | "paused" | "removed";
 
+/** Zero Ambassador ranks, lowest to highest, by members brought in. */
 export type AmbassadorLevel =
-  | "New Ambassador"
-  | "Ambassador"
-  | "Active Ambassador"
-  | "Lead Ambassador"
-  | "Regional Lead";
+  | "Associate"
+  | "Representative"
+  | "Specialist"
+  | "Manager"
+  | "Director"
+  | "Executive";
 
 /** Everything the dashboard needs, as returned by zs_ambassador_me(). */
 export interface AmbassadorMe {
@@ -34,6 +36,8 @@ export interface AmbassadorMe {
   tasks_submitted?: number;
   zp_earned?: number;
   level?: AmbassadorLevel;
+  /** Verified signups brought in — what the rank is based on. */
+  members_brought_in?: number;
   commission_rate?: number;
   payout_currency?: "NGN" | "GHS" | "USD";
   payout_frequency?: "weekly" | "monthly";
@@ -96,21 +100,25 @@ export interface PushableBootcamp {
 }
 
 /**
- * The level thresholds, mirrored from zs_ambassador_level so the UI can
- * explain what the next one takes. The database stays the authority — this is
- * only for showing someone how far they have to go.
+ * Rank thresholds by members brought in (verified signups), mirrored from
+ * zs_rank_for so the UI can explain what the next rank takes. The database
+ * stays the authority — this is only for showing how far there is to go.
  */
-export const LEVELS: { level: AmbassadorLevel; approved: number }[] = [
-  { level: "New Ambassador", approved: 0 },
-  { level: "Ambassador", approved: 1 },
-  { level: "Active Ambassador", approved: 8 },
-  { level: "Lead Ambassador", approved: 20 },
-  { level: "Regional Lead", approved: 40 },
+export const LEVELS: { level: AmbassadorLevel; members: number; range: string }[] = [
+  { level: "Associate", members: 0, range: "0 – 100 members" },
+  { level: "Representative", members: 101, range: "101 – 1,000 members" },
+  { level: "Specialist", members: 1001, range: "1,001 – 10,000 members" },
+  { level: "Manager", members: 10001, range: "10,001 – 100,000 members" },
+  { level: "Director", members: 100001, range: "100,001 – 1,000,000 members" },
+  { level: "Executive", members: 1000001, range: "1,000,001 – 10,000,000 members" },
 ];
 
-export function nextLevel(approved: number) {
-  return LEVELS.find((l) => approved < l.approved) ?? null;
+export function nextLevel(members: number) {
+  return LEVELS.find((l) => members < l.members) ?? null;
 }
+
+export const rankBadge = (level?: string | null) =>
+  `/badges/ambassador-${(LEVELS.some((l) => l.level === level) ? level! : "Associate").toLowerCase()}.png`;
 
 /* ── Initiatives ────────────────────────────────────────────────────────── */
 
