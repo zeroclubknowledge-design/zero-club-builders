@@ -1,0 +1,35 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15, as migrations:
+--   chat_groups_tables, chat_groups_helpers, chat_groups_create_join, chat_groups_members_admin,
+--   chat_groups_settings, chat_groups_messages_fns, chat_groups_reactions_polls_calls,
+--   chat_groups_push_realtime, chat_groups_realtime, chat_group_messages_clock_ts
+-- Kept as a record only. Do not re-run. Read the live definitions with pg_get_functiondef.
+--
+-- Private group chats on the Messages page (not clubs).
+--
+-- Tables (RLS on; members can SELECT; no client INSERT/UPDATE/DELETE — all writes via functions):
+--   chat_groups            name, description, avatar_url, invite_code (12 chars), invite_enabled,
+--                          admins_only_send, call_key (secret → Agora channel 'grp-<call_key>'),
+--                          call_active_since, pinned_message_id, last_message_at
+--   chat_group_members     (group_id, profile_id) role owner|admin|member, muted, last_read_at
+--   chat_group_messages    kind text|system|call|poll, content, reply_to_id, poll jsonb,
+--                          edited_at, deleted_at (soft removal), created_at default clock_timestamp()
+--   chat_group_reactions   (message_id, profile_id, emoji)
+--   chat_group_poll_votes  (message_id, profile_id, option_index)
+--   All five are in the supabase_realtime publication.
+--
+-- Functions (security definer):
+--   create_chat_group(name, member_ids[], description, avatar_url)  max 256, 10 groups/hour;
+--     you can add people who follow you or whom you follow (chat_group_can_add)
+--   chat_group_preview(code) [anon too] · join_chat_group(code) · reset_chat_group_invite(group)
+--   add_chat_group_members · remove_chat_group_member · set_chat_group_role (owner only)
+--   leave_chat_group (owner → next admin/oldest member; last one out removes the group)
+--   update_chat_group(name, description, avatar, admins_only_send, invite_enabled)
+--   mark_chat_group_read · set_chat_group_muted
+--   send_chat_group_message(group, content, reply_to, poll)  40/min rate limit
+--   edit_chat_group_message · remove_chat_group_message (sender or admin) · pin_chat_group_message (admins)
+--   react_chat_group_message (toggle) · vote_chat_group_poll (toggle; single or multi choice)
+--   start_chat_group_call (posts "X started a group call", returns channel) · end_chat_group_call
+--   my_chat_groups()  inbox rows: last message, unread count, call_active, muted, role
+--   chat_group_system / chat_group_unlink — internal, not executable by clients
+-- Trigger chat_group_messages_push: push to every member except the sender unless muted
+--   (via the send-push edge function, ready-made payload per member). System messages don't push.

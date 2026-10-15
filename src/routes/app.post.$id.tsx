@@ -1411,10 +1411,17 @@ function PostDetail() {
                       <div className="mt-1 flex items-center gap-4 pl-3 text-[12px] font-semibold text-muted-foreground">
                         <button
                           onClick={() => handleLikeComment(comment)}
-                          className={comment.isLiked ? "text-accent" : "hover:text-foreground"}
+                          aria-pressed={comment.isLiked}
+                          aria-label={comment.isLiked ? "Unlike reply" : "Like reply"}
+                          className={`-ml-1 inline-flex h-7 items-center gap-1 rounded-full px-1 transition active:scale-95 ${comment.isLiked ? "text-[#cc208f]" : "hover:text-foreground"}`}
                         >
-                          {comment.isLiked ? "Liked" : "Like"}
-                          {comment.likes_count > 0 ? ` · ${comment.likes_count}` : ""}
+                          <ThumbsUp
+                            key={comment.isLiked ? "on" : "off"}
+                            className={`h-[16px] w-[16px] ${comment.isLiked ? "zc-like-pop fill-current" : ""}`}
+                          />
+                          {comment.likes_count > 0 && (
+                            <span className="tabular-nums">{compactCount(comment.likes_count)}</span>
+                          )}
                         </button>
                         <button
                           onClick={() => {

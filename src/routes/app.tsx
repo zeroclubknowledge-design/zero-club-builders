@@ -831,6 +831,16 @@ function AppLayout() {
 
   const { data: profile, isLoading: profileLoading } = useUser();
   useAppResume(profile?.id);
+  // Someone opened a group invite before signing in: take them back to it.
+  useEffect(() => {
+    if (!profile?.id) return;
+    let code: string | null = null;
+    try {
+      code = localStorage.getItem("zc:pending-group-invite");
+      if (code) localStorage.removeItem("zc:pending-group-invite");
+    } catch { /* storage unavailable */ }
+    if (code) navigate({ to: "/g/$code", params: { code } });
+  }, [profile?.id, navigate]);
   // Shows this person as online to others while the app is open.
   useBroadcastOnline(profile?.id);
   // Two grey ticks for people who message me, as soon as it reaches this phone.

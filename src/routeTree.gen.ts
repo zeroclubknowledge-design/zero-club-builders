@@ -49,6 +49,7 @@ import { Route as ClubIdRouteImport } from './routes/club.$id'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as FormSlugRouteImport } from './routes/form.$slug'
 import { Route as FundSlugRouteImport } from './routes/fund.$slug'
+import { Route as GCodeRouteImport } from './routes/g.$code'
 import { Route as GiftCodeRouteImport } from './routes/gift.$code'
 import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
@@ -112,6 +113,8 @@ import { Route as ApiZeroAiCallsEndRouteImport } from './routes/api.zero-ai.call
 import { Route as ApiZeroAiVapiSessionRouteImport } from './routes/api.zero-ai.vapi.session'
 import { Route as ApiZeroAiVapiWebhookRouteImport } from './routes/api.zero-ai.vapi.webhook'
 import { Route as AppBootcampsIdEditRouteImport } from './routes/app.bootcamps_.$id.edit'
+import { Route as AppChatGGroupIdRouteImport } from './routes/app.chat.g.$groupId'
+import { Route as AppChatGNewRouteImport } from './routes/app.chat.g.new'
 import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppGamesPlayGameRouteImport } from './routes/app.games.play.$game'
 import { Route as AppGamesTIdRouteImport } from './routes/app.games.t.$id'
@@ -119,6 +122,7 @@ import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
+import { Route as AppChatGGroupIdCallRouteImport } from './routes/app.chat.g.$groupId_.call'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -319,6 +323,11 @@ const FormSlugRoute = FormSlugRouteImport.update({
 const FundSlugRoute = FundSlugRouteImport.update({
   id: '/fund/$slug',
   path: '/fund/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GCodeRoute = GCodeRouteImport.update({
+  id: '/g/$code',
+  path: '/g/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiftCodeRoute = GiftCodeRouteImport.update({
@@ -639,6 +648,16 @@ const AppBootcampsIdEditRoute = AppBootcampsIdEditRouteImport.update({
   path: '/bootcamps/$id/edit',
   getParentRoute: () => AppRoute,
 } as any)
+const AppChatGGroupIdRoute = AppChatGGroupIdRouteImport.update({
+  id: '/chat/g/$groupId',
+  path: '/chat/g/$groupId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChatGNewRoute = AppChatGNewRouteImport.update({
+  id: '/chat/g/new',
+  path: '/chat/g/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppClubsQuizzesClubIdRoute = AppClubsQuizzesClubIdRouteImport.update({
   id: '/clubs/quizzes/$clubId',
   path: '/clubs/quizzes/$clubId',
@@ -673,6 +692,11 @@ const AppSettingsPremiumFeaturesRoute =
 const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
   id: '/wallet/transaction/$id',
   path: '/wallet/transaction/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChatGGroupIdCallRoute = AppChatGGroupIdCallRouteImport.update({
+  id: '/chat/g/$groupId_/call',
+  path: '/chat/g/$groupId/call',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -716,6 +740,7 @@ export interface FileRoutesByFullPath {
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
+  '/g/$code': typeof GCodeRoute
   '/gift/$code': typeof GiftCodeRoute
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
@@ -780,6 +805,8 @@ export interface FileRoutesByFullPath {
   '/api/zero-ai/vapi/session': typeof ApiZeroAiVapiSessionRoute
   '/api/zero-ai/vapi/webhook': typeof ApiZeroAiVapiWebhookRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
+  '/app/chat/g/$groupId': typeof AppChatGGroupIdRoute
+  '/app/chat/g/new': typeof AppChatGNewRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
   '/app/games/t/$id': typeof AppGamesTIdRoute
@@ -787,6 +814,7 @@ export interface FileRoutesByFullPath {
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/app/chat/g/$groupId/call': typeof AppChatGGroupIdCallRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -822,6 +850,7 @@ export interface FileRoutesByTo {
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
+  '/g/$code': typeof GCodeRoute
   '/gift/$code': typeof GiftCodeRoute
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
@@ -886,6 +915,8 @@ export interface FileRoutesByTo {
   '/api/zero-ai/vapi/session': typeof ApiZeroAiVapiSessionRoute
   '/api/zero-ai/vapi/webhook': typeof ApiZeroAiVapiWebhookRoute
   '/app/bootcamps/$id/edit': typeof AppBootcampsIdEditRoute
+  '/app/chat/g/$groupId': typeof AppChatGGroupIdRoute
+  '/app/chat/g/new': typeof AppChatGNewRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
   '/app/games/t/$id': typeof AppGamesTIdRoute
@@ -893,6 +924,7 @@ export interface FileRoutesByTo {
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/app/chat/g/$groupId/call': typeof AppChatGGroupIdCallRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -935,6 +967,7 @@ export interface FileRoutesById {
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
+  '/g/$code': typeof GCodeRoute
   '/gift/$code': typeof GiftCodeRoute
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
@@ -999,6 +1032,8 @@ export interface FileRoutesById {
   '/api/zero-ai/vapi/session': typeof ApiZeroAiVapiSessionRoute
   '/api/zero-ai/vapi/webhook': typeof ApiZeroAiVapiWebhookRoute
   '/app/bootcamps_/$id/edit': typeof AppBootcampsIdEditRoute
+  '/app/chat/g/$groupId': typeof AppChatGGroupIdRoute
+  '/app/chat/g/new': typeof AppChatGNewRoute
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
   '/app/games/t/$id': typeof AppGamesTIdRoute
@@ -1006,6 +1041,7 @@ export interface FileRoutesById {
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/app/chat/g/$groupId_/call': typeof AppChatGGroupIdCallRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1049,6 +1085,7 @@ export interface FileRouteTypes {
     | '/explore/$slug'
     | '/form/$slug'
     | '/fund/$slug'
+    | '/g/$code'
     | '/gift/$code'
     | '/notes/$slug'
     | '/product/$id'
@@ -1113,6 +1150,8 @@ export interface FileRouteTypes {
     | '/api/zero-ai/vapi/session'
     | '/api/zero-ai/vapi/webhook'
     | '/app/bootcamps/$id/edit'
+    | '/app/chat/g/$groupId'
+    | '/app/chat/g/new'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
     | '/app/games/t/$id'
@@ -1120,6 +1159,7 @@ export interface FileRouteTypes {
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/app/chat/g/$groupId/call'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1155,6 +1195,7 @@ export interface FileRouteTypes {
     | '/explore/$slug'
     | '/form/$slug'
     | '/fund/$slug'
+    | '/g/$code'
     | '/gift/$code'
     | '/notes/$slug'
     | '/product/$id'
@@ -1219,6 +1260,8 @@ export interface FileRouteTypes {
     | '/api/zero-ai/vapi/session'
     | '/api/zero-ai/vapi/webhook'
     | '/app/bootcamps/$id/edit'
+    | '/app/chat/g/$groupId'
+    | '/app/chat/g/new'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
     | '/app/games/t/$id'
@@ -1226,6 +1269,7 @@ export interface FileRouteTypes {
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/app/chat/g/$groupId/call'
   id:
     | '__root__'
     | '/'
@@ -1267,6 +1311,7 @@ export interface FileRouteTypes {
     | '/explore/$slug'
     | '/form/$slug'
     | '/fund/$slug'
+    | '/g/$code'
     | '/gift/$code'
     | '/notes/$slug'
     | '/product/$id'
@@ -1331,6 +1376,8 @@ export interface FileRouteTypes {
     | '/api/zero-ai/vapi/session'
     | '/api/zero-ai/vapi/webhook'
     | '/app/bootcamps_/$id/edit'
+    | '/app/chat/g/$groupId'
+    | '/app/chat/g/new'
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
     | '/app/games/t/$id'
@@ -1338,6 +1385,7 @@ export interface FileRouteTypes {
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/app/chat/g/$groupId_/call'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1357,6 +1405,7 @@ export interface RootRouteChildren {
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
   FundSlugRoute: typeof FundSlugRoute
+  GCodeRoute: typeof GCodeRoute
   GiftCodeRoute: typeof GiftCodeRoute
   NotesSlugRoute: typeof NotesSlugRouteWithChildren
   ProductIdRoute: typeof ProductIdRouteWithChildren
@@ -1652,6 +1701,13 @@ declare module '@tanstack/react-router' {
       path: '/fund/$slug'
       fullPath: '/fund/$slug'
       preLoaderRoute: typeof FundSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/g/$code': {
+      id: '/g/$code'
+      path: '/g/$code'
+      fullPath: '/g/$code'
+      preLoaderRoute: typeof GCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gift/$code': {
@@ -2095,6 +2151,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBootcampsIdEditRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/chat/g/$groupId': {
+      id: '/app/chat/g/$groupId'
+      path: '/chat/g/$groupId'
+      fullPath: '/app/chat/g/$groupId'
+      preLoaderRoute: typeof AppChatGGroupIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/chat/g/new': {
+      id: '/app/chat/g/new'
+      path: '/chat/g/new'
+      fullPath: '/app/chat/g/new'
+      preLoaderRoute: typeof AppChatGNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/clubs/quizzes/$clubId': {
       id: '/app/clubs/quizzes/$clubId'
       path: '/clubs/quizzes/$clubId'
@@ -2142,6 +2212,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet/transaction/$id'
       fullPath: '/app/wallet/transaction/$id'
       preLoaderRoute: typeof AppWalletTransactionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/chat/g/$groupId_/call': {
+      id: '/app/chat/g/$groupId_/call'
+      path: '/chat/g/$groupId/call'
+      fullPath: '/app/chat/g/$groupId/call'
+      preLoaderRoute: typeof AppChatGGroupIdCallRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -2294,12 +2371,15 @@ interface AppRouteChildren {
   AppProfileIndexRoute: typeof AppProfileIndexRoute
   AppWalletIndexRoute: typeof AppWalletIndexRoute
   AppBootcampsIdEditRoute: typeof AppBootcampsIdEditRoute
+  AppChatGGroupIdRoute: typeof AppChatGGroupIdRoute
+  AppChatGNewRoute: typeof AppChatGNewRoute
   AppClubsQuizzesClubIdRoute: typeof AppClubsQuizzesClubIdRoute
   AppGamesPlayGameRoute: typeof AppGamesPlayGameRoute
   AppGamesTIdRoute: typeof AppGamesTIdRoute
   AppNotesIdEditRoute: typeof AppNotesIdEditRoute
   AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
   AppWalletTransactionIdRoute: typeof AppWalletTransactionIdRoute
+  AppChatGGroupIdCallRoute: typeof AppChatGGroupIdCallRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -2357,12 +2437,15 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileIndexRoute: AppProfileIndexRoute,
   AppWalletIndexRoute: AppWalletIndexRoute,
   AppBootcampsIdEditRoute: AppBootcampsIdEditRoute,
+  AppChatGGroupIdRoute: AppChatGGroupIdRoute,
+  AppChatGNewRoute: AppChatGNewRoute,
   AppClubsQuizzesClubIdRoute: AppClubsQuizzesClubIdRoute,
   AppGamesPlayGameRoute: AppGamesPlayGameRoute,
   AppGamesTIdRoute: AppGamesTIdRoute,
   AppNotesIdEditRoute: AppNotesIdEditRoute,
   AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
   AppWalletTransactionIdRoute: AppWalletTransactionIdRoute,
+  AppChatGGroupIdCallRoute: AppChatGGroupIdCallRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -2422,6 +2505,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
   FundSlugRoute: FundSlugRoute,
+  GCodeRoute: GCodeRoute,
   GiftCodeRoute: GiftCodeRoute,
   NotesSlugRoute: NotesSlugRouteWithChildren,
   ProductIdRoute: ProductIdRouteWithChildren,
@@ -2439,13 +2523,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

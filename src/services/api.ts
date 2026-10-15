@@ -873,6 +873,7 @@ export const getConversations = async () => {
       lastMessage: row.last_message,
       lastSenderId: row.last_sender_id,
       time: new Date(row.last_created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      at: row.last_created_at,
       unread: Number(row.unread_count) > 0,
       status: presenceStatus(row.other_updated_at),
     }));
@@ -923,6 +924,7 @@ export const getConversations = async () => {
           lastMessage: msg.content,
           lastSenderId: msg.sender_id,
           time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          at: msg.created_at,
           unread: unreadConversations.has(otherUser.id),
           status
         });

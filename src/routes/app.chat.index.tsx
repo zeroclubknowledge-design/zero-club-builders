@@ -12,7 +12,12 @@ import {
   BadgeCheck,
   Headphones,
   Loader2,
+  Users,
+  Phone,
+  BellOff,
 } from "@/components/icons/glyphs";
+import { myGroups, type GroupSummary } from "@/features/groups/api";
+import { GroupAvatar } from "@/features/groups/components";
 import { useGoBack } from "@/hooks/useGoBack";
 import { getConversations } from "@/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,6 +51,7 @@ function ChatInboxPage() {
     // repairs the list if a phone briefly loses its websocket connection.
     refetchInterval: 30000,
   });
+  const { data: groups = [] } = useQuery({ queryKey: ["my-groups"], queryFn: myGroups, refetchInterval: 30000 });
   const { data: currentUser } = useUser();
   // Green dot for who's online, "typing…" for who's writing to me.
   const onlineIds = useOnlineSet();
@@ -82,6 +88,10 @@ function ChatInboxPage() {
         },
         refreshInbox,
       )
+      // Group messages: RLS only delivers the groups this person is in.
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_group_messages" }, () => {
+        void queryClient.invalidateQueries({ queryKey: ["my-groups"] });
+      })
       .subscribe();
 
     return () => {
@@ -139,6 +149,17 @@ function ChatInboxPage() {
     return filtered;
   }, [conversations, searchQuery, activeTab, currentUser?.id]);
 
+  const filteredGroups = groups.filter((g: GroupSummary) => {
+    if (activeTab === "Unread" && !(g.unread > 0)) return false;
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return g.name.toLowerCase().includes(q) || (g.last?.content || "").toLowerCase().includes(q);
+  });
+  const items: ({ kind: "dm"; at: string; c: any } | { kind: "group"; at: string; g: GroupSummary })[] = [
+    ...filteredConversations.map((c: any) => ({ kind: "dm" as const, at: c.at || "", c })),
+    ...filteredGroups.map((g: GroupSummary) => ({ kind: "group" as const, at: g.last_message_at, g })),
+  ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime());
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-card">
@@ -154,7 +175,8 @@ function ChatInboxPage() {
     directMessagePreview(chat.lastMessage, {
       sentByCurrentUser: chat.lastSenderId === currentUser?.id,
     });
-  const unreadCount = conversations.filter(
+  const groupUnread = groups.filter((g: GroupSummary) => g.unread > 0).length;
+  const unreadCount = groupUnread + conversations.filter(
     (c: any) =>
       c.unread &&
       !c.isSupport &&
@@ -199,6 +221,13 @@ function ChatInboxPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Link
+            to="/app/chat/g/new"
+            aria-label="New group"
+            className="grid h-11 w-11 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
+          >
+            <Users className="h-[22px] w-[22px]" />
+          </Link>
           <Link
             to="/app/chat/new"
             aria-label="New message"
@@ -289,7 +318,10 @@ function ChatInboxPage() {
           </Link>
         )}
 
-        {filteredConversations.map((chat: any) => (
+        {items.map((item) => {
+          if (item.kind === "group") return <GroupRow key={`g-${item.g.id}`} g={item.g} myId={currentUser?.id} />;
+          const chat = item.c;
+          return (
           <Link
             key={chat.id}
             to="/app/chat/$id"
@@ -369,9 +401,10 @@ function ChatInboxPage() {
               </div>
             </div>
           </Link>
-        ))}
+          );
+        })}
 
-        {filteredConversations.length === 0 &&
+        {items.length === 0 &&
           !(supportConversation && activeTab === "All" && !searchQuery) && (
             <div className="flex flex-1 flex-col items-center justify-center px-10 py-24 text-center">
               <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
@@ -396,6 +429,13 @@ function ChatInboxPage() {
       </div>
 
       <Link
+        to="/app/chat/g/new"
+        aria-label="New group"
+        className="fixed bottom-[10.5rem] right-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-card text-foreground shadow-[0_10px_28px_-10px_rgba(0,0,0,0.5)] ring-1 ring-foreground/[0.08] tap md:hidden"
+      >
+        <Users className="h-5 w-5" />
+      </Link>
+      <Link
         to="/app/chat/new"
         className="fixed bottom-24 right-4 z-40 flex h-[52px] items-center gap-2 rounded-full bg-foreground pl-4 pr-5 text-[15px] font-semibold text-background shadow-[0_10px_28px_-10px_rgba(0,0,0,0.5)] tap hover:opacity-90 md:hidden"
       >
@@ -403,5 +443,52 @@ function ChatInboxPage() {
         New message
       </Link>
     </div>
+  );
+}
+
+function GroupRow({ g, myId }: { g: GroupSummary; myId?: string }) {
+  const unread = g.unread > 0;
+  const last = g.last;
+  const preview = !last
+    ? `${g.member_count} members`
+    : last.kind === "system" || last.kind === "call" || !last.sender_name
+      ? last.content
+      : `${last.sender_id === myId ? "You" : last.sender_name.split(" ")[0]}: ${last.content.split("$$MEDIA$$")[0].trim() || "📎 Attachment"}`;
+  const time = new Date(g.last_message_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return (
+    <Link
+      to="/app/chat/g/$groupId"
+      params={{ groupId: g.id }}
+      className="group flex items-center gap-3 px-4 transition-colors hover:bg-foreground/[0.02] md:px-6"
+    >
+      <div className="relative shrink-0">
+        <GroupAvatar name={g.name} url={g.avatar_url} size={56} />
+        {g.call_active && (
+          <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-green-500 text-white ring-[2.5px] ring-card" aria-label="Call in progress">
+            <Phone className="h-2.5 w-2.5" />
+          </span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1 border-b border-border py-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className={`truncate text-[15px] text-foreground ${unread ? "font-bold" : "font-semibold"}`}>{g.name}</span>
+            {g.muted && <BellOff className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+          </span>
+          <span className={`shrink-0 text-[12px] ${unread ? "font-semibold text-accent" : "text-muted-foreground"}`}>{time}</span>
+        </div>
+        <div className="mt-0.5 flex items-center gap-2">
+          <p className={`min-w-0 flex-1 truncate text-[14px] ${unread ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+            {g.call_active ? <span className="font-semibold text-green-600 dark:text-green-400">Call in progress · </span> : null}
+            {preview}
+          </p>
+          {unread && (
+            <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-accent-foreground">
+              {g.unread > 99 ? "99+" : g.unread}
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
   );
 }
