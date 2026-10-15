@@ -50,6 +50,13 @@ function ClientOnlyGroupCall() {
   );
 }
 
+/** Rings for group calls and club lives (sound + full-screen card). */
+function ClientOnlyIncomingCalls() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted ? <IncomingCallHost /> : null;
+}
+
 function ClientOnlyGlobalLiveRoom() {
   const { isActive } = useLiveSession();
   const [mounted, setMounted] = useState(false);
@@ -387,6 +394,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 import { Toaster } from "sonner";
 import { ShareSheetHost } from "@/components/ShareSheet";
 import { OpenInAppBar } from "@/components/OpenInAppBar";
+import { IncomingCallHost } from "@/features/calls/IncomingCallHost";
 import { setupMultiAccountSync } from "@/lib/multiAccount";
 
 function RootComponent() {
@@ -472,6 +480,7 @@ function RootComponent() {
           <Outlet />
           <ClientOnlyGlobalLiveRoom />
           <ClientOnlyGroupCall />
+          <ClientOnlyIncomingCalls />
         </div>
         <ShareSheetHost />
         <OpenInAppBar />

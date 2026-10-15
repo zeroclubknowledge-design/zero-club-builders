@@ -119,7 +119,93 @@ export type ZeroFormField = {
   required: boolean;
   position: number;
   options?: string[];
+  /** Conditional question: only shown when an earlier answer matches. */
+  show_if?: ZeroFormCondition | null;
 };
+
+export type ZeroFormConditionOp = "equals" | "not_equals" | "includes" | "answered";
+
+export type ZeroFormCondition = {
+  /** The earlier question this one depends on. */
+  field_key: string;
+  op: ZeroFormConditionOp;
+  /** The answer that reveals this question (unused for "answered"). */
+  value?: string;
+};
+
+/** Question types a follow-up can depend on, and how. */
+export const conditionOpsFor = (type: ZeroFormFieldType): { op: ZeroFormConditionOp; label: string }[] => {
+  if (type === "yes_no" || type === "multiple_choice" || type === "select" || type === "country") {
+    return [
+      { op: "equals", label: "is" },
+      { op: "not_equals", label: "is not" },
+      { op: "answered", label: "is answered" },
+    ];
+  }
+  if (type === "checkboxes") {
+    return [
+      { op: "includes", label: "includes" },
+      { op: "answered", label: "has any answer" },
+    ];
+  }
+  return [{ op: "answered", label: "is answered" }];
+};
+
+/** The fixed answers a question offers, for picking the one that reveals a follow-up. */
+export const conditionChoicesFor = (field: Pick<ZeroFormField, "field_type" | "options">): string[] => {
+  if (field.field_type === "yes_no") return ["Yes", "No"];
+  if (isChoiceField(field.field_type)) return (field.options || []).map((o) => String(o).trim()).filter(Boolean);
+  return [];
+};
+
+const isAnswered = (answer: unknown) => {
+  if (answer === null || answer === undefined) return false;
+  if (Array.isArray(answer)) return answer.length > 0;
+  if (typeof answer === "object") return true;
+  return String(answer).trim() !== "";
+};
+
+/**
+ * Whether a question should be shown, given the answers so far. A follow-up is
+ * hidden whenever the question it depends on is itself hidden, so chains of
+ * follow-ups ("If yes… → If more than one…") collapse together. A condition
+ * that points at a question that no longer exists is ignored (always shown).
+ */
+export function isZeroFormFieldVisible(
+  field: Pick<ZeroFormField, "field_key" | "show_if">,
+  fields: Pick<ZeroFormField, "field_key" | "show_if" | "field_type">[],
+  answers: Record<string, unknown>,
+  seen: Set<string> = new Set(),
+): boolean {
+  const rule = field.show_if;
+  if (!rule || !rule.field_key) return true;
+  if (seen.has(field.field_key)) return true; // A loop: never hide forever.
+  const source = fields.find((f) => f.field_key === rule.field_key);
+  if (!source) return true;
+  seen.add(field.field_key);
+  if (!isZeroFormFieldVisible(source, fields, answers, seen)) return false;
+  const answer = answers[rule.field_key];
+  const want = String(rule.value ?? "").trim().toLowerCase();
+  const asText = (v: unknown) => (typeof v === "boolean" ? (v ? "yes" : "no") : String(v ?? "").trim().toLowerCase());
+  switch (rule.op) {
+    case "answered":
+      return isAnswered(answer);
+    case "includes":
+      return Array.isArray(answer) ? answer.some((v) => asText(v) === want) : asText(answer) === want;
+    case "not_equals":
+      return isAnswered(answer) && (Array.isArray(answer) ? !answer.some((v) => asText(v) === want) : asText(answer) !== want);
+    case "equals":
+    default:
+      return Array.isArray(answer) ? answer.some((v) => asText(v) === want) : asText(answer) === want;
+  }
+}
+
+/** Plain-English summary of a condition, e.g. "If “Do you have a laptop?” is Yes". */
+export function describeCondition(rule: ZeroFormCondition, source?: Pick<ZeroFormField, "label" | "field_type"> | null) {
+  const label = source?.label?.trim() || "an earlier question";
+  const op = source ? conditionOpsFor(source.field_type).find((o) => o.op === rule.op)?.label || rule.op : rule.op;
+  return rule.op === "answered" ? `If “${label}” ${op}` : `If “${label}” ${op} ${rule.value || "…"}`;
+}
 
 export type ZeroFormTemplate = {
   id: string;

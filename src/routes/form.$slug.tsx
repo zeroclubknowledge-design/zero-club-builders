@@ -33,6 +33,7 @@ import {
   formatCountdown,
   formatFileSize,
   isUploadAnswer,
+  isZeroFormFieldVisible,
 } from "@/features/zeroForm/templates";
 import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
 import { RichText, richTextToPlain } from "@/components/RichText";
@@ -384,9 +385,14 @@ function ZeroFormPublicPage() {
     if (existing && typeof existing === "object") setAnswers(existing);
   }, [data?.my_registration]);
 
+  // Conditional follow-ups only count (and only show) when their answer matches.
+  const visibleFields = useMemo(
+    () => fields.filter((f) => isZeroFormFieldVisible(f, fields, answers)),
+    [fields, answers],
+  );
   const missingRequired = useMemo(
     () =>
-      fields.filter((f) => {
+      visibleFields.filter((f) => {
         if (!f.required) return false;
         const answer = answers[f.field_key];
         // An empty array is an unanswered checkbox question. String(answer)
@@ -397,7 +403,7 @@ function ZeroFormPublicPage() {
         if (isUploadAnswer(answer)) return false;
         return !String(answer ?? "").trim();
       }),
-    [fields, answers],
+    [visibleFields, answers],
   );
 
   const goRegister = () => {
@@ -409,7 +415,8 @@ function ZeroFormPublicPage() {
     mutationFn: async () => {
       const { data: result, error } = await supabase.rpc("submit_zero_form_v2", {
         form_slug: slug,
-        answers,
+        // Answers to follow-ups that ended up hidden are not sent.
+        answers: Object.fromEntries(Object.entries(answers).filter(([key]) => visibleFields.some((f) => f.field_key === key))),
         intent: dataOnly ? "interest" : intent,
         guest: session ? null : { name: guest.name, email: guest.email, phone: guest.phone },
       });
@@ -790,10 +797,20 @@ function ZeroFormPublicPage() {
               {fields.length > 0 && (
                 <div className="space-y-4">
                   {checkedSession && !session && <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">A few questions</p>}
-                  {fields.map((f) => (
-                    <FormField key={f.field_key} field={f} formId={form?.id} value={answers[f.field_key] ?? (f.field_type === "checkboxes" ? [] : "")}
-                      onChange={(value) => setAnswers((current) => ({ ...current, [f.field_key]: value }))} />
-                  ))}
+                  {visibleFields.map((f) => {
+                    const control = (
+                      <FormField key={f.field_key} field={f} formId={form?.id} value={answers[f.field_key] ?? (f.field_type === "checkboxes" ? [] : "")}
+                        onChange={(value) => setAnswers((current) => ({ ...current, [f.field_key]: value }))} />
+                    );
+                    // A follow-up slides in, tucked under the answer that revealed it.
+                    return f.show_if?.field_key ? (
+                      <div key={f.field_key} className="zf-followup -mt-1 rounded-xl border-l-[3px] border-primary/60 bg-primary/[0.035] py-3 pl-3.5 pr-3">
+                        {control}
+                      </div>
+                    ) : (
+                      control
+                    );
+                  })}
                 </div>
               )}
 

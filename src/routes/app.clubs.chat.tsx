@@ -2,6 +2,7 @@ import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-r
 import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { ChatMediaGrid, type ChatVisual } from "@/components/ChatMediaGrid";
 import { ForwardSheet, MessageActionsSheet } from "@/features/chat/MessageActions";
 import { useClubHighlights } from "@/features/chat/useClubHighlights";
 import { useOnlineSet } from "@/lib/realtime/presence";
@@ -5182,6 +5183,15 @@ function MessageBubble({
     }, {}) || {};
   const giveaway = parseClubGiveaway(message.content);
   const clubNote = parseClubNote(message.content);
+  // Photos and videos stand on their own; any text goes in a bubble under them.
+  const mediaTokens: any[] = !clubNote && !giveaway && String(message.content || "").includes("$$MEDIA$$")
+    ? message.content.split("$$MEDIA$$")[1].split(",").filter(Boolean).map((t: string) => decodeChatMedia(t))
+    : [];
+  const visuals = mediaTokens.filter((x) => x.type === "image" || x.type === "video") as ChatVisual[];
+  const otherMedia = mediaTokens.filter((x) => x.type !== "image" && x.type !== "video");
+  const hasVisual = visuals.length > 0;
+  const captionText = String(message.content || "").split("$$MEDIA$$")[0].trim();
+  const [mediaViewer, setMediaViewer] = useState<number | null>(null);
   const giveawayEntries =
     message.reactions?.filter((reaction: any) => reaction.emoji === GIVEAWAY_ENTRY_EMOJI) || [];
   const hasEnteredGiveaway = giveawayEntries.some(
@@ -5494,8 +5504,16 @@ function MessageBubble({
             </div>
           )}
 
+          {hasVisual && !editing && (
+            <ChatMediaGrid
+              items={visuals}
+              mine={isMe}
+              onOpen={(index) => setMediaViewer(index)}
+              overlay={isMe && !captionText && otherMedia.length === 0 && room !== "assignments" && room !== "announcements" ? <>{message.edited_at ? "Edited · " : ""}{time}</> : undefined}
+            />
+          )}
           <div
-            className={`relative group px-3 py-2 ${isMe ? "rounded-[16px_16px_4px_16px] bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)]" : "rounded-[4px_16px_16px_16px] bg-foreground/[0.06] text-left"}`}
+            className={hasVisual && !editing && !captionText && otherMedia.length === 0 && room !== "assignments" && room !== "announcements" ? "contents" : `relative group px-3 py-2 ${hasVisual ? "mt-1 max-w-[min(72vw,300px)]" : ""} ${isMe ? "rounded-[16px_16px_4px_16px] bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)]" : "rounded-[4px_16px_16px_16px] bg-foreground/[0.06] text-left"}`}
           >
             {/* Room badges */}
             {room === "assignments" && (
@@ -5755,7 +5773,7 @@ function MessageBubble({
                     mine={isMe}
                     fallback={<p className="text-[15px] leading-[1.4]">{message.content}</p>}
                   />
-                ) : (
+                ) : !hasVisual || captionText ? (
                   <p
                     className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ? "text-white" : "text-foreground"}`}
                   >
@@ -5767,35 +5785,31 @@ function MessageBubble({
                           : "text-[#cc208f] underline font-bold hover:opacity-80"
                       }
                     />
-                    {isMe && !message.content.includes("$$MEDIA$$") && (
+                    {isMe && otherMedia.length === 0 && (
                       <span className={`inline-block ${message.edited_at ? "w-24" : "w-12"}`} />
                     )}{" "}
                     {/* Space for timestamp */}
                   </p>
-                )}
+                ) : null}
 
                 {!editing && <LinkPreview text={message.content} />}
 
-                {message.content.includes("$$MEDIA$$") && (
+                {otherMedia.length > 0 && (
                   <div
                     className={`mt-2 rounded-xl overflow-hidden transition-colors ${
-                      message.content.split("$$MEDIA$$")[1].split(",").length >= 2
+                      otherMedia.length >= 2
                         ? "grid grid-cols-2 gap-0.5 max-h-[240px] ring-1 ring-border bg-muted/40"
                         : "flex justify-start ring-1 ring-border"
                     }`}
                   >
-                    {message.content
-                      .split("$$MEDIA$$")[1]
-                      .split(",")
-                      .map((token: string, i: number) => {
-                        const media = decodeChatMedia(token);
+                    {otherMedia.map((media: any, i: number) => {
                         return (
                           <div
                             key={i}
                             className={`relative overflow-hidden w-full ${
                               media.type === "audio" || media.type === "file"
                                 ? "min-w-[220px] bg-card p-3"
-                                : message.content.split("$$MEDIA$$")[1].split(",").length === 1
+                                : otherMedia.length === 1
                                   ? "max-h-[300px]"
                                   : "aspect-square"
                             }`}
@@ -5846,10 +5860,10 @@ function MessageBubble({
                 )}
               </>
             )}
-            {isMe && message.content.includes("$$MEDIA$$") && <div className="h-4" />}{" "}
+            {isMe && otherMedia.length > 0 && <div className="h-4" />}{" "}
             {/* Space for timestamp when media is present */}
             {isMe && giveaway && <div className="h-4" />}
-            {isMe && !editing && (
+            {isMe && !editing && !(hasVisual && !captionText && otherMedia.length === 0 && room !== "assignments" && room !== "announcements") && (
               <span className="absolute bottom-1.5 right-3 text-[10px] text-white/70">
                 {message.edited_at ? "Edited · " : ""}
                 {time}
@@ -6076,6 +6090,23 @@ function MessageBubble({
           )}
         </div>
       </div>
+      {mediaViewer !== null && (
+        <ImageLightbox
+          mediaUrls={visuals.map((v) => v.url)}
+          mediaTypes={visuals.map((v) => v.type)}
+          caption={captionText}
+          initialIndex={mediaViewer}
+          isOpen
+          onClose={() => setMediaViewer(null)}
+          allowDownload
+          sender={{
+            name: isMe ? "You" : message.profiles?.full_name || message.profiles?.username || "Member",
+            avatarUrl: message.profiles?.avatar_url,
+            time: new Date(message.created_at).toLocaleString([], { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }),
+          }}
+          onReply={onReplyText ? (text: string) => onReplyText(text) : undefined}
+        />
+      )}
       {viewerUrl && (
         <ImageLightbox
           mediaUrls={[viewerUrl]}

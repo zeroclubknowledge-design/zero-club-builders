@@ -442,6 +442,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     isAdminRef.current = isAdmin;
   }, [isAdmin]);
 
+  /* Ringing: opening the room stops my own ring for this live, and a host
+     entering rings the club's members (the server limits this to once per
+     20 minutes per club and checks the host role). */
+  const isUuid = /^[0-9a-f-]{36}$/i.test(channel);
+  useEffect(() => {
+    if (!isUuid) return;
+    void supabase.rpc("answer_call_ring" as never, { p_kind: "club_live", p_target: channel, p_reason: "joined" } as never);
+  }, [channel, isUuid]);
+  useEffect(() => {
+    if (!isAdmin || !isUuid) return;
+    void supabase.rpc("ring_club_live" as never, { p_club: channel } as never);
+  }, [isAdmin, channel, isUuid]);
+
   useEffect(() => {
     async function checkAdmin() {
       if (!profile?.id) return;

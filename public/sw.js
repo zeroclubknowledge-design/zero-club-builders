@@ -9,7 +9,7 @@
 // Bump whenever navigation or shell behavior changes. Chrome keeps service
 // worker caches longer than ordinary browser tabs, so a stable version here
 // can leave an installed mobile app serving an old shell after a deployment.
-const VERSION = "zc-v6-notification-taps";
+const VERSION = "zc-v7-call-ringing";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const IMAGE_CACHE = `${VERSION}-images`;
@@ -160,6 +160,28 @@ self.addEventListener("push", (event) => {
     }
   };
 
+  // A group call or a club going live rings: a long phone-call vibration that
+  // stays on screen with Join / Decline until answered.
+  if (payload.type === "group_call" || payload.type === "club_live") {
+    event.waitUntil(
+      self.registration.showNotification(payload.title || "Zero Club", {
+        body: payload.body,
+        icon: payload.icon || "/logo.png",
+        badge: "/icons/icon-monochrome-512.png",
+        vibrate: [900, 500, 900, 500, 900, 500, 900, 500, 900, 500, 900],
+        requireInteraction: true,
+        renotify: true,
+        tag: `ring:${payload.url || payload.tag || ""}`,
+        data: { url: payload.url || "/app", ring: true },
+        actions: [
+          { action: "join", title: payload.type === "club_live" ? "Join live" : "Join call" },
+          { action: "decline", title: "Decline" },
+        ],
+      }).then(updateBadge),
+    );
+    return;
+  }
+
   event.waitUntil(
     self.registration.showNotification(payload.title || "Zero Club", {
       body: payload.body,
@@ -184,6 +206,8 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  // Declining a ring just dismisses it.
+  if (event.action === "decline") return;
   const targetUrl = event.notification.data?.url || "/app";
 
   // Opening one notification clears that one from the count, not all of them.
@@ -249,5 +273,15 @@ self.addEventListener("notificationclick", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING" || event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+  // The app answered or declined a ring (or the call ended): clear the ringing
+  // notification so the phone stops showing it.
+  if (event.data?.type === "STOP_RING") {
+    const url = String(event.data.url || "");
+    event.waitUntil(
+      self.registration.getNotifications().then((list) =>
+        list.forEach((n) => { if (n.data?.ring && (!url || n.data.url === url)) n.close(); }),
+      ),
+    );
   }
 });

@@ -35,6 +35,16 @@ clientsClaim();
 // (post {type: 'SKIP_WAITING'}) without any background reload.
 self.addEventListener('message', (event) => {
   if ((event.data as any)?.type === 'SKIP_WAITING') self.skipWaiting();
+  // The app answered or declined a ring (or the call ended): clear the ringing
+  // notification so the phone stops showing it.
+  if ((event.data as any)?.type === 'STOP_RING') {
+    const url = String((event.data as any).url || '');
+    event.waitUntil?.(
+      self.registration.getNotifications().then((list) =>
+        list.forEach((n) => { if (n.data?.ring && (!url || n.data?.url === url)) n.close(); }),
+      ),
+    );
+  }
 });
 
 /*
@@ -105,6 +115,29 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // A group call or a club going live rings: a long phone-call vibration that
+  // stays on screen with Join / Decline until answered.
+  const ringing = payload.type === 'group_call' || payload.type === 'club_live';
+  if (ringing) {
+    event.waitUntil(
+      self.registration.showNotification(payload.title || 'Zero Club', {
+        body: payload.body,
+        icon: payload.icon || '/icons/icon-192.png',
+        badge: '/icons/icon-monochrome-512.png',
+        vibrate: [900, 500, 900, 500, 900, 500, 900, 500, 900, 500, 900],
+        requireInteraction: true,
+        renotify: true,
+        tag: `ring:${payload.url || payload.tag || ''}`,
+        data: { url: payload.url || '/app', ring: true },
+        actions: [
+          { action: 'join', title: payload.type === 'club_live' ? 'Join live' : 'Join call' },
+          { action: 'decline', title: 'Decline' },
+        ],
+      } as NotificationOptions),
+    );
+    return;
+  }
+
   const options: NotificationOptions & {
     vibrate?: number[];
     actions?: { action: string; title: string; icon?: string }[];
@@ -147,6 +180,8 @@ self.addEventListener('push', (event) => {
 // reload), with a full navigation and then a new window as fallbacks.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  // Declining a ring just dismisses it.
+  if (event.action === 'decline') return;
 
   const target = new URL(event.notification.data?.url || '/app', self.location.origin).href;
 

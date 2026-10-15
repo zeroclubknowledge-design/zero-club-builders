@@ -4,6 +4,7 @@ import { Forward, ForwardSheet, MessageActionsSheet } from "@/features/chat/Mess
 import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { ChatMediaGrid, type ChatVisual } from "@/components/ChatMediaGrid";
 import { isRecentlySeen, lastSeenLabel, useIsOnline } from "@/lib/realtime/presence";
 import { useInboxTyping, useSendTypingTo } from "@/lib/realtime/typing";
 import { MentionField } from "@/components/MentionField";
@@ -60,7 +61,7 @@ function MessageTicks({ message }: { message: any }) {
 }
 
 function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideClubRequest, messages, onReply, onReact, currentUser, groupStart = true, groupEnd = true, highlighted = false, onToggleHighlight, onForward, onReplyText, onTogglePin }: any) {
-  const [viewer, setViewer] = React.useState<{ urls: string[]; index: number } | null>(null);
+  const [viewer, setViewer] = React.useState<{ urls: string[]; index: number; types?: ("image" | "video")[]; caption?: string } | null>(null);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -174,6 +175,13 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
 
   const repliedMessage = m.reply_to_id ? messages.find((msg: any) => msg.id === m.reply_to_id) : null;
   const fundLink = parseFundLinkMessage(m.content);
+  // Photos and videos show on their own, with any text as a bubble under them.
+  const mediaTokens: any[] = m.content.includes('$$MEDIA$$') ? m.content.split('$$MEDIA$$')[1].split(',').filter(Boolean).map((t: string) => decodeChatMedia(t)) : [];
+  const visuals = mediaTokens.filter((x) => x.type === 'image' || x.type === 'video') as ChatVisual[];
+  const otherMedia = mediaTokens.filter((x) => x.type !== 'image' && x.type !== 'video');
+  const hasVisual = visuals.length > 0;
+  const captionText = m.content.split('$$MEDIA$$')[0].trim();
+  const needsBubble = !hasVisual || Boolean(captionText) || otherMedia.length > 0 || Boolean(repliedMessage) || Boolean(m.forwarded) || highlighted;
 
   const handleAcceptInvite = async (messageId: string, instId: string, instName: string) => {
     if (!currentUser) return;
@@ -279,11 +287,25 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
 
         <div className={`flex flex-col ${isMe ?"items-end" : "items-start"} min-w-0`}>
           <>
-              <div className={`relative group px-3.5 py-2 flex flex-col rounded-[18px] ${highlighted ? 'ring-2 ring-[#cc208f]/70' : ''} ${
+              <div className={hasVisual ? `relative group flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}` : `relative group px-3.5 py-2 flex flex-col rounded-[18px] ${highlighted ? 'ring-2 ring-[#cc208f]/70' : ''} ${
                 isMe
                   ? `bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)] ${groupEnd ? 'rounded-br-[4px]' : ''} ${!groupStart ? 'rounded-tr-[4px]' : ''}`
                   : `bg-foreground/[0.07] text-left ${groupEnd ? 'rounded-bl-[4px]' : ''} ${!groupStart ? 'rounded-tl-[4px]' : ''}`
               }`}>
+                {hasVisual && (
+                  <ChatMediaGrid
+                    items={visuals}
+                    mine={isMe}
+                    onOpen={(index) => setViewer({ urls: visuals.map((v) => v.url), index, types: visuals.map((v) => v.type), caption: captionText })}
+                    overlay={!needsBubble ? (<>{m.is_edited && <span>edited</span>}{time}{isMe && <MessageTicks message={m} />}</>) : undefined}
+                  />
+                )}
+                {needsBubble && (
+                <div className={hasVisual ? `relative flex max-w-[min(72vw,300px)] flex-col rounded-[18px] px-3.5 py-2 ${highlighted ? 'ring-2 ring-[#cc208f]/70' : ''} ${
+                  isMe
+                    ? `bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)] ${groupEnd ? 'rounded-br-[4px]' : ''} rounded-tr-[6px]`
+                    : `bg-foreground/[0.07] text-left ${groupEnd ? 'rounded-bl-[4px]' : ''} rounded-tl-[6px]`
+                }` : 'contents'}>
                 
                 {(m.forwarded || highlighted) && (
                   <span className={`mb-0.5 flex items-center gap-1.5 text-[11.5px] italic ${isMe ? 'justify-end text-white/65' : 'text-muted-foreground'}`}>
@@ -389,7 +411,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                     {/* Time and ticks float to the end of the last line, or
                         drop to their own line when the text fills it, so
                         they never sit on top of the words. */}
-                    {!m.content.includes('$$MEDIA$$') && (
+                    {otherMedia.length === 0 && (
                       <span className={`float-right ml-2.5 mt-[6px] -mb-[3px] inline-flex items-center gap-1 text-[11px] leading-none tabular-nums ${isMe ? 'text-white/65' : 'text-muted-foreground'}`}>
                         {m.is_edited && <span>edited</span>}
                         {time}
@@ -402,17 +424,16 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 {!fundLink && !/^(TUTOR_INVITE|ACCEPTED_TUTOR_INVITE|REJECTED_TUTOR_INVITE|CLUB_REQUEST):/.test(m.content) && (
                   <LinkPreview text={m.content} mine={isMe} />
                 )}
-                {m.content.includes('$$MEDIA$$') && (
+                {otherMedia.length > 0 && (
                   <div className={`mt-1.5 rounded-[12px] overflow-hidden transition-colors ${
-                    m.content.split('$$MEDIA$$')[1].split(',').length >= 2
+                    otherMedia.length >= 2
                       ? "grid grid-cols-2 gap-0.5 max-h-[240px]"
                       : "flex justify-start"
                   }`}>
-                    {m.content.split('$$MEDIA$$')[1].split(',').map((token: string, i: number) => {
-                      const media = decodeChatMedia(token);
+                    {otherMedia.map((media: any, i: number) => {
                       return (
                         <div key={i} className={`relative overflow-hidden w-full ${
-                          media.type === 'audio' || media.type === 'file' ? 'min-w-[220px] p-1' : m.content.split('$$MEDIA$$')[1].split(',').length === 1 ? "max-h-[300px]" : "aspect-square"
+                          media.type === 'audio' || media.type === 'file' ? 'min-w-[220px] p-1' : otherMedia.length === 1 ? "max-h-[300px]" : "aspect-square"
                         }`}>
                           {media.type === 'video' ? (
                             <video src={media.url} controls className="h-full w-full object-cover" />
@@ -435,12 +456,15 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 )}
                 
                 {/* Media and cards: time and ticks on their own line under them. */}
-                {(m.content.includes('$$MEDIA$$') || fundLink || m.content.startsWith('ACCEPTED_TUTOR_INVITE:') || m.content.startsWith('REJECTED_TUTOR_INVITE:') || m.content.startsWith('CLUB_REQUEST:') || m.content.startsWith('TUTOR_INVITE:')) && (
+                {(otherMedia.length > 0 || fundLink || m.content.startsWith('ACCEPTED_TUTOR_INVITE:') || m.content.startsWith('REJECTED_TUTOR_INVITE:') || m.content.startsWith('CLUB_REQUEST:') || m.content.startsWith('TUTOR_INVITE:')) && (
                   <span className={`mt-1 flex items-center justify-end gap-1 text-[11px] leading-none tabular-nums ${isMe ? 'text-white/65' : 'text-muted-foreground'}`}>
                     {m.is_edited && <span>edited</span>}
                     {time}
                     {isMe && <MessageTicks message={m} />}
                   </span>
+                )}
+
+                </div>
                 )}
 
                 {/* Desktop: the message menu on hover, without taking up any room. */}
@@ -538,6 +562,8 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                 <ImageLightbox
                   mediaUrls={viewer.urls}
                   initialIndex={viewer.index}
+                  mediaTypes={viewer.types}
+                  caption={viewer.caption}
                   isOpen
                   onClose={() => setViewer(null)}
                   allowDownload

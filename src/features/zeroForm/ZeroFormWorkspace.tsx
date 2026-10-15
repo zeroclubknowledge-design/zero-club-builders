@@ -30,6 +30,7 @@ import {
   Globe,
   Hash,
   UploadCloud,
+  GitBranch,
   type LucideIcon,
 } from "@/components/icons/glyphs";
 import { toast } from "sonner";
@@ -50,6 +51,10 @@ import {
   isChoiceField,
   isUploadAnswer,
   zeroFormUrl,
+  conditionOpsFor,
+  conditionChoicesFor,
+  describeCondition,
+  type ZeroFormCondition,
   type ZeroFormField,
   type ZeroFormFieldType,
   type ZeroFormUploadAnswer,
@@ -291,7 +296,8 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
   /* Insert a question of a chosen type at a position, then focus it. */
   const [insertAt, setInsertAt] = useState<number | null>(null);
   const [focusKey, setFocusKey] = useState<string | null>(null);
-  const insertQuestion = (index: number, type: ZeroFormFieldType) => {
+  const [conditionKey, setConditionKey] = useState<string | null>(null);
+  const insertQuestion = (index: number, type: ZeroFormFieldType, condition?: ZeroFormCondition) => {
     const key = `question_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
     const next: ZeroFormField = {
       field_key: key,
@@ -300,6 +306,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
       required: false,
       position: index,
       ...(isChoiceField(type) ? { options: ["Option 1", "Option 2"] } : {}),
+      ...(condition ? { show_if: condition } : {}),
     } as ZeroFormField;
     setFields((current) => [...current.slice(0, index), next, ...current.slice(index)]);
     setInsertAt(null);
@@ -468,11 +475,45 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                     open={insertAt === tools.index}
                     onOpen={() => setInsertAt(tools.index)}
                     onClose={() => setInsertAt(null)}
-                    onPick={(type) => insertQuestion(tools.index, type)}
+                    earlier={fields.slice(0, tools.index)}
+                    onPick={(type, condition) => insertQuestion(tools.index, type, condition)}
                   />
                   <div
-                    className={`rounded-lg border bg-background p-2.5 transition-shadow ${focusKey === field.field_key ? "border-primary/50 ring-2 ring-primary/15" : "border-border"}`}
+                    className={`rounded-lg border bg-background p-2.5 transition-shadow ${field.show_if ? "ml-4 border-l-[3px] border-l-primary/60" : ""} ${focusKey === field.field_key ? "border-primary/50 ring-2 ring-primary/15" : "border-border"}`}
                   >
+                    {(() => {
+                      const rule = field.show_if;
+                      const sourceIndex = rule ? fields.findIndex((f) => f.field_key === rule.field_key) : -1;
+                      const source = sourceIndex >= 0 ? fields[sourceIndex] : null;
+                      if (conditionKey === field.field_key) {
+                        return (
+                          <div className="mb-2.5">
+                            <ConditionEditor
+                              sources={fields.slice(0, tools.index)}
+                              initial={rule || null}
+                              onCancel={() => setConditionKey(null)}
+                              onSave={(next) => { updateField({ show_if: next }); setConditionKey(null); }}
+                            />
+                          </div>
+                        );
+                      }
+                      if (!rule) return null;
+                      return (
+                        <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-md bg-primary/[0.06] px-2 py-1.5">
+                          <GitBranch className="h-3.5 w-3.5 shrink-0 text-primary" />
+                          <span className="min-w-0 flex-1 text-[10.5px] font-semibold leading-4 text-primary">
+                            {describeCondition(rule, source)}
+                          </span>
+                          <button type="button" onClick={() => setConditionKey(field.field_key)} className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-foreground hover:bg-background">Edit</button>
+                          <button type="button" onClick={() => updateField({ show_if: null })} className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-background hover:text-destructive">Always show</button>
+                          {(!source || sourceIndex > tools.index) && (
+                            <p className="w-full text-[10px] text-amber-600">
+                              {source ? `Move this question below “${source.label}” — it depends on that answer.` : "The question this depended on was removed. Pick another or set it to always show."}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div className="flex items-center gap-2">
                       <div className="-ml-1.5 flex shrink-0 items-center">
                         {tools.handle}
@@ -496,7 +537,14 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                         Required
                       </label>
                       <button
-                        onClick={() => setFields((current) => current.filter((f) => f.field_key !== field.field_key))}
+                        onClick={() =>
+                          setFields((current) =>
+                            current
+                              .filter((f) => f.field_key !== field.field_key)
+                              // Follow-ups of a removed question go back to always showing.
+                              .map((f) => (f.show_if?.field_key === field.field_key ? { ...f, show_if: null } : f)),
+                          )
+                        }
                         className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -526,6 +574,15 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                       <p className="text-[10px] text-muted-foreground">
                         {ZERO_FORM_FIELD_TYPES.find((t) => t.value === field.field_type)?.hint}
                       </p>
+                      {!field.show_if && tools.index > 0 && conditionKey !== field.field_key && (
+                        <button
+                          type="button"
+                          onClick={() => setConditionKey(field.field_key)}
+                          className="ml-auto inline-flex h-7 items-center gap-1 rounded-full border border-border px-2.5 text-[10.5px] font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+                        >
+                          <GitBranch className="h-3 w-3" /> Make conditional
+                        </button>
+                      )}
                     </div>
 
                     {isChoiceField(field.field_type) && (
@@ -577,10 +634,11 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
               open={insertAt === fields.length}
               onOpen={() => setInsertAt(fields.length)}
               onClose={() => setInsertAt(null)}
-              onPick={(type) => insertQuestion(fields.length, type)}
+              earlier={fields}
+              onPick={(type, condition) => insertQuestion(fields.length, type, condition)}
             />
             <p className="mt-2 text-[10.5px] text-muted-foreground">
-              Tap + between questions to add one there. Drag ⋮⋮ to change the order.
+              Tap + between questions to add one there. Drag ⋮⋮ to change the order. Conditional follow-ups only appear when the answer above matches.
             </p>
           </Section>
         </div>
@@ -1100,14 +1158,69 @@ function InsertQuestion({
   onOpen,
   onClose,
   onPick,
+  earlier,
   last,
 }: {
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
-  onPick: (type: ZeroFormFieldType) => void;
+  onPick: (type: ZeroFormFieldType, condition?: ZeroFormCondition) => void;
+  /** Questions above this spot: what a conditional follow-up can depend on. */
+  earlier: ZeroFormField[];
   last?: boolean;
 }) {
+  // Conditional follow-up: step 1 is the rule, step 2 the answer type.
+  const [step, setStep] = useState<"types" | "rule" | "followup">("types");
+  const [rule, setRule] = useState<ZeroFormCondition | null>(null);
+  useEffect(() => { if (!open) { setStep("types"); setRule(null); } }, [open]);
+
+  if (open && step === "rule") {
+    return (
+      <div className="my-2 rounded-xl border border-primary/30 bg-card p-3 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.35)]">
+        <ConditionEditor
+          sources={earlier}
+          initial={rule}
+          saveLabel="Next: choose the follow-up"
+          onCancel={() => setStep("types")}
+          onSave={(next) => { setRule(next); setStep("followup"); }}
+        />
+      </div>
+    );
+  }
+
+  if (open && step === "followup" && rule) {
+    const source = earlier.find((f) => f.field_key === rule.field_key);
+    return (
+      <div className="my-2 rounded-xl border border-primary/30 bg-card p-3 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.35)]">
+        <div className="mb-2 flex items-start gap-2 rounded-lg bg-primary/[0.06] px-2.5 py-2">
+          <GitBranch className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+          <p className="min-w-0 flex-1 text-[11px] font-semibold leading-4 text-primary">{describeCondition(rule, source)}, then ask…</p>
+          <button type="button" onClick={() => setStep("rule")} className="shrink-0 text-[10.5px] font-semibold text-muted-foreground hover:text-foreground">Change</button>
+        </div>
+        <p className="mb-2 text-[12px] font-semibold">What kind of follow-up question?</p>
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+          {ZERO_FORM_FIELD_TYPES.map((type) => {
+            const Icon = TYPE_ICONS[type.value] || Type;
+            return (
+              <button
+                key={type.value}
+                type="button"
+                onClick={() => onPick(type.value, rule)}
+                className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5 text-left transition hover:border-primary/40 hover:bg-primary/[0.04]"
+              >
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Icon className="h-3.5 w-3.5" /></span>
+                <span className="min-w-0">
+                  <span className="block text-[11.5px] font-semibold leading-tight">{type.label}</span>
+                  <span className="mt-0.5 block text-[10px] leading-snug text-muted-foreground">{type.hint}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   if (open) {
     return (
       <div className="my-2 rounded-xl border border-primary/30 bg-card p-3 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.35)]">
@@ -1117,6 +1230,22 @@ function InsertQuestion({
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
+        <button
+          type="button"
+          onClick={() => setStep("rule")}
+          disabled={earlier.length === 0}
+          className="mb-1.5 flex w-full items-start gap-2.5 rounded-lg border border-primary/35 bg-[linear-gradient(135deg,rgba(204,32,143,0.08),rgba(204,32,143,0.02))] p-2.5 text-left transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-55"
+        >
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground"><GitBranch className="h-3.5 w-3.5" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11.5px] font-semibold leading-tight">Conditional follow-up</span>
+            <span className="mt-0.5 block text-[10px] leading-snug text-muted-foreground">
+              {earlier.length === 0
+                ? "Add a question above first — a follow-up depends on an earlier answer."
+                : "Only appears when an earlier answer matches, e.g. “If Yes, tell us more”"}
+            </span>
+          </span>
+        </button>
         <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
           {ZERO_FORM_FIELD_TYPES.map((type) => {
             const Icon = TYPE_ICONS[type.value] || Type;
@@ -1163,6 +1292,142 @@ function InsertQuestion({
       >
         <Plus className="h-3.5 w-3.5" />
       </button>
+    </div>
+  );
+}
+
+/**
+ * "Show this question when <earlier question> <is> <answer>". Earlier
+ * questions are cards; the answers to match are tappable chips (Yes / No,
+ * or the question's own options).
+ */
+function ConditionEditor({
+  sources,
+  initial,
+  onSave,
+  onCancel,
+  saveLabel = "Save condition",
+}: {
+  sources: ZeroFormField[];
+  initial: ZeroFormCondition | null;
+  onSave: (rule: ZeroFormCondition) => void;
+  onCancel: () => void;
+  saveLabel?: string;
+}) {
+  // Yes / No and choice questions first: they're what follow-ups usually hang on.
+  const ranked = [...sources].sort((a, b) => Number(conditionChoicesFor(b).length > 0) - Number(conditionChoicesFor(a).length > 0));
+  const [sourceKey, setSourceKey] = useState(initial?.field_key && sources.some((f) => f.field_key === initial.field_key) ? initial.field_key : ranked[0]?.field_key || "");
+  const source = sources.find((f) => f.field_key === sourceKey) || null;
+  const ops = source ? conditionOpsFor(source.field_type) : [];
+  const choices = source ? conditionChoicesFor(source) : [];
+  const [op, setOp] = useState(initial?.op || ops[0]?.op || "equals");
+  const [value, setValue] = useState(initial?.value || "");
+
+  useEffect(() => {
+    if (!source) return;
+    if (!ops.some((o) => o.op === op)) setOp(ops[0].op);
+    if (value && choices.length && !choices.includes(value)) setValue("");
+  }, [sourceKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const needsValue = op !== "answered";
+  const ready = Boolean(source) && (!needsValue || Boolean(value));
+
+  if (sources.length === 0) {
+    return (
+      <div className="text-[11px] text-muted-foreground">
+        Add a question above this one first — a conditional question follows an earlier answer.
+        <button type="button" onClick={onCancel} className="ml-2 font-semibold text-foreground">OK</button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="flex items-center gap-1.5 text-[12px] font-semibold"><GitBranch className="h-3.5 w-3.5 text-primary" /> Show this question when…</p>
+        <button type="button" onClick={onCancel} aria-label="Cancel" className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-muted">
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">This earlier question</p>
+      <div className="max-h-44 space-y-1 overflow-y-auto pr-0.5">
+        {ranked.map((f) => {
+          const on = f.field_key === sourceKey;
+          const Icon = TYPE_ICONS[f.field_type] || Type;
+          return (
+            <button
+              key={f.field_key}
+              type="button"
+              onClick={() => setSourceKey(f.field_key)}
+              className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${on ? "border-primary bg-primary/[0.06]" : "border-border bg-background hover:border-primary/35"}`}
+            >
+              <Icon className={`h-3.5 w-3.5 shrink-0 ${on ? "text-primary" : "text-muted-foreground"}`} />
+              <span className="min-w-0 flex-1 truncate text-[11.5px] font-semibold">{f.label || "Untitled question"}</span>
+              <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full ${on ? "bg-primary text-primary-foreground" : "ring-1 ring-border"}`}>
+                {on && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {source && (
+        <>
+          <p className="mb-1 mt-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Condition</p>
+          <div className="flex flex-wrap gap-1.5">
+            {ops.map((o) => (
+              <button
+                key={o.op}
+                type="button"
+                onClick={() => setOp(o.op)}
+                className={`h-8 rounded-full px-3 text-[11px] font-semibold transition ${op === o.op ? "bg-primary text-primary-foreground" : "border border-border bg-background text-muted-foreground hover:text-foreground"}`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+
+          {needsValue && (
+            <>
+              <p className="mb-1 mt-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Answer</p>
+              {choices.length > 0 ? (
+                <div className={source.field_type === "yes_no" ? "grid grid-cols-2 gap-1.5" : "flex flex-wrap gap-1.5"}>
+                  {choices.map((choice) => (
+                    <button
+                      key={choice}
+                      type="button"
+                      onClick={() => setValue(choice)}
+                      className={`rounded-lg border px-3 text-[12px] font-semibold transition ${source.field_type === "yes_no" ? "h-11" : "h-9"} ${value === choice ? "border-primary bg-primary/[0.08] text-primary ring-1 ring-primary/40" : "border-border bg-background hover:border-primary/35"}`}
+                    >
+                      {choice}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder="The answer to match"
+                  className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-[12px] outline-none focus:border-primary/50"
+                />
+              )}
+            </>
+          )}
+        </>
+      )}
+
+      <div className="mt-3 flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="h-9 rounded-full px-3 text-[11.5px] font-semibold text-muted-foreground hover:text-foreground">Cancel</button>
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => source && onSave({ field_key: source.field_key, op, ...(needsValue ? { value } : {}) })}
+          className="h-9 rounded-full bg-primary px-4 text-[11.5px] font-semibold text-primary-foreground disabled:opacity-45"
+        >
+          {saveLabel}
+        </button>
+      </div>
     </div>
   );
 }

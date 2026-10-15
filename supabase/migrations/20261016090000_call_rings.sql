@@ -1,0 +1,8 @@
+-- ALREADY APPLIED to the live database on 2026-10-16 (migration "call_rings"). Do not re-run.
+-- call_rings table (RLS: recipients read their own; in supabase_realtime),
+-- answer_call_ring(kind, target, reason), ring_club_live(club) with a
+-- 20-minute throttle and one multi-recipient push; start_chat_group_call now
+-- rings unmuted members, heartbeat_chat_group_call stops my ring on join, and
+-- end_chat_group_call stops every ring for that call.
+-- send-push (v16) accepts profile_ids[] and sends group_call / club_live with
+-- high urgency and a 60s TTL.

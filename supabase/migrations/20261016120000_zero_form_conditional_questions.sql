@@ -1,0 +1,4 @@
+-- ALREADY APPLIED to the live database on 2026-10-16 (migration "zero_form_conditional_questions"). Do not re-run.
+-- zero_form_fields.show_if jsonb: {"field_key","op":"equals|not_equals|includes|answered","value"}.
+-- save_zero_form now stores show_if (validated op, value capped at 300 chars).
+-- get_zero_form_public / get_zero_form_detail already return it via to_jsonb(field).

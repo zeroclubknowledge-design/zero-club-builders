@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useOnlineSet } from "@/lib/realtime/presence";
+import { chatListTime, chatFullTime } from "@/lib/chatTime";
 import { useInboxTyping } from "@/lib/realtime/typing";
 import {
   Search,
@@ -39,6 +40,12 @@ export const Route = createFileRoute("/app/chat/")({
 
 function ChatInboxPage() {
   const navigate = useNavigate();
+  // Ticks each minute so "9:31 PM" turns into "Yesterday" after midnight.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const goBack = useGoBack("/app");
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -380,8 +387,9 @@ function ChatInboxPage() {
                 </span>
                 <span
                   className={`shrink-0 text-[12px] ${chat.unread ? "font-semibold text-accent" : "text-muted-foreground"}`}
+                  title={chatFullTime(chat.at)}
                 >
-                  {chat.time}
+                  {chat.at ? chatListTime(chat.at, now) : chat.time}
                 </span>
               </div>
               <div className="mt-0.5 flex items-center gap-2">
@@ -472,7 +480,7 @@ function GroupRow({ g, myId }: { g: GroupSummary; myId?: string }) {
     : last.kind === "system" || last.kind === "call" || !last.sender_name
       ? last.content
       : `${last.sender_id === myId ? "You" : last.sender_name.split(" ")[0]}: ${last.content.split("$$MEDIA$$")[0].trim() || "📎 Attachment"}`;
-  const time = new Date(g.last_message_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const time = chatListTime(g.last_message_at);
   return (
     <Link
       to="/app/chat/g/$groupId"
@@ -493,7 +501,7 @@ function GroupRow({ g, myId }: { g: GroupSummary; myId?: string }) {
             <span className={`truncate text-[15px] text-foreground ${unread ? "font-bold" : "font-semibold"}`}>{g.name}</span>
             {g.muted && <BellOff className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
           </span>
-          <span className={`shrink-0 text-[12px] ${unread ? "font-semibold text-accent" : "text-muted-foreground"}`}>{time}</span>
+          <span className={`shrink-0 text-[12px] ${unread ? "font-semibold text-accent" : "text-muted-foreground"}`} title={chatFullTime(g.last_message_at)}>{time}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-2">
           <p className={`min-w-0 flex-1 truncate text-[14px] ${unread ? "font-medium text-foreground" : "text-muted-foreground"}`}>

@@ -14,6 +14,7 @@ import { LinkPreview } from "@/components/LinkPreview";
 import { MentionField } from "@/components/MentionField";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
+import { ChatMediaGrid, type ChatVisual } from "@/components/ChatMediaGrid";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { compressImage } from "@/lib/imageCompression";
@@ -65,7 +66,7 @@ function GroupChatPage() {
   const [actionsFor, setActionsFor] = useState<GroupMessage | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [pollOpen, setPollOpen] = useState(false);
-  const [viewer, setViewer] = useState<{ urls: string[]; index: number } | null>(null);
+  const [viewer, setViewer] = useState<{ urls: string[]; index: number; types?: ("image" | "video")[]; caption?: string; sender?: { name: string; avatarUrl?: string | null; time?: string } } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
   const imageRef = useRef<HTMLInputElement>(null);
@@ -400,7 +401,7 @@ function GroupChatPage() {
                   onReact={(emoji) => void toggleReaction(m.id, emoji)}
                   onOpenActions={() => !m.pending && !m.deleted_at && setActionsFor(m)}
                   onReply={() => !m.deleted_at && setReplyTo(m)}
-                  onImage={(urls, index) => setViewer({ urls, index })}
+                  onImage={(urls, index, extra) => setViewer({ urls, index, ...extra })}
                 />
               )}
             </React.Fragment>
@@ -547,7 +548,7 @@ function GroupChatPage() {
 
       <PollComposer open={pollOpen} onOpenChange={setPollOpen} groupId={groupId} />
       {myId && <GroupInfoSheet open={infoOpen} onOpenChange={setInfoOpen} group={group} members={members} myId={myId} onStartCall={() => startCall()} />}
-      {viewer && <ImageLightbox mediaUrls={viewer.urls} initialIndex={viewer.index} isOpen onClose={() => setViewer(null)} allowDownload />}
+      {viewer && <ImageLightbox mediaUrls={viewer.urls} initialIndex={viewer.index} mediaTypes={viewer.types} caption={viewer.caption} sender={viewer.sender} isOpen onClose={() => setViewer(null)} allowDownload />}
     </div>
   );
 }
@@ -569,7 +570,7 @@ function Bubble({
   onReact: (emoji: string) => void;
   onOpenActions: () => void;
   onReply: () => void;
-  onImage: (urls: string[], index: number) => void;
+  onImage: (urls: string[], index: number, extra?: { types?: ("image" | "video")[]; caption?: string; sender?: { name: string; avatarUrl?: string | null; time?: string } }) => void;
 }) {
   const timer = useRef<number | null>(null);
   const startX = useRef(0);
@@ -578,6 +579,17 @@ function Bubble({
   const [text, mediaPart] = m.content.split(MEDIA);
   const media = mediaPart ? mediaPart.split(",").map(decodeChatMedia) : [];
   const images = media.filter((x) => x.type === "image").map((x) => x.url);
+  // Photos and videos stand on their own; any text goes in a bubble under them.
+  const visuals = (m.deleted_at || m.kind === "poll" ? [] : media.filter((x) => x.type === "image" || x.type === "video")) as ChatVisual[];
+  const otherMedia = media.filter((x) => x.type !== "image" && x.type !== "video");
+  const hasVisual = visuals.length > 0;
+  const needsBubble = !hasVisual || Boolean(text?.trim()) || otherMedia.length > 0 || Boolean(replied);
+  const openVisual = (index: number) =>
+    onImage(visuals.map((v) => v.url), index, {
+      types: visuals.map((v) => v.type),
+      caption: text?.trim(),
+      sender: { name: mine ? "You" : displayName(sender), avatarUrl: sender?.avatar_url, time: new Date(m.created_at).toLocaleString([], { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) },
+    });
   const color = nameColor(m.sender_id || "");
 
   return (
@@ -606,14 +618,33 @@ function Bubble({
         </span>
       )}
       <div className={`flex max-w-[78%] flex-col ${mine ? "items-end" : "items-start"}`}>
+        {hasVisual && (
+          <>
+            {!mine && groupStart && (
+              <span className="mb-1 ml-1 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.04em]" style={{ color }}>
+                {displayName(sender)}
+                {senderRole && senderRole !== "member" && <span className="rounded bg-foreground/[0.08] px-1 py-px text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">{senderRole}</span>}
+              </span>
+            )}
+            <div className={m.pending ? "opacity-70" : ""}>
+              <ChatMediaGrid
+                items={visuals}
+                mine={mine}
+                onOpen={openVisual}
+                overlay={!needsBubble ? <>{m.edited_at && "edited · "}{m.pending ? "Sending…" : timeLabel(m.created_at)}</> : undefined}
+              />
+            </div>
+          </>
+        )}
+        {needsBubble && (
         <div
-          className={`relative rounded-[18px] px-3.5 py-2 ${
+          className={`relative rounded-[18px] px-3.5 py-2 ${hasVisual ? "mt-1" : ""} ${
             mine
               ? `bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)] ${groupEnd ? "rounded-br-[4px]" : ""} ${!groupStart ? "rounded-tr-[4px]" : ""}`
               : `bg-foreground/[0.07] ${groupEnd ? "rounded-bl-[4px]" : ""} ${!groupStart ? "rounded-tl-[4px]" : ""}`
           } ${m.pending ? "opacity-70" : ""}`}
         >
-          {!mine && groupStart && (
+          {!mine && groupStart && !hasVisual && (
             <span className="mb-0.5 flex items-center gap-1.5 text-[12.5px] font-semibold" style={{ color }}>
               {displayName(sender)}
               {senderRole && senderRole !== "member" && <span className="rounded bg-foreground/[0.08] px-1 py-px text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">{senderRole}</span>}
@@ -643,9 +674,9 @@ function Bubble({
                     </p>
                   )}
                   {text?.trim() && <LinkPreview text={text} mine={mine} />}
-                  {media.length > 0 && (
-                    <div className={`mt-1.5 overflow-hidden rounded-[12px] ${images.length >= 2 ? "grid grid-cols-2 gap-0.5" : ""}`}>
-                      {media.map((x, i) => (
+                  {otherMedia.length > 0 && (
+                    <div className="mt-1.5 overflow-hidden rounded-[12px]">
+                      {otherMedia.map((x, i) => (
                         <div key={i} className={x.type === "image" ? (images.length >= 2 ? "aspect-square" : "max-h-[300px]") : "py-1"}>
                           {x.type === "image" ? (
                             <img src={x.url} alt="" loading="lazy" decoding="async" onClick={() => onImage(images, images.indexOf(x.url))} className="h-full w-full cursor-pointer object-cover" />
@@ -669,6 +700,7 @@ function Bubble({
             {m.pending ? "Sending…" : timeLabel(m.created_at)}
           </span>
         </div>
+        )}
         {reactions.length > 0 && (
           <div className={`-mt-1.5 flex flex-wrap gap-1 ${mine ? "justify-end pr-1" : "pl-1"}`}>
             {reactions.map(([emoji, r]) => (

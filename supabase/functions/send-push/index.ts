@@ -162,10 +162,11 @@ serve(async (req) => {
     const record = payload.record || {};
     let push: Push | null = null;
 
-    if (payload.profile_id) {
-      // A ready-made push from server code (database triggers, other functions).
+    if (payload.profile_id || Array.isArray(payload.profile_ids)) {
+      // A ready-made push from server code (database triggers, other functions),
+      // to one person or to a list (a club going live rings all its members).
       push = {
-        receivers: [payload.profile_id],
+        receivers: Array.isArray(payload.profile_ids) ? payload.profile_ids.slice(0, 5000) : [payload.profile_id],
         title: payload.title || "Zero Club",
         body: payload.body || "You have a new notification.",
         url: payload.url || "/app/notifications",
@@ -327,7 +328,8 @@ serve(async (req) => {
       icon: push.icon,
       tag: push.tag,
     });
-    const pushOptions = push.type === "game_buzz"
+    // Ringing (a group call or a club going live) is only useful for a minute.
+    const pushOptions = push.type === "game_buzz" || push.type === "group_call" || push.type === "club_live"
       ? { urgency: "high" as const, TTL: 60 }
       : push.urgent
         // Chats and requests: delivered straight away even when the phone is
