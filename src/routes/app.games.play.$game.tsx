@@ -20,6 +20,7 @@ import { ZeroSpaceGame, type ZeroSpaceResult } from "@/features/games/v2/ZeroSpa
 import {
   countdown, finishRun, joinTournament, JOIN_REFUSAL, listTournaments, previewPrizeLine, startRun, tournamentDetail,
 } from "@/features/games/v2/api";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/games/play/$game")({
   validateSearch: (search: Record<string, unknown>): { t?: string; code?: string } => ({
@@ -308,9 +309,9 @@ function PlayGame() {
                   <button key={d} onClick={() => setDifficulty(d)} className={`h-8 rounded-full px-3.5 text-[12.5px] font-semibold capitalize ${difficulty === d ? "bg-white text-[#140a1c]" : "bg-white/10 text-white/75"}`}>{d}</button>
                 ))}
                 {game === "words" && (
-                  <select value={profession} onChange={(e) => setProfession(e.target.value)} className="h-8 max-w-[170px] rounded-full border-0 bg-white/10 px-3 text-[12.5px] font-semibold text-white outline-none">
+                  <CardSelect value={profession} onChange={(e) => setProfession(e.target.value)} className="h-8 max-w-[170px] rounded-full border-0 bg-white/10 px-3 text-[12.5px] font-semibold text-white outline-none">
                     {ZERO_GAME_PROFESSIONS.map((p) => <option key={p} value={p} className="text-black">{p}</option>)}
-                  </select>
+                  </CardSelect>
                 )}
               </div>
             )}

@@ -1,3 +1,4 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15 (as migration "admin_user_gifts_and_plan_reads", without re-creating admin_gift_recipient). Kept as a record only. Do not re-run.
 -- Recipient-bound gifts from Zero Club. No personal admin wallet is charged.
 begin;
 create table public.admin_user_gifts (

@@ -1,0 +1,10 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15. Kept as a record only. Do not re-run.
+--
+-- Why "Send gift" did nothing:
+-- * subscription_plans had RLS on and no read policy, so the admin saw no plans and the form
+--   could never become valid. Added: create policy "anyone reads active plans" (select, active).
+-- * admin_user_gifts (wallet funds, ZP, credits…) had never been applied — see
+--   20261012210000_admin_user_gifts.sql, now applied (notification also carries link '/app/gifts').
+--
+-- admin_gift_membership: members switch between Learner, Creator and Tutor, so any of those plans
+-- can now be gifted to any personal account; institution plans stay institution-only.

@@ -6,6 +6,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } f
 import { supabase } from "@/lib/supabase";
 import { formatNaira } from "@/features/membership/plans";
 import { ZeroGiftPaymentOption, useZeroGiftBalance, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
+import { CardSelect } from "@/components/CardSelect";
 
 const INSTITUTION_TYPES = [
   "University", "Polytechnic", "College", "Secondary school", "Training provider",
@@ -163,7 +164,7 @@ export function InstitutionOnboardingDrawer({
                   <p className={sectionTitle}>Organisation</p>
                   <div className="mt-3 grid gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2"><label className={label}>Institution name *</label><input value={form.institution_name} onChange={(e) => set("institution_name", e.target.value)} placeholder="Lagos Institute of Technology" className={field} /></div>
-                    <div><label className={label}>Type</label><select value={form.institution_type} onChange={(e) => set("institution_type", e.target.value)} className={field}>{INSTITUTION_TYPES.map((type) => <option key={type}>{type}</option>)}</select></div>
+                    <div><label className={label}>Type</label><CardSelect value={form.institution_type} onChange={(e) => set("institution_type", e.target.value)} className={field}>{INSTITUTION_TYPES.map((type) => <option key={type}>{type}</option>)}</CardSelect></div>
                     <div><label className={label}>Registration / RC number</label><input value={form.registration_number} onChange={(e) => set("registration_number", e.target.value)} placeholder="RC 123456" className={field} /></div>
                     <div><label className={label}>Website</label><input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://" className={field} /></div>
                     <div><label className={label}>Country *</label><input value={form.country} onChange={(e) => set("country", e.target.value)} placeholder="Nigeria" className={field} /></div>

@@ -12,6 +12,7 @@ import { ZERO_GAME_OFFERS, ZERO_GAME_PROFESSIONS } from "@/features/games/zeroGa
 import { ZERO_GAMES, ZERO_GAME_LIST, isZeroGameKey, type ZeroGameKey } from "@/features/games/v2/catalog";
 import { GameEmblem, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import { createTournament, durationLabel, placeLabel, type TournamentReward } from "@/features/games/v2/api";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/games/create")({
   validateSearch: (search: Record<string, unknown>): { game?: ZeroGameKey } => ({
@@ -160,9 +161,9 @@ function CreateTournament() {
             <div className="mt-3 space-y-3">
               <Segmented value={difficulty} onChange={setDifficulty} options={[["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]]} />
               {game === "words" && (
-                <select value={profession} onChange={(e) => setProfession(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]">
+                <CardSelect value={profession} onChange={(e) => setProfession(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]">
                   {ZERO_GAME_PROFESSIONS.map((p) => <option key={p}>{p}</option>)}
-                </select>
+                </CardSelect>
               )}
             </div>
           )}

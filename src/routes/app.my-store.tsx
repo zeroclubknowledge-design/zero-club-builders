@@ -17,6 +17,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useGoBack } from "@/hooks/useGoBack";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/my-store")({
   component: MyStorePage,
@@ -478,7 +479,7 @@ function MyStorePage() {
             <div>
               <label className={labelClass}>What is it?</label>
               <div className="relative">
-                <select
+                <CardSelect
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value, productType: "" })}
                   className={`${inputClass} cursor-pointer appearance-none pr-10`}
@@ -486,7 +487,7 @@ function MyStorePage() {
                   {STORE_CATEGORIES.map((entry) => (
                     <option key={entry.id} value={entry.id}>{entry.label}</option>
                   ))}
-                </select>
+                </CardSelect>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground" />
               </div>
 

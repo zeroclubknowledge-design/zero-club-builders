@@ -25,10 +25,10 @@ const AUDIENCES: { id: Audience; label: string; blurb: string; Icon: typeof Book
 export function audienceAllowed(audience: Audience, recipient?: GiftRecipient | null) {
   if (!recipient) return true;
   if (recipient.is_admin) return false;
-  const account = String(recipient.account_type || "learner").toLowerCase();
-  if (audience === "institution") return account === "institution";
-  if (audience === "tutor") return account === "tutor" || Boolean(recipient.tutor_enabled);
-  return ["learner", "builder", "user", "creator"].includes(account);
+  // Members switch between Learner, Creator and Tutor, so any of those plans
+  // can be gifted to any personal account. Institution plans are for institutions.
+  const institution = String(recipient.account_type || "").toLowerCase() === "institution";
+  return audience === "institution" ? institution : !institution;
 }
 
 function naturalAudience(recipient?: GiftRecipient | null): Audience {
@@ -66,7 +66,8 @@ export function SubscriptionPlanPicker({
   value: string;
   onChange: (key: string) => void;
 }) {
-  const present = AUDIENCES.filter((a) => plans.some((p) => p.audience === a.id));
+  const isInstitution = String(recipient?.account_type || "").toLowerCase() === "institution";
+  const present = AUDIENCES.filter((a) => plans.some((p) => p.audience === a.id) && (a.id === "institution" ? !recipient || isInstitution : !isInstitution));
   const [audience, setAudience] = useState<Audience>(() => (plans.find((p) => p.key === value)?.audience as Audience) || naturalAudience(recipient));
 
   // A new recipient: jump to the family that suits them, and pick its first plan
@@ -92,8 +93,9 @@ export function SubscriptionPlanPicker({
 
   return (
     <div>
-      <p className="text-sm font-medium" id="gift-family-label">Account type</p>
-      <div role="radiogroup" aria-labelledby="gift-family-label" className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <p className="text-sm font-medium" id="gift-family-label">Which account is this for?</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">Members switch between Learner, Creator and Tutor — the plan applies when they use that account.</p>
+      <div role="radiogroup" aria-labelledby="gift-family-label" className={`mt-2 grid gap-2 ${present.length >= 4 ? "grid-cols-2 sm:grid-cols-4" : present.length === 1 ? "grid-cols-1" : "grid-cols-3"}`}>
         {present.map(({ id, label, blurb, Icon }) => {
           const on = audience === id;
           const ok = audienceAllowed(id, recipient);

@@ -37,6 +37,7 @@ import AgoraRTC, {
   RemoteAudioTrack,
 } from "agora-rtc-react";
 import { ZeroLoader } from "@/components/ZeroLoader";
+import { CardSelect } from "@/components/CardSelect";
 
 const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
 const QUESTION_REMINDER_MS = 5 * 60 * 1000;
@@ -2340,7 +2341,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
               <div className="space-y-2">
                 <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Camera</label>
-                <select
+                <CardSelect
                   value={selectedCamera}
                   onChange={(event) => switchCamera(event.target.value)}
                   disabled={devices.cameras.length === 0}
@@ -2352,7 +2353,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                       {device.label || "Camera"}
                     </option>
                   ))}
-                </select>
+                </CardSelect>
               </div>
 
               <div className="space-y-2">
@@ -2360,7 +2361,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Video quality</label>
                   {cameraResolution && <span className="text-[10.5px] font-medium tabular-nums text-white/45">Active {cameraResolution}</span>}
                 </div>
-                <select
+                <CardSelect
                   value={cameraQuality}
                   onChange={(event) => setCameraQuality(event.target.value as CameraQuality)}
                   className="w-full rounded-lg bg-white/[0.06] px-3.5 py-3 text-[13.5px] text-white outline-none ring-1 ring-white/10"
@@ -2373,7 +2374,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                       </option>
                     );
                   })}
-                </select>
+                </CardSelect>
                 <p className="text-[10.5px] leading-relaxed text-white/40">
                   2K and 4K require a compatible camera and a very stable connection. HD is recommended for most live classes.
                 </p>
@@ -2381,7 +2382,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
               <div className="space-y-2">
                 <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Microphone</label>
-                <select
+                <CardSelect
                   value={selectedMic}
                   onChange={(event) => switchMic(event.target.value)}
                   disabled={devices.mics.length === 0}
@@ -2393,7 +2394,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                       {device.label || "Microphone"}
                     </option>
                   ))}
-                </select>
+                </CardSelect>
                 {/* A live level meter, so a dead microphone is obvious here
                     rather than three minutes into the lesson. */}
                 <div className="mt-2 flex items-center gap-2">
@@ -2410,7 +2411,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               {devices.speakers.length > 0 && (
                 <div className="space-y-2">
                   <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">Speaker</label>
-                  <select
+                  <CardSelect
                     value={selectedSpeaker}
                     onChange={(event) => switchSpeaker(event.target.value)}
                     className="w-full rounded-lg bg-white/[0.06] px-3.5 py-3 text-[13.5px] text-white outline-none ring-1 ring-white/10"
@@ -2420,7 +2421,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                         {device.label || "Speaker"}
                       </option>
                     ))}
-                  </select>
+                  </CardSelect>
                 </div>
               )}
 

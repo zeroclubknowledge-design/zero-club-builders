@@ -1724,3 +1724,7 @@ html:not(.dark) [data-zc-live-room] :is(
   --color-white: #ffffff;
   --color-black: #000000;
 }
+
+/* CardSelect: Zero Club's own picker sheet slides up on phones. */
+@keyframes zc-card-select-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.zc-card-select-sheet { animation: zc-card-select-in .28s cubic-bezier(.16, 1, .3, 1) both; }

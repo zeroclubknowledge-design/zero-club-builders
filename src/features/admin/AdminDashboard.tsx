@@ -59,6 +59,7 @@ import { MembershipGiftsAdmin } from "./MembershipGiftsAdmin";
 import { contentPreview, toPlainText } from "@/lib/contentPreview";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { CardSelect } from "@/components/CardSelect";
 
 type AdminTab = "overview" | "analytics" | "people" | "moderation" | "learning" | "quests" | "community" | "marketplace" | "commerce" | "institutions" | "ads" | "tutors" | "ambassadors" | "rewards" | "gifts" | "system";
 
@@ -369,7 +370,7 @@ function RecentUsers({ users }: { users: any[] }) { return <section className="b
 function AuditList({ logs }: { logs: any[] }) { return <section className="border-t border-border pt-5"><h2 className="text-[16px] font-semibold">Recent admin activity</h2><div className="mt-3 divide-y divide-border">{logs.length ? logs.map((log) => <div key={log.id} className="flex gap-3 py-3"><div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-muted"><KeyRound className="h-3.5 w-3.5" /></div><div className="min-w-0 flex-1"><p className="text-[13px] font-medium">{String(log.action).replaceAll("_", " ")}</p><p className="mt-0.5 text-[12px] text-muted-foreground">@{log.admin_username || "admin"} · {formatTime(log.created_at)}</p></div></div>) : <EmptyLine text="No admin actions recorded yet." />}</div></section>; }
 
 function People({ users, search, setSearch, type, setType, busy, runAction }: any) {
-  return <div><SectionHeading eyebrow="People operations" title="Members and access" detail="Review account health, roles, balances, and platform privileges." /><div className="mb-4 flex flex-col gap-2 sm:flex-row"><label className="relative flex h-10 flex-1 items-center rounded-lg border border-border bg-card"><Search className="ml-3 h-4 w-4 text-muted-foreground" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search members" className="min-w-0 flex-1 bg-transparent px-3 text-[14px] outline-none" /></label><select value={type} onChange={(e) => setType(e.target.value)} className="h-10 rounded-lg border border-border bg-card px-3 text-[13px] font-medium outline-none"><option>All</option><option>Learner</option><option>Tutor</option><option>Institution</option></select></div><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{users.map((user: any) => <div key={user.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><div className="flex min-w-0 flex-1 items-center gap-3"><Avatar user={user} /><div className="min-w-0"><p className="flex items-center gap-1.5 truncate text-[14px] font-semibold">{user.full_name || user.username}{user.is_admin && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}</p><p className="mt-0.5 text-[12px] text-muted-foreground">@{user.username} · {user.account_type || "Learner"} · {compact(user.xp)} XP</p></div></div><div className="flex items-center justify-between gap-3 sm:justify-end"><StatusBadge status={user.account_status} /><div className="flex gap-1"><button disabled={busy} title={user.is_admin ? "Remove admin access" : "Grant admin access"} onClick={() => { if (confirm(`${user.is_admin ? "Remove" : "Grant"} Zero Club admin access for @${user.username}?`)) runAction("admin_set_admin_access", { target_user_id: user.id, enabled: !user.is_admin }); }} className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-muted">{user.is_admin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}</button><button disabled={busy} title={user.account_status === "suspended" ? "Reactivate account" : "Suspend account"} onClick={() => { const next = user.account_status === "suspended" ? "active" : "suspended"; if (confirm(`${next === "suspended" ? "Suspend" : "Reactivate"} @${user.username}?`)) runAction("admin_set_user_status", { target_user_id: user.id, new_status: next }); }} className={`grid h-8 w-8 place-items-center rounded-lg border ${user.account_status === "suspended" ? "border-emerald-500/20 text-emerald-600" : "border-border text-muted-foreground hover:text-destructive"}`}>{user.account_status === "suspended" ? <Check className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}</button></div></div></div>)}</div></div>;
+  return <div><SectionHeading eyebrow="People operations" title="Members and access" detail="Review account health, roles, balances, and platform privileges." /><div className="mb-4 flex flex-col gap-2 sm:flex-row"><label className="relative flex h-10 flex-1 items-center rounded-lg border border-border bg-card"><Search className="ml-3 h-4 w-4 text-muted-foreground" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search members" className="min-w-0 flex-1 bg-transparent px-3 text-[14px] outline-none" /></label><CardSelect value={type} onChange={(e) => setType(e.target.value)} className="h-10 rounded-lg border border-border bg-card px-3 text-[13px] font-medium outline-none"><option>All</option><option>Learner</option><option>Tutor</option><option>Institution</option></CardSelect></div><div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">{users.map((user: any) => <div key={user.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><div className="flex min-w-0 flex-1 items-center gap-3"><Avatar user={user} /><div className="min-w-0"><p className="flex items-center gap-1.5 truncate text-[14px] font-semibold">{user.full_name || user.username}{user.is_admin && <BadgeCheck className="h-3.5 w-3.5 fill-primary text-primary-foreground" />}</p><p className="mt-0.5 text-[12px] text-muted-foreground">@{user.username} · {user.account_type || "Learner"} · {compact(user.xp)} XP</p></div></div><div className="flex items-center justify-between gap-3 sm:justify-end"><StatusBadge status={user.account_status} /><div className="flex gap-1"><button disabled={busy} title={user.is_admin ? "Remove admin access" : "Grant admin access"} onClick={() => { if (confirm(`${user.is_admin ? "Remove" : "Grant"} Zero Club admin access for @${user.username}?`)) runAction("admin_set_admin_access", { target_user_id: user.id, enabled: !user.is_admin }); }} className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-muted">{user.is_admin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}</button><button disabled={busy} title={user.account_status === "suspended" ? "Reactivate account" : "Suspend account"} onClick={() => { const next = user.account_status === "suspended" ? "active" : "suspended"; if (confirm(`${next === "suspended" ? "Suspend" : "Reactivate"} @${user.username}?`)) runAction("admin_set_user_status", { target_user_id: user.id, new_status: next }); }} className={`grid h-8 w-8 place-items-center rounded-lg border ${user.account_status === "suspended" ? "border-emerald-500/20 text-emerald-600" : "border-border text-muted-foreground hover:text-destructive"}`}>{user.account_status === "suspended" ? <Check className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}</button></div></div></div>)}</div></div>;
 }
 
 function Moderation({ reports, busy, runAction }: any) { const active = reports.filter((r: any) => ["open", "reviewing"].includes(r.status)); return <div><SectionHeading eyebrow="Trust and safety" title="Moderation queue" detail="Review member reports and record clear resolution outcomes." /><div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><SmallMetric label="Open" value={reports.filter((r: any) => r.status === "open").length} /><SmallMetric label="Reviewing" value={reports.filter((r: any) => r.status === "reviewing").length} /><SmallMetric label="Resolved" value={reports.filter((r: any) => r.status === "resolved").length} /><SmallMetric label="Dismissed" value={reports.filter((r: any) => r.status === "dismissed").length} /></div><div className="mt-5 space-y-3">{active.length ? active.map((report: any) => <div key={report.id} className="rounded-lg border border-border bg-card p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[11.5px] font-semibold uppercase tracking-[0.1em] text-rose-600">{report.context}</p><h3 className="mt-1 text-[15px] font-semibold">Report against @{report.reported_username || "unknown"}</h3><p className="mt-1 text-[12px] text-muted-foreground">Submitted by @{report.reporter_username || "member"} · {formatTime(report.created_at)}</p></div><StatusBadge status={report.status} /></div><p className="mt-4 rounded-lg bg-muted/60 p-3 text-[13.5px] leading-relaxed">{report.reason}</p><div className="mt-4 flex flex-wrap gap-2">{report.status === "open" && <ActionButton label="Start review" disabled={busy} onClick={() => runAction("admin_update_report", { target_report_id: report.id, new_status: "reviewing" })} />}<ActionButton label="Resolve" disabled={busy} onClick={() => runAction("admin_update_report", { target_report_id: report.id, new_status: "resolved" })} primary /><ActionButton label="Dismiss" disabled={busy} onClick={() => runAction("admin_update_report", { target_report_id: report.id, new_status: "dismissed" })} /></div></div>) : <EmptyState Icon={ShieldCheck} title="Moderation queue is clear" detail="New member reports will appear here." />}</div></div>; }
@@ -413,7 +414,7 @@ function Learning({ bootcamps, format, busy, runAction }: any) {
               <p className="text-[11.5px] text-muted-foreground">Price</p>
             </div>
             <div className="flex items-center gap-2">
-              <select
+              <CardSelect
                 disabled={busy}
                 value={bootcamp.status}
                 onChange={(event) => runAction("admin_update_bootcamp_status", {
@@ -425,7 +426,7 @@ function Learning({ bootcamps, format, busy, runAction }: any) {
                 <option value="draft">Draft</option>
                 <option value="active">Active</option>
                 <option value="completed">Completed</option>
-              </select>
+              </CardSelect>
               <button
                 type="button"
                 disabled={busy}
@@ -676,22 +677,22 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
             <div><p className={label}>Title</p><input value={form.title} onChange={(event) => set("title", event.target.value)} maxLength={80} placeholder="Share a useful build update" className={`${field} mt-1.5`} /></div>
             <div><p className={label}>Description</p><textarea value={form.description} onChange={(event) => set("description", event.target.value)} maxLength={240} rows={3} placeholder="Tell members exactly what counts as completed" className={`${field} mt-1.5 h-auto resize-none py-2.5`} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><p className={label}>Frequency</p><select value={form.type} onChange={(event) => set("type", event.target.value)} className={`${field} mt-1.5`}><option value="daily">Daily</option><option value="one-time">One time</option><option value="milestone">Milestone</option></select></div>
-              <div><p className={label}>Status</p><select value={form.status} onChange={(event) => set("status", event.target.value)} className={`${field} mt-1.5`}><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></div>
+              <div><p className={label}>Frequency</p><CardSelect value={form.type} onChange={(event) => set("type", event.target.value)} className={`${field} mt-1.5`}><option value="daily">Daily</option><option value="one-time">One time</option><option value="milestone">Milestone</option></CardSelect></div>
+              <div><p className={label}>Status</p><CardSelect value={form.status} onChange={(event) => set("status", event.target.value)} className={`${field} mt-1.5`}><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></CardSelect></div>
             </div>
             {/* Who the task is for. An ambassador task goes to ZeroStart and
                 is signed off by hand there; everything else stays in the Zero
                 Club task list and is verified automatically. */}
             <div>
               <p className={label}>Audience</p>
-              <select
+              <CardSelect
                 value={form.audience}
                 onChange={(event) => set("audience", event.target.value)}
                 className={`${field} mt-1.5`}
               >
                 <option value="everyone">Everyone on Zero Club</option>
                 <option value="ambassador">Zero Ambassadors</option>
-              </select>
+              </CardSelect>
             </div>
             {form.audience === "ambassador" ? (
               <div>
@@ -701,14 +702,14 @@ function QuestManagement({ query, busy, runAction }: { query: any; busy: boolean
                 </p>
               </div>
             ) : (
-              <div><p className={label}>Completion requirement</p><select value={form.criteriaType} onChange={(event) => set("criteriaType", event.target.value)} className={`${field} mt-1.5`}>{QUEST_REQUIREMENTS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+              <div><p className={label}>Completion requirement</p><CardSelect value={form.criteriaType} onChange={(event) => set("criteriaType", event.target.value)} className={`${field} mt-1.5`}>{QUEST_REQUIREMENTS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</CardSelect></div>
             )}
             <div className="grid grid-cols-2 gap-3">
               <div><p className={label}>Target</p><input type="number" min="1" max="10000" value={form.criteriaCount} onChange={(event) => set("criteriaCount", event.target.value)} className={`${field} mt-1.5`} /></div>
               <div><p className={label}>ZP reward</p><input type="number" min="1" max="10000" value={form.rewardXp} onChange={(event) => set("rewardXp", event.target.value)} className={`${field} mt-1.5`} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><p className={label}>Icon</p><select value={form.iconName} onChange={(event) => set("iconName", event.target.value)} className={`${field} mt-1.5`}>{QUEST_ICONS.map((icon) => <option key={icon}>{icon}</option>)}</select></div>
+              <div><p className={label}>Icon</p><CardSelect value={form.iconName} onChange={(event) => set("iconName", event.target.value)} className={`${field} mt-1.5`}>{QUEST_ICONS.map((icon) => <option key={icon}>{icon}</option>)}</CardSelect></div>
               <div><p className={label}>Display order</p><input type="number" value={form.sortOrder} onChange={(event) => set("sortOrder", event.target.value)} className={`${field} mt-1.5`} /></div>
             </div>
             <button disabled={busy} onClick={submit} className="w-full rounded-lg bg-primary py-2.5 text-[14px] font-semibold text-primary-foreground disabled:opacity-50">{form.id ? "Save Quest" : form.status === "active" ? "Publish Quest" : "Save draft"}</button>
@@ -800,13 +801,13 @@ function Marketplace({ gigs, format, busy, runAction }: any) {
             <div><p className={label}>Post on behalf of (username)</p><input value={form.client} onChange={(e) => set("client", e.target.value)} placeholder="institution username" className={`${field} mt-1.5`} /></div>
             <div><p className={label}>Category</p><input value={form.category} onChange={(e) => set("category", e.target.value)} className={`${field} mt-1.5`} /></div>
             <div className="md:col-span-2"><p className={label}>Skills (comma separated)</p><input value={form.skills} onChange={(e) => set("skills", e.target.value)} placeholder="Figma, Branding, Web design" className={`${field} mt-1.5`} /></div>
-            <div><p className={label}>Budget type</p><select value={form.budgetType} onChange={(e) => set("budgetType", e.target.value)} className={`${field} mt-1.5`}><option value="fixed">Fixed</option><option value="hourly">Hourly</option></select></div>
+            <div><p className={label}>Budget type</p><CardSelect value={form.budgetType} onChange={(e) => set("budgetType", e.target.value)} className={`${field} mt-1.5`}><option value="fixed">Fixed</option><option value="hourly">Hourly</option></CardSelect></div>
             <div className="grid grid-cols-2 gap-3">
               <div><p className={label}>Min</p><input type="number" value={form.budgetMin} onChange={(e) => set("budgetMin", e.target.value)} className={`${field} mt-1.5`} /></div>
               <div><p className={label}>Max</p><input type="number" value={form.budgetMax} onChange={(e) => set("budgetMax", e.target.value)} className={`${field} mt-1.5`} /></div>
             </div>
-            <div><p className={label}>Experience</p><select value={form.experience} onChange={(e) => set("experience", e.target.value)} className={`${field} mt-1.5`}><option>Entry</option><option>Intermediate</option><option>Expert</option></select></div>
-            <div><p className={label}>Location</p><select value={form.location} onChange={(e) => set("location", e.target.value)} className={`${field} mt-1.5`}><option>Remote</option><option>Hybrid</option><option>On-site</option></select></div>
+            <div><p className={label}>Experience</p><CardSelect value={form.experience} onChange={(e) => set("experience", e.target.value)} className={`${field} mt-1.5`}><option>Entry</option><option>Intermediate</option><option>Expert</option></CardSelect></div>
+            <div><p className={label}>Location</p><CardSelect value={form.location} onChange={(e) => set("location", e.target.value)} className={`${field} mt-1.5`}><option>Remote</option><option>Hybrid</option><option>On-site</option></CardSelect></div>
             <div><p className={label}>Deadline</p><input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} className={`${field} mt-1.5`} /></div>
           </div>
           <div className="mt-4 flex gap-2">
@@ -823,7 +824,7 @@ function Marketplace({ gigs, format, busy, runAction }: any) {
             <div><p className="text-[13px] font-semibold">{format(gig.budget_min)} - {format(gig.budget_max)}</p><p className="text-[11px] text-muted-foreground">Budget</p></div>
             <div><p className="text-[13px] font-semibold">{compact(gig.applications_count)}</p><p className="text-[11px] text-muted-foreground">Proposals</p></div>
             <div className="flex items-center gap-1.5">
-              <select disabled={busy} value={gig.status} onChange={(e) => runAction("admin_update_gig_status", { target_gig_id: gig.id, new_status: e.target.value })} className="h-9 flex-1 rounded-lg border border-border bg-background px-2 text-[13px] font-semibold outline-none"><option value="open">Open</option><option value="paused">Paused</option><option value="closed">Closed</option></select>
+              <CardSelect disabled={busy} value={gig.status} onChange={(e) => runAction("admin_update_gig_status", { target_gig_id: gig.id, new_status: e.target.value })} className="h-9 flex-1 rounded-lg border border-border bg-background px-2 text-[13px] font-semibold outline-none"><option value="open">Open</option><option value="paused">Paused</option><option value="closed">Closed</option></CardSelect>
               <button onClick={() => setReviewId(reviewId === gig.id ? null : gig.id)} className="rounded-lg border border-border px-3 py-2 text-[13px] font-semibold hover:bg-muted">{reviewId === gig.id ? "Close" : "Review"}</button>
               <button title="Delete gig" disabled={busy} onClick={() => { if (confirm(`Delete gig "${gig.title}"? This also removes its proposals.`)) runAction("admin_delete_gig", { target_gig_id: gig.id }); }} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
             </div>
@@ -1140,7 +1141,7 @@ function AdsManager({ query, busy, runAction }: { query: any; busy: boolean; run
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><p className={label}>Button label</p><input value={form.cta} onChange={(e) => set("cta", e.target.value)} className={`${field} mt-1.5`} /></div>
-              <div><p className={label}>Audience</p><select value={form.audience} onChange={(e) => set("audience", e.target.value)} className={`${field} mt-1.5`}><option value="free_members">Free members only</option><option value="everyone">Everyone</option></select></div>
+              <div><p className={label}>Audience</p><CardSelect value={form.audience} onChange={(e) => set("audience", e.target.value)} className={`${field} mt-1.5`}><option value="free_members">Free members only</option><option value="everyone">Everyone</option></CardSelect></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><p className={label}>Starts</p><input type="date" value={form.startsAt} onChange={(e) => set("startsAt", e.target.value)} className={`${field} mt-1.5`} /></div>
@@ -1177,9 +1178,9 @@ function AdsManager({ query, busy, runAction }: { query: any; busy: boolean; run
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <p className="text-[12.5px] text-muted-foreground"><span className="font-semibold text-foreground">{compact(promo.impressions)}</span> impressions · <span className="font-semibold text-foreground">{compact(promo.clicks)}</span> clicks · <span className="font-semibold text-foreground">{promoCtr}%</span> CTR</p>
                     <div className="flex items-center gap-1.5">
-                      <select disabled={busy} value={promo.status} onChange={(e) => runAction("admin_set_promotion_status", { target_promotion_id: promo.id, new_status: e.target.value })} className="h-8 rounded-lg border border-border bg-background px-2 text-[13px] font-semibold outline-none">
+                      <CardSelect disabled={busy} value={promo.status} onChange={(e) => runAction("admin_set_promotion_status", { target_promotion_id: promo.id, new_status: e.target.value })} className="h-8 rounded-lg border border-border bg-background px-2 text-[13px] font-semibold outline-none">
                         <option value="draft">Draft</option><option value="active">Active</option><option value="paused">Paused</option><option value="ended">Ended</option>
-                      </select>
+                      </CardSelect>
                       <button title="Edit campaign" onClick={() => edit(promo)} className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-muted"><Pencil className="h-3.5 w-3.5" /></button>
                       <button title="Delete campaign" disabled={busy} onClick={() => { if (confirm(`Delete campaign "${promo.title}"?`)) runAction("admin_delete_promotion", { target_promotion_id: promo.id }); }} className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>

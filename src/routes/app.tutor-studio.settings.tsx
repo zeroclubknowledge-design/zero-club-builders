@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ZeroLoader } from "@/components/ZeroLoader";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/tutor-studio/settings")({
   component: TutorSettingsPage,
@@ -138,7 +139,7 @@ function TutorSettingsPage() {
               <div className="space-y-2">
                 <label className="text-[11px] font-medium uppercase text-muted-foreground">Working days</label>
                 <div className="relative">
-                  <select
+                  <CardSelect
                     value={bookingForm.availability_days}
                     onChange={(e) => setBookingForm({ ...bookingForm, availability_days: e.target.value })}
                     className="h-12 w-full appearance-none rounded-lg border border-border bg-background px-4 pr-11 text-[13px] font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
@@ -146,7 +147,7 @@ function TutorSettingsPage() {
                     <option>Weekdays (Mon-Fri)</option>
                     <option>Weekends (Sat-Sun)</option>
                     <option>Everyday</option>
-                  </select>
+                  </CardSelect>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </div>
@@ -165,9 +166,9 @@ function TutorSettingsPage() {
               <div className="space-y-2">
                 <label className="text-[11px] font-medium uppercase text-muted-foreground">Session duration</label>
                 <div className="relative">
-                  <select value={bookingForm.availability_duration} onChange={(e) => setBookingForm({ ...bookingForm, availability_duration: e.target.value })} className="h-12 w-full appearance-none rounded-lg border border-border bg-background px-4 pr-11 text-[13px] font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
+                  <CardSelect value={bookingForm.availability_duration} onChange={(e) => setBookingForm({ ...bookingForm, availability_duration: e.target.value })} className="h-12 w-full appearance-none rounded-lg border border-border bg-background px-4 pr-11 text-[13px] font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
                     <option>30 minutes</option><option>45 minutes</option><option>60 minutes</option>
-                  </select>
+                  </CardSelect>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </div>

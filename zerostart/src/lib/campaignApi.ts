@@ -138,6 +138,7 @@ export interface ApplicationRow {
   links: string | null;
   focus_labels: string[];
   payout_currency: PayoutCurrency;
+  payout_frequency?: "weekly" | "monthly" | null;
   status: "pending" | "approved" | "rejected";
   review_note: string | null;
   member_since: string;
@@ -154,6 +155,7 @@ export interface AmbassadorRow {
   status: "active" | "paused" | "removed";
   commission_rate: number;
   payout_currency: PayoutCurrency;
+  payout_frequency?: "weekly" | "monthly" | null;
   joined_at: string;
   referred: number;
   sales: number;

@@ -16,6 +16,7 @@ import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
 import { ZeroLoader } from "@/components/ZeroLoader";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
@@ -805,7 +806,7 @@ function TutorStudioPage() {
                                   onBlur={(e) => handleUpdateLesson(l.id, { duration: e.target.value || "5m" })}
                                   className="rounded-lg border border-border/40 bg-card px-2 py-1 text-[10px] font-bold text-muted-foreground outline-none focus:border-primary"
                                 />
-                                <select
+                                <CardSelect
                                   defaultValue={l.content_type || "text"}
                                   onChange={(e) => handleUpdateLesson(l.id, { content_type: e.target.value })}
                                   className="rounded-lg border border-border/40 bg-card px-2 py-1 text-[10px] font-bold text-muted-foreground outline-none focus:border-primary"
@@ -813,7 +814,7 @@ function TutorStudioPage() {
                                   <option value="text">Text</option>
                                   <option value="video">Video</option>
                                   <option value="assignment">Assignment</option>
-                                </select>
+                                </CardSelect>
                               </div>
                             </div>
                           </div>
@@ -1203,7 +1204,7 @@ function TutorStudioPage() {
                   <div className="space-y-3">
                     <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Category</label>
                     <div className="relative">
-                      <select
+                      <CardSelect
                         value={bootcampSettings.category}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, category: e.target.value })}
                         className="w-full appearance-none bg-card rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
@@ -1214,14 +1215,14 @@ function TutorStudioPage() {
                         <option>Business</option>
                         <option>AI</option>
                         <option>Motion</option>
-                      </select>
+                      </CardSelect>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   </div>
                   <div className="space-y-3">
                     <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">Status</label>
                     <div className="relative">
-                      <select
+                      <CardSelect
                         value={bootcampSettings.status}
                         onChange={(e) => setBootcampSettings({ ...bootcampSettings, status: e.target.value })}
                         className="w-full appearance-none bg-card rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
@@ -1229,7 +1230,7 @@ function TutorStudioPage() {
                         <option value="draft">Draft</option>
                         <option value="active">Active</option>
                         <option value="completed">Completed</option>
-                      </select>
+                      </CardSelect>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   </div>

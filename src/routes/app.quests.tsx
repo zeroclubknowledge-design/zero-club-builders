@@ -30,6 +30,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useGoBack } from "@/hooks/useGoBack";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/quests")({
   /* ?gig=<id> opens that job, e.g. from a hiring notification. */
@@ -539,7 +540,7 @@ function FilterSelect({
       <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </span>
-      <select
+      <CardSelect
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary/50"
@@ -547,7 +548,7 @@ function FilterSelect({
         {options.map((option) => (
           <option key={option}>{option}</option>
         ))}
-      </select>
+      </CardSelect>
     </label>
   );
 }
@@ -1643,7 +1644,7 @@ function SheetSelect({
 }) {
   return (
     <FormField label={label}>
-      <select
+      <CardSelect
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="h-11 w-full min-w-0 rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] outline-none placeholder:text-muted-foreground focus:border-foreground/40 capitalize"
@@ -1651,7 +1652,7 @@ function SheetSelect({
         {options.map((option) => (
           <option key={option}>{option}</option>
         ))}
-      </select>
+      </CardSelect>
     </FormField>
   );
 }

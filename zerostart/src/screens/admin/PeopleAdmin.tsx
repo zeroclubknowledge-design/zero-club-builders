@@ -10,6 +10,7 @@ import { parseLinks } from "@/lib/socialLinks";
 import { money } from "@/lib/money";
 import { Card, EmptyState, ErrorState, Skeleton, StatusBadge } from "@/components/ui/primitives";
 import { Sheet } from "@/components/ui/Sheet";
+import { CardSelect } from "@/components/ui/CardSelect";
 
 function Face({ url, name, size = "h-11 w-11" }: { url: string | null; name: string; size?: string }) {
   return url ? (
@@ -94,7 +95,7 @@ export function ApplicationsAdmin() {
               {row.bio && <p className="mt-2 text-[12.5px] text-ink-muted">{row.bio}</p>}
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {row.focus_labels.map((f) => <span key={f} className="zs-inset rounded-full px-2.5 py-1 text-[11.5px] font-semibold text-ink-muted">{f}</span>)}
-                <span className="zs-inset rounded-full px-2.5 py-1 text-[11.5px] font-semibold text-ink-muted">Paid in {row.payout_currency}</span>
+                <span className="zs-inset rounded-full px-2.5 py-1 text-[11.5px] font-semibold text-ink-muted">Paid in {row.payout_currency} · {row.payout_frequency === "monthly" ? "Monthly" : "Weekly"}</span>
               </div>
               {links.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-3">
@@ -193,7 +194,7 @@ export function AmbassadorsAdmin() {
                 <p className="flex items-center gap-1.5 truncate text-[13.5px] font-semibold text-ink">
                   {r.display_name} {r.status !== "active" && <StatusBadge status={r.status === "paused" ? "paused" : "rejected"} />}
                 </p>
-                <p className="truncate text-[11.5px] text-ink-faint">{r.location} · {r.referred} referred · {money(r.sales)} sales · {money(r.paid)} paid</p>
+                <p className="truncate text-[11.5px] text-ink-faint">{r.location} · {r.referred} referred · {money(r.sales)} sales · {money(r.paid)} paid · {r.payout_frequency === "monthly" ? "Monthly" : "Weekly"} payouts</p>
               </div>
               <span className="shrink-0 rounded-full bg-accent-soft px-3 py-1 text-[12.5px] font-bold text-accent">{r.commission_rate}%</span>
             </button>
@@ -252,11 +253,11 @@ function AmbassadorEditor({ row, onClose, onSaved }: { row: AmbassadorRow; onClo
           </label>
           <label>
             <span className="zs-label">Status</span>
-            <select className="zs-input" value={status} onChange={(e) => setStatus(e.target.value as AmbassadorRow["status"])}>
+            <CardSelect className="zs-input" value={status} onChange={(e) => setStatus(e.target.value as AmbassadorRow["status"])}>
               <option value="active">Active</option>
               <option value="paused">Paused (no new commission)</option>
               <option value="removed">Removed (badge taken away)</option>
-            </select>
+            </CardSelect>
           </label>
         </div>
         <button onClick={save} disabled={busy} className="h-11 w-full rounded-full bg-ink text-[13.5px] font-semibold text-bg disabled:opacity-40">Save changes</button>

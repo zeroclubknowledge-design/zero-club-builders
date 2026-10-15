@@ -13,6 +13,7 @@ import {
   type Certificate,
   type Experience,
 } from "./credentials";
+import { CardSelect } from "@/components/CardSelect";
 
 const LABEL = "mb-1.5 block text-[13px] font-semibold text-muted-foreground";
 const FIELD =
@@ -254,7 +255,7 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
               <div className="grid grid-cols-2 gap-3">
                 <label className="block min-w-0">
                   <span className={LABEL}>Type</span>
-                  <select
+                  <CardSelect
                     className={FIELD}
                     value={form.employment_type}
                     onChange={(e) => setForm({ ...form, employment_type: e.target.value })}
@@ -263,7 +264,7 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
                     {EMPLOYMENT_TYPES.map((t) => (
                       <option key={t}>{t}</option>
                     ))}
-                  </select>
+                  </CardSelect>
                 </label>
                 <label className="block min-w-0">
                   <span className={LABEL}>Location</span>

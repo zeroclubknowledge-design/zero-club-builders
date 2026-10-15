@@ -1,0 +1,3 @@
+-- ALREADY APPLIED to the live database on 2026-10-15. Do not re-run.
+-- zs_admin_ambassadors() now also returns payout_frequency (weekly / monthly)
+-- so admins can see each ambassador's payout schedule.

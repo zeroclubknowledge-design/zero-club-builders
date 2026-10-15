@@ -216,6 +216,7 @@ serve(async (req) => {
         build_tagged: "tagged your work for verification",
         game_buzz: "buzzed you into a Zero Game",
         system: "sent you an account update",
+        gig: "updated a job you're on",
       };
 
       // game_buzz notifications point at a tournament (new) or an old race.
@@ -229,19 +230,27 @@ serve(async (req) => {
         receivers: [record.recipient_id],
         title: notificationType === "system"
           ? "Zero Club update"
-          : notificationType === "game_buzz"
-            ? `${actorName} is buzzing you`
-            : actorName,
+          : notificationType === "gig"
+            ? "Opportunities"
+            : notificationType === "game_buzz"
+              ? `${actorName} is buzzing you`
+              : actorName,
         body: record.content || actions[notificationType] || "You have a new notification.",
-        url: notificationType === "follow"
-          ? `/app/profile/${actorId}`
-          : notificationType === "game_buzz"
-            ? gameUrl
-            : notificationType === "club_mention" && record.entity_id
-              ? `/app/clubs/chat?clubId=${record.entity_id}`
-              : record.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
-                ? `/app/post/${record.entity_id}`
-                : "/app/notifications",
+        // The notification's own link (set by the database) wins, so tapping the
+        // push opens exactly what the in-app notification opens.
+        url: typeof record.link === "string" && /^\/(?!\/)/.test(record.link)
+          ? record.link
+          : notificationType === "follow"
+            ? `/app/profile/${actorId}`
+            : notificationType === "game_buzz"
+              ? gameUrl
+              : notificationType === "gig" && record.entity_id
+                ? `/app/quests?gig=${record.entity_id}`
+                : notificationType === "club_mention" && record.entity_id
+                  ? `/app/clubs/chat?clubId=${record.entity_id}`
+                  : record.entity_id && ["like", "comment_like", "comment", "repost", "mention", "build_tagged"].includes(notificationType)
+                    ? `/app/post/${record.entity_id}`
+                    : "/app/notifications",
         icon: actor?.avatar_url || undefined,
         type: notificationType,
         urgent: notificationType === "game_buzz",

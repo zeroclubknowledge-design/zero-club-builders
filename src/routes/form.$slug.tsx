@@ -36,6 +36,7 @@ import {
 } from "@/features/zeroForm/templates";
 import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
 import { RichText, richTextToPlain } from "@/components/RichText";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/form/$slug")({
   component: ZeroFormPublicPage,
@@ -928,10 +929,10 @@ function FormField({
   if (field.field_type === "select") {
     return (
       <div>{label}
-        <select value={text} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`}>
+        <CardSelect value={text} onChange={(e) => onChange(e.target.value)} className={`${inputBase} h-12`}>
           <option value="">Select an option</option>
           {options.map((option) => <option key={option} value={option}>{option}</option>)}
-        </select>
+        </CardSelect>
       </div>
     );
   }

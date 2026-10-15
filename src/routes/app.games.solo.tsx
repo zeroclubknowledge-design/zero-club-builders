@@ -22,6 +22,7 @@ import {
   type ZeroGameType,
 } from "@/features/games/zeroGames";
 import { toast } from "sonner";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/games/solo")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -137,8 +138,8 @@ function SoloGame() {
                 <h3 className="mt-1 text-[16px] font-semibold capitalize">{difficulty} {gameType === "words" ? profession : "logic"}</h3>
               </div>
               <div className="flex items-center gap-2">
-                {gameType === "words" && <select value={profession} onChange={(event) => { setProfession(event.target.value); startFresh(); }} className="h-9 max-w-[180px] rounded-md border border-border bg-card px-2 text-[10.5px] font-semibold outline-none">{ZERO_GAME_PROFESSIONS.map((field) => <option key={field}>{field}</option>)}</select>}
-                <select value={difficulty} onChange={(event) => { setDifficulty(event.target.value as ZeroGameDifficulty); startFresh(); }} className="h-9 rounded-md border border-border bg-card px-2 text-[10.5px] font-semibold capitalize outline-none">{(["easy", "medium", "hard", "expert"] as const).map((level) => <option key={level} value={level}>{level[0].toUpperCase() + level.slice(1)}</option>)}</select>
+                {gameType === "words" && <CardSelect value={profession} onChange={(event) => { setProfession(event.target.value); startFresh(); }} className="h-9 max-w-[180px] rounded-md border border-border bg-card px-2 text-[10.5px] font-semibold outline-none">{ZERO_GAME_PROFESSIONS.map((field) => <option key={field}>{field}</option>)}</CardSelect>}
+                <CardSelect value={difficulty} onChange={(event) => { setDifficulty(event.target.value as ZeroGameDifficulty); startFresh(); }} className="h-9 rounded-md border border-border bg-card px-2 text-[10.5px] font-semibold capitalize outline-none">{(["easy", "medium", "hard", "expert"] as const).map((level) => <option key={level} value={level}>{level[0].toUpperCase() + level.slice(1)}</option>)}</CardSelect>
               </div>
             </div>
 

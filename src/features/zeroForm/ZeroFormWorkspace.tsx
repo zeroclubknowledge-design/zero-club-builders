@@ -54,6 +54,7 @@ import {
   type ZeroFormFieldType,
   type ZeroFormUploadAnswer,
 } from "@/features/zeroForm/templates";
+import { CardSelect } from "@/components/CardSelect";
 
 const money = (value: number) => formatWalletAmount(Number(value) || 0);
 const isMissingRpc = (error: any) =>
@@ -425,10 +426,10 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                   You have no bootcamps yet. Create one to publish this form — or save it as a draft, or make it a waitlist instead.
                 </p>
               ) : (
-                <select value={bootcampId} onChange={(e) => setBootcampId(e.target.value)} className={input}>
+                <CardSelect value={bootcampId} onChange={(e) => setBootcampId(e.target.value)} className={input}>
                   <option value="">Select a bootcamp</option>
                   {(bootcamps.data || []).map((b: any) => <option key={b.id} value={b.id}>{b.title}</option>)}
-                </select>
+                </CardSelect>
               )}
             </Section>
           )}
@@ -503,7 +504,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                     </div>
 
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <select
+                      <CardSelect
                         value={field.field_type}
                         onChange={(e) => {
                           const nextType = e.target.value as ZeroFormFieldType;
@@ -521,7 +522,7 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
                         {ZERO_FORM_FIELD_TYPES.map((type) => (
                           <option key={type.value} value={type.value}>{type.label}</option>
                         ))}
-                      </select>
+                      </CardSelect>
                       <p className="text-[10px] text-muted-foreground">
                         {ZERO_FORM_FIELD_TYPES.find((t) => t.value === field.field_type)?.hint}
                       </p>

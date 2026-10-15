@@ -1,3 +1,4 @@
+-- ALREADY APPLIED to the live database on 2026-10-15 (as migration "unrestricted_admin_access"). Do not re-run.
 -- Administrator access is permanent and independent of paid memberships.
 begin;
 

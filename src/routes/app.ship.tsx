@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { notifyMentionedUsers } from "@/lib/mentions";
 import { ProjectPublishConfirmation, preparePublication, type PublicationAttempt } from "@/features/zeroAI/ProjectPublishConfirmation";
+import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/ship")({
   validateSearch: (search: Record<string, unknown>): { editId?: string; versionOf?: string } => {
@@ -609,7 +610,7 @@ function ShipPage() {
                 <span className="block text-[15px] font-medium">Submit to a bootcamp</span>
                 <span className="block text-[13px] text-muted-foreground">Your tutor can verify it as proof</span>
               </span>
-              <select
+              <CardSelect
                 value={selectedBootcampId || ""}
                 onChange={(e) => setSelectedBootcampId(e.target.value || null)}
                 className="max-w-[150px] truncate bg-transparent text-right text-[14px] font-semibold text-muted-foreground outline-none"
@@ -618,7 +619,7 @@ function ShipPage() {
                 {enrolledBootcamps.map(bc => (
                   <option key={bc.id} value={bc.id}>{bc.title}</option>
                 ))}
-              </select>
+              </CardSelect>
             </label>
           )}
           <div className="border-t border-border pt-3">
@@ -658,7 +659,7 @@ function ShipPage() {
             <div className="mt-3 grid gap-2.5 border-t border-border pt-3 sm:grid-cols-[minmax(0,1fr)_160px]">
               <label className="block">
                 <span className={LABEL}>Rights offered</span>
-                <select
+                <CardSelect
                   value={licenseType}
                   onChange={(event) => setLicenseType(event.target.value as typeof licenseType)}
                   className={FIELD}
@@ -666,7 +667,7 @@ function ShipPage() {
                   <option value="standard">Standard use</option>
                   <option value="commercial">Commercial use</option>
                   <option value="full_ownership">Full ownership transfer</option>
-                </select>
+                </CardSelect>
               </label>
               <label className="block">
                 <span className={LABEL}>Price</span>

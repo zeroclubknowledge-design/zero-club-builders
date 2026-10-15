@@ -36,6 +36,7 @@ import { uploadFile } from "@/lib/storage";
 import { createBootcampAction } from "@/api";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { CardSelect } from "@/components/CardSelect";
 
 export function BootcampForm({
   bootcampId,
@@ -657,7 +658,7 @@ export function BootcampForm({
                   Category
                 </label>
                 <div className="relative">
-                  <select
+                  <CardSelect
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="h-12 w-full appearance-none rounded-lg border border-border bg-card px-4 pr-12 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
@@ -667,7 +668,7 @@ export function BootcampForm({
                     <option>Development</option>
                     <option>Marketing</option>
                     <option>Business</option>
-                  </select>
+                  </CardSelect>
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
                 </div>
               </div>

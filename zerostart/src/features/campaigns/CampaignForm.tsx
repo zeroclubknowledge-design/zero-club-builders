@@ -4,6 +4,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { useAuth } from "@/lib/auth";
 import { createCampaign, updateMyCampaign, uploadCampaignCover, type CampaignInput } from "@/lib/campaignApi";
 import { GOAL_LABEL, type CampaignGoal, type MyCampaign } from "@/types/campaign";
+import { CardSelect } from "@/components/ui/CardSelect";
 
 const MAX_DAYS = 60;
 
@@ -164,9 +165,9 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
         <div className="grid gap-4 sm:grid-cols-2">
           {!editing && (
             <Field label="Goal">
-              <select className="zs-input" value={f.goal} onChange={set("goal")}>
+              <CardSelect className="zs-input" value={f.goal} onChange={set("goal")}>
                 {GOALS.map((g) => <option key={g} value={g}>{GOAL_LABEL[g]}</option>)}
-              </select>
+              </CardSelect>
             </Field>
           )}
           <Field label="Where">

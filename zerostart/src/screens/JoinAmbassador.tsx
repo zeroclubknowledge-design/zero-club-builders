@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { CURRENCIES, CURRENCY_ORDER, type PayoutCurrency } from "@/lib/money";
 import type { AmbassadorApplication, FocusArea, PushableBootcamp } from "@/types/ambassador";
 import { Card, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
+import { CardSelect } from "@/components/ui/CardSelect";
 
 const EMPTY_SOCIALS: Record<Social, string> = { WhatsApp: "", LinkedIn: "", X: "", Instagram: "", Facebook: "" };
 
@@ -329,14 +330,14 @@ export function JoinAmbassador() {
                   {others.map((entry, i) => (
                     <div key={i} className="flex items-center gap-2 px-3.5 py-2">
                       <span className="relative w-[108px] shrink-0">
-                        <select
+                        <CardSelect
                           value={(OTHER_KINDS as readonly string[]).includes(entry.label) ? entry.label : "Other"}
                           onChange={(e) => setOthers((prev) => prev.map((o, j) => (j === i ? { ...o, label: e.target.value } : o)))}
                           aria-label="Link type"
                           className="h-11 w-full appearance-none rounded-xl bg-ink/[0.05] pl-3 pr-6 text-[13px] font-semibold text-ink outline-none"
                         >
                           {OTHER_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}
-                        </select>
+                        </CardSelect>
                         <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-faint">▾</span>
                       </span>
                       <input
