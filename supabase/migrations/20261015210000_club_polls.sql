@@ -1,0 +1,13 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15 (migrations "club_polls", "club_polls_v2",
+-- plus an in-place patch to remove_chat_group_message). Kept as a record only. Do not re-run.
+--
+-- Polls in club chats (any member can start one, in any room):
+-- * The poll is a normal club message with readable content '📊 <question>' (so previews and
+--   push notifications read naturally); its options live in club_polls (message_id, club_id,
+--   question, options jsonb, multi). Members read; no client writes.
+-- * club_poll_votes (message_id, profile_id, option_index); members read; in realtime.
+-- * create_club_poll(club, room, question, options[], multi) — member check, 2–12 options.
+-- * vote_club_poll(message, option) — toggle; single or multiple choice.
+--
+-- Group chats: remove_chat_group_message now lets you remove someone else's message only if you
+-- outrank them (owner > admin > member); your own messages you can always remove.

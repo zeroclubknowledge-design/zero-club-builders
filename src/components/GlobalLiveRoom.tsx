@@ -316,7 +316,7 @@ export function GlobalLiveRoom() {
   /* ── Loading State ── */
   if (isFetchingToken || (!token && !tokenError)) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center">
+      <div data-zc-live-room="" className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center">
         <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[100px]" />
         <div className="relative grid h-14 w-14 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10">
           <Zap className="w-6 h-6 text-white/90" strokeWidth={1.75} />
@@ -331,7 +331,7 @@ export function GlobalLiveRoom() {
   /* ── Error State ── */
   if (!token && tokenError) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center p-6">
+      <div data-zc-live-room="" className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center p-6">
         <div className="bg-[#141117] p-8 rounded-[28px] ring-1 ring-white/[0.06] max-w-md w-full text-center shadow-lift">
           <div className="w-14 h-14 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6 ring-1 ring-red-500/20">
             <PhoneOff className="w-6 h-6" strokeWidth={1.75} />
@@ -2197,7 +2197,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
        painting it in the selection colour, which looked like a rendering
        fault. The chat thread opts back in below — a message is worth
        copying. */
-    <div className="fixed inset-0 z-[9999] flex h-[100dvh] select-none flex-col overflow-hidden bg-[#0A0A0C] text-white">
+    <div data-zc-live-room="" className="fixed inset-0 z-[9999] flex h-[100dvh] select-none flex-col overflow-hidden bg-[#0A0A0C] text-white">
 
       {/* ═══ HEADER ═══ */}
       <header className="z-20 flex shrink-0 items-center gap-1.5 pb-2 pl-1 pr-2 pt-[calc(0.25rem+env(safe-area-inset-top))] md:px-4 md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))]">

@@ -43,6 +43,7 @@ import {
   X,
   Reply,
   MoreHorizontal,
+  BarChart3,
   Star,
   Check,
   UserX,
@@ -110,6 +111,7 @@ import { notifyMentionedUsers } from "@/lib/mentions";
 import { ClubQuizzes } from "@/features/clubs/ClubQuizzes";
 import { ZeroMark } from "@/components/ZeroLoader";
 import { FloatingPicker } from "@/components/FloatingPicker";
+import { ClubPollMessage, PollComposer } from "@/features/groups/Poll";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (
@@ -444,6 +446,7 @@ function ClubChat() {
   const [showRoomSwitcher, setShowRoomSwitcher] = useState(false);
   const [squadSearch, setSquadSearch] = useState("");
   const [showGiveaway, setShowGiveaway] = useState(false);
+  const [showPoll, setShowPoll] = useState(false);
   const [showNotePicker, setShowNotePicker] = useState(false);
   const [isCreatingGiveaway, setIsCreatingGiveaway] = useState(false);
   const [giveaway, setGiveaway] = useState<ClubGiveaway>({
@@ -3022,6 +3025,24 @@ function ClubChat() {
             />
           )}
 
+          {club?.id && (
+            <PollComposer
+              open={showPoll}
+              onOpenChange={setShowPoll}
+              onSubmit={async (poll) => {
+                const { data, error } = await supabase.rpc("create_club_poll" as any, {
+                  p_club: club.id,
+                  p_room: activeRoom,
+                  p_question: poll.question,
+                  p_options: poll.options,
+                  p_multi: poll.multi,
+                } as any);
+                if (error) throw error;
+                if ((data as any)?.ok === false) throw new Error("Couldn't create the poll.");
+              }}
+            />
+          )}
+
           <Drawer open={showGiveaway} onOpenChange={setShowGiveaway}>
             <DrawerContent
               desktopVariant="panel"
@@ -3930,6 +3951,9 @@ function ClubChat() {
                       className="gap-2.5"
                     >
                       <File className="h-4 w-4" /> File
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setShowPoll(true)} className="gap-2.5">
+                      <BarChart3 className="h-4 w-4" /> Poll
                     </DropdownMenuItem>
                     {/* Admins only: members see Pictures, Video and File. */}
                     {isAdmin && activeRoom === "general" && (
@@ -5104,7 +5128,7 @@ function MessageBubble({
   const highlighted = highlights.ids.has(message.id);
   const actionMessage = { ...message, content: String(message.content || "").startsWith("::ZEROCLUB_") ? contentPreview(message.content) : message.content };
   const canEdit = Boolean(
-    isMe && onEdit && !message.pending && !String(message.content || "").startsWith("::ZEROCLUB_"),
+    isMe && onEdit && !message.pending && !String(message.content || "").startsWith("::ZEROCLUB_") && !String(message.content || "").startsWith("📊 "),
   );
   const [editing, setEditing] = usePersistentDraft(draftKey(currentUser?.id, "club-edit", message.id, "open"), false);
   const [editText, setEditText] = usePersistentDraft(draftKey(currentUser?.id, "club-edit", message.id, "text"), "");
@@ -5423,7 +5447,7 @@ function MessageBubble({
 
         {/* Content Container */}
         <div className={`relative flex flex-col ${isMe ? "items-end" : "items-start"} min-w-0 ${highlighted ? "rounded-xl ring-2 ring-[#cc208f]/70" : ""}`}>
-          <button type="button" aria-label="Message options" title="Message options" aria-haspopup="dialog" aria-expanded={actionsOpen} onClick={(event) => { event.stopPropagation(); setActionsOpen(true); }} className={`absolute top-1/2 z-20 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card text-muted-foreground shadow-sm ring-1 ring-border [@media(hover:hover)_and_(pointer:fine)]:opacity-0 group-hover/msg:opacity-100 focus-visible:opacity-100 ${isMe ? "-left-9" : "-right-9"}`}><MoreHorizontal className="h-4 w-4" /></button>
+          <button type="button" aria-label="Message options" title="Message options" aria-haspopup="dialog" aria-expanded={actionsOpen} onClick={(event) => { event.stopPropagation(); setActionsOpen(true); }} className={`absolute top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card [@media(hover:hover)_and_(pointer:fine)]:grid text-muted-foreground shadow-sm ring-1 ring-border [@media(hover:hover)_and_(pointer:fine)]:opacity-0 group-hover/msg:opacity-100 focus-visible:opacity-100 ${isMe ? "-left-9" : "-right-9"}`}><MoreHorizontal className="h-4 w-4" /></button>
           {highlighted && <span className="flex items-center gap-1 px-2 py-1 text-xs text-[#cc208f]"><Star className="h-3 w-3 fill-current" />Highlighted</span>}
           {/* Reply preview */}
           {repliedMessage && (
@@ -5471,7 +5495,7 @@ function MessageBubble({
           )}
 
           <div
-            className={`relative group px-3 py-2 ${isMe ? "rounded-[16px_16px_4px_16px] bg-foreground text-right text-background" : "rounded-[4px_16px_16px_16px] bg-foreground/[0.06] text-left"}`}
+            className={`relative group px-3 py-2 ${isMe ? "rounded-[16px_16px_4px_16px] bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)]" : "rounded-[4px_16px_16px_16px] bg-foreground/[0.06] text-left"}`}
           >
             {/* Room badges */}
             {room === "assignments" && (
@@ -5492,18 +5516,18 @@ function MessageBubble({
               <div className="w-[min(300px,72vw)] text-left">
                 <div className="flex items-start gap-3">
                   <div
-                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${isMe ? "bg-background/15 text-background" : "bg-foreground text-background"}`}
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${isMe ? "bg-white/15 text-white" : "bg-foreground text-background"}`}
                   >
                     <Gift className="h-5 w-5 fill-current" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p
-                      className={`text-[9px] font-semibold uppercase ${isMe ? "text-background/60" : "text-muted-foreground"}`}
+                      className={`text-[9px] font-semibold uppercase ${isMe ? "text-white/60" : "text-muted-foreground"}`}
                     >
                       Club giveaway
                     </p>
                     <h4
-                      className={`mt-1 break-words text-[15px] font-semibold leading-5 ${isMe ? "text-background" : "text-foreground"}`}
+                      className={`mt-1 break-words text-[15px] font-semibold leading-5 ${isMe ? "text-white" : "text-foreground"}`}
                     >
                       {giveaway.title}
                     </h4>
@@ -5511,21 +5535,21 @@ function MessageBubble({
                 </div>
 
                 <div
-                  className={`my-3 border-y py-3 ${isMe ? "border-background/15" : "border-border"}`}
+                  className={`my-3 border-y py-3 ${isMe ? "border-white/15" : "border-border"}`}
                 >
                   <div className="flex items-center gap-2">
                     <Trophy
-                      className={`h-4 w-4 shrink-0 ${isMe ? "text-background/70" : "text-primary"}`}
+                      className={`h-4 w-4 shrink-0 ${isMe ? "text-white/70" : "text-primary"}`}
                     />
                     <p
-                      className={`text-sm font-semibold ${isMe ? "text-background" : "text-foreground"}`}
+                      className={`text-sm font-semibold ${isMe ? "text-white" : "text-foreground"}`}
                     >
                       {giveawayPrizeLine(giveaway, formatWalletAmount)}
                     </p>
                   </div>
                   {giveaway.description && (
                     <p
-                      className={`mt-2 whitespace-pre-wrap text-xs leading-5 ${isMe ? "text-background/70" : "text-muted-foreground"}`}
+                      className={`mt-2 whitespace-pre-wrap text-xs leading-5 ${isMe ? "text-white/70" : "text-muted-foreground"}`}
                     >
                       {giveaway.description}
                     </p>
@@ -5533,7 +5557,7 @@ function MessageBubble({
                 </div>
 
                 <div
-                  className={`mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] ${isMe ? "text-background/60" : "text-muted-foreground"}`}
+                  className={`mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] ${isMe ? "text-white/60" : "text-muted-foreground"}`}
                 >
                   <span>
                     {giveaway.winners} {giveaway.winners === 1 ? "winner" : "winners"}
@@ -5552,7 +5576,7 @@ function MessageBubble({
 
                 {giveawayAwarded ? (
                   <div
-                    className={`flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs font-semibold ${isMe ? "border-background/20 bg-background/10 text-background" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-600"}`}
+                    className={`flex h-10 w-full items-center justify-center gap-2 rounded-md border text-xs font-semibold ${isMe ? "border-white/20 bg-white/10 text-white" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-600"}`}
                   >
                     <Check className="h-4 w-4" />
                     {awardedProfileIds.has(currentUser?.id)
@@ -5603,7 +5627,7 @@ function MessageBubble({
 
                 {giveaway.amountPerWinner && (
                   <p
-                    className={`mt-2 text-center text-[9px] ${isMe ? "text-background/50" : "text-muted-foreground"}`}
+                    className={`mt-2 text-center text-[9px] ${isMe ? "text-white/50" : "text-muted-foreground"}`}
                   >
                     {formatWalletAmount(
                       giveaway.totalAmount || giveaway.amountPerWinner * giveaway.winners,
@@ -5703,14 +5727,14 @@ function MessageBubble({
                     />
                     <div className="mt-2 flex items-center justify-end gap-2">
                       <span
-                        className={`mr-auto text-[11px] ${isMe ? "text-background/60" : "text-muted-foreground"}`}
+                        className={`mr-auto text-[11px] ${isMe ? "text-white/60" : "text-muted-foreground"}`}
                       >
                         Enter to save · Esc to cancel
                       </span>
                       <button
                         type="button"
                         onClick={() => setEditing(false)}
-                        className={`rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${isMe ? "text-background/80 hover:bg-background/10" : "text-muted-foreground hover:bg-foreground/5"}`}
+                        className={`rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${isMe ? "text-white/80 hover:bg-white/10" : "text-muted-foreground hover:bg-foreground/5"}`}
                       >
                         Cancel
                       </button>
@@ -5724,15 +5748,22 @@ function MessageBubble({
                       </button>
                     </div>
                   </div>
+                ) : String(message.content || "").startsWith("📊 ") && !message.pending ? (
+                  <ClubPollMessage
+                    messageId={message.id}
+                    myId={currentUser?.id || ""}
+                    mine={isMe}
+                    fallback={<p className="text-[15px] leading-[1.4]">{message.content}</p>}
+                  />
                 ) : (
                   <p
-                    className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ? "text-background" : "text-foreground"}`}
+                    className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ? "text-white" : "text-foreground"}`}
                   >
                     <LinkifiedText
                       text={message.content.split("$$MEDIA$$")[0].trim()}
                       linkColor={
                         isMe
-                          ? "text-background underline font-bold hover:opacity-80"
+                          ? "text-white underline font-bold hover:opacity-80"
                           : "text-[#cc208f] underline font-bold hover:opacity-80"
                       }
                     />
@@ -5819,7 +5850,7 @@ function MessageBubble({
             {/* Space for timestamp when media is present */}
             {isMe && giveaway && <div className="h-4" />}
             {isMe && !editing && (
-              <span className="absolute bottom-1.5 right-3 text-[10px] text-background/70">
+              <span className="absolute bottom-1.5 right-3 text-[10px] text-white/70">
                 {message.edited_at ? "Edited · " : ""}
                 {time}
               </span>

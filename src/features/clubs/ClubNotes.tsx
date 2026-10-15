@@ -149,16 +149,16 @@ export function ClubNoteCard({ note, isMe }: { note: ClubNotePayload; isMe: bool
       {note.cover_url ? (
         <img src={note.cover_url} alt="" className="aspect-[16/8] w-full object-cover" loading="lazy" />
       ) : (
-        <div className={`flex aspect-[16/7] w-full items-center justify-center ${isMe ? "bg-background/10" : "bg-[#cc208f]/10"}`}>
-          <BookOpen className={`h-8 w-8 ${isMe ? "text-background/70" : "text-[#cc208f]"}`} />
+        <div className={`flex aspect-[16/7] w-full items-center justify-center ${isMe ? "bg-white/10" : "bg-[#cc208f]/10"}`}>
+          <BookOpen className={`h-8 w-8 ${isMe ? "text-white/70" : "text-[#cc208f]"}`} />
         </div>
       )}
       <div className="pt-2.5">
-        <p className={`flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide ${isMe ? "text-background/60" : "text-[#cc208f]"}`}>
+        <p className={`flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide ${isMe ? "text-white/60" : "text-[#cc208f]"}`}>
           <BookOpen className="h-3 w-3" /> ZeroNote{note.audience === "bootcamps" ? " · Bootcamp learners" : ""}
         </p>
-        <p className={`mt-1 line-clamp-2 text-[15px] font-semibold leading-snug ${isMe ? "text-background" : "text-foreground"}`}>{note.title}</p>
-        <p className={`mt-1.5 flex items-center gap-0.5 text-[12.5px] font-semibold ${isMe ? "text-background/75" : "text-muted-foreground"}`}>
+        <p className={`mt-1 line-clamp-2 text-[15px] font-semibold leading-snug ${isMe ? "text-white" : "text-foreground"}`}>{note.title}</p>
+        <p className={`mt-1.5 flex items-center gap-0.5 text-[12.5px] font-semibold ${isMe ? "text-white/75" : "text-muted-foreground"}`}>
           Read note <ChevronRight className="h-3.5 w-3.5" />
         </p>
       </div>

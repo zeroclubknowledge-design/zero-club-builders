@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { BarChart3, Check, Loader2, Plus, X } from "@/components/icons/glyphs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import type { GroupMessage, GroupVote } from "./api";
+import type { GroupPoll, GroupVote } from "./api";
 import { sendPoll, vote } from "./api";
 
 /** Votes counted live; tap an option to vote, tap again to take it back. */
-export function PollCard({ message, votes, myId, mine }: { message: GroupMessage; votes: GroupVote[]; myId: string; mine: boolean }) {
+export function PollCard({ message, votes, myId, mine, onVote }: { message: { id: string; poll: GroupPoll | null }; votes: GroupVote[]; myId: string; mine: boolean; onVote?: (option: number) => Promise<unknown> }) {
   const poll = message.poll;
   const [busy, setBusy] = useState<number | null>(null);
   if (!poll) return null;
@@ -18,7 +20,7 @@ export function PollCard({ message, votes, myId, mine }: { message: GroupMessage
   const pick = async (i: number) => {
     setBusy(i);
     try {
-      await vote(message.id, i);
+      await (onVote ? onVote(i) : vote(message.id, i));
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -68,7 +70,7 @@ export function PollCard({ message, votes, myId, mine }: { message: GroupMessage
   );
 }
 
-export function PollComposer({ open, onOpenChange, groupId }: { open: boolean; onOpenChange: (o: boolean) => void; groupId: string }) {
+export function PollComposer({ open, onOpenChange, groupId, onSubmit }: { open: boolean; onOpenChange: (o: boolean) => void; groupId?: string; onSubmit?: (poll: GroupPoll) => Promise<unknown> }) {
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [multi, setMulti] = useState(false);
@@ -82,7 +84,8 @@ export function PollComposer({ open, onOpenChange, groupId }: { open: boolean; o
     }
     setBusy(true);
     try {
-      await sendPoll(groupId, { question: question.trim(), options: filled, multi });
+      const poll = { question: question.trim(), options: filled, multi };
+      await (onSubmit ? onSubmit(poll) : sendPoll(groupId!, poll));
       setQuestion("");
       setOptions(["", ""]);
       setMulti(false);
@@ -143,5 +146,56 @@ export function PollComposer({ open, onOpenChange, groupId }: { open: boolean; o
         </button>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/* ── Club polls ──────────────────────────────────────────────────────────
+   A club poll is a normal club message ("📊 question") with its options in
+   club_polls and votes in club_poll_votes. */
+
+type ClubPollRow = { message_id: string; question: string; options: string[]; multi: boolean };
+
+export function ClubPollMessage({ messageId, myId, mine, fallback }: { messageId: string; myId: string; mine: boolean; fallback: React.ReactNode }) {
+  const queryClient = useQueryClient();
+  const key = ["club-poll", messageId];
+  const { data, isLoading } = useQuery({
+    queryKey: key,
+    queryFn: async () => {
+      const [{ data: poll }, { data: votes }] = await Promise.all([
+        supabase.from("club_polls" as any).select("message_id, question, options, multi").eq("message_id", messageId).maybeSingle(),
+        supabase.from("club_poll_votes" as any).select("message_id, profile_id, option_index").eq("message_id", messageId),
+      ]);
+      return { poll: (poll as unknown as ClubPollRow) || null, votes: ((votes || []) as unknown as GroupVote[]) };
+    },
+    staleTime: 30_000,
+  });
+
+  // Votes update live for everyone looking at the poll.
+  useEffect(() => {
+    const ch = supabase
+      .channel(`club-poll-${messageId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "club_poll_votes", filter: `message_id=eq.${messageId}` }, () => {
+        void queryClient.invalidateQueries({ queryKey: ["club-poll", messageId] });
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(ch); };
+  }, [messageId, queryClient]);
+
+  if (isLoading) return <div className="h-24 w-[230px] animate-pulse rounded-xl bg-foreground/[0.05]" />;
+  if (!data?.poll) return <>{fallback}</>;
+  const poll: GroupPoll = { question: data.poll.question, options: data.poll.options, multi: data.poll.multi };
+  return (
+    <PollCard
+      message={{ id: messageId, poll }}
+      votes={data.votes}
+      myId={myId}
+      mine={mine}
+      onVote={async (option) => {
+        const { data: res, error } = await supabase.rpc("vote_club_poll" as any, { p_message: messageId, p_option: option } as any);
+        if (error) throw error;
+        if ((res as any)?.ok === false) throw new Error("Couldn't record your vote.");
+        await queryClient.invalidateQueries({ queryKey: key });
+      }}
+    />
   );
 }

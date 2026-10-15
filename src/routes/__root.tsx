@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { LiveSessionProvider, useLiveSession } from "@/contexts/LiveSessionContext";
+import { GroupCallProvider, useGroupCall } from "@/features/groups/GroupCallContext";
 import { isChunkLoadError, isRecovering, isStaleShellError, recoverFromChunkError } from "@/lib/chunk-recovery";
 import { supabase } from "@/lib/supabase";
 
@@ -27,6 +28,27 @@ const GlobalLiveRoom = lazy(() =>
       return { default: () => null };
     })
 );
+
+const GroupCallHost = lazy(() =>
+  import("@/features/groups/GroupCallHost")
+    .then((m) => ({ default: m.GroupCallHost }))
+    .catch((error) => {
+      console.error("GroupCallHost import failed:", error);
+      if (isChunkLoadError(error)) recoverFromChunkError();
+      return { default: () => null };
+    }),
+);
+
+/** Group calls: the Agora bundle downloads only once a call starts. */
+function ClientOnlyGroupCall() {
+  const { session } = useGroupCall();
+  if (!session) return null;
+  return (
+    <Suspense fallback={null}>
+      <GroupCallHost />
+    </Suspense>
+  );
+}
 
 function ClientOnlyGlobalLiveRoom() {
   const { isActive } = useLiveSession();
@@ -445,9 +467,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LiveSessionProvider>
+        <GroupCallProvider>
         <div vaul-drawer-wrapper="">
           <Outlet />
           <ClientOnlyGlobalLiveRoom />
+          <ClientOnlyGroupCall />
         </div>
         <ShareSheetHost />
         <OpenInAppBar />
@@ -468,6 +492,7 @@ function RootComponent() {
             },
           }}
         />
+        </GroupCallProvider>
       </LiveSessionProvider>
     </QueryClientProvider>
   );

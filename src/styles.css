@@ -1703,3 +1703,24 @@ input[type="radio"],
   animation: zc-message-flash 1.8s ease-in-out;
   border-radius: 14px;
 }
+
+/* ── Club live room follows the app theme ───────────────────────────────────
+   The room was drawn dark-only (white text and white-tinted panels on near
+   black). In light mode, swap what "white" and "black" mean inside it, and
+   lift its dark surfaces to light ones. Coloured buttons, the red hang-up and
+   the black scrims over video keep their real white/black, so they still read. */
+html:not(.dark) [data-zc-live-room] {
+  --color-white: #17131a;
+  --color-black: #ffffff;
+}
+html:not(.dark) [data-zc-live-room]:is(.bg-\[\#0A0A0C\]),
+html:not(.dark) [data-zc-live-room] .bg-\[\#0A0A0C\] { background-color: #f6f2f6; }
+html:not(.dark) [data-zc-live-room] :is(.bg-\[\#141117\], .bg-\[\#101014\], .bg-\[\#0f0d10\], .bg-\[\#1a1a20\]) { background-color: #ffffff; }
+html:not(.dark) [data-zc-live-room] .bg-\[\#29202e\] { background-color: #f1e7f0; }
+html:not(.dark) [data-zc-live-room] :is(
+  [class*="bg-[#cc208f]"], [class*="bg-[#e0245e]"], [class*="bg-[#c81f53]"], [class*="bg-[#ff4fc3]"],
+  [class*="bg-red-"], [class*="bg-green-"], [class*="bg-emerald-"], [class*="bg-black/"], video
+) {
+  --color-white: #ffffff;
+  --color-black: #000000;
+}

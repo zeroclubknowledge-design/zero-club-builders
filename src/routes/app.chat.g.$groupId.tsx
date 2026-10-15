@@ -140,6 +140,19 @@ function GroupChatPage() {
     };
   }, [groupId, myId, queryClient]);
 
+  // Ask the server whether the call is really still going: it ends calls
+  // that everyone has left (even by closing the app).
+  const callSince = groupQuery.data?.call_active_since;
+  useEffect(() => {
+    if (!callSince) return;
+    const check = () => void supabase.rpc("chat_group_call_state" as any, { p_group: groupId } as any).then(({ data }) => {
+      if (data && (data as any).active === false) void queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+    });
+    check();
+    const t = window.setInterval(check, 20_000);
+    return () => window.clearInterval(t);
+  }, [callSince, groupId, queryClient]);
+
   const loadOlder = async () => {
     if (loadingOlder || reachedStart || !messages.length) return;
     setLoadingOlder(true);
@@ -501,14 +514,31 @@ function GroupChatPage() {
                     onClick={() => { void pinMessage(groupId, group.pinned_message_id === actionsFor.id ? null : actionsFor.id).catch((e) => toast.error(e.message)); setActionsFor(null); }}
                   />
                 )}
-                {(actionsFor.sender_id === myId || isAdmin) && (
-                  <ActionRow
-                    danger
-                    icon={<Trash2 className="h-4 w-4" />}
-                    label={actionsFor.sender_id === myId ? "Remove for everyone" : "Remove (admin)"}
-                    onClick={() => { const id = actionsFor.id; setActionsFor(null); if (confirm("Remove this message for everyone?")) void removeMessage(id).catch((e) => toast.error(e.message)); }}
-                  />
-                )}
+                {(() => {
+                  // Your own messages: always. Someone else's: only when you
+                  // outrank them (owner > admin > member) — a moderation tool,
+                  // not something every member sees.
+                  const mineMsg = actionsFor.sender_id === myId;
+                  const rank = { owner: 3, admin: 2, member: 1 } as Record<string, number>;
+                  const senderRole = actionsFor.sender_id ? memberById.get(actionsFor.sender_id)?.role : undefined;
+                  const canModerate = !mineMsg && isAdmin && (rank[myRole || "member"] > rank[senderRole || "member"]);
+                  if (!mineMsg && !canModerate) return null;
+                  const who = displayName(memberById.get(actionsFor.sender_id || "")?.profile).split(" ")[0];
+                  return (
+                    <ActionRow
+                      danger
+                      icon={<Trash2 className="h-4 w-4" />}
+                      label={mineMsg ? "Delete for everyone" : `Remove ${who}'s message`}
+                      onClick={() => {
+                        const id = actionsFor.id;
+                        setActionsFor(null);
+                        if (confirm(mineMsg ? "Delete this message for everyone?" : `Remove ${who}'s message for everyone? They'll see it was removed.`)) {
+                          void removeMessage(id).catch((e) => toast.error(e.message));
+                        }
+                      }}
+                    />
+                  );
+                })()}
               </div>
             </>
           )}

@@ -1,0 +1,13 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15 (migration "chat_group_call_participants"
+-- plus in-place patches to my_chat_groups, start_chat_group_call and chat_group_message_push).
+-- Kept as a record only. Do not re-run.
+--
+-- Group calls know who is in them and end themselves.
+-- * chat_group_call_participants (group_id, profile_id, agora_uid, joined_at, last_seen); members read.
+-- * heartbeat_chat_group_call(group, agora_uid) — every 15s from each person in the call.
+-- * chat_group_call_state(group) — who's in the call (name, photo, Agora number) and whether it's live;
+--   also ends the call when nobody has been seen for 45s (75s grace after it starts).
+-- * leave_chat_group_call(group) — leaving; the last one out ends the call immediately.
+-- * my_chat_groups.call_active now means someone is actually in the call.
+-- * start_chat_group_call also returns the group's avatar_url (shown on the call screen).
+-- * "Group call ended" notices no longer send a push.
