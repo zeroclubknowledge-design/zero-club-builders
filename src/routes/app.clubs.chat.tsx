@@ -18,6 +18,7 @@ import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useDraftMedia } from "@/hooks/useDraftMedia";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import { LinkPreview } from "@/components/LinkPreview";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
 import {
@@ -5741,6 +5742,8 @@ function MessageBubble({
                     {/* Space for timestamp */}
                   </p>
                 )}
+
+                {!editing && <LinkPreview text={message.content} />}
 
                 {message.content.includes("$$MEDIA$$") && (
                   <div

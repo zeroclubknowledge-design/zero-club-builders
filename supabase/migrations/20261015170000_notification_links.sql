@@ -1,0 +1,11 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15 (migration "notification_links").
+-- Kept as a record only. Do not re-run.
+--
+-- Every notification knows where it opens.
+-- * notifications.link text — an in-app path (/app/post/<id>, /app/profile/<id>, /app/wallet, …)
+--   or an https URL (ZeroStart). The app navigates there on tap (list and pop-up card).
+-- * notification_link_for(notification) works it out from type, entity_id and the wording of
+--   system notifications; BEFORE INSERT trigger notifications_set_link fills it when not given.
+-- * notify_post_subscribers ("X just posted") now stores the post id and link.
+-- * Backfilled: old "just posted" rows got the author's post from that moment; every row got a link
+--   where one could be worked out (only "You are on the list for …" waitlist notes have none).

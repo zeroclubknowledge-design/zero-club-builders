@@ -1,9 +1,14 @@
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "../icons/glyphs";
 
 /**
  * A bottom sheet on phones, a centred dialog on larger screens.
  * The scrim closes it, Escape closes it, and the page behind stops scrolling.
+ *
+ * Rendered into <body>: pages animate in with a transform (zs-rise), and a
+ * transformed ancestor turns `position: fixed` into "fixed to that box" — the
+ * sheet then floated halfway up the screen on phones, cut off above the tab bar.
  */
 export function Sheet({
   title,
@@ -29,8 +34,9 @@ export function Sheet({
     };
   }, [onClose]);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6">
       <button aria-label="Close" onClick={onClose} className="zs-fade absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
       <div
         role="dialog"
@@ -55,6 +61,7 @@ export function Sheet({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

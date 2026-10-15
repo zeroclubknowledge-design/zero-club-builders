@@ -29,6 +29,7 @@ type IncomingNotification = {
   entity_id?: string | null;
   content?: string | null;
   is_read?: boolean | null;
+  link?: string | null;
   actor?: Person;
 };
 
@@ -37,6 +38,8 @@ export type IncomingPop = {
   id: string;
   kind: "notification" | "message";
   type: string;
+  /** Where tapping it goes, when the database worked that out. */
+  link?: string | null;
   person: Person;
   personId?: string | null;
   entityId?: string | null;
@@ -206,6 +209,7 @@ export function IncomingNotificationCard({ recipientId, onReceived, onRead }: In
             person: cached || null,
             personId: n.actor_id,
             entityId: n.entity_id,
+            link: n.link || null,
             detail: cleanContent(n.content),
             isRead: Boolean(n.is_read),
           };
@@ -250,7 +254,10 @@ export function IncomingNotificationCard({ recipientId, onReceived, onRead }: In
       if (!active.isRead) readRef.current?.();
     }
     const t = active.type;
-    if (active.kind === "message" && active.personId) {
+    if (active.kind === "notification" && active.link) {
+      if (/^https?:\/\//i.test(active.link)) window.open(active.link, "_blank", "noopener");
+      else void navigate({ href: active.link });
+    } else if (active.kind === "message" && active.personId) {
       void navigate({ to: "/app/chat/$id", params: { id: active.personId } });
     } else if (t === "follow" && active.personId) {
       void navigate({ to: "/app/profile/$id", params: { id: active.personId } });

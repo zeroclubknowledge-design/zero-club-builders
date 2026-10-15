@@ -21,6 +21,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as ApiOgDefaultRouteImport } from './routes/api.og-default'
+import { Route as ApiUnfurlRouteImport } from './routes/api.unfurl'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
@@ -183,6 +184,11 @@ const ApiContactRoute = ApiContactRouteImport.update({
 const ApiOgDefaultRoute = ApiOgDefaultRouteImport.update({
   id: '/api/og-default',
   path: '/api/og-default',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUnfurlRoute = ApiUnfurlRouteImport.update({
+  id: '/api/unfurl',
+  path: '/api/unfurl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -713,6 +719,7 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
+  '/api/unfurl': typeof ApiUnfurlRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -828,6 +835,7 @@ export interface FileRoutesByTo {
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
+  '/api/unfurl': typeof ApiUnfurlRoute
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/compose': typeof AppComposeRoute
@@ -940,6 +948,7 @@ export interface FileRoutesById {
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
+  '/api/unfurl': typeof ApiUnfurlRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -1058,6 +1067,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/api/contact'
     | '/api/og-default'
+    | '/api/unfurl'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -1173,6 +1183,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/api/contact'
     | '/api/og-default'
+    | '/api/unfurl'
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/compose'
@@ -1284,6 +1295,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/api/contact'
     | '/api/og-default'
+    | '/api/unfurl'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -1401,6 +1413,7 @@ export interface RootRouteChildren {
   WelcomeRoute: typeof WelcomeRoute
   ApiContactRoute: typeof ApiContactRoute
   ApiOgDefaultRoute: typeof ApiOgDefaultRoute
+  ApiUnfurlRoute: typeof ApiUnfurlRoute
   ClubIdRoute: typeof ClubIdRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
@@ -1505,6 +1518,13 @@ declare module '@tanstack/react-router' {
       path: '/api/og-default'
       fullPath: '/api/og-default'
       preLoaderRoute: typeof ApiOgDefaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/unfurl': {
+      id: '/api/unfurl'
+      path: '/api/unfurl'
+      fullPath: '/api/unfurl'
+      preLoaderRoute: typeof ApiUnfurlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -2501,6 +2521,7 @@ const rootRouteChildren: RootRouteChildren = {
   WelcomeRoute: WelcomeRoute,
   ApiContactRoute: ApiContactRoute,
   ApiOgDefaultRoute: ApiOgDefaultRoute,
+  ApiUnfurlRoute: ApiUnfurlRoute,
   ClubIdRoute: ClubIdRoute,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,

@@ -189,7 +189,7 @@ export const previewInvite = (code: string) =>
   call<{ found: boolean; id?: string; name?: string; description?: string | null; avatar_url?: string | null; member_count?: number; is_member?: boolean; faces?: { avatar_url: string | null; name: string | null }[] }>("chat_group_preview", { p_code: code });
 export const joinGroup = (code: string) => act("join_chat_group", { p_code: code }) as Promise<Result & { id: string }>;
 
-export const startCall = (groupId: string) => act("start_chat_group_call", { p_group: groupId }) as Promise<Result & { channel: string; started: boolean; name: string }>;
+export const startCall = (groupId: string) => act("start_chat_group_call", { p_group: groupId }) as Promise<Result & { channel: string; started: boolean; name: string; avatar_url: string | null }>;
 export const endCall = (groupId: string) => call("end_chat_group_call", { p_group: groupId }).catch(() => undefined);
 
 /** People you can add: anyone you follow or who follows you. */

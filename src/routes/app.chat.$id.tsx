@@ -16,6 +16,7 @@ import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
 import { useUser } from "@/hooks/useUser";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import { LinkPreview } from "@/components/LinkPreview";
 import { supabase } from "@/lib/supabase";
 import { decodeChatMedia, encodeChatMedia, getChatMediaType, useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { toast } from "sonner";
@@ -398,6 +399,9 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                   </p>
                 )}
                 
+                {!fundLink && !/^(TUTOR_INVITE|ACCEPTED_TUTOR_INVITE|REJECTED_TUTOR_INVITE|CLUB_REQUEST):/.test(m.content) && (
+                  <LinkPreview text={m.content} mine={isMe} />
+                )}
                 {m.content.includes('$$MEDIA$$') && (
                   <div className={`mt-1.5 rounded-[12px] overflow-hidden transition-colors ${
                     m.content.split('$$MEDIA$$')[1].split(',').length >= 2

@@ -39,7 +39,7 @@ function GroupCallPage() {
   const { groupId } = Route.useParams();
   const { video } = Route.useSearch();
   const navigate = useNavigate();
-  const [setup, setSetup] = useState<{ channel: string; token: string; name: string; client: IAgoraRTCClient } | null>(null);
+  const [setup, setSetup] = useState<{ channel: string; token: string; name: string; avatar: string | null; client: IAgoraRTCClient } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -52,7 +52,7 @@ function GroupCallPage() {
         const { data, error: tokenError } = await supabase.functions.invoke("agora-token", { body: { channelName: call.channel, uid: 0 } });
         if (tokenError || !data?.token) throw new Error("We couldn't connect the call. Check your connection and try again.");
         const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-        if (alive) setSetup({ channel: call.channel, token: data.token, name: call.name, client });
+        if (alive) setSetup({ channel: call.channel, token: data.token, name: call.name, avatar: (call.avatar_url as string | null) || null, client });
       } catch (e) {
         if (alive) setError((e as Error).message || "Couldn't start the call.");
       }
@@ -89,7 +89,7 @@ function GroupCallPage() {
   }
   return (
     <AgoraRTCProvider client={setup.client}>
-      <CallRoom groupId={groupId} channel={setup.channel} token={setup.token} groupName={setup.name} startWithVideo={video} onLeft={back} />
+      <CallRoom groupId={groupId} channel={setup.channel} token={setup.token} groupName={setup.name} groupAvatar={setup.avatar} startWithVideo={video} onLeft={back} />
     </AgoraRTCProvider>
   );
 }
@@ -104,8 +104,8 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 type Peer = { uid: string; profile_id: string; name: string; avatar: string | null };
 
-function CallRoom({ groupId, channel, token, groupName, startWithVideo, onLeft }: {
-  groupId: string; channel: string; token: string; groupName: string; startWithVideo: boolean; onLeft: () => void;
+function CallRoom({ groupId, channel, token, groupName, groupAvatar, startWithVideo, onLeft }: {
+  groupId: string; channel: string; token: string; groupName: string; groupAvatar: string | null; startWithVideo: boolean; onLeft: () => void;
 }) {
   useOrientationLock("free");
   const { data: me } = useUser();
@@ -176,7 +176,7 @@ function CallRoom({ groupId, channel, token, groupName, startWithVideo, onLeft }
   return (
     <Shell>
       <header className="flex items-center gap-3 px-4 py-3">
-        <GroupAvatar name={groupName} size={36} />
+        <GroupAvatar name={groupName} url={groupAvatar} size={36} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[15px] font-semibold">{groupName}</p>
           <p className="flex items-center gap-1.5 text-[12px] text-white/60">

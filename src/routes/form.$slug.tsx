@@ -673,9 +673,11 @@ function ZeroFormPublicPage() {
 
         {/* ── Price and primary action ────────────────────────────────────── */}
         <div className="mt-6 border-b border-border pb-6">
-          <div className="flex flex-wrap items-baseline gap-3">
+          {/* Sign-up-only forms have no price, so the button alone does the job. */}
+          {!dataOnly && (
+          <div className="mb-5 flex flex-wrap items-baseline gap-3">
             <span className="text-[34px] font-semibold leading-none tracking-tight tabular-nums">
-              {dataOnly ? "Sign up" : isPaid ? money(price) : "Free"}
+              {isPaid ? money(price) : "Free"}
             </span>
             {isPaid && Number(form.regular_price) > price && (
               <>
@@ -684,13 +686,14 @@ function ZeroFormPublicPage() {
               </>
             )}
           </div>
+          )}
           {!dataOnly && form?.registration_deadline && (
-            <p className="mt-3 flex items-center gap-2 text-[12.5px] text-muted-foreground">
+            <p className="-mt-2 mb-5 flex items-center gap-2 text-[12.5px] text-muted-foreground">
               <Clock3 className="h-3.5 w-3.5 shrink-0" />
               Register before {new Date(form.registration_deadline).toLocaleDateString(undefined, { month: "long", day: "numeric" })} to secure this price.
             </p>
           )}
-          <button onClick={goRegister} className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-foreground px-8 text-[14.5px] font-semibold text-background transition hover:opacity-90">
+          <button onClick={goRegister} className="inline-flex h-12 items-center gap-2 rounded-full bg-foreground px-8 text-[14.5px] font-semibold text-background transition hover:opacity-90">
             {dataOnly ? "Sign up" : isPaid ? "Register now" : "Register free"} <ArrowRight className="h-4 w-4" />
           </button>
         </div>

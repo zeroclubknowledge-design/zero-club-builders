@@ -7,6 +7,7 @@ import { ADMIN_GIFT_TYPES, eligibleGiftPlans, giftStatus, giftType, type AdminGi
 import { formatNaira } from "@/features/membership/plans";
 import { toast } from "sonner";
 import { GiftRecipientPicker } from "./GiftRecipientPicker";
+import { SubscriptionPlanPicker, type GiftablePlan } from "./SubscriptionPlanPicker";
 
 const deadlineIn = (days: number) => {
   const date = new Date(Date.now() + days * 86400000);
@@ -30,9 +31,9 @@ export function MembershipGiftsAdmin() {
   const request = useRef<{ signature: string; id: string } | null>(null);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
   const plans = useQuery({ queryKey: ["gift-membership-plans"], queryFn: async () => {
-    const { data, error } = await supabase.from("subscription_plans").select("key,name,audience").eq("active", true).gt("price_amount", 0).in("billing_interval", ["month", "year"]);
+    const { data, error } = await supabase.from("subscription_plans").select("key,name,audience,price_amount,billing_interval,features").eq("active", true).gt("price_amount", 0).in("billing_interval", ["month", "year"]);
     if (error) throw error;
-    return data as GiftPlan[];
+    return data as unknown as (GiftPlan & GiftablePlan)[];
   }});
   const memberships = useQuery({ queryKey: ["admin-membership-gifts"], queryFn: async () => {
     const { data, error } = await supabase.from("membership_gifts").select("*,plan:subscription_plans(name,features),recipient:profiles!membership_gifts_recipient_id_fkey(username)").order("created_at", { ascending: false }).limit(100);
@@ -101,34 +102,13 @@ export function MembershipGiftsAdmin() {
           </div>
           <p className="mt-2 text-sm leading-5 text-muted-foreground">{type.description}</p>
           {isSubscription ? <div className="mt-4 space-y-4 rounded-xl bg-muted/40 p-3 sm:p-4"><div>
-            <p className="text-sm font-medium" id="gift-plan-label">Subscription plan</p>
             {plans.isLoading ? (
-              <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading plans…</p>
+              <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading plans…</p>
             ) : plans.isError ? (
-              <p role="alert" className="mt-2 text-sm text-destructive">Plans could not load. <button type="button" className="underline" onClick={() => plans.refetch()}>Retry</button></p>
+              <p role="alert" className="text-sm text-destructive">Plans could not load. <button type="button" className="underline" onClick={() => plans.refetch()}>Retry</button></p>
             ) : (
-              <div role="radiogroup" aria-labelledby="gift-plan-label" className="mt-2 space-y-3">
-                {["learner", "creator", "tutor", "institution"].filter(audience => (plans.data || []).some(plan => plan.audience === audience)).map(audience => (
-                  <div key={audience}>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{audience}</p>
-                    <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
-                      {(plans.data || []).filter(plan => plan.audience === audience).map(plan => {
-                        const eligible = !selectedRecipient || availablePlans.some(p => p.key === plan.key);
-                        const on = selectedPlan?.key === plan.key;
-                        return (
-                          <button key={plan.key} type="button" role="radio" aria-checked={on} disabled={!eligible} onClick={() => setPlanKey(plan.key)} className={`min-h-12 rounded-xl border px-3 py-2.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-40 ${on ? "border-primary bg-primary/10 font-semibold ring-2 ring-primary/20" : "border-border bg-background hover:bg-muted/60"}`}>
-                            <span className="flex items-center justify-between gap-2">{plan.name}{on && <Check className="h-4 w-4 shrink-0 text-primary" />}</span>
-                            {!eligible && <span className="mt-0.5 block text-[11px] text-muted-foreground">Not for a {selectedRecipient?.account_type || "member"} account</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SubscriptionPlanPicker plans={plans.data || []} recipient={selectedRecipient} value={selectedPlan?.key || ""} onChange={setPlanKey} />
             )}
-            {!selectedRecipient && <p className="mt-2 text-xs text-muted-foreground">Pick a plan now; choose the recipient above before sending.</p>}
-            {selectedRecipient?.is_admin && <p className="mt-2 text-sm text-muted-foreground">This administrator already has every feature for free.</p>}
           </div><div><label htmlFor="gift-days" className="text-sm font-medium">Access duration (days)</label><input id="gift-days" type="number" min="1" max="366" className={inputClass} value={days} onChange={e => setDays(e.target.value)} required /><div className="mt-2 flex flex-wrap gap-2">{[30, 90, 180].map(value => <button type="button" key={value} onClick={() => setDays(String(value))} aria-pressed={days === String(value)} className={`min-h-9 rounded-full border px-3 text-xs ${days === String(value) ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{value} days</button>)}</div><p className="mt-2 text-xs leading-5 text-muted-foreground">Starts when claimed. The same plan is extended; a different active plan is kept.</p></div></div> : <div className="mt-4"><label htmlFor="gift-amount" className="text-sm font-medium">{kind === "zp" ? "Zero Points" : "Gift value (₦)"}</label><input id="gift-amount" type="number" inputMode="numeric" min={kind === "zp" ? 10 : 1} max={kind === "zp" ? 50_000_000 : 5_000_000} step={kind === "zp" ? 10 : 1} required className={inputClass} value={amount} onChange={e => setAmount(e.target.value)} placeholder={kind === "zp" ? "e.g. 1,000 ZP" : "e.g. 5,000"} /><label htmlFor="gift-message" className="mt-4 block text-sm font-medium">{kind === "custom" ? "Gift purpose" : "Personal message (optional)"}</label><textarea id="gift-message" required={kind === "custom"} minLength={kind === "custom" ? 3 : undefined} maxLength={500} className={`${inputClass} min-h-24 py-3`} value={message} onChange={e => setMessage(e.target.value)} placeholder="A little encouragement goes a long way…" /><p className="mt-1 text-right text-xs text-muted-foreground">{message.length}/500</p></div>}
         </div>
         <div className="border-t border-border pt-5"><h3 className="text-base font-semibold">3. Set the claim deadline</h3><label htmlFor="gift-deadline" className="mt-3 block text-sm font-medium">Claim by (your local time)</label><input id="gift-deadline" type="datetime-local" className={inputClass} required value={deadline} onChange={e => setDeadline(e.target.value)} /><div className="mt-2 flex flex-wrap gap-2">{[3, 7, 30].map(days => <button type="button" key={days} className="min-h-9 rounded-full border border-border px-3 text-xs text-muted-foreground" onClick={() => setDeadline(deadlineIn(days))}>In {days} days</button>)}</div><p className="mt-2 text-xs leading-5 text-muted-foreground">Unclaimed gifts expire at this time. Once claimed, wallet funds, points, and service credits stay available.</p></div>

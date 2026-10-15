@@ -102,6 +102,7 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
       onClose={onClose}
       wide
       footer={
+        <>
         <button
           onClick={save}
           disabled={!valid || saving || uploading}
@@ -110,6 +111,12 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
           {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
           {editing ? "Save changes" : "Launch & get my link"}
         </button>
+        {!valid && (
+          <p className="mt-2 text-center text-[11.5px] text-ink-muted">
+            {f.title.trim().length < 4 ? "Add a title (at least 4 characters)" : "Pick an end date"} to {editing ? "save" : "launch"}.
+          </p>
+        )}
+        </>
       }
     >
       {!editing && (

@@ -1,3 +1,4 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp on 2026-10-15 (migration "gift_recipient_suggestions", now also matching full names). Kept as a record only. Do not re-run.
 begin;
 create index if not exists profiles_gift_username_prefix_idx
   on public.profiles (lower(username) text_pattern_ops) where account_status='active';

@@ -260,6 +260,17 @@ function NotificationsPage() {
         markRead(n.id);
       }
 
+      // Every notification knows where it opens (set by the database when it
+      // is created). External links (ZeroStart) open in the browser.
+      if (typeof n.link === "string" && n.link) {
+        if (/^https?:\/\//i.test(n.link)) {
+          window.open(n.link, "_blank", "noopener");
+        } else {
+          navigate({ href: n.link });
+        }
+        return;
+      }
+
       if (n.admin_gift_id) {
         navigate({ to: "/app/gifts" });
       } else if (n.membership_gift_id) {

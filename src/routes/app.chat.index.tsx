@@ -42,7 +42,7 @@ function ChatInboxPage() {
   const goBack = useGoBack("/app");
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"All" | "Unread">("All");
+  const [activeTab, setActiveTab] = useState<"All" | "Unread" | "Groups">("All");
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ["conversations"],
@@ -156,7 +156,7 @@ function ChatInboxPage() {
     return g.name.toLowerCase().includes(q) || (g.last?.content || "").toLowerCase().includes(q);
   });
   const items: ({ kind: "dm"; at: string; c: any } | { kind: "group"; at: string; g: GroupSummary })[] = [
-    ...filteredConversations.map((c: any) => ({ kind: "dm" as const, at: c.at || "", c })),
+    ...(activeTab === "Groups" ? [] : filteredConversations.map((c: any) => ({ kind: "dm" as const, at: c.at || "", c }))),
     ...filteredGroups.map((g: GroupSummary) => ({ kind: "group" as const, at: g.last_message_at, g })),
   ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime());
 
@@ -250,7 +250,7 @@ function ChatInboxPage() {
             />
           </label>
           <div className="mt-2.5 flex gap-2">
-            {(["All", "Unread"] as const).map((tab) => (
+            {(["All", "Unread", "Groups"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -262,6 +262,7 @@ function ChatInboxPage() {
               >
                 {tab}
                 {tab === "Unread" && unreadCount > 0 ? ` · ${unreadCount}` : ""}
+                {tab === "Groups" && groups.length > 0 ? ` · ${groups.length}` : ""}
               </button>
             ))}
           </div>
@@ -318,6 +319,14 @@ function ChatInboxPage() {
           </Link>
         )}
 
+        {activeTab === "Groups" && items.length > 0 && !searchQuery && (
+          <Link to="/app/chat/g/new" className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-foreground/[0.02] md:px-6">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#d6309b,#7c3aed)] text-white">
+              <Users className="h-6 w-6" />
+            </span>
+            <span className="text-[15px] font-semibold text-foreground">New group</span>
+          </Link>
+        )}
         {items.map((item) => {
           if (item.kind === "group") return <GroupRow key={`g-${item.g.id}`} g={item.g} myId={currentUser?.id} />;
           const chat = item.c;
@@ -415,15 +424,24 @@ function ChatInboxPage() {
                   ? "No matches"
                   : activeTab === "Unread"
                     ? "All caught up"
-                    : "No conversations yet"}
+                    : activeTab === "Groups"
+                      ? "No groups yet"
+                      : "No conversations yet"}
               </h3>
               <p className="max-w-[260px] text-[14px] leading-relaxed text-muted-foreground">
                 {searchQuery
                   ? "Try a different name or word."
                   : activeTab === "Unread"
                     ? "You have read every message."
-                    : "Start a conversation with someone you follow."}
+                    : activeTab === "Groups"
+                      ? "Start a private group with friends — chat, run polls and jump on group calls."
+                      : "Start a conversation with someone you follow."}
               </p>
+              {activeTab === "Groups" && !searchQuery && (
+                <Link to="/app/chat/g/new" className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">
+                  <Users className="h-4 w-4" /> Create a group
+                </Link>
+              )}
             </div>
           )}
       </div>

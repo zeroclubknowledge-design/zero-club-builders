@@ -10,6 +10,7 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import { LinkPreview } from "@/components/LinkPreview";
 import { MentionField } from "@/components/MentionField";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
@@ -611,6 +612,7 @@ function Bubble({
                       <LinkifiedText text={text.trim()} linkColor={mine ? "text-white underline font-semibold" : "text-[#cc208f] underline font-semibold"} />
                     </p>
                   )}
+                  {text?.trim() && <LinkPreview text={text} mine={mine} />}
                   {media.length > 0 && (
                     <div className={`mt-1.5 overflow-hidden rounded-[12px] ${images.length >= 2 ? "grid grid-cols-2 gap-0.5" : ""}`}>
                       {media.map((x, i) => (
