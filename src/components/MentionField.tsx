@@ -342,8 +342,13 @@ export const MentionField = forwardRef<Field, MentionFieldProps>(function Mentio
                       onMouseEnter={() => setActive(i)}
                       className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${selected ? (dark ? "bg-white/[0.08]" : "bg-[#cc208f]/[0.08]") : ""}`}
                     >
-                      <span className={`grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full text-[12px] font-semibold ${dark ? "bg-white/10 text-white/80" : "bg-muted text-muted-foreground"}`}>
-                        {person.avatar_url
+                      <span
+                        className={`grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full text-[12px] font-semibold ${person.username === "everyone" && !person.id ? "text-[15px] text-white" : dark ? "bg-white/10 text-white/80" : "bg-muted text-muted-foreground"}`}
+                        style={person.username === "everyone" && !person.id ? { background: PINK } : undefined}
+                      >
+                        {person.username === "everyone" && !person.id
+                          ? "@"
+                          : person.avatar_url
                           ? <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                           : (person.full_name || person.username || "?")[0].toUpperCase()}
                       </span>

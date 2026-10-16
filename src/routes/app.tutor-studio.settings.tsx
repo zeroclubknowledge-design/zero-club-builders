@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
+import { PLAN_NAMES } from "@/features/membership/plans";
+import { useMembershipDashboard } from "@/features/membership/useMembershipDashboard";
 
 export const Route = createFileRoute("/app/tutor-studio/settings")({
   component: TutorSettingsPage,
@@ -18,6 +20,10 @@ function TutorSettingsPage() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // The Tutor plan only: a Learner or Creator membership doesn't show here.
+  const { planKey } = useMembershipDashboard(profile);
+  const membershipName =
+    planKey === "administrator" ? "Zero Club Administrator" : planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
   const [bookingForm, setBookingForm] = useState({
     availability_days: "Weekdays (Mon-Fri)",
     availability_start: "09:00",
@@ -194,7 +200,7 @@ function TutorSettingsPage() {
                 {[
                   ["Account type", profile?.account_type || "Tutor"],
                   ["Username", `@${profile?.username}`],
-                  ["Membership", profile?.tier || "Basic"],
+                  ["Membership", membershipName],
                 ].map(([label, value]) => <div key={label} className="flex items-center justify-between gap-4 px-5 py-3.5"><span className="text-[12px] text-muted-foreground">{label}</span><span className="truncate text-[12px] font-semibold text-foreground">{value}</span></div>)}
               </div>
             </section>

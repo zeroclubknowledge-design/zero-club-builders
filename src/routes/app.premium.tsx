@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { toast } from "sonner";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
-import { formatNaira, resolvePlanKey, membershipAudience } from "@/features/membership/plans";
+import { formatNaira, membershipAudience, planForMode, planMatchesMode, PLAN_AUDIENCE, PLAN_NAMES } from "@/features/membership/plans";
 import { useUser } from "@/hooks/useUser";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -355,8 +355,19 @@ function MembershipPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const currentPlanKey = membershipDashboard?.plan_key || resolvePlanKey(profile);
-  const activeSubscription = membershipDashboard?.subscription;
+  // Each account type shows its own plan: a Creator PRO (bought or gifted)
+  // appears in Creator mode only, not on the Learner or Tutor side.
+  const serverPlanKey: string | null = membershipDashboard?.plan_key ?? null;
+  const currentPlanKey = planForMode(profile, serverPlanKey);
+  const subscriptionHere = planMatchesMode(profile, serverPlanKey);
+  const activeSubscription = subscriptionHere ? membershipDashboard?.subscription : null;
+  const elsewhereAudience =
+    !subscriptionHere && serverPlanKey && membershipDashboard?.subscription && PLAN_AUDIENCE[serverPlanKey]
+      ? PLAN_AUDIENCE[serverPlanKey]
+      : null;
+  const elsewherePlanName = elsewhereAudience
+    ? membershipDashboard?.plan?.name || (PLAN_NAMES as Record<string, string>)[serverPlanKey!] || "Your membership"
+    : null;
 
   const isCurrentPlan = (plan?: Plan) => Boolean(plan?.planKey && plan.planKey === currentPlanKey);
 
@@ -544,6 +555,16 @@ function MembershipPage() {
               ? "No payment needed. Basic stays free."
               : `${priceText} ${selectedPlan?.billingLabel}, paid from your Zero Club wallet.`}
         </p>
+
+        {elsewhereAudience && (
+          <section className="mt-5 rounded-2xl border border-foreground/10 bg-card p-4">
+            <p className="text-[13px] text-muted-foreground">On your {elsewhereAudience} account</p>
+            <p className="mt-0.5 text-[15px] font-semibold">{elsewherePlanName} is active in {elsewhereAudience} mode</p>
+            <p className="mt-1 text-[13px] leading-snug text-muted-foreground">
+              Switch to {elsewhereAudience} mode to see and manage it. Plans above are for your {audience} account.
+            </p>
+          </section>
+        )}
 
         {activeSubscription && (
           <section className="mt-5 rounded-2xl bg-card p-4">

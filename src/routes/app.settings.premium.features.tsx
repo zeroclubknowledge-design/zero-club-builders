@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, ChevronLeft, UsersRound } from "@/components/icons/glyphs";
-import { CLUB_LIMITS, PLAN_NAMES, resolvePlanKey } from "@/features/membership/plans";
+import { CLUB_LIMITS, PLAN_NAMES } from "@/features/membership/plans";
+import { useMembershipDashboard } from "@/features/membership/useMembershipDashboard";
 import { useUser } from "@/hooks/useUser";
 
 export const Route = createFileRoute("/app/settings/premium/features")({
@@ -23,7 +24,7 @@ const planFeatures: Record<string, string[]> = {
 function PlanFeatures() {
   const { data: profile } = useUser();
 
-  const planKey = resolvePlanKey(profile);
+  const { planKey } = useMembershipDashboard(profile);
   const isAdmin = planKey === "administrator";
   const planName = isAdmin ? "Zero Club Administrator" : planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
   const clubLimit = isAdmin || planKey === "institution" ? null : CLUB_LIMITS[planKey];

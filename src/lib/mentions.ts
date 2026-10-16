@@ -24,7 +24,10 @@ export async function notifyMentionedUsers({
   const mentions = content.match(/@(\w+)/g);
   if (!mentions || mentions.length === 0) return;
 
-  const usernames = Array.from(new Set(mentions.map((m) => m.slice(1))));
+  // @everyone / @all are handled by the server (admins only), not as people.
+  const usernames = Array.from(new Set(mentions.map((m) => m.slice(1)))).filter(
+    (u) => !/^(everyone|all)$/i.test(u),
+  );
   if (usernames.length === 0) return;
 
   try {

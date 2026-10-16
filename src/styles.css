@@ -1766,3 +1766,43 @@ html:not(.dark) [data-zc-live-room] :is(
 @container (min-width: 64rem) {
   .pf-rail > * { flex-basis: min(44%, 440px); }
 }
+
+
+/* ── Desktop sidebar collapsed to an icons-only rail ───────────────────── */
+.zc-rail [data-rail-hide] { display: none !important; }
+.zc-rail nav :is(a, button),
+.zc-rail [data-rail-row] {
+  position: relative;
+  justify-content: center;
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.zc-rail nav :is(a, button) > span:not([data-badge]):not([data-rail-keep]),
+.zc-rail [data-rail-row] > span,
+.zc-rail [data-side-foot] :is(a, button) > span,
+.zc-rail nav > p { display: none; }
+.zc-rail nav > div[class*="h-px"] { margin-inline: 12px; }
+.zc-rail nav a[data-premium] {
+  margin-inline: 0;
+  border-color: transparent;
+  background: transparent;
+  padding: 6px 0;
+}
+.zc-rail [data-badge] {
+  position: absolute;
+  top: 5px;
+  right: 12px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  margin: 0;
+}
+.zc-rail [data-side-foot] { flex-direction: column; }
+.zc-rail [data-side-foot] :is(a, button) {
+  width: 100%;
+  flex: none;
+  justify-content: center;
+  padding: 0;
+}

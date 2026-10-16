@@ -273,12 +273,18 @@ function GroupChatPage() {
   const pinned = group.pinned_message_id ? messages.find((m) => m.id === group.pinned_message_id) : null;
   const callLive = Boolean(group.call_active_since && Date.now() - new Date(group.call_active_since).getTime() < 6 * 3600_000);
   const canSend = !group.admins_only_send || isAdmin;
-  const mentionPeople = members
-    .filter((m) => m.profile?.username && m.profile_id !== myId)
-    .map((m) => ({ id: m.profile_id, username: m.profile!.username!, full_name: m.profile!.full_name, avatar_url: m.profile!.avatar_url, badge: m.role === "member" ? null : m.role === "owner" ? "Owner" : "Admin" }));
+  const mentionPeople = [
+    // Admins can tag the whole group; the server checks the role before notifying anyone.
+    ...(isAdmin && members.length > 1
+      ? [{ id: null, username: "everyone", full_name: "Everyone in this group", avatar_url: null, badge: `Tag all ${members.length - 1}` }]
+      : []),
+    ...members
+      .filter((m) => m.profile?.username && m.profile_id !== myId)
+      .map((m) => ({ id: m.profile_id, username: m.profile!.username!, full_name: m.profile!.full_name, avatar_url: m.profile!.avatar_url, badge: m.role === "member" ? null : m.role === "owner" ? "Owner" : "Admin" })),
+  ];
 
   return (
-    <div className="zc-chat-panel fixed inset-0 z-[60] flex flex-col bg-background md:left-[280px] md:border-x md:border-border/60 xl:right-[336px]" style={{ height: "100dvh" }}>
+    <div className="zc-chat-panel fixed inset-0 z-[60] flex flex-col bg-background md:left-[var(--zc-sidebar-w,280px)] md:border-x md:border-border/60 xl:right-[336px]" style={{ height: "100dvh" }}>
       {/* Header */}
       <header className="relative z-10 flex items-center gap-1 bg-background/85 px-2 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] shadow-[0_10px_24px_-22px_rgba(0,0,0,0.6)] backdrop-blur-xl">
         <button onClick={goBack} aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full hover:bg-foreground/[0.04]">

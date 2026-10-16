@@ -4,7 +4,8 @@ import { Switch } from "@/components/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { PLAN_NAMES, resolvePlanKey } from "@/features/membership/plans";
+import { PLAN_NAMES } from "@/features/membership/plans";
+import { useMembershipDashboard } from "@/features/membership/useMembershipDashboard";
 import { useUser } from "@/hooks/useUser";
 
 export const Route = createFileRoute("/app/settings/premium")({
@@ -36,7 +37,7 @@ function PremiumSettings() {
     }
   });
 
-  const planKey = resolvePlanKey(profile);
+  const { planKey } = useMembershipDashboard(profile);
   const isAdmin = planKey === "administrator";
   const tier = isAdmin ? "Zero Club Administrator" : planKey === "institution" ? "Institution" : PLAN_NAMES[planKey];
 

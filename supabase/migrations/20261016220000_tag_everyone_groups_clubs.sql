@@ -1,0 +1,14 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "tag_everyone_groups_clubs"). Kept here as a record; do not re-run.
+--
+-- @everyone / @all in group and club chats, admins only (checked server-side):
+-- * tags_everyone(text), chat_preview(text)
+-- * club_message_tags_everyone(club, sender, content) — uses is_club_admin
+-- * group_message_tags_everyone(group, sender, content) — owner/admin role
+-- * triggers club_messages_notify_everyone / chat_group_messages_notify_everyone
+--   insert one notification per member (club_mention / mention) with a link
+--   back to the chat; muted group members included.
+-- * on_club_message_send_push recreated with WHEN (not club_message_tags_everyone(...))
+--   and chat_group_message_push returns early for tag-everyone messages, so
+--   members get one alert, not two.
+-- * profiles_username_not_reserved: usernames 'everyone' and 'all' are reserved.

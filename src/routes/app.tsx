@@ -32,8 +32,9 @@ import {
   Megaphone,
   GraduationCap,
   Building2,
+  PanelLeft,
 } from "@/components/icons/glyphs";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { IconHome, IconLearn, IconClubs, IconWallet, IconMessages, IconGames, IconGem, IconBookmark, IconNotes, IconCompass, IconMetrics, IconPresentation, IconInstitution, IconStore, IconBell, IconRocket, IconSpark, IconShield, IconPost } from "@/components/icons/nav";
 import { supabase } from "@/lib/supabase";
@@ -149,6 +150,8 @@ function SidebarContent({
   isInstitutionStudio,
   unreadMessagesCount = 0,
   unreadNotificationsCount = 0,
+  collapsed = false,
+  onToggleCollapse,
 }: {
   profile: any;
   onOpenTheme: () => void;
@@ -157,6 +160,10 @@ function SidebarContent({
   isInstitutionStudio?: boolean;
   unreadMessagesCount?: number;
   unreadNotificationsCount?: number;
+  /** Desktop only: icons-only rail. */
+  collapsed?: boolean;
+  /** Desktop only: shows the collapse / expand control. */
+  onToggleCollapse?: () => void;
 }) {
   const [accounts, setAccounts] = React.useState<any[]>([]);
   const [institutionActiveTab, setInstitutionActiveTab] = React.useState("overview");
@@ -219,6 +226,8 @@ function SidebarContent({
     <Link
       key={item.label}
       to={item.to}
+      title={collapsed ? item.label : undefined}
+      aria-label={collapsed ? item.label : undefined}
       activeOptions={{ exact: !!item.exact }}
       activeProps={{ className: "bg-foreground/[0.06] !font-semibold !text-foreground" }}
       className={`group ${item.desktopOnly ? "hidden md:flex" : "flex"} h-12 items-center gap-3.5 rounded-[10px] px-3 text-[16px] font-medium text-foreground/85 tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground md:h-11 md:text-[15px]`}
@@ -228,7 +237,7 @@ function SidebarContent({
           <item.Icon active={isActive} className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
           <span className="min-w-0 flex-1 truncate">{item.label}</span>
           {item.badge > 0 && (
-            <span className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-semibold tabular-nums text-accent-foreground">
+            <span data-badge className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-semibold tabular-nums text-accent-foreground">
               {item.badge > 99 ? "99+" : item.badge}
             </span>
           )}
@@ -250,6 +259,29 @@ function SidebarContent({
       }}
     >
       {/* Who you are, first — the same order as the profile it links to. */}
+      {collapsed ? (
+        <div className="flex shrink-0 flex-col items-center gap-2 border-b border-border px-2 pb-3 pt-4">
+          <Link to="/app/profile" title="Your profile" aria-label="Your profile" className="tap">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" loading="lazy" decoding="async" />
+            ) : (
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-accent/10 font-display text-[16px] font-semibold text-accent">
+                {profile?.username?.substring(0, 1).toUpperCase() || "U"}
+              </div>
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            title="Expand sidebar"
+            aria-label="Expand sidebar"
+            aria-expanded={false}
+            className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"
+          >
+            <PanelLeft className="h-5 w-5" />
+          </button>
+        </div>
+      ) : (
       <div className="shrink-0 border-b border-border px-5 pb-4 pt-5">
         <div className="flex items-start justify-between">
           <Link to="/app/profile" aria-label="Your profile" className="tap">
@@ -261,13 +293,25 @@ function SidebarContent({
               </div>
             )}
           </Link>
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+            aria-expanded
+            className="ml-auto mr-1 mt-0.5 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"
+          >
+            <PanelLeft className="h-[18px] w-[18px]" />
+          </button>
+        )}
         <Drawer>
           <DrawerTrigger asChild>
             <button className="mt-0.5 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </DrawerTrigger>
-          <DrawerContent className="z-[100] mx-auto max-w-lg border-border bg-background p-0 focus:ring-0">
+          <DrawerContent overlayClassName="z-[10090]" className="z-[10100] mx-auto max-w-lg border-border bg-background p-0 focus:ring-0">
             <div className="px-5 pb-3 pt-1 text-left">
               <h2 className="font-display text-[20px] font-semibold leading-tight text-foreground">Accounts</h2>
               <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Switch profiles or start another Zero Club identity.</p>
@@ -394,18 +438,21 @@ function SidebarContent({
           </Link>
         </div>
       </div>
+      )}
 
       <div className="flex flex-1 flex-col overflow-y-auto px-2 py-2 no-scrollbar">
         {isInstitutionStudio ? (
           /* ── Digital Hub sidebar: replaces regular nav when on institution-studio ── */
           <div className="flex flex-1 flex-col">
-            <p className="px-3 pb-2 pt-2 text-[12px] font-semibold text-muted-foreground">Digital Hub</p>
+            <p data-rail-hide className="px-3 pb-2 pt-2 text-[12px] font-semibold text-muted-foreground">Digital Hub</p>
             <nav className="flex flex-1 flex-col">
               {INSTITUTION_SIDEBAR_TABS.map(({ key, label, Icon }) => {
                 const isActive = institutionActiveTab === key;
                 return (
                   <button
                     key={key}
+                    title={collapsed ? label : undefined}
+                    aria-label={collapsed ? label : undefined}
                     onClick={() => {
                       setInstitutionActiveTab(key);
                       window.dispatchEvent(new CustomEvent("institution-tab-change", { detail: key }));
@@ -421,7 +468,7 @@ function SidebarContent({
                 );
               })}
             </nav>
-            <Link to="/app" className="mt-auto flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+            <Link to="/app" title={collapsed ? "Back to app" : undefined} data-rail-row className="mt-auto flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
               <ChevronLeft className="h-4 w-4" />
               <span>Back to app</span>
             </Link>
@@ -431,6 +478,7 @@ function SidebarContent({
             mode={businessMode}
             unreadMessagesCount={unreadMessagesCount}
             unreadNotificationsCount={unreadNotificationsCount}
+            collapsed={collapsed}
           />
         ) : (
           <nav className="flex flex-col">
@@ -439,9 +487,11 @@ function SidebarContent({
             {workspaceLinks.map(renderLink)}
             <Link
               to="/app/premium"
+              data-premium
+              title={collapsed ? (profile?.is_admin ? "Administrator access" : "Go PRO") : undefined}
               className="mx-1 mt-3 flex items-center gap-3 rounded-xl border border-accent/25 bg-accent/[0.06] p-3 tap hover:bg-accent/[0.09]"
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-accent text-accent-foreground">
+              <span data-rail-keep className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-accent text-accent-foreground">
                 <IconGem active className="h-5 w-5" />
               </span>
               <span className="min-w-0">
@@ -453,12 +503,12 @@ function SidebarContent({
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 border-t border-border px-2 py-2">
-        <Link to="/app/settings" className="flex h-11 flex-1 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+      <div data-side-foot className="flex shrink-0 items-center gap-1 border-t border-border px-2 py-2">
+        <Link to="/app/settings" title={collapsed ? "Settings" : undefined} className="flex h-11 flex-1 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
           <Settings className="h-5 w-5" />
           <span>Settings</span>
         </Link>
-        <button onClick={onOpenTheme} className="flex h-11 flex-1 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+        <button onClick={onOpenTheme} title={collapsed ? "Display" : undefined} className="flex h-11 flex-1 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
           <Palette className="h-5 w-5" />
           <span>Display</span>
         </button>
@@ -484,10 +534,12 @@ function BusinessSidebarNav({
   mode,
   unreadMessagesCount,
   unreadNotificationsCount,
+  collapsed = false,
 }: {
   mode: "institutional" | "company";
   unreadMessagesCount: number;
   unreadNotificationsCount: number;
+  collapsed?: boolean;
 }) {
   const location = useRouterState({ select: (s) => s.location });
   const pathname = location.pathname.replace(/\/$/, "");
@@ -524,7 +576,7 @@ function BusinessSidebarNav({
       {sections.map((s) => {
         const active = pathname === hubPath && tab === s.tab;
         return (
-          <Link key={s.tab} to={hubPath as never} search={{ tab: s.tab } as never} className={row(active)}>
+          <Link key={s.tab} to={hubPath as never} search={{ tab: s.tab } as never} title={collapsed ? s.label : undefined} aria-label={collapsed ? s.label : undefined} className={row(active)}>
             <s.Icon className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
             <span className="min-w-0 flex-1 truncate">{s.label}</span>
           </Link>
@@ -534,11 +586,11 @@ function BusinessSidebarNav({
       {general.map((item: any) => {
         const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
         return (
-          <Link key={item.to} to={item.to as never} className={`${row(active)} ${item.desktopOnly ? "hidden md:flex" : ""}`}>
+          <Link key={item.to} to={item.to as never} title={collapsed ? item.label : undefined} aria-label={collapsed ? item.label : undefined} className={`${row(active)} ${item.desktopOnly ? "hidden md:flex" : ""}`}>
             <item.Icon active={active} className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
             <span className="min-w-0 flex-1 truncate">{item.label}</span>
             {item.badge > 0 && (
-              <span className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-semibold tabular-nums text-accent-foreground">
+              <span data-badge className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-semibold tabular-nums text-accent-foreground">
                 {item.badge > 99 ? "99+" : item.badge}
               </span>
             )}
@@ -920,6 +972,31 @@ function AppLayout() {
   const [loading, setLoading] = useState(!getInitialSession());
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Desktop sidebar: full menu or an icons-only rail, remembered per browser.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Read after mount so the server and first client render agree.
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem("zc-sidebar-collapsed") === "1") setSidebarCollapsed(true);
+    } catch {
+      /* storage blocked: stay expanded */
+    }
+  }, []);
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      try {
+        window.localStorage.setItem("zc-sidebar-collapsed", next ? "1" : "0");
+      } catch {
+        /* private mode: still toggles for this visit */
+      }
+      return next;
+    });
+  }, []);
+  // Fixed panels (chats) line up with the sidebar's edge through this variable.
+  useEffect(() => {
+    document.documentElement.style.setProperty("--zc-sidebar-w", sidebarCollapsed ? "76px" : "280px");
+  }, [sidebarCollapsed]);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
@@ -1617,8 +1694,10 @@ function AppLayout() {
   return (
     <div className="zc-app-shell mx-auto min-h-screen w-full bg-background md:flex md:max-w-none md:justify-center">
       {/* Desktop Sidebar (Left Column) — hidden on admin routes, which have their own sidebar */}
-      <div className={`zc-desktop-sidebar zc-noir-sidebar sticky top-0 z-40 h-screen w-[280px] shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-background no-scrollbar ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
+      <div className={`zc-desktop-sidebar zc-noir-sidebar sticky top-0 z-40 h-screen shrink-0 flex-col overflow-y-auto border-r border-border/60 bg-background no-scrollbar transition-[width] duration-200 ease-out ${sidebarCollapsed ? "zc-rail w-[76px]" : "w-[280px]"} ${isAdminStudio ? "hidden" : "hidden md:flex"}`}>
         <SidebarContent
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapsed}
           profile={profile}
           onOpenTheme={() => setIsThemeOpen(true)}
           isInstitutionStudio={pathname.startsWith("/app/institution-studio")}
@@ -1717,8 +1796,10 @@ function AppLayout() {
         )}
 
         {/* Theme Selection Sheet */}
+        {/* Opened from the sidebar, which stays visible beside full-screen pages
+            (chats, clubs, games), so it must sit above all of them. */}
         <Drawer open={isThemeOpen} onOpenChange={setIsThemeOpen}>
-          <DrawerContent className="border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
+          <DrawerContent overlayClassName="z-[10090]" className="z-[10100] border-none bg-background px-4 pb-4 pt-1 focus:ring-0 sm:p-6">
             <div className="pb-3 pt-1 text-left">
               <h2 className="font-display text-[20px] font-semibold leading-tight text-foreground">Display</h2>
               <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">Choose how Zero Club looks to you.</p>

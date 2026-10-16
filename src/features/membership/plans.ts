@@ -55,9 +55,57 @@ export function resolvePlanKey(profile: any): IndividualPlanKey | "institution" 
     return "tutor_basic";
   }
   if (audience === "Creator") return tier === "creatormax" ? "creator_max" : tier === "creator" ? "creator" : "creator_basic";
-  if (tier === "creator" || tier === "creatormax") return "learner_premium";
+  // A Creator membership belongs to Creator mode; it isn't a Learner plan.
+  if (tier === "creator" || tier === "creatormax") return "learner_basic";
   if (tier === "premium" || tier === "premium+") return "learner_premium";
   return "learner_basic";
+}
+
+/** Which account type each plan belongs to. */
+export const PLAN_AUDIENCE: Record<string, AccountAudience> = {
+  learner_basic: "Learner",
+  learner_premium: "Learner",
+  creator_basic: "Creator",
+  creator: "Creator",
+  creator_max: "Creator",
+  tutor_basic: "Tutor",
+  tutor_premium: "Tutor",
+  tutor_premium_plus: "Tutor",
+  institution: "Institution",
+  institution_small: "Institution",
+  institution_large: "Institution",
+  institution_custom: "Institution",
+};
+
+const BASIC_PLAN: Record<AccountAudience, IndividualPlanKey | "institution"> = {
+  Learner: "learner_basic",
+  Creator: "creator_basic",
+  Tutor: "tutor_basic",
+  Institution: "institution",
+};
+
+/**
+ * The plan to show for the account type the person is using right now.
+ * A membership bought or gifted for one account type (say Creator PRO) shows
+ * only there; in Learner or Tutor mode they see that mode's own plan.
+ * `subscriptionPlanKey` is the server's plan (get_my_subscription_dashboard).
+ */
+export function planForMode(
+  profile: any,
+  subscriptionPlanKey?: string | null,
+): IndividualPlanKey | "institution" | "administrator" {
+  if (profile?.is_admin || subscriptionPlanKey === "administrator") return "administrator";
+  const audience = membershipAudience(profile);
+  if (subscriptionPlanKey) {
+    if (PLAN_AUDIENCE[subscriptionPlanKey] !== audience) return BASIC_PLAN[audience];
+    return audience === "Institution" ? "institution" : (subscriptionPlanKey as IndividualPlanKey);
+  }
+  return resolvePlanKey(profile);
+}
+
+/** True when a plan belongs to the account type in use. */
+export function planMatchesMode(profile: any, planKey?: string | null) {
+  return Boolean(planKey && PLAN_AUDIENCE[planKey] === membershipAudience(profile));
 }
 
 export function clubUpgradeMessage(planKey: string) {

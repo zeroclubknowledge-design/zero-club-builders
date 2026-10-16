@@ -1247,7 +1247,7 @@ function ChatViewPage() {
 
   return (
     <div 
-      className="zc-chat-panel fixed inset-x-0 z-[60] mx-auto flex max-w-none flex-col overflow-hidden bg-background md:border-x md:border-border/60 md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
+      className="zc-chat-panel fixed inset-x-0 z-[60] mx-auto flex max-w-none flex-col overflow-hidden bg-background md:border-x md:border-border/60 md:left-[var(--zc-sidebar-w,280px)] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
       <header className="relative z-10 flex items-center gap-1 bg-background/85 px-2 pb-2 shadow-[0_10px_24px_-22px_rgba(0,0,0,0.6)] backdrop-blur-xl pt-[calc(0.5rem+env(safe-area-inset-top))]">

@@ -234,6 +234,8 @@ export function LinkifiedText({ text, className, linkColor = LINK_CLASS }: { tex
         // email; it is put straight back so the text is unchanged.
         (_match, before: string, mention: string) => {
           const username = mention.substring(1);
+          // @everyone / @all tag the whole group or club; there is no profile to open.
+          if (/^(everyone|all)$/i.test(username)) return `${before}<strong class="${MENTION_CLASS}">${mention}</strong>`;
           const displayName = profileMap[username.toLowerCase()] || mention;
           return `${before}<strong class="${MENTION_CLASS} cursor-pointer" data-username="${username}">${displayName}</strong>`;
         },
@@ -272,6 +274,8 @@ export function LinkifiedText({ text, className, linkColor = LINK_CLASS }: { tex
             return <strong key={i} className="font-black">{part.slice(2, -2)}</strong>;
           } else if (part.startsWith("*") && part.endsWith("*") && part.length > 2 && !part.startsWith("**")) {
             return <strong key={i} className="font-bold">{part.slice(1, -1)}</strong>;
+          } else if (/^@(everyone|all)$/i.test(part)) {
+            return <strong key={i} className={MENTION_CLASS}>{part}</strong>;
           } else if (part.startsWith("@")) {
             const username = part.substring(1);
             const displayName = profileMap[username.toLowerCase()] || part;

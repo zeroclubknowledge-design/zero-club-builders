@@ -194,6 +194,7 @@ function ClubMessageComposer({
   avatar,
   onTyping,
   onStopTyping,
+  canTagAll = false,
 }: {
   storageKey: string | null;
   placeholder: string;
@@ -204,6 +205,8 @@ function ClubMessageComposer({
   onTyping?: () => void;
   onStopTyping?: () => void;
   members?: any[];
+  /** Admins can tag everyone; the server checks the role before notifying. */
+  canTagAll?: boolean;
   /** Rendered inside the composer, not beside it. */
   avatar?: ReactNode;
 }) {
@@ -225,8 +228,11 @@ function ClubMessageComposer({
    */
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const mentionPeople = useMemo<MentionPerson[]>(
-    () =>
-      members
+    () => [
+      ...(canTagAll && members.length > 1
+        ? [{ id: null, username: "everyone", full_name: "Everyone in this club", avatar_url: null, badge: "Tag all" }]
+        : []),
+      ...(members
         .map((member: any) => {
           const person = member.profiles || member;
           return person?.username
@@ -239,8 +245,9 @@ function ClubMessageComposer({
               }
             : null;
         })
-        .filter(Boolean) as MentionPerson[],
-    [members],
+        .filter(Boolean) as MentionPerson[]),
+    ],
+    [members, canTagAll],
   );
 
   const mentionMatches = (() => {
@@ -1656,7 +1663,7 @@ function ClubChat() {
 
   if (club && isBasic && isExpired) {
     return (
-      <div className="zc-keep-width zc-chat-panel fixed inset-x-0 z-[100] mx-auto flex h-dvh max-w-none flex-col items-center justify-center bg-background px-6 text-center md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]">
+      <div className="zc-keep-width zc-chat-panel fixed inset-x-0 z-[100] mx-auto flex h-dvh max-w-none flex-col items-center justify-center bg-background px-6 text-center md:left-[var(--zc-sidebar-w,280px)] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]">
         <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-6">
           <ShieldAlert className="w-10 h-10 text-primary" />
         </div>
@@ -1694,7 +1701,7 @@ function ClubChat() {
 
   return (
     <div
-      className="zc-keep-width zc-chat-panel fixed inset-x-0 z-40 mx-auto flex max-w-none flex-col overflow-hidden border-x border-border bg-card md:left-[280px] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
+      className="zc-keep-width zc-chat-panel fixed inset-x-0 z-40 mx-auto flex max-w-none flex-col overflow-hidden border-x border-border bg-card md:left-[var(--zc-sidebar-w,280px)] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
       style={{ height: viewportHeight, top: viewportTop }}
     >
       <header className="relative z-50 shrink-0 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
@@ -3859,6 +3866,7 @@ function ClubChat() {
             }
             hasMedia={mediaFiles.length > 0}
             members={members}
+            canTagAll={isAdmin}
             onSend={(text) => handleSendMessage(text)}
             onTyping={notifyTyping}
             onStopTyping={stopTyping}
