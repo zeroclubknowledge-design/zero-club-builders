@@ -45,7 +45,8 @@ function applyAppTheme() {
     const root = document.documentElement;
     root.classList.remove("dark", "dim", "lights-out", "rose-noir", "premium");
     const mode = localStorage.getItem("darkMode") || "off";
-    const theme = localStorage.getItem("darkTheme") || "lights-out";
+    const stored = localStorage.getItem("darkTheme");
+    const theme = stored === "rose-noir" ? stored : "lights-out";
     if (mode === "premium") return;
     const isDark =
       mode === "on" ||

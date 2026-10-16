@@ -1806,3 +1806,42 @@ html:not(.dark) [data-zc-live-room] :is(
   justify-content: center;
   padding: 0;
 }
+
+
+/* ── @tags ─────────────────────────────────────────────────────────────────
+   A tag is pink with a soft pink chip, tuned per theme so it never melts into
+   the page: brighter on the dark themes, lighter still on Rose Noir (whose
+   surfaces are pink-tinted), and white on a pink bubble. */
+.zc-mention {
+  color: #cc208f;
+  background-color: rgb(204 32 143 / 0.11);
+  border-radius: 5px;
+  padding: 0 3px;
+  margin: 0 -1px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color 0.15s;
+}
+.zc-mention:hover { background-color: rgb(204 32 143 / 0.2); }
+.dark .zc-mention { color: #ff7dcf; background-color: rgb(255 125 207 / 0.15); }
+.dark.rose-noir .zc-mention {
+  color: #ffd0ee;
+  background-color: rgb(255 125 207 / 0.24);
+  box-shadow: inset 0 -1.5px 0 rgb(255 125 207 / 0.7);
+}
+.zc-mention.zc-mention-on-brand {
+  color: #ffffff !important;
+  background-color: rgb(255 255 255 / 0.24) !important;
+  box-shadow: inset 0 -1.5px 0 rgb(255 255 255 / 0.75) !important;
+}
+.zc-mention.zc-mention-on-brand:hover { background-color: rgb(255 255 255 / 0.32) !important; }
+
+/* In the composer: colour and background only, so the caret stays aligned. */
+.zc-tag-ink { color: #cc208f; background-color: rgb(204 32 143 / 0.1); }
+.zc-tag-ink-text { color: #cc208f; }
+.dark .zc-tag-ink, .zc-tag-ink.zc-tag-ink-dark { color: #ff7dcf; background-color: rgb(255 125 207 / 0.16); }
+.dark .zc-tag-ink-text, .zc-tag-ink-text.zc-tag-ink-dark { color: #ff7dcf; }
+.dark.rose-noir .zc-tag-ink { color: #ffd0ee; background-color: rgb(255 125 207 / 0.26); }
+.dark.rose-noir .zc-tag-ink-text { color: #ffb3e3; }

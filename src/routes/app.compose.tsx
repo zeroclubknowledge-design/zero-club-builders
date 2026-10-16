@@ -30,7 +30,7 @@ const MentionMark = Mark.create({
     return [{ tag: 'span[data-mention]' }]
   },
   renderHTML({ HTMLAttributes }) {
-    return ['span', mergeAttributes(HTMLAttributes, { class: 'text-[#cc208f] font-semibold', 'data-mention': 'true' }), 0]
+    return ['span', mergeAttributes(HTMLAttributes, { class: 'zc-mention', 'data-mention': 'true' }), 0]
   },
 });
 

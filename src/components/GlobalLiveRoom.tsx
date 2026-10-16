@@ -136,7 +136,7 @@ function LiveMessageText({ text, names }: { text: string; names: string[] }) {
     <>
       {text.split(pattern).map((part, index) =>
         part.startsWith("@") ? (
-          <span key={index} className="font-semibold text-[#f06ac3]">
+          <span key={index} className="zc-tag-ink zc-tag-ink-dark rounded px-0.5 font-semibold">
             {part}
           </span>
         ) : (

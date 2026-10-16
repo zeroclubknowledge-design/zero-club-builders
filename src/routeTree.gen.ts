@@ -43,7 +43,6 @@ import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppShipRouteImport } from './routes/app.ship'
 import { Route as AppStoreRouteImport } from './routes/app.store'
 import { Route as AppTasksRouteImport } from './routes/app.tasks'
-import { Route as AppTeamsRouteImport } from './routes/app.teams'
 import { Route as AppTutorApplyRouteImport } from './routes/app.tutor-apply'
 import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
 import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
@@ -104,6 +103,8 @@ import { Route as AppSettingsPremiumRouteImport } from './routes/app.settings.pr
 import { Route as AppSettingsPrivacyRouteImport } from './routes/app.settings.privacy'
 import { Route as AppSettingsResourcesRouteImport } from './routes/app.settings.resources'
 import { Route as AppSettingsSecurityRouteImport } from './routes/app.settings.security'
+import { Route as AppTeamsIndexRouteImport } from './routes/app.teams.index'
+import { Route as AppTeamsOrgIdRouteImport } from './routes/app.teams.$orgId'
 import { Route as AppTutorStudioIndexRouteImport } from './routes/app.tutor-studio.index'
 import { Route as AppTutorStudioCreateRouteImport } from './routes/app.tutor-studio.create'
 import { Route as AppTutorStudioSettingsRouteImport } from './routes/app.tutor-studio.settings'
@@ -300,11 +301,6 @@ const AppStoreRoute = AppStoreRouteImport.update({
 const AppTasksRoute = AppTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppTeamsRoute = AppTeamsRouteImport.update({
-  id: '/teams',
-  path: '/teams',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTutorApplyRoute = AppTutorApplyRouteImport.update({
@@ -610,6 +606,16 @@ const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppTeamsIndexRoute = AppTeamsIndexRouteImport.update({
+  id: '/teams/',
+  path: '/teams/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTeamsOrgIdRoute = AppTeamsOrgIdRouteImport.update({
+  id: '/teams/$orgId',
+  path: '/teams/$orgId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTutorStudioIndexRoute = AppTutorStudioIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -776,7 +782,6 @@ export interface FileRoutesByFullPath {
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
-  '/app/teams': typeof AppTeamsRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
@@ -828,6 +833,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
+  '/app/teams/$orgId': typeof AppTeamsOrgIdRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -846,6 +852,7 @@ export interface FileRoutesByFullPath {
   '/app/notes/': typeof AppNotesIndexRoute
   '/app/profile/': typeof AppProfileIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
+  '/app/teams/': typeof AppTeamsIndexRoute
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
@@ -894,7 +901,6 @@ export interface FileRoutesByTo {
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
-  '/app/teams': typeof AppTeamsRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
@@ -945,6 +951,7 @@ export interface FileRoutesByTo {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
+  '/app/teams/$orgId': typeof AppTeamsOrgIdRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -963,6 +970,7 @@ export interface FileRoutesByTo {
   '/app/notes': typeof AppNotesIndexRoute
   '/app/profile': typeof AppProfileIndexRoute
   '/app/settings': typeof AppSettingsIndexRoute
+  '/app/teams': typeof AppTeamsIndexRoute
   '/app/tutor-studio': typeof AppTutorStudioIndexRoute
   '/app/wallet': typeof AppWalletIndexRoute
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
@@ -1017,7 +1025,6 @@ export interface FileRoutesById {
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
-  '/app/teams': typeof AppTeamsRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
@@ -1069,6 +1076,7 @@ export interface FileRoutesById {
   '/app/settings/privacy': typeof AppSettingsPrivacyRoute
   '/app/settings/resources': typeof AppSettingsResourcesRoute
   '/app/settings/security': typeof AppSettingsSecurityRoute
+  '/app/teams/$orgId': typeof AppTeamsOrgIdRoute
   '/app/tutor-studio/create': typeof AppTutorStudioCreateRoute
   '/app/tutor-studio/settings': typeof AppTutorStudioSettingsRoute
   '/app/wallet/add-money': typeof AppWalletAddMoneyRoute
@@ -1087,6 +1095,7 @@ export interface FileRoutesById {
   '/app/notes/': typeof AppNotesIndexRoute
   '/app/profile/': typeof AppProfileIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
+  '/app/teams/': typeof AppTeamsIndexRoute
   '/app/tutor-studio/': typeof AppTutorStudioIndexRoute
   '/app/wallet/': typeof AppWalletIndexRoute
   '/api/og/$kind/$id': typeof ApiOgKindIdRoute
@@ -1142,7 +1151,6 @@ export interface FileRouteTypes {
     | '/app/ship'
     | '/app/store'
     | '/app/tasks'
-    | '/app/teams'
     | '/app/tutor-apply'
     | '/app/tutor-studio'
     | '/app/zero-ai'
@@ -1194,6 +1202,7 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
+    | '/app/teams/$orgId'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -1212,6 +1221,7 @@ export interface FileRouteTypes {
     | '/app/notes/'
     | '/app/profile/'
     | '/app/settings/'
+    | '/app/teams/'
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/api/og/$kind/$id'
@@ -1260,7 +1270,6 @@ export interface FileRouteTypes {
     | '/app/ship'
     | '/app/store'
     | '/app/tasks'
-    | '/app/teams'
     | '/app/tutor-apply'
     | '/app/zero-ai'
     | '/app/zerohub'
@@ -1311,6 +1320,7 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
+    | '/app/teams/$orgId'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -1329,6 +1339,7 @@ export interface FileRouteTypes {
     | '/app/notes'
     | '/app/profile'
     | '/app/settings'
+    | '/app/teams'
     | '/app/tutor-studio'
     | '/app/wallet'
     | '/api/og/$kind/$id'
@@ -1382,7 +1393,6 @@ export interface FileRouteTypes {
     | '/app/ship'
     | '/app/store'
     | '/app/tasks'
-    | '/app/teams'
     | '/app/tutor-apply'
     | '/app/tutor-studio'
     | '/app/zero-ai'
@@ -1434,6 +1444,7 @@ export interface FileRouteTypes {
     | '/app/settings/privacy'
     | '/app/settings/resources'
     | '/app/settings/security'
+    | '/app/teams/$orgId'
     | '/app/tutor-studio/create'
     | '/app/tutor-studio/settings'
     | '/app/wallet/add-money'
@@ -1452,6 +1463,7 @@ export interface FileRouteTypes {
     | '/app/notes/'
     | '/app/profile/'
     | '/app/settings/'
+    | '/app/teams/'
     | '/app/tutor-studio/'
     | '/app/wallet/'
     | '/api/og/$kind/$id'
@@ -1748,13 +1760,6 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/app/tasks'
       preLoaderRoute: typeof AppTasksRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/teams': {
-      id: '/app/teams'
-      path: '/teams'
-      fullPath: '/app/teams'
-      preLoaderRoute: typeof AppTeamsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/tutor-apply': {
@@ -2177,6 +2182,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsSecurityRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/app/teams/': {
+      id: '/app/teams/'
+      path: '/teams'
+      fullPath: '/app/teams/'
+      preLoaderRoute: typeof AppTeamsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/teams/$orgId': {
+      id: '/app/teams/$orgId'
+      path: '/teams/$orgId'
+      fullPath: '/app/teams/$orgId'
+      preLoaderRoute: typeof AppTeamsOrgIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/tutor-studio/': {
       id: '/app/tutor-studio/'
       path: '/'
@@ -2475,7 +2494,6 @@ interface AppRouteChildren {
   AppShipRoute: typeof AppShipRoute
   AppStoreRoute: typeof AppStoreRoute
   AppTasksRoute: typeof AppTasksRoute
-  AppTeamsRoute: typeof AppTeamsRoute
   AppTutorApplyRoute: typeof AppTutorApplyRoute
   AppTutorStudioRoute: typeof AppTutorStudioRouteWithChildren
   AppZeroAiRoute: typeof AppZeroAiRoute
@@ -2499,6 +2517,7 @@ interface AppRouteChildren {
   AppPostIdRoute: typeof AppPostIdRoute
   AppProfileIdRoute: typeof AppProfileIdRoute
   AppProfileEditRoute: typeof AppProfileEditRoute
+  AppTeamsOrgIdRoute: typeof AppTeamsOrgIdRoute
   AppWalletAddMoneyRoute: typeof AppWalletAddMoneyRoute
   AppWalletRequestRoute: typeof AppWalletRequestRoute
   AppWalletSettingsRoute: typeof AppWalletSettingsRoute
@@ -2509,6 +2528,7 @@ interface AppRouteChildren {
   AppGamesIndexRoute: typeof AppGamesIndexRoute
   AppGiftsIndexRoute: typeof AppGiftsIndexRoute
   AppProfileIndexRoute: typeof AppProfileIndexRoute
+  AppTeamsIndexRoute: typeof AppTeamsIndexRoute
   AppWalletIndexRoute: typeof AppWalletIndexRoute
   AppBootcampsIdEditRoute: typeof AppBootcampsIdEditRoute
   AppChatGGroupIdRoute: typeof AppChatGGroupIdRoute
@@ -2543,7 +2563,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppShipRoute: AppShipRoute,
   AppStoreRoute: AppStoreRoute,
   AppTasksRoute: AppTasksRoute,
-  AppTeamsRoute: AppTeamsRoute,
   AppTutorApplyRoute: AppTutorApplyRoute,
   AppTutorStudioRoute: AppTutorStudioRouteWithChildren,
   AppZeroAiRoute: AppZeroAiRoute,
@@ -2567,6 +2586,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPostIdRoute: AppPostIdRoute,
   AppProfileIdRoute: AppProfileIdRoute,
   AppProfileEditRoute: AppProfileEditRoute,
+  AppTeamsOrgIdRoute: AppTeamsOrgIdRoute,
   AppWalletAddMoneyRoute: AppWalletAddMoneyRoute,
   AppWalletRequestRoute: AppWalletRequestRoute,
   AppWalletSettingsRoute: AppWalletSettingsRoute,
@@ -2577,6 +2597,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGamesIndexRoute: AppGamesIndexRoute,
   AppGiftsIndexRoute: AppGiftsIndexRoute,
   AppProfileIndexRoute: AppProfileIndexRoute,
+  AppTeamsIndexRoute: AppTeamsIndexRoute,
   AppWalletIndexRoute: AppWalletIndexRoute,
   AppBootcampsIdEditRoute: AppBootcampsIdEditRoute,
   AppChatGGroupIdRoute: AppChatGGroupIdRoute,

@@ -310,7 +310,8 @@ export const MentionField = forwardRef<Field, MentionFieldProps>(function Mentio
       >
         {segments.map((seg, i) =>
           seg.tag ? (
-            <span key={i} style={{ color: dark ? "#f06ac3" : PINK, background: dark ? "rgba(240,106,195,0.16)" : "rgba(204,32,143,0.10)", borderRadius: 4 }}>{seg.text}</span>
+            // Colour and background only: the mirror must keep letter widths.
+            <span key={i} className={`zc-tag-ink ${dark ? "zc-tag-ink-dark" : ""}`} style={{ borderRadius: 4 }}>{seg.text}</span>
           ) : (
             <span key={i}>{seg.text}</span>
           ),
@@ -354,7 +355,7 @@ export const MentionField = forwardRef<Field, MentionFieldProps>(function Mentio
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className={`block truncate text-[13.5px] font-semibold ${dark ? "text-white" : "text-foreground"}`}>{person.full_name || person.username}</span>
-                        <span className="block truncate text-[12px]" style={{ color: dark ? "#f06ac3" : PINK }}>@{person.username}</span>
+                        <span className={`block truncate text-[12px] zc-tag-ink-text ${dark ? "zc-tag-ink-dark" : ""}`}>@{person.username}</span>
                       </span>
                       {person.badge && <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide ${dark ? "text-[#f28fd0]" : "text-muted-foreground"}`}>{person.badge}</span>}
                     </button>

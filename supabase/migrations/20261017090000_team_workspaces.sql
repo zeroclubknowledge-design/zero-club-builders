@@ -1,0 +1,16 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "team_workspaces"). Kept here as a record; do not re-run.
+--
+-- Team workspaces (Slack-like org space for people on an organization's team):
+-- * business_team.role now 'member' | 'staff' | 'manager' (manager = Admin)
+-- * workspace_role(org, uid) -> owner | admin | staff | member | null
+-- * tables: workspace_channels, workspace_messages (realtime), workspace_reads,
+--   workspace_meetings, workspace_meeting_rsvps — RLS read for workspace members,
+--   all writes through security-definer functions
+-- * get_workspace, get_workspace_people, get_workspace_programmes,
+--   get_workspace_communities, get_workspace_meetings
+-- * send_workspace_message (announcements: owner/admin/staff; notifies team),
+--   remove_workspace_message, mark_workspace_read, create/archive_workspace_channel,
+--   save/cancel_workspace_meeting (notifies team), rsvp_workspace_meeting
+-- * set_team_member_role (org only), get_team_member_dossier (org + admins)
+-- * get_my_teams now includes the caller's own organization and each role

@@ -211,7 +211,8 @@ function SidebarContent({
     { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
   ];
   const workspaceLinks: any[] = [
-    ...(businessMode ? [{ Icon: IconInstitution, label: "Business Hub", to: "/app/business" }] : [{ Icon: Users, label: "Teams", to: "/app/teams" }]),
+    ...(businessMode ? [{ Icon: IconInstitution, label: "Business Hub", to: "/app/business" }] : []),
+    { Icon: Users, label: "Teams", to: "/app/teams" },
     { Icon: IconStore, label: "My Store", to: "/app/my-store" },
     { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
     ...(profile?.is_admin || mode === "creator" || String(profile?.tier || "").toLowerCase() === "creator"
@@ -526,7 +527,7 @@ const COMPANY_SECTIONS = [
   { tab: "hiring", label: "Hiring", Icon: plain(BriefcaseBusiness) },
   { tab: "talent", label: "Talent", Icon: plain(Search) },
   { tab: "sponsor", label: "Sponsor & reach", Icon: plain(Megaphone) },
-  { tab: "team", label: "Team training", Icon: plain(GraduationCap) },
+  { tab: "team", label: "Team & training", Icon: plain(GraduationCap) },
   { tab: "page", label: "Company page", Icon: plain(Building2) },
 ];
 
@@ -557,6 +558,7 @@ function BusinessSidebarNav({
       : [{ to: "/app/quests", label: "Opportunities", Icon: IconRocket }]),
     { to: "/app/chat", label: "Messages", Icon: IconMessages, badge: unreadMessagesCount, desktopOnly: true },
     { to: "/app/notifications", label: "Notifications", Icon: IconBell, badge: unreadNotificationsCount, desktopOnly: true },
+    { to: "/app/teams", label: "Teams", Icon: plain(Users) },
     { to: "/app/clubs", label: "Clubs", Icon: IconClubs },
     { to: "/app/wallet", label: "Wallet", Icon: IconWallet },
     { to: "/app/zero-ai", label: "Zero AI", Icon: IconZeroAI },
@@ -900,7 +902,7 @@ const getInitialSession = () => {
 };
 
 type AppThemeMode = "on" | "off" | "system";
-type AppDarkTheme = "dim" | "lights-out" | "rose-noir";
+type AppDarkTheme = "lights-out" | "rose-noir";
 
 const getStoredAppThemeMode = (): AppThemeMode => {
   if (typeof window === "undefined") return "off";
@@ -916,7 +918,8 @@ const getStoredAppDarkTheme = (): AppDarkTheme => {
   if (typeof window === "undefined") return "lights-out";
   try {
     const stored = localStorage.getItem("darkTheme");
-    return stored === "dim" || stored === "rose-noir" ? stored : "lights-out";
+    // Dim was retired; anyone who had it lands on Black.
+    return stored === "rose-noir" ? stored : "lights-out";
   } catch {
     return "lights-out";
   }
@@ -924,7 +927,6 @@ const getStoredAppDarkTheme = (): AppDarkTheme => {
 
 const DARK_THEME_COLORS: Record<AppDarkTheme, string> = {
   "lights-out": "#000000",
-  dim: "#202633",
   "rose-noir": "#0a0409",
 };
 
@@ -1591,7 +1593,8 @@ function AppLayout() {
   }, [pathname]);
 
   const isFeed = pathname === "/app" || pathname === "/app/";
-  const isChat = pathname.includes("/chat");
+  // Team workspaces are full-screen like chats: no tab bar over the composer.
+  const isChat = pathname.includes("/chat") || /^\/app\/teams\/[^/]+/.test(pathname);
   const isChatInbox = pathname === "/app/chat" || pathname === "/app/chat/";
   const isPostDetail = pathname.startsWith("/app/post/");
   const isGameDetail = pathname.startsWith("/app/games/");
@@ -1809,7 +1812,6 @@ function AppLayout() {
               {[
                 { key: "standard", label: "Standard", desc: "Warm ivory, editorial", swatch: "bg-[#f4f2ef]", active: darkMode === "off", onClick: () => setDarkMode("off") },
                 { key: "black", label: "Black", desc: "Lights out — pure contrast", swatch: "bg-black", active: darkMode === "on" && darkTheme === "lights-out", onClick: () => { setDarkMode("on"); setDarkTheme("lights-out"); } },
-                { key: "dim", label: "Dim", desc: "Softer dark for evenings", swatch: "bg-[#202633]", active: darkMode === "on" && darkTheme === "dim", onClick: () => { setDarkMode("on"); setDarkTheme("dim"); } },
                 {
                   key: NOIR_THEME,
                   label: "Rose Noir",

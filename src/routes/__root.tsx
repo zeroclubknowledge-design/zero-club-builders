@@ -364,6 +364,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 } else {
                   var dM = localStorage.getItem('darkMode') || 'off';
                   var dT = localStorage.getItem('darkTheme') || 'lights-out';
+                  if (dT !== 'rose-noir') dT = 'lights-out';
                   if (dM !== 'premium') {
                     var isD = dM === 'on' || (dM === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
                     if (isD) {

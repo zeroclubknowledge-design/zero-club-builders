@@ -27,6 +27,7 @@ import {
   X,
 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
+import { MemberDossier } from "@/features/workspace/MemberDossier";
 import { useUser } from "@/hooks/useUser";
 import { uploadFile } from "@/lib/storage";
 import { INTEREST_OPTIONS } from "@/lib/modes";
@@ -49,7 +50,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "hiring", label: "Hiring" },
   { id: "talent", label: "Talent" },
   { id: "sponsor", label: "Sponsor & reach" },
-  { id: "team", label: "Team training" },
+  { id: "team", label: "Team" },
   { id: "page", label: "Company page" },
 ];
 
@@ -518,10 +519,25 @@ function Team() {
   });
 
   const memberIds = useMemo(() => new Set((team.data || []).map((m) => m.member_id)), [team.data]);
+  const [dossier, setDossier] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setOrgId(data.user?.id || null));
+  }, []);
 
   return (
     <div className="space-y-6">
-      <SectionHead title="Team training" body="Invite your staff, then assign bootcamps that fit their roles. They accept from their own Zero Club account." />
+      <SectionHead title="Team" body="Invite people from Zero Club, open anyone's full record, set their role and assign bootcamps. They accept from their own Zero Club account." />
+      {orgId && (
+        <Link to="/app/teams/$orgId" params={{ orgId }} className="flex items-center gap-3 rounded-2xl border border-[#cc208f]/30 bg-[#cc208f]/[0.05] p-4 transition hover:bg-[#cc208f]/[0.08]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f] text-white"><Users className="h-5 w-5" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14.5px] font-semibold">Open your team workspace</span>
+            <span className="block text-[12.5px] text-muted-foreground">Announcements, channels, meetings, programmes and people — what your team sees.</span>
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      )}
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <p className="text-[13.5px] font-semibold">Invite people</p>
@@ -560,10 +576,11 @@ function Team() {
             <div key={m.member_id} className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-center gap-3">
                 <Link to="/app/profile/$id" params={{ id: m.username || m.member_id }} className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">{m.avatar_url && <img src={m.avatar_url} alt="" className="h-full w-full object-cover" />}</Link>
-                <div className="min-w-0 flex-1">
+                <button type="button" onClick={() => setDossier(m.member_id)} className="min-w-0 flex-1 text-left">
                   <p className="truncate text-[14.5px] font-semibold">{m.full_name || m.username}</p>
-                  <p className="truncate text-[12.5px] text-muted-foreground">@{m.username}{m.title ? ` · ${m.title}` : ""}</p>
-                </div>
+                  <p className="truncate text-[12.5px] text-muted-foreground">@{m.username}{m.title ? ` · ${m.title}` : ""}{m.role && m.role !== "member" ? ` · ${m.role === "manager" ? "Admin" : "Staff"}` : ""}</p>
+                  <p className="mt-0.5 text-[12px] font-semibold text-[#cc208f]">View full record</p>
+                </button>
                 {m.status === "invited" ? (
                   <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-[11.5px] font-semibold text-amber-600">Invite pending</span>
                 ) : (
@@ -603,6 +620,7 @@ function Team() {
           ))}
         </div>
       )}
+      {orgId && <MemberDossier orgId={orgId} memberId={dossier} canEdit kind="company" onClose={() => setDossier(null)} />}
     </div>
   );
 }

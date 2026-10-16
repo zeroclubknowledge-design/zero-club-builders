@@ -22,7 +22,10 @@ import { supabase } from "@/lib/supabase";
  * bold text. The brand hex is used rather than a token because this is the one
  * colour that should not change with the theme: a mention is a mention.
  */
-const MENTION_CLASS = "text-[#cc208f] font-semibold hover:opacity-80";
+// Colours live in styles.css (.zc-mention) so each theme can tune them, and a
+// tag inside a pink bubble switches to white instead of vanishing.
+const MENTION_CLASS = "zc-mention";
+const MENTION_ON_BRAND = "zc-mention zc-mention-on-brand";
 
 /** A mention that is not part of an email address or already inside a tag.
  *  Group 1 is the preceding character (kept), group 2 is the @username. */
@@ -116,7 +119,20 @@ function OpenLinkSheetBody({ url, onOpenInternal, onOpenExternal }: { url: strin
 // (--primary is ink on light themes and white on dark ones.)
 const LINK_CLASS = "text-[#cc208f] font-semibold hover:underline underline-offset-2";
 
-export function LinkifiedText({ text, className, linkColor = LINK_CLASS }: { text: string; className?: string, linkColor?: string }) {
+export function LinkifiedText({
+  text,
+  className,
+  linkColor = LINK_CLASS,
+  onBrand,
+}: {
+  text: string;
+  className?: string;
+  linkColor?: string;
+  /** Text sits on a Zero Club pink surface (your own chat bubble). Defaults to
+   *  true when the link colour is white, which is how those bubbles style it. */
+  onBrand?: boolean;
+}) {
+  const mentionClass = (onBrand ?? /(^|\s)text-white(\s|$)/.test(linkColor)) ? MENTION_ON_BRAND : MENTION_CLASS;
   const navigate = useNavigate();
   const router = useRouter();
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
@@ -235,9 +251,9 @@ export function LinkifiedText({ text, className, linkColor = LINK_CLASS }: { tex
         (_match, before: string, mention: string) => {
           const username = mention.substring(1);
           // @everyone / @all tag the whole group or club; there is no profile to open.
-          if (/^(everyone|all)$/i.test(username)) return `${before}<strong class="${MENTION_CLASS}">${mention}</strong>`;
+          if (/^(everyone|all)$/i.test(username)) return `${before}<strong class="${mentionClass}">${mention}</strong>`;
           const displayName = profileMap[username.toLowerCase()] || mention;
-          return `${before}<strong class="${MENTION_CLASS} cursor-pointer" data-username="${username}">${displayName}</strong>`;
+          return `${before}<strong class="${mentionClass} cursor-pointer" data-username="${username}">${displayName}</strong>`;
         },
       ),
     );
@@ -275,7 +291,7 @@ export function LinkifiedText({ text, className, linkColor = LINK_CLASS }: { tex
           } else if (part.startsWith("*") && part.endsWith("*") && part.length > 2 && !part.startsWith("**")) {
             return <strong key={i} className="font-bold">{part.slice(1, -1)}</strong>;
           } else if (/^@(everyone|all)$/i.test(part)) {
-            return <strong key={i} className={MENTION_CLASS}>{part}</strong>;
+            return <strong key={i} className={mentionClass}>{part}</strong>;
           } else if (part.startsWith("@")) {
             const username = part.substring(1);
             const displayName = profileMap[username.toLowerCase()] || part;
@@ -284,7 +300,7 @@ export function LinkifiedText({ text, className, linkColor = LINK_CLASS }: { tex
                 key={i} 
                 to="/app/profile/$id" 
                 params={{ id: username }} 
-                className={MENTION_CLASS}
+                className={mentionClass}
                 onClick={(e) => e.stopPropagation()}
               >
                 {displayName}
