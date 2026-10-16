@@ -35,8 +35,6 @@ serve(async (req) => {
     const role = RtcRole.PUBLISHER;
     // Token expires in 2 hours
     const expirationTimeInSeconds = 3600 * 2;
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
     // Use string type for UID in token builder if UID is a string, else use 0 for string UIDs
     // Usually user.id (UUID) is a string, so we map it to an integer UID or use the string token builder
@@ -52,7 +50,8 @@ serve(async (req) => {
       numericUid,
       role,
       expirationTimeInSeconds,
-      privilegeExpiredTs
+      // AccessToken2 expects a duration in seconds, not a Unix timestamp.
+      expirationTimeInSeconds
     );
 
     return new Response(

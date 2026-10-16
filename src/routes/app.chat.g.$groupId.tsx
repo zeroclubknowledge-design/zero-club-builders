@@ -158,7 +158,7 @@ function GroupChatPage() {
   const callSince = groupQuery.data?.call_active_since;
   useEffect(() => {
     if (!callSince) return;
-    const check = () => void supabase.rpc("chat_group_call_state" as any, { p_group: groupId } as any).then(({ data }) => {
+    const check = () => void supabase.rpc("group_call_state_v2" as any, { p_group: groupId } as any).then(({ data }) => {
       if (data && (data as any).active === false) void queryClient.invalidateQueries({ queryKey: ["group", groupId] });
     });
     check();

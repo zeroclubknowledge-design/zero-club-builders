@@ -151,7 +151,7 @@ export function IncomingCallHost() {
     if (!active || active.kind !== "group_call") return;
     const id = active.id;
     const check = async () => {
-      const { data } = await supabase.rpc("chat_group_call_state" as never, { p_group: active.target_id } as never);
+      const { data } = await supabase.rpc("group_call_state_v2" as never, { p_group: active.target_id } as never);
       if ((data as { active?: boolean } | null)?.active === false) {
         setRings((list) => list.filter((r) => r.id !== id));
         clearRingNotification(active.url);

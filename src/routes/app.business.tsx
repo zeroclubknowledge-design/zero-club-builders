@@ -468,7 +468,7 @@ function Sponsor({ orgId }: { orgId: string }) {
           ) : (
             <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               {challenges.data.map((c: any) => (
-                <Link key={c.id} to="/app/challenge/$id" params={{ id: c.id }} className="flex items-center gap-3 px-4 py-3.5 hover:bg-foreground/[0.03]">
+                <Link key={c.id} to="/app/challenge/$id" params={{ id: c.id }} search={{ created: undefined }} className="flex items-center gap-3 px-4 py-3.5 hover:bg-foreground/[0.03]">
                   <Trophy className="h-5 w-5 shrink-0 text-[#cc208f]" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14.5px] font-semibold">{c.title}</p>

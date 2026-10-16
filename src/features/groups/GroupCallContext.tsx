@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
 /*
  * The group call lives above the router, like the club live room, so it keeps
@@ -22,8 +23,15 @@ const GroupCallContext = createContext<Ctx | null>(null);
 export function GroupCallProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<GroupCallSession | null>(null);
   const [minimized, setMinimized] = useState(false);
+  const currentSession = useRef(session);
+  currentSession.current = session;
 
   const start = useCallback((groupId: string, video: boolean) => {
+    if (currentSession.current && currentSession.current.groupId !== groupId) {
+      toast.message("You're already in a call", { description: "Leave your current call before joining another group." });
+      setMinimized(false);
+      return;
+    }
     setSession((current) => (current && current.groupId === groupId ? current : { groupId, video, key: Date.now() }));
     setMinimized(false);
   }, []);
