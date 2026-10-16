@@ -399,16 +399,19 @@ function Feed() {
           means no rounding difference can ever reopen a gap for posts to
           scroll through. */}
       <header className="zc-page-width zc-feed-tabs sticky top-[calc(var(--zc-header-h)-1px)] z-40 w-full border-b border-border bg-card">
-        <div className="flex h-11 items-stretch justify-between px-4">
-          <div className="no-scrollbar flex min-w-0 flex-1 gap-[22px] overflow-x-auto">
+        <div className="flex h-11 items-stretch justify-between px-2 md:px-4">
+          {/* Tabs share the row evenly; the underline stays the width of its label. */}
+          <div className="no-scrollbar flex min-w-0 flex-1 items-stretch overflow-x-auto">
             {["Discover", "Following", "Live", "Leaderboard"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative whitespace-nowrap text-[14px] font-semibold transition-colors ${activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"}`}
+                className={`flex flex-1 justify-center whitespace-nowrap px-2 text-[14px] font-semibold transition-colors ${activeTab === tab ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"}`}
               >
-                {tab}
-                {activeTab === tab && <span className="absolute inset-x-0 bottom-0 h-[2px] bg-foreground" />}
+                <span className="relative flex items-center">
+                  {tab}
+                  {activeTab === tab && <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-foreground" />}
+                </span>
               </button>
             ))}
           </div>
