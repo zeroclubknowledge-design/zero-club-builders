@@ -95,6 +95,8 @@ function ChatInboxPage() {
         },
         refreshInbox,
       )
+      // Someone reacted to one of my messages: the inbox preview changes.
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${currentUser.id}` }, refreshInbox)
       // Group messages: RLS only delivers the groups this person is in.
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_group_messages" }, () => {
         void queryClient.invalidateQueries({ queryKey: ["my-groups"] });
@@ -178,10 +180,18 @@ function ChatInboxPage() {
     );
   }
 
-  const preview = (chat: any) =>
-    directMessagePreview(chat.lastMessage, {
+  const preview = (chat: any) => {
+    // "You reacted 🔥 to “See you at 5”" when a reaction is the latest thing.
+    const r = chat.lastReaction;
+    if (r?.emoji) {
+      const who = r.by === currentUser?.id ? "You" : (chat.user?.full_name || chat.user?.username || "They").split(" ")[0];
+      const quote = r.message ? ` “${String(r.message).slice(0, 60)}”` : " a message";
+      return `${who} reacted ${r.emoji} to${quote}`;
+    }
+    return directMessagePreview(chat.lastMessage, {
       sentByCurrentUser: chat.lastSenderId === currentUser?.id,
     });
+  };
   const groupUnread = groups.filter((g: GroupSummary) => g.unread > 0).length;
   const unreadCount = groupUnread + conversations.filter(
     (c: any) =>

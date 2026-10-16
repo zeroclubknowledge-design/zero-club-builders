@@ -809,7 +809,8 @@ export const getMessages = async (otherUserId: string, limit = MESSAGE_PAGE_SIZE
 
   let query = supabase
     .from('messages')
-    .select('*, profiles:sender_id(username, avatar_url, full_name)')
+    // Reactions come with the messages, so they're there every time the chat opens.
+    .select('*, profiles:sender_id(username, avatar_url, full_name), reactions:message_reactions(id, message_id, profile_id, emoji, created_at)')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`)
     .not('content', 'like', 'CLUB_REQUEST:%')
     .not('content', 'eq', 'DISMISSED_CLUB_REQUEST')
@@ -872,6 +873,8 @@ export const getConversations = async () => {
       },
       lastMessage: row.last_message,
       lastSenderId: row.last_sender_id,
+      // Set when the latest thing in the chat is a reaction, not a message.
+      lastReaction: row.last_reaction || null,
       time: new Date(row.last_created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       at: row.last_created_at,
       unread: Number(row.unread_count) > 0,

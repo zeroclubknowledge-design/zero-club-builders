@@ -1,0 +1,12 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migrations
+-- "dm_reactions_notify_and_inbox" and "dm_reactions_private"). Record only; do not re-run.
+--
+-- * message_reaction_notify() + trigger message_reactions_notify: reacting to
+--   someone's direct message notifies them ("Ada reacted 🔥 to your message: …"),
+--   at most once per person per message every 10 minutes; links to the chat.
+-- * message_reactions replica identity full (realtime deletes carry the row).
+-- * conversation_list(p_limit) gains last_reaction jsonb (emoji, by, at, message,
+--   message_sender) when a reaction is newer than the last message; ordering uses
+--   the later of the two.
+-- * message_reactions select policy: only the two people in the chat
+--   (replaces "Anyone can read message reactions").

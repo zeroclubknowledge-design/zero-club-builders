@@ -11,7 +11,7 @@ import { MentionField } from "@/components/MentionField";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ArrowLeft, ChevronLeft, Info, Send, Paperclip, MoreHorizontal, Lock, Check, Trash2, Flag, Pencil, X, Loader2, Reply, Plus, Building2, Mic, Square, Image, Film, File, FileText, Download, BellOff, Bell, UserRound, WalletCards, ArrowUpRight, BadgeCheck, Headphones, CheckCheck, Clock, Star, Pin } from "@/components/icons/glyphs";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { getMessages, MESSAGE_PAGE_SIZE, sendMessageAction, editMessageAction } from "@/api";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { compressImage } from "@/lib/imageCompression";
@@ -779,6 +779,8 @@ function ChatViewPage() {
 
   /** Close the details, load back far enough if needed, then scroll to the message and flash it. */
   const jumpToMessage = async (message: { id: string; created_at: string }) => {
+    // Reading back in history: don't let the bottom-pin pull the view away.
+    stickToBottom.current = false;
     setInfoOpen(false);
     const flash = () => {
       const el = document.getElementById(`message-${message.id}`);
@@ -933,6 +935,34 @@ function ChatViewPage() {
           ));
         }
       )
+      // Reactions in this chat, live. RLS only sends reactions on messages
+      // this person is part of; the id check keeps it to this conversation.
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'message_reactions' },
+        (payload) => {
+          const r = payload.new as any;
+          if (r.profile_id === currentUserId) return;
+          setMessages((previous) => previous.map((message) =>
+            message.id === r.message_id && !(message.reactions || []).some((x: any) => x.id === r.id)
+              ? { ...message, reactions: [...(message.reactions || []), r] }
+              : message
+          ));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'message_reactions' },
+        (payload) => {
+          const r = payload.old as any;
+          if (!r?.id || r.profile_id === currentUserId) return;
+          setMessages((previous) => previous.map((message) =>
+            (message.reactions || []).some((x: any) => x.id === r.id)
+              ? { ...message, reactions: message.reactions.filter((x: any) => x.id !== r.id) }
+              : message
+          ));
+        }
+      )
       .subscribe();
 
     return () => {
@@ -959,11 +989,48 @@ function ChatViewPage() {
     markMessagesAsRead();
   }, [currentUserId, id, messages]);
 
+  /*
+   * Open at the newest message and stay pinned there.
+   *
+   * The list is "stuck to the bottom" until the reader scrolls up. While
+   * stuck, new messages and late-loading images/videos (which grow the page
+   * after the first paint — the reason chats used to open part-way up) keep it
+   * at the bottom. Scrolling up releases it, so reading history or loading
+   * older messages is never yanked away.
+   */
+  const stickToBottom = useRef(true);
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    stickToBottom.current = true;
+  }, [id]);
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el && stickToBottom.current) el.scrollTop = el.scrollHeight;
   }, [messages]);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const pin = () => {
+      if (stickToBottom.current) el.scrollTop = el.scrollHeight;
+    };
+    const onScroll = () => {
+      stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    // load/loadedmetadata don't bubble, so listen in the capture phase.
+    el.addEventListener('load', pin, true);
+    el.addEventListener('loadedmetadata', pin, true);
+    const resize = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(pin) : null;
+    resize?.observe(el);
+    Array.from(el.children).forEach((child) => resize?.observe(child));
+    const settle = [60, 250, 700].map((ms) => window.setTimeout(pin, ms));
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      el.removeEventListener('load', pin, true);
+      el.removeEventListener('loadedmetadata', pin, true);
+      resize?.disconnect();
+      settle.forEach(window.clearTimeout);
+    };
+  }, [id, messages.length > 0]);
 
   const handleChatMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -1082,6 +1149,7 @@ function ChatViewPage() {
         };
 
         // Show text immediately while the database request completes.
+        stickToBottom.current = true;
         setMessages((previous) => [...previous, optimisticMessage]);
         const savedMessage = await sendMessageAction({ receiverId: id, content, reply_to_id: replyToId });
         setMessages((previous) => {
@@ -1186,32 +1254,41 @@ function ChatViewPage() {
     
     const existingReaction = msg.reactions?.find((r: any) => r.profile_id === currentUserId && r.emoji === emoji);
     
+    const setReactions = (fn: (rs: any[]) => any[]) =>
+      setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, reactions: fn(m.reactions || []) } : m)));
+
     if (existingReaction) {
-      setMessages(prev => prev.map(m => {
-        if (m.id !== messageId) return m;
-        return { ...m, reactions: m.reactions.filter((r: any) => r.id !== existingReaction.id) };
-      }));
-      try {
-        await supabase.from('message_reactions').delete().eq('id', existingReaction.id);
-      } catch {
-        // Ignore if the optional reactions table is unavailable.
+      setReactions((rs) => rs.filter((r: any) => !(r.profile_id === currentUserId && r.emoji === emoji)));
+      // By its natural key, so a reaction added moments ago (still holding a
+      // temporary id on screen) is removed too.
+      const { error } = await supabase
+        .from('message_reactions')
+        .delete()
+        .eq('message_id', messageId)
+        .eq('profile_id', currentUserId)
+        .eq('emoji', emoji);
+      if (error) {
+        setReactions((rs) => [...rs, existingReaction]);
+        toast.error("Couldn't remove your reaction");
       }
     } else {
-      const tempId = crypto.randomUUID();
-      setMessages(prev => prev.map(m => {
-        if (m.id !== messageId) return m;
-        return { ...m, reactions: [...(m.reactions || []), { id: tempId, message_id: messageId, profile_id: currentUserId, emoji }] };
-      }));
-      try {
-        await supabase.from('message_reactions').insert([{
-          message_id: messageId,
-          profile_id: currentUserId,
-          emoji
-        }]);
-      } catch {
-        // Ignore if the optional reactions table is unavailable.
+      const tempId = `pending-${crypto.randomUUID()}`;
+      setReactions((rs) => [...rs, { id: tempId, message_id: messageId, profile_id: currentUserId, emoji }]);
+      const { data, error } = await supabase
+        .from('message_reactions')
+        .insert([{ message_id: messageId, profile_id: currentUserId, emoji }])
+        .select('id, message_id, profile_id, emoji, created_at')
+        .single();
+      if (error && error.code !== '23505') {
+        setReactions((rs) => rs.filter((r: any) => r.id !== tempId));
+        toast.error("Couldn't add your reaction");
+        return;
       }
+      if (data) setReactions((rs) => rs.map((r: any) => (r.id === tempId ? data : r)));
     }
+    // Keep the cached copy and the inbox preview in step.
+    void queryClient.invalidateQueries({ queryKey: ["messages", id] });
+    void queryClient.invalidateQueries({ queryKey: ["conversations"] });
   };
 
   if (messagesLoading && messages.length === 0) {
