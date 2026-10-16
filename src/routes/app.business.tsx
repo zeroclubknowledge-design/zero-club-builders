@@ -33,16 +33,13 @@ import { INTEREST_OPTIONS } from "@/lib/modes";
 import {
   BUSINESS_GOALS,
   BUSINESS_INDUSTRIES,
-  BUSINESS_MODES,
   BUSINESS_SIZES,
-  businessModeOf,
   externalHref,
   isBusiness,
   prettyUrl,
   saveBusinessProfile,
   type BusinessProfile,
 } from "@/lib/business";
-import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { CardSelect } from "@/components/CardSelect";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
 
@@ -101,44 +98,16 @@ function BusinessHub() {
     return <div className="grid min-h-[60vh] place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
 
-  const mode = businessModeOf(me)!;
   const business = ws.data?.business;
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="relative">
-        <div className="h-32 w-full overflow-hidden bg-[linear-gradient(135deg,#2a0b20,#0d0a10)] sm:h-44">
-          {me.banner_url && <img src={me.banner_url} alt="" className="h-full w-full object-cover opacity-90" />}
-        </div>
-        <div className="mx-auto max-w-[1080px] px-4 sm:px-6">
-          {/* Logo overlaps the cover; name and handle sit fully below it. */}
-          <div className="flex items-end justify-between gap-3">
-            <div className="-mt-10 h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-card ring-4 ring-background sm:-mt-12 sm:h-24 sm:w-24">
-              {me.avatar_url ? <img src={me.avatar_url} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center bg-accent/10 font-display text-[28px] font-semibold text-accent">{(me.full_name || me.username || "O").charAt(0).toUpperCase()}</div>}
-            </div>
-            <div className="hidden items-center gap-2 pt-3 sm:flex">
-              <ModeSwitcher profile={me} className="w-[260px]" />
-              <Link to="/app/profile/$id" params={{ id: me.username || me.id }} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border px-4 text-[13px] font-semibold hover:bg-foreground/[0.04]">
-                View page <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
-          <div className="mt-3 min-w-0">
-            <h1 className="truncate font-display text-[22px] font-semibold tracking-tight">{me.full_name || me.username}</h1>
-            <p className="truncate text-[13px] text-muted-foreground">
-              @{me.username} · {BUSINESS_MODES[mode].label} mode{business?.industry ? ` · ${business.industry}` : ""}
-            </p>
-          </div>
-          <div className="mt-3 flex items-center gap-2 sm:hidden">
-            <ModeSwitcher profile={me} className="min-w-0 flex-1" />
-            <Link to="/app/profile/$id" params={{ id: me.username || me.id }} aria-label="View page" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border">
-              <ExternalLink className="h-4 w-4" />
-            </Link>
-          </div>
-
+      {/* The profile card lives in the sidebar ("View profile"), so pages
+          open straight on their content. Phones keep the section tabs. */}
+      <div className="md:hidden">
+        <div className="mx-auto max-w-[1080px] px-4 pt-2 sm:px-6">
           {/* Tabs */}
-          <div className="no-scrollbar -mx-4 mt-5 flex gap-1.5 overflow-x-auto border-b border-border px-4 sm:mx-0 sm:px-0 md:hidden">
+          <div className="no-scrollbar -mx-4 mt-1 flex gap-1.5 overflow-x-auto border-b border-border px-4 sm:mx-0 sm:px-0 md:hidden">
             {TABS.map((t) => (
               <button
                 key={t.id}

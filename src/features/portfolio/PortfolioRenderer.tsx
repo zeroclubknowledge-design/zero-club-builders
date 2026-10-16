@@ -112,7 +112,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
       <TemplateStyles />
       {portfolio.logo_url && (
         <div className="mx-auto flex w-full max-w-[1040px] items-center px-5 pt-6 @2xl:px-10">
-          <BrandMark v={view} height={30} />
+          <BrandMark v={view} dark />
         </div>
       )}
       <div className="mx-auto w-full max-w-[1040px] px-5 pb-16 pt-10 @2xl:px-10 @2xl:pt-16">

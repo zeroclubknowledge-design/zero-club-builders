@@ -49,6 +49,7 @@ import { TEMPLATE_CATALOG } from "./templates/catalog";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
+import { prepareLogoFile } from "./logo";
 import { recommendWork, toolsFrom } from "./recommend";
 import { portfolioStrength } from "./strength";
 import {
@@ -1158,8 +1159,10 @@ function BrandLogoField({
     if (file.size > 3 * 1024 * 1024) return toast.error("Logos must be under 3 MB.");
     setBusy(true);
     try {
-      const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
-      const url = await uploadFile("profiles", file, `${ownerId}/portfolio-logo-${Date.now()}.${ext}`);
+      // Trim empty margins so the mark fills its space in the header.
+      const ready = await prepareLogoFile(file);
+      const ext = (ready.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
+      const url = await uploadFile("profiles", ready, `${ownerId}/portfolio-logo-${Date.now()}.${ext}`);
       onChange(url);
       toast.success("Logo added");
     } catch (error: any) {
@@ -1203,7 +1206,7 @@ function BrandLogoField({
             )}
           </div>
           <p className="mt-1.5 text-[11.5px] leading-snug text-muted-foreground">
-            Shown in your portfolio's header and footer. A transparent PNG or SVG works best.
+            Shown in your portfolio's header and footer. We trim empty space and size it to fit automatically — a transparent PNG or SVG looks best.
           </p>
         </div>
         <input

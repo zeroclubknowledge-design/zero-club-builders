@@ -7,7 +7,8 @@
  * records, and anything self-reported (experience, certificates) is shown as
  * written and labelled as such in the footer.
  */
-import { useEffect, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { fitLogo, logoSize, type LogoFit } from "../logo";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Trophy, Medal, ChevronLeft, ChevronRight, ChevronUp, BadgeCheck, Mail, MessageCircle } from "@/components/icons/glyphs";
 import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
@@ -548,23 +549,19 @@ export function BrandMark({
   v,
   className = "",
   style,
-  height = 32,
+  scale = 1,
+  dark = false,
 }: {
   v: View;
   className?: string;
   style?: CSSProperties;
-  height?: number;
+  /** 1 fits the 64px header; the footer shows it a little larger. */
+  scale?: number;
+  /** The page behind the logo, so a white or black mark never disappears. */
+  dark?: boolean;
 }) {
   const logo = v.portfolio.logo_url;
-  if (logo)
-    return (
-      <img
-        src={logo}
-        alt={`${v.name}`}
-        className={`block w-auto max-w-[168px] object-contain ${className}`}
-        style={{ height }}
-      />
-    );
+  if (logo) return <LogoImage url={logo} alt={v.name} scale={scale} dark={dark} className={className} />;
   return (
     <span
       className={`inline-flex min-w-0 items-center gap-2 text-[15.5px] font-semibold tracking-[-0.01em] ${className}`}
@@ -572,6 +569,75 @@ export function BrandMark({
     >
       <span aria-hidden className="h-2.5 w-2.5 shrink-0 rotate-45 rounded-[3px] bg-[var(--pf-accent)]" />
       <span className="truncate">{v.name}</span>
+    </span>
+  );
+}
+
+/**
+ * An uploaded logo, trimmed of empty margins and sized from its own
+ * proportions: square marks fill the header's height, long wordmarks run
+ * wider and shorter, so each one reads clearly without growing the bar.
+ */
+function LogoImage({
+  url,
+  alt,
+  scale,
+  dark,
+  className,
+}: {
+  url: string;
+  alt: string;
+  scale: number;
+  dark: boolean;
+  className: string;
+}) {
+  const [fit, setFit] = useState<LogoFit>({ src: url, aspect: 0 });
+  useEffect(() => {
+    let live = true;
+    setFit({ src: url, aspect: 0 });
+    void fitLogo(url).then((f) => {
+      if (live) setFit(f);
+    });
+    return () => {
+      live = false;
+    };
+  }, [url]);
+  const known = fit.aspect > 0;
+  // A white mark on a light page (or a black one on a dark page) gets a
+  // contrasting plate; the plate's padding comes out of the logo's own box
+  // so the header never grows.
+  const plate = (fit.tone === "light" && !dark) || (fit.tone === "dark" && dark);
+  const size = logoSize(fit.aspect, scale);
+  // On a plate the mark keeps most of its height; the plate grows sideways.
+  const padY = plate ? Math.round(5 * scale) : 0;
+  const padX = plate ? Math.round(12 * scale) : 0;
+  const innerH = size.height - padY * 2;
+  const innerW = Math.min(size.width, Math.round(innerH * (fit.aspect || 1)));
+  const img = (
+    <img
+      src={fit.src}
+      alt={alt}
+      decoding="async"
+      onLoad={(e) => {
+        const el = e.currentTarget;
+        if (!known && el.naturalWidth && el.naturalHeight)
+          setFit((f) => (f.aspect ? f : { ...f, aspect: el.naturalWidth / el.naturalHeight }));
+      }}
+      className={`block max-w-full shrink-0 object-contain ${fit.boxed ? "rounded-[8px]" : ""} ${plate ? "" : className}`}
+      style={
+        known
+          ? { width: innerW, height: innerH }
+          : { height: Math.round(36 * scale), width: "auto", maxWidth: Math.round(210 * scale) }
+      }
+    />
+  );
+  if (!plate) return img;
+  return (
+    <span
+      className={`inline-flex shrink-0 rounded-[10px] ${fit.tone === "light" ? "bg-[#111]" : "bg-white"} ${className}`}
+      style={{ padding: `${padY}px ${padX}px` }}
+    >
+      {img}
     </span>
   );
 }
@@ -636,7 +702,7 @@ export function SiteNav({
       >
         <nav className={`mx-auto flex h-16 ${maxW} items-center justify-between gap-4 px-5 @3xl:px-10`}>
           <a href="#pf-top" onClick={jumpTo("pf-top")} className="min-w-0" aria-label={`${v.name} — top`}>
-            <BrandMark v={v} style={display} />
+            <BrandMark v={v} style={display} dark={dark} />
           </a>
           {links.length > 1 && (
             <div className="hidden items-center gap-0.5 @3xl:flex">
@@ -721,7 +787,7 @@ export function SiteFooter({
     <footer className={`mt-20 border-t pt-12 ${line}`}>
       <div className="grid gap-10 @3xl:grid-cols-[1.4fr_1fr_auto] @3xl:items-start">
         <div className="min-w-0 max-w-[380px]">
-          <BrandMark v={v} style={display} height={36} />
+          <BrandMark v={v} style={display} scale={1.3} dark={dark} />
           {v.headline && (
             <p className={`mt-4 text-[14px] leading-relaxed ${muted}`}>{clip(v.headline, 140)}</p>
           )}
