@@ -16,6 +16,7 @@ import {
   Users,
   Phone,
   BellOff,
+  Bookmark,
 } from "@/components/icons/glyphs";
 import { myGroups, type GroupSummary } from "@/features/groups/api";
 import { GroupAvatar } from "@/features/groups/components";
@@ -336,6 +337,35 @@ function ChatInboxPage() {
           </Link>
         )}
 
+        {/* Message yourself: always one tap away until you've used it, then it
+            lives in the list like any other chat. */}
+        {currentUser?.id && activeTab === "All" && !searchQuery && !conversations.some((c: any) => c.id === currentUser.id) && (
+          <Link
+            to="/app/chat/$id"
+            params={{ id: currentUser.id }}
+            className="flex items-center gap-3 px-4 transition-colors hover:bg-foreground/[0.02] md:px-6"
+          >
+            <div className="relative shrink-0">
+              <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[17px] font-semibold text-muted-foreground">
+                {currentUser.avatar_url ? (
+                  <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                ) : (
+                  (currentUser.full_name || currentUser.username || "Y").substring(0, 1).toUpperCase()
+                )}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-card bg-accent text-accent-foreground">
+                <Bookmark className="h-2.5 w-2.5" />
+              </span>
+            </div>
+            <div className="min-w-0 flex-1 border-b border-border py-3">
+              <span className="block truncate text-[15px] font-semibold text-foreground">
+                {(currentUser.full_name || currentUser.username || "You")} (You)
+              </span>
+              <p className="mt-0.5 truncate text-[14px] text-muted-foreground">Message yourself — notes, links and files</p>
+            </div>
+          </Link>
+        )}
+
         {activeTab === "Groups" && items.length > 0 && !searchQuery && (
           <Link to="/app/chat/g/new" className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-foreground/[0.02] md:px-6">
             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#d6309b,#7c3aed)] text-white">
@@ -375,7 +405,7 @@ function ChatInboxPage() {
                   (chat.user?.full_name || chat.user?.username || "U").substring(0, 1).toUpperCase()
                 )}
               </div>
-              {(onlineIds.has(chat.user?.id) || chat.status === 'online') && (
+              {chat.id !== currentUser?.id && (onlineIds.has(chat.user?.id) || chat.status === 'online') && (
                 <span
                   className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-[2.5px] border-card bg-success"
                   aria-label="Online"
@@ -390,6 +420,7 @@ function ChatInboxPage() {
                     className={`truncate text-[15px] text-foreground ${chat.unread ? "font-bold" : "font-semibold"}`}
                   >
                     {chat.user?.full_name || chat.user?.username}
+                    {chat.id === currentUser?.id && " (You)"}
                   </span>
                   {chat.user?.verified && (
                     <BadgeCheck className="h-4 w-4 shrink-0 fill-current text-accent" />
@@ -403,7 +434,7 @@ function ChatInboxPage() {
                 </span>
               </div>
               <div className="mt-0.5 flex items-center gap-2">
-                {typingToMe.has(chat.user?.id) ? (
+                {chat.id !== currentUser?.id && typingToMe.has(chat.user?.id) ? (
                   <p className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-[14px] font-medium text-success">
                     typing
                     <span className="zc-typing-dots inline-flex items-center gap-[3px]">

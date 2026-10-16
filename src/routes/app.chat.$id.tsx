@@ -1299,13 +1299,18 @@ function ChatViewPage() {
     );
   }
 
-  const isSupportChat = Boolean(otherUser?.is_admin);
-  const otherUserDisplayName = isSupportChat
-    ? "Zero Club Support"
-    : otherUser?.full_name || otherUser?.username;
+  // "Message yourself": your own notes, links and files.
+  const isSelfChat = Boolean(currentUserId && id === currentUserId);
+  const isSupportChat = Boolean(otherUser?.is_admin) && !isSelfChat;
+  const otherUserDisplayName = isSelfChat
+    ? `${otherUser?.full_name || otherUser?.username || "You"} (You)`
+    : isSupportChat
+      ? "Zero Club Support"
+      : otherUser?.full_name || otherUser?.username;
 
   // Live: "typing…" beats "online" beats "last seen".
   const presence = (() => {
+    if (isSelfChat) return { tone: 'self', label: 'Message yourself' };
     if (otherTyping) return { tone: 'typing', label: 'typing' };
     if (isSupportChat) return { tone: 'support', label: 'Official Zero Club support' };
     if (otherOnline || isRecentlySeen(otherUser?.last_seen_at)) return { tone: 'active', label: 'Online' };
@@ -1488,7 +1493,11 @@ function ChatViewPage() {
           {/* The username, not "First name · Builder". The line above already
               carries the display name, so repeating a truncated version of it
               next to a label everyone shares said nothing about who this is. */}
-          {otherUser?.username && !isSupportChat && (
+          {isSelfChat ? (
+            <p className="mt-1 max-w-[280px] text-[13px] leading-snug text-muted-foreground">
+              Your private space. Save notes, links, photos and files — only you can see them.
+            </p>
+          ) : otherUser?.username && !isSupportChat && (
             <p className="mt-0.5 text-[13px] text-muted-foreground">@{otherUser.username}</p>
           )}
           <Link

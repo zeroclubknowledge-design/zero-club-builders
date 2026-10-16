@@ -1,0 +1,8 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "message_yourself"). Record only; do not re-run.
+--
+-- * self_message_receipts (BEFORE INSERT on messages): a message to yourself is
+--   stored delivered and read, so it never shows as unread.
+-- * on_message_inserted_send_push recreated with
+--   WHEN (new.sender_id is distinct from new.receiver_id): no push for notes to self.
+-- * Existing self messages marked read.
