@@ -1,0 +1,5 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "talent_search_hides_team"). Kept here as a record; do not re-run.
+--
+-- search_business_talent now leaves out anyone already invited to, or active
+-- on, the caller's team, so an organization is never offered the same person twice.

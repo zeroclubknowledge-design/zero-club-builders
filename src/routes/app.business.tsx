@@ -366,10 +366,12 @@ function Talent() {
           <Empty Icon={Users} title="No one matches yet" body="Try a broader search or another skill." />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {talent.data.map((p) => (
+            {talent.data.filter((p) => !invite.invited.has(p.id)).map((p) => (
               <PersonCard key={p.id} person={p}>
                 <Link to="/app/chat/$id" params={{ id: p.id }} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-border text-[13px] font-semibold hover:bg-foreground/[0.04]"><MessageCircle className="h-4 w-4" /> Message</Link>
-                <button type="button" disabled={invite.isPending} onClick={() => invite.mutate(p.id)} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-foreground text-[13px] font-semibold text-background disabled:opacity-60"><UserPlus className="h-4 w-4" /> Invite to team</button>
+                <button type="button" disabled={invite.sending === p.id} onClick={() => invite.send({ id: p.id, name: p.full_name || p.username })} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-foreground text-[13px] font-semibold text-background disabled:opacity-60">
+                  {invite.sending === p.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</> : <><UserPlus className="h-4 w-4" /> Invite to team</>}
+                </button>
               </PersonCard>
             ))}
           </div>
@@ -403,20 +405,37 @@ function PersonCard({ person, children }: { person: any; children?: React.ReactN
   );
 }
 
+/**
+ * Invite one person. Tracks who is being sent right now (so only that card
+ * shows "Sending…") and who has been invited this visit (so they drop out of
+ * the list immediately; the server also leaves them out of later searches).
+ */
 function useInvite() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (memberId: string) => {
-      const { error } = await supabase.rpc("invite_team_member" as never, { p_member: memberId, p_title: null } as never);
+  const [sending, setSending] = useState<string | null>(null);
+  const [invited, setInvited] = useState<Set<string>>(() => new Set());
+  const mutation = useMutation({
+    mutationFn: async (person: { id: string; name?: string | null }) => {
+      const { error } = await supabase.rpc("invite_team_member" as never, { p_member: person.id, p_title: null } as never);
       if (error) throw error;
+      return person;
     },
-    onSuccess: () => {
-      toast.success("Invite sent", { description: "They'll see it in their notifications." });
+    onMutate: (person) => setSending(person.id),
+    onSuccess: (person) => {
+      setInvited((cur) => new Set(cur).add(person.id));
+      toast.success(`Invite sent${person.name ? ` to ${person.name}` : ""}`, { description: "They'll see it in Teams and their notifications." });
       void queryClient.invalidateQueries({ queryKey: ["business-team"] });
       void queryClient.invalidateQueries({ queryKey: ["business-workspace"] });
+      void queryClient.invalidateQueries({ queryKey: ["business-talent"] });
     },
     onError: (e: any) => toast.error(e?.message || "Could not send the invite"),
+    onSettled: () => setSending(null),
   });
+  return {
+    send: (person: { id: string; name?: string | null }) => mutation.mutate(person),
+    sending,
+    invited,
+  };
 }
 
 /* ── Sponsor & reach ──────────────────────────────────────────────────── */
@@ -547,18 +566,16 @@ function Team() {
         </label>
         {query.trim().length >= 2 && (
           <div className="mt-2 max-h-72 divide-y divide-border overflow-y-auto">
-            {(talent.data || []).slice(0, 8).map((p) => (
+            {(talent.data || []).filter((p) => !memberIds.has(p.id) && !invite.invited.has(p.id)).slice(0, 8).map((p) => (
               <div key={p.id} className="flex items-center gap-3 py-2.5">
                 <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">{p.avatar_url && <img src={p.avatar_url} alt="" className="h-full w-full object-cover" />}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold">{p.full_name || p.username}</span>
                   <span className="block truncate text-[12px] text-muted-foreground">@{p.username}</span>
                 </span>
-                {memberIds.has(p.id) ? (
-                  <span className="text-[12px] font-semibold text-muted-foreground">On your team</span>
-                ) : (
-                  <button type="button" disabled={invite.isPending} onClick={() => invite.mutate(p.id)} className="inline-flex h-8 items-center gap-1 rounded-full bg-foreground px-3 text-[12.5px] font-semibold text-background disabled:opacity-60"><UserPlus className="h-3.5 w-3.5" /> Invite</button>
-                )}
+                <button type="button" disabled={invite.sending === p.id} onClick={() => invite.send({ id: p.id, name: p.full_name || p.username })} className="inline-flex h-8 items-center gap-1 rounded-full bg-foreground px-3 text-[12.5px] font-semibold text-background disabled:opacity-60">
+                  {invite.sending === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />} Invite
+                </button>
               </div>
             ))}
             {talent.isLoading && <Loader2 className="mx-auto my-3 h-4 w-4 animate-spin text-muted-foreground" />}

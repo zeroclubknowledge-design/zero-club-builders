@@ -1108,9 +1108,11 @@ function AddPeopleDrawer({ open, onOpenChange, orgId, people }: { open: boolean;
   }, [q]);
   const results = useQuery({ queryKey: ["workspace-search", debounced], queryFn: () => workspaceApi.searchPeople(debounced), enabled: debounced.length >= 2 });
   const onTeam = new Set(people.map((p) => p.id));
+  const [sent, setSent] = useState<Set<string>>(() => new Set());
   const invite = useMutation({
-    mutationFn: (id: string) => workspaceApi.invite(id),
-    onSuccess: () => {
+    mutationFn: (id: string) => workspaceApi.invite(id).then(() => id),
+    onSuccess: (id) => {
+      setSent((cur) => new Set(cur).add(id));
       toast.success("Invite sent", { description: "They'll join once they accept from Teams." });
       void queryClient.invalidateQueries({ queryKey: ["workspace-people", orgId] });
       void queryClient.invalidateQueries({ queryKey: ["workspace", orgId] });
@@ -1134,21 +1136,19 @@ function AddPeopleDrawer({ open, onOpenChange, orgId, people }: { open: boolean;
               <p className="py-8 text-center text-[13px] text-muted-foreground">Type at least two letters to search.</p>
             ) : results.isLoading ? (
               <Loader2 className="mx-auto my-8 h-5 w-5 animate-spin text-muted-foreground" />
-            ) : !results.data?.length ? (
-              <p className="py-8 text-center text-[13px] text-muted-foreground">No one found.</p>
+            ) : !results.data?.filter((p: any) => !onTeam.has(p.id) && !sent.has(p.id)).length ? (
+              <p className="py-8 text-center text-[13px] text-muted-foreground">No one new found — people already invited or on the team aren't shown.</p>
             ) : (
-              results.data.map((p: any) => (
+              results.data.filter((p: any) => !onTeam.has(p.id) && !sent.has(p.id)).map((p: any) => (
                 <div key={p.id} className="flex items-center gap-3 py-2.5">
                   <Avatar url={p.avatar_url} name={p.full_name || p.username} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14.5px] font-semibold">{p.full_name || p.username}</span>
                     <span className="block truncate text-[12.5px] text-muted-foreground">@{p.username}{p.account_type ? ` · ${p.account_type}` : ""}</span>
                   </span>
-                  {onTeam.has(p.id) ? (
-                    <span className="text-[12px] font-semibold text-muted-foreground">On the team</span>
-                  ) : (
-                    <button type="button" disabled={invite.isPending} onClick={() => invite.mutate(p.id)} className={`${btnPrimary} h-8 px-3 text-[12.5px]`}><UserPlus className="h-3.5 w-3.5" /> Invite</button>
-                  )}
+                  <button type="button" disabled={invite.isPending && invite.variables === p.id} onClick={() => invite.mutate(p.id)} className={`${btnPrimary} h-8 px-3 text-[12.5px]`}>
+                    {invite.isPending && invite.variables === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />} Invite
+                  </button>
                 </div>
               ))
             )}
