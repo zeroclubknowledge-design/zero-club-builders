@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Loader2 } from "@/components/icons/glyphs";
+import { ArrowRight, BriefcaseBusiness, Loader2, Mail, ShieldCheck } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { OtpInput, ResendRow } from "@/components/auth/OtpInput";
 import { getDeviceId } from "@/lib/device";
 import { isUntrustedEmailError } from "@/lib/trustedEmail";
-import { BusinessAuthShell, businessInput, businessLabel, businessPrimary } from "@/features/business/BusinessAuthShell";
+import { BusinessAuthShell, BusinessFormMark, businessInput, businessLabel, businessMuted, businessPrimary, businessStrong, businessTopLink } from "@/features/business/BusinessAuthShell";
 
 export const Route = createFileRoute("/business/signup")({
   component: BusinessSignUp,
@@ -108,20 +108,15 @@ function BusinessSignUp() {
   };
 
   return (
-    <BusinessAuthShell
-      topRight={
-        <Link to={"/business/signin" as never} className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm font-medium text-white/85 ring-1 ring-white/10 transition hover:bg-white/10">
-          Sign in
-        </Link>
-      }
-    >
+    <BusinessAuthShell topRight={<Link to={"/business/signin" as never} className={businessTopLink}>Sign in</Link>}>
       <div className="mx-auto w-full max-w-[400px]">
         {step === "info" ? (
-          <form onSubmit={sendCode} className="space-y-4">
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#ff5cc3]">Business account</p>
-              <h1 className="mt-2 font-display text-[28px] font-semibold leading-tight tracking-[-0.02em]">Create your organization</h1>
-              <p className="mt-1.5 text-[14px] leading-6 text-white/55">Use a work email. This is separate from your personal Zero Club account.</p>
+          <form onSubmit={sendCode} className="space-y-5">
+            <div className="mb-6 text-center">
+              <BusinessFormMark />
+              <p className="zc-eyebrow mb-3"><BriefcaseBusiness className="h-3.5 w-3.5 shrink-0" /> Business account</p>
+              <h1 className={`font-display text-[26px] font-normal leading-tight sm:text-[30px] ${businessStrong}`}>Bring your organization to Zero Club.</h1>
+              <p className={`mx-auto mt-2 max-w-[340px] text-[13px] leading-6 ${businessMuted}`}>Use a work email. This is separate from your personal Zero Club account.</p>
             </div>
             <div>
               <label className={businessLabel} htmlFor="org">Organization name</label>
@@ -140,7 +135,7 @@ function BusinessSignUp() {
             <div>
               <label className={businessLabel} htmlFor="handle">Handle</label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[15px] text-white/40">@</span>
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[15px] text-[#9b9297] dark:text-white/40">@</span>
                 <input
                   id="handle"
                   value={handle}
@@ -149,28 +144,32 @@ function BusinessSignUp() {
                   className={`${businessInput} pl-8`}
                 />
               </div>
-              <p className="mt-1 text-[11.5px] text-white/40">Your page lives at zeroclubs.xyz/@{cleanHandle || "handle"}</p>
+              <p className={`mt-1 text-[11.5px] ${businessMuted}`}>Your page lives at zeroclubs.xyz/@{cleanHandle || "handle"}</p>
             </div>
             <div>
               <label className={businessLabel} htmlFor="email">Work email</label>
-              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@acmelabs.com" autoComplete="email" className={businessInput} />
+              <span className="relative block">
+                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7d7279] dark:text-white/50" strokeWidth={1.7} />
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@acmelabs.com" autoComplete="email" className={`${businessInput} pl-11`} />
+              </span>
             </div>
-            <label className="flex items-start gap-2.5 text-[13px] leading-5 text-white/60">
+            <label className={`flex items-start gap-2.5 text-[12.5px] leading-5 ${businessMuted}`}>
               <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#cc208f]" />
-              <span>I'm authorized to create this account for my organization and agree to the <Link to="/terms" className="text-white underline-offset-4 hover:underline">Terms</Link> and <Link to="/privacy" className="text-white underline-offset-4 hover:underline">Privacy Policy</Link>.</span>
+              <span>I'm authorized to create this account for my organization and agree to the <Link to="/terms" className={`font-medium underline-offset-4 hover:underline ${businessStrong}`}>Terms</Link> and <Link to="/privacy" className={`font-medium underline-offset-4 hover:underline ${businessStrong}`}>Privacy Policy</Link>.</span>
             </label>
             <button type="submit" disabled={loading} className={businessPrimary}>
               {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Continue <ArrowRight className="h-4 w-4" /></>}
             </button>
-            <p className="text-center text-[13px] text-white/50">
-              Have one already? <Link to={"/business/signin" as never} className="font-semibold text-white underline-offset-4 hover:underline">Sign in</Link>
+            <p className={`text-center text-[13px] ${businessMuted}`}>
+              Have one already? <Link to={"/business/signin" as never} className={`font-semibold underline-offset-4 hover:underline ${businessStrong}`}>Sign in</Link>
             </p>
           </form>
         ) : (
           <form ref={codeFormRef} onSubmit={verify} className="space-y-5">
-            <div>
-              <h1 className="font-display text-[26px] font-semibold">Enter the code</h1>
-              <p className="mt-1 text-[14px] text-white/55">Sent to <span className="font-medium text-white">{email}</span>.</p>
+            <div className="text-center">
+              <BusinessFormMark />
+              <h1 className={`font-display text-2xl font-normal ${businessStrong}`}>Enter the code</h1>
+              <p className={`mt-1 text-sm leading-6 ${businessMuted}`}>Sent to <span className={`font-medium ${businessStrong}`}>{email}</span>.</p>
             </div>
             <OtpInput value={code} onChange={setCode} disabled={loading} onComplete={() => requestAnimationFrame(() => codeFormRef.current?.requestSubmit())} />
             <button type="submit" disabled={loading || code.length < 6} className={businessPrimary}>
@@ -179,6 +178,10 @@ function BusinessSignUp() {
             <ResendRow disabled={loading} onResend={async () => { await sendCode(); }} onChangeEmail={() => { setStep("info"); setCode(""); }} />
           </form>
         )}
+        <p className={`mt-8 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-[11.5px] leading-5 ${businessMuted}`}>
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+          Secured with one-time email codes · No passwords stored
+        </p>
       </div>
     </BusinessAuthShell>
   );

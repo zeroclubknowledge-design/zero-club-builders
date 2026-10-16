@@ -10,7 +10,10 @@ import { AboutBlock, ContactButtons, SectionBody, type Skin } from "./blocks";
 import {
   Avatar,
   FitText,
+  ContactLink,
   Footer,
+  RailArrows,
+  ShippedWork,
   TemplateStyles,
   WorkLinks,
   fitSize,
@@ -143,12 +146,10 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
               >
                 Portfolio<span className="text-[var(--pf-accent)]">.</span>
               </h2>
-              <p className="text-[13px] text-black/50">
-                {v.projects.length} {v.projects.length === 1 ? "piece" : "pieces"}
-              </p>
+              <RailArrows railId="pf-work-rail" dark={false} />
             </div>
             {withImages.length > 0 && (
-              <div className="mt-8 columns-2 gap-3 @3xl:columns-3 @3xl:gap-4">
+              <div id="pf-work-rail" className="pf-rail mt-8">
                 {withImages.map((item) => {
                   const { title } = describeItem(item);
                   const img = itemImages(item)[0];
@@ -182,7 +183,7 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
               </div>
             )}
             {textOnly.length > 0 && (
-              <div className="mt-4 grid gap-3 @2xl:grid-cols-2">
+              <div className="pf-rail mt-4">
                 {textOnly.map((item) => {
                   const { title, summary } = describeItem(item);
                   return (
@@ -211,6 +212,8 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
             )}
           </section>
         )}
+
+        <ShippedWork v={v} dark={false} titleStyle={display} />
 
         {rest.map((s) => (
           <section key={s.key} id={`pf-${s.key}`} className="py-12">
@@ -245,7 +248,7 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
             )}
           </section>
         ))}
-        <Footer dark={false} />
+        <Footer dark={false} branding={v.showBranding} />
         <div className="h-10" />
       </div>
     </div>

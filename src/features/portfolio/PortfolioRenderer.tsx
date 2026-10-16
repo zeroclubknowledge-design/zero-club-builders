@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Mail,
   MapPin,
+  MessageCircle,
 } from "@/components/icons/glyphs";
 import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { experienceSpan, monthYear } from "@/features/profile/credentials";
@@ -26,7 +27,7 @@ import { SpotlightTemplate } from "./templates/Spotlight";
 import { StatementTemplate } from "./templates/Statement";
 import { BrightTemplate } from "./templates/Bright";
 import { GalleryTemplate } from "./templates/Gallery";
-import { achievementSource, year } from "./templates/kit";
+import { achievementSource, contactOf, portfolioView, RailArrows, ShippedWork, showsBranding, year } from "./templates/kit";
 import { Trophy } from "@/components/icons/glyphs";
 
 /**
@@ -73,6 +74,9 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
   const headline = portfolio.headline?.trim() || clip(profile.bio || "", 140);
   const about = portfolio.about?.trim() || profile.bio?.trim() || "";
   const email = profile.social_links?.email || null;
+  const contact = contactOf(data);
+  const view = portfolioView(data);
+  const branding = showsBranding(portfolio);
   const projects = items.filter((item) => item.kind === "project");
   const proofs = items.filter((item) => item.kind === "proof");
   const skills = portfolio.skills || [];
@@ -95,7 +99,8 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
     certificates: certificates.length > 0,
     proofs: proofs.length > 0,
     achievements: (data.achievements || []).length > 0,
-    contact: Boolean(email || profile.website || Object.keys(profile.social_links || {}).length),
+    // Anyone can be messaged on Zero Club, so contact always has somewhere to go.
+    contact: true,
   };
   const shown = sections.filter((s) => has[s.key]);
 
@@ -142,15 +147,13 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
             </p>
           )}
           <div className="relative mt-6 flex flex-wrap items-center gap-2.5">
-            {email ? (
-              <a
-                href={`mailto:${email}`}
-                className="inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold text-black transition active:scale-[0.98]"
-                style={{ background: accent }}
-              >
-                <Mail className="h-4 w-4" /> Get in touch
-              </a>
-            ) : null}
+            <ContactAnchor
+              contact={contact}
+              className="inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold text-black transition active:scale-[0.98]"
+              style={{ background: accent }}
+            >
+              {contact.method === "email" ? <Mail className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />} Let's talk
+            </ContactAnchor>
             <Link
               to="/app/profile/$id"
               params={{ id: profile.id }}
@@ -177,7 +180,11 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
             title={SECTION_LABELS[section.key]}
           >
             {section.key === "work" && (
-              <div className="grid items-start gap-4 @2xl:grid-cols-2">
+              <>
+              <div className="-mt-2 mb-3 flex justify-end">
+                <RailArrows railId="pf-work-rail" dark />
+              </div>
+              <div id="pf-work-rail" className="pf-rail items-start">
                 {projects.map((item) => (
                   <ProjectCard
                     key={item.id}
@@ -188,6 +195,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
                   />
                 ))}
               </div>
+              </>
             )}
             {section.key === "about" && (
               <p className="max-w-[680px] whitespace-pre-line text-[16px] leading-[1.7] text-white/75">
@@ -325,15 +333,13 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
                   Let's build something.
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
-                  {email && (
-                    <a
-                      href={`mailto:${email}`}
-                      className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-[14px] font-semibold text-black"
-                      style={{ background: accent }}
-                    >
-                      <Mail className="h-4 w-4" /> {email}
-                    </a>
-                  )}
+                  <ContactAnchor
+                    contact={contact}
+                    className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-[14px] font-semibold text-black"
+                    style={{ background: accent }}
+                  >
+                    {contact.method === "email" ? <><Mail className="h-4 w-4" /> {contact.email}</> : <><MessageCircle className="h-4 w-4" /> Message me on Zero Club</>}
+                  </ContactAnchor>
                   {profile.website && (
                     <a
                       href={
@@ -356,13 +362,21 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
           </Section>
         ))}
 
+        <ShippedWork v={view} dark className="mt-6" />
+
         <footer className="mt-16 flex flex-col items-center gap-2 border-t border-white/[0.07] pt-8 text-center">
-          <a
-            href="https://www.zeroclubs.xyz"
-            className="text-[13px] text-white/45 transition hover:text-white/80"
-          >
-            Built with <span className="font-semibold text-white/80">Zero Club</span>
-          </a>
+          {branding ? (
+            <a
+              href="https://www.zeroclubs.xyz"
+              className="text-[13px] text-white/45 transition hover:text-white/80"
+            >
+              Built with <span className="font-semibold text-white/80">Zero Club</span>
+            </a>
+          ) : (
+            <p className="text-[13px] text-white/45">
+              Built with <span className="font-semibold text-white/80">Love</span> © {new Date().getFullYear()}
+            </p>
+          )}
           <p className="text-[12px] text-white/30">
             Projects and highlights are published on Zero Club. Experience and certificates are
             self-reported.
@@ -371,6 +385,22 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
       </div>
     </div>
   );
+}
+
+/** "Let's talk" — Zero Club messages or email, as the owner chose. */
+function ContactAnchor({
+  contact,
+  className,
+  style,
+  children,
+}: {
+  contact: ReturnType<typeof contactOf>;
+  className?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  if (contact.external) return <a href={contact.href} className={className} style={style}>{children}</a>;
+  return <Link to={contact.href as never} className={className} style={style}>{children}</Link>;
 }
 
 function Stat({ label, value }: { label: string; value: number }) {

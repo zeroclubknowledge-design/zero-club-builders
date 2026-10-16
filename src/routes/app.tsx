@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter, useRouterState } from "@tanstack/react-router";
 import { ScanIcon, ZeroScanner } from "@/features/scanner/ZeroScanner";
 import { useBroadcastOnline } from "@/lib/realtime/presence";
 import { useMarkMessagesDelivered } from "@/lib/realtime/receipts";
@@ -28,6 +28,10 @@ import {
   Calendar,
   Lock,
   Search,
+  BriefcaseBusiness,
+  Megaphone,
+  GraduationCap,
+  Building2,
 } from "@/components/icons/glyphs";
 import React, { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -66,7 +70,7 @@ export const Route = createFileRoute("/app")({
 
 /* The tab bar. Post is not a destination — it opens the create sheet on the
    feed — so it has no route of its own. */
-const tabs = [
+const baseTabs: { to: string | null; label: string; Icon: any; exact?: boolean }[] = [
   { to: "/app/", label: "Home", Icon: IconHome, exact: true },
   { to: "/app/bootcamps", label: "Learn", Icon: IconLearn },
   { to: null, label: "Post", Icon: IconPost },
@@ -366,17 +370,24 @@ function SidebarContent({
             <div className="h-6 w-36 animate-pulse rounded bg-foreground/[0.05]" />
           )}
           <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-            {role} · Level {level}
+            {businessMode ? role : `${role} · Level ${level}`}
           </p>
           <span className="mt-1.5 inline-block text-[14px] font-semibold text-accent">View profile</span>
         </Link>
         {/* One account, three modes. Switching takes you to that mode's home. */}
         <ModeSwitcher profile={profile} className="mt-3" onSwitched={onNavigate ?? onClose} />
         <div className="mt-3 grid grid-cols-2 gap-2">
+          {businessMode ? (
+            <Link to={(businessMode === "institutional" ? "/app/institution-studio" : "/app/business") as never} className="rounded-xl bg-foreground/[0.04] px-3 py-2.5 tap hover:bg-foreground/[0.06]">
+              <span className="block text-[12px] text-muted-foreground">Workspace</span>
+              <span className="mt-0.5 block truncate text-[15px] font-semibold text-foreground">{businessMode === "institutional" ? "Digital Hub" : "Business Hub"}</span>
+            </Link>
+          ) : (
           <Link to="/app/tasks" className="rounded-xl bg-foreground/[0.04] px-3 py-2.5 tap hover:bg-foreground/[0.06]">
             <span className="block text-[12px] text-muted-foreground">Zero Points</span>
             <span className="mt-0.5 block text-[17px] font-semibold tabular-nums text-foreground">{Number(profile?.zp || 0).toLocaleString()} ZP</span>
           </Link>
+          )}
           <Link to="/app/profile/$id/network" params={{ id: profile?.username || profile?.id || "me" }} className="rounded-xl bg-foreground/[0.04] px-3 py-2.5 tap hover:bg-foreground/[0.06]">
             <span className="block text-[12px] text-muted-foreground">Followers</span>
             <span className="mt-0.5 block text-[17px] font-semibold tabular-nums text-foreground">{formatCompactNumber(profile?.followers_count)}</span>
@@ -415,6 +426,12 @@ function SidebarContent({
               <span>Back to app</span>
             </Link>
           </div>
+        ) : businessMode ? (
+          <BusinessSidebarNav
+            mode={businessMode}
+            unreadMessagesCount={unreadMessagesCount}
+            unreadNotificationsCount={unreadNotificationsCount}
+          />
         ) : (
           <nav className="flex flex-col">
             {primaryLinks.map(renderLink)}
@@ -450,6 +467,88 @@ function SidebarContent({
   );
 }
 
+/* ── Business sidebar ─────────────────────────────────────────────────────
+   Organizations see their own workspace, not the personal learner menu.
+   Company: the Business Hub sections. Institutional: the Digital Hub ones. */
+const plain = (Icon: any) => ({ active: _active, ...rest }: any) => <Icon {...rest} />;
+const COMPANY_SECTIONS = [
+  { tab: "overview", label: "Overview", Icon: plain(Activity) },
+  { tab: "hiring", label: "Hiring", Icon: plain(BriefcaseBusiness) },
+  { tab: "talent", label: "Talent", Icon: plain(Search) },
+  { tab: "sponsor", label: "Sponsor & reach", Icon: plain(Megaphone) },
+  { tab: "team", label: "Team training", Icon: plain(GraduationCap) },
+  { tab: "page", label: "Company page", Icon: plain(Building2) },
+];
+
+function BusinessSidebarNav({
+  mode,
+  unreadMessagesCount,
+  unreadNotificationsCount,
+}: {
+  mode: "institutional" | "company";
+  unreadMessagesCount: number;
+  unreadNotificationsCount: number;
+}) {
+  const location = useRouterState({ select: (s) => s.location });
+  const pathname = location.pathname.replace(/\/$/, "");
+  const tab = String((location.search as any)?.tab || "overview");
+  const hubPath = mode === "institutional" ? "/app/institution-studio" : "/app/business";
+  const sections =
+    mode === "institutional"
+      ? INSTITUTION_SIDEBAR_TABS.map((t) => ({ tab: t.key as string, label: t.label, Icon: plain(t.Icon) }))
+      : COMPANY_SECTIONS;
+
+  const general = [
+    { to: "/app", label: "Home", Icon: IconHome, exact: true },
+    ...(mode === "institutional"
+      ? [{ to: "/app/bootcamps", label: "Bootcamps", Icon: IconLearn }]
+      : [{ to: "/app/quests", label: "Opportunities", Icon: IconRocket }]),
+    { to: "/app/chat", label: "Messages", Icon: IconMessages, badge: unreadMessagesCount, desktopOnly: true },
+    { to: "/app/notifications", label: "Notifications", Icon: IconBell, badge: unreadNotificationsCount, desktopOnly: true },
+    { to: "/app/clubs", label: "Clubs", Icon: IconClubs },
+    { to: "/app/wallet", label: "Wallet", Icon: IconWallet },
+    { to: "/app/zero-ai", label: "Zero AI", Icon: IconZeroAI },
+    { to: "/app/bookmarks", label: "Bookmarks", Icon: IconBookmark },
+  ];
+
+  const row = (active: boolean) =>
+    `group flex h-12 items-center gap-3.5 rounded-[10px] px-3 text-[16px] tap transition-colors md:h-11 md:text-[15px] ${
+      active ? "bg-foreground/[0.06] font-semibold text-foreground" : "font-medium text-foreground/85 hover:bg-foreground/[0.04] hover:text-foreground"
+    }`;
+
+  return (
+    <nav className="flex flex-col">
+      <p className="px-3 pb-1.5 pt-2 text-[12px] font-semibold text-muted-foreground">
+        {mode === "institutional" ? "Digital Hub" : "Business Hub"}
+      </p>
+      {sections.map((s) => {
+        const active = pathname === hubPath && tab === s.tab;
+        return (
+          <Link key={s.tab} to={hubPath as never} search={{ tab: s.tab } as never} className={row(active)}>
+            <s.Icon className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
+            <span className="min-w-0 flex-1 truncate">{s.label}</span>
+          </Link>
+        );
+      })}
+      <div className="mx-3 my-2 h-px bg-border" />
+      {general.map((item: any) => {
+        const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+        return (
+          <Link key={item.to} to={item.to as never} className={`${row(active)} ${item.desktopOnly ? "hidden md:flex" : ""}`}>
+            <item.Icon active={active} className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
+            <span className="min-w-0 flex-1 truncate">{item.label}</span>
+            {item.badge > 0 && (
+              <span className="ml-auto grid h-5 min-w-[20px] shrink-0 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-semibold tabular-nums text-accent-foreground">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+            )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 type BottomNavProps = {
   pathname: string;
   visible: boolean;
@@ -457,6 +556,8 @@ type BottomNavProps = {
   isDetail: boolean;
   unreadCount: number;
   onPost: () => void;
+  /** Organizations get their hub in the second slot instead of Learn. */
+  businessMode?: "institutional" | "company" | null;
 };
 
 /* The floating tab bar. Its shape, its fade on scroll and its label type are
@@ -464,7 +565,14 @@ type BottomNavProps = {
    labels use the app's reading typeface. */
 const TAB_BAR_FONT = 'var(--font-sans)';
 
-function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost }: BottomNavProps) {
+function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost, businessMode }: BottomNavProps) {
+  const tabs = businessMode
+    ? baseTabs.map((t) =>
+        t.label === "Learn"
+          ? { to: businessMode === "institutional" ? "/app/institution-studio" : "/app/business", label: "Hub", Icon: IconInstitution }
+          : t,
+      )
+    : baseTabs;
   const router = useRouter();
   const queryClient = useQueryClient();
   // Once the app is idle, fetch the other tabs and the writing screens in the
@@ -1148,6 +1256,8 @@ function AppLayout() {
                       id: `dm:${(payload.new as { id?: string }).id || Date.now()}`,
                       kind: "message",
                       type: "message",
+                      // A message always opens the conversation, never the profile.
+                      link: `/app/chat/${message.sender_id}`,
                       person: sender || null,
                       personId: message.sender_id,
                       detail: preview,
@@ -1703,6 +1813,7 @@ function AppLayout() {
             isDetail={isDetail}
             unreadCount={unreadNotificationsCount}
             onPost={openCreateSheet}
+            businessMode={businessModeOf(profile)}
           />
         )}
         {/* The create sheet lives here so the Post tab opens it on the same tap, on any page. */}

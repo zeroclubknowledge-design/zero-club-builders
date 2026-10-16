@@ -8,7 +8,10 @@ import { SECTION_LABELS } from "../types";
 import { AboutBlock, ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
   FitText,
+  ContactLink,
   Footer,
+  RailArrows,
+  ShippedWork,
   fitSize,
   RotatingBadge,
   TemplateStyles,
@@ -56,16 +59,9 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
               <MapPin className="h-3.5 w-3.5" /> {v.profile.location}
             </span>
           )}
-          {v.email ? (
-            <a
-              href={`mailto:${v.email}`}
-              className="rounded-full border border-white/25 px-4 py-2 text-white"
-            >
-              Contact
-            </a>
-          ) : (
-            <span />
-          )}
+          <ContactLink v={v} className="rounded-full border border-white/25 px-4 py-2 text-white">
+            Contact
+          </ContactLink>
         </nav>
 
         {/* Hero */}
@@ -160,7 +156,10 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
         {v.on("work") && (
           <section id="pf-work" className="mt-20">
             <Rule>{"Featured works"}</Rule>
-            <div className="mt-10 grid gap-x-8 gap-y-14 @3xl:grid-cols-12">
+            <div className="mt-6 flex justify-end">
+              <RailArrows railId="pf-work-rail" dark />
+            </div>
+            <div id="pf-work-rail" className="pf-rail mt-4">
               {v.projects.map((item, i) => {
                 const { title, summary, ship } = describeItem(item);
                 const img = itemImages(item)[0];
@@ -175,7 +174,7 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
                         src={img}
                         alt={title}
                         loading="lazy"
-                        className={`w-full rounded-2xl object-cover ${big ? "aspect-[4/3]" : "aspect-square"}`}
+                        className="aspect-[4/3] w-full rounded-2xl object-cover"
                       />
                     )}
                     <div className="mt-4 flex items-start justify-between gap-4">
@@ -251,6 +250,8 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
           </section>
         )}
 
+        <ShippedWork v={v} dark titleStyle={heavy} />
+
         {rest.map((s) => (
           <section key={s.key} id={`pf-${s.key}`} className="mt-24">
             {s.key === "contact" ? (
@@ -288,7 +289,7 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
             )}
           </section>
         ))}
-        <Footer dark />
+        <Footer dark branding={v.showBranding} />
         <div className="h-10" />
       </div>
     </div>

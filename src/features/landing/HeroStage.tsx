@@ -125,7 +125,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
  * with a fine grain so the gradients do not band on cheap panels. It weighs
  * nothing, cannot 404, and does not ask a phone to decode video behind text.
  */
-function BrandField() {
+export function BrandField() {
   return (
     /* Same composition, two palettes. On a light page the same blooms would
        be invisible at these opacities, so they are stronger and the veil at

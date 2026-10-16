@@ -284,7 +284,7 @@ function ClubMessageComposer({
     onStopTyping?.();
     const text = draft;
     setMentionQuery(null);
-    if (textareaRef.current) textareaRef.current.style.height = "36px";
+    if (textareaRef.current) textareaRef.current.style.height = "44px";
     setSending(true);
     try {
       const sent = await onSend(text);
@@ -298,7 +298,7 @@ function ClubMessageComposer({
   };
 
   return (
-    <div className="relative flex w-full items-end gap-1.5 rounded-2xl border border-border bg-card px-2.5 py-1.5 transition-colors focus-within:border-primary/50">
+    <div className="relative flex w-full items-end gap-1.5 rounded-[28px] border border-border bg-card py-2 pl-2.5 pr-2 transition-colors focus-within:border-primary/50">
       {avatar}
       <MentionField
         ref={textareaRef as any}
@@ -310,7 +310,7 @@ function ClubMessageComposer({
           if (event.target.value.trim()) onTyping?.();
           else onStopTyping?.();
           event.target.style.height = "auto";
-          event.target.style.height = `${Math.min(event.target.scrollHeight, 80)}px`;
+          event.target.style.height = `${Math.min(event.target.scrollHeight, 132)}px`;
         }}
         onKeyDown={(event) => {
           // An open tag list handles Enter itself, so Enter here is a real send.
@@ -322,23 +322,23 @@ function ClubMessageComposer({
         enterKeyHint={enterToSend ? "send" : "enter"}
         data-club-composer=""
         placeholder={placeholder}
-        className="block w-full flex-1 resize-none bg-transparent py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
+        className="block w-full flex-1 resize-none bg-transparent py-[11px] text-[16px] leading-[22px] text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
         rows={1}
-        style={{ minHeight: "36px", maxHeight: "80px", height: "36px" }}
+        style={{ minHeight: "44px", maxHeight: "132px", height: "44px" }}
       />
-      <div className="mb-0.5 flex shrink-0 items-center gap-0.5">
+      <div className="flex shrink-0 items-center gap-1">
         {controls}
         <button
           onClick={() => void submit()}
           disabled={sending || (!draft.trim() && !hasMedia)}
           aria-label="Send message"
-          className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
+          className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${
             draft.trim() || hasMedia
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground"
           }`}
         >
-          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
         </button>
       </div>
     </div>
@@ -3863,7 +3863,7 @@ function ClubChat() {
             onTyping={notifyTyping}
             onStopTyping={stopTyping}
             avatar={
-              <div className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-xs font-bold text-muted-foreground">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-sm font-bold text-muted-foreground">
                 {currentUserProfile?.avatar_url ? (
                   <img
                     src={currentUserProfile.avatar_url}
@@ -3907,27 +3907,27 @@ function ClubChat() {
                 <button
                   onClick={toggleVoiceRecording}
                   title={isRecording ? "Stop recording" : "Record voice note"}
-                  className={`relative inline-flex h-8 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? "min-w-12 bg-red-500 px-2 text-white" : "w-8 text-muted-foreground hover:text-foreground"}`}
+                  className={`relative inline-flex h-11 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? "min-w-16 bg-red-500 px-3 text-white" : "w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"}`}
                 >
                   {isRecording ? (
                     <>
-                      <Square className="h-3.5 w-3.5 fill-current" />
-                      <span className="ml-1 text-[9px] tabular-nums">
+                      <Square className="h-4 w-4 fill-current" />
+                      <span className="ml-1.5 text-[12px] font-semibold tabular-nums">
                         {Math.floor(recordingSeconds / 60)}:
                         {String(recordingSeconds % 60).padStart(2, "0")}
                       </span>
                     </>
                   ) : (
-                    <Mic className="h-4 w-4" />
+                    <Mic className="h-[22px] w-[22px]" />
                   )}
                 </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
                       title="Add attachment"
-                      className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"
+                      className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"
                     >
-                      <Paperclip className="h-4 w-4" />
+                      <Paperclip className="h-[22px] w-[22px]" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent

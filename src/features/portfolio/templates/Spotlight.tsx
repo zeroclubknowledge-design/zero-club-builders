@@ -9,7 +9,10 @@ import { AboutBlock, ContactButtons, SectionBody, WorkMeta, type Skin } from "./
 import {
   Avatar,
   FitText,
+  ContactLink,
   Footer,
+  RailArrows,
+  ShippedWork,
   fitSize,
   Marquee,
   TemplateStyles,
@@ -159,14 +162,17 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
             >
               A showcase of <em className="text-[var(--pf-accent)]">recent work</em>.
             </p>
-            <ol className="mt-10 border-t border-white/10">
+            <div className="mt-8 flex justify-end">
+              <RailArrows railId="pf-work-rail" dark />
+            </div>
+            <ol id="pf-work-rail" className="pf-rail mt-4">
               {v.projects.map((item, i) => {
                 const { title, summary } = describeItem(item);
                 const img = itemImages(item)[0];
                 return (
                   <li
                     key={item.id}
-                    className="group grid gap-4 border-b border-white/10 py-6 @3xl:grid-cols-[64px_1fr_280px] @3xl:items-center @3xl:gap-8"
+                    className="group flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-5"
                   >
                     <span className="text-[14px] tabular-nums text-white/40">
                       {String(i + 1).padStart(2, "0")}
@@ -194,7 +200,7 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
                       />
                     </div>
                     {img && (
-                      <div className="overflow-hidden rounded-2xl">
+                      <div className="order-first overflow-hidden rounded-2xl">
                         <img
                           src={img}
                           alt=""
@@ -209,6 +215,8 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
             </ol>
           </section>
         )}
+
+        <ShippedWork v={v} dark titleStyle={serif} />
 
         {rest.map((s) => (
           <section
@@ -242,7 +250,7 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
             )}
           </section>
         ))}
-        <Footer dark />
+        <Footer dark branding={v.showBranding} />
         <div className="h-10" />
       </div>
     </div>

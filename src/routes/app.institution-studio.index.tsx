@@ -44,7 +44,12 @@ function InstitutionHub() {
   const queryClient = useQueryClient();
   const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "operations" | "zero-forms" | "analytics" | "settings">("overview");
+  // ?tab= opens a section directly (the sidebar links here from anywhere in the app).
+  const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "operations" | "zero-forms" | "analytics" | "settings">(() => {
+    if (typeof window === "undefined") return "overview";
+    const t = new URLSearchParams(window.location.search).get("tab");
+    return (["overview", "tutors", "bootcamps", "operations", "zero-forms", "analytics", "settings"] as const).find((x) => x === t) || "overview";
+  });
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 

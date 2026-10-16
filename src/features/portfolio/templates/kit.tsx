@@ -9,8 +9,8 @@
  */
 import { useEffect, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Trophy, Medal } from "@/components/icons/glyphs";
-import { clip, describeItem, itemImages } from "../parse";
+import { ArrowUpRight, Trophy, Medal, ChevronLeft, ChevronRight, BadgeCheck } from "@/components/icons/glyphs";
+import { clip, describeItem, describePost, itemImages, postImages } from "../parse";
 import {
   ACCENT_HEX,
   normaliseSections,
@@ -37,6 +37,23 @@ export function inkOn(hex: string) {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? "#0a0a0a" : "#ffffff";
 }
 
+/**
+ * Where "Let's talk" goes. The owner picks a Zero Club message or email;
+ * email falls back to a message when there's no address on the profile.
+ */
+export function contactOf(data: Pick<PublicPortfolio, "profile" | "portfolio">) {
+  const email = data.profile.social_links?.email || null;
+  const useEmail = data.portfolio.contact_method === "email" && Boolean(email);
+  return useEmail
+    ? { method: "email" as const, href: `mailto:${email}`, external: true, email }
+    : { method: "zeroclub" as const, href: `/app/chat/${data.profile.id}`, external: false, email };
+}
+
+/** PRO portfolios may switch "Built with Zero Club" to "Built with love". */
+export function showsBranding(portfolio: PublicPortfolio["portfolio"]) {
+  return !(portfolio.hide_branding && portfolio.premium_active);
+}
+
 export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } = {}) {
   const { profile, portfolio, items, experiences, certificates, learning, stats } = data;
   const achievements = data.achievements || [];
@@ -58,6 +75,10 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
   const projects = items.filter((i) => i.kind === "project");
   const proofs = items.filter((i) => i.kind === "proof");
   const skills = portfolio.skills || [];
+  const contact = contactOf(data);
+  const selectedIds = new Set(projects.map((p) => p.post.id));
+  /** Every public ship, minus the ones already in Selected work. */
+  const shipped = (data.shipped || []).filter((p) => !selectedIds.has(p.id));
   const current = experiences.find((e) => e.is_current) || experiences[0];
   const role = current?.title || null;
 
@@ -70,7 +91,8 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
     certificates: certificates.length > 0,
     proofs: proofs.length > 0,
     achievements: achievements.length > 0,
-    contact: Boolean(email || website || Object.keys(profile.social_links || {}).length),
+    // Anyone can be messaged on Zero Club, so contact always has somewhere to go.
+    contact: true,
   };
   const sections = normaliseSections(portfolio.sections).filter((s) => s.visible && has[s.key]);
   const on = (key: PortfolioSectionKey) => sections.some((s) => s.key === key);
@@ -117,6 +139,9 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
     numbers,
     gallery,
     heroImage,
+    contact,
+    shipped,
+    showBranding: showsBranding(portfolio),
   };
 }
 export type View = ReturnType<typeof portfolioView>;
@@ -303,17 +328,23 @@ export function AchievementIcon({ kind, className = "" }: { kind: string; classN
 export const achievementSource = (kind: string) =>
   kind === "challenge" ? "Zero Proofs Challenge" : "Zero Games";
 
-export function Footer({ dark }: { dark: boolean }) {
+export function Footer({ dark, branding = true }: { dark: boolean; branding?: boolean }) {
   return (
     <footer
       className={`mt-16 flex flex-col items-center gap-2 border-t pt-8 text-center ${dark ? "border-white/[0.08]" : "border-black/[0.08]"}`}
     >
-      <a
-        href="https://www.zeroclubs.xyz"
-        className={`text-[13px] transition ${dark ? "text-white/45 hover:text-white/80" : "text-black/45 hover:text-black/80"}`}
-      >
-        Built with <span className="font-semibold">Zero Club</span>
-      </a>
+      {branding ? (
+        <a
+          href="https://www.zeroclubs.xyz"
+          className={`text-[13px] transition ${dark ? "text-white/45 hover:text-white/80" : "text-black/45 hover:text-black/80"}`}
+        >
+          Built with <span className="font-semibold">Zero Club</span>
+        </a>
+      ) : (
+        <p className={`text-[13px] ${dark ? "text-white/45" : "text-black/45"}`}>
+          Built with <span className="font-semibold">Love</span> © {new Date().getFullYear()}
+        </p>
+      )}
       <p className={`max-w-md text-[12px] ${dark ? "text-white/30" : "text-black/35"}`}>
         Projects, highlights, wins and stats come from Zero Club. Experience and certificates are
         self-reported.
@@ -386,5 +417,103 @@ export function FitText({
     <Tag ref={ref} className={className} style={style}>
       {children}
     </Tag>
+  );
+}
+
+/**
+ * "Let's talk": a link to the owner's Zero Club messages or their email,
+ * whichever they chose. Keeps each template's own styling.
+ */
+export function ContactLink({ v, className, children }: { v: View; className?: string; children: ReactNode }) {
+  if (v.contact.external) return <a href={v.contact.href} className={className}>{children}</a>;
+  return <Link to={v.contact.href as never} className={className}>{children}</Link>;
+}
+
+/** Previous / next buttons for a horizontal work rail (by element id). */
+export function RailArrows({ railId, dark }: { railId: string; dark: boolean }) {
+  const go = (dir: 1 | -1) => {
+    const el = typeof document !== "undefined" ? document.getElementById(railId) : null;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(260, el.clientWidth * 0.8), behavior: "smooth" });
+  };
+  const cls = `grid h-10 w-10 place-items-center rounded-full border transition active:scale-95 ${
+    dark ? "border-white/15 text-white/80 hover:border-white/40" : "border-black/15 text-black/75 hover:border-black/40"
+  }`;
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      <button type="button" aria-label="Previous project" onClick={() => go(-1)} className={cls}>
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <button type="button" aria-label="Next project" onClick={() => go(1)} className={cls}>
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Every project the owner has shipped on Zero Club, beyond the ones picked
+ * for Selected work. Real posts only; nothing here is typed in.
+ */
+export function ShippedWork({
+  v,
+  dark,
+  title,
+  className = "",
+  titleStyle,
+}: {
+  v: View;
+  dark: boolean;
+  title?: string;
+  className?: string;
+  titleStyle?: CSSProperties;
+}) {
+  if (!v.shipped.length) return null;
+  const heading = title || (v.projects.length ? "More shipped work" : "Shipped work");
+  const card = dark ? "border-white/[0.08] bg-white/[0.03] hover:border-white/20" : "border-black/[0.08] bg-black/[0.02] hover:border-black/20";
+  const muted = dark ? "text-white/55" : "text-black/55";
+  return (
+    <section id="pf-shipped" className={`py-10 ${className}`}>
+      <div className="flex items-end justify-between gap-3">
+        <h2 className="text-[24px] font-semibold tracking-[-0.02em] @3xl:text-[30px]" style={titleStyle}>
+          {heading}
+        </h2>
+        <p className={`text-[13px] ${muted}`}>
+          {v.shipped.length} {v.shipped.length === 1 ? "project" : "projects"}
+        </p>
+      </div>
+      <div className="mt-6 grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3">
+        {v.shipped.map((post) => {
+          const { title: name, summary, ship } = describePost(post);
+          const img = postImages(post)[0];
+          return (
+            <Link
+              key={post.id}
+              to="/app/post/$id"
+              params={{ id: post.id }}
+              className={`group flex gap-3 rounded-2xl border p-3 transition ${card}`}
+            >
+              {img ? (
+                <img src={img} alt="" loading="lazy" className="h-20 w-24 shrink-0 rounded-xl object-cover" />
+              ) : (
+                <span className="grid h-20 w-24 shrink-0 place-items-center rounded-xl bg-[var(--pf-accent)]/15 px-2 text-center text-[11px] font-semibold leading-tight">
+                  {clip(name, 28)}
+                </span>
+              )}
+              <span className="min-w-0 flex-1 py-0.5">
+                <span className="flex items-center gap-1.5">
+                  <span className="truncate text-[15px] font-semibold">{name}</span>
+                  {post.is_verified_build && <BadgeCheck className="h-4 w-4 shrink-0 text-[var(--pf-accent)]" />}
+                </span>
+                <span className={`mt-0.5 block text-[12px] ${muted}`}>
+                  {[ship?.category, String(year(post.created_at) || "")].filter(Boolean).join(" · ")}
+                </span>
+                {summary && <span className={`mt-1 line-clamp-2 block text-[13px] leading-snug ${muted}`}>{summary}</span>}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

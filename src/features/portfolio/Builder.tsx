@@ -689,6 +689,58 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
               checked={draft.portfolio.indexable}
               onChange={(indexable) => patchPortfolio({ indexable })}
             />
+            {/* Where "Let's talk" goes. */}
+            <div className="border-t border-border py-3">
+              <p className="text-[14px] font-medium">"Let's talk" button</p>
+              <p className="text-[12.5px] text-muted-foreground">Where people reach you from your portfolio.</p>
+              <div className="mt-2.5 grid grid-cols-2 gap-1 rounded-full bg-foreground/[0.06] p-1">
+                {([
+                  ["zeroclub", "Message on Zero Club"],
+                  ["email", "Email me"],
+                ] as const).map(([value, label]) => {
+                  const active = (draft.portfolio.contact_method || "email") === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => patchPortfolio({ contact_method: value })}
+                      className={`h-9 rounded-full text-[13px] font-semibold transition ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              {(draft.portfolio.contact_method || "email") === "email" && !draft.profile.social_links?.email && (
+                <p className="mt-2 text-[12px] text-amber-600">
+                  Add an email in Edit profile → Links. Until then, "Let's talk" opens your Zero Club messages.
+                </p>
+              )}
+            </div>
+            {/* PRO: swap the Zero Club credit for a personal one. */}
+            <div className="border-t border-border pt-1">
+              <label className={`flex items-center gap-3 py-2 ${canPremium ? "" : "opacity-60"}`}>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 text-[14px] font-medium">
+                    Show "Built with Zero Club"
+                    {!canPremium && <span className="rounded-full bg-[#cc208f]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#cc208f]">PRO</span>}
+                  </span>
+                  <span className="block text-[12.5px] text-muted-foreground">
+                    {canPremium
+                      ? `Turn off to show "Built with Love © ${new Date().getFullYear()}" instead`
+                      : "PRO members can replace it with “Built with Love”"}
+                  </span>
+                </span>
+                <Switch
+                  checked={!canPremium || !draft.portfolio.hide_branding}
+                  disabled={!canPremium}
+                  onCheckedChange={(on) => patchPortfolio({ hide_branding: !on })}
+                />
+              </label>
+              {!canPremium && (
+                <Link to="/app/premium" className="text-[12.5px] font-semibold text-[#cc208f]">Go PRO</Link>
+              )}
+            </div>
           </Card>
         </div>
 

@@ -439,10 +439,10 @@ function GroupChatPage() {
                 ))}
               </div>
             )}
-            <div className="flex items-end gap-1.5 rounded-[26px] bg-card py-1.5 pl-2 pr-1.5 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 ring-foreground/[0.07] focus-within:ring-[#cc208f]/40">
+            <div className="flex items-end gap-1.5 rounded-[28px] bg-card py-2 pl-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 ring-foreground/[0.07] focus-within:ring-[#cc208f]/40">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button type="button" aria-label="Attach" className="mb-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"><Plus className="h-5 w-5" /></button>
+                  <button type="button" aria-label="Attach" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"><Plus className="h-6 w-6" /></button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="top" align="start" className="z-[100] w-48">
                   <DropdownMenuItem onSelect={() => imageRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Photos & videos</DropdownMenuItem>
@@ -462,7 +462,7 @@ function GroupChatPage() {
                   setInput(e.target.value);
                   const t = e.target as HTMLTextAreaElement;
                   t.style.height = "auto";
-                  t.style.height = `${Math.min(t.scrollHeight, 110)}px`;
+                  t.style.height = `${Math.min(t.scrollHeight, 132)}px`;
                 }}
                 onKeyDown={(e) => {
                   if (isSendKey(e, enterToSend)) {
@@ -472,16 +472,16 @@ function GroupChatPage() {
                 }}
                 rows={1}
                 placeholder={editing ? "Edit your message" : "Message the group"}
-                className="block w-full flex-1 resize-none border-0 bg-transparent py-2 text-[15px] outline-none placeholder:text-muted-foreground no-scrollbar"
-                style={{ minHeight: 36, maxHeight: 110, height: 36 }}
+                className="block w-full flex-1 resize-none border-0 bg-transparent py-[11px] text-[16px] leading-[22px] outline-none placeholder:text-muted-foreground no-scrollbar"
+                style={{ minHeight: 44, maxHeight: 132, height: 44 }}
               />
               {!input.trim() && !files.length && !editing ? (
-                <button type="button" onClick={() => void toggleVoice()} aria-label={isRecording ? "Stop recording" : "Record a voice note"} className={`mb-0.5 inline-flex h-8 shrink-0 items-center justify-center rounded-full ${isRecording ? "min-w-14 bg-red-500 px-2 text-white" : "w-8 text-muted-foreground hover:text-foreground"}`}>
-                  {isRecording ? <><Square className="h-3 w-3 fill-current" /><span className="ml-1 text-[10px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-[18px] w-[18px]" />}
+                <button type="button" onClick={() => void toggleVoice()} aria-label={isRecording ? "Stop recording" : "Record a voice note"} className={`inline-flex h-11 shrink-0 items-center justify-center rounded-full active:scale-95 ${isRecording ? "min-w-16 bg-red-500 px-3 text-white" : "w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"}`}>
+                  {isRecording ? <><Square className="h-4 w-4 fill-current" /><span className="ml-1.5 text-[12px] font-semibold tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-[22px] w-[22px]" />}
                 </button>
               ) : (
-                <button type="button" disabled={sending} onClick={() => void send()} aria-label="Send" className="mb-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]">
-                  {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : editing ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                <button type="button" disabled={sending} onClick={() => void send()} aria-label="Send" className="grid h-11 w-11 shrink-0 place-items-center rounded-full active:scale-95 bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]">
+                  {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : editing ? <Check className="h-5 w-5" /> : <Send className="h-5 w-5" />}
                 </button>
               )}
             </div>

@@ -47,6 +47,18 @@ export type IncomingPop = {
   isRead?: boolean;
 };
 
+/** Eats the single click that follows a tap on the card (see onPointerUp). */
+function swallowNextClick() {
+  if (typeof window === "undefined") return;
+  const stop = (event: Event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.removeEventListener("click", stop, true);
+  };
+  window.addEventListener("click", stop, true);
+  window.setTimeout(() => window.removeEventListener("click", stop, true), 700);
+}
+
 /* ── A tiny bus so other parts of the app (DMs) can raise a card ─────────── */
 
 const listeners = new Set<(pop: IncomingPop) => void>();
@@ -305,8 +317,14 @@ export function IncomingNotificationCard({ recipientId, onReceived, onRead }: In
     if (dy < -28 || (fast && dy < -10)) return dismiss("up");
     if (Math.abs(dx) > 90 || (fast && Math.abs(dx) > 40)) return dismiss(dx > 0 ? "right" : "left");
     setDrag({ x: 0, y: 0, dragging: false });
-    if (!movedRef.current) open();
-    else armTimer(2_600);
+    if (!movedRef.current) {
+      // The card disappears as it opens, so the click the browser sends after
+      // this tap would land on whatever sits under it — often a profile photo
+      // or a chat header that links to a profile. Swallow that one click.
+      e.preventDefault();
+      swallowNextClick();
+      open();
+    } else armTimer(2_600);
   };
 
   const transform = leaving === "up"

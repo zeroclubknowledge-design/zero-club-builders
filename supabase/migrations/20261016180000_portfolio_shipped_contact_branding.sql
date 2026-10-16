@@ -1,0 +1,5 @@
+-- ALREADY APPLIED to the live database on 2026-10-16 (migration "portfolio_shipped_contact_branding"). Do not re-run.
+-- portfolios.contact_method ('email' | 'zeroclub', default 'email') — where "Let's talk" goes.
+-- portfolios.hide_branding (default false) — PRO only; get_public_portfolio returns
+--   portfolio.show_branding = not (hide_branding and portfolio_premium_allowed(owner)).
+-- get_public_portfolio also returns `shipped`: the owner's public project posts (roots), newest first, max 60.

@@ -67,6 +67,12 @@ export type Portfolio = {
   skills: string[];
   show_stats: boolean;
   indexable: boolean;
+  /** Where "Let's talk" goes: a Zero Club message, or the owner's email. */
+  contact_method?: "email" | "zeroclub";
+  /** PRO only: replace "Built with Zero Club" with "Built with love". */
+  hide_branding?: boolean;
+  /** Server-computed: false only for PRO portfolios that turned branding off. */
+  show_branding?: boolean;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -132,6 +138,8 @@ export type PublicPortfolio = {
   certificates: Certificate[];
   learning: LearningEntry[];
   achievements?: Achievement[];
+  /** Every project the owner has shipped publicly, newest first. */
+  shipped?: PortfolioPost[];
   stats: { ships: number; verified: number; proofs: number; xp: number };
 };
 

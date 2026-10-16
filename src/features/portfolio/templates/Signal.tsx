@@ -9,7 +9,10 @@ import { SECTION_LABELS } from "../types";
 import { ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
   Avatar,
+  ContactLink,
   Footer,
+  RailArrows,
+  ShippedWork,
   RotatingBadge,
   TemplateStyles,
   WorkLinks,
@@ -149,8 +152,11 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
           {/* Work as a bento */}
           {v.on("work") && (
             <section id="pf-work" className="space-y-3">
-              <Heading>{SECTION_LABELS.work}</Heading>
-              <div className="grid gap-3 @2xl:grid-cols-2">
+              <div className="flex items-end justify-between gap-3">
+                <Heading>{SECTION_LABELS.work}</Heading>
+                <RailArrows railId="pf-work-rail" dark />
+              </div>
+              <div id="pf-work-rail" className="pf-rail">
                 {v.projects.map((item, i) => {
                   const { title, summary, ship } = describeItem(item);
                   const img = itemImages(item)[0];
@@ -213,6 +219,8 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
             </section>
           )}
 
+          <ShippedWork v={v} dark titleStyle={display} className="!py-0" />
+
           {rest.map((s) => (
             <section
               key={s.key}
@@ -240,7 +248,7 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
               </div>
             </section>
           ))}
-          <Footer dark />
+          <Footer dark branding={v.showBranding} />
         </main>
       </div>
     </div>

@@ -1742,3 +1742,27 @@ html:not(.dark) [data-zc-live-room] :is(
 @keyframes zf-followup-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 .zf-followup { animation: zf-followup-in .28s ease-out backwards; }
 @media (prefers-reduced-motion: reduce) { .zf-followup { animation: none; } }
+
+/* Portfolio "Selected work": one row that scrolls left and right, whatever
+   grid or column layout the template's own markup asks for. */
+.pf-rail {
+  display: flex !important;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 14px;
+  columns: auto !important;
+  scrollbar-width: thin;
+}
+.pf-rail > * {
+  flex: 0 0 min(84%, 400px);
+  scroll-snap-align: start;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  grid-column: auto !important;
+}
+@container (min-width: 64rem) {
+  .pf-rail > * { flex-basis: min(44%, 440px); }
+}

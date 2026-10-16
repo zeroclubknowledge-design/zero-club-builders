@@ -10,12 +10,13 @@ import {
   BriefcaseBusiness,
   GraduationCap,
   Mail,
+  MessageCircle,
 } from "@/components/icons/glyphs";
 import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { experienceSpan, monthYear } from "@/features/profile/credentials";
 import { clip, describeItem, itemImages } from "../parse";
 import type { PortfolioItem } from "../types";
-import { AchievementIcon, achievementSource, WorkLinks, year, type View } from "./kit";
+import { AchievementIcon, achievementSource, ContactLink, WorkLinks, year, type View } from "./kit";
 
 export type Skin = {
   /** A surface: border + background + radius. */
@@ -247,14 +248,12 @@ export function ContactButtons({
   const h = size === "lg" ? "h-12 px-6 text-[15px]" : "h-11 px-5 text-[14px]";
   return (
     <div className="flex flex-wrap items-center gap-2.5">
-      {v.email && (
-        <a
-          href={`mailto:${v.email}`}
-          className={`inline-flex items-center gap-2 rounded-full font-semibold transition active:scale-[0.98] bg-[var(--pf-accent)] text-[color:var(--pf-ink)] ${h}`}
-        >
-          <Mail className="h-4 w-4" /> Let's talk
-        </a>
-      )}
+      <ContactLink
+        v={v}
+        className={`inline-flex items-center gap-2 rounded-full font-semibold transition active:scale-[0.98] bg-[var(--pf-accent)] text-[color:var(--pf-ink)] ${h}`}
+      >
+        {v.contact.method === "email" ? <Mail className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />} Let's talk
+      </ContactLink>
       <Link
         to="/app/profile/$id"
         params={{ id: v.profile.id }}
@@ -270,11 +269,9 @@ export function ContactDetails({ v, skin }: { v: View; skin: Skin }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px] font-semibold">
-        {v.email && (
-          <a href={`mailto:${v.email}`} className="hover:text-[var(--pf-accent)]">
-            {v.email}
-          </a>
-        )}
+        <ContactLink v={v} className="inline-flex items-center gap-1.5 hover:text-[var(--pf-accent)]">
+          {v.contact.method === "email" ? v.contact.email : <><MessageCircle className="h-4 w-4" /> Message me on Zero Club</>}
+        </ContactLink>
         {v.website && (
           <a
             href={v.website}

@@ -10,7 +10,10 @@ import { ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
   Avatar,
   FitText,
+  ContactLink,
   Footer,
+  RailArrows,
+  ShippedWork,
   TemplateStyles,
   WorkLinks,
   fitSize,
@@ -50,14 +53,12 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
           >
             {v.firstName.charAt(0).toUpperCase()}
           </span>
-          {v.email && (
-            <a
-              href={`mailto:${v.email}`}
-              className="inline-flex h-10 items-center rounded-full bg-[#111] px-5 text-[13px] font-semibold text-white"
-            >
-              Let's talk
-            </a>
-          )}
+          <ContactLink
+            v={v}
+            className="inline-flex h-10 items-center rounded-full bg-[#111] px-5 text-[13px] font-semibold text-white"
+          >
+            Let's talk
+          </ContactLink>
         </nav>
 
         {/* Hero */}
@@ -131,11 +132,9 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
               >
                 Latest projects
               </h2>
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#111] text-white">
-                <ArrowRight className="h-4 w-4" />
-              </span>
+              <RailArrows railId="pf-work-rail" dark={false} />
             </div>
-            <div className="mt-8 grid gap-6 @xl:grid-cols-2 @4xl:grid-cols-3">
+            <div id="pf-work-rail" className="pf-rail mt-8">
               {v.projects.map((item, i) => {
                 const { title, summary } = describeItem(item);
                 const img = itemImages(item)[0];
@@ -186,6 +185,8 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
           </section>
         )}
 
+        <ShippedWork v={v} dark={false} titleStyle={display} />
+
         {rest.map((s) => (
           <section key={s.key} id={`pf-${s.key}`} className="py-12">
             {s.key === "contact" ? (
@@ -197,14 +198,12 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
                   Got a project? Let's make it happen.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
-                  {v.email && (
-                    <a
-                      href={`mailto:${v.email}`}
-                      className="inline-flex h-12 items-center gap-2 rounded-full bg-[#111] px-6 text-[15px] font-semibold text-white"
-                    >
-                      {v.email} <ArrowUpRight className="h-4 w-4" />
-                    </a>
-                  )}
+                  <ContactLink
+                    v={v}
+                    className="inline-flex h-12 items-center gap-2 rounded-full bg-[#111] px-6 text-[15px] font-semibold text-white"
+                  >
+                    {v.contact.method === "email" ? v.contact.email : "Message me on Zero Club"} <ArrowUpRight className="h-4 w-4" />
+                  </ContactLink>
                   {v.website && (
                     <a
                       href={v.website}
@@ -236,7 +235,7 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
             )}
           </section>
         ))}
-        <Footer dark={false} />
+        <Footer dark={false} branding={v.showBranding} />
         <div className="h-10" />
       </div>
     </div>

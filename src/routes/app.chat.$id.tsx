@@ -1528,7 +1528,7 @@ function ChatViewPage() {
         {/* One container. The avatar used to sit outside the input, which read
             as two boxes side by side for what is a single action. */}
         <div
-          className={`flex items-end gap-1.5 rounded-[26px] bg-card py-1.5 pl-4 pr-1.5 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 transition ${editingId ? "ring-success/40" : "ring-foreground/[0.07] focus-within:ring-[#cc208f]/40"}`}
+          className={`flex items-end gap-1.5 rounded-[28px] bg-card py-2 pl-4 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 transition ${editingId ? "ring-success/40" : "ring-foreground/[0.07] focus-within:ring-[#cc208f]/40"}`}
           style={{ fontFamily: 'var(--font-sans)', "--font-button": 'var(--font-sans)' } as React.CSSProperties}
         >
 
@@ -1542,7 +1542,7 @@ function ChatViewPage() {
                 else stopTyping();
                 const target = e.target;
                 target.style.height = 'auto';
-                target.style.height = `${Math.min(target.scrollHeight, 80)}px`;
+                target.style.height = `${Math.min(target.scrollHeight, 132)}px`;
               }}
               onKeyDown={(e) => {
                 if (isSendKey(e, enterToSend)) {
@@ -1552,11 +1552,11 @@ function ChatViewPage() {
               }}
               enterKeyHint={enterToSend ? "send" : "enter"}
               placeholder={editingId ? "Edit your message" : (replyingTo ? "Write a reply..." : "Start a message")} 
-              className="block w-full flex-1 resize-none border-0 bg-transparent py-2 text-sm text-foreground shadow-none outline-none focus:border-0 focus:outline-none focus:ring-0 placeholder:text-muted-foreground no-scrollbar"
+              className="block w-full flex-1 resize-none border-0 bg-transparent py-[11px] text-[16px] leading-[22px] text-foreground shadow-none outline-none focus:border-0 focus:outline-none focus:ring-0 placeholder:text-muted-foreground no-scrollbar"
               rows={1}
-              style={{ minHeight: '36px', maxHeight: '80px', height: '36px' }}
+              style={{ minHeight: '44px', maxHeight: '132px', height: '44px' }}
             />
-            <div className="flex items-center gap-0.5 pb-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               <input 
                 type="file" 
                 ref={mediaInputRef} 
@@ -1570,13 +1570,13 @@ function ChatViewPage() {
               <button
                 onClick={toggleVoiceRecording}
                 title={isRecording ? 'Stop recording' : 'Record voice note'}
-                className={`inline-flex h-8 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? 'min-w-12 bg-red-500 px-2 text-white' : 'w-8 text-muted-foreground hover:text-foreground'}`}
+                className={`inline-flex h-11 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? 'min-w-16 bg-red-500 px-3 text-white' : 'w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground'}`}
               >
-                {isRecording ? <><Square className="h-3.5 w-3.5 fill-current" /><span className="ml-1 text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')}</span></> : <Mic className="h-4 w-4" />}
+                {isRecording ? <><Square className="h-4 w-4 fill-current" /><span className="ml-1.5 text-[12px] font-semibold tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')}</span></> : <Mic className="h-[22px] w-[22px]" />}
               </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button title="Add attachment" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:text-foreground active:scale-95"><Paperclip className="h-4 w-4" /></button>
+                  <button title="Add attachment" className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"><Paperclip className="h-[22px] w-[22px]" /></button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" side="top" className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl">
                   <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
@@ -1587,11 +1587,11 @@ function ChatViewPage() {
               <button 
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && mediaFiles.length === 0) || sending}
-                className={`grid h-8 w-8 place-items-center rounded-full transition active:scale-95 ${
+                className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${
                   (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ?'bg-success text-success-foreground' : 'bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]') : 'text-muted-foreground'
                 }`}
               >
-                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />)}
+                {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : (editingId ? <Check className="h-5 w-5" /> : <Send className="h-5 w-5" />)}
               </button>
             </div>
         </div>
