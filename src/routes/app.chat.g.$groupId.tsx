@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -76,6 +76,18 @@ function GroupChatPage() {
 
   const scrollToEnd = (smooth = false) =>
     requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: smooth ? "smooth" : "auto" }));
+  /*
+   * The chat opens on the newest message and stays pinned to the bottom until
+   * the reader scrolls up. The old version scrolled once, before the list (and
+   * its images) had rendered, and the list then sat at scrollTop 0 — which also
+   * tripped "load older" straight away and parked the reader at the top.
+   * Older messages now load only after the person has actually scrolled.
+   */
+  const userScrolled = useRef(false);
+  useEffect(() => {
+    atBottom.current = true;
+    userScrolled.current = false;
+  }, [groupId]);
 
   const loadExtras = async (ids: string[]) => {
     const { reactions: r, votes: v } = await getReactionsAndVotes(ids);
@@ -153,6 +165,31 @@ function GroupChatPage() {
     const t = window.setInterval(check, 20_000);
     return () => window.clearInterval(t);
   }, [callSince, groupId, queryClient]);
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el && atBottom.current) el.scrollTop = el.scrollHeight;
+  }, [messages, loaded, reactions]);
+  const hasThread = Boolean(group) && loaded;
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !hasThread) return;
+    const pin = () => {
+      if (atBottom.current) el.scrollTop = el.scrollHeight;
+    };
+    el.addEventListener("load", pin, true);
+    el.addEventListener("loadedmetadata", pin, true);
+    const resize = typeof ResizeObserver !== "undefined" ? new ResizeObserver(pin) : null;
+    resize?.observe(el);
+    Array.from(el.children).forEach((child) => resize?.observe(child));
+    const settle = [0, 60, 250, 700].map((ms) => window.setTimeout(pin, ms));
+    return () => {
+      el.removeEventListener("load", pin, true);
+      el.removeEventListener("loadedmetadata", pin, true);
+      resize?.disconnect();
+      settle.forEach(window.clearTimeout);
+    };
+  }, [groupId, hasThread]);
 
   const loadOlder = async () => {
     if (loadingOlder || reachedStart || !messages.length) return;
@@ -344,10 +381,13 @@ function GroupChatPage() {
       {/* Thread */}
       <div
         ref={scrollRef}
+        onWheel={() => { userScrolled.current = true; }}
+        onTouchStart={() => { userScrolled.current = true; }}
+        onKeyDown={() => { userScrolled.current = true; }}
         onScroll={(e) => {
           const el = e.currentTarget;
           atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-          if (el.scrollTop < 80) void loadOlder();
+          if (userScrolled.current && el.scrollTop < 80) void loadOlder();
         }}
         className="no-scrollbar flex-1 overflow-y-auto px-3 pb-4 pt-2"
       >

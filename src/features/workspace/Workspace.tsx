@@ -32,6 +32,8 @@ import {
   MapPin,
   Megaphone,
   MessageCircle,
+  Paperclip,
+  FileText,
   Plus,
   Search,
   Send,
@@ -46,6 +48,11 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { MentionField } from "@/components/MentionField";
 import { supabase } from "@/lib/supabase";
+import { ChatMediaGrid, type ChatVisual } from "@/components/ChatMediaGrid";
+import { ImageLightbox } from "@/components/ImageLightbox";
+import { decodeChatMedia, encodeChatMedia, getChatMediaType } from "@/hooks/useVoiceRecorder";
+import { compressImage } from "@/lib/imageCompression";
+import { UPLOAD_LIMIT_MB, tooLargeMessage } from "@/lib/storage";
 import { MemberDossier } from "./MemberDossier";
 import {
   ROLE_LABEL,
@@ -68,6 +75,41 @@ export type WorkspaceSection =
   | "people";
 
 const PINK = "#cc208f";
+/* Same encoding as direct, group and club chats: text, then the marker and the files. */
+const MEDIA = "$$MEDIA$$";
+const MAX_FILES = 6;
+
+function splitMessage(content: string) {
+  const [text, mediaPart] = String(content || "").split(MEDIA);
+  const media = mediaPart ? mediaPart.split(",").filter(Boolean).map(decodeChatMedia) : [];
+  return {
+    text: (text || "").trim(),
+    visuals: media.filter((m) => m.type === "image" || m.type === "video") as (ChatVisual & { name?: string })[],
+    files: media.filter((m) => m.type !== "image" && m.type !== "video"),
+  };
+}
+
+/** Photos, videos and files attached to a workspace message. */
+function MessageMedia({ content, onOpen }: { content: string; onOpen: (urls: string[], index: number, types: ("image" | "video")[], caption?: string) => void }) {
+  const { text, visuals, files } = splitMessage(content);
+  if (!visuals.length && !files.length) return null;
+  return (
+    <div className="mt-1.5 max-w-[420px] space-y-1.5">
+      {visuals.length > 0 && (
+        <ChatMediaGrid items={visuals} mine={false} onOpen={(i) => onOpen(visuals.map((v) => v.url), i, visuals.map((v) => v.type), text || undefined)} />
+      )}
+      {files.map((f, i) => (
+        <a key={i} href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5 transition hover:border-foreground/25">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#cc208f]/10 text-[#cc208f]"><FileText className="h-[18px] w-[18px]" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13.5px] font-semibold">{f.name || "Attachment"}</span>
+            <span className="block text-[11.5px] uppercase text-muted-foreground">{(f.name?.split(".").pop() || f.type).slice(0, 6)} · Open</span>
+          </span>
+        </a>
+      ))}
+    </div>
+  );
+}
 
 /* ── small pieces ─────────────────────────────────────────────────────── */
 
@@ -474,7 +516,20 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
                     <Avatar url={a.sender.avatar_url} name={a.sender.name} size={32} />
                     <div className="min-w-0 flex-1">
                       <p className="text-[13px]"><span className="font-semibold">{a.sender.name}</span> <span className="text-muted-foreground">· {dayOf(a.created_at)}</span></p>
-                      <div className="mt-0.5 line-clamp-3 text-[14px] leading-relaxed text-foreground/85"><LinkifiedText text={a.content} /></div>
+                      {(() => {
+                        const { text, visuals, files } = splitMessage(a.content);
+                        const n = visuals.length + files.length;
+                        return (
+                          <>
+                            {text && <div className="mt-0.5 line-clamp-3 text-[14px] leading-relaxed text-foreground/85"><LinkifiedText text={text} /></div>}
+                            {n > 0 && (
+                              <p className="mt-1 inline-flex items-center gap-1 text-[12.5px] font-medium text-muted-foreground">
+                                <Paperclip className="h-3.5 w-3.5" /> {n} {n === 1 ? "attachment" : "attachments"}
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -539,6 +594,9 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [me, setMe] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [viewer, setViewer] = useState<{ urls: string[]; index: number; types: ("image" | "video")[]; caption?: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const isAnnouncements = channel.kind === "announcements";
   const canPost = !isAnnouncements || ["owner", "admin", "staff"].includes(w.me.role);
@@ -580,13 +638,45 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages?.length]);
 
+  const addFiles = (list: FileList | null) => {
+    if (!list) return;
+    const picked = Array.from(list).filter((f) => {
+      if (f.size > UPLOAD_LIMIT_MB * 1024 * 1024) {
+        toast.error(tooLargeMessage(f));
+        return false;
+      }
+      return true;
+    });
+    setFiles((cur) => {
+      const next = [...cur, ...picked];
+      if (next.length > MAX_FILES) toast.error(`Up to ${MAX_FILES} files per message`);
+      return next.slice(0, MAX_FILES);
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
   const send = async () => {
     const text = draft.trim();
-    if (!text || sending) return;
+    if ((!text && files.length === 0) || sending || !me) return;
     setSending(true);
     try {
-      const row = await workspaceApi.send(channel.id, text);
+      let content = text;
+      if (files.length) {
+        const tokens: string[] = [];
+        for (const original of files) {
+          const file = await compressImage(original);
+          const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+          const path = `${me}/workspace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          const { error } = await supabase.storage.from("post-media").upload(path, file, { cacheControl: "31536000", contentType: file.type || undefined });
+          if (error) throw error;
+          const { data } = supabase.storage.from("post-media").getPublicUrl(path);
+          tokens.push(encodeChatMedia(getChatMediaType(file), data.publicUrl, original.name));
+        }
+        content = `${text}\n\n${MEDIA}${tokens.join(",")}`.trim();
+      }
+      const row = await workspaceApi.send(channel.id, content);
       setDraft("");
+      setFiles([]);
       setMessages((cur) => (cur && !cur.some((m) => m.id === row.id) ? [...cur, row] : cur));
     } catch (e: any) {
       toast.error(e?.message || "Could not send");
@@ -676,9 +766,12 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
                         <span className="text-[11.5px] text-muted-foreground">{timeOf(m.created_at)}</span>
                       </p>
                     )}
-                    <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/90 [overflow-wrap:anywhere]">
-                      <LinkifiedText text={m.content} />
-                    </div>
+                    {splitMessage(m.content).text && (
+                      <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/90 [overflow-wrap:anywhere]">
+                        <LinkifiedText text={splitMessage(m.content).text} />
+                      </div>
+                    )}
+                    <MessageMedia content={m.content} onOpen={(urls, index, types, caption) => setViewer({ urls, index, types, caption })} />
                   </div>
                   {(m.sender_id === me || canModerate) && (
                     <button type="button" onClick={() => void remove(m.id)} aria-label="Remove message" className="absolute right-2 top-1 hidden h-7 w-7 place-items-center rounded-full bg-card text-muted-foreground shadow-sm ring-1 ring-border hover:text-rose-600 group-hover:grid">
@@ -692,8 +785,48 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
         )}
       </div>
       <div className="shrink-0 border-t border-border bg-background px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 md:px-6">
+        {canPost && files.length > 0 && (
+          <div className="no-scrollbar mb-2 flex gap-2 overflow-x-auto">
+            {files.map((f, i) => {
+              const isImage = f.type.startsWith("image/");
+              return (
+                <div key={`${f.name}-${i}`} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border bg-card">
+                  {isImage ? (
+                    <img src={URL.createObjectURL(f)} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex h-full flex-col items-center justify-center gap-0.5 px-1 text-center">
+                      <FileText className="h-5 w-5 text-[#cc208f]" />
+                      <span className="w-full truncate text-[9.5px] font-semibold text-muted-foreground">{f.name}</span>
+                    </span>
+                  )}
+                  <button type="button" onClick={() => setFiles((cur) => cur.filter((_, j) => j !== i))} aria-label="Remove" className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded-full bg-black/70 text-white">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
         {canPost ? (
-          <div className="flex items-end gap-2 rounded-[22px] border border-border bg-card px-2 py-1.5 focus-within:border-foreground/30">
+          <div className="flex items-end gap-1.5 rounded-[22px] border border-border bg-card px-1.5 py-1.5 focus-within:border-foreground/30">
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip"
+              className="hidden"
+              onChange={(e) => addFiles(e.target.files)}
+            />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={sending}
+              aria-label="Add photos, videos or files"
+              title="Add photos, videos or files"
+              className="mb-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.06] hover:text-foreground disabled:opacity-40"
+            >
+              <Paperclip className="h-[20px] w-[20px]" />
+            </button>
             <MentionField
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -709,7 +842,7 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
               }}
               className="block max-h-[140px] min-h-[42px] w-full resize-none bg-transparent px-2 py-[10px] text-[15.5px] leading-[22px] outline-none placeholder:text-muted-foreground"
             />
-            <button type="button" onClick={() => void send()} disabled={!draft.trim() || sending} aria-label="Send" className="mb-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#cc208f] text-white transition active:scale-95 disabled:opacity-40">
+            <button type="button" onClick={() => void send()} disabled={(!draft.trim() && files.length === 0) || sending} aria-label="Send" className="mb-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#cc208f] text-white transition active:scale-95 disabled:opacity-40">
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-[18px] w-[18px]" />}
             </button>
           </div>
@@ -719,6 +852,9 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
           </p>
         )}
       </div>
+      {viewer && (
+        <ImageLightbox mediaUrls={viewer.urls} initialIndex={viewer.index} mediaTypes={viewer.types} caption={viewer.caption} isOpen onClose={() => setViewer(null)} allowDownload />
+      )}
     </div>
   );
 }

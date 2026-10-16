@@ -1,0 +1,11 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP. Record only; do not re-run.
+--
+-- * group_reaction_notify() + trigger chat_group_reactions_notify and
+--   club_reaction_notify() + trigger club_message_reactions_notify: reacting to
+--   someone's message in a group or club notifies them ("Ada reacted 🔥 to your
+--   message in <name>: …"), once per person per message every 10 minutes,
+--   linking to the group / club (and room).
+-- * chat_preview(text) trims newlines too, so media-only messages read
+--   "sent an attachment".
+-- * send_workspace_message: announcement notifications use chat_preview, so
+--   attached files don't leak raw URLs into the alert.

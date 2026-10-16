@@ -311,6 +311,10 @@ function Feed() {
   const { data: currentUser } = useUser();
   
   const [activeTab, setActiveTab] = usePersistentDraft(draftKey(currentUser?.id, "feed-tab"), "Discover");
+  // The Institution tab was retired; anyone who last had it open lands on Discover.
+  useEffect(() => {
+    if (activeTab === "Institution") setActiveTab("Discover");
+  }, [activeTab, setActiveTab]);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [commentPost, setCommentPost] = usePersistentDraft<any>(draftKey(currentUser?.id, "feed-comment-panel"), null);
   const { create } = Route.useSearch();
@@ -397,7 +401,7 @@ function Feed() {
       <header className="zc-page-width zc-feed-tabs sticky top-[calc(var(--zc-header-h)-1px)] z-40 w-full border-b border-border bg-card">
         <div className="flex h-11 items-stretch justify-between px-4">
           <div className="no-scrollbar flex min-w-0 flex-1 gap-[22px] overflow-x-auto">
-            {["Discover", "Following", "Live", "Leaderboard", "Institution"].map((tab) => (
+            {["Discover", "Following", "Live", "Leaderboard"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -423,10 +427,6 @@ function Feed() {
             {activeTab === 'Leaderboard' ? (
               <div className="mt-2 bg-card md:rounded-xl md:border md:border-border">
                 <Leaderboard currentUserId={currentUser?.id} />
-              </div>
-            ) : activeTab === 'Institution' ? (
-              <div className="mt-2 bg-card md:rounded-xl md:border md:border-border">
-                <InstitutionDirectory />
               </div>
             ) : activeTab === 'Live' ? (
               <div className="mt-2 space-y-5 bg-card p-3 sm:p-5 md:rounded-xl md:border md:border-border">
