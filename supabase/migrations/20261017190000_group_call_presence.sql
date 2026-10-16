@@ -1,0 +1,11 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "group_call_presence_windows"). Record only; do not re-run.
+--
+-- Group call presence is more forgiving:
+-- * a participant counts as in the call for 2 minutes after their last heartbeat
+--   (was 45s), so a phone in the background isn't treated as gone;
+-- * the server waits 3 minutes after a call starts before it can close it (was 75s);
+-- * chat_group_call_sweep also stops any ringing when it closes a call;
+-- * leave_chat_group_call returns { ended } so the app can say the call carries on.
+-- Client: everyone joins Agora with agoraUidFor(profile_id), heartbeats every 10s
+-- and on returning to the foreground; switching apps no longer counts as leaving.

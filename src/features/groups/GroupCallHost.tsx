@@ -5,7 +5,6 @@ import AgoraRTC, {
   AgoraRTCProvider,
   LocalUser,
   RemoteUser,
-  useCurrentUID,
   useIsConnected,
   useJoin,
   useLocalCameraTrack,
@@ -35,7 +34,22 @@ import { useGroupCall, type GroupCallSession } from "./GroupCallContext";
 
 const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
 
+/**
+ * Everyone joins with a number derived from their account, so every phone can
+ * put the right name and photo on every tile straight away — without waiting
+ * for the server, and without relying on Agora handing the number back.
+ * (Before, a missing number meant heartbeats never reached the server: tiles
+ * read "Connecting…", and the server closed the call after a minute for
+ * everyone while people were still talking.)
+ */
+export function agoraUidFor(profileId: string) {
+  const n = parseInt(profileId.replace(/-/g, "").slice(0, 8), 16) % 2_000_000_000;
+  return n > 0 ? n : 1;
+}
+const HEARTBEAT_MS = 10_000;
+
 type Person = { profile_id: string; uid: string; name: string; avatar: string | null };
+type Member = { profile_id: string; name: string; avatar: string | null };
 
 export function GroupCallHost() {
   const { session, end } = useGroupCall();
@@ -132,9 +146,9 @@ function CallRoom({ session, channel, token, groupName, groupAvatar, onLeft }: {
   const [seconds, setSeconds] = useState(0);
   const [people, setPeople] = useState<Person[]>([]);
 
-  useJoin({ appid: APP_ID, channel, token, uid: null }, true);
+  const myUid = me?.id ? agoraUidFor(me.id) : null;
+  useJoin({ appid: APP_ID, channel, token, uid: myUid }, myUid != null);
   const connected = useIsConnected();
-  const myUid = useCurrentUID();
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn, { AEC: true, ANS: true, AGC: true });
   const { localCameraTrack } = useLocalCameraTrack(camOn, { facingMode: facing, encoderConfig: "480p_1" });
   usePublish([localMicrophoneTrack, localCameraTrack]);
@@ -142,14 +156,50 @@ function CallRoom({ session, channel, token, groupName, groupAvatar, onLeft }: {
   const remoteCount = useRef(0);
   remoteCount.current = remoteUsers.length;
 
-  // Tell the server who's behind this Agora number, and keep the call alive.
+  // Tell the server we're here, and keep the call open for everyone. Beats
+  // also fire the moment the app comes back to the foreground, because phones
+  // slow timers right down while an app is in the background.
   useEffect(() => {
     if (!connected || myUid == null) return;
-    const beat = () => void supabase.rpc("heartbeat_chat_group_call" as any, { p_group: groupId, p_uid: Number(myUid) } as any);
+    const beat = () =>
+      void supabase.rpc("heartbeat_chat_group_call" as any, { p_group: groupId, p_uid: myUid } as any).then(({ error }: any) => {
+        if (error) console.warn("[group call] heartbeat failed", error.message);
+      });
     beat();
-    const t = window.setInterval(beat, 15_000);
-    return () => window.clearInterval(t);
+    const t = window.setInterval(beat, HEARTBEAT_MS);
+    const onVisible = () => { if (document.visibilityState === "visible") beat(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", beat);
+    return () => {
+      window.clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", beat);
+    };
   }, [connected, myUid, groupId]);
+
+  // Every member's name and photo, keyed by their call number.
+  const [members, setMembers] = useState<Map<string, Member>>(() => new Map());
+  useEffect(() => {
+    let alive = true;
+    void supabase
+      .from("chat_group_members")
+      .select("profile_id, profiles:profile_id(full_name, username, avatar_url)")
+      .eq("group_id", groupId)
+      .then(({ data }) => {
+        if (!alive || !data) return;
+        const map = new Map<string, Member>();
+        for (const row of data as any[]) {
+          const p = row.profiles || {};
+          map.set(String(agoraUidFor(row.profile_id)), {
+            profile_id: row.profile_id,
+            name: (p.full_name || "").trim() || p.username || "Member",
+            avatar: p.avatar_url || null,
+          });
+        }
+        setMembers(map);
+      });
+    return () => { alive = false; };
+  }, [groupId]);
 
   // Names for everyone in the call; also lets the server end abandoned calls.
   useEffect(() => {
@@ -163,12 +213,9 @@ function CallRoom({ session, channel, token, groupName, groupAvatar, onLeft }: {
     return () => { alive = false; window.clearInterval(t); };
   }, [groupId]);
 
-  // Closing the tab or app counts as leaving.
-  useEffect(() => {
-    const bye = () => void supabase.rpc("leave_chat_group_call" as any, { p_group: groupId } as any);
-    window.addEventListener("pagehide", bye);
-    return () => window.removeEventListener("pagehide", bye);
-  }, [groupId]);
+  // Note: switching apps or locking the phone is NOT leaving. Only the Leave
+  // button leaves; if the app is closed for good the server notices the
+  // heartbeats stop (2 minutes) and lets the call carry on for everyone else.
 
   useEffect(() => {
     if (!connected) return;
@@ -183,7 +230,8 @@ function CallRoom({ session, channel, token, groupName, groupAvatar, onLeft }: {
     setLeaving(true);
     localMicrophoneTrack?.close();
     localCameraTrack?.close();
-    await supabase.rpc("leave_chat_group_call" as any, { p_group: groupId } as any);
+    const { data } = await supabase.rpc("leave_chat_group_call" as any, { p_group: groupId } as any);
+    if (data && (data as any).ended === false) toast.message("You left the call", { description: "It's still going for the others — rejoin any time from the group." });
     onLeft();
   };
 
@@ -234,7 +282,7 @@ function CallRoom({ session, channel, token, groupName, groupAvatar, onLeft }: {
           {remoteUsers.map((u) => {
             const person = byUid.get(String(u.uid));
             return (
-              <Tile key={u.uid} name={person?.name || "Connecting…"} avatar={person?.avatar || null} muted={!u.hasAudio} videoOn={u.hasVideo}>
+              <Tile key={u.uid} name={person?.name || members.get(String(u.uid))?.name || "Joining…"} avatar={person?.avatar || members.get(String(u.uid))?.avatar || null} muted={!u.hasAudio} videoOn={u.hasVideo}>
                 <RemoteUser user={u} playAudio playVideo={u.hasVideo} className="h-full w-full" />
               </Tile>
             );
