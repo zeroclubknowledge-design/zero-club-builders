@@ -40,9 +40,14 @@ export function isInstitution(profile: any) {
   return String(profile?.account_type || "").toLowerCase() === "institution";
 }
 
+/** Organizations (business accounts) switch business modes, not personal ones. */
+function isOrganization(profile: any) {
+  return profile?.account_kind === "business" || isInstitution(profile);
+}
+
 /** The mode a profile is in right now; null for institutions. */
 export function modeOf(profile: any): Mode | null {
-  if (!profile || isInstitution(profile)) return null;
+  if (!profile || isOrganization(profile)) return null;
   if (String(profile.account_type || "").toLowerCase() === "tutor") return "tutor";
   return profile.active_mode === "creator" ? "creator" : "learner";
 }
@@ -85,7 +90,7 @@ export async function switchMode(profileId: string, mode: Mode) {
 
 /** New members go through onboarding once. Existing accounts have a date. */
 export function needsOnboarding(profile: any) {
-  return Boolean(profile) && "onboarded_at" in profile && profile.onboarded_at === null && !isInstitution(profile);
+  return Boolean(profile) && "onboarded_at" in profile && profile.onboarded_at === null && !isOrganization(profile);
 }
 
 /** Fields offered during onboarding; the same names bootcamps use as categories. */

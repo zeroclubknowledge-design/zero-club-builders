@@ -228,7 +228,7 @@ const footerGroups = [
   },
   {
     title: "Business",
-    links: ["Post a bootcamp", "Create a club", "Sell products", "Find builders"],
+    links: ["Zero Club for Business", "Hire builders", "Run a tech hub", "Business sign in"],
   },
   {
     title: "Company",
@@ -1198,7 +1198,7 @@ function Footer() {
                 {group.links.map((link) => (
                   <li key={link}>
                     <a
-                      href={link === "Contact" ? "#contact" : link === "Privacy" ? "/privacy" : link === "Terms" ? "/terms" : link === "Help Center" ? "/docs" : "#people"}
+                      href={link === "Business sign in" ? "/business/signin" : ["Zero Club for Business", "Hire builders", "Run a tech hub"].includes(link) ? "/business" : link === "Contact" ? "#contact" : link === "Privacy" ? "/privacy" : link === "Terms" ? "/terms" : link === "Help Center" ? "/docs" : "#people"}
                       className="text-[13px] font-medium text-[#666a70] dark:text-white/55 transition-colors hover:text-[#171717]"
                     >
                       {link}

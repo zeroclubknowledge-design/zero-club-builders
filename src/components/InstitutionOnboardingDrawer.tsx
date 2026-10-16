@@ -74,7 +74,14 @@ export function InstitutionOnboardingDrawer({
       return data as any;
     },
     onSuccess: (data) => {
-      toast.success(data?.is_new ? "Your 30-day Digital Hub trial has started" : "Institution details updated");
+      toast.success(
+        data?.pending_review
+          ? "Application sent for review"
+          : data?.is_new
+            ? "Your 30-day Digital Hub trial has started"
+            : "Institution details updated",
+        data?.pending_review ? { description: "We'll notify you when your Digital Hub is approved." } : undefined,
+      );
       queryClient.invalidateQueries({ queryKey: ["institution-status"] });
       queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
       onActivated?.();

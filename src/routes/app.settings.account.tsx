@@ -225,7 +225,12 @@ function AccountSettings() {
                 </DrawerHeader>
 
                 <div className="space-y-2.5 px-5 pt-2">
-                  {["Learner", "Tutor", "Institution"].map((type) => {
+                  {profile?.account_kind === "business" && (
+                    <p className="rounded-2xl bg-foreground/[0.04] p-4 text-[14px] leading-relaxed text-muted-foreground">
+                      This is a business account. Switch between Company and Institutional from the menu or your Business Hub.
+                    </p>
+                  )}
+                  {(profile?.account_kind === "business" ? [] : ["Learner", "Tutor"]).map((type) => {
                     const selected = newAccountType === type;
                     return (
                       <button
@@ -248,6 +253,12 @@ function AccountSettings() {
                       </button>
                     );
                   })}
+                  {profile?.account_kind !== "business" && (
+                    <a href="/business" className="block rounded-2xl border border-dashed border-foreground/15 p-4 text-[14px] leading-relaxed text-muted-foreground hover:bg-foreground/[0.03]">
+                      <span className="block font-semibold text-foreground">Running a company or tech hub?</span>
+                      Organizations get their own business account, with Company and Institutional modes.
+                    </a>
+                  )}
                 </div>
               </div>
             </DrawerContent>

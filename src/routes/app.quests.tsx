@@ -34,8 +34,11 @@ import { CardSelect } from "@/components/CardSelect";
 
 export const Route = createFileRoute("/app/quests")({
   /* ?gig=<id> opens that job, e.g. from a hiring notification. */
-  validateSearch: (search: Record<string, unknown>): { gig?: string } =>
-    typeof search.gig === "string" ? { gig: search.gig } : {},
+  validateSearch: (search: Record<string, unknown>): { gig?: string; post?: number } => ({
+    ...(typeof search.gig === "string" ? { gig: search.gig } : {}),
+    // ?post=1 opens "Post a gig" straight away (from the Business Hub).
+    ...(Number(search.post) === 1 ? { post: 1 } : {}),
+  }),
   component: GigMarketplace,
 });
 
@@ -122,9 +125,9 @@ function GigMarketplace() {
   const [budgetFloor, setBudgetFloor] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedGigId, setSelectedGigId] = useState<string | null>(null);
-  const { gig: gigParam } = Route.useSearch();
+  const { gig: gigParam, post: postParam } = Route.useSearch();
   const [detailMode, setDetailMode] = useState<"details" | "apply">("details");
-  const [postOpen, setPostOpen] = useState(false);
+  const [postOpen, setPostOpen] = useState(() => postParam === 1);
   const [gigForm, setGigForm] = useState(defaultGigForm);
   const [proposal, setProposal] = useState(defaultProposal);
 

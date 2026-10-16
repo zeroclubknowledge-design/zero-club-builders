@@ -53,6 +53,7 @@ import { IncomingNotificationCard, showIncomingPop } from "@/components/Incoming
 import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
+import { BUSINESS_MODES, businessModeOf, isBusiness, needsBusinessOnboarding } from "@/lib/business";
 import { ZeroLoader, ZeroMark } from "@/components/ZeroLoader";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listTournaments, previewPrizeLine } from "@/features/games/v2/api";
@@ -174,7 +175,8 @@ function SidebarContent({
 
   const level = getLevelFromXp(Number(profile?.xp || 0));
   const mode = modeOf(profile);
-  const role = mode ? MODES[mode].label : "Institution";
+  const businessMode = businessModeOf(profile);
+  const role = businessMode ? `${BUSINESS_MODES[businessMode].label} · Organization` : mode ? MODES[mode].label : "Institution";
 
   /* Everything reachable from the shell that is not already on the tab bar.
      On mobile the tab bar carries Home, Learn, Post, Clubs and Alerts, and
@@ -198,6 +200,7 @@ function SidebarContent({
     { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
   ];
   const workspaceLinks: any[] = [
+    ...(businessMode ? [{ Icon: IconInstitution, label: "Business Hub", to: "/app/business" }] : [{ Icon: Users, label: "Teams", to: "/app/teams" }]),
     { Icon: IconStore, label: "My Store", to: "/app/my-store" },
     { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
     ...(profile?.is_admin || mode === "creator" || String(profile?.tier || "").toLowerCase() === "creator"
@@ -314,6 +317,16 @@ function SidebarContent({
                 <span className="min-w-0 flex-1">
                   <span className="block">Create a new account</span>
                   <span className="mt-0.5 block text-[13px] font-normal text-muted-foreground">Keep this account saved and make another profile</span>
+                </span>
+              </button>
+              <button
+                onClick={() => prepareAddAccount("/business/signup?add_account=true")}
+                className="flex w-full items-center gap-3.5 px-5 py-3.5 text-left text-[16px] font-medium text-foreground transition-colors hover:bg-foreground/[0.04]"
+              >
+                <IconInstitution className="h-[22px] w-[22px] shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block">Create a business account</span>
+                  <span className="mt-0.5 block text-[13px] font-normal text-muted-foreground">For a company or tech hub, with its own work email</span>
                 </span>
               </button>
               <button
@@ -555,6 +568,7 @@ function DesktopWorkspaceRail({
   const isAdmin = Boolean(profile?.is_admin);
   const isTutor = role === "Tutor" || role === "Institution";
   const isInstitution = role === "Institution";
+  const isCompany = isBusiness(profile) && !isInstitution;
   const isCreator = String(profile?.tier || "").toLowerCase() === "creator" || profile?.active_mode === "creator";
 
   const primaryActions = isAdmin
@@ -562,6 +576,13 @@ function DesktopWorkspaceRail({
         { label: "Admin Control Center", to: "/app/admin", Icon: ShieldCheck },
         { label: "Moderation queue", to: "/app/admin", Icon: Activity },
         { label: "Platform operations", to: "/app/admin", Icon: Settings },
+      ]
+    : isCompany
+    ? [
+        { label: "Business Hub", to: "/app/business", Icon: IconInstitution },
+        { label: "Post a role", to: "/app/quests", Icon: Rocket },
+        { label: "Find talent", to: "/app/business?tab=talent", Icon: Users },
+        { label: "Sponsor a challenge", to: "/app/challenge/new", Icon: IconLearn },
       ]
     : isInstitution
     ? [
@@ -896,7 +917,13 @@ function AppLayout() {
   // A brand-new member goes through onboarding once, then comes back to
   // wherever they were headed (an invite link, a shared post).
   useEffect(() => {
-    if (profileLoading || !needsOnboarding(profile)) return;
+    if (profileLoading) return;
+    // A new organization sets itself up on the business onboarding instead.
+    if (needsBusinessOnboarding(profile)) {
+      navigate({ to: "/business/welcome" as never, replace: true });
+      return;
+    }
+    if (!needsOnboarding(profile)) return;
     try {
       sessionStorage.setItem("zc-after-onboarding", window.location.pathname + window.location.search);
     } catch {

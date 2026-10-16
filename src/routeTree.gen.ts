@@ -26,6 +26,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
 import { Route as AppBoostRouteImport } from './routes/app.boost'
+import { Route as AppBusinessRouteImport } from './routes/app.business'
 import { Route as AppComposeRouteImport } from './routes/app.compose'
 import { Route as AppCreatorRouteImport } from './routes/app.creator'
 import { Route as AppDraftsRouteImport } from './routes/app.drafts'
@@ -42,10 +43,15 @@ import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppShipRouteImport } from './routes/app.ship'
 import { Route as AppStoreRouteImport } from './routes/app.store'
 import { Route as AppTasksRouteImport } from './routes/app.tasks'
+import { Route as AppTeamsRouteImport } from './routes/app.teams'
 import { Route as AppTutorApplyRouteImport } from './routes/app.tutor-apply'
 import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
 import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
 import { Route as AppZerohubRouteImport } from './routes/app.zerohub'
+import { Route as BusinessIndexRouteImport } from './routes/business.index'
+import { Route as BusinessSigninRouteImport } from './routes/business.signin'
+import { Route as BusinessSignupRouteImport } from './routes/business.signup'
+import { Route as BusinessWelcomeRouteImport } from './routes/business.welcome'
 import { Route as ClubIdRouteImport } from './routes/club.$id'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as FormSlugRouteImport } from './routes/form.$slug'
@@ -211,6 +217,11 @@ const AppBoostRoute = AppBoostRouteImport.update({
   path: '/boost',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBusinessRoute = AppBusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppComposeRoute = AppComposeRouteImport.update({
   id: '/compose',
   path: '/compose',
@@ -291,6 +302,11 @@ const AppTasksRoute = AppTasksRouteImport.update({
   path: '/tasks',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTeamsRoute = AppTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTutorApplyRoute = AppTutorApplyRouteImport.update({
   id: '/tutor-apply',
   path: '/tutor-apply',
@@ -310,6 +326,26 @@ const AppZerohubRoute = AppZerohubRouteImport.update({
   id: '/zerohub',
   path: '/zerohub',
   getParentRoute: () => AppRoute,
+} as any)
+const BusinessIndexRoute = BusinessIndexRouteImport.update({
+  id: '/business/',
+  path: '/business/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessSigninRoute = BusinessSigninRouteImport.update({
+  id: '/business/signin',
+  path: '/business/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessSignupRoute = BusinessSignupRouteImport.update({
+  id: '/business/signup',
+  path: '/business/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessWelcomeRoute = BusinessWelcomeRouteImport.update({
+  id: '/business/welcome',
+  path: '/business/welcome',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ClubIdRoute = ClubIdRouteImport.update({
   id: '/club/$id',
@@ -723,6 +759,7 @@ export interface FileRoutesByFullPath {
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
+  '/app/business': typeof AppBusinessRoute
   '/app/compose': typeof AppComposeRoute
   '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
@@ -739,10 +776,14 @@ export interface FileRoutesByFullPath {
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
+  '/app/teams': typeof AppTeamsRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
+  '/business/signin': typeof BusinessSigninRoute
+  '/business/signup': typeof BusinessSignupRoute
+  '/business/welcome': typeof BusinessWelcomeRoute
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
@@ -752,6 +793,7 @@ export interface FileRoutesByFullPath {
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
+  '/business/': typeof BusinessIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
@@ -838,6 +880,7 @@ export interface FileRoutesByTo {
   '/api/unfurl': typeof ApiUnfurlRoute
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
+  '/app/business': typeof AppBusinessRoute
   '/app/compose': typeof AppComposeRoute
   '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
@@ -851,9 +894,13 @@ export interface FileRoutesByTo {
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
+  '/app/teams': typeof AppTeamsRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
+  '/business/signin': typeof BusinessSigninRoute
+  '/business/signup': typeof BusinessSignupRoute
+  '/business/welcome': typeof BusinessWelcomeRoute
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
@@ -863,6 +910,7 @@ export interface FileRoutesByTo {
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app': typeof AppIndexRoute
+  '/business': typeof BusinessIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
@@ -952,6 +1000,7 @@ export interface FileRoutesById {
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
+  '/app/business': typeof AppBusinessRoute
   '/app/compose': typeof AppComposeRoute
   '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
@@ -968,10 +1017,14 @@ export interface FileRoutesById {
   '/app/ship': typeof AppShipRoute
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
+  '/app/teams': typeof AppTeamsRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
+  '/business/signin': typeof BusinessSigninRoute
+  '/business/signup': typeof BusinessSignupRoute
+  '/business/welcome': typeof BusinessWelcomeRoute
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
@@ -981,6 +1034,7 @@ export interface FileRoutesById {
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
   '/app/': typeof AppIndexRoute
+  '/business/': typeof BusinessIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
   '/api/game-image/$id': typeof ApiGameImageIdRoute
   '/api/gift-card/$code': typeof ApiGiftCardCodeRoute
@@ -1071,6 +1125,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
+    | '/app/business'
     | '/app/compose'
     | '/app/creator'
     | '/app/drafts'
@@ -1087,10 +1142,14 @@ export interface FileRouteTypes {
     | '/app/ship'
     | '/app/store'
     | '/app/tasks'
+    | '/app/teams'
     | '/app/tutor-apply'
     | '/app/tutor-studio'
     | '/app/zero-ai'
     | '/app/zerohub'
+    | '/business/signin'
+    | '/business/signup'
+    | '/business/welcome'
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
@@ -1100,6 +1159,7 @@ export interface FileRouteTypes {
     | '/notes/$slug'
     | '/product/$id'
     | '/app/'
+    | '/business/'
     | '/api/club-image/$id'
     | '/api/game-image/$id'
     | '/api/gift-card/$code'
@@ -1186,6 +1246,7 @@ export interface FileRouteTypes {
     | '/api/unfurl'
     | '/app/bookmarks'
     | '/app/boost'
+    | '/app/business'
     | '/app/compose'
     | '/app/creator'
     | '/app/drafts'
@@ -1199,9 +1260,13 @@ export interface FileRouteTypes {
     | '/app/ship'
     | '/app/store'
     | '/app/tasks'
+    | '/app/teams'
     | '/app/tutor-apply'
     | '/app/zero-ai'
     | '/app/zerohub'
+    | '/business/signin'
+    | '/business/signup'
+    | '/business/welcome'
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
@@ -1211,6 +1276,7 @@ export interface FileRouteTypes {
     | '/notes/$slug'
     | '/product/$id'
     | '/app'
+    | '/business'
     | '/api/club-image/$id'
     | '/api/game-image/$id'
     | '/api/gift-card/$code'
@@ -1299,6 +1365,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
+    | '/app/business'
     | '/app/compose'
     | '/app/creator'
     | '/app/drafts'
@@ -1315,10 +1382,14 @@ export interface FileRouteTypes {
     | '/app/ship'
     | '/app/store'
     | '/app/tasks'
+    | '/app/teams'
     | '/app/tutor-apply'
     | '/app/tutor-studio'
     | '/app/zero-ai'
     | '/app/zerohub'
+    | '/business/signin'
+    | '/business/signup'
+    | '/business/welcome'
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
@@ -1328,6 +1399,7 @@ export interface FileRouteTypes {
     | '/notes/$slug'
     | '/product/$id'
     | '/app/'
+    | '/business/'
     | '/api/club-image/$id'
     | '/api/game-image/$id'
     | '/api/gift-card/$code'
@@ -1414,6 +1486,9 @@ export interface RootRouteChildren {
   ApiContactRoute: typeof ApiContactRoute
   ApiOgDefaultRoute: typeof ApiOgDefaultRoute
   ApiUnfurlRoute: typeof ApiUnfurlRoute
+  BusinessSigninRoute: typeof BusinessSigninRoute
+  BusinessSignupRoute: typeof BusinessSignupRoute
+  BusinessWelcomeRoute: typeof BusinessWelcomeRoute
   ClubIdRoute: typeof ClubIdRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
@@ -1422,6 +1497,7 @@ export interface RootRouteChildren {
   GiftCodeRoute: typeof GiftCodeRoute
   NotesSlugRoute: typeof NotesSlugRouteWithChildren
   ProductIdRoute: typeof ProductIdRouteWithChildren
+  BusinessIndexRoute: typeof BusinessIndexRoute
   ApiClubImageIdRoute: typeof ApiClubImageIdRoute
   ApiGameImageIdRoute: typeof ApiGameImageIdRoute
   ApiGiftCardCodeRoute: typeof ApiGiftCardCodeRoute
@@ -1555,6 +1631,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBoostRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/business': {
+      id: '/app/business'
+      path: '/business'
+      fullPath: '/app/business'
+      preLoaderRoute: typeof AppBusinessRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/compose': {
       id: '/app/compose'
       path: '/compose'
@@ -1667,6 +1750,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/teams': {
+      id: '/app/teams'
+      path: '/teams'
+      fullPath: '/app/teams'
+      preLoaderRoute: typeof AppTeamsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/tutor-apply': {
       id: '/app/tutor-apply'
       path: '/tutor-apply'
@@ -1694,6 +1784,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/zerohub'
       preLoaderRoute: typeof AppZerohubRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/business/': {
+      id: '/business/'
+      path: '/business'
+      fullPath: '/business/'
+      preLoaderRoute: typeof BusinessIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business/signin': {
+      id: '/business/signin'
+      path: '/business/signin'
+      fullPath: '/business/signin'
+      preLoaderRoute: typeof BusinessSigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business/signup': {
+      id: '/business/signup'
+      path: '/business/signup'
+      fullPath: '/business/signup'
+      preLoaderRoute: typeof BusinessSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business/welcome': {
+      id: '/business/welcome'
+      path: '/business/welcome'
+      fullPath: '/business/welcome'
+      preLoaderRoute: typeof BusinessWelcomeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/club/$id': {
       id: '/club/$id'
@@ -2340,6 +2458,7 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRouteWithChildren
   AppBookmarksRoute: typeof AppBookmarksRoute
   AppBoostRoute: typeof AppBoostRoute
+  AppBusinessRoute: typeof AppBusinessRoute
   AppComposeRoute: typeof AppComposeRoute
   AppCreatorRoute: typeof AppCreatorRoute
   AppDraftsRoute: typeof AppDraftsRoute
@@ -2356,6 +2475,7 @@ interface AppRouteChildren {
   AppShipRoute: typeof AppShipRoute
   AppStoreRoute: typeof AppStoreRoute
   AppTasksRoute: typeof AppTasksRoute
+  AppTeamsRoute: typeof AppTeamsRoute
   AppTutorApplyRoute: typeof AppTutorApplyRoute
   AppTutorStudioRoute: typeof AppTutorStudioRouteWithChildren
   AppZeroAiRoute: typeof AppZeroAiRoute
@@ -2406,6 +2526,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRouteWithChildren,
   AppBookmarksRoute: AppBookmarksRoute,
   AppBoostRoute: AppBoostRoute,
+  AppBusinessRoute: AppBusinessRoute,
   AppComposeRoute: AppComposeRoute,
   AppCreatorRoute: AppCreatorRoute,
   AppDraftsRoute: AppDraftsRoute,
@@ -2422,6 +2543,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppShipRoute: AppShipRoute,
   AppStoreRoute: AppStoreRoute,
   AppTasksRoute: AppTasksRoute,
+  AppTeamsRoute: AppTeamsRoute,
   AppTutorApplyRoute: AppTutorApplyRoute,
   AppTutorStudioRoute: AppTutorStudioRouteWithChildren,
   AppZeroAiRoute: AppZeroAiRoute,
@@ -2522,6 +2644,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiContactRoute: ApiContactRoute,
   ApiOgDefaultRoute: ApiOgDefaultRoute,
   ApiUnfurlRoute: ApiUnfurlRoute,
+  BusinessSigninRoute: BusinessSigninRoute,
+  BusinessSignupRoute: BusinessSignupRoute,
+  BusinessWelcomeRoute: BusinessWelcomeRoute,
   ClubIdRoute: ClubIdRoute,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
@@ -2530,6 +2655,7 @@ const rootRouteChildren: RootRouteChildren = {
   GiftCodeRoute: GiftCodeRoute,
   NotesSlugRoute: NotesSlugRouteWithChildren,
   ProductIdRoute: ProductIdRouteWithChildren,
+  BusinessIndexRoute: BusinessIndexRoute,
   ApiClubImageIdRoute: ApiClubImageIdRoute,
   ApiGameImageIdRoute: ApiGameImageIdRoute,
   ApiGiftCardCodeRoute: ApiGiftCardCodeRoute,

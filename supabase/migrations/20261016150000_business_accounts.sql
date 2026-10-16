@@ -1,0 +1,23 @@
+-- ALREADY APPLIED to the live database on 2026-10-16. Do not re-run.
+-- Migrations: business_accounts, business_team_and_training, business_workspace_rpcs,
+-- business_institution_grandfather, guard_profile_business_fields, business_work_email_domains.
+--
+-- profiles: account_kind ('personal'|'business'), business_mode ('institutional'|'company'),
+--   business_onboarded_at, institution_grandfathered. account_type follows business_mode
+--   ('Institution' | 'Business'). Existing Institution accounts became business accounts in
+--   Institutional mode (grandfathered, no review needed).
+-- Tables (RLS): business_profiles (public read), business_team, business_training (org/member read).
+-- handle_new_user: account_type is no longer taken from client metadata; metadata
+--   account_kind='business' creates a business account in Company mode.
+-- One-account-per-person device rule now applies to personal accounts only;
+--   business signups need a unique inbox and may use any non-throwaway domain.
+-- guard_profile_business_fields trigger: clients can't change account kind/mode or set
+--   account_type to Institution/Business directly.
+-- RPCs: set_business_mode, save_business_profile, business_signup_precheck,
+--   is_business_email_allowed, get_business_workspace, get_business_team, get_my_teams,
+--   search_business_talent, invite_team_member, respond_team_invite,
+--   leave_or_remove_team_member, assign_team_training, unassign_team_training.
+-- Changed: set_active_mode (refuses business), submit_institution_application (business →
+--   pending_review + admin notification), admin_set_institution_status (approve → 30-day
+--   trial + notification; reject → back to Company), activate_digital_hub (blocked while
+--   under review).

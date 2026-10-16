@@ -1067,6 +1067,9 @@ function Institutions({ query, format, busy, runAction }: any) {
                 {app.goals && <Detail label="Goals" value={app.goals} />}
                 {app.hear_about && <Detail label="Heard about us via" value={app.hear_about} />}
                 <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                  {app.status === "pending_review" && (
+                    <ActionButton label="Approve · start 30-day trial" primary disabled={busy} onClick={() => { if (confirm(`Approve ${app.institution_name}? They can switch to Institutional mode straight away.`)) runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "trial" }); }} />
+                  )}
                   <ActionButton label="Mark reviewing" disabled={busy} onClick={() => runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "pending_review" })} />
                   <ActionButton label="Activate 12 months" primary disabled={busy} onClick={() => { if (confirm(`Activate the Digital Hub for ${app.institution_name}?`)) runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "active" }); }} />
                   <ActionButton label="Expire" disabled={busy} onClick={() => runAction("admin_set_institution_status", { target_application_id: app.id, new_status: "expired" })} />

@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { BusinessProfileCard } from "@/features/business/BusinessProfileCard";
 import { ProfileCredentials, SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { ProfileBanner } from "@/components/ProfileBanner";
 import { AnimatedProfileImage } from "@/components/AnimatedProfileImage";
@@ -565,7 +566,9 @@ function ProfileDetailBody({ profile, goBackSmart }: { profile: NonNullable<Retu
   const level = getLevelFromXp(Number(profile?.xp || 0));
   const levelProgress = getLevelProgress(Number(profile?.xp || 0));
   const role =
-    profile?.account_type === "Institution"
+    (profile as any)?.account_kind === "business" && profile?.account_type !== "Institution"
+      ? "Company"
+      : profile?.account_type === "Institution"
       ? "Institution"
       : profile?.account_type === "Tutor"
         ? "Tutor"
@@ -771,6 +774,7 @@ function ProfileDetailBody({ profile, goBackSmart }: { profile: NonNullable<Retu
               )}
             </p>
             <SocialLinksRow links={profile?.social_links} className="mt-2.5" />
+            <BusinessProfileCard profile={profile} isOwn={isOwnProfile} />
             {hasPortfolio && profile?.username && (
               <a
                 href={`/@${profile.username}`}
