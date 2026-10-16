@@ -13,8 +13,8 @@ export function BusinessAuthShell({
   topRight?: ReactNode;
 }) {
   useEffect(() => {
-    document.documentElement.classList.add("zc-auth-page");
-    return () => document.documentElement.classList.remove("zc-auth-page");
+    document.documentElement.classList.add("zc-biz-page");
+    return () => document.documentElement.classList.remove("zc-biz-page");
   }, []);
 
   return (

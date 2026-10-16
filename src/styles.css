@@ -1328,6 +1328,15 @@ html.dark.zc-auth-page body {
   background: #0b0a0d;
 }
 
+/* Zero Club for Business pages are always dark, whatever the app theme. */
+html.zc-biz-page,
+html.zc-biz-page body {
+  background: #07060a;
+  background-image: none;
+  color-scheme: dark;
+  overscroll-behavior-y: none;
+}
+
 /* ── In-app pop card (incoming notifications & messages) ─────────────── */
 .zc-pop-host {
   position: fixed;

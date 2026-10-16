@@ -12,7 +12,6 @@ import {
   Megaphone,
   Search,
   ShieldCheck,
-  Sparkles,
   Trophy,
   Users,
 } from "@/components/icons/glyphs";
@@ -65,7 +64,7 @@ function BusinessLanding() {
   const [signedInBusiness, setSignedInBusiness] = useState<boolean | null>(null);
 
   useEffect(() => {
-    document.documentElement.classList.add("zc-auth-page");
+    document.documentElement.classList.add("zc-biz-page");
     let alive = true;
     void supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return alive && setSignedInBusiness(false);
@@ -74,7 +73,7 @@ function BusinessLanding() {
     });
     return () => {
       alive = false;
-      document.documentElement.classList.remove("zc-auth-page");
+      document.documentElement.classList.remove("zc-biz-page");
     };
   }, []);
 
@@ -85,21 +84,21 @@ function BusinessLanding() {
     <div className="min-h-dvh overflow-x-hidden bg-[#07060a] text-white">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#07060a]/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between px-4 sm:px-6">
-          <Link to="/business" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
-            <span className="font-display text-[17px] font-semibold tracking-tight">Zero Club</span>
-            <span className="rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/70">Business</span>
+        <div className="mx-auto flex h-14 max-w-[1180px] items-center justify-between gap-2 px-4 sm:h-16 sm:px-6">
+          <Link to="/business" className="flex min-w-0 shrink items-center gap-2">
+            <img src="/logo.png" alt="" className="h-7 w-7 shrink-0 object-contain" />
+            <span className="hidden font-display text-[17px] font-semibold tracking-tight min-[400px]:inline">Zero Club</span>
+            <span className="shrink-0 rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">Business</span>
           </Link>
-          <nav className="flex items-center gap-1.5 sm:gap-2">
+          <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
             <a href="#company" className="hidden rounded-lg px-3 py-2 text-[13.5px] font-medium text-white/65 transition hover:text-white md:block">For companies</a>
             <a href="#hubs" className="hidden rounded-lg px-3 py-2 text-[13.5px] font-medium text-white/65 transition hover:text-white md:block">For tech hubs</a>
             <Link to="/" className="hidden rounded-lg px-3 py-2 text-[13.5px] font-medium text-white/65 transition hover:text-white md:block">Personal</Link>
             {!signedInBusiness && (
-              <Link to={"/business/signin" as never} className="rounded-lg px-3 py-2 text-[13.5px] font-medium text-white/80 transition hover:text-white">Sign in</Link>
+              <Link to={"/business/signin" as never} className="rounded-lg px-2.5 py-2 text-[13.5px] font-medium text-white/80 transition hover:text-white sm:px-3">Sign in</Link>
             )}
-            <Link to={primaryTo as never} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3.5 text-[13.5px] font-semibold text-[#0b0a0d] transition hover:bg-white/90">
-              {signedInBusiness ? "Business Hub" : "Get started"} <ArrowRight className="h-3.5 w-3.5" />
+            <Link to={primaryTo as never} className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-white px-3 text-[13px] font-semibold text-[#0b0a0d] transition hover:bg-white/90 sm:px-3.5 sm:text-[13.5px]">
+              {signedInBusiness ? "Business Hub" : "Get started"} <ArrowRight className="hidden h-3.5 w-3.5 sm:block" />
             </Link>
           </nav>
         </div>
@@ -109,19 +108,16 @@ function BusinessLanding() {
       <section className="relative">
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_0%,rgba(204,32,143,0.32),transparent_70%)]" />
         <div aria-hidden className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(70%_60%_at_50%_20%,black,transparent)]" />
-        <div className="relative mx-auto max-w-[1180px] px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-24">
-          <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-white/75">
-            <Sparkles className="h-3.5 w-3.5 text-[#ff5cc3]" /> Zero Club for Business
-          </p>
-          <h1 className="mx-auto mt-6 max-w-[860px] font-display text-[clamp(34px,6.4vw,68px)] font-semibold leading-[1.02] tracking-[-0.04em]">
+        <div className="relative mx-auto max-w-[1180px] px-5 pb-12 pt-12 text-center sm:px-6 sm:pb-16 sm:pt-24">
+          <h1 className="mx-auto max-w-[860px] text-balance font-display text-[clamp(32px,7.5vw,68px)] font-semibold leading-[1.05] tracking-[-0.035em]">
             Where organizations meet the builders who ship.
           </h1>
-          <p className="mx-auto mt-5 max-w-[640px] text-[clamp(15px,2vw,18px)] leading-relaxed text-white/60">
+          <p className="mx-auto mt-5 max-w-[640px] text-balance text-[15px] leading-relaxed text-white/60 sm:text-[18px]">
             One business account for your organization. Hire and train talent as a <span className="text-white">company</span>, or run bootcamps and cohorts as an <span className="text-white">institution</span> — and switch between the two whenever you need.
           </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to={primaryTo as never} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] px-6 text-[15px] font-semibold text-white shadow-[0_20px_40px_-18px_rgba(204,32,143,0.9)] transition hover:bg-[#b51b7f] sm:w-auto">
-              {primaryLabel} <ArrowRight className="h-4 w-4" />
+          <div className="mx-auto mt-8 flex max-w-[420px] flex-col items-stretch justify-center gap-3 sm:max-w-none sm:flex-row sm:items-center">
+            <Link to={primaryTo as never} className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#cc208f] px-4 sm:px-6 text-[15px] font-semibold text-white shadow-[0_20px_40px_-18px_rgba(204,32,143,0.9)] transition hover:bg-[#b51b7f] sm:w-auto">
+              {primaryLabel} <ArrowRight className="hidden h-4 w-4 shrink-0 min-[380px]:block" />
             </Link>
             <a href="#how" className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-white/15 px-6 text-[15px] font-semibold text-white/85 transition hover:bg-white/[0.05] sm:w-auto">
               How it works
@@ -130,7 +126,7 @@ function BusinessLanding() {
           <p className="mt-4 text-[12.5px] text-white/40">Free to start · Uses a work email · Separate from your personal account</p>
 
           {/* Two kinds of organization */}
-          <div className="mx-auto mt-14 grid max-w-[920px] gap-3 text-left sm:grid-cols-2">
+          <div className="mx-auto mt-10 grid max-w-[920px] gap-3 text-left sm:mt-14 sm:grid-cols-2">
             <ModeCard
               Icon={BriefcaseBusiness}
               tag="Company"
@@ -188,8 +184,8 @@ function BusinessLanding() {
       </Section>
 
       {/* CTA */}
-      <section className="px-4 pb-20 pt-6 sm:px-6">
-        <div className="relative mx-auto max-w-[1180px] overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,#1a0c17_0%,#0d0a10_60%)] px-6 py-14 text-center sm:px-12">
+      <section className="px-4 pb-16 pt-4 sm:px-6 sm:pb-20 sm:pt-6">
+        <div className="relative mx-auto max-w-[1180px] overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,#1a0c17_0%,#0d0a10_60%)] px-5 py-10 text-center sm:rounded-[28px] sm:px-12 sm:py-14">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_50%_100%,rgba(204,32,143,0.35),transparent_70%)]" />
           <div className="relative">
             <BadgeCheck className="mx-auto h-9 w-9 text-[#ff5cc3]" />
@@ -199,8 +195,8 @@ function BusinessLanding() {
             <p className="mx-auto mt-3 max-w-[520px] text-[15px] leading-relaxed text-white/60">
               Create the account, set up your page, and start with whatever matters most — hiring, sponsoring, training or teaching.
             </p>
-            <Link to={primaryTo as never} className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold text-[#0b0a0d] transition hover:bg-white/90">
-              {primaryLabel} <ArrowRight className="h-4 w-4" />
+            <Link to={primaryTo as never} className="mt-7 inline-flex h-12 w-full max-w-[360px] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-white px-4 sm:px-6 text-[15px] font-semibold text-[#0b0a0d] transition hover:bg-white/90">
+              {primaryLabel} <ArrowRight className="hidden h-4 w-4 shrink-0 min-[380px]:block" />
             </Link>
             {!signedInBusiness && (
               <p className="mt-4 text-[13px] text-white/50">
@@ -212,9 +208,9 @@ function BusinessLanding() {
       </section>
 
       <footer className="border-t border-white/[0.06] px-4 py-8 sm:px-6">
-        <div className="mx-auto flex max-w-[1180px] flex-col items-center justify-between gap-3 text-[12.5px] text-white/45 sm:flex-row">
+        <div className="mx-auto flex max-w-[1180px] flex-col items-center justify-between gap-3 text-center text-[12.5px] text-white/45 sm:flex-row">
           <p>Zero Club for Business © {new Date().getFullYear()}</p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
             <Link to="/" className="hover:text-white">Personal accounts</Link>
             <Link to="/privacy" className="hover:text-white">Privacy</Link>
             <Link to="/terms" className="hover:text-white">Terms</Link>
@@ -227,7 +223,7 @@ function BusinessLanding() {
 
 function ModeCard({ Icon, tag, title, points, href, note }: { Icon: any; tag: string; title: string; points: string[]; href: string; note?: string }) {
   return (
-    <a href={href} className="group rounded-2xl border border-white/[0.09] bg-white/[0.03] p-5 transition hover:border-[#cc208f]/50 hover:bg-white/[0.05]">
+    <a href={href} className="group rounded-2xl border border-white/[0.09] bg-white/[0.03] p-4 transition sm:p-5 hover:border-[#cc208f]/50 hover:bg-white/[0.05]">
       <div className="flex items-center justify-between">
         <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#cc208f]/15 text-[#ff5cc3]"><Icon className="h-5 w-5" /></span>
         <span className="rounded-full bg-white/[0.07] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/70">{tag}</span>
@@ -245,11 +241,11 @@ function ModeCard({ Icon, tag, title, points, href, note }: { Icon: any; tag: st
 
 function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-20 px-4 py-16 sm:px-6">
+    <section id={id} className="scroll-mt-20 px-5 py-12 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-[1180px]">
         <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#ff5cc3]">{eyebrow}</p>
-        <h2 className="mt-3 max-w-[720px] font-display text-[clamp(26px,4vw,40px)] font-semibold leading-[1.1] tracking-[-0.03em]">{title}</h2>
-        <div className="mt-8">{children}</div>
+        <h2 className="mt-3 max-w-[720px] text-balance font-display text-[clamp(24px,6vw,40px)] font-semibold leading-[1.12] tracking-[-0.03em]">{title}</h2>
+        <div className="mt-6 sm:mt-8">{children}</div>
       </div>
     </section>
   );
@@ -257,7 +253,7 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
 
 function Feature({ Icon, title, body }: { Icon: any; title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
+    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 sm:p-5">
       <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.06] text-white"><Icon className="h-5 w-5" /></span>
       <h3 className="mt-4 text-[16px] font-semibold">{title}</h3>
       <p className="mt-1.5 text-[14px] leading-relaxed text-white/55">{body}</p>
