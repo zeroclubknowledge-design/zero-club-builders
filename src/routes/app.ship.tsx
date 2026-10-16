@@ -340,7 +340,7 @@ function ShipPage() {
       void supabase.from('notifications').insert([{ recipient_id: bootcamp.creator_id, actor_id: profile.id, type: 'build_tagged', content: 'shipped their project in ' + bootcamp.title + '. Click to verify!', entity_id: postId }]).then(({ error }) => { if(error) console.warn('Project notification could not be sent'); });
     }
     if(profile?.id) void notifyMentionedUsers({ content: attempt.payload.content || '', actorId: profile.id, entityId: postId, type: 'post' });
-    for (const key of ['feed_posts','my_profile','zerohub_projects']) void queryClient.invalidateQueries({ queryKey: [key] });
+    for (const key of ['feed_posts','my_profile','zerohub_projects','public_portfolio','portfolio_owner_view','portfolio_candidates']) void queryClient.invalidateQueries({ queryKey: [key] });
     void queryClient.invalidateQueries({ queryKey: ['profile','current'] });
     setConfirmation(null);
     const isNewPublicProject =

@@ -9,7 +9,9 @@ import { AboutBlock, ContactButtons, SectionBody, WorkMeta, type Skin } from "./
 import {
   FitText,
   ContactLink,
-  Footer,
+  SiteFooter,
+  SiteNav,
+  useReveal,
   RailArrows,
   ShippedWork,
   fitSize,
@@ -34,6 +36,8 @@ const skin: Skin = {
 export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) {
   useTemplateFont("Archivo:wdth,wght@62..125,500..900");
   const v = portfolioView(data);
+  const face = { fontFamily: "'Archivo', Montserrat, sans-serif" };
+  const root = useReveal<HTMLDivElement>();
   const heavy = {
     fontFamily: "'Archivo', Montserrat, sans-serif",
     fontStretch: "112%",
@@ -46,23 +50,20 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
 
   return (
     <div
+      ref={root}
+      data-pf-root
       className="dark @container min-h-full overflow-x-clip bg-[#0e0e0e] text-[#f2f2f2] antialiased"
       style={themeVars(v.accent, true)}
     >
       <TemplateStyles />
       <div className="h-1 w-full bg-[var(--pf-accent)]" />
+      <SiteNav v={v} dark={true} bg="#0e0e0e" display={face} maxW="max-w-[1200px]" />
       <div className="mx-auto max-w-[1200px] px-5 @3xl:px-10">
-        <nav className="flex items-center justify-between py-5 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/60">
-          <span className="text-white">{v.profile.username}</span>
-          {v.profile.location && (
-            <span className="hidden items-center gap-1 @lg:inline-flex">
-              <MapPin className="h-3.5 w-3.5" /> {v.profile.location}
-            </span>
-          )}
-          <ContactLink v={v} className="rounded-full border border-white/25 px-4 py-2 text-white">
-            Contact
-          </ContactLink>
-        </nav>
+        {v.profile.location && (
+          <p className="flex items-center gap-1 pt-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/50">
+            <MapPin className="h-3.5 w-3.5" /> {v.profile.location}
+          </p>
+        )}
 
         {/* Hero */}
         <header className="relative pt-6 @3xl:pt-12">
@@ -132,7 +133,7 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
 
         {/* Skills as a stack of giant words */}
         {v.on("skills") && (
-          <section id="pf-skills" className="mt-16 border-t border-white/10 pt-10">
+          <section id="pf-skills" data-pf-reveal className="mt-16 border-t border-white/10 pt-10">
             <Kicker>{SECTION_LABELS.skills}</Kicker>
             <ul className="mt-6 @container">
               {v.skills.slice(0, 8).map((s, i) => (
@@ -154,7 +155,7 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
 
         {/* Featured work */}
         {v.on("work") && (
-          <section id="pf-work" className="mt-20">
+          <section id="pf-work" data-pf-reveal className="mt-20">
             <Rule>{"Featured works"}</Rule>
             <div className="mt-6 flex justify-end">
               <RailArrows railId="pf-work-rail" dark />
@@ -220,7 +221,7 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
 
         {/* About + numbers */}
         {v.on("about") && (
-          <section id="pf-about" className="mt-24">
+          <section id="pf-about" data-pf-reveal className="mt-24">
             <div className="@container">
               <FitText
                 as="p"
@@ -253,7 +254,8 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
         <ShippedWork v={v} dark titleStyle={heavy} />
 
         {rest.map((s) => (
-          <section key={s.key} id={`pf-${s.key}`} className="mt-24">
+          <section key={s.key} id={`pf-${s.key}`}
+            data-pf-reveal className="mt-24">
             {s.key === "contact" ? (
               <div className="@container relative overflow-hidden pb-40 pt-6 text-center">
                 <FitText
@@ -283,13 +285,13 @@ export function StatementTemplate({ data, preview, onOpenItem }: TemplateProps) 
               <>
                 <Rule>{SECTION_LABELS[s.key]}</Rule>
                 <div className="mt-8">
-                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} />
+                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} display={face} />
                 </div>
               </>
             )}
           </section>
         ))}
-        <Footer dark branding={v.showBranding} />
+        <SiteFooter v={v} dark={true} display={face} />
         <div className="h-10" />
       </div>
     </div>

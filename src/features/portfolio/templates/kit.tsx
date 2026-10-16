@@ -9,7 +9,8 @@
  */
 import { useEffect, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Trophy, Medal, ChevronLeft, ChevronRight, BadgeCheck } from "@/components/icons/glyphs";
+import { ArrowUpRight, Trophy, Medal, ChevronLeft, ChevronRight, ChevronUp, BadgeCheck, Mail, MessageCircle } from "@/components/icons/glyphs";
+import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { clip, describeItem, describePost, itemImages, postImages } from "../parse";
 import {
   ACCENT_HEX,
@@ -169,6 +170,12 @@ export function TemplateStyles() {
       @keyframes pf-rise { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
       .pf-rise { animation: pf-rise .7s cubic-bezier(.16,1,.3,1) both }
       @media (prefers-reduced-motion: reduce) { .pf-motion { animation: none !important } }
+      [data-pf-root] section[id^="pf-"] { scroll-margin-top: 84px }
+      [data-pf-reveal] { transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1) }
+      [data-pf-hidden] { opacity: 0; transform: translateY(28px) }
+      .pf-lift { transition: transform .45s cubic-bezier(.16,1,.3,1), box-shadow .45s, border-color .3s }
+      .pf-lift:hover { transform: translateY(-4px) }
+      @media (prefers-reduced-motion: reduce) { [data-pf-hidden] { opacity: 1; transform: none } .pf-lift:hover { transform: none } }
     `}</style>
   );
 }
@@ -470,10 +477,10 @@ export function ShippedWork({
 }) {
   if (!v.shipped.length) return null;
   const heading = title || (v.projects.length ? "More shipped work" : "Shipped work");
-  const card = dark ? "border-white/[0.08] bg-white/[0.03] hover:border-white/20" : "border-black/[0.08] bg-black/[0.02] hover:border-black/20";
+  const card = dark ? "border-white/[0.08] bg-white/[0.03] hover:border-white/20" : "border-black/[0.07] bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)] hover:border-black/20 hover:shadow-[0_18px_40px_-24px_rgb(0_0_0/0.35)]";
   const muted = dark ? "text-white/55" : "text-black/55";
   return (
-    <section id="pf-shipped" className={`py-10 ${className}`}>
+    <section id="pf-shipped" data-pf-reveal className={`py-10 ${className}`}>
       <div className="flex items-end justify-between gap-3">
         <h2 className="text-[24px] font-semibold tracking-[-0.02em] @3xl:text-[30px]" style={titleStyle}>
           {heading}
@@ -482,7 +489,7 @@ export function ShippedWork({
           {v.shipped.length} {v.shipped.length === 1 ? "project" : "projects"}
         </p>
       </div>
-      <div className="mt-6 grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3">
+      <div className="mt-6 grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr))]">
         {v.shipped.map((post) => {
           const { title: name, summary, ship } = describePost(post);
           const img = postImages(post)[0];
@@ -491,29 +498,277 @@ export function ShippedWork({
               key={post.id}
               to="/app/post/$id"
               params={{ id: post.id }}
-              className={`group flex gap-3 rounded-2xl border p-3 transition ${card}`}
+              className={`pf-lift group flex flex-col overflow-hidden rounded-2xl border ${card}`}
             >
-              {img ? (
-                <img src={img} alt="" loading="lazy" className="h-20 w-24 shrink-0 rounded-xl object-cover" />
-              ) : (
-                <span className="grid h-20 w-24 shrink-0 place-items-center rounded-xl bg-[var(--pf-accent)]/15 px-2 text-center text-[11px] font-semibold leading-tight">
-                  {clip(name, 28)}
-                </span>
-              )}
-              <span className="min-w-0 flex-1 py-0.5">
+              <span className="block overflow-hidden">
+                {img ? (
+                  <img
+                    src={img}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-[16/10] w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+                  />
+                ) : (
+                  <span
+                    className="grid aspect-[16/10] w-full place-items-center px-5 text-center text-[17px] font-semibold leading-tight tracking-tight"
+                    style={{ ...titleStyle, background: "linear-gradient(135deg, color-mix(in srgb, var(--pf-accent) 30%, transparent), color-mix(in srgb, var(--pf-accent) 6%, transparent))" }}
+                  >
+                    {clip(name, 40)}
+                  </span>
+                )}
+              </span>
+              <span className="flex flex-1 flex-col p-4">
                 <span className="flex items-center gap-1.5">
-                  <span className="truncate text-[15px] font-semibold">{name}</span>
+                  <span className="truncate text-[15.5px] font-semibold tracking-tight" style={titleStyle}>{name}</span>
                   {post.is_verified_build && <BadgeCheck className="h-4 w-4 shrink-0 text-[var(--pf-accent)]" />}
                 </span>
                 <span className={`mt-0.5 block text-[12px] ${muted}`}>
                   {[ship?.category, String(year(post.created_at) || "")].filter(Boolean).join(" · ")}
                 </span>
-                {summary && <span className={`mt-1 line-clamp-2 block text-[13px] leading-snug ${muted}`}>{summary}</span>}
+                {summary && <span className={`mt-2 line-clamp-2 text-[13px] leading-snug ${muted}`}>{summary}</span>}
+                <span className="mt-auto inline-flex items-center gap-1 pt-3 text-[12.5px] font-semibold text-[var(--pf-accent)]">
+                  View project <ArrowUpRight className="h-3.5 w-3.5" />
+                </span>
               </span>
             </Link>
           );
         })}
       </div>
     </section>
+  );
+}
+
+/* ── PRO site chrome ─────────────────────────────────────────────── */
+
+/**
+ * The owner's brand: the logo they uploaded, otherwise their name set as a
+ * small wordmark. Never a lone initial.
+ */
+export function BrandMark({
+  v,
+  className = "",
+  style,
+  height = 32,
+}: {
+  v: View;
+  className?: string;
+  style?: CSSProperties;
+  height?: number;
+}) {
+  const logo = v.portfolio.logo_url;
+  if (logo)
+    return (
+      <img
+        src={logo}
+        alt={`${v.name}`}
+        className={`block w-auto max-w-[168px] object-contain ${className}`}
+        style={{ height }}
+      />
+    );
+  return (
+    <span
+      className={`inline-flex min-w-0 items-center gap-2 text-[15.5px] font-semibold tracking-[-0.01em] ${className}`}
+      style={style}
+    >
+      <span aria-hidden className="h-2.5 w-2.5 shrink-0 rotate-45 rounded-[3px] bg-[var(--pf-accent)]" />
+      <span className="truncate">{v.name}</span>
+    </span>
+  );
+}
+
+const NAV_LABEL: Partial<Record<PortfolioSectionKey, string>> = {
+  work: "Work",
+  about: "About",
+  experience: "Experience",
+  skills: "Skills",
+  proofs: "Highlights",
+  achievements: "Wins",
+  learning: "Learning",
+  certificates: "Credentials",
+};
+
+/** In-page links for the sections a template actually shows. */
+export function navLinks(v: View, omit: PortfolioSectionKey[] = []) {
+  return v.sections
+    .filter((s) => NAV_LABEL[s.key] && !omit.includes(s.key))
+    .slice(0, 4)
+    .map((s) => ({ id: `pf-${s.key}`, label: NAV_LABEL[s.key] as string }));
+}
+
+/** Smooth in-page scroll that leaves the URL alone. */
+export function jumpTo(id: string) {
+  return (e: { preventDefault: () => void }) => {
+    const el = typeof document !== "undefined" ? document.getElementById(id) : null;
+    if (!el) return;
+    e.preventDefault();
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+}
+
+/** A sticky, frosted top bar: brand, section links and "Let's talk". */
+export function SiteNav({
+  v,
+  dark,
+  bg,
+  display,
+  omit,
+  maxW = "max-w-[1180px]",
+  solid,
+}: {
+  v: View;
+  dark: boolean;
+  /** The page colour behind the bar, for the frosted fill. */
+  bg: string;
+  display?: CSSProperties;
+  omit?: PortfolioSectionKey[];
+  /** Match the template's content width. */
+  maxW?: string;
+  /** Opaque fill, for bars that sit over a differently coloured hero. */
+  solid?: boolean;
+}) {
+  const links = navLinks(v, omit);
+  return (
+    <>
+      <div id="pf-top" />
+      <div
+        className={`sticky top-0 z-40 border-b backdrop-blur-xl backdrop-saturate-150 ${dark ? "border-white/[0.07] text-white" : "border-black/[0.06] text-[#111]"}`}
+        style={{ background: solid ? bg : `color-mix(in srgb, ${bg} 80%, transparent)` }}
+      >
+        <nav className={`mx-auto flex h-16 ${maxW} items-center justify-between gap-4 px-5 @3xl:px-10`}>
+          <a href="#pf-top" onClick={jumpTo("pf-top")} className="min-w-0" aria-label={`${v.name} — top`}>
+            <BrandMark v={v} style={display} />
+          </a>
+          {links.length > 1 && (
+            <div className="hidden items-center gap-0.5 @3xl:flex">
+              {links.map((l) => (
+                <a
+                  key={l.id}
+                  href={`#${l.id}`}
+                  onClick={jumpTo(l.id)}
+                  className={`rounded-full px-3.5 py-2 text-[13.5px] font-medium transition ${dark ? "text-white/60 hover:bg-white/[0.07] hover:text-white" : "text-black/55 hover:bg-black/[0.05] hover:text-black"}`}
+                >
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          )}
+          <ContactLink
+            v={v}
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-[var(--pf-accent)] px-4 text-[13.5px] font-semibold text-[color:var(--pf-ink)] shadow-[0_6px_20px_-8px_var(--pf-accent)] transition hover:brightness-110 active:scale-[0.98]"
+          >
+            {v.contact.method === "email" ? <Mail className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+            Let's talk
+          </ContactLink>
+        </nav>
+      </div>
+    </>
+  );
+}
+
+/**
+ * Sections ease in as they scroll into view. Only content that starts below
+ * the fold is hidden, so a page without JavaScript (or a reader who prefers
+ * less motion) always sees everything.
+ */
+export function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const root = ref.current;
+    if (!root || typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const els = Array.from(root.querySelectorAll<HTMLElement>("[data-pf-reveal]"));
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          (e.target as HTMLElement).removeAttribute("data-pf-hidden");
+          io.unobserve(e.target);
+        }
+      },
+      { rootMargin: "0px 0px -6% 0px", threshold: 0.04 },
+    );
+    for (const el of els) {
+      if (el.getBoundingClientRect().top < window.innerHeight) continue;
+      el.setAttribute("data-pf-hidden", "");
+      io.observe(el);
+    }
+    return () => {
+      io.disconnect();
+      for (const el of els) el.removeAttribute("data-pf-hidden");
+    };
+  }, []);
+  return ref;
+}
+
+/** A full footer for PRO pages: brand, links, socials and back-to-top. */
+export function SiteFooter({
+  v,
+  dark,
+  display,
+  omit,
+}: {
+  v: View;
+  dark: boolean;
+  display?: CSSProperties;
+  omit?: PortfolioSectionKey[];
+}) {
+  const links = navLinks(v, omit);
+  const line = dark ? "border-white/[0.08]" : "border-black/[0.08]";
+  const muted = dark ? "text-white/55" : "text-black/55";
+  const faint = dark ? "text-white/35" : "text-black/40";
+  const hover = dark ? "hover:text-white" : "hover:text-black";
+  return (
+    <footer className={`mt-20 border-t pt-12 ${line}`}>
+      <div className="grid gap-10 @3xl:grid-cols-[1.4fr_1fr_auto] @3xl:items-start">
+        <div className="min-w-0 max-w-[380px]">
+          <BrandMark v={v} style={display} height={36} />
+          {v.headline && (
+            <p className={`mt-4 text-[14px] leading-relaxed ${muted}`}>{clip(v.headline, 140)}</p>
+          )}
+          <SocialLinksRow links={v.profile.social_links} className="mt-5" />
+        </div>
+        {links.length > 0 && (
+          <div>
+            <p className={`text-[11.5px] font-semibold uppercase tracking-[0.16em] ${faint}`}>On this page</p>
+            <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2.5 text-[14px]">
+              {links.map((l) => (
+                <li key={l.id}>
+                  <a href={`#${l.id}`} onClick={jumpTo(l.id)} className={`${muted} transition ${hover}`}>
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+              <li>
+                <ContactLink v={v} className={`${muted} transition ${hover}`}>
+                  Contact
+                </ContactLink>
+              </li>
+            </ul>
+          </div>
+        )}
+        <a
+          href="#pf-top"
+          onClick={jumpTo("pf-top")}
+          className={`inline-flex h-11 items-center gap-2 self-start rounded-full border px-4 text-[13px] font-semibold transition ${dark ? "border-white/15 text-white/80 hover:border-white/40" : "border-black/15 text-black/75 hover:border-black/40"}`}
+        >
+          <ChevronUp className="h-4 w-4" /> Back to top
+        </a>
+      </div>
+      <div className={`mt-12 flex flex-col gap-3 border-t py-6 text-[12.5px] @3xl:flex-row @3xl:items-center @3xl:justify-between ${line}`}>
+        {v.showBranding ? (
+          <a href="https://www.zeroclubs.xyz" className={`${muted} transition ${hover}`}>
+            Built with <span className="font-semibold">Zero Club</span>
+          </a>
+        ) : (
+          <p className={muted}>
+            Built with <span className="font-semibold">Love</span> © {new Date().getFullYear()}
+          </p>
+        )}
+        <p className={`max-w-[460px] @3xl:text-right ${faint}`}>
+          Projects, highlights, wins and stats come from Zero Club. Experience and certificates are
+          self-reported.
+        </p>
+      </div>
+    </footer>
   );
 }

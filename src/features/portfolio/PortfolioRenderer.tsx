@@ -27,7 +27,7 @@ import { SpotlightTemplate } from "./templates/Spotlight";
 import { StatementTemplate } from "./templates/Statement";
 import { BrightTemplate } from "./templates/Bright";
 import { GalleryTemplate } from "./templates/Gallery";
-import { achievementSource, contactOf, portfolioView, RailArrows, ShippedWork, showsBranding, year } from "./templates/kit";
+import { achievementSource, BrandMark, contactOf, portfolioView, RailArrows, ShippedWork, showsBranding, TemplateStyles, year } from "./templates/kit";
 import { Trophy } from "@/components/icons/glyphs";
 
 /**
@@ -106,9 +106,15 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
 
   return (
     <div
-      className="dark @container min-h-full bg-[#0a0a0b] text-[#fafafa] antialiased selection:bg-[var(--pf-accent)] selection:text-black"
+      className="dark @container min-h-full overflow-x-clip bg-[#0a0a0b] text-[#fafafa] antialiased selection:bg-[var(--pf-accent)] selection:text-black"
       style={style}
     >
+      <TemplateStyles />
+      {portfolio.logo_url && (
+        <div className="mx-auto flex w-full max-w-[1040px] items-center px-5 pt-6 @2xl:px-10">
+          <BrandMark v={view} height={30} />
+        </div>
+      )}
       <div className="mx-auto w-full max-w-[1040px] px-5 pb-16 pt-10 @2xl:px-10 @2xl:pt-16">
         {/* Hero */}
         <header className="relative">
@@ -195,6 +201,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
                   />
                 ))}
               </div>
+              <ShippedWork v={view} dark className="!pb-0 pt-12" />
               </>
             )}
             {section.key === "about" && (
@@ -362,7 +369,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
           </Section>
         ))}
 
-        <ShippedWork v={view} dark className="mt-6" />
+        {!shown.some((s) => s.key === "work") && <ShippedWork v={view} dark className="mt-6" />}
 
         <footer className="mt-16 flex flex-col items-center gap-2 border-t border-white/[0.07] pt-8 text-center">
           {branding ? (

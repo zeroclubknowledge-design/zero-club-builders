@@ -48,6 +48,7 @@ import { PortfolioRenderer } from "./PortfolioRenderer";
 import { TEMPLATE_CATALOG } from "./templates/catalog";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
+import { uploadFile } from "@/lib/storage";
 import { recommendWork, toolsFrom } from "./recommend";
 import { portfolioStrength } from "./strength";
 import {
@@ -599,6 +600,11 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
 
           {/* Look */}
           <Card title="Look">
+            <BrandLogoField
+              value={draft.portfolio.logo_url || null}
+              ownerId={draft.profile.id}
+              onChange={(logo_url) => patchPortfolio({ logo_url })}
+            />
             <p className="text-[13px] text-muted-foreground">Template</p>
             {draft.portfolio.stored_template &&
               draft.portfolio.stored_template !== draft.portfolio.template &&
@@ -1131,6 +1137,84 @@ function IconBtn({
     >
       {children}
     </button>
+  );
+}
+
+/** The owner's brand mark: shown in the template's nav and footer instead of an initial. */
+function BrandLogoField({
+  value,
+  ownerId,
+  onChange,
+}: {
+  value: string | null;
+  ownerId: string;
+  onChange: (url: string | null) => void;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const pick = async (file?: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Choose an image — PNG, SVG, JPG or WebP.");
+    if (file.size > 3 * 1024 * 1024) return toast.error("Logos must be under 3 MB.");
+    setBusy(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
+      const url = await uploadFile("profiles", file, `${ownerId}/portfolio-logo-${Date.now()}.${ext}`);
+      onChange(url);
+      toast.success("Logo added");
+    } catch (error: any) {
+      toast.error(error?.message || "Could not upload your logo");
+    } finally {
+      setBusy(false);
+      if (input.current) input.current.value = "";
+    }
+  };
+  return (
+    <div className="mb-4 border-b border-border pb-4">
+      <p className="text-[13px] text-muted-foreground">Brand logo</p>
+      <div className="mt-2 flex items-center gap-3">
+        <span className="grid h-14 w-20 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-[repeating-conic-gradient(rgb(128_128_128/0.12)_0_25%,transparent_0_50%)] bg-[length:12px_12px]">
+          {value ? (
+            <img src={value} alt="Your logo" className="max-h-10 max-w-[68px] object-contain" />
+          ) : (
+            <span className="text-[11px] text-muted-foreground">None</span>
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => input.current?.click()}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-3.5 text-[13px] font-semibold text-background disabled:opacity-60"
+            >
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {value ? "Replace" : "Upload logo"}
+            </button>
+            {value && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onChange(null)}
+                className="inline-flex h-9 items-center rounded-full border border-border px-3.5 text-[13px] font-medium"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+          <p className="mt-1.5 text-[11.5px] leading-snug text-muted-foreground">
+            Shown in your portfolio's header and footer. A transparent PNG or SVG works best.
+          </p>
+        </div>
+        <input
+          ref={input}
+          type="file"
+          accept="image/png,image/svg+xml,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(e) => void pick(e.target.files?.[0])}
+        />
+      </div>
+    </div>
   );
 }
 

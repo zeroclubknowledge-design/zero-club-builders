@@ -11,7 +11,9 @@ import {
   Avatar,
   FitText,
   ContactLink,
-  Footer,
+  SiteFooter,
+  SiteNav,
+  useReveal,
   RailArrows,
   ShippedWork,
   TemplateStyles,
@@ -35,31 +37,21 @@ const skin: Skin = {
 export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
   useTemplateFont("Sora:wght@400;500;600;700;800");
   const v = portfolioView(data, { light: true });
+  const root = useReveal<HTMLDivElement>();
   const display = { fontFamily: "'Sora', Montserrat, sans-serif" };
   const rest = v.sections.filter((s) => !["work", "skills"].includes(s.key));
   const firstStat = v.numbers[0];
 
   return (
     <div
+      ref={root}
+      data-pf-root
       className="@container min-h-full overflow-x-clip bg-[#faf9f6] text-[#111] antialiased selection:bg-[var(--pf-accent)] selection:text-[color:var(--pf-ink)]"
       style={themeVars(v.accent, false)}
     >
       <TemplateStyles />
+      <SiteNav v={v} dark={false} bg="#faf9f6" display={display} maxW="max-w-[1120px]" omit={["skills"]} />
       <div className="mx-auto max-w-[1120px] px-5 @3xl:px-10">
-        <nav className="flex items-center justify-between py-5">
-          <span
-            className="grid h-10 w-10 place-items-center rounded-full bg-[#111] text-[15px] font-bold text-white"
-            style={display}
-          >
-            {v.firstName.charAt(0).toUpperCase()}
-          </span>
-          <ContactLink
-            v={v}
-            className="inline-flex h-10 items-center rounded-full bg-[#111] px-5 text-[13px] font-semibold text-white"
-          >
-            Let's talk
-          </ContactLink>
-        </nav>
 
         {/* Hero */}
         <header className="grid items-center gap-10 pb-12 pt-4 @3xl:grid-cols-2 @3xl:pt-10">
@@ -124,7 +116,7 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
 
         {/* Latest projects */}
         {v.on("work") && (
-          <section id="pf-work" className="py-12">
+          <section id="pf-work" data-pf-reveal className="py-12">
             <div className="flex items-end justify-between gap-4">
               <h2
                 className="text-[30px] font-bold tracking-[-0.03em] @3xl:text-[38px]"
@@ -188,7 +180,8 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
         <ShippedWork v={v} dark={false} titleStyle={display} />
 
         {rest.map((s) => (
-          <section key={s.key} id={`pf-${s.key}`} className="py-12">
+          <section key={s.key} id={`pf-${s.key}`}
+            data-pf-reveal className="py-12">
             {s.key === "contact" ? (
               <div className="relative overflow-hidden rounded-[32px] bg-[var(--pf-accent)] p-8 text-[color:var(--pf-ink)] @3xl:p-12">
                 <p
@@ -229,13 +222,13 @@ export function BrightTemplate({ data, preview, onOpenItem }: TemplateProps) {
                   {SECTION_LABELS[s.key]}
                 </h2>
                 <div className="mt-6">
-                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} />
+                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} display={display} />
                 </div>
               </>
             )}
           </section>
         ))}
-        <Footer dark={false} branding={v.showBranding} />
+        <SiteFooter v={v} dark={false} display={display} omit={["skills"]} />
         <div className="h-10" />
       </div>
     </div>

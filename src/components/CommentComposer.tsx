@@ -152,7 +152,7 @@ export function CommentComposer({
   const hasContent = Boolean(value.trim()) || files.length > 0;
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-background/95 px-2.5 py-2 shadow-[0_16px_45px_-18px_rgba(0,0,0,0.55)] backdrop-blur-xl transition focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/25">
+    <div className="rounded-[28px] border border-border/80 bg-background/95 py-2 pl-2.5 pr-2 shadow-[0_16px_45px_-18px_rgba(0,0,0,0.55)] backdrop-blur-xl transition focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/25">
       {replyLabel && (
         <div className="mb-2 flex items-center justify-between rounded-md bg-primary/[0.07] px-3 py-2 text-[11px] font-medium text-primary">
           <span className="truncate">Replying to {replyLabel}</span>
@@ -185,18 +185,18 @@ export function CommentComposer({
       <input ref={videoRef} type="file" accept="video/*" multiple className="hidden" onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
 
       <div className="flex items-end gap-1.5">
-        <div className="mb-0.5 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+        <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[14px] font-semibold text-muted-foreground">
           {currentUser?.avatar_url ? <img src={currentUser.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : name.slice(0, 1).toUpperCase()}
         </div>
 
         <MentionField
-          wrapperClassName="relative min-w-0 flex-1 self-center"
+          wrapperClassName="relative min-w-0 flex-1 self-end"
           data-comment-composer=""
           value={value}
           onChange={(event) => {
             onChange(event.target.value);
             event.target.style.height = "auto";
-            event.target.style.height = `${Math.min(event.target.scrollHeight, 96)}px`;
+            event.target.style.height = `${Math.min(event.target.scrollHeight, 132)}px`;
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
@@ -206,17 +206,17 @@ export function CommentComposer({
           }}
           placeholder={placeholder}
           rows={1}
-          className="block max-h-24 min-h-9 w-full min-w-0 resize-none bg-transparent px-1.5 py-2 text-[13px] leading-5 outline-none no-scrollbar placeholder:text-muted-foreground"
+          className="block max-h-[132px] min-h-[44px] w-full min-w-0 resize-none bg-transparent px-1.5 py-[11px] text-[16px] leading-[22px] outline-none no-scrollbar placeholder:text-muted-foreground"
         />
 
-        <div className="mb-0.5 flex shrink-0 items-center">
-          <button type="button" onClick={toggleRecording} title={isRecording ? "Stop recording" : "Record voice note"} className={`grid h-8 place-items-center rounded-full transition ${isRecording ? "min-w-14 grid-cols-[auto_auto] gap-1 bg-red-500 px-2 text-white" : "w-8 text-muted-foreground hover:text-foreground"}`}>
-            {isRecording ? <><Square className="h-3 w-3 fill-current" /><span className="text-[9px] tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-4 w-4" />}
+        <div className="flex shrink-0 items-center gap-1">
+          <button type="button" onClick={toggleRecording} title={isRecording ? "Stop recording" : "Record voice note"} className={`grid h-11 place-items-center rounded-full transition active:scale-95 ${isRecording ? "min-w-16 grid-cols-[auto_auto] gap-1.5 bg-red-500 px-3 text-white" : "w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"}`}>
+            {isRecording ? <><Square className="h-4 w-4 fill-current" /><span className="text-[12px] font-semibold tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-[22px] w-[22px]" />}
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button type="button" title="Add media" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground">
-                <Paperclip className="h-4 w-4" />
+              <button type="button" title="Add media" className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95">
+                <Paperclip className="h-[22px] w-[22px]" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-40">
@@ -224,8 +224,8 @@ export function CommentComposer({
               <DropdownMenuItem onSelect={() => videoRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <button type="button" onClick={() => void submit()} disabled={loading || !hasContent} aria-label="Post comment" className={`ml-0.5 grid h-8 w-8 place-items-center rounded-full transition ${hasContent ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          <button type="button" onClick={() => void submit()} disabled={loading || !hasContent} aria-label="Post comment" className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${hasContent ? "bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]" : "text-muted-foreground"}`}>
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
           </button>
         </div>
       </div>

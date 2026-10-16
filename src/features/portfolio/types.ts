@@ -69,6 +69,8 @@ export type Portfolio = {
   indexable: boolean;
   /** Where "Let's talk" goes: a Zero Club message, or the owner's email. */
   contact_method?: "email" | "zeroclub";
+  /** The owner's brand mark, shown in place of an initial. */
+  logo_url?: string | null;
   /** PRO only: replace "Built with Zero Club" with "Built with love". */
   hide_branding?: boolean;
   /** Server-computed: false only for PRO portfolios that turned branding off. */

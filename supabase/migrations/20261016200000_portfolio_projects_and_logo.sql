@@ -1,0 +1,11 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "portfolio_projects_and_logo"). Kept here as a record; do not re-run.
+--
+-- 1. portfolios.logo_url text — the owner's brand mark, shown in template
+--    navs/footers instead of an initial.
+-- 2. public.portfolio_projects(owner uuid) returns setof posts — the latest
+--    public build post per distinct project (name parsed from "**Project:**",
+--    falling back to the root post, then the post id).
+-- 3. get_public_portfolio now builds `shipped` from portfolio_projects (limit 60)
+--    and uses the same set for stats.ships, so the "Projects shipped" number
+--    always matches every public project the owner has shipped.

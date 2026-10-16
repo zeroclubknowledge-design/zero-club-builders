@@ -10,7 +10,9 @@ import { ContactButtons, SectionBody, WorkMeta, type Skin } from "./blocks";
 import {
   Avatar,
   ContactLink,
-  Footer,
+  SiteFooter,
+  SiteNav,
+  useReveal,
   RailArrows,
   ShippedWork,
   RotatingBadge,
@@ -49,18 +51,22 @@ function Highlighted({ text }: { text: string }) {
 export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
   useTemplateFont("Space+Grotesk:wght@400;500;600;700");
   const v = portfolioView(data);
+  const root = useReveal<HTMLDivElement>();
   const display = { fontFamily: "'Space Grotesk', Montserrat, sans-serif" };
   const rest = v.sections.filter((s) => s.key !== "work");
 
   return (
     <div
+      ref={root}
+      data-pf-root
       className="dark @container min-h-full overflow-x-clip bg-[#0a0b0a] text-[#f4f5f4] antialiased selection:bg-[var(--pf-accent)] selection:text-black"
       style={themeVars(v.accent, true)}
     >
       <TemplateStyles />
+      <SiteNav v={v} dark={true} bg="#0a0b0a" display={display} maxW="max-w-[1180px]" />
       <div className="mx-auto grid w-full max-w-[1180px] gap-5 px-4 pb-12 pt-5 @4xl:grid-cols-[340px_1fr] @4xl:gap-6 @4xl:px-6 @4xl:pt-6">
         {/* Profile card */}
-        <aside className="@4xl:sticky @4xl:top-6 @4xl:self-start">
+        <aside className="@4xl:sticky @4xl:top-[88px] @4xl:self-start">
           <div className="pf-rise relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#111312] p-4">
             <div className="relative overflow-hidden rounded-[22px] bg-white/[0.04]">
               <Avatar
@@ -151,7 +157,7 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
 
           {/* Work as a bento */}
           {v.on("work") && (
-            <section id="pf-work" className="space-y-3">
+            <section id="pf-work" data-pf-reveal className="space-y-3">
               <div className="flex items-end justify-between gap-3">
                 <Heading>{SECTION_LABELS.work}</Heading>
                 <RailArrows railId="pf-work-rail" dark />
@@ -168,7 +174,7 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
                     >
                       {img && (
                         <div
-                          className={`overflow-hidden ${wide ? "aspect-[16/7]" : "aspect-[16/10]"}`}
+                          className={`overflow-hidden aspect-[16/10]`}
                         >
                           <img
                             src={img}
@@ -225,6 +231,7 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
             <section
               key={s.key}
               id={`pf-${s.key}`}
+            data-pf-reveal
               className="rounded-[28px] border border-white/[0.08] bg-[#111312] p-5 @2xl:p-7"
             >
               <Heading>{SECTION_LABELS[s.key]}</Heading>
@@ -243,12 +250,12 @@ export function SignalTemplate({ data, preview, onOpenItem }: TemplateProps) {
                     </div>
                   </div>
                 ) : (
-                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} />
+                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} display={display} />
                 )}
               </div>
             </section>
           ))}
-          <Footer dark branding={v.showBranding} />
+          <SiteFooter v={v} dark={true} display={display} />
         </main>
       </div>
     </div>

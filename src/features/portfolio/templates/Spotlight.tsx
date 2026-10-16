@@ -10,7 +10,9 @@ import {
   Avatar,
   FitText,
   ContactLink,
-  Footer,
+  SiteFooter,
+  SiteNav,
+  useReveal,
   RailArrows,
   ShippedWork,
   fitSize,
@@ -35,6 +37,7 @@ const skin: Skin = {
 export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) {
   useTemplateFont("Instrument+Serif:ital@0;1");
   const v = portfolioView(data);
+  const root = useReveal<HTMLDivElement>();
   const serif = { fontFamily: "'Instrument Serif', Georgia, serif" };
   const rest = v.sections.filter((s) => s.key !== "work" && s.key !== "about");
   const ticker = [
@@ -44,15 +47,18 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
 
   return (
     <div
+      ref={root}
+      data-pf-root
       className="dark @container min-h-full overflow-x-clip bg-black text-white antialiased selection:bg-[var(--pf-accent)] selection:text-[color:var(--pf-ink)]"
       style={themeVars(v.accent, true)}
     >
       <TemplateStyles />
+      <SiteNav v={v} dark={true} bg="#000000" display={serif} maxW="max-w-[1180px]" />
       {/* Hero */}
       <header className="relative isolate overflow-hidden">
-        {v.heroImage ? (
+        {v.profile.banner_url ? (
           <img
-            src={v.heroImage}
+            src={v.profile.banner_url}
             alt=""
             className="absolute inset-0 -z-10 h-full w-full object-cover opacity-70"
           />
@@ -67,7 +73,7 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/50 via-black/30 to-black" />
         <div className="mx-auto flex min-h-[560px] max-w-[1180px] flex-col px-5 pb-10 pt-8 @3xl:min-h-[680px] @3xl:px-10">
           <div className="flex items-center justify-between text-[13px] text-white/75">
-            <span className="font-semibold tracking-wide">@{v.profile.username}</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.06] px-3 py-1 font-medium backdrop-blur">@{v.profile.username}</span>
             {v.profile.location && (
               <span className="inline-flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
@@ -104,7 +110,7 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
       <div className="mx-auto max-w-[1180px] px-5 @3xl:px-10">
         {/* About as a statement */}
         {v.on("about") && (
-          <section id="pf-about" className="grid gap-8 py-16 @3xl:grid-cols-[1fr_300px] @3xl:py-24">
+          <section id="pf-about" data-pf-reveal className="grid gap-8 py-16 @3xl:grid-cols-[1fr_300px] @3xl:py-24">
             <div>
               <Label>{SECTION_LABELS.about}</Label>
               {firstSentence(v.about).length <= 220 ? (
@@ -154,7 +160,7 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
       <div className="mx-auto max-w-[1180px] px-5 @3xl:px-10">
         {/* Work index */}
         {v.on("work") && (
-          <section id="pf-work" className="py-16 @3xl:py-24">
+          <section id="pf-work" data-pf-reveal className="py-16 @3xl:py-24">
             <Label>{SECTION_LABELS.work}</Label>
             <p
               className="mt-4 max-w-[640px] text-[32px] leading-tight @3xl:text-[46px]"
@@ -222,6 +228,7 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
           <section
             key={s.key}
             id={`pf-${s.key}`}
+            data-pf-reveal
             className="border-t border-white/10 py-14 @3xl:py-20"
           >
             {s.key === "contact" ? (
@@ -244,13 +251,13 @@ export function SpotlightTemplate({ data, preview, onOpenItem }: TemplateProps) 
               <>
                 <Label>{SECTION_LABELS[s.key]}</Label>
                 <div className="mt-6">
-                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} />
+                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} display={serif} />
                 </div>
               </>
             )}
           </section>
         ))}
-        <Footer dark branding={v.showBranding} />
+        <SiteFooter v={v} dark={true} display={serif} />
         <div className="h-10" />
       </div>
     </div>

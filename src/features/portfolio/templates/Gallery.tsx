@@ -11,7 +11,9 @@ import {
   Avatar,
   FitText,
   ContactLink,
-  Footer,
+  SiteFooter,
+  SiteNav,
+  useReveal,
   RailArrows,
   ShippedWork,
   TemplateStyles,
@@ -44,6 +46,7 @@ const DOTS = [
 export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
   useTemplateFont("Syne:wght@500;600;700;800");
   const v = portfolioView(data, { light: true });
+  const root = useReveal<HTMLDivElement>();
   const display = { fontFamily: "'Syne', Montserrat, sans-serif" };
   const rest = v.sections.filter((s) => s.key !== "work" && s.key !== "about");
   const withImages = v.projects.filter((p) => itemImages(p).length > 0);
@@ -51,10 +54,13 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
 
   return (
     <div
+      ref={root}
+      data-pf-root
       className="@container min-h-full overflow-x-clip bg-[#f7f6f3] text-[#121212] antialiased"
       style={themeVars(v.accent, false)}
     >
       <TemplateStyles />
+      <SiteNav v={v} dark={true} bg="#0d0f1a" display={display} maxW="max-w-[1100px]" solid />
       {/* Poster hero */}
       <header className="relative isolate overflow-hidden bg-[#0d0f1a] text-white">
         {DOTS.map((d, i) => (
@@ -138,7 +144,7 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
 
         {/* The wall */}
         {v.on("work") && (
-          <section id="pf-work" className="py-10">
+          <section id="pf-work" data-pf-reveal className="py-10">
             <div className="flex items-end justify-between">
               <h2
                 className="text-[40px] font-extrabold tracking-[-0.04em] @3xl:text-[56px]"
@@ -216,7 +222,8 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
         <ShippedWork v={v} dark={false} titleStyle={display} />
 
         {rest.map((s) => (
-          <section key={s.key} id={`pf-${s.key}`} className="py-12">
+          <section key={s.key} id={`pf-${s.key}`}
+            data-pf-reveal className="py-12">
             {s.key === "contact" ? (
               <div className="rounded-[32px] bg-[#0d0f1a] p-8 text-center text-white @3xl:p-14">
                 <p
@@ -242,13 +249,13 @@ export function GalleryTemplate({ data, preview, onOpenItem }: TemplateProps) {
                   <span className="text-[var(--pf-accent)]">.</span>
                 </h2>
                 <div className="mt-6">
-                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} />
+                  <SectionBody k={s.key} v={v} skin={skin} preview={preview} onOpen={onOpenItem} display={display} />
                 </div>
               </>
             )}
           </section>
         ))}
-        <Footer dark={false} branding={v.showBranding} />
+        <SiteFooter v={v} dark={false} display={display} />
         <div className="h-10" />
       </div>
     </div>
