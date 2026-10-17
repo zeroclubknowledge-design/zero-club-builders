@@ -43,6 +43,43 @@ alter table public.clubs add constraint clubs_club_type_check
 
 create index if not exists clubs_parent_idx on public.clubs (parent_club_id) where parent_club_id is not null;
 
+-- --------------------------------------------------- clear old definitions ---
+
+/* `create or replace function` cannot change a function's return type, and it
+   cannot replace a function whose argument list differs — it only adds an
+   overload. The live project already has an earlier draft of these functions
+   (the same session that wrote the hub UI), so running this file would stop at
+   the first one with "cannot change return type of existing function", and any
+   surviving overload would make PostgREST refuse every call to that name with
+   an ambiguous-function error.
+--
+   Drop every version of these by name before defining them again. Only these
+   eight: the helpers below keep their signatures, and dropping one of those
+   would take its policies and triggers with it. */
+do $$
+declare f record;
+begin
+  for f in
+    select p.oid::regprocedure as signature
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname in (
+        'club_hub',
+        'create_club_cohort',
+        'update_club_cohort',
+        'join_club_cohort',
+        'add_cohort_member',
+        'decide_club_join_request',
+        'set_community_staff',
+        'remove_club_hub_item'
+      )
+    order by p.proname
+  loop
+    execute format('drop function %s', f.signature);
+  end loop;
+end $$;
+
 /* A cohort is one level deep: a cohort cannot own cohorts, and a cohort's
    parent must be a community. */
 create or replace function public.clubs_guard_cohort_hierarchy()
