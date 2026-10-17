@@ -51,6 +51,7 @@ import { Route as BusinessIndexRouteImport } from './routes/business.index'
 import { Route as BusinessSigninRouteImport } from './routes/business.signin'
 import { Route as BusinessSignupRouteImport } from './routes/business.signup'
 import { Route as BusinessWelcomeRouteImport } from './routes/business.welcome'
+import { Route as CertificateCodeRouteImport } from './routes/certificate.$code'
 import { Route as ClubIdRouteImport } from './routes/club.$id'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as FormSlugRouteImport } from './routes/form.$slug'
@@ -69,6 +70,7 @@ import { Route as ApiZeroAiVoiceRouteImport } from './routes/api.zero-ai.voice'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
+import { Route as AppBootcampsRequestsRouteImport } from './routes/app.bootcamps.requests'
 import { Route as AppChallengeIdRouteImport } from './routes/app.challenge.$id'
 import { Route as AppChallengeNewRouteImport } from './routes/app.challenge.new'
 import { Route as AppChatIndexRouteImport } from './routes/app.chat.index'
@@ -343,6 +345,11 @@ const BusinessWelcomeRoute = BusinessWelcomeRouteImport.update({
   path: '/business/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertificateCodeRoute = CertificateCodeRouteImport.update({
+  id: '/certificate/$code',
+  path: '/certificate/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClubIdRoute = ClubIdRouteImport.update({
   id: '/club/$id',
   path: '/club/$id',
@@ -431,6 +438,11 @@ const AppBootcampsIndexRoute = AppBootcampsIndexRouteImport.update({
 const AppBootcampsIdRoute = AppBootcampsIdRouteImport.update({
   id: '/bootcamps/$id',
   path: '/bootcamps/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBootcampsRequestsRoute = AppBootcampsRequestsRouteImport.update({
+  id: '/bootcamps/requests',
+  path: '/bootcamps/requests',
   getParentRoute: () => AppRoute,
 } as any)
 const AppChallengeIdRoute = AppChallengeIdRouteImport.update({
@@ -789,6 +801,7 @@ export interface FileRoutesByFullPath {
   '/business/signin': typeof BusinessSigninRoute
   '/business/signup': typeof BusinessSignupRoute
   '/business/welcome': typeof BusinessWelcomeRoute
+  '/certificate/$code': typeof CertificateCodeRoute
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
@@ -807,6 +820,7 @@ export interface FileRoutesByFullPath {
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
+  '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
   '/app/challenge/$id': typeof AppChallengeIdRoute
   '/app/challenge/new': typeof AppChallengeNewRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -907,6 +921,7 @@ export interface FileRoutesByTo {
   '/business/signin': typeof BusinessSigninRoute
   '/business/signup': typeof BusinessSignupRoute
   '/business/welcome': typeof BusinessWelcomeRoute
+  '/certificate/$code': typeof CertificateCodeRoute
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
@@ -925,6 +940,7 @@ export interface FileRoutesByTo {
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
+  '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
   '/app/challenge/$id': typeof AppChallengeIdRoute
   '/app/challenge/new': typeof AppChallengeNewRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -1032,6 +1048,7 @@ export interface FileRoutesById {
   '/business/signin': typeof BusinessSigninRoute
   '/business/signup': typeof BusinessSignupRoute
   '/business/welcome': typeof BusinessWelcomeRoute
+  '/certificate/$code': typeof CertificateCodeRoute
   '/club/$id': typeof ClubIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
@@ -1050,6 +1067,7 @@ export interface FileRoutesById {
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
+  '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
   '/app/challenge/$id': typeof AppChallengeIdRoute
   '/app/challenge/new': typeof AppChallengeNewRoute
   '/app/chat/$id': typeof AppChatIdRoute
@@ -1158,6 +1176,7 @@ export interface FileRouteTypes {
     | '/business/signin'
     | '/business/signup'
     | '/business/welcome'
+    | '/certificate/$code'
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
@@ -1176,6 +1195,7 @@ export interface FileRouteTypes {
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
+    | '/app/bootcamps/requests'
     | '/app/challenge/$id'
     | '/app/challenge/new'
     | '/app/chat/$id'
@@ -1276,6 +1296,7 @@ export interface FileRouteTypes {
     | '/business/signin'
     | '/business/signup'
     | '/business/welcome'
+    | '/certificate/$code'
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
@@ -1294,6 +1315,7 @@ export interface FileRouteTypes {
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
+    | '/app/bootcamps/requests'
     | '/app/challenge/$id'
     | '/app/challenge/new'
     | '/app/chat/$id'
@@ -1400,6 +1422,7 @@ export interface FileRouteTypes {
     | '/business/signin'
     | '/business/signup'
     | '/business/welcome'
+    | '/certificate/$code'
     | '/club/$id'
     | '/explore/$slug'
     | '/form/$slug'
@@ -1418,6 +1441,7 @@ export interface FileRouteTypes {
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
+    | '/app/bootcamps/requests'
     | '/app/challenge/$id'
     | '/app/challenge/new'
     | '/app/chat/$id'
@@ -1501,6 +1525,7 @@ export interface RootRouteChildren {
   BusinessSigninRoute: typeof BusinessSigninRoute
   BusinessSignupRoute: typeof BusinessSignupRoute
   BusinessWelcomeRoute: typeof BusinessWelcomeRoute
+  CertificateCodeRoute: typeof CertificateCodeRoute
   ClubIdRoute: typeof ClubIdRoute
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
@@ -1818,6 +1843,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BusinessWelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certificate/$code': {
+      id: '/certificate/$code'
+      path: '/certificate/$code'
+      fullPath: '/certificate/$code'
+      preLoaderRoute: typeof CertificateCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/club/$id': {
       id: '/club/$id'
       path: '/club/$id'
@@ -1942,6 +1974,13 @@ declare module '@tanstack/react-router' {
       path: '/bootcamps/$id'
       fullPath: '/app/bootcamps/$id'
       preLoaderRoute: typeof AppBootcampsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/bootcamps/requests': {
+      id: '/app/bootcamps/requests'
+      path: '/bootcamps/requests'
+      fullPath: '/app/bootcamps/requests'
+      preLoaderRoute: typeof AppBootcampsRequestsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/challenge/$id': {
@@ -2500,6 +2539,7 @@ interface AppRouteChildren {
   AppZerohubRoute: typeof AppZerohubRoute
   AppIndexRoute: typeof AppIndexRoute
   AppBootcampsIdRoute: typeof AppBootcampsIdRoute
+  AppBootcampsRequestsRoute: typeof AppBootcampsRequestsRoute
   AppChallengeIdRoute: typeof AppChallengeIdRoute
   AppChallengeNewRoute: typeof AppChallengeNewRoute
   AppChatIdRoute: typeof AppChatIdRoute
@@ -2569,6 +2609,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppZerohubRoute: AppZerohubRoute,
   AppIndexRoute: AppIndexRoute,
   AppBootcampsIdRoute: AppBootcampsIdRoute,
+  AppBootcampsRequestsRoute: AppBootcampsRequestsRoute,
   AppChallengeIdRoute: AppChallengeIdRoute,
   AppChallengeNewRoute: AppChallengeNewRoute,
   AppChatIdRoute: AppChatIdRoute,
@@ -2668,6 +2709,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessSigninRoute: BusinessSigninRoute,
   BusinessSignupRoute: BusinessSignupRoute,
   BusinessWelcomeRoute: BusinessWelcomeRoute,
+  CertificateCodeRoute: CertificateCodeRoute,
   ClubIdRoute: ClubIdRoute,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
@@ -2691,13 +2733,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

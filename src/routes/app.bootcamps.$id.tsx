@@ -29,6 +29,25 @@ import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/Zer
 import { useQueryClient } from "@tanstack/react-query";
 import { useGoBack } from "@/hooks/useGoBack";
 import { getCachedSession } from "@/lib/auth";
+import {
+  AllAccessPass,
+  BootcampDetailsEditor,
+  BootcampFacts,
+  BootcampFaq,
+  BootcampInstructor,
+  BootcampOutcomes,
+  BootcampProgressCard,
+  BootcampReplays,
+  BootcampReviews,
+  BootcampSchedule,
+  CertificatesManager,
+  EarlyBirdBanner,
+  GroupSeatsButton,
+  PassEditor,
+  PrivateBootcampButton,
+  currentPrice,
+  earlyBirdActive,
+} from "@/features/bootcamps/BootcampExtras";
 
 export const Route = createFileRoute("/app/bootcamps/$id")({
   component: BootcampDetail,
@@ -288,7 +307,9 @@ function BootcampDetail() {
   }
 
   const totalLessons = modules.reduce((sum: number, module: any) => sum + (module.lessons?.length || 0), 0);
-  const basePrice = currentUser?.is_admin ? 0 : Number(bootcamp.price) || 0;
+  const listPrice = Number(bootcamp.price) || 0;
+  const basePrice = currentUser?.is_admin ? 0 : currentPrice(bootcamp);
+  const earlyBird = !currentUser?.is_admin && earlyBirdActive(bootcamp);
   const tier = currentUser?.tier || "Basic";
   let discountPct = 0;
   if (tier === "Premium") discountPct = 0.03;
@@ -369,6 +390,7 @@ function BootcampDetail() {
               <p className="text-[12px] text-muted-foreground">{isInstitution ? "Institution" : "Tutor"}</p>
             </div>
           </div>
+          <BootcampFacts bootcamp={bootcamp} />
           <div className="mt-3.5 grid grid-cols-3 border-t border-border pt-3 text-center">
             <div><p className="text-[16px] font-semibold">{modules.length}</p><p className="text-[12px] text-muted-foreground">Sections</p></div>
             <div><p className="text-[16px] font-semibold">{totalLessons}</p><p className="text-[12px] text-muted-foreground">Lessons</p></div>
@@ -422,6 +444,9 @@ function BootcampDetail() {
                   </Link>
                 )}
               </div>
+              <BootcampDetailsEditor bootcamp={bootcamp} onSaved={() => void refetch()} />
+              <CertificatesManager bootcamp={bootcamp} />
+              <PassEditor ownerId={bootcamp.creator_id} />
               <BootcampShareAction bootcamp={bootcamp} />
             </div>
           ) : isEnrolled ? (
@@ -437,15 +462,17 @@ function BootcampDetail() {
                   </Link>
                 )}
               </div>
+              <BootcampProgressCard bootcampId={bootcamp.id} bootcampTitle={bootcamp.title} />
             </div>
           ) : (
             <div>
+              <EarlyBirdBanner bootcamp={bootcamp} />
               <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline gap-x-2">
                     <span className="text-[22px] font-semibold text-foreground">{couponPrice > 0 ? formatPrice(couponPrice) : "Free"}</span>
-                    {(discountPct > 0 || appliedCoupon) && (
-                      <span className="text-[14px] text-muted-foreground line-through">{formatPrice(appliedCoupon ? finalPrice : basePrice)}</span>
+                    {(discountPct > 0 || appliedCoupon || earlyBird) && (
+                      <span className="text-[14px] text-muted-foreground line-through">{formatPrice(appliedCoupon ? finalPrice : earlyBird ? listPrice : basePrice)}</span>
                     )}
                   </div>
                   {basePrice > 0 && (
@@ -493,7 +520,19 @@ function BootcampDetail() {
                 </div>
               )}
 
+              {bootcamp.creator_id && (
+                <AllAccessPass
+                  ownerId={bootcamp.creator_id}
+                  ownerName={creatorName}
+                  bootcampId={bootcamp.id}
+                  isEnrolled={isEnrolled}
+                  onEnrolled={() => { setIsEnrolled(true); void refetch(); }}
+                />
+              )}
+
               <div className="mt-3 grid grid-cols-1 gap-2 border-t border-border pt-3">
+                {!currentUser?.is_admin && <GroupSeatsButton bootcamp={bootcamp} />}
+                <PrivateBootcampButton bootcampId={bootcamp.id} compact />
                 {couponPrice > 0 && (
                   <RequestFundsButton amount={couponPrice} purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`} label="Ask someone to sponsor this" />
                 )}
@@ -543,7 +582,7 @@ function BootcampDetail() {
 
           <h3 className="mt-5 text-[15px] font-semibold">What you get</h3>
           <ul className="mt-2 grid gap-2.5 text-[14px]">
-            {["Proof of Work certificate", "Proof of Knowledge — assessed, not assumed", "Live classes and a cohort club", "Direct tutor access", "XP for every lesson and ship", "ZeroNotes you keep for good"].map((item) => (
+            {[...(bootcamp.certificate_enabled !== false ? ["Certificate of completion you can add to LinkedIn"] : []), "Live classes with replays", "A private cohort club", "Direct tutor access", "XP for every lesson and ship", "ZeroNotes you keep for good"].map((item) => (
               <li key={item} className="flex items-center gap-2.5">
                 <Check className="h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" /> {item}
               </li>
@@ -551,7 +590,11 @@ function BootcampDetail() {
           </ul>
         </section>
 
-        <section className="flex-1 bg-card p-4 pb-28 md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-4">
+        <BootcampOutcomes bootcamp={bootcamp} />
+        <BootcampSchedule bootcampId={bootcamp.id} canManage={canManageBootcamp} isEnrolled={isEnrolled} />
+        <BootcampReplays bootcampId={bootcamp.id} canManage={canManageBootcamp} isEnrolled={isEnrolled} />
+
+        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           <div className="flex items-baseline justify-between">
             <h2 className="font-display text-[18px] font-semibold">Syllabus</h2>
             <span className="text-[13px] text-muted-foreground">{modules.length} sections · {totalLessons} lessons</span>
@@ -590,6 +633,11 @@ function BootcampDetail() {
             </Accordion>
           )}
         </section>
+
+        <BootcampInstructor bootcamp={bootcamp} />
+        <BootcampReviews bootcamp={bootcamp} isEnrolled={isEnrolled} viewerId={viewerId} />
+        <BootcampFaq bootcamp={bootcamp} />
+        <div className="h-28 md:h-6" aria-hidden />
       </div>
     </div>
   );

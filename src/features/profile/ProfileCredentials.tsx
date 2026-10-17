@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Award, BriefcaseBusiness, Plus } from "@/components/icons/glyphs";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowUpRight, Award, BadgeCheck, BriefcaseBusiness, Plus } from "@/components/icons/glyphs";
+import { supabase } from "@/lib/supabase";
 import {
   experienceSpan,
   monthYear,
@@ -212,6 +214,44 @@ export function ProfileCredentials({
           )}
         </section>
       )}
+
+      <VerifiedBootcampCertificates profileId={profileId} />
     </>
+  );
+}
+
+/* Certificates earned on Zero Club: issued by the bootcamp, checkable by anyone. */
+function VerifiedBootcampCertificates({ profileId }: { profileId?: string | null }) {
+  const { data = [] } = useQuery({
+    queryKey: ["bootcamp-certificates-for", profileId],
+    enabled: !!profileId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("bootcamp_certificates_for_profile" as never, { p_profile: profileId } as never);
+      if (error) throw error;
+      return (data || []) as { code: string; bootcamp_title: string; issuer_name: string | null; issued_at: string; format: string }[];
+    },
+  });
+  if (!data.length) return null;
+  return (
+    <section className="mt-2 bg-card px-4 py-4 md:rounded-xl md:border md:border-border">
+      <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold text-foreground">
+        <BadgeCheck className="h-5 w-5 text-[#cc208f]" /> Zero Club certificates
+      </h2>
+      <ul className="mt-2 divide-y divide-border/70">
+        {data.map((c) => (
+          <li key={c.code} className="flex gap-3.5 py-3.5 first:pt-1">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]"><Award className="h-5 w-5" /></span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-semibold leading-snug text-foreground">{c.bootcamp_title}</p>
+              <p className="text-[14px] text-foreground/85">{c.issuer_name || "Zero Club"} · {c.format === "workshop" ? "Workshop" : "Bootcamp"}</p>
+              <p className="mt-0.5 text-[12.5px] text-muted-foreground">Issued {monthYear(c.issued_at)} · ID {c.code}</p>
+              <a href={`/certificate/${c.code}`} className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-full border border-foreground/20 px-3 text-[13px] font-semibold text-foreground hover:bg-foreground/[0.04]">
+                Verified certificate <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

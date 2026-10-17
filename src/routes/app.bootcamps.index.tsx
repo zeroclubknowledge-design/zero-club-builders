@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, Building2, CalendarClock, Search, X } from "@/components/icons/glyphs";
+import { Award, BookOpen, Building2, CalendarClock, Search, Star, TicketPercent, X } from "@/components/icons/glyphs";
+import { currentPrice, earlyBirdActive, levelLabel, seatsLeft } from "@/features/bootcamps/BootcampExtras";
 import { useMemo, useState } from "react";
 import { getBootcamps } from "@/api";
 import { useQuery } from "@tanstack/react-query";
@@ -38,6 +39,45 @@ function BootcampCover({ bootcamp, className = '', compact = false }: { bootcamp
   );
 }
 
+/* Codecademy-style at-a-glance facts: next start, offer, seats, certificate. */
+function CampBadges({ camp }: { camp: any }) {
+  const badges: { text: string; tone: "brand" | "plain" | "good"; icon?: any }[] = [];
+  if (earlyBirdActive(camp)) badges.push({ text: "Early bird", tone: "brand", icon: TicketPercent });
+  if (camp.format === "workshop") badges.push({ text: "Workshop", tone: "plain" });
+  if (camp.starts_at && new Date(camp.starts_at) > new Date()) {
+    badges.push({ text: `Starts ${new Date(camp.starts_at).toLocaleDateString([], { day: "numeric", month: "short" })}`, tone: "plain", icon: CalendarClock });
+  }
+  const left = seatsLeft(camp);
+  if (left !== null && left <= 10) badges.push({ text: left === 0 ? "Full" : `${left} seats left`, tone: "brand" });
+  if (camp.duration_label) badges.push({ text: camp.duration_label, tone: "plain" });
+  if (levelLabel(camp.level)) badges.push({ text: levelLabel(camp.level)!, tone: "plain" });
+  if (camp.certificate_enabled !== false) badges.push({ text: "Certificate", tone: "good", icon: Award });
+  if (Number(camp.rating_count) > 0) badges.push({ text: `${Number(camp.rating_avg).toFixed(1)} (${camp.rating_count})`, tone: "plain", icon: Star });
+  if (!badges.length) return null;
+  const tone = { brand: "bg-[#cc208f]/10 text-[#a3186f]", plain: "bg-foreground/[0.05] text-foreground/75", good: "bg-success/10 text-success" };
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-1">
+      {badges.slice(0, 5).map(({ text, tone: t, icon: Icon }) => (
+        <span key={text} className={`inline-flex h-[22px] items-center gap-1 rounded-full px-2 text-[11.5px] font-semibold ${tone[t]}`}>
+          {Icon && <Icon className="h-3 w-3" />}{text}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function PriceTag({ camp, formatPrice, className = "" }: { camp: any; formatPrice: (v: unknown) => string; className?: string }) {
+  const now = currentPrice(camp);
+  return (
+    <span className={className}>
+      <b className={`font-semibold ${now > 0 ? "text-foreground" : "text-success"}`}>{formatPrice(now)}</b>
+      {earlyBirdActive(camp) && <s className="ml-1 font-normal text-muted-foreground">{formatPrice(camp.price)}</s>}
+    </span>
+  );
+}
+
+const KINDS = ["All types", "Bootcamps", "Workshops", "Starting soon", "Free"] as const;
+
 function Bootcamps() {
   const { format } = useWalletCurrency();
   const formatPrice = (price: unknown) => Number(price || 0) > 0 ? format(Number(price)) : 'Free';
@@ -47,6 +87,7 @@ function Bootcamps() {
   });
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [kind, setKind] = useState<(typeof KINDS)[number]>('All types');
 
   // Interests picked during onboarding: their categories come first, and so
   // do the bootcamps in them.
@@ -68,12 +109,18 @@ function Bootcamps() {
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
-      return matchesCategory && (!query || searchable.includes(query));
+      const soon = camp.starts_at && new Date(camp.starts_at) > new Date() && new Date(camp.starts_at).getTime() - Date.now() < 45 * 86_400_000;
+      const matchesKind = kind === 'All types'
+        || (kind === 'Bootcamps' && camp.format !== 'workshop')
+        || (kind === 'Workshops' && camp.format === 'workshop')
+        || (kind === 'Starting soon' && soon)
+        || (kind === 'Free' && currentPrice(camp) <= 0);
+      return matchesCategory && matchesKind && (!query || searchable.includes(query));
     }).sort((a: any, b: any) => Number(likes(b.category)) - Number(likes(a.category)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bootcamps, activeCategory, searchQuery, interests.join('|')]);
+  }, [bootcamps, activeCategory, searchQuery, kind, interests.join('|')]);
 
-  const showFeatured = activeCategory === 'All' && !searchQuery.trim() && filteredCamps.length > 0;
+  const showFeatured = activeCategory === 'All' && kind === 'All types' && !searchQuery.trim() && filteredCamps.length > 0;
   const featured = showFeatured ? filteredCamps[0] : null;
   const catalogue = featured ? filteredCamps.slice(1) : filteredCamps;
 
@@ -111,11 +158,23 @@ function Bootcamps() {
               </button>
             ))}
           </div>
+          <div className="no-scrollbar mt-2 flex gap-1.5 overflow-x-auto">
+            {KINDS.map((k) => (
+              <button key={k} onClick={() => setKind(k)} className={`h-7 shrink-0 rounded-full px-3 text-[12.5px] font-semibold ${kind === k ? 'bg-[#cc208f] text-white' : 'bg-foreground/[0.05] text-foreground/70'}`}>{k}</button>
+            ))}
+          </div>
         </div>
       </header>
 
       <main className="zc-page-width mx-auto w-full max-w-[900px]">
         <UpcomingRegistrations />
+        <Link to="/app/bootcamps/requests" className="mt-2 flex items-center gap-3 bg-card px-4 py-3 md:rounded-xl md:border md:border-border">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]"><Building2 className="h-[18px] w-[18px]" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] font-semibold">Teams & group seats</span>
+            <span className="block truncate text-[12.5px] text-muted-foreground">Use a seat code, manage seats you bought, or request a private bootcamp</span>
+          </span>
+        </Link>
 
         {isLoading ? (
           <section className="mt-2 bg-card px-4 py-2 md:rounded-xl">
@@ -159,8 +218,9 @@ function Bootcamps() {
                       {featured.category ? ` · ${featured.category}` : ''} · {relationCount(featured.modules)} {relationCount(featured.modules) === 1 ? 'module' : 'modules'}
                     </span>
                   </div>
+                  <CampBadges camp={featured} />
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-[17px] font-semibold tabular-nums text-foreground">{formatPrice(featured.price)}</span>
+                    <PriceTag camp={featured} formatPrice={formatPrice} className="text-[17px] tabular-nums" />
                     <span className="inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[15px] font-semibold text-background">View programme</span>
                   </div>
                 </Link>
@@ -190,8 +250,9 @@ function Bootcamps() {
                         </p>
                         <p className="mt-0.5 text-[12px] text-muted-foreground">
                           {relationCount(camp.modules)} {relationCount(camp.modules) === 1 ? 'module' : 'modules'} · {learnerCount(camp)} {learnerCount(camp) === 1 ? 'learner' : 'learners'} ·{' '}
-                          <b className={`font-semibold ${Number(camp.price || 0) > 0 ? 'text-foreground' : 'text-success'}`}>{formatPrice(camp.price)}</b>
+                          <PriceTag camp={camp} formatPrice={formatPrice} />
                         </p>
+                        <CampBadges camp={camp} />
                       </div>
                     </Link>
                   ))}
