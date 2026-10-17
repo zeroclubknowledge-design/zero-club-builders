@@ -9,8 +9,7 @@ import { useClubHighlights } from "@/features/chat/useClubHighlights";
 import { useOnlineSet } from "@/lib/realtime/presence";
 import { typingLabel, useTyping } from "@/lib/realtime/typing";
 import { contentPreview } from "@/lib/contentPreview";
-import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
-import { MentionField, type MentionPerson } from "@/components/MentionField";
+import { useEnterToSend } from "@/lib/chatPrefs";
 import { SponsoredPostCard } from "@/features/boost/SponsoredPostCard";
 import { getSponsoredPosts, sponsoredSlots } from "@/features/boost/api";
 import { Switch } from "@/components/ui/switch";
@@ -22,6 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { LinkPreview } from "@/components/LinkPreview";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
+import { MentionField } from "@/components/MentionField";
 import { compressImage } from "@/lib/imageCompression";
 import {
   BookOpen,
@@ -114,6 +114,7 @@ import { ClubQuizzes } from "@/features/clubs/ClubQuizzes";
 import { ZeroMark } from "@/components/ZeroLoader";
 import { FloatingPicker } from "@/components/FloatingPicker";
 import { ClubPollMessage, PollComposer } from "@/features/groups/Poll";
+import { ClubComposer } from "@/features/community/ClubComposer";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (
@@ -183,175 +184,6 @@ const getClubRooms = (rooms: any) => {
     return legacyDefault ? { ...room, name: "Discussion" } : room;
   });
 };
-
-/** Keeps draft keystrokes from redrawing the full club and message history. */
-function ClubMessageComposer({
-  storageKey,
-  placeholder,
-  hasMedia,
-  controls,
-  onSend,
-  members = [],
-  avatar,
-  onTyping,
-  onStopTyping,
-  canTagAll = false,
-}: {
-  storageKey: string | null;
-  placeholder: string;
-  hasMedia: boolean;
-  controls: ReactNode;
-  onSend: (text: string) => Promise<boolean>;
-  /** Called as the person types, so others see "typing…". */
-  onTyping?: () => void;
-  onStopTyping?: () => void;
-  members?: any[];
-  /** Admins can tag everyone; the server checks the role before notifying. */
-  canTagAll?: boolean;
-  /** Rendered inside the composer, not beside it. */
-  avatar?: ReactNode;
-}) {
-  const [draft, setDraft] = usePersistentDraft(storageKey, "");
-  const [sending, setSending] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [enterToSend] = useEnterToSend();
-
-  /*
-   * Tagging someone in the room.
-   *
-   * The picker inserts the *username*, not the display name, because the
-   * renderer turns @username into a link to that profile — a display name with
-   * a space in it would highlight only its first word and point at a handle
-   * that does not exist.
-   *
-   * Only people in this club are offered. A club chat is a room, and the names
-   * that should come to hand are the names of people in it.
-   */
-  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
-  const mentionPeople = useMemo<MentionPerson[]>(
-    () => [
-      ...(canTagAll && members.length > 1
-        ? [{ id: null, username: "everyone", full_name: "Everyone in this club", avatar_url: null, badge: "Tag all" }]
-        : []),
-      ...(members
-        .map((member: any) => {
-          const person = member.profiles || member;
-          return person?.username
-            ? {
-                id: person.id,
-                username: person.username,
-                full_name: person.full_name,
-                avatar_url: person.avatar_url,
-                badge: member.role && member.role !== "Member" ? member.role : null,
-              }
-            : null;
-        })
-        .filter(Boolean) as MentionPerson[]),
-    ],
-    [members, canTagAll],
-  );
-
-  const mentionMatches = (() => {
-    if (mentionQuery === null) return [];
-    const term = mentionQuery.toLowerCase();
-    const seen = new Set<string>();
-    return members
-      .map((member: any) => member.profiles || member)
-      .filter((person: any) => {
-        const username = String(person?.username || "").toLowerCase();
-        if (!username || seen.has(username)) return false;
-        seen.add(username);
-        if (term === "") return true;
-        return (
-          username.includes(term) ||
-          String(person.full_name || "")
-            .toLowerCase()
-            .includes(term)
-        );
-      })
-      .slice(0, 6);
-  })();
-
-  // Only the word the caret is sitting in, so an @ earlier in the sentence
-  // does not reopen the list while the rest is typed.
-  const readMentionQuery = (value: string) => {
-    const match = value.match(/(?:^|\s)@([^\s@]*)$/);
-    setMentionQuery(match ? match[1] : null);
-  };
-
-  const applyMention = (username: string) => {
-    setDraft((current) =>
-      current.replace(/(^|\s)@([^\s@]*)$/, (_m, before: string) => `${before}@${username} `),
-    );
-    setMentionQuery(null);
-    textareaRef.current?.focus();
-  };
-
-  const submit = async () => {
-    if ((!draft.trim() && !hasMedia) || sending) return;
-    onStopTyping?.();
-    const text = draft;
-    setMentionQuery(null);
-    if (textareaRef.current) textareaRef.current.style.height = "44px";
-    setSending(true);
-    try {
-      const sent = await onSend(text);
-      if (sent) setDraft((current) => current === text ? "" : current);
-    } catch {
-      if (text.trim()) setDraft((current) => current || text);
-      toast.error("Could not send message");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  return (
-    <div className="relative flex w-full items-end gap-1.5 rounded-[28px] border border-border bg-card py-2 pl-2.5 pr-2 transition-colors focus-within:border-primary/50">
-      {avatar}
-      <MentionField
-        ref={textareaRef as any}
-        value={draft}
-        people={mentionPeople}
-        peopleLabel="In this club"
-        onChange={(event) => {
-          setDraft(event.target.value);
-          if (event.target.value.trim()) onTyping?.();
-          else onStopTyping?.();
-          event.target.style.height = "auto";
-          event.target.style.height = `${Math.min(event.target.scrollHeight, 132)}px`;
-        }}
-        onKeyDown={(event) => {
-          // An open tag list handles Enter itself, so Enter here is a real send.
-          if (isSendKey(event, enterToSend)) {
-            event.preventDefault();
-            void submit();
-          }
-        }}
-        enterKeyHint={enterToSend ? "send" : "enter"}
-        data-club-composer=""
-        placeholder={placeholder}
-        className="block w-full flex-1 resize-none bg-transparent py-[11px] text-[16px] leading-[22px] text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
-        rows={1}
-        style={{ minHeight: "44px", maxHeight: "132px", height: "44px" }}
-      />
-      <div className="flex shrink-0 items-center gap-1">
-        {controls}
-        <button
-          onClick={() => void submit()}
-          disabled={sending || (!draft.trim() && !hasMedia)}
-          aria-label="Send message"
-          className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${
-            draft.trim() || hasMedia
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground"
-          }`}
-        >
-          {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
 
@@ -3866,7 +3698,7 @@ function ClubChat() {
             </div>
           )}
 
-          <ClubMessageComposer
+          <ClubComposer
             storageKey={draftKey(currentUser?.id, "club-message", club?.id || clubId || "", activeRoom)}
             placeholder={
               activeRoom === "general" ? "Write a message..." : `Post in ${activeRoom}...`

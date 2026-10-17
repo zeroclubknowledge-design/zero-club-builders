@@ -1,22 +1,57 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { RichText } from "@/components/RichText";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Lock, MessageCircle, Plus, ShieldCheck, ArrowRight, Bell, ChevronDown, ChevronRight, Trash2, Check } from "@/components/icons/glyphs";
+import {
+  Search,
+  Users,
+  Lock,
+  MessageCircle,
+  Plus,
+  ShieldCheck,
+  ArrowRight,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  Trash2,
+  Check,
+} from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { RequestFundsButton } from "@/components/RequestFundsButton";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { AnimatePresence, motion } from "framer-motion";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { getFirstName } from "@/lib/utils";
-import { fallbackClubCapacity, membershipAudience, isBootcampCohortClub, type ClubCapacity } from "@/features/membership/plans";
+import {
+  fallbackClubCapacity,
+  membershipAudience,
+  type ClubCapacity,
+} from "@/features/membership/plans";
 import { useUser } from "@/hooks/useUser";
 import { getCachedSession } from "@/lib/auth";
-import { CLUBS_DATA_KEY, fetchClubsData, readClubsSnapshot, saveClubsSnapshot, storedSessionUserId } from "@/features/clubs/clubsData";
+import {
+  CLUBS_DATA_KEY,
+  fetchClubsData,
+  readClubsSnapshot,
+  saveClubsSnapshot,
+  storedSessionUserId,
+} from "@/features/clubs/clubsData";
 
-function SwipeableNotification({ children, onDismiss }: { children: React.ReactNode, onDismiss: () => void }) {
+function SwipeableNotification({
+  children,
+  onDismiss,
+}: {
+  children: React.ReactNode;
+  onDismiss: () => void;
+}) {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const startX = useRef(0);
   const isSwiping = useRef(false);
@@ -44,23 +79,23 @@ function SwipeableNotification({ children, onDismiss }: { children: React.ReactN
   };
 
   return (
-    <div 
+    <div
       className="relative w-full overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div 
+      <div
         className="absolute inset-y-0 left-0 flex w-full items-center justify-start bg-[#e0245e]/10 px-4 text-[#e0245e] transition-opacity"
         style={{ opacity: swipeOffset > 20 ? 1 : 0 }}
       >
         <Trash2 className="h-5 w-5" />
       </div>
-      <div 
+      <div
         className="relative z-10 bg-background transition-transform"
-        style={{ 
+        style={{
           transform: `translateX(${swipeOffset}px)`,
-          transition: isSwiping.current ? 'none' : 'transform 0.2s ease-out'
+          transition: isSwiping.current ? "none" : "transform 0.2s ease-out",
         }}
       >
         {children}
@@ -87,7 +122,8 @@ function Clubs() {
   };
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const draftOwner = queryClient.getQueryData<any>(["profile", "current"])?.id || storedSessionUserId();
+  const draftOwner =
+    queryClient.getQueryData<any>(["profile", "current"])?.id || storedSessionUserId();
   const clubFieldKey = (field: string) => draftKey(draftOwner, "clubs", field);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showCreate, setShowCreate] = usePersistentDraft(clubFieldKey("create-open"), false);
@@ -99,20 +135,24 @@ function Clubs() {
   const joinNeedsApproval = Boolean(selectedClub?.is_private || selectedClub?.requires_approval);
   const [activeCategory, setActiveCategory] = usePersistentDraft(clubFieldKey("category"), "All");
   const [clubSearch, setClubSearch] = usePersistentDraft(clubFieldKey("search"), "");
-  const [clubScope, setClubScope] = usePersistentDraft<"all" | "discover" | "mine" | "boot">(clubFieldKey("scope"), "all");
-  const [newClub, setNewClub] = usePersistentDraft(clubFieldKey("create"), { name: "", description: "", category: "Study Group", price: 0 });
+  const [clubScope, setClubScope] = usePersistentDraft<"all" | "discover" | "mine">(
+    clubFieldKey("scope"),
+    "all",
+  );
+  const [newClub, setNewClub] = usePersistentDraft(clubFieldKey("create"), {
+    name: "",
+    description: "",
+    category: "Study Group",
+    price: 0,
+  });
   const [isPaid, setIsPaid] = usePersistentDraft(clubFieldKey("paid"), false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [joiningClubId, setJoiningClubId] = useState<string | null>(null);
-  
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [unreadClubMessages, setUnreadClubMessages] = useState<any[]>([]);
   const [showAllDiscover, setShowAllDiscover] = useState(false);
-  // Which of the two peer tabs is showing. Falls back to My Clubs below when
-  // there are no bootcamp clubs, so the Boot Clubs tab can never be selected
-  // while hidden - which would leave the page looking empty.
-  const [clubsTabRaw, setClubsTab] = usePersistentDraft<"mine" | "boot">(clubFieldKey("tab"), "mine");
 
   // The person's id is read synchronously from the cached profile so the
   // snapshot can be matched to them before anything loads.
@@ -131,7 +171,6 @@ function Clubs() {
   });
 
   const {
-    bootClubs = [],
     myClubs = [],
     discover = [],
     profile = null,
@@ -142,8 +181,6 @@ function Clubs() {
     totalOnlineBuilders = 0,
     capacityData = null,
   } = clubData || {};
-
-  const clubsTab = bootClubs.length === 0 ? "mine" : clubsTabRaw;
 
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<any[]>([]);
@@ -166,14 +203,14 @@ function Clubs() {
     const pendingRaw = incomingRequests.filter((r: any) => {
       if (!r || !r.content) return false;
       const str = String(r.content);
-      return str.startsWith('CLUB_REQUEST:') && str.endsWith(':pending');
+      return str.startsWith("CLUB_REQUEST:") && str.endsWith(":pending");
     });
 
     const map = new Map<string, { request: any; allIds: string[] }>();
     for (const req of pendingRaw) {
-      const parts = req.content.split(':');
+      const parts = req.content.split(":");
       const clubId = parts[1];
-      const senderId = req.sender_id || req.sender?.id || 'unknown';
+      const senderId = req.sender_id || req.sender?.id || "unknown";
       const key = `${senderId}:${clubId}`;
       if (!map.has(key)) {
         map.set(key, { request: req, allIds: [req.id] });
@@ -186,18 +223,20 @@ function Clubs() {
 
   useEffect(() => {
     if (!profile || myClubs.length === 0) return;
-    
+
     async function fetchUnreadClubMessages() {
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const clubIds = myClubs.map((c: any) => c.id);
-      
+
       const { data } = await supabase
-        .from('club_messages')
-        .select('id, club_id, content, created_at, profile_id, profiles!inner(username, full_name, avatar_url), clubs!inner(name)')
-        .in('club_id', clubIds)
-        .gte('created_at', yesterday)
-        .neq('profile_id', profile.id)
-        .order('created_at', { ascending: false });
+        .from("club_messages")
+        .select(
+          "id, club_id, content, created_at, profile_id, profiles!inner(username, full_name, avatar_url), clubs!inner(name)",
+        )
+        .in("club_id", clubIds)
+        .gte("created_at", yesterday)
+        .neq("profile_id", profile.id)
+        .order("created_at", { ascending: false });
 
       if (data) {
         // Filter by unread
@@ -206,26 +245,26 @@ function Clubs() {
           const lastRead = lastReadStr ? new Date(lastReadStr).getTime() : 0;
           return new Date(msg.created_at).getTime() > lastRead;
         });
-        
+
         // Group by club to show message counts per club
         const countsPerClub = new Map();
         unread.forEach((msg: any) => {
           if (!countsPerClub.has(msg.club_id)) {
             countsPerClub.set(msg.club_id, {
               club_id: msg.club_id,
-              club_name: msg.clubs?.name || 'Club',
-              count: 1
+              club_name: msg.clubs?.name || "Club",
+              count: 1,
             });
           } else {
             const existing = countsPerClub.get(msg.club_id);
             existing.count += 1;
           }
         });
-        
+
         setUnreadClubMessages(Array.from(countsPerClub.values()));
       }
     }
-    
+
     fetchUnreadClubMessages();
   }, [profile, myClubs, showNotifications]);
 
@@ -235,32 +274,41 @@ function Clubs() {
     if (!profile || outgoingAccepted.length === 0) return;
 
     outgoingAccepted.forEach(async (r: any) => {
-      const parts = r.content.split(':');
+      const parts = r.content.split(":");
       const clubId = parts[1];
       if (clubId) {
         const isMember = myClubs.some((c: any) => c.id === clubId);
         if (!isMember) {
-          const { error: insErr } = await supabase
-            .from('club_members')
-            .insert([{
+          const { error: insErr } = await supabase.from("club_members").insert([
+            {
               club_id: clubId,
               profile_id: profile.id,
-              role: 'Member'
-            }]);
+              role: "Member",
+            },
+          ]);
           if (!insErr) {
             toast.success(`Joined approved club!`);
             // Clean up the request so it doesn't trigger again
-            await supabase.from('messages').update({ content: 'DISMISSED_CLUB_REQUEST' }).eq('id', r.id);
-            setOutgoingRequests(prev => prev.filter(m => m.id !== r.id));
+            await supabase
+              .from("messages")
+              .update({ content: "DISMISSED_CLUB_REQUEST" })
+              .eq("id", r.id);
+            setOutgoingRequests((prev) => prev.filter((m) => m.id !== r.id));
           } else {
             // If it failed (RLS etc), dismiss to prevent loops
-            await supabase.from('messages').update({ content: 'DISMISSED_CLUB_REQUEST' }).eq('id', r.id);
-            setOutgoingRequests(prev => prev.filter(m => m.id !== r.id));
+            await supabase
+              .from("messages")
+              .update({ content: "DISMISSED_CLUB_REQUEST" })
+              .eq("id", r.id);
+            setOutgoingRequests((prev) => prev.filter((m) => m.id !== r.id));
           }
         } else {
           // Already a member, cleanup request to prevent infinite loops
-          await supabase.from('messages').update({ content: 'DISMISSED_CLUB_REQUEST' }).eq('id', r.id);
-          setOutgoingRequests(prev => prev.filter(m => m.id !== r.id));
+          await supabase
+            .from("messages")
+            .update({ content: "DISMISSED_CLUB_REQUEST" })
+            .eq("id", r.id);
+          setOutgoingRequests((prev) => prev.filter((m) => m.id !== r.id));
         }
       }
     });
@@ -286,12 +334,12 @@ function Clubs() {
        * second copy of that rule that could disagree with the first — a public
        * club that had turned approval on was letting people walk in.
        */
-      const { data, error } = await supabase.rpc('join_club', { p_club_id: club.id });
+      const { data, error } = await supabase.rpc("join_club", { p_club_id: club.id });
       if (error) throw error;
 
       const result = data as any;
 
-      if (result?.status === 'requested') {
+      if (result?.status === "requested") {
         toast.success("Request sent to the club admin", {
           description: "You will hear back as soon as they decide.",
         });
@@ -299,7 +347,7 @@ function Clubs() {
         return;
       }
 
-      if (result?.status === 'insufficient_funds') {
+      if (result?.status === "insufficient_funds") {
         toast.error(`${format(Number(result.fee) || 0)} is needed to join this club.`, {
           description: `Add ${format(Number(result.shortfall) || 0)} to your wallet to continue.`,
           action: { label: "Add money", onClick: () => navigate({ to: "/app/wallet/add-money" }) },
@@ -323,65 +371,73 @@ function Clubs() {
     }
   };
 
-  const handleDecideRequest = async (messageId: string, clubId: string, applicantId: string, decision: 'accept' | 'decline', allIds?: string[]) => {
+  const handleDecideRequest = async (
+    messageId: string,
+    clubId: string,
+    applicantId: string,
+    decision: "accept" | "decline",
+    allIds?: string[],
+  ) => {
     setDecidingId(messageId);
     try {
-      const idsToTarget = Array.from(new Set([
-        ...(allIds || [messageId]),
-        ...incomingRequests
-          .filter(m => {
-            const parts = m.content?.split(':') || [];
-            return m.sender_id === applicantId && parts[1] === clubId && parts[3] === 'pending';
-          })
-          .map(m => m.id)
-      ]));
+      const idsToTarget = Array.from(
+        new Set([
+          ...(allIds || [messageId]),
+          ...incomingRequests
+            .filter((m) => {
+              const parts = m.content?.split(":") || [];
+              return m.sender_id === applicantId && parts[1] === clubId && parts[3] === "pending";
+            })
+            .map((m) => m.id),
+        ]),
+      );
 
-      if (decision === 'accept') {
+      if (decision === "accept") {
         for (const id of idsToTarget) {
-          const msgToUpdate = incomingRequests.find(m => m.id === id);
+          const msgToUpdate = incomingRequests.find((m) => m.id === id);
           if (msgToUpdate) {
-            const parts = msgToUpdate.content.split(':');
-            parts[3] = 'accepted';
-            const newContent = parts.join(':');
+            const parts = msgToUpdate.content.split(":");
+            parts[3] = "accepted";
+            const newContent = parts.join(":");
 
             await supabase
-              .from('messages')
+              .from("messages")
               .update({ content: newContent, is_read: true })
-              .eq('id', id);
+              .eq("id", id);
           }
         }
 
         // Automatically add the accepted user to the club
-        const { error: memberError } = await supabase
-          .from('club_members')
-          .insert([{
+        const { error: memberError } = await supabase.from("club_members").insert([
+          {
             club_id: clubId,
             profile_id: applicantId,
-            role: 'Member'
-          }]);
+            role: "Member",
+          },
+        ]);
 
-        if (memberError && memberError.code !== '23505') {
+        if (memberError && memberError.code !== "23505") {
           console.error("Error adding member to club:", memberError);
         }
-        
-        setIncomingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
+
+        setIncomingRequests((prev) => prev.filter((m) => !idsToTarget.includes(m.id)));
         toast.success("Request approved! Builder added to your private club.");
       } else {
         for (const id of idsToTarget) {
-          const msgToUpdate = incomingRequests.find(m => m.id === id);
+          const msgToUpdate = incomingRequests.find((m) => m.id === id);
           if (msgToUpdate) {
-            const parts = msgToUpdate.content.split(':');
-            parts[3] = 'declined';
-            const newContent = parts.join(':');
+            const parts = msgToUpdate.content.split(":");
+            parts[3] = "declined";
+            const newContent = parts.join(":");
 
             await supabase
-              .from('messages')
+              .from("messages")
               .update({ content: newContent, is_read: true })
-              .eq('id', id);
+              .eq("id", id);
           }
         }
 
-        setIncomingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
+        setIncomingRequests((prev) => prev.filter((m) => !idsToTarget.includes(m.id)));
         toast.error("Request declined.");
       }
     } catch (err: any) {
@@ -391,20 +447,24 @@ function Clubs() {
     }
   };
 
-  const handleDismissNotification = async (messageId: string, type: 'incoming' | 'outgoing', allIds?: string[]) => {
+  const handleDismissNotification = async (
+    messageId: string,
+    type: "incoming" | "outgoing",
+    allIds?: string[],
+  ) => {
     try {
       const idsToTarget = allIds && allIds.length > 0 ? allIds : [messageId];
       // Instead of DELETE which might fail silently due to RLS, we UPDATE the content so it no longer matches the CLUB_REQUEST prefix
       const { error } = await supabase
-        .from('messages')
-        .update({ content: 'DISMISSED_CLUB_REQUEST', is_read: true })
-        .in('id', idsToTarget);
-        
+        .from("messages")
+        .update({ content: "DISMISSED_CLUB_REQUEST", is_read: true })
+        .in("id", idsToTarget);
+
       if (error) throw error;
-      if (type === 'incoming') {
-        setIncomingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
+      if (type === "incoming") {
+        setIncomingRequests((prev) => prev.filter((m) => !idsToTarget.includes(m.id)));
       } else {
-        setOutgoingRequests(prev => prev.filter(m => !idsToTarget.includes(m.id)));
+        setOutgoingRequests((prev) => prev.filter((m) => !idsToTarget.includes(m.id)));
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to dismiss notification");
@@ -412,31 +472,40 @@ function Clubs() {
   };
 
   const currentProfile = liveProfile || profile;
-  const clubCapacity: ClubCapacity = membershipAudience(currentProfile) === "Learner" && !currentProfile?.is_admin
-    ? fallbackClubCapacity(currentProfile, userCreatedClubs.length)
-    : capacityData || fallbackClubCapacity(currentProfile, userCreatedClubs.length);
+  const clubCapacity: ClubCapacity =
+    membershipAudience(currentProfile) === "Learner" && !currentProfile?.is_admin
+      ? fallbackClubCapacity(currentProfile, userCreatedClubs.length)
+      : capacityData || fallbackClubCapacity(currentProfile, userCreatedClubs.length);
   const capacityLabel = `${clubCapacity.permanent_club_count} owned`;
-  const capacityCaption = clubCapacity.permanent_club_limit === null
-    ? "Permanent Clubs"
-    : `${clubCapacity.permanent_club_limit} allowed on plan`;
+  const capacityCaption =
+    clubCapacity.permanent_club_limit === null
+      ? "Permanent Clubs"
+      : `${clubCapacity.permanent_club_limit} allowed on plan`;
 
   const normalizedClubSearch = clubSearch.trim().toLocaleLowerCase();
   const matchesClubName = (club: any) =>
-    !normalizedClubSearch || String(club?.name || "").toLocaleLowerCase().includes(normalizedClubSearch);
-  const filteredDiscover = discover.filter((club: any) =>
-    matchesClubName(club) &&
-    (activeCategory === "All" || String(club.category || "").toLocaleLowerCase().includes(activeCategory.toLocaleLowerCase()))
+    !normalizedClubSearch ||
+    String(club?.name || "")
+      .toLocaleLowerCase()
+      .includes(normalizedClubSearch);
+  const filteredDiscover = discover.filter(
+    (club: any) =>
+      matchesClubName(club) &&
+      (activeCategory === "All" ||
+        String(club.category || "")
+          .toLocaleLowerCase()
+          .includes(activeCategory.toLocaleLowerCase())),
   );
   const filteredMyClubs = myClubs.filter(matchesClubName);
-  const filteredBootClubs = bootClubs.filter(matchesClubName);
-  const visibleClubsTab = clubScope === "mine" ? "mine" : clubScope === "boot" ? "boot" : clubsTab;
   const showDiscoverSection = clubScope === "all" || clubScope === "discover";
-  const showJoinedSections = clubScope === "all" || clubScope === "mine" || clubScope === "boot";
+  const showJoinedSections = clubScope === "all" || clubScope === "mine";
 
   const handleCreateClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (membershipAudience(currentProfile) === "Learner" && !currentProfile?.is_admin) {
-      toast.error("Learners can join clubs but cannot create them. Switch to Creator mode from your menu to view Creator plans.");
+      toast.error(
+        "Learners can join clubs but cannot create them. Switch to Creator mode from your menu to view Creator plans.",
+      );
       return;
     }
     if (!clubCapacity.can_create) {
@@ -448,40 +517,53 @@ function Clubs() {
 
   const handleCreateClub = async () => {
     if (!newClub.name.trim()) return toast.error("Club name is required");
-    
+
     setIsSubmitting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      if (!clubCapacity.can_create) throw new Error(clubCapacity.upgrade_message || "Your current plan does not allow another permanent Club.");
+      if (!clubCapacity.can_create)
+        throw new Error(
+          clubCapacity.upgrade_message ||
+            "Your current plan does not allow another permanent Club.",
+        );
 
       const finalPrice = isPaid ? newClub.price : 0;
 
       const { data: club, error } = await supabase
-        .from('clubs')
-        .insert([{
-          name: newClub.name,
-          description: newClub.description,
-           category: newClub.category,
-           creator_id: session.user.id,
-           club_type: 'permanent',
-           is_private: false,
-          price: finalPrice
-        }])
+        .from("clubs")
+        .insert([
+          {
+            name: newClub.name,
+            description: newClub.description,
+            category: newClub.category,
+            creator_id: session.user.id,
+            club_type: "permanent",
+            is_private: false,
+            price: finalPrice,
+          },
+        ])
         .select()
         .single();
 
       if (error) throw error;
 
       // Add creator as Administrator
-      await supabase.from('club_members').insert([{
-        club_id: club.id,
-        profile_id: session.user.id,
-        role: 'Administrator'
-      }]);
+      await supabase.from("club_members").insert([
+        {
+          club_id: club.id,
+          profile_id: session.user.id,
+          role: "Administrator",
+        },
+      ]);
 
-      const firstClubPremium = ['creator', 'creator_max'].includes(String(clubCapacity.plan_key)) && clubCapacity.permanent_club_count === 0 && !profile?.first_club_benefit_redeemed;
+      const firstClubPremium =
+        ["creator", "creator_max"].includes(String(clubCapacity.plan_key)) &&
+        clubCapacity.permanent_club_count === 0 &&
+        !profile?.first_club_benefit_redeemed;
       try {
         sessionStorage.removeItem("zc:club-create-draft");
       } catch {
@@ -491,7 +573,11 @@ function Clubs() {
       setIsPaid(false);
       setShowCreate(false);
       await queryClient.invalidateQueries({ queryKey: ["clubs_data"] });
-      toast.success(firstClubPremium ? "Club created with 6 months of premium Club experience." : "Club created successfully.");
+      toast.success(
+        firstClubPremium
+          ? "Club created with 6 months of premium Club experience."
+          : "Club created successfully.",
+      );
     } catch (err: any) {
       toast.error(err.message || "Failed to create club");
     } finally {
@@ -500,11 +586,21 @@ function Clubs() {
   };
 
   const clubAvatar = (club: any, size = "h-12 w-12") => (
-    <span className={`${size} ${size.includes("rounded-") ? "" : "rounded-xl"} grid shrink-0 place-items-center overflow-hidden bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground`}>
+    <span
+      className={`${size} ${size.includes("rounded-") ? "" : "rounded-xl"} grid shrink-0 place-items-center overflow-hidden bg-foreground/[0.06] text-[15px] font-semibold text-muted-foreground`}
+    >
       {club?.logo_url || club?.banner_url ? (
-        <img src={club.logo_url || club.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+        <img
+          src={club.logo_url || club.banner_url}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
       ) : (
-        String(club?.name || "?").substring(0, 2).toUpperCase()
+        String(club?.name || "?")
+          .substring(0, 2)
+          .toUpperCase()
       )}
     </span>
   );
@@ -515,11 +611,17 @@ function Clubs() {
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto w-full max-w-[900px] px-4 md:px-6">
           <div className="flex h-14 items-center justify-between gap-2">
-            <h1 className="font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">Clubs</h1>
+            <h1 className="font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">
+              Clubs
+            </h1>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowNotifications(true)}
-                aria-label={clubRequests > 0 ? `Club requests and messages, ${clubRequests} new` : "Club requests and messages"}
+                aria-label={
+                  clubRequests > 0
+                    ? `Club requests and messages, ${clubRequests} new`
+                    : "Club requests and messages"
+                }
                 className="relative grid h-10 w-10 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
               >
                 <Bell className="h-[22px] w-[22px]" />
@@ -552,14 +654,15 @@ function Clubs() {
               { id: "all", label: "All clubs" },
               { id: "mine", label: "My clubs" },
               { id: "discover", label: "Discover" },
-              ...(bootClubs.length > 0 ? [{ id: "boot", label: "Boot clubs" }] : []),
             ].map((option) => (
               <button
                 type="button"
                 key={option.id}
-                onClick={() => setClubScope(option.id as "all" | "discover" | "mine" | "boot")}
+                onClick={() => setClubScope(option.id as "all" | "discover" | "mine")}
                 className={`h-8 shrink-0 rounded-full px-3.5 text-[14px] font-semibold tap ${
-                  clubScope === option.id ? "bg-foreground text-background" : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
+                  clubScope === option.id
+                    ? "bg-foreground text-background"
+                    : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
                 }`}
               >
                 {option.label}
@@ -574,7 +677,9 @@ function Clubs() {
           <b className="font-semibold text-foreground">{capacityLabel}</b> · {capacityCaption}
           {(totalOnlineBuilders || 0) > 0 && (
             <>
-              <span className="mx-1.5" aria-hidden>·</span>
+              <span className="mx-1.5" aria-hidden>
+                ·
+              </span>
               <span className="inline-flex items-center gap-1 font-semibold text-success">
                 <span className="h-1.5 w-1.5 rounded-full bg-success" />
                 {totalOnlineBuilders} online now
@@ -587,86 +692,67 @@ function Clubs() {
             often returning to a club they are in than looking for a new one. */}
         {showJoinedSections && (
           <section className="mt-2 bg-card md:rounded-xl md:border md:border-border">
-            <div className="flex items-center gap-[22px] border-b border-border px-4 md:px-6">
-              <button
-                onClick={() => setClubsTab("mine")}
-                className={`relative flex h-11 items-center gap-1.5 text-[14px] font-semibold ${visibleClubsTab === "mine" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                My clubs <span className="text-[12px] font-medium text-muted-foreground">{filteredMyClubs.length}</span>
-                {visibleClubsTab === "mine" && <span className="absolute inset-x-0 bottom-0 h-[2px] bg-foreground" />}
-              </button>
-              {(bootClubs.length > 0 || clubScope === "boot") && (
-                <button
-                  onClick={() => setClubsTab("boot")}
-                  className={`relative flex h-11 items-center gap-1.5 text-[14px] font-semibold ${visibleClubsTab === "boot" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  Boot clubs <span className="text-[12px] font-medium text-muted-foreground">{filteredBootClubs.length}</span>
-                  {visibleClubsTab === "boot" && <span className="absolute inset-x-0 bottom-0 h-[2px] bg-foreground" />}
-                </button>
-              )}
+            {/* One list now: the Boot clubs tab is gone, so a tab strip would
+                be a single tab. */}
+            <div className="flex items-center border-b border-border px-4 md:px-6">
+              <h2 className="flex h-11 items-center gap-1.5 text-[14px] font-semibold text-foreground">
+                My clubs{" "}
+                <span className="text-[12px] font-medium text-muted-foreground">
+                  {filteredMyClubs.length}
+                </span>
+              </h2>
             </div>
 
-            {visibleClubsTab === "mine" ? (
-              filteredMyClubs.length > 0 ? (
-                <div className="md:grid md:grid-cols-2 md:gap-x-6 md:px-2">
-                  {filteredMyClubs.map((c: any) => (
-                    <Link key={c.id} to="/app/clubs/$clubId" params={{ clubId: c.id }} className="flex min-w-0 items-center gap-3 border-b border-border px-4 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.02]">
-                      {clubAvatar(c)}
-                      <span className="min-w-0 flex-1">
-                        <span className="flex min-w-0 items-center gap-1.5">
-                          <span className="truncate text-[15px] font-semibold text-foreground">{c.name}</span>
-                          {c.is_private && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-                        </span>
-                        <span className="block truncate text-[13px] text-muted-foreground">
-                          {(c.members_count || 1).toLocaleString()} {(c.members_count || 1) === 1 ? "member" : "members"}
-                          {(c.online_count || 0) > 0 && <span className="font-semibold text-success"> · {c.online_count} online</span>}
-                        </span>
-                      </span>
-                      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-6 py-10 text-center">
-                  <p className="text-[14px] text-muted-foreground">
-                    {clubSearch ? `No joined club name matches “${clubSearch.trim()}”.` : "You haven't joined any clubs yet."}
-                  </p>
-                  {!clubSearch && (
-                    <button onClick={handleCreateClick} className="mt-4 h-10 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background tap">
-                      Create a club
-                    </button>
-                  )}
-                </div>
-              )
-            ) : filteredBootClubs.length > 0 ? (
+            {filteredMyClubs.length > 0 ? (
               <div className="md:grid md:grid-cols-2 md:gap-x-6 md:px-2">
-                {filteredBootClubs.map((c: any) => {
-                  const endsAt = c.bootcamps?.ends_at ? new Date(c.bootcamps.ends_at) : null;
-                  const ended = endsAt ? endsAt < new Date() : false;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => navigate({ to: "/app/clubs/chat", search: { clubId: c.id } as any })}
-                      className="flex w-full min-w-0 items-center gap-3 border-b border-border px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-foreground/[0.02]"
-                    >
-                      {clubAvatar(c)}
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[15px] font-semibold text-foreground">{c.name}</span>
-                        <span className="block truncate text-[13px] text-muted-foreground">
-                          {(c.members_count || 0).toLocaleString()} members · {ended ? "Read-only archive" : endsAt ? `Ends ${endsAt.toLocaleDateString()}` : "Runs with the bootcamp"}
+                {filteredMyClubs.map((c: any) => (
+                  <Link
+                    key={c.id}
+                    to="/app/clubs/$clubId"
+                    params={{ clubId: c.id }}
+                    className="flex min-w-0 items-center gap-3 border-b border-border px-4 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.02]"
+                  >
+                    {clubAvatar(c)}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate text-[15px] font-semibold text-foreground">
+                          {c.name}
                         </span>
+                        {c.is_private && (
+                          <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        )}
                       </span>
-                      <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${ended ? "bg-foreground/[0.06] text-muted-foreground" : "bg-accent/10 text-accent"}`}>
-                        {ended ? "Ended" : "Bootcamp"}
+                      <span className="block truncate text-[13px] text-muted-foreground">
+                        {(c.members_count || 1).toLocaleString()}{" "}
+                        {(c.members_count || 1) === 1 ? "member" : "members"}
+                        {(c.online_count || 0) > 0 && (
+                          <span className="font-semibold text-success">
+                            {" "}
+                            · {c.online_count} online
+                          </span>
+                        )}
                       </span>
-                    </button>
-                  );
-                })}
+                    </span>
+                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  </Link>
+                ))}
               </div>
             ) : (
-              <p className="px-6 py-10 text-center text-[14px] text-muted-foreground">
-                {clubSearch ? `No Boot Club name matches “${clubSearch.trim()}”.` : "No Boot Clubs are available yet."}
-              </p>
+              <div className="px-6 py-10 text-center">
+                <p className="text-[14px] text-muted-foreground">
+                  {clubSearch
+                    ? `No joined club name matches “${clubSearch.trim()}”.`
+                    : "You haven't joined any clubs yet."}
+                </p>
+                {!clubSearch && (
+                  <button
+                    onClick={handleCreateClick}
+                    className="mt-4 h-10 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background tap"
+                  >
+                    Create a club
+                  </button>
+                )}
+              </div>
             )}
           </section>
         )}
@@ -676,29 +762,38 @@ function Clubs() {
             <div className="flex items-center justify-between">
               <h2 className="font-display text-[18px] font-semibold text-foreground">Discover</h2>
               {filteredDiscover.length > 6 && (
-                <button onClick={() => setShowAllDiscover(!showAllDiscover)} className="text-[14px] font-semibold text-muted-foreground hover:text-foreground">
+                <button
+                  onClick={() => setShowAllDiscover(!showAllDiscover)}
+                  className="text-[14px] font-semibold text-muted-foreground hover:text-foreground"
+                >
                   {showAllDiscover ? "See less" : "See all"}
                 </button>
               )}
             </div>
             <div className="no-scrollbar -mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
-              {["All", "Tech", "AI", "Design", "Startup", "Writing", "Marketing", "Campus"].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`h-8 shrink-0 rounded-full px-3.5 text-[14px] font-semibold tap ${
-                    activeCategory === cat ? "bg-foreground text-background" : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+              {["All", "Tech", "AI", "Design", "Startup", "Writing", "Marketing", "Campus"].map(
+                (cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`h-8 shrink-0 rounded-full px-3.5 text-[14px] font-semibold tap ${
+                      activeCategory === cat
+                        ? "bg-foreground text-background"
+                        : "border border-foreground/30 text-foreground/75 hover:bg-foreground/[0.04]"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ),
+              )}
             </div>
 
             {filteredDiscover.length > 0 ? (
               <div className="mt-3 grid grid-cols-2 gap-2.5 md:grid-cols-3">
                 {filteredDiscover
-                  .sort((a: any, b: any) => a.name === "Zero K Bootcamp" ? -1 : b.name === "Zero K Bootcamp" ? 1 : 0)
+                  .sort((a: any, b: any) =>
+                    a.name === "Zero K Bootcamp" ? -1 : b.name === "Zero K Bootcamp" ? 1 : 0,
+                  )
                   .slice(0, showAllDiscover ? 50 : 6)
                   .map((d: any) => {
                     const isFeatured = d.name === "Zero K Bootcamp";
@@ -709,18 +804,45 @@ function Clubs() {
                       <article
                         key={d.id}
                         // The whole card opens the join sheet, not just the small button.
-                        onClick={isAlreadyJoined || isRequested ? undefined : () => { setSelectedClub(d); setShowJoinModal(true); }}
-                        onKeyDown={isAlreadyJoined || isRequested ? undefined : (e) => {
-                          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedClub(d); setShowJoinModal(true); }
-                        }}
+                        onClick={
+                          isAlreadyJoined || isRequested
+                            ? undefined
+                            : () => {
+                                setSelectedClub(d);
+                                setShowJoinModal(true);
+                              }
+                        }
+                        onKeyDown={
+                          isAlreadyJoined || isRequested
+                            ? undefined
+                            : (e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setSelectedClub(d);
+                                  setShowJoinModal(true);
+                                }
+                              }
+                        }
                         role={isAlreadyJoined || isRequested ? undefined : "button"}
                         tabIndex={isAlreadyJoined || isRequested ? undefined : 0}
                         aria-label={isAlreadyJoined || isRequested ? undefined : `View ${d.name}`}
                         className={`flex min-w-0 flex-col overflow-hidden rounded-xl border border-border text-center ${isAlreadyJoined || isRequested ? "" : "cursor-pointer transition active:scale-[0.98]"}`}
                       >
                         <div className="relative h-14 bg-foreground/[0.06]">
-                          {d.banner_url && <img src={d.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
-                          {isFeatured && <span className="absolute left-2 top-2 rounded-full bg-card/95 px-2 py-0.5 text-[11px] font-semibold text-foreground">Featured</span>}
+                          {d.banner_url && (
+                            <img
+                              src={d.banner_url}
+                              alt=""
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          )}
+                          {isFeatured && (
+                            <span className="absolute left-2 top-2 rounded-full bg-card/95 px-2 py-0.5 text-[11px] font-semibold text-foreground">
+                              Featured
+                            </span>
+                          )}
                         </div>
                         {/* relative + z-10: the banner is positioned, so without its own
                             stacking the logo was painted underneath it. */}
@@ -733,14 +855,23 @@ function Clubs() {
                           </span>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-3 pt-1.5">
-                          <p className="line-clamp-2 text-[14px] font-semibold leading-snug text-foreground">{d.name}</p>
-                          <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                            {needsApproval ? "Approval" : "Open"} · {(d.members_count || 0).toLocaleString()} members
+                          <p className="line-clamp-2 text-[14px] font-semibold leading-snug text-foreground">
+                            {d.name}
                           </p>
-                          <p className="truncate text-[12px] text-muted-foreground">{clubPriceLabel(d)}</p>
+                          <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+                            {needsApproval ? "Approval" : "Open"} ·{" "}
+                            {(d.members_count || 0).toLocaleString()} members
+                          </p>
+                          <p className="truncate text-[12px] text-muted-foreground">
+                            {clubPriceLabel(d)}
+                          </p>
                           <div className="mt-auto pt-2.5">
                             {isAlreadyJoined ? (
-                              <Link to="/app/clubs/$clubId" params={{ clubId: d.id }} className="flex h-8 items-center justify-center rounded-full bg-foreground/[0.06] text-[14px] font-semibold text-foreground tap">
+                              <Link
+                                to="/app/clubs/$clubId"
+                                params={{ clubId: d.id }}
+                                className="flex h-8 items-center justify-center rounded-full bg-foreground/[0.06] text-[14px] font-semibold text-foreground tap"
+                              >
                                 Open
                               </Link>
                             ) : (
@@ -764,7 +895,9 @@ function Clubs() {
               </div>
             ) : (
               <p className="py-8 text-center text-[14px] text-muted-foreground">
-                {clubSearch ? `No club name matches “${clubSearch.trim()}”.` : "No clubs to discover right now."}
+                {clubSearch
+                  ? `No club name matches “${clubSearch.trim()}”.`
+                  : "No clubs to discover right now."}
               </p>
             )}
           </section>
@@ -787,19 +920,25 @@ function Clubs() {
 
           <div className="space-y-4 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2">
             <div>
-              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Club name</label>
+              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
+                Club name
+              </label>
               <input
                 value={newClub.name}
-                onChange={e => setNewClub(current => ({ ...current, name: e.target.value }))}
+                onChange={(e) => setNewClub((current) => ({ ...current, name: e.target.value }))}
                 placeholder="e.g. Lagos Design Squad"
                 className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Description</label>
+              <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
+                Description
+              </label>
               <textarea
                 value={newClub.description}
-                onChange={e => setNewClub(current => ({ ...current, description: e.target.value }))}
+                onChange={(e) =>
+                  setNewClub((current) => ({ ...current, description: e.target.value }))
+                }
                 placeholder="What's this club about?"
                 rows={3}
                 className="w-full resize-none rounded-[10px] border border-foreground/15 bg-card px-3 py-2.5 text-[15px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
@@ -807,9 +946,11 @@ function Clubs() {
             </div>
             {clubCapacity.can_create ? (
               <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Access</label>
+                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
+                  Access
+                </label>
                 <div className="grid grid-cols-2 gap-2.5">
-                  {["Free", "Paid"].map(type => {
+                  {["Free", "Paid"].map((type) => {
                     const selected = (type === "Paid" && isPaid) || (type === "Free" && !isPaid);
                     return (
                       <button
@@ -824,14 +965,18 @@ function Clubs() {
                         }`}
                       >
                         <span className="min-w-0">
-                          <span className="block text-[15px] font-semibold text-foreground">{type}</span>
+                          <span className="block text-[15px] font-semibold text-foreground">
+                            {type}
+                          </span>
                           <span className="mt-0.5 block text-[13px] text-muted-foreground">
                             {type === "Paid" ? "Set an entry fee" : "No entry fee"}
                           </span>
                         </span>
                         <span
                           className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
-                            selected ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/25"
+                            selected
+                              ? "bg-[#cc208f] text-white"
+                              : "border-[1.5px] border-foreground/25"
                           }`}
                         >
                           {selected ? <Check className="h-3 w-3" /> : null}
@@ -845,11 +990,15 @@ function Clubs() {
 
             {isPaid && clubCapacity.can_create && (
               <div className="animate-in fade-in slide-in-from-top-2">
-                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Entry fee ({currencyDetails.symbol})</label>
+                <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
+                  Entry fee ({currencyDetails.symbol})
+                </label>
                 <input
                   type="number"
                   value={newClub.price}
-                  onChange={e => setNewClub(current => ({ ...current, price: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setNewClub((current) => ({ ...current, price: Number(e.target.value) }))
+                  }
                   placeholder="e.g. 5000"
                   className="h-11 w-full rounded-[10px] border border-foreground/15 bg-card px-3 text-[15px] tabular-nums text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                 />
@@ -875,9 +1024,12 @@ function Clubs() {
             <div className="grid h-12 w-12 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <DrawerTitle className="mt-4 font-display text-[20px] font-semibold leading-tight text-foreground">Limit reached</DrawerTitle>
+            <DrawerTitle className="mt-4 font-display text-[20px] font-semibold leading-tight text-foreground">
+              Limit reached
+            </DrawerTitle>
             <DrawerDescription className="mt-1 max-w-sm text-[14px] leading-relaxed text-muted-foreground">
-              {clubCapacity.upgrade_message || "Your current plan does not allow another permanent Club."}
+              {clubCapacity.upgrade_message ||
+                "Your current plan does not allow another permanent Club."}
             </DrawerDescription>
 
             <div className="mt-7 w-full space-y-2.5">
@@ -901,11 +1053,16 @@ function Clubs() {
 
       {/* Club Notifications Drawer */}
       <Drawer open={showNotifications} onOpenChange={setShowNotifications}>
-        <DrawerContent desktopVariant="panel" className="mx-auto flex max-h-[85vh] max-w-[620px] flex-col border-t border-border/60 bg-background p-0 shadow-[0_-16px_40px_-24px_rgba(0,0,0,0.45)]">
+        <DrawerContent
+          desktopVariant="panel"
+          className="mx-auto flex max-h-[85vh] max-w-[620px] flex-col border-t border-border/60 bg-background p-0 shadow-[0_-16px_40px_-24px_rgba(0,0,0,0.45)]"
+        >
           <DrawerHeader className="shrink-0 gap-0 px-5 pb-3 pt-1 sm:gap-0 sm:px-5 sm:pb-3 sm:pt-1">
             <div className="flex items-center gap-2">
-              <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">Notifications</DrawerTitle>
-              {(pendingRequestsGrouped.length + unreadClubMessages.length) > 0 && (
+              <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
+                Notifications
+              </DrawerTitle>
+              {pendingRequestsGrouped.length + unreadClubMessages.length > 0 && (
                 <span className="rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold tabular-nums text-[#a3186f]">
                   {pendingRequestsGrouped.length + unreadClubMessages.length}
                 </span>
@@ -918,7 +1075,8 @@ function Clubs() {
 
           <div className="no-scrollbar flex-1 overflow-y-auto px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-1">
             {(() => {
-              const hasNotifications = pendingRequestsGrouped.length > 0 || unreadClubMessages.length > 0;
+              const hasNotifications =
+                pendingRequestsGrouped.length > 0 || unreadClubMessages.length > 0;
 
               if (!hasNotifications) {
                 return (
@@ -927,7 +1085,9 @@ function Clubs() {
                       <Bell className="h-6 w-6" />
                     </div>
                     <p className="mt-4 text-[16px] font-semibold text-foreground">All caught up</p>
-                    <p className="mt-1 text-[14px] text-muted-foreground">You have no new notifications.</p>
+                    <p className="mt-1 text-[14px] text-muted-foreground">
+                      You have no new notifications.
+                    </p>
                   </div>
                 );
               }
@@ -936,17 +1096,22 @@ function Clubs() {
                 <div className="space-y-5">
                   {pendingRequestsGrouped.length > 0 && (
                     <section>
-                      <h3 className="mb-1 text-[13px] font-semibold text-muted-foreground">Join requests</h3>
+                      <h3 className="mb-1 text-[13px] font-semibold text-muted-foreground">
+                        Join requests
+                      </h3>
                       <div className="divide-y divide-border/60">
                         {pendingRequestsGrouped.map(({ request: r, allIds }) => {
-                          const parts = r.content.split(':');
+                          const parts = r.content.split(":");
                           const clubId = parts[1];
                           const clubName = parts[2];
                           const sender = r.sender || {};
                           const isExpanded = expandedRequestId === r.id;
 
                           return (
-                            <SwipeableNotification key={r.id} onDismiss={() => handleDismissNotification(r.id, 'incoming', allIds)}>
+                            <SwipeableNotification
+                              key={r.id}
+                              onDismiss={() => handleDismissNotification(r.id, "incoming", allIds)}
+                            >
                               <article
                                 className="cursor-pointer py-3"
                                 onClick={() => setExpandedRequestId(isExpanded ? null : r.id)}
@@ -954,23 +1119,40 @@ function Clubs() {
                                 <div className="flex w-full items-center gap-3">
                                   <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-foreground/[0.06] text-[15px] font-semibold text-foreground">
                                     {sender.avatar_url ? (
-                                      <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                                      <img
+                                        src={sender.avatar_url}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
+                                      />
                                     ) : (
-                                      (sender.full_name || sender.username || 'U').substring(0, 1).toUpperCase()
+                                      (sender.full_name || sender.username || "U")
+                                        .substring(0, 1)
+                                        .toUpperCase()
                                     )}
                                   </div>
 
                                   <div className="min-w-0 flex-1">
                                     <h4 className="flex items-baseline gap-1.5 truncate text-[15px] font-semibold text-foreground">
-                                      <span className="truncate">{sender.full_name || sender.username}</span>
-                                      <span className="shrink-0 text-[13px] font-normal text-muted-foreground">{getFirstName(sender)}</span>
+                                      <span className="truncate">
+                                        {sender.full_name || sender.username}
+                                      </span>
+                                      <span className="shrink-0 text-[13px] font-normal text-muted-foreground">
+                                        {getFirstName(sender)}
+                                      </span>
                                     </h4>
                                     <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-                                      Wants to join <span className="font-semibold text-foreground">{clubName}</span>
+                                      Wants to join{" "}
+                                      <span className="font-semibold text-foreground">
+                                        {clubName}
+                                      </span>
                                     </p>
                                   </div>
 
-                                  <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                  <ChevronDown
+                                    className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                                  />
                                 </div>
 
                                 <AnimatePresence>
@@ -983,20 +1165,38 @@ function Clubs() {
                                     >
                                       <div className="flex items-center gap-2.5 pl-14 pt-3">
                                         <button
-                                          disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
+                                          disabled={
+                                            decidingId !== null &&
+                                            (decidingId === r.id || allIds.includes(decidingId))
+                                          }
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDecideRequest(r.id, clubId, r.sender_id, 'decline', allIds);
+                                            handleDecideRequest(
+                                              r.id,
+                                              clubId,
+                                              r.sender_id,
+                                              "decline",
+                                              allIds,
+                                            );
                                           }}
                                           className="h-10 flex-1 rounded-full bg-[#e0245e]/10 text-[14px] font-semibold text-[#e0245e] transition-opacity hover:opacity-80 disabled:opacity-40"
                                         >
                                           Reject
                                         </button>
                                         <button
-                                          disabled={decidingId !== null && (decidingId === r.id || allIds.includes(decidingId))}
+                                          disabled={
+                                            decidingId !== null &&
+                                            (decidingId === r.id || allIds.includes(decidingId))
+                                          }
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDecideRequest(r.id, clubId, r.sender_id, 'accept', allIds);
+                                            handleDecideRequest(
+                                              r.id,
+                                              clubId,
+                                              r.sender_id,
+                                              "accept",
+                                              allIds,
+                                            );
                                           }}
                                           className="h-10 flex-1 rounded-full bg-foreground text-[14px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
                                         >
@@ -1016,14 +1216,19 @@ function Clubs() {
 
                   {unreadClubMessages.length > 0 && (
                     <section>
-                      <h3 className="mb-1 text-[13px] font-semibold text-muted-foreground">Club messages</h3>
+                      <h3 className="mb-1 text-[13px] font-semibold text-muted-foreground">
+                        Club messages
+                      </h3>
                       <div className="divide-y divide-border/60">
                         {unreadClubMessages.map((msgGroup: any) => (
                           <article
                             key={msgGroup.club_id}
                             onClick={() => {
                               setShowNotifications(false);
-                              navigate({ to: "/app/clubs/chat", search: { clubId: msgGroup.club_id } });
+                              navigate({
+                                to: "/app/clubs/chat",
+                                search: { clubId: msgGroup.club_id },
+                              });
                             }}
                             className="flex cursor-pointer items-center gap-3 py-3 transition-opacity active:opacity-70"
                           >
@@ -1036,7 +1241,10 @@ function Clubs() {
                                 {msgGroup.club_name}
                               </h4>
                               <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-                                <span className="font-semibold tabular-nums text-foreground">{msgGroup.count > 24 ? '24+' : msgGroup.count}</span> unseen message{msgGroup.count !== 1 ? 's' : ''} on the club
+                                <span className="font-semibold tabular-nums text-foreground">
+                                  {msgGroup.count > 24 ? "24+" : msgGroup.count}
+                                </span>{" "}
+                                unseen message{msgGroup.count !== 1 ? "s" : ""} on the club
                               </p>
                             </div>
 
@@ -1052,7 +1260,7 @@ function Clubs() {
           </div>
         </DrawerContent>
       </Drawer>
-      
+
       {/* Join Club Modal */}
       <Drawer open={showJoinModal} onOpenChange={setShowJoinModal}>
         <DrawerContent className="mx-auto max-h-[92dvh] max-w-lg overflow-hidden border-border bg-background p-0">
@@ -1073,12 +1281,22 @@ function Clubs() {
                   )}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
                   {Boolean((selectedClub as any).category) && (
-                    <span className="zc-join-rise absolute left-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md" style={{ animationDelay: "120ms" }}>
+                    <span
+                      className="zc-join-rise absolute left-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md"
+                      style={{ animationDelay: "120ms" }}
+                    >
                       {(selectedClub as any).category}
                     </span>
                   )}
-                  <span className="zc-join-rise absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md" style={{ animationDelay: "160ms" }}>
-                    {selectedClub.is_private ? <Lock className="h-3 w-3" /> : <Users className="h-3 w-3" />}
+                  <span
+                    className="zc-join-rise absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md"
+                    style={{ animationDelay: "160ms" }}
+                  >
+                    {selectedClub.is_private ? (
+                      <Lock className="h-3 w-3" />
+                    ) : (
+                      <Users className="h-3 w-3" />
+                    )}
                     {selectedClub.is_private ? "Private" : joinNeedsApproval ? "Approval" : "Open"}
                   </span>
                 </div>
@@ -1087,76 +1305,112 @@ function Clubs() {
                 <div className="relative z-10 -mt-9 flex items-end gap-3 px-6">
                   <div className="zc-join-pop h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[20px] border-4 border-background bg-background shadow-[0_10px_30px_-12px_rgba(0,0,0,0.45)]">
                     {selectedClub.logo_url ? (
-                      <img src={selectedClub.logo_url} alt="" className="h-full w-full object-cover" decoding="async" />
+                      <img
+                        src={selectedClub.logo_url}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        decoding="async"
+                      />
                     ) : (
                       <span className="grid h-full w-full place-items-center bg-foreground/[0.06] text-[20px] font-semibold text-muted-foreground">
-                        {String(selectedClub.name || "?").substring(0, 2).toUpperCase()}
+                        {String(selectedClub.name || "?")
+                          .substring(0, 2)
+                          .toUpperCase()}
                       </span>
                     )}
                   </div>
                 </div>
 
                 <div className="px-6 pb-8 pt-3">
-                  <DrawerTitle className="zc-join-rise font-display text-[22px] font-semibold leading-tight tracking-tight text-foreground" style={{ animationDelay: "140ms" }}>
+                  <DrawerTitle
+                    className="zc-join-rise font-display text-[22px] font-semibold leading-tight tracking-tight text-foreground"
+                    style={{ animationDelay: "140ms" }}
+                  >
                     {selectedClub.name}
                   </DrawerTitle>
-                  <p className="zc-join-rise mt-1 text-[13px] font-medium text-muted-foreground" style={{ animationDelay: "190ms" }}>
-                    {(selectedClub.members_count || 0).toLocaleString()} {(selectedClub.members_count || 0) === 1 ? "member" : "members"}
+                  <p
+                    className="zc-join-rise mt-1 text-[13px] font-medium text-muted-foreground"
+                    style={{ animationDelay: "190ms" }}
+                  >
+                    {(selectedClub.members_count || 0).toLocaleString()}{" "}
+                    {(selectedClub.members_count || 0) === 1 ? "member" : "members"}
                     {" · "}
                     {clubPriceLabel(selectedClub)}
                   </p>
 
                   {/* ── What the club is about ── */}
                   <div className="zc-join-rise mt-4" style={{ animationDelay: "240ms" }}>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">About</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      About
+                    </p>
                     <DrawerDescription asChild>
                       <div className="mt-1.5 text-[14.5px] leading-relaxed text-foreground/85">
-                        {String((selectedClub as any).description || "").trim()
-                          ? <RichText content={(selectedClub as any).description} />
-                          : "This club hasn't written a description yet. Join to see what members are working on."}
+                        {String((selectedClub as any).description || "").trim() ? (
+                          <RichText content={(selectedClub as any).description} />
+                        ) : (
+                          "This club hasn't written a description yet. Join to see what members are working on."
+                        )}
                       </div>
                     </DrawerDescription>
                   </div>
 
                   {joinNeedsApproval && (
-                    <div className="zc-join-rise mt-4 flex items-start gap-3 rounded-2xl bg-[#cc208f]/[0.07] p-4" style={{ animationDelay: "290ms" }}>
+                    <div
+                      className="zc-join-rise mt-4 flex items-start gap-3 rounded-2xl bg-[#cc208f]/[0.07] p-4"
+                      style={{ animationDelay: "290ms" }}
+                    >
                       <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#cc208f]" />
                       <div>
-                        <p className="text-[14px] font-semibold text-foreground">Admins review requests</p>
-                        <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">Your profile and public proof are shared with the club admins. You'll be notified as soon as they decide.</p>
+                        <p className="text-[14px] font-semibold text-foreground">
+                          Admins review requests
+                        </p>
+                        <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
+                          Your profile and public proof are shared with the club admins. You'll be
+                          notified as soon as they decide.
+                        </p>
                       </div>
                     </div>
                   )}
 
                   {/* Say the price before they tap, not after the wallet moves. */}
-                  {!joinNeedsApproval && !selectedClub.access_free && Number(selectedClub.subscription_fee) > 0 && (
-                    <div className="zc-join-rise mt-4 rounded-2xl bg-foreground/[0.04] p-4" style={{ animationDelay: "290ms" }}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-[13px] font-semibold text-muted-foreground">Membership fee</p>
-                          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                            Charged once from your Zero Club wallet when you join.
+                  {!joinNeedsApproval &&
+                    !selectedClub.access_free &&
+                    Number(selectedClub.subscription_fee) > 0 && (
+                      <div
+                        className="zc-join-rise mt-4 rounded-2xl bg-foreground/[0.04] p-4"
+                        style={{ animationDelay: "290ms" }}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-semibold text-muted-foreground">
+                              Membership fee
+                            </p>
+                            <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                              Charged once from your Zero Club wallet when you join.
+                            </p>
+                          </div>
+                          <p className="shrink-0 font-display text-[22px] font-semibold tabular-nums leading-tight text-foreground">
+                            {format(Number(selectedClub.subscription_fee))}
                           </p>
                         </div>
-                        <p className="shrink-0 font-display text-[22px] font-semibold tabular-nums leading-tight text-foreground">
-                          {format(Number(selectedClub.subscription_fee))}
-                        </p>
+                        <div className="mt-3">
+                          <RequestFundsButton
+                            amount={Number(selectedClub.subscription_fee)}
+                            purpose={`Membership of ${selectedClub.name} on Zero Club`}
+                            label="Ask someone to cover this"
+                            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/15 bg-card text-[14px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
+                          />
+                        </div>
                       </div>
-                      <div className="mt-3">
-                        <RequestFundsButton
-                          amount={Number(selectedClub.subscription_fee)}
-                          purpose={`Membership of ${selectedClub.name} on Zero Club`}
-                          label="Ask someone to cover this"
-                          className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/15 bg-card text-[14px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
-                        />
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </div>
 
               {/* ── Actions stay pinned, however long the description is ── */}
-              <div className="zc-join-rise grid shrink-0 grid-cols-2 gap-2.5 border-t border-border/60 bg-background px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3" style={{ animationDelay: "320ms" }}>
+              <div
+                className="zc-join-rise grid shrink-0 grid-cols-2 gap-2.5 border-t border-border/60 bg-background px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3"
+                style={{ animationDelay: "320ms" }}
+              >
                 <button
                   onClick={() => setShowJoinModal(false)}
                   className="h-12 rounded-full border-[1.5px] border-foreground/20 text-[15px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04] active:scale-[0.98]"
@@ -1171,7 +1425,11 @@ function Clubs() {
                   disabled={joiningClubId === selectedClub.id}
                   className="h-12 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.8)] transition hover:bg-[#b01c7b] active:scale-[0.98] disabled:opacity-40"
                 >
-                  {joiningClubId === selectedClub.id ? "Sending…" : joinNeedsApproval ? "Send request" : "Join now"}
+                  {joiningClubId === selectedClub.id
+                    ? "Sending…"
+                    : joinNeedsApproval
+                      ? "Send request"
+                      : "Join now"}
                 </button>
               </div>
             </div>

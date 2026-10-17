@@ -171,6 +171,18 @@ export function isBootcampCohortClub(club: any) {
   return club?.club_type === "bootcamp_cohort" || Boolean(club?.bootcamp_id) || String(club?.category || "").toLowerCase() === "bootcamp";
 }
 
+/**
+ * Anything that is a class inside a community: a bootcamp cohort, or a cohort
+ * created in a club hub (any join mode, with or without a bootcamp behind it).
+ *
+ * The Clubs tab lists communities, so these must stay out of it. They are
+ * reached through their community's hub instead — listed alongside the club
+ * they belong to, one cohort would read as two separate clubs.
+ */
+export function isCohortSubgroup(club: any) {
+  return club?.club_type === "cohort" || Boolean(club?.parent_club_id) || isBootcampCohortClub(club);
+}
+
 export function formatNaira(amount: number) {
   return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(amount);
 }
