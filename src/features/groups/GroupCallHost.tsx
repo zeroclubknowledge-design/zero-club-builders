@@ -16,8 +16,10 @@ import AgoraRTC, {
   usePublish,
   useRemoteUsers,
   type IAgoraRTCClient,
+  type ILocalAudioTrack,
+  type ILocalVideoTrack,
 } from "agora-rtc-react";
-import { Loader2, Maximize2, Mic, MicOff, Minimize2, PhoneOff, RefreshCw, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
+import { Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useOrientationLock } from "@/hooks/useOrientationLock";
@@ -317,7 +319,60 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     }
   };
 
-  const tiles = remoteUsers.length + 1;
+  /* ── Screen sharing ── */
+  const [sharing, setSharing] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
+  const share = useRef<{ client: IAgoraRTCClient; video: ILocalVideoTrack; audio: ILocalAudioTrack | null } | null>(null);
+  const stopShare = async (quiet = false) => {
+    const current = share.current;
+    share.current = null;
+    setSharing(false);
+    if (!current) return;
+    try { await current.client.unpublish(); } catch { /* already gone */ }
+    current.video.close(); current.audio?.close();
+    await current.client.leave().catch(() => {});
+    if (!quiet) toast.message("You stopped sharing your screen");
+  };
+  const startShare = async () => {
+    if (share.current || shareBusy) return;
+    if (!canShareScreen()) { toast.message("Screen sharing works from a computer browser (Chrome, Edge or Firefox)."); return; }
+    const others = remoteUsers.find((u) => isScreenUid(u.uid));
+    if (others) { toast.message(`${byUid.get(ownerOfScreen(others.uid))?.name || "Someone"} is already sharing their screen`); return; }
+    setShareBusy(true);
+    let created: { video: ILocalVideoTrack; audio: ILocalAudioTrack | null } | null = null;
+    let screenClient: IAgoraRTCClient | null = null;
+    try {
+      const tracks = await AgoraRTC.createScreenVideoTrack({ encoderConfig: "1080p_1", optimizationMode: "detail" }, "auto");
+      created = Array.isArray(tracks) ? { video: tracks[0], audio: tracks[1] } : { video: tracks, audio: null };
+      const screenUid = Number(myUid) + SCREEN_UID_OFFSET;
+      const { data, error } = await supabase.functions.invoke("agora-token", { body: { channelName: channel, uid: screenUid } });
+      if (error || !data?.token) throw new Error("Couldn't start screen sharing. Check your connection and try again.");
+      screenClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+      await screenClient.join(APP_ID, channel, data.token, screenUid);
+      await screenClient.publish(created.audio ? [created.video, created.audio] : [created.video]);
+      share.current = { client: screenClient, ...created };
+      // The browser's own "Stop sharing" bar ends the track; follow it.
+      created.video.on("track-ended", () => { void stopShare(); });
+      setSharing(true);
+      toast.success("You're sharing your screen");
+    } catch (error: any) {
+      created?.video.close(); created?.audio?.close();
+      if (screenClient) void screenClient.leave().catch(() => {});
+      const msg = String(error?.message || "");
+      if (!/permission|denied|NotAllowed|cancel/i.test(msg)) toast.error(msg || "Couldn't share your screen");
+    } finally {
+      setShareBusy(false);
+    }
+  };
+  // Never leave a screen share running after the call screen goes away.
+  useEffect(() => () => { void stopShare(true); }, []);
+  useEffect(() => { if (leaving) void stopShare(true); }, [leaving]);
+
+  const myScreenUid = String(Number(myUid) + SCREEN_UID_OFFSET);
+  const people_ = remoteUsers.filter((u) => !isScreenUid(u.uid));
+  const remoteScreen = remoteUsers.find((u) => isScreenUid(u.uid) && String(u.uid) !== myScreenUid) || null;
+  const stageOn = sharing || !!remoteScreen;
+  const tiles = people_.length + 1;
   const grid = tiles <= 1 ? "grid-cols-1" : tiles === 2 ? "grid-cols-1 sm:grid-cols-2" : tiles <= 4 ? "grid-cols-2" : tiles <= 9 ? "grid-cols-3" : "grid-cols-4";
   const timer = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   const myName = me ? displayName(me) : "You";
@@ -340,11 +395,31 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           </button>
         </header>
 
-        <div className={`grid min-h-0 flex-1 auto-rows-fr gap-2 px-2 ${grid}`}>
+        {stageOn && (
+          <div className="relative mx-2 mb-2 min-h-0 flex-[3] overflow-hidden rounded-[22px] bg-black ring-1 ring-foreground/[0.07]">
+            {remoteScreen ? (
+              <RemoteUser user={remoteScreen} playVideo={remoteScreen.hasVideo} playAudio videoPlayerConfig={{ fit: "contain" }} className="h-full w-full" />
+            ) : (
+              <div className="grid h-full place-items-center px-6 text-center text-white">
+                <div>
+                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#cc208f]/25 text-[#ff7ac8]"><MonitorUp className="h-6 w-6" /></span>
+                  <p className="mt-3 text-[16px] font-semibold">You're sharing your screen</p>
+                  <p className="mt-1 text-[13px] text-white/60">Everyone in the call can see it.</p>
+                  <button type="button" onClick={() => void stopShare()} className="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[14px] font-semibold text-black"><MonitorOff className="h-4 w-4" /> Stop sharing</button>
+                </div>
+              </div>
+            )}
+            <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[12px] font-medium text-white backdrop-blur">
+              <MonitorUp className="h-3.5 w-3.5" /> {remoteScreen ? `${byUid.get(ownerOfScreen(remoteScreen.uid))?.name || "Member"}'s screen` : "Your screen"}
+            </span>
+          </div>
+        )}
+
+        <div className={stageOn ? "no-scrollbar flex h-[132px] shrink-0 gap-2 overflow-x-auto px-2 [&>*]:w-[170px] [&>*]:shrink-0" : `grid min-h-0 flex-1 auto-rows-fr gap-2 px-2 ${grid}`}>
           <Tile name={`${myName} (you)`} avatar={me?.avatar_url || null} muted={!micOn || !!micError} videoOn={camOn && !!localCameraTrack}>
             <LocalUser audioTrack={localMicrophoneTrack} videoTrack={localCameraTrack} micOn={micOn} cameraOn={camOn} playAudio={false} playVideo={camOn} className="h-full w-full" />
           </Tile>
-          {remoteUsers.map((u) => {
+          {people_.map((u) => {
             const person = byUid.get(String(u.uid));
             return (
               <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio} videoOn={u.hasVideo}>
@@ -356,7 +431,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
 
         {(connectionError || joinError) && <div role="status" className="mx-4 mt-3 rounded-xl bg-amber-500/10 p-3 text-center text-sm">{connectionError || "Couldn't connect to the call."} <button type="button" onClick={() => void recover()} className="font-semibold underline">Reconnect</button></div>}
         {(micError || cameraError) && <p role="alert" className="px-4 pt-2 text-center text-xs text-amber-600">{micError ? "Microphone unavailable. Allow microphone access in your browser to speak." : "Camera unavailable. You can continue with audio or check camera permissions."}</p>}
-        {remoteUsers.length === 0 && connected && (
+        {people_.length === 0 && connected && (
           <p className="px-6 pt-3 text-center text-[13px] text-muted-foreground">Waiting for others to join — everyone in the group got a notification.</p>
         )}
 
@@ -364,6 +439,11 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           <Ctrl on={micOn} onClick={() => setMicOn((v) => !v)} label={micOn ? "Mute" : "Unmute"}>{micOn ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}</Ctrl>
           <Ctrl on={camOn} onClick={() => setCamOn((v) => !v)} label={camOn ? "Camera off" : "Camera on"}>{camOn ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}</Ctrl>
           {camOn && <Ctrl on onClick={() => void switchCamera()} label="Flip camera"><RefreshCw className="h-6 w-6" /></Ctrl>}
+          {canShareScreen() && (
+            <Ctrl on={!sharing} onClick={() => void (sharing ? stopShare() : startShare())} label={sharing ? "Stop sharing" : "Share screen"}>
+              {shareBusy ? <Loader2 className="h-6 w-6 animate-spin" /> : sharing ? <MonitorOff className="h-6 w-6" /> : <MonitorUp className="h-6 w-6" />}
+            </Ctrl>
+          )}
           <button type="button" disabled={leaving} onClick={() => void leave()} aria-label="Leave call" title="Leave — others can continue" className="grid h-16 w-16 place-items-center rounded-full bg-red-500 text-white shadow-[0_12px_30px_-10px_rgba(239,68,68,0.8)] transition active:scale-95 disabled:opacity-50">
             {leaving ? <Loader2 className="h-6 w-6 animate-spin" /> : <PhoneOff className="h-7 w-7" />}
           </button>
@@ -396,6 +476,18 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     </>
   );
 }
+
+/*
+ * Screen sharing runs on a second Agora connection, so the sharer's camera
+ * and microphone keep going. Its uid is the sharer's uid + SCREEN_UID_OFFSET:
+ * person uids are always below 2,000,000,000, so anyone in the call can tell
+ * a screen from a person and whose screen it is.
+ */
+const SCREEN_UID_OFFSET = 2_000_000_000;
+const isScreenUid = (uid: string | number) => Number(uid) >= SCREEN_UID_OFFSET;
+const ownerOfScreen = (uid: string | number) => String(Number(uid) - SCREEN_UID_OFFSET);
+const canShareScreen = () => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getDisplayMedia === "function"
+  && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 function Tile({ name, avatar, muted, videoOn, children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; children: React.ReactNode }) {
   return (
