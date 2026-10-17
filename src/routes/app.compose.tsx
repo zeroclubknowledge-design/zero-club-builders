@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { noticeIfShadowBanned, ShadowBanNotice } from "@/features/moderation/shadowBan";
 import { X, Image as ImageIcon, FileVideo, Loader2, Crop, Wand2, Heading1, Globe, GraduationCap, Users, Check, ChevronDown } from "@/components/icons/glyphs";
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -435,7 +436,9 @@ function ComposePage() {
       queryClient.invalidateQueries({ queryKey: ['feed_posts'] });
       queryClient.invalidateQueries({ queryKey: ['my_profile'] });
       
-      toast.success("Post created successfully!");
+      // A shadow-banned account is told plainly; everyone else gets the usual toast.
+      const restricted = await noticeIfShadowBanned((to) => navigate({ to: to as never }));
+      if (!restricted) toast.success("Post created successfully!");
       clearDraftGroup(postDraftKey);
       clearMediaDraft();
       navigate({ to: "/app" });
@@ -487,6 +490,7 @@ function ComposePage() {
           </button>
         </div>
       </header>
+      <ShadowBanNotice className="zc-page-width mx-auto mt-3 w-[calc(100%-1.5rem)] max-w-[656px]" />
 
       {/* The gap above the format bar has to follow the bar. It pins itself to
           the top of the keyboard while you type, so a fixed padding stopped

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Plus, Flame, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck, ChevronRight } from "@/components/icons/glyphs";
-import { useState, useEffect, useMemo, type ReactNode } from "react";
+import { Plus, Loader2, Radio, Video, ArrowRight, PenLine, NotebookPen, Building2, BadgeCheck, ChevronRight } from "@/components/icons/glyphs";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -9,7 +9,6 @@ import { PostCard } from "@/components/PostCard";
 import { SponsoredPostCard } from "@/features/boost/SponsoredPostCard";
 import { getSponsoredPosts, sponsoredSlots } from "@/features/boost/api";
 import { CommentDrawer } from "@/components/CommentDrawer";
-import { getCachedSession } from "@/lib/auth";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { useSharedPresence } from "@/hooks/useSharedPresence";
 import { openCreateSheet, openLivePicker, useLiveClubs } from "@/features/create/CreateHub";
@@ -298,24 +297,26 @@ function InstitutionDirectory() {
   );
 }
 
-function Feed() {
+export function Feed() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: postsData, isLoading } = useQuery({ 
+  const { data: postsData, isPending: postsPending, isFetching: postsFetching, isError: postsFailed, refetch: reloadPosts } = useQuery({
     queryKey: ['feed_posts'], 
     staleTime: 1000 * 30,
     gcTime: 1000 * 60 * 5,
     queryFn: () => getPosts() 
   });
-  const posts = postsData || [];
-  const { data: currentUser } = useUser();
+  const { data: currentUser, followSummary } = useUser();
   
   const [activeTab, setActiveTab] = usePersistentDraft(draftKey(currentUser?.id, "feed-tab"), "Discover");
   // The Institution tab was retired; anyone who last had it open lands on Discover.
   useEffect(() => {
     if (activeTab === "Institution") setActiveTab("Discover");
   }, [activeTab, setActiveTab]);
-  const [followingIds, setFollowingIds] = useState<string[]>([]);
+  // Shared with profiles and follow buttons, so returning Home never resets it.
+  const followingIds = followSummary.data?.following_ids;
+  const waitingForFollowing = activeTab === "Following" && followingIds === undefined;
+  const feedFailed = (postsFailed && !postsData?.length) || (waitingForFollowing && followSummary.isError);
   const [commentPost, setCommentPost] = usePersistentDraft<any>(draftKey(currentUser?.id, "feed-comment-panel"), null);
   const { create } = Route.useSearch();
 
@@ -333,37 +334,20 @@ function Feed() {
     router.navigate({ to: '/app/live/$classId', params: { classId: clubId } });
   };
 
-  useEffect(() => {
-    fetchFollowing();
-  }, []);
-
-  async function fetchFollowing() {
-    const { data: { session } } = await getCachedSession();
-    if (!session) return;
-
-    const { data } = await supabase
-      .from('follows')
-      .select('following_id')
-      .eq('follower_id', session.user.id);
-    
-    if (data) {
-      setFollowingIds(data.map(f => f.following_id));
-    }
-  }
-
   // Memoised so a re-render of the feed (a tab tap, a sheet opening) doesn't
   // rebuild every post card — that was a full re-render of ~100 cards, videos
   // included, on every state change.
   const filteredPosts = useMemo(() => (postsData || []).filter((post: any) => {
     if (activeTab === "Following") {
       // Show if user is the author OR if it's a repost from someone the user follows
-      const isOriginalFromFollowed = followingIds.includes(post.author_id);
-      const isRepostFromFollowed = post.type === 'repost' && followingIds.includes(post.reposter_id);
+      const isOriginalFromFollowed = followingIds?.includes(post.author_id);
+      const isRepostFromFollowed = post.type === 'repost' && followingIds?.includes(post.reposter_id);
       return isOriginalFromFollowed || isRepostFromFollowed;
     }
 
     return true;
   }), [postsData, activeTab, followingIds]);
+  const feedLoading = postsPending || waitingForFollowing || (filteredPosts.length === 0 && (postsFetching || (activeTab === "Following" && followSummary.isFetching)));
 
   /* Boosted posts, shown as Sponsored at intervals on Discover only — after the
      4th post and then every 8th, never two in a row, at most three per load. */
@@ -490,8 +474,13 @@ function Feed() {
               </div>
             ) : (
               <>
-            {isLoading ? (
-              <div className="flex flex-col">
+            {feedFailed ? (
+              <div role="alert" className="mt-2 bg-card px-6 py-10 text-center md:rounded-xl md:border md:border-border">
+                <p className="text-sm text-muted-foreground">Couldn't load your feed. Please try again.</p>
+                <button type="button" onClick={() => { void reloadPosts(); if (activeTab === "Following") void followSummary.refetch(); }} className="mt-4 rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background">Try again</button>
+              </div>
+            ) : feedLoading ? (
+              <div role="status" aria-label="Loading feed" className="flex flex-col">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="mt-2 bg-card px-4 py-4 md:rounded-xl md:border md:border-border">
                     <div className="flex items-start gap-3">
@@ -515,19 +504,16 @@ function Feed() {
               </div>
             ) : (
               <div className="mt-2 flex flex-col items-center bg-card px-8 py-16 text-center md:rounded-xl md:border md:border-border">
-                <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-foreground/[0.05]">
-                  <Flame className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="mb-1.5 font-display text-[18px] font-semibold text-foreground">A quiet feed</h3>
+                <h3 className="mb-1.5 font-display text-[18px] font-semibold text-foreground">{activeTab === "Following" ? "No posts from people you follow yet" : "No posts yet"}</h3>
                 <p className="max-w-xs text-[14px] leading-relaxed text-muted-foreground">
-                  Be the first to share your shipped work — it's how the Club rewards proof.
+                  {activeTab === "Following" ? "Explore Discover to find people and posts you enjoy." : "Share something with the community."}
                 </p>
-                <Link
-                  to="/app/ship"
+                {activeTab === "Following" ? <button type="button" onClick={() => setActiveTab("Discover")} className="mt-6 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[15px] font-semibold text-background tap">Explore Discover</button> : <Link
+                  to="/app/compose"
                   className="mt-6 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[15px] font-semibold text-background tap"
                 >
-                  Ship your work
-                </Link>
+                  Create a post
+                </Link>}
               </div>
             )}
               </>

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { noticeIfShadowBanned } from "@/features/moderation/shadowBan";
 import {
   X, Plus, Link as LinkIcon, Loader2, Coins, Image as ImageIcon, GraduationCap, UserPlus
 } from "@/components/icons/glyphs";
@@ -367,6 +368,7 @@ function ShipPage() {
     } else {
       toast.success(attempt.target_id ? 'Project updated successfully' : 'Project published successfully!');
     }
+    void noticeIfShadowBanned((to) => navigate({ to: to as never }));
     navigate({ to: '/app/zerohub' });
   };
 

@@ -187,5 +187,5 @@ export function useUser() {
     staleTime: 5 * 60_000,
   });
 
-  return { ...query, data: query.data ? { ...query.data, ...followSummary.data } : query.data };
+  return { ...query, followSummary, data: query.data ? { ...query.data, ...followSummary.data } : query.data };
 }

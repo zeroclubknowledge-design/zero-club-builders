@@ -203,7 +203,7 @@ export const getPosts = async () => {
 
     if (postsError) {
       console.error("Error fetching posts:", postsError);
-      return [];
+      throw postsError;
     }
 
     let repostedPosts: any[] = [];
@@ -283,7 +283,7 @@ export const getPosts = async () => {
       );
   } catch (err) {
     console.error("Critical error in getPosts:", err);
-    return [];
+    throw err;
   }
 };
 

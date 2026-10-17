@@ -1,0 +1,15 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "shadow_ban"). Record only; do not re-run.
+--
+-- * profiles.shadow_banned_at / shadow_ban_reason / shadow_banned_by, guarded by
+--   trigger guard_profile_shadow_ban (only admin functions can change them).
+-- * is_shadow_banned(uid); can_see_post() hides a banned author's posts from
+--   everyone but the author and admins; get_post_public() likewise.
+-- * comments_select_public: a banned account's comments are visible only to it
+--   and admins.
+-- * drop_shadow_banned_notifications: a banned account's activity doesn't
+--   notify anyone else.
+-- * notify_shadow_banned_poster: every post by a banned account notifies it that
+--   only it can see the post, linking to Zero Club Support.
+-- * my_shadow_ban(), admin_shadow_ban(username, reason), admin_lift_shadow_ban(username)
+--   (notifies the person), admin_shadow_bans().

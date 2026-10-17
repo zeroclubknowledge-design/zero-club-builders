@@ -53,6 +53,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { TutorApplicationsAdmin } from "./TutorApplicationsAdmin";
+import { ShadowBanAdmin } from "./ShadowBanAdmin";
 import { AmbassadorsAdmin } from "./AmbassadorsAdmin";
 import { PlatformRewardsAdmin } from "./PlatformRewardsAdmin";
 import { MembershipGiftsAdmin } from "./MembershipGiftsAdmin";
@@ -311,7 +312,12 @@ export function AdminDashboard() {
           {activeTab === "institutions" && <Institutions query={institutionsQuery} format={format} busy={action.isPending} runAction={runAction} />}
           {activeTab === "ads" && <BoostsAdmin />}
           {activeTab === "people" && <People users={filteredUsers} search={userSearch} setSearch={setUserSearch} type={userType} setType={setUserType} busy={action.isPending} runAction={runAction} />}
-          {activeTab === "moderation" && <Moderation reports={data.reports} busy={action.isPending} runAction={runAction} />}
+          {activeTab === "moderation" && (
+            <div className="space-y-6">
+              <ShadowBanAdmin />
+              <Moderation reports={data.reports} busy={action.isPending} runAction={runAction} />
+            </div>
+          )}
           {activeTab === "learning" && <Learning bootcamps={data.bootcamps} format={format} busy={action.isPending} runAction={runAction} />}
           {activeTab === "quests" && (
             <div className="space-y-6">
