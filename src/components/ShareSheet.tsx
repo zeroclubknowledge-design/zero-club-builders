@@ -219,7 +219,11 @@ export function ShareSheetHost() {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerContent
         hideClose
-        className="zc-share-sheet overflow-hidden rounded-t-[22px] border-border/40 bg-card pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+        /* Above every full-screen page that can open it. The club hub is a
+           fixed z-[60] panel, so a sheet at the drawer's default z-50 opened
+           underneath it and looked like the button did nothing. */
+        overlayClassName="z-[10090] bg-black/50"
+        className="zc-share-sheet z-[10100] overflow-hidden rounded-t-[22px] border-border/40 bg-card pb-[max(1.25rem,env(safe-area-inset-bottom))]"
       >
         {/* The Zero Club mark, large and faint, behind the sheet's content. */}
         <svg
