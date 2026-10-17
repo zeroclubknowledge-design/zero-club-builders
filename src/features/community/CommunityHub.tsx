@@ -44,7 +44,7 @@ import { useUser } from "@/hooks/useUser";
 import { draftKey } from "@/lib/draftStorage";
 import { decodeChatMedia, encodeChatMedia, getChatMediaType } from "@/hooks/useVoiceRecorder";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { compressImage } from "@/lib/imageCompression";
+import { compressImage, COVER_IMAGE } from "@/lib/imageCompression";
 import { supabase } from "@/lib/supabase";
 
 /*
@@ -2272,7 +2272,9 @@ function SettingsView({ h, onBack }: { h: Hub; onBack: () => void }) {
   const upload = async (file: File, which: "logo" | "banner") => {
     setUploading(which);
     try {
-      const image = await compressImage(file);
+      /* A banner runs edge to edge, so it keeps cover resolution; a logo is
+         never drawn larger than a small square and stays on the feed limit. */
+      const image = await compressImage(file, which === "banner" ? COVER_IMAGE : {});
       const path = `${h.club.id}/${which}-${Date.now()}.${(image.name.split(".").pop() || "jpg").toLowerCase()}`;
       const { error } = await supabase.storage
         .from("post-media")
