@@ -58,6 +58,7 @@ import { IncomingNotificationCard, showIncomingPop } from "@/components/Incoming
 import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
+import { takeReturnTo } from "@/lib/returnTo";
 import { BUSINESS_MODES, businessModeOf, isBusiness, needsBusinessOnboarding } from "@/lib/business";
 import { ZeroLoader, ZeroMark } from "@/components/ZeroLoader";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1110,9 +1111,15 @@ function AppLayout() {
       navigate({ to: "/business/welcome" as never, replace: true });
       return;
     }
-    if (!needsOnboarding(profile)) return;
+    // Just signed in or up from somewhere else (a Zero Form checkout, say):
+    // go back there — straight away, or once onboarding is done.
+    const pendingReturn = window.location.pathname.replace(/\/$/, "") === "/app" ? takeReturnTo() : null;
+    if (!needsOnboarding(profile)) {
+      if (pendingReturn) window.location.assign(pendingReturn);
+      return;
+    }
     try {
-      sessionStorage.setItem("zc-after-onboarding", window.location.pathname + window.location.search);
+      sessionStorage.setItem("zc-after-onboarding", pendingReturn || window.location.pathname + window.location.search);
     } catch {
       /* Without storage they simply land on their mode's home. */
     }

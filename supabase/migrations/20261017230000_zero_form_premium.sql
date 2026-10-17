@@ -1,0 +1,28 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via the Supabase MCP
+-- (migration "zero_form_premium_enrolment" plus a follow-up patch to
+-- get_my_zero_form_registrations). Kept here as a record. Do not re-run.
+--
+-- Zero Form premium:
+--   * zero_form_enrol(registration): gives a confirmed registration its
+--     bootcamp place (enrollments row), marks it enrolled, notifies the learner.
+--     Not executable by clients.
+--   * submit_zero_form_v2: signed-out people who must pay get
+--     status 'sign_in_required' (the form sends them to sign-up and resumes);
+--     free and wallet-paid registrations are enrolled immediately;
+--     already-enrolled members get 'already_enrolled'.
+--   * process_zero_form_launch: enrols every confirmed member registration
+--     (guests skipped) and closes paid forms at the start time.
+--   * create_zero_form_bootcamp(...): tutors, creators, institutions, business
+--     accounts and admins create a bootcamp from inside the Zero Form builder.
+--   * get_my_zero_form_registrations: also returns 'interested' registrations
+--     plus slug / pricing_enabled / form_price / form_status so learners can
+--     complete payment from Bootcamps.
+--
+-- Function bodies as live in the database at the time of writing are
+-- retrievable with:
+--   select pg_get_functiondef('public.<name>'::regproc);
+-- for zero_form_enrol, submit_zero_form_v2, process_zero_form_launch,
+-- create_zero_form_bootcamp and get_my_zero_form_registrations.
+--
+-- revoke all on function public.zero_form_enrol(uuid) from public, anon, authenticated;
+-- grant execute on function public.create_zero_form_bootcamp(text, text, text, numeric, timestamptz, timestamptz, integer, text) to authenticated;

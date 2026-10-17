@@ -103,13 +103,13 @@ function SearchPage() {
       const next = text.trim();
       setQuery(next);
       navigate({ search: next ? { q: next } : {}, replace: true });
-    }, 350);
+    }, 180);
     return () => window.clearTimeout(handle);
   }, [text]);
 
   const { data, isFetching } = useQuery({
     queryKey: ["search", query],
-    enabled: query.length >= 2,
+    enabled: query.replace(/^@+/, "").length >= 1,
     staleTime: 1000 * 30,
     queryFn: () => searchEverything(query),
   });
@@ -117,7 +117,7 @@ function SearchPage() {
   const results = data || { posts: [], bootcamps: [], profiles: [], clubs: [] };
   const empty =
     !isFetching &&
-    query.length >= 2 &&
+    query.replace(/^@+/, "").length >= 1 &&
     results.posts.length + results.bootcamps.length + results.profiles.length + results.clubs.length === 0;
   const show = (f: Filter) => filter === "All" || filter === f;
   const limit = (items: any[], f: Filter) => (filter === f ? items : items.slice(0, 3));
@@ -162,7 +162,7 @@ function SearchPage() {
       </header>
 
       <main className="zc-page-width w-full md:mx-auto md:max-w-[680px]">
-        {query.length < 2 ? (
+        {query.replace(/^@+/, "").length < 1 ? (
           <p className="mt-2 bg-card px-4 py-10 text-center text-[14px] text-muted-foreground md:rounded-xl">
             Search for builders, tutors, clubs, bootcamps and posts.
           </p>

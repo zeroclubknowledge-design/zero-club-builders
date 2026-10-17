@@ -283,6 +283,45 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
     enabled: !lockedBootcamp,
   });
 
+  /* Create the bootcamp right here: paying through this form then puts the
+     learner straight into it. Who may create one is checked by the server. */
+  const zfQueryClient = useQueryClient();
+  const [newCampOpen, setNewCampOpen] = useState(false);
+  const [newCampTitle, setNewCampTitle] = useState("");
+  const [newCampCategory, setNewCampCategory] = useState("");
+  const [newCampPrice, setNewCampPrice] = useState("");
+  const createCamp = useMutation({
+    mutationFn: async () => {
+      const price = Math.max(0, Math.floor(Number(newCampPrice || regular || 0) || 0));
+      const { data, error } = await supabase.rpc("create_zero_form_bootcamp" as never, {
+        p_title: newCampTitle.trim(),
+        p_category: newCampCategory.trim() || null,
+        p_description: description || null,
+        p_price: price,
+        p_starts_at: startsAt ? new Date(startsAt).toISOString() : null,
+        p_ends_at: null,
+        p_seat_limit: seatLimit ? Math.floor(Number(seatLimit)) || null : null,
+        p_banner_url: bannerUrl || null,
+      } as never);
+      if (error) throw error;
+      const made = data as { id?: string } | null;
+      if (!made?.id) throw new Error("The bootcamp could not be created");
+      return { id: String(made.id), price };
+    },
+    onSuccess: async ({ id, price }) => {
+      await zfQueryClient.invalidateQueries({ queryKey: ["my-bootcamps-for-zero-form"] });
+      setBootcampId(id);
+      if (!regular && price) setRegular(String(price));
+      setTitle((current: string) => current || `${newCampTitle.trim()} — registration`);
+      setNewCampOpen(false);
+      setNewCampTitle("");
+      setNewCampCategory("");
+      setNewCampPrice("");
+      toast.success("Bootcamp created", { description: "Anyone who pays through this form is enrolled in it automatically." });
+    },
+    onError: (e: any) => toast.error(e?.message || "Could not create the bootcamp"),
+  });
+
   // Selecting a bootcamp seeds the pricing and title from it.
   useEffect(() => {
     if (lockedBootcamp || !bootcampId) return;
@@ -428,16 +467,37 @@ function ZeroFormBuilder({ onCancel, onSaved, existing }: { onCancel: () => void
             <Section title="Bootcamp" detail="Which bootcamp is this form collecting learners for? You can save a draft without one.">
               {bootcamps.isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              ) : (bootcamps.data || []).length === 0 ? (
+              ) : (bootcamps.data || []).length === 0 && !newCampOpen ? (
                 <p className="text-[12px] text-muted-foreground">
-                  You have no bootcamps yet. Create one to publish this form — or save it as a draft, or make it a waitlist instead.
+                  You have no bootcamps yet. Create one below — learners who pay through this form go straight into it.
                 </p>
-              ) : (
+              ) : (bootcamps.data || []).length > 0 ? (
                 <CardSelect value={bootcampId} onChange={(e) => setBootcampId(e.target.value)} className={input}>
                   <option value="">Select a bootcamp</option>
                   {(bootcamps.data || []).map((b: any) => <option key={b.id} value={b.id}>{b.title}</option>)}
                 </CardSelect>
-              )}
+              ) : null}
+              {!bootcamps.isLoading && (newCampOpen ? (
+                <div className="mt-3 space-y-2 rounded-lg border border-primary/30 bg-primary/[0.03] p-3">
+                  <p className="text-[12.5px] font-semibold">New bootcamp</p>
+                  <input value={newCampTitle} onChange={(e) => setNewCampTitle(e.target.value)} maxLength={120} placeholder="Bootcamp name, e.g. Product Design Cohort 3" className={input} />
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <input value={newCampCategory} onChange={(e) => setNewCampCategory(e.target.value)} maxLength={60} placeholder="Category, e.g. Design" className={input} />
+                    <input value={newCampPrice} onChange={(e) => setNewCampPrice(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" placeholder={regular ? `Price (₦) — ${regular}` : "Price (₦), 0 for free"} className={input} />
+                  </div>
+                  <p className="text-[10.5px] leading-4 text-muted-foreground">Uses this form's description, start date, seat limit and banner. You can edit the bootcamp later.</p>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={newCampTitle.trim().length < 3 || createCamp.isPending} onClick={() => createCamp.mutate()} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-[12.5px] font-semibold text-primary-foreground disabled:opacity-50">
+                      {createCamp.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Create and select
+                    </button>
+                    <button type="button" onClick={() => setNewCampOpen(false)} className="h-9 rounded-lg border border-border px-3.5 text-[12.5px] font-semibold">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" onClick={() => { setNewCampOpen(true); setNewCampTitle((t) => t || title.replace(/\s+—.*$/, "")); }} className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-primary">
+                  <Plus className="h-3.5 w-3.5" /> Create a new bootcamp
+                </button>
+              ))}
             </Section>
           )}
 

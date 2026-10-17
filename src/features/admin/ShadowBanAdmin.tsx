@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UsernamePicker } from "@/components/UsernamePicker";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -76,8 +77,8 @@ export function ShadowBanAdmin() {
         className="mt-4 grid gap-2 md:grid-cols-[1fr_1.4fr_auto]"
       >
         <label className="flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="@username" autoCapitalize="none" autoCorrect="off" className="min-w-0 flex-1 bg-transparent text-[14px] outline-none" />
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <UsernamePicker value={username} onChange={setUsername} wrapperClassName="relative min-w-0 flex-1" placeholder="@username" className="w-full bg-transparent text-[14px] outline-none" />
         </label>
         <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder="Reason (for admins only, optional)" className="h-11 rounded-xl border border-border bg-background px-3 text-[14px] outline-none" />
         <button type="submit" disabled={!username.trim() || ban.isPending} className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-rose-600 px-4 text-[14px] font-semibold text-white disabled:opacity-50">

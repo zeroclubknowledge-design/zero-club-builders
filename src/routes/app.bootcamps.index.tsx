@@ -242,35 +242,52 @@ function UpcomingRegistrations() {
     <section className="mt-2 bg-card px-4 pb-1 pt-3 md:rounded-xl md:border md:border-border">
       <div className="flex min-w-0 items-center gap-2">
         <CalendarClock className="h-5 w-5 shrink-0 text-accent" />
-        <h2 className="min-w-0 flex-1 font-display text-[16px] font-semibold text-foreground">Your upcoming bootcamps</h2>
+        <h2 className="min-w-0 flex-1 font-display text-[16px] font-semibold text-foreground">Your bootcamp registrations</h2>
       </div>
       <div className="mt-1">
         {data.map((registration: any) => {
-          const live = registration.registration_status === "enrolled"
-            || (registration.starts_at && new Date(registration.starts_at) <= new Date());
+          const status = registration.registration_status;
+          const enrolled = status === "enrolled" || status === "confirmed";
+          /* Left interest (or started paying) on a paid form: the place is
+             only theirs once they pay, which opens the form where they left it. */
+          const needsPayment = !enrolled
+            && (status === "interested" || status === "payment_pending" || status === "pending")
+            && registration.pricing_enabled !== false
+            && Number(registration.form_price) > 0
+            && !!registration.slug;
+          const live = enrolled && (status === "enrolled" || (registration.starts_at && new Date(registration.starts_at) <= new Date()));
           const countdown = formatCountdown(registration.starts_at);
-          return (
-            /* min-w-0 on the link itself matters as much as on the text inside
-               it, or a long bootcamp name stretches the row past the screen. */
-            <Link
-              key={registration.id}
-              to="/app/bootcamps/$id"
-              params={{ id: registration.bootcamp_id }}
-              className="flex w-full min-w-0 items-center gap-3 border-b border-border py-3 last:border-b-0"
-            >
+          const body = (
+            <>
               <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-foreground/[0.06]">
                 {registration.banner_url && <img src={registration.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-2 text-[14px] font-semibold leading-snug text-foreground">{registration.title}</p>
                 <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                  {live ? "Available now" : countdown ? `Starts in ${countdown}` : "Starting soon"}
-                  {Number(registration.amount) > 0 && ` · ${format(registration.amount)} paid`}
+                  {needsPayment
+                    ? `Pay ${format(registration.form_price)} to secure your place`
+                    : !enrolled
+                      ? "You're on the list — we'll let you know"
+                      : live ? "You're in — open your bootcamp" : countdown ? `Starts in ${countdown}` : "Starting soon"}
+                  {enrolled && Number(registration.amount) > 0 && ` · ${format(registration.amount)} paid`}
                 </p>
               </div>
-              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${live ? "bg-success/10 text-success" : "bg-accent/10 text-accent"}`}>
-                {live ? "Active" : "Registered"}
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${needsPayment ? "bg-primary text-primary-foreground" : live ? "bg-success/10 text-success" : enrolled ? "bg-accent/10 text-accent" : "bg-foreground/[0.06] text-muted-foreground"}`}>
+                {needsPayment ? "Complete payment" : live ? "Open" : enrolled ? "Enrolled" : "Interested"}
               </span>
+            </>
+          );
+          const row = "flex w-full min-w-0 items-center gap-3 border-b border-border py-3 last:border-b-0";
+          /* min-w-0 on the link itself matters as much as on the text inside
+             it, or a long bootcamp name stretches the row past the screen. */
+          if (needsPayment || (!registration.bootcamp_id && registration.slug)) {
+            return <a key={registration.id} href={`/form/${registration.slug}?resume=1`} className={row}>{body}</a>;
+          }
+          if (!registration.bootcamp_id) return <div key={registration.id} className={row}>{body}</div>;
+          return (
+            <Link key={registration.id} to="/app/bootcamps/$id" params={{ id: registration.bootcamp_id }} className={row}>
+              {body}
             </Link>
           );
         })}

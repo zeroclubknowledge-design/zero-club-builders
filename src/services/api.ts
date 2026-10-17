@@ -988,9 +988,28 @@ export const editMessageAction = async ({ messageId, content }: { messageId: str
 
 // Search across posts, bootcamps, and tutors
 export const searchEverything = async (query: string) => {
-  if (!query || query.length < 2) return { posts: [], bootcamps: [], profiles: [], clubs: [] };
+  const none = { posts: [] as any[], bootcamps: [] as any[], profiles: [] as any[], clubs: [] as any[] };
+  const raw = (query || '').trim().replace(/[%,()]/g, '');
+  if (!raw) return none;
+  /* People are suggested from the very first letter, with or without @. A
+     leading @ (or a single letter) means "find a person", so only people are
+     searched — by handle and name prefix — and ranked handle-first. */
+  const handle = raw.replace(/^@+/, '');
+  if (raw.startsWith('@') || handle.length < 2) {
+    if (!handle) return none;
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .or(`username.ilike.${handle}%,full_name.ilike.${handle}%,full_name.ilike.% ${handle}%`)
+      .not('username', 'is', null)
+      .order('xp', { ascending: false, nullsFirst: false })
+      .limit(12);
+    const h = handle.toLowerCase();
+    const rank = (p: any) => (String(p.username || '').toLowerCase() === h ? 0 : String(p.username || '').toLowerCase().startsWith(h) ? 1 : 2);
+    return { ...none, profiles: (data || []).sort((a: any, b: any) => rank(a) - rank(b)) };
+  }
 
-  const q = `%${query}%`;
+  const q = `%${raw}%`;
 
   // Four independent lookups, so they run side by side rather than one after
   // another — the search page shows whichever sections come back non-empty.

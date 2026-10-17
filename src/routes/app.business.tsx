@@ -564,7 +564,7 @@ function Team() {
           <Search className="h-4 w-4 text-muted-foreground" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or @username" className="min-w-0 flex-1 bg-transparent text-[14px] outline-none" />
         </label>
-        {query.trim().length >= 2 && (
+        {query.trim().replace(/^@+/, "").length >= 1 && (
           <div className="mt-2 max-h-72 divide-y divide-border overflow-y-auto">
             {(talent.data || []).filter((p) => !memberIds.has(p.id) && !invite.invited.has(p.id)).slice(0, 8).map((p) => (
               <div key={p.id} className="flex items-center gap-3 py-2.5">

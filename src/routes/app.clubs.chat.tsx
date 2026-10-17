@@ -882,7 +882,7 @@ function ClubChat() {
   useEffect(() => {
     if (!isAdmin) return;
     const q = addQuery.trim();
-    if (q.length < 2) {
+    if (q.replace(/^@+/, "").length < 1) {
       setAddResults([]);
       setAddSearching(false);
       return;
@@ -2847,7 +2847,7 @@ function ClubChat() {
                     {/* Only this scrolls, and it keeps room beneath the
                               last row so the keyboard cannot bury it. */}
                     <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-[40vh] no-scrollbar">
-                      {addQuery.trim().length < 2 ? (
+                      {addQuery.trim().replace(/^@+/, "").length < 1 ? (
                         <div className="flex flex-col items-center pt-12 text-center">
                           <div className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05] text-muted-foreground">
                             <UserPlus className="h-[22px] w-[22px]" />

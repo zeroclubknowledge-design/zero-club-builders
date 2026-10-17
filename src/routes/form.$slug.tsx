@@ -38,6 +38,7 @@ import {
 import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
 import { RichText, richTextToPlain } from "@/components/RichText";
 import { CardSelect } from "@/components/CardSelect";
+import { setReturnTo } from "@/lib/returnTo";
 
 export const Route = createFileRoute("/form/$slug")({
   component: ZeroFormPublicPage,
@@ -337,6 +338,11 @@ function ZeroFormPublicPage() {
   const [session, setSession] = useState<any>(null);
   const [checkedSession, setCheckedSession] = useState(false);
   const [done, setDone] = useState<null | "confirmed" | "interested" | "submitted">(null);
+  /* Pay without an account: answers are saved, sign-up opens, and once signed
+     in they come back here with everything filled in, ready to pay. */
+  const resumeKey = `zf-resume:${slug}`;
+  const [resumed, setResumed] = useState(false);
+  const [enrolledBootcamp, setEnrolledBootcamp] = useState<string | null>(null);
   const [shortfall, setShortfall] = useState<number | null>(null);
   const registerRef = useRef<HTMLDivElement>(null);
 
@@ -385,6 +391,37 @@ function ZeroFormPublicPage() {
     if (existing && typeof existing === "object") setAnswers(existing);
   }, [data?.my_registration]);
 
+  // Back from signing up / in: restore the saved answers and pick up at payment.
+  useEffect(() => {
+    if (!checkedSession || !session || !data?.found || resumed) return;
+    let saved: { answers?: Record<string, string | string[]>; intent?: "pay" | "interest" } | null = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(resumeKey) || "null");
+    } catch {
+      saved = null;
+    }
+    const asked = new URLSearchParams(window.location.search).get("resume") === "1";
+    if (!saved && !asked) return;
+    setResumed(true);
+    if (saved?.answers) setAnswers((current) => ({ ...saved!.answers, ...current }));
+    if (saved?.intent) setIntent(saved.intent);
+    setTab("register");
+    setTimeout(() => registerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+  }, [checkedSession, session, data?.found, resumed, resumeKey]);
+
+  const sendToSignUp = (where: "/signup" | "/signin" = "/signup") => {
+    try {
+      localStorage.setItem(resumeKey, JSON.stringify({ answers, intent: dataOnly ? "interest" : intent, at: Date.now() }));
+    } catch {
+      /* without storage they re-enter their answers */
+    }
+    setReturnTo(`/form/${slug}?resume=1`);
+    toast.message(where === "/signup" ? "Create your free Zero Club account" : "Sign in to continue", {
+      description: "Your answers are saved — you'll come straight back here to finish.",
+    });
+    window.location.assign(where);
+  };
+
   // Conditional follow-ups only count (and only show) when their answer matches.
   const visibleFields = useMemo(
     () => fields.filter((f) => isZeroFormFieldVisible(f, fields, answers)),
@@ -424,6 +461,16 @@ function ZeroFormPublicPage() {
       return result as any;
     },
     onSuccess: async (result) => {
+      // Paying needs an account so the place can be given automatically.
+      if (result?.status === "sign_in_required") {
+        sendToSignUp("/signup");
+        return;
+      }
+      if (result?.status === "already_enrolled") {
+        setEnrolledBootcamp(result.bootcamp_id || bootcamp?.id || null);
+        setDone("confirmed");
+        return;
+      }
       if (result?.status === "insufficient_funds") {
         setShortfall(Number(result.shortfall) || 0);
         return;
@@ -463,6 +510,14 @@ function ZeroFormPublicPage() {
       }
 
       setShortfall(null);
+      try {
+        localStorage.removeItem(resumeKey);
+      } catch {
+        /* nothing saved */
+      }
+      if (["enrolled", "confirmed", "already_registered"].includes(result?.status) && (result?.bootcamp_id || bootcamp?.id)) {
+        setEnrolledBootcamp(result.bootcamp_id || bootcamp?.id);
+      }
       setDone(
         result?.status === "submitted" ? "submitted" : result?.status === "interested" ? "interested" : "confirmed",
       );
@@ -473,6 +528,14 @@ function ZeroFormPublicPage() {
   });
 
   const handleSubmit = () => {
+    if (missingRequired.length) {
+      return toast.error(`Please fill in: ${missingRequired.map((f) => f.label).join(", ")}`);
+    }
+    // Paying for a bootcamp: create an account first, then pay here.
+    if (!session && !dataOnly && intent === "pay") {
+      sendToSignUp("/signup");
+      return;
+    }
     if (!session) {
       if (!guest.name.trim()) return toast.error("Please enter your name");
       if (!guest.email.trim()) return toast.error("Please enter your email");
@@ -498,7 +561,9 @@ function ZeroFormPublicPage() {
   }
 
   // ── Success ──────────────────────────────────────────────────────────────
-  const alreadyIn = ["confirmed", "enrolled", "interested"].includes(data?.my_registration?.registration_status);
+  const myStatus = data?.my_registration?.registration_status;
+  // Interested people who come back (or are sent back) to pay get the form, not the success page.
+  const alreadyIn = ["confirmed", "enrolled"].includes(myStatus) || (myStatus === "interested" && !resumed && !(isPaid && intent === "pay" && tab === "register"));
   if (done || alreadyIn) {
     const kind: "submitted" | "interested" | "confirmed" =
       done === "submitted" || (dataOnly && alreadyIn)
@@ -518,7 +583,9 @@ function ZeroFormPublicPage() {
         ? "The organiser has your details and will reach out if there's anything next."
         : kind === "interested"
           ? "Nothing to pay now — the organiser will contact you before it starts."
-          : "You'll get full access automatically when the bootcamp starts.";
+          : enrolledBootcamp || data?.my_registration?.registration_status === "enrolled"
+            ? "You're in — the bootcamp is already in your Zero Club, with everything you need to get started."
+            : "You'll get full access automatically when the bootcamp starts.";
     return (
       <Shell>
         <div className="mx-auto max-w-[560px] px-5 py-12 sm:py-16">
@@ -568,9 +635,24 @@ function ZeroFormPublicPage() {
 
               <p className="mt-5 text-[13px] leading-6 text-muted-foreground">{next}</p>
               <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
-                <Link to="/" className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-7 text-[14px] font-semibold text-background">
-                  Explore Zero Club
-                </Link>
+                {kind === "confirmed" && (enrolledBootcamp || bootcamp?.id) && session ? (
+                  <>
+                    <Link to="/app/bootcamps/$id" params={{ id: (enrolledBootcamp || bootcamp?.id) as string }} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#cc208f] px-7 text-[14px] font-semibold text-white">
+                      Go to your bootcamp
+                    </Link>
+                    <Link to="/app" className="inline-flex h-12 items-center justify-center rounded-full border border-border px-7 text-[14px] font-semibold">
+                      Open Zero Club
+                    </Link>
+                  </>
+                ) : kind === "interested" && isPaid && session ? (
+                  <button type="button" onClick={() => { setDone(null); setIntent("pay"); setTab("register"); }} className="inline-flex h-12 items-center justify-center rounded-full bg-[#cc208f] px-7 text-[14px] font-semibold text-white">
+                    Pay {money(price)} now and get your place
+                  </button>
+                ) : (
+                  <Link to="/" className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-7 text-[14px] font-semibold text-background">
+                    Explore Zero Club
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -777,8 +859,37 @@ function ZeroFormPublicPage() {
                 </div>
               )}
 
-              {/* Guests do not need an account */}
-              {checkedSession && !session && (
+              {/* Welcome back after signing up: everything's saved. */}
+              {resumed && session && !dataOnly && intent === "pay" && (
+                <div className="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.07] p-4">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                  <div>
+                    <p className="text-[14px] font-semibold">You're signed in — your answers are saved</p>
+                    <p className="mt-0.5 text-[12.5px] leading-5 text-muted-foreground">Confirm below to pay {money(price)} from your Zero Club wallet. You'll be added to the bootcamp straight away.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Paying needs a Zero Club account, so the place can be given automatically. */}
+              {checkedSession && !session && !dataOnly && intent === "pay" && (
+                <div className="mb-5 rounded-2xl border border-border bg-background/60 p-4">
+                  <p className="text-[14px] font-semibold">Pay with a free Zero Club account</p>
+                  <p className="mt-1 text-[12.5px] leading-5 text-muted-foreground">
+                    Fill in the questions, then create your account in a minute. You'll come straight back here to pay, and you're added to the bootcamp the moment it goes through.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onClick={() => (missingRequired.length ? toast.error(`Please fill in: ${missingRequired.map((f) => f.label).join(", ")}`) : sendToSignUp("/signup"))} className="inline-flex h-10 items-center rounded-full bg-foreground px-4 text-[13px] font-semibold text-background">
+                      Create account
+                    </button>
+                    <button type="button" onClick={() => sendToSignUp("/signin")} className="inline-flex h-10 items-center rounded-full border border-border px-4 text-[13px] font-semibold">
+                      I have an account
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Guests can leave details or register interest without an account */}
+              {checkedSession && !session && (dataOnly || intent === "interest") && (
                 <div className="mb-5 space-y-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Your contact details</p>
                   <Field label="Full name" required value={guest.name} placeholder="Ada Obi"
@@ -822,7 +933,19 @@ function ZeroFormPublicPage() {
                   <p className="mt-1.5 text-[12px] leading-5 text-muted-foreground">
                     Top up, then submit again — your answers are saved. Or choose "Register interest" and pay later.
                   </p>
-                  <Link to="/app/wallet/add-money" className="mt-3 inline-flex h-10 items-center rounded-lg bg-foreground px-4 text-[12.5px] font-semibold text-background">Add money</Link>
+                  <Link
+                    to="/app/wallet/add-money"
+                    onClick={() => {
+                      try {
+                        localStorage.setItem(resumeKey, JSON.stringify({ answers, intent: "pay", at: Date.now() }));
+                      } catch {
+                        /* answers are also kept on the registration */
+                      }
+                    }}
+                    className="mt-3 inline-flex h-10 items-center rounded-lg bg-foreground px-4 text-[12.5px] font-semibold text-background"
+                  >
+                    Add money
+                  </Link>
                 </div>
               )}
 
@@ -833,17 +956,17 @@ function ZeroFormPublicPage() {
               >
                 {submit.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {dataOnly ? "Submit my details"
-                  : !isPaid ? "Register free"
+                  : !isPaid ? (session ? "Join free" : "Continue — create your account")
                   : intent === "interest" ? "Save my details"
-                  : `Pay ${money(price)} and register`}
+                  : session ? `Pay ${money(price)} and join` : "Continue — create your account to pay"}
               </button>
 
               <p className="mt-4 text-center text-[11.5px] leading-5 text-muted-foreground">
                 {dataOnly || intent === "interest"
                   ? "Your details go straight to the organiser. No payment is taken."
                   : session
-                    ? "Paid securely from your Zero Club wallet."
-                    : "Paid securely by card. You keep this price even after it rises."}
+                    ? "Paid securely from your Zero Club wallet. You're added to the bootcamp instantly."
+                    : "You'll pay from your Zero Club wallet right after signing up. You keep this price even after it rises."}
               </p>
             </section>
           )}

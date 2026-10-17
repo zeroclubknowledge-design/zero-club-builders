@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { UsernamePicker } from "@/components/UsernamePicker";
 import { AvatarMotionAdmin } from "@/features/admin/AvatarMotionAdmin";
 import { BoostsAdmin } from "@/features/admin/BoostsAdmin";
 import { GigDisputesAdmin } from "@/features/admin/GigDisputesAdmin";
@@ -804,7 +805,7 @@ function Marketplace({ gigs, format, busy, runAction }: any) {
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <div className="md:col-span-2"><p className={label}>Title</p><input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Brand designer for a fintech launch" className={`${field} mt-1.5`} /></div>
             <div className="md:col-span-2"><p className={label}>Description</p><textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={4} placeholder="Scope, deliverables, and what success looks like" className={`${field} h-auto resize-none py-2.5 mt-1.5`} /></div>
-            <div><p className={label}>Post on behalf of (username)</p><input value={form.client} onChange={(e) => set("client", e.target.value)} placeholder="institution username" className={`${field} mt-1.5`} /></div>
+            <div><p className={label}>Post on behalf of (username)</p><UsernamePicker value={form.client} onChange={(v) => set("client", v)} placeholder="institution username" wrapperClassName="relative mt-1.5" className={field} /></div>
             <div><p className={label}>Category</p><input value={form.category} onChange={(e) => set("category", e.target.value)} className={`${field} mt-1.5`} /></div>
             <div className="md:col-span-2"><p className={label}>Skills (comma separated)</p><input value={form.skills} onChange={(e) => set("skills", e.target.value)} placeholder="Figma, Branding, Web design" className={`${field} mt-1.5`} /></div>
             <div><p className={label}>Budget type</p><CardSelect value={form.budgetType} onChange={(e) => set("budgetType", e.target.value)} className={`${field} mt-1.5`}><option value="fixed">Fixed</option><option value="hourly">Hourly</option></CardSelect></div>

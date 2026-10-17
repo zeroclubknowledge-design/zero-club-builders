@@ -1242,7 +1242,7 @@ function AddPeopleDrawer({ open, onOpenChange, orgId, people }: { open: boolean;
     const t = window.setTimeout(() => setDebounced(q.trim()), 300);
     return () => window.clearTimeout(t);
   }, [q]);
-  const results = useQuery({ queryKey: ["workspace-search", debounced], queryFn: () => workspaceApi.searchPeople(debounced), enabled: debounced.length >= 2 });
+  const results = useQuery({ queryKey: ["workspace-search", debounced], queryFn: () => workspaceApi.searchPeople(debounced), enabled: debounced.replace(/^@+/, "").length >= 1 });
   const onTeam = new Set(people.map((p) => p.id));
   const [sent, setSent] = useState<Set<string>>(() => new Set());
   const invite = useMutation({
@@ -1268,8 +1268,8 @@ function AddPeopleDrawer({ open, onOpenChange, orgId, people }: { open: boolean;
             {q && <button type="button" onClick={() => setQ("")} aria-label="Clear"><X className="h-4 w-4 text-muted-foreground" /></button>}
           </label>
           <div className="mt-3 max-h-[52dvh] divide-y divide-border overflow-y-auto">
-            {debounced.length < 2 ? (
-              <p className="py-8 text-center text-[13px] text-muted-foreground">Type at least two letters to search.</p>
+            {debounced.replace(/^@+/, "").length < 1 ? (
+              <p className="py-8 text-center text-[13px] text-muted-foreground">Start typing a name or @username.</p>
             ) : results.isLoading ? (
               <Loader2 className="mx-auto my-8 h-5 w-5 animate-spin text-muted-foreground" />
             ) : !results.data?.filter((p: any) => !onTeam.has(p.id) && !sent.has(p.id)).length ? (

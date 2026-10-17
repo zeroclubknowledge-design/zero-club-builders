@@ -187,15 +187,16 @@ function GrantReward({ money }: { money: (n: number) => string }) {
 
   useEffect(() => {
     const q = search.trim().replace(/^@/, "").replace(/[%,()]/g, "");
-    if (q.length < 2 || member) { setResults([]); return; }
+    if (q.length < 1 || member) { setResults([]); return; }
     const handle = window.setTimeout(async () => {
       const { data } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url")
-        .or(`username.ilike.%${q}%,full_name.ilike.%${q}%`)
-        .limit(6);
+        .or(`username.ilike.${q}%,full_name.ilike.${q}%,full_name.ilike.% ${q}%,username.ilike.%${q}%`)
+        .not("username", "is", null)
+        .limit(8);
       setResults((data || []) as Member[]);
-    }, 250);
+    }, 120);
     return () => window.clearTimeout(handle);
   }, [search, member]);
 

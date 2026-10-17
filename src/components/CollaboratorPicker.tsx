@@ -41,8 +41,8 @@ export function CollaboratorPicker({
   const wrapper = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handle = query.trim().replace(/^@/, "");
-    if (handle.length < 2) {
+    const handle = query.trim().replace(/^@+/, "").replace(/[%,()]/g, "");
+    if (handle.length < 1) {
       setResults([]);
       return;
     }
@@ -54,8 +54,9 @@ export function CollaboratorPicker({
       const { data } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url")
-        .ilike("username", `${handle}%`)
-        .limit(6);
+        .or(`username.ilike.${handle}%,full_name.ilike.${handle}%,full_name.ilike.% ${handle}%`)
+        .not("username", "is", null)
+        .limit(8);
 
       if (cancelled) return;
       const chosen = new Set(value.map((person) => person.id));
@@ -64,7 +65,7 @@ export function CollaboratorPicker({
       );
       setSearching(false);
       setOpen(true);
-    }, 250);
+    }, 120);
 
     return () => {
       cancelled = true;
@@ -159,7 +160,7 @@ export function CollaboratorPicker({
 
       {/* Says why nothing was found, rather than showing an empty box. The
           answer is nearly always that the person has not joined yet. */}
-      {open && !searching && query.trim().replace(/^@/, "").length >= 2 && results.length === 0 && (
+      {open && !searching && query.trim().replace(/^@+/, "").length >= 1 && results.length === 0 && (
         <p className="mt-1.5 text-[11px] text-muted-foreground">
           No Zero Club account matches that handle. Collaborators have to be on Zero Club so the
           credit links to a real profile.

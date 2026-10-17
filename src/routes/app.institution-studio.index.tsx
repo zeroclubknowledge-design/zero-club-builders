@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { UsernamePicker } from "@/components/UsernamePicker";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -618,10 +619,10 @@ function InstitutionHub() {
                 <form onSubmit={handleAddTutor} className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="text"
+                    <UsernamePicker
                       value={inviteQuery}
-                      onChange={(e) => setInviteQuery(e.target.value)}
+                      onChange={setInviteQuery}
+                      accountKind="personal"
                       placeholder="Enter tutor username..."
                       className="w-full h-12 bg-card rounded-xl pl-11 pr-5 text-[14px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                     />

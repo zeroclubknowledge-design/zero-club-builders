@@ -149,8 +149,8 @@ function AddMoneyPage() {
   // about the link itself.
   useEffect(() => {
     if (!createdSlug) return;
-    const q = recipientQuery.trim();
-    if (q.length < 2) {
+    const q = recipientQuery.trim().replace(/^@+/, "").replace(/[%,()]/g, "");
+    if (q.length < 1) {
       setRecipients([]);
       return;
     }
@@ -159,11 +159,12 @@ function AddMoneyPage() {
       const { data } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url")
-        .or(`username.ilike.%${q}%,full_name.ilike.%${q}%`)
+        .or(`username.ilike.${q}%,full_name.ilike.${q}%,full_name.ilike.% ${q}%,username.ilike.%${q}%`)
+        .not("username", "is", null)
         .neq("id", profile?.id || "")
-        .limit(6);
+        .limit(8);
       if (!cancelled) setRecipients(data || []);
-    }, 250);
+    }, 120);
     return () => {
       cancelled = true;
       clearTimeout(timer);
