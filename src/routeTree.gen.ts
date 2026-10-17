@@ -78,6 +78,7 @@ import { Route as AppChatIdRouteImport } from './routes/app.chat.$id'
 import { Route as AppChatNewRouteImport } from './routes/app.chat.new'
 import { Route as AppChatSettingsRouteImport } from './routes/app.chat.settings'
 import { Route as AppClubsIndexRouteImport } from './routes/app.clubs.index'
+import { Route as AppClubsClubIdRouteImport } from './routes/app.clubs.$clubId'
 import { Route as AppClubsChatRouteImport } from './routes/app.clubs.chat'
 import { Route as AppGamesIndexRouteImport } from './routes/app.games.index'
 import { Route as AppGamesIdRouteImport } from './routes/app.games.$id'
@@ -480,6 +481,11 @@ const AppClubsIndexRoute = AppClubsIndexRouteImport.update({
   path: '/clubs/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppClubsClubIdRoute = AppClubsClubIdRouteImport.update({
+  id: '/clubs/$clubId',
+  path: '/clubs/$clubId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppClubsChatRoute = AppClubsChatRouteImport.update({
   id: '/clubs/chat',
   path: '/clubs/chat',
@@ -826,6 +832,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
+  '/app/clubs/$clubId': typeof AppClubsClubIdRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
@@ -946,6 +953,7 @@ export interface FileRoutesByTo {
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
+  '/app/clubs/$clubId': typeof AppClubsClubIdRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
@@ -1073,6 +1081,7 @@ export interface FileRoutesById {
   '/app/chat/$id': typeof AppChatIdRoute
   '/app/chat/new': typeof AppChatNewRoute
   '/app/chat/settings': typeof AppChatSettingsRoute
+  '/app/clubs/$clubId': typeof AppClubsClubIdRoute
   '/app/clubs/chat': typeof AppClubsChatRoute
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
@@ -1201,6 +1210,7 @@ export interface FileRouteTypes {
     | '/app/chat/$id'
     | '/app/chat/new'
     | '/app/chat/settings'
+    | '/app/clubs/$clubId'
     | '/app/clubs/chat'
     | '/app/games/$id'
     | '/app/games/create'
@@ -1321,6 +1331,7 @@ export interface FileRouteTypes {
     | '/app/chat/$id'
     | '/app/chat/new'
     | '/app/chat/settings'
+    | '/app/clubs/$clubId'
     | '/app/clubs/chat'
     | '/app/games/$id'
     | '/app/games/create'
@@ -1447,6 +1458,7 @@ export interface FileRouteTypes {
     | '/app/chat/$id'
     | '/app/chat/new'
     | '/app/chat/settings'
+    | '/app/clubs/$clubId'
     | '/app/clubs/chat'
     | '/app/games/$id'
     | '/app/games/create'
@@ -2032,6 +2044,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClubsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/clubs/$clubId': {
+      id: '/app/clubs/$clubId'
+      path: '/clubs/$clubId'
+      fullPath: '/app/clubs/$clubId'
+      preLoaderRoute: typeof AppClubsClubIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/clubs/chat': {
       id: '/app/clubs/chat'
       path: '/clubs/chat'
@@ -2545,6 +2564,7 @@ interface AppRouteChildren {
   AppChatIdRoute: typeof AppChatIdRoute
   AppChatNewRoute: typeof AppChatNewRoute
   AppChatSettingsRoute: typeof AppChatSettingsRoute
+  AppClubsClubIdRoute: typeof AppClubsClubIdRoute
   AppClubsChatRoute: typeof AppClubsChatRoute
   AppGamesIdRoute: typeof AppGamesIdRoute
   AppGamesCreateRoute: typeof AppGamesCreateRoute
@@ -2615,6 +2635,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppChatIdRoute: AppChatIdRoute,
   AppChatNewRoute: AppChatNewRoute,
   AppChatSettingsRoute: AppChatSettingsRoute,
+  AppClubsClubIdRoute: AppClubsClubIdRoute,
   AppClubsChatRoute: AppClubsChatRoute,
   AppGamesIdRoute: AppGamesIdRoute,
   AppGamesCreateRoute: AppGamesCreateRoute,

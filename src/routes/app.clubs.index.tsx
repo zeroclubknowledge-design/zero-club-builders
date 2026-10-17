@@ -610,7 +610,7 @@ function Clubs() {
               filteredMyClubs.length > 0 ? (
                 <div className="md:grid md:grid-cols-2 md:gap-x-6 md:px-2">
                   {filteredMyClubs.map((c: any) => (
-                    <Link key={c.id} to="/app/clubs/chat" search={{ clubId: c.id }} className="flex min-w-0 items-center gap-3 border-b border-border px-4 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.02]">
+                    <Link key={c.id} to="/app/clubs/$clubId" params={{ clubId: c.id }} className="flex min-w-0 items-center gap-3 border-b border-border px-4 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.02]">
                       {clubAvatar(c)}
                       <span className="min-w-0 flex-1">
                         <span className="flex min-w-0 items-center gap-1.5">
@@ -740,7 +740,7 @@ function Clubs() {
                           <p className="truncate text-[12px] text-muted-foreground">{clubPriceLabel(d)}</p>
                           <div className="mt-auto pt-2.5">
                             {isAlreadyJoined ? (
-                              <Link to="/app/clubs/chat" search={{ clubId: d.id }} className="flex h-8 items-center justify-center rounded-full bg-foreground/[0.06] text-[14px] font-semibold text-foreground tap">
+                              <Link to="/app/clubs/$clubId" params={{ clubId: d.id }} className="flex h-8 items-center justify-center rounded-full bg-foreground/[0.06] text-[14px] font-semibold text-foreground tap">
                                 Open
                               </Link>
                             ) : (

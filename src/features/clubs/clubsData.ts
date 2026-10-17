@@ -103,10 +103,14 @@ export async function fetchClubsData(): Promise<any> {
   // communities. That left them with nowhere to appear at all, so they get
   // their own section. Joined and created are merged: a tutor sees the club
   // for a bootcamp they run even before anyone joins it.
+  //
+  // A cohort that sits inside a community (parent_club_id set) is left out of
+  // this tab: it is reachable through that community's hub, and listing it in
+  // both places would make one cohort look like two things.
   const cohortClubs = [
     ...(joinedClubs?.map(jc => jc.clubs as any) || []),
     ...(userCreatedClubs || []),
-  ].filter(c => c && isBootcampCohortClub(c));
+  ].filter(c => c && isBootcampCohortClub(c) && !c.parent_club_id);
 
   const bootClubs = enrich(
     Array.from(new Map(cohortClubs.map(c => [c.id, c])).values())
