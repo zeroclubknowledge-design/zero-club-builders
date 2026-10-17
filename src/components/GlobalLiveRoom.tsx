@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -430,6 +431,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const { data: profile } = useUser();
   const liveSession = useLiveSession();
   const { isMinimized } = liveSession;
+  /* The minimised live bar can be dragged out of the way, on phone and desktop. */
+  const miniDrag = useDraggableFloat<HTMLDivElement>("club-live-mini");
   const [isAdmin, setIsAdmin] = useState(false);
   const isAdminRef = useRef(false);
   /* Free rotation while a class is open, so the phone can be turned sideways
@@ -2153,7 +2156,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       <div
         role="region"
         aria-label="Live class, minimised"
-        className="fixed inset-x-0 bottom-0 z-[9999] select-none border-t border-white/10 bg-[#0f0d10] pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-12px_32px_-18px_rgba(0,0,0,0.7)] animate-in slide-in-from-bottom-4 duration-300 md:inset-x-auto md:bottom-4 md:right-4 md:w-[400px] md:rounded-2xl md:border md:pb-0"
+        ref={miniDrag.ref}
+        style={miniDrag.style}
+        {...miniDrag.handlers}
+        title="Drag to move"
+        className={`fixed inset-x-0 bottom-0 z-[9999] select-none border-t border-white/10 bg-[#0f0d10] pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-12px_32px_-18px_rgba(0,0,0,0.7)] md:inset-x-auto md:bottom-4 md:right-4 md:w-[400px] md:rounded-2xl md:border md:pb-0 ${miniDrag.style.transform ? "rounded-2xl border shadow-[0_18px_44px_-14px_rgba(0,0,0,0.75)]" : "animate-in slide-in-from-bottom-4 duration-300"} ${miniDrag.dragging ? "ring-2 ring-[#cc208f]/60" : ""}`}
       >
         {/* A thin line of Zero Club light: red while recording. */}
         <div aria-hidden className={`absolute inset-x-0 top-0 h-[2px] md:inset-x-4 ${recordingNow ? "bg-red-500" : "bg-gradient-to-r from-[#cc208f] via-[#ff7ac8] to-[#cc208f]"}`} />

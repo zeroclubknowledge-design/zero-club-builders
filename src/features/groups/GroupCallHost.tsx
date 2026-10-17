@@ -28,6 +28,7 @@ import { agoraUidFor, callPeopleByUid, type CallPerson } from "./callIdentity";
 import { GroupAvatar } from "./components";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useGroupCall, type GroupCallSession } from "./GroupCallContext";
+import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 
 /*
  * Group voice/video call for private group chats.
@@ -52,6 +53,17 @@ const APP_ID = "bfd9392ddcbc425e8946e8011ac2820b";
  */
 export { agoraUidFor } from "./callIdentity";
 const HEARTBEAT_MS = 10_000;
+/*
+ * agora-rtc-react stops and restarts a video whenever its videoPlayerConfig
+ * object changes. These must be module constants: an inline {{ fit: … }}
+ * is a new object on every render, and the call re-renders every second,
+ * which made shared screens blink and stutter.
+ */
+const SCREEN_PLAYER = { fit: "contain" as const };
+const CAMERA_PLAYER = { fit: "cover" as const };
+/* Agora stream fallback: 1 = drop to the low-quality stream, 2 = audio only. */
+const FALLBACK_LOW = 1;
+const FALLBACK_AUDIO_ONLY = 2;
 
 type Person = CallPerson;
 
@@ -154,6 +166,8 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   session: GroupCallSession; uid: number; startedAt: string; channel: string; token: string; groupName: string; groupAvatar: string | null; onLeft: () => void;
 }) {
   const { minimized, minimize, restore } = useGroupCall();
+  /* The minimised bubble can be dragged anywhere and stays where it is left. */
+  const bubbleDrag = useDraggableFloat<HTMLDivElement>("group-call-bubble", { snap: true });
   const navigate = useNavigate();
   useOrientationLock(minimized ? "portrait" : "free");
   const { data: me } = useUser();
@@ -170,11 +184,39 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   const myUid = useCurrentUID() ?? uid;
   const connectionState = useConnectionState();
   const connected = useIsConnected();
-  const { localMicrophoneTrack, error: micError } = useLocalMicrophoneTrack(micOn, { AEC: true, ANS: true, AGC: true });
+  /*
+   * The microphone track is created once and muted/unmuted in place. Closing
+   * and re-creating it on every mute raced with publishing, so after an
+   * unmute some people were never heard again.
+   */
+  const [micReady, setMicReady] = useState(true);
+  const { localMicrophoneTrack, error: micError } = useLocalMicrophoneTrack(micReady, { AEC: true, ANS: true, AGC: true });
+  const retryMic = () => { setMicReady(false); window.setTimeout(() => setMicReady(true), 150); };
+  useEffect(() => { localMicrophoneTrack?.setMuted(!micOn).catch(() => {}); }, [localMicrophoneTrack, micOn]);
   const { localCameraTrack, error: cameraError } = useLocalCameraTrack(camOn, { facingMode: facing, encoderConfig: "480p_1" });
   usePublish([localMicrophoneTrack, localCameraTrack]);
   const remoteUsers = useRemoteUsers();
 
+  /*
+   * Browsers block sound until the page has been tapped. People who joined
+   * from a notification or after a reconnect heard nothing; now they get a
+   * "Tap to hear the call" button, and any tap resumes every voice.
+   */
+  const [soundBlocked, setSoundBlocked] = useState(false);
+  useEffect(() => {
+    AgoraRTC.onAutoplayFailed = () => setSoundBlocked(true);
+    return () => { AgoraRTC.onAutoplayFailed = undefined; };
+  }, []);
+  /* Muting keeps the track published, so the mic icon follows Agora's mute notices. */
+  const [mutedUids, setMutedUids] = useState<Set<string>>(() => new Set());
+  useClientEvent(client, "user-info-updated", (uid: any, msg: string) => {
+    if (msg !== "mute-audio" && msg !== "unmute-audio") return;
+    setMutedUids((prev) => { const next = new Set(prev); if (msg === "mute-audio") next.add(String(uid)); else next.delete(String(uid)); return next; });
+  });
+  const resumeSound = () => {
+    for (const u of client.remoteUsers) { try { u.audioTrack?.play(); } catch { /* not subscribed yet */ } }
+    setSoundBlocked(false);
+  };
   const [canEnd, setCanEnd] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [members, setMembers] = useState<Awaited<ReturnType<typeof getMembers>>>([]);
@@ -342,14 +384,43 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     let created: { video: ILocalVideoTrack; audio: ILocalAudioTrack | null } | null = null;
     let screenClient: IAgoraRTCClient | null = null;
     try {
-      const tracks = await AgoraRTC.createScreenVideoTrack({ encoderConfig: "1080p_1", optimizationMode: "detail" }, "auto");
+      /*
+       * 15 fps at up to 1080p. The old "1080p_1" preset sends 5 frames a
+       * second, which looked frozen. "detail" keeps text sharp.
+       */
+      const tracks = await AgoraRTC.createScreenVideoTrack({
+        encoderConfig: { width: 1920, height: 1080, frameRate: 15, bitrateMin: 600, bitrateMax: 2200 },
+        optimizationMode: "detail",
+      }, "auto");
       created = Array.isArray(tracks) ? { video: tracks[0], audio: tracks[1] } : { video: tracks, audio: null };
+      /*
+       * Whole-screen "system audio" also captures the call itself, so the
+       * others hear themselves back (echo, or voices drowned out). Only a
+       * shared tab's sound is sent.
+       */
+      const surface = (created.video.getMediaStreamTrack().getSettings() as any).displaySurface;
+      if (created.audio && surface && surface !== "browser") { created.audio.close(); created.audio = null; }
       const screenUid = Number(myUid) + SCREEN_UID_OFFSET;
       const { data, error } = await supabase.functions.invoke("agora-token", { body: { channelName: channel, uid: screenUid } });
       if (error || !data?.token) throw new Error("Couldn't start screen sharing. Check your connection and try again.");
       screenClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-      await screenClient.join(APP_ID, channel, data.token, screenUid);
-      await screenClient.publish(created.audio ? [created.video, created.audio] : [created.video]);
+      const sc = screenClient;
+      sc.on("token-privilege-will-expire", async () => {
+        const { data: fresh } = await supabase.functions.invoke("agora-token", { body: { channelName: channel, uid: screenUid } });
+        if (fresh?.token) await sc.renewToken(fresh.token).catch(() => {});
+      });
+      sc.on("connection-state-change", (state: string, _prev: string, reason?: string) => {
+        if (state === "DISCONNECTED" && reason !== "LEAVE" && share.current?.client === sc) {
+          void stopShare(true);
+          toast.error("Screen sharing stopped because the connection dropped. Share again when you're back online.");
+        }
+      });
+      await sc.join(APP_ID, channel, data.token, screenUid);
+      // A small second copy lets people on weak connections keep watching
+      // instead of freezing.
+      await sc.enableDualStream().catch(() => {});
+      sc.setLowStreamParameter({ width: 960, height: 540, framerate: 8, bitrate: 500 });
+      await sc.publish(created.audio ? [created.video, created.audio] : [created.video]);
       share.current = { client: screenClient, ...created };
       // The browser's own "Stop sharing" bar ends the track; follow it.
       created.video.on("track-ended", () => { void stopShare(); });
@@ -369,9 +440,38 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   useEffect(() => { if (leaving) void stopShare(true); }, [leaving]);
 
   const myScreenUid = String(Number(myUid) + SCREEN_UID_OFFSET);
+
+  /* Send a small second camera stream so thumbnails and weak connections use less data. */
+  useEffect(() => {
+    if (!connected) return;
+    client.setLowStreamParameter({ width: 320, height: 180, framerate: 15, bitrate: 200 });
+    void client.enableDualStream().catch(() => {});
+  }, [client, connected]);
   const people_ = remoteUsers.filter((u) => !isScreenUid(u.uid));
   const remoteScreen = remoteUsers.find((u) => isScreenUid(u.uid) && String(u.uid) !== myScreenUid) || null;
   const stageOn = sharing || !!remoteScreen;
+
+  /*
+   * Bandwidth: when a screen is shared, faces become thumbnails, so ask for
+   * their small stream and keep the full screen at high quality. On a weak
+   * connection cameras drop to audio-only first, so voices keep coming
+   * through; the screen drops to its small copy instead of freezing.
+   */
+  const remoteKey = remoteUsers.map((u) => `${u.uid}:${u.hasVideo ? 1 : 0}`).join(",");
+  useEffect(() => {
+    if (!connected) return;
+    const crowded = people_.length + 1 > 4;
+    for (const u of remoteUsers) {
+      if (isScreenUid(u.uid)) {
+        void client.setRemoteVideoStreamType(u.uid, 0 as any).catch(() => {});
+        void client.setStreamFallbackOption(u.uid, FALLBACK_LOW as any).catch(() => {});
+      } else {
+        void client.setRemoteVideoStreamType(u.uid, (stageOn || crowded ? 1 : 0) as any).catch(() => {});
+        void client.setStreamFallbackOption(u.uid, FALLBACK_AUDIO_ONLY as any).catch(() => {});
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, connected, remoteKey, stageOn]);
   const tiles = people_.length + 1;
   const grid = tiles <= 1 ? "grid-cols-1" : tiles === 2 ? "grid-cols-1 sm:grid-cols-2" : tiles <= 4 ? "grid-cols-2" : tiles <= 9 ? "grid-cols-3" : "grid-cols-4";
   const timer = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
@@ -398,7 +498,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
         {stageOn && (
           <div className="relative mx-2 mb-2 min-h-0 flex-[3] overflow-hidden rounded-[22px] bg-black ring-1 ring-foreground/[0.07]">
             {remoteScreen ? (
-              <RemoteUser user={remoteScreen} playVideo={remoteScreen.hasVideo} playAudio videoPlayerConfig={{ fit: "contain" }} className="h-full w-full" />
+              <RemoteUser user={remoteScreen} playVideo={remoteScreen.hasVideo} playAudio videoPlayerConfig={SCREEN_PLAYER} className="h-full w-full" />
             ) : (
               <div className="grid h-full place-items-center px-6 text-center text-white">
                 <div>
@@ -417,24 +517,29 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
 
         <div className={stageOn ? "no-scrollbar flex h-[132px] shrink-0 gap-2 overflow-x-auto px-2 [&>*]:w-[170px] [&>*]:shrink-0" : `grid min-h-0 flex-1 auto-rows-fr gap-2 px-2 ${grid}`}>
           <Tile name={`${myName} (you)`} avatar={me?.avatar_url || null} muted={!micOn || !!micError} videoOn={camOn && !!localCameraTrack}>
-            <LocalUser audioTrack={localMicrophoneTrack} videoTrack={localCameraTrack} micOn={micOn} cameraOn={camOn} playAudio={false} playVideo={camOn} className="h-full w-full" />
+            <LocalUser audioTrack={localMicrophoneTrack} videoTrack={localCameraTrack} micOn cameraOn={camOn} playAudio={false} playVideo={camOn} className="h-full w-full" />
           </Tile>
           {people_.map((u) => {
             const person = byUid.get(String(u.uid));
             return (
-              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio} videoOn={u.hasVideo}>
-                <RemoteUser user={u} playAudio playVideo={u.hasVideo} className="h-full w-full" />
+              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio || mutedUids.has(String(u.uid))} videoOn={u.hasVideo}>
+                <RemoteUser user={u} playAudio playVideo={u.hasVideo} videoPlayerConfig={CAMERA_PLAYER} className="h-full w-full" />
               </Tile>
             );
           })}
         </div>
 
         {(connectionError || joinError) && <div role="status" className="mx-4 mt-3 rounded-xl bg-amber-500/10 p-3 text-center text-sm">{connectionError || "Couldn't connect to the call."} <button type="button" onClick={() => void recover()} className="font-semibold underline">Reconnect</button></div>}
-        {(micError || cameraError) && <p role="alert" className="px-4 pt-2 text-center text-xs text-amber-600">{micError ? "Microphone unavailable. Allow microphone access in your browser to speak." : "Camera unavailable. You can continue with audio or check camera permissions."}</p>}
+        {(micError || cameraError) && <p role="alert" className="px-4 pt-2 text-center text-xs text-amber-600">{micError ? <>Others can't hear you: your microphone is blocked or in use by another app. Allow microphone access, then <button type="button" onClick={retryMic} className="font-semibold underline">try again</button>.</> : "Camera unavailable. You can continue with audio or check camera permissions."}</p>}
         {people_.length === 0 && connected && (
           <p className="px-6 pt-3 text-center text-[13px] text-muted-foreground">Waiting for others to join — everyone in the group got a notification.</p>
         )}
 
+        {soundBlocked && (
+          <button type="button" onClick={resumeSound} className="mx-auto mt-3 inline-flex h-11 items-center gap-2 rounded-full bg-[#cc208f] px-5 text-[14px] font-semibold text-white shadow-lg">
+            <Volume2 className="h-4 w-4" /> Tap to hear the call
+          </button>
+        )}
         <div className="flex items-center justify-center gap-3 px-4 pb-6 pt-4">
           <Ctrl on={micOn} onClick={() => setMicOn((v) => !v)} label={micOn ? "Mute" : "Unmute"}>{micOn ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}</Ctrl>
           <Ctrl on={camOn} onClick={() => setCamOn((v) => !v)} label={camOn ? "Camera off" : "Camera on"}>{camOn ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}</Ctrl>
@@ -453,7 +558,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
 
       {/* Minimised: a floating bubble, draggable-free and always reachable. */}
       {minimized && (
-        <div className="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-3 z-[9998] flex items-center gap-2 rounded-full bg-card py-1.5 pl-1.5 pr-2 shadow-[0_16px_40px_-14px_rgba(0,0,0,0.55)] ring-1 ring-foreground/10">
+        <div ref={bubbleDrag.ref} style={bubbleDrag.style} {...bubbleDrag.handlers} title="Drag to move" className={`fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-3 z-[9998] flex select-none items-center gap-2 rounded-full bg-card py-1.5 pl-1.5 pr-2 ring-1 ring-foreground/10 ${bubbleDrag.dragging ? "shadow-[0_22px_50px_-12px_rgba(0,0,0,0.7)] ring-2 ring-[#cc208f]/50" : "shadow-[0_16px_40px_-14px_rgba(0,0,0,0.55)]"}`}>
           <button type="button" onClick={restore} className="flex items-center gap-2" aria-label="Return to call">
             <span className="relative">
               <GroupAvatar name={groupName} url={groupAvatar} size={40} />

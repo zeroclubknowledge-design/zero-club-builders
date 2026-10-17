@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
+import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
@@ -401,6 +402,8 @@ function ClubChat() {
     room: roomParam,
   } = useSearch({ from: "/app/clubs/chat" });
   const [showQuickNav, setShowQuickNav] = useState(false);
+  /* The floating Zero Club button can be dragged aside so it never covers a message. */
+  const fabDrag = useDraggableFloat<HTMLButtonElement>("club-sections-fab", { snap: true, bounds: "parent" });
   const [messages, setMessages] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [club, setClub] = useState<any>(null);
@@ -3591,12 +3594,16 @@ function ClubChat() {
           <button
             type="button"
             onClick={() => setShowQuickNav(true)}
+            ref={fabDrag.ref}
+            style={fabDrag.style}
+            {...fabDrag.handlers}
+            title="Tap to open · drag to move"
             aria-label={
               unseenSectionTotal > 0
                 ? `Club sections and tools, ${unseenSectionTotal} new`
                 : "Club sections and tools"
             }
-            className={`absolute right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#cc208f] text-white shadow-[0_14px_30px_-10px_rgba(204,32,143,0.85)] ring-4 ring-card transition active:scale-90 ${
+            className={`absolute right-4 z-40 grid h-14 w-14 select-none place-items-center rounded-full bg-[#cc208f] text-white shadow-[0_14px_30px_-10px_rgba(204,32,143,0.85)] ring-4 ring-card transition-[scale,box-shadow] ${fabDrag.dragging ? "scale-110" : "active:scale-90"} ${
               ["assignments", "announcements", "q-and-a", QUIZ_ROOM].includes(activeRoom)
                 ? "bottom-[calc(20px+env(safe-area-inset-bottom))]"
                 : "bottom-[calc(96px+env(safe-area-inset-bottom))]"
