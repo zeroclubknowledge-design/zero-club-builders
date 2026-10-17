@@ -33,6 +33,7 @@ import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
+import { COVER_IMAGE } from "@/lib/imageCompression";
 import { createBootcampAction } from "@/api";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { RichTextEditor } from "@/components/RichTextEditor";
@@ -120,7 +121,9 @@ export function BootcampForm({
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || bootcamp.creator_id !== user.id) {
         toast.error("Only the bootcamp creator can edit this bootcamp.");
         navigate({ to: returnTo as any });
@@ -242,7 +245,10 @@ export function BootcampForm({
       if (!user) throw new Error("Not authenticated");
       if (bootcampId) {
         const { data: ownedBootcamp, error: ownershipError } = await supabase
-          .from("bootcamps").select("creator_id").eq("id", bootcampId).single();
+          .from("bootcamps")
+          .select("creator_id")
+          .eq("id", bootcampId)
+          .single();
         if (ownershipError || ownedBootcamp?.creator_id !== user.id) {
           throw new Error("Only the bootcamp creator can edit this bootcamp.");
         }
@@ -252,7 +258,12 @@ export function BootcampForm({
       if (bannerFile) {
         const fileExt = bannerFile.name.split(".").pop();
         const fileName = `${Date.now()}.${fileExt}`;
-        bannerUrl = await uploadFile("bootcamp-banners", bannerFile, `${user.id}/${fileName}`);
+        bannerUrl = await uploadFile(
+          "bootcamp-banners",
+          bannerFile,
+          `${user.id}/${fileName}`,
+          COVER_IMAGE,
+        );
       }
 
       let videoUrl = videoPreview?.startsWith("http") ? videoPreview : "";
@@ -281,7 +292,11 @@ export function BootcampForm({
       };
 
       const saveQuery = bootcampId
-        ? supabase.from("bootcamps").update(bootcampPayload).eq("id", bootcampId).eq("creator_id", user.id)
+        ? supabase
+            .from("bootcamps")
+            .update(bootcampPayload)
+            .eq("id", bootcampId)
+            .eq("creator_id", user.id)
         : supabase.from("bootcamps").insert([{ ...bootcampPayload, creator_id: user.id }]);
       const { data: newBootcamp, error: dbError } = await saveQuery.select().single();
 

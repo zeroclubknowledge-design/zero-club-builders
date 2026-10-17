@@ -16,6 +16,30 @@
 const MAX_EDGE = 1600;
 const QUALITY = 0.82;
 
+/**
+ * A landscape cover is not a photo in a feed.
+ *
+ * It is shown edge to edge — a Zero Form banner fills a column over 900 CSS
+ * pixels wide on a desktop, which is 1800 real pixels on any screen with a
+ * normal pixel ratio, and more on a 3x phone held sideways. Shrinking it to the
+ * 1600px feed limit meant it was upscaled the moment it was displayed, so a
+ * sharp upload came out soft. Covers keep their detail instead: a wider edge
+ * and less aggressive re-encoding, since a cover is one image per page rather
+ * than fifty in a scroll.
+ */
+export const COVER_MAX_EDGE = 2560;
+export const COVER_QUALITY = 0.92;
+
+export type CompressOptions = {
+  /** Longest side, in pixels. Defaults to the feed limit. */
+  maxEdge?: number;
+  /** Encoder quality, 0–1. Defaults to the feed setting. */
+  quality?: number;
+};
+
+/** The preset for form banners, bootcamp covers and other edge-to-edge images. */
+export const COVER_IMAGE: CompressOptions = { maxEdge: COVER_MAX_EDGE, quality: COVER_QUALITY };
+
 /** Below this there is nothing worth saving, and re-encoding can even grow it. */
 const SKIP_BELOW_BYTES = 120 * 1024;
 
@@ -69,11 +93,19 @@ function loadBitmap(file: File): Promise<ImageBitmap | HTMLImageElement> {
  * arrived. Failing to compress is a missed optimisation; failing to post is a
  * bug, and the person losing their photo would never know why.
  */
-export async function compressImage(file: File): Promise<File> {
+export async function compressImage(file: File, options: CompressOptions = {}): Promise<File> {
   if (typeof document === "undefined") return file;
   if (!file.type.startsWith("image/")) return file;
   if (PASS_THROUGH.test(file.type)) return file;
-  if (file.size < SKIP_BELOW_BYTES) return file;
+
+  const maxEdge = options.maxEdge ?? MAX_EDGE;
+  const quality = options.quality ?? QUALITY;
+
+  // A small photo that already fits the target is left alone — re-encoding a
+  // 200 KB snapshot can even grow it. A cover target is large, so only files
+  // that are plausibly already that size skip the work; a small but very wide
+  // image still goes through, because it is the width that makes a banner soft.
+  if (file.size < SKIP_BELOW_BYTES && maxEdge <= MAX_EDGE) return file;
 
   try {
     const source = await loadBitmap(file);
@@ -81,7 +113,7 @@ export async function compressImage(file: File): Promise<File> {
     const height = "height" in source ? source.height : 0;
     if (!width || !height) return file;
 
-    const scale = Math.min(1, MAX_EDGE / Math.max(width, height));
+    const scale = Math.min(1, maxEdge / Math.max(width, height));
     const targetWidth = Math.round(width * scale);
     const targetHeight = Math.round(height * scale);
 
@@ -101,9 +133,7 @@ export async function compressImage(file: File): Promise<File> {
     if ("close" in source && typeof source.close === "function") source.close();
 
     const type = canEncodeWebp() ? "image/webp" : "image/jpeg";
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, type, QUALITY),
-    );
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
 
     // Re-encoding an already-optimised image can make it bigger. If it did,
     // the original was the better file and it wins.

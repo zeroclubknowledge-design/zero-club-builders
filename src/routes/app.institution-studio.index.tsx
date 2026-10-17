@@ -5,17 +5,46 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadFile } from "@/lib/storage";
+import { COVER_IMAGE } from "@/lib/imageCompression";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
-import { Plus, Users, LayoutGrid, GraduationCap, Building2, Trash2, BarChart3, Settings, Search, ChevronRight, Loader2, TrendingUp, DollarSign, BookOpen, Eye, UploadCloud, UserPlus, Activity, ArrowUpRight, Calendar, Check, X, Edit3, MoreHorizontal, Shield, Clock } from "@/components/icons/glyphs";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+  Plus,
+  Users,
+  LayoutGrid,
+  GraduationCap,
+  Building2,
+  Trash2,
+  BarChart3,
+  Settings,
+  Search,
+  ChevronRight,
+  Loader2,
+  TrendingUp,
+  DollarSign,
+  BookOpen,
+  Eye,
+  UploadCloud,
+  UserPlus,
+  Activity,
+  ArrowUpRight,
+  Calendar,
+  Check,
+  X,
+  Edit3,
+  MoreHorizontal,
+  Shield,
+  Clock,
+} from "@/components/icons/glyphs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Drawer, DrawerContent, DrawerHeader, DrawerTitle
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
 
@@ -27,13 +56,27 @@ export const Route = createFileRoute("/app/institution-studio/")({
    Helpers
    ═══════════════════════════════════════════════════════════════════════ */
 const fmt = (n?: number | null) => (n ?? 0).toLocaleString();
-const StatCard = ({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string | number; accent?: string }) => (
+const StatCard = ({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: any;
+  label: string;
+  value: string | number;
+  accent?: string;
+}) => (
   <div className="group relative overflow-hidden rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/25 sm:p-5">
-    <div className={`mb-3 grid h-9 w-9 place-items-center rounded-lg ${accent || "bg-primary/8 text-primary"}`}>
+    <div
+      className={`mb-3 grid h-9 w-9 place-items-center rounded-lg ${accent || "bg-primary/8 text-primary"}`}
+    >
       <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
     </div>
     <p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p>
-    <p className="mt-1 font-display text-[22px] font-semibold tracking-tight tabular-nums">{value}</p>
+    <p className="mt-1 font-display text-[22px] font-semibold tracking-tight tabular-nums">
+      {value}
+    </p>
   </div>
 );
 
@@ -46,10 +89,24 @@ function InstitutionHub() {
   const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
 
   // ?tab= opens a section directly (the sidebar links here from anywhere in the app).
-  const [activeTab, setActiveTab] = useState<"overview" | "tutors" | "bootcamps" | "operations" | "zero-forms" | "analytics" | "settings">(() => {
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "tutors" | "bootcamps" | "operations" | "zero-forms" | "analytics" | "settings"
+  >(() => {
     if (typeof window === "undefined") return "overview";
     const t = new URLSearchParams(window.location.search).get("tab");
-    return (["overview", "tutors", "bootcamps", "operations", "zero-forms", "analytics", "settings"] as const).find((x) => x === t) || "overview";
+    return (
+      (
+        [
+          "overview",
+          "tutors",
+          "bootcamps",
+          "operations",
+          "zero-forms",
+          "analytics",
+          "settings",
+        ] as const
+      ).find((x) => x === t) || "overview"
+    );
   });
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -62,7 +119,10 @@ function InstitutionHub() {
   const [showCreateBootcamp, setShowCreateBootcamp] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newBootcamp, setNewBootcamp] = useState({
-    title: "", description: "", category: "Development", price: "0",
+    title: "",
+    description: "",
+    category: "Development",
+    price: "0",
   });
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
@@ -74,7 +134,12 @@ function InstitutionHub() {
 
   // ── Settings ──
   const [editingProfile, setEditingProfile] = useState(false);
-  const [settingsForm, setSettingsForm] = useState({ full_name: "", bio: "", location: "", website: "" });
+  const [settingsForm, setSettingsForm] = useState({
+    full_name: "",
+    bio: "",
+    location: "",
+    website: "",
+  });
   const [savingSettings, setSavingSettings] = useState(false);
 
   // ── Search ──
@@ -93,9 +158,15 @@ function InstitutionHub() {
   /* ── Load institution profile ── */
   useEffect(() => {
     async function load() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) return;
-      const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
       if (data) {
         setProfile(data);
         setSettingsForm({
@@ -111,7 +182,11 @@ function InstitutionHub() {
   }, []);
 
   /* ── Fetch tutors ── */
-  const { data: tutors = [], isLoading: tutorsLoading, refetch: refetchTutors } = useQuery({
+  const {
+    data: tutors = [],
+    isLoading: tutorsLoading,
+    refetch: refetchTutors,
+  } = useQuery({
     queryKey: ["institution-tutors", profile?.id],
     queryFn: async () => {
       const { data: links, error } = await supabase
@@ -121,16 +196,26 @@ function InstitutionHub() {
       if (error) throw error;
       const tutorIds = (links || []).map((link: any) => link.tutor_id);
       const { data: tutorProfiles } = tutorIds.length
-        ? await supabase.from("profiles").select("id, username, full_name, avatar_url, bio, location").in("id", tutorIds)
+        ? await supabase
+            .from("profiles")
+            .select("id, username, full_name, avatar_url, bio, location")
+            .in("id", tutorIds)
         : { data: [] as any[] };
       const tutorMap = new Map((tutorProfiles || []).map((tutor: any) => [tutor.id, tutor]));
-      return (links || []).map((link: any) => ({ ...link, tutor: tutorMap.get(link.tutor_id) || null }));
+      return (links || []).map((link: any) => ({
+        ...link,
+        tutor: tutorMap.get(link.tutor_id) || null,
+      }));
     },
     enabled: !!profile?.id,
   });
 
   /* ── Fetch all bootcamps (institution-created + tutor-created) ── */
-  const { data: allBootcamps = [], isLoading: bootcampsLoading, refetch: refetchBootcamps } = useQuery({
+  const {
+    data: allBootcamps = [],
+    isLoading: bootcampsLoading,
+    refetch: refetchBootcamps,
+  } = useQuery({
     queryKey: ["institution-all-bootcamps", profile?.id],
     queryFn: async () => {
       const tutorIds = tutors.map((t: any) => t.tutor_id);
@@ -147,19 +232,31 @@ function InstitutionHub() {
 
       const bootcampIds = bootcamps.map((bootcamp: any) => bootcamp.id);
       const [{ data: creators }, { data: enrollmentRows }] = await Promise.all([
-        supabase.from("profiles").select("id, username, full_name, avatar_url").in("id", allCreatorIds),
+        supabase
+          .from("profiles")
+          .select("id, username, full_name, avatar_url")
+          .in("id", allCreatorIds),
         supabase.from("enrollments").select("bootcamp_id").in("bootcamp_id", bootcampIds),
       ]);
       const creatorMap = new Map((creators || []).map((creator: any) => [creator.id, creator]));
       const counts = new Map<string, number>();
-      (enrollmentRows || []).forEach((row: any) => counts.set(row.bootcamp_id, (counts.get(row.bootcamp_id) || 0) + 1));
-      return bootcamps.map((bootcamp: any) => ({ ...bootcamp, profiles: creatorMap.get(bootcamp.creator_id) || null, enrollments: [{ count: counts.get(bootcamp.id) || 0 }] }));
+      (enrollmentRows || []).forEach((row: any) =>
+        counts.set(row.bootcamp_id, (counts.get(row.bootcamp_id) || 0) + 1),
+      );
+      return bootcamps.map((bootcamp: any) => ({
+        ...bootcamp,
+        profiles: creatorMap.get(bootcamp.creator_id) || null,
+        enrollments: [{ count: counts.get(bootcamp.id) || 0 }],
+      }));
     },
     enabled: !!profile?.id && !tutorsLoading,
   });
 
   /* ── Enrollment count ── */
-  const totalLearners = allBootcamps.reduce((acc: number, b: any) => acc + (b.enrollments?.[0]?.count || 0), 0);
+  const totalLearners = allBootcamps.reduce(
+    (acc: number, b: any) => acc + (b.enrollments?.[0]?.count || 0),
+    0,
+  );
   const totalRevenue = allBootcamps.reduce((acc: number, b: any) => {
     const enrollCount = b.enrollments?.[0]?.count || 0;
     return acc + (b.price || 0) * enrollCount;
@@ -178,8 +275,16 @@ function InstitutionHub() {
       .or(`username.ilike.${inviteQuery.trim()},full_name.ilike.${inviteQuery.trim()}`)
       .maybeSingle();
 
-    if (!found) { toast.error("User not found."); setInviting(false); return; }
-    if (found.account_type !== "Tutor") { toast.error("This user is not a Tutor account."); setInviting(false); return; }
+    if (!found) {
+      toast.error("User not found.");
+      setInviting(false);
+      return;
+    }
+    if (found.account_type !== "Tutor") {
+      toast.error("This user is not a Tutor account.");
+      setInviting(false);
+      return;
+    }
 
     const { data: existing } = await supabase
       .from("institution_tutors")
@@ -188,17 +293,25 @@ function InstitutionHub() {
       .eq("tutor_id", found.id)
       .maybeSingle();
 
-    if (existing) { toast.error("Tutor is already in your organization."); setInviting(false); return; }
+    if (existing) {
+      toast.error("Tutor is already in your organization.");
+      setInviting(false);
+      return;
+    }
 
     // Send invitation DM
     const { error } = await supabase.from("messages").insert({
       sender_id: profile.id,
       receiver_id: found.id,
-      content: `TUTOR_INVITE:${profile.id}:${profile.full_name || profile.username || "Institution"}`
+      content: `TUTOR_INVITE:${profile.id}:${profile.full_name || profile.username || "Institution"}`,
     });
 
-    if (error) { toast.error("Failed to send invitation."); }
-    else { toast.success(`Invitation sent to @${found.username}!`); setInviteQuery(""); }
+    if (error) {
+      toast.error("Failed to send invitation.");
+    } else {
+      toast.success(`Invitation sent to @${found.username}!`);
+      setInviteQuery("");
+    }
     setInviting(false);
   };
 
@@ -209,7 +322,10 @@ function InstitutionHub() {
       .delete()
       .match({ institution_id: profile.id, tutor_id: tutorId });
     if (error) toast.error("Failed to remove tutor.");
-    else { toast.success("Tutor removed."); refetchTutors(); }
+    else {
+      toast.success("Tutor removed.");
+      refetchTutors();
+    }
   };
 
   const handleCreateBootcamp = async (e: React.FormEvent) => {
@@ -222,20 +338,27 @@ function InstitutionHub() {
       if (bannerFile) {
         const ext = bannerFile.name.split(".").pop();
         const fname = `${Date.now()}.${ext}`;
-        bannerUrl = await uploadFile("bootcamp-banners", bannerFile, `${profile.id}/${fname}`);
+        bannerUrl = await uploadFile(
+          "bootcamp-banners",
+          bannerFile,
+          `${profile.id}/${fname}`,
+          COVER_IMAGE,
+        );
       }
 
       const { data: created, error } = await supabase
         .from("bootcamps")
-        .insert([{
-          creator_id: profile.id,
-          title: newBootcamp.title,
-          description: newBootcamp.description,
-          category: newBootcamp.category,
-          price: toBaseAmount(Number(newBootcamp.price) || 0),
-          banner_url: bannerUrl,
-          status: "active",
-        }])
+        .insert([
+          {
+            creator_id: profile.id,
+            title: newBootcamp.title,
+            description: newBootcamp.description,
+            category: newBootcamp.category,
+            price: toBaseAmount(Number(newBootcamp.price) || 0),
+            banner_url: bannerUrl,
+            status: "active",
+          },
+        ])
         .select()
         .single();
 
@@ -244,27 +367,31 @@ function InstitutionHub() {
       // Auto-create a club for the bootcamp
       const { data: newClub } = await supabase
         .from("clubs")
-        .insert([{
-          name: newBootcamp.title,
-          description: newBootcamp.description,
-          category: "Bootcamp",
-          creator_id: profile.id,
-          bootcamp_id: created.id,
-          club_type: "bootcamp_cohort",
-          is_private: true,
-          price: toBaseAmount(Number(newBootcamp.price) || 0),
-          banner_url: bannerUrl,
-          logo_url: bannerUrl,
-        }])
+        .insert([
+          {
+            name: newBootcamp.title,
+            description: newBootcamp.description,
+            category: "Bootcamp",
+            creator_id: profile.id,
+            bootcamp_id: created.id,
+            club_type: "bootcamp_cohort",
+            is_private: true,
+            price: toBaseAmount(Number(newBootcamp.price) || 0),
+            banner_url: bannerUrl,
+            logo_url: bannerUrl,
+          },
+        ])
         .select()
         .single();
 
       if (newClub) {
-        await supabase.from("club_members").insert([{
-          club_id: newClub.id,
-          profile_id: profile.id,
-          role: "Administrator",
-        }]);
+        await supabase.from("club_members").insert([
+          {
+            club_id: newClub.id,
+            profile_id: profile.id,
+            role: "Administrator",
+          },
+        ]);
       }
 
       toast.success("Bootcamp created!");
@@ -281,7 +408,10 @@ function InstitutionHub() {
   };
 
   const handleAssignTutor = async (bootcampId: string, tutorId: string) => {
-    if (!profile?.id || allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id) {
+    if (
+      !profile?.id ||
+      allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id
+    ) {
       toast.error("Only the bootcamp creator can edit this bootcamp.");
       return;
     }
@@ -291,7 +421,8 @@ function InstitutionHub() {
       const { error } = await supabase
         .from("bootcamps")
         .update({ assigned_tutor_id: tutorId })
-        .eq("id", bootcampId).eq("creator_id", profile.id);
+        .eq("id", bootcampId)
+        .eq("creator_id", profile.id);
 
       if (error) throw error;
 
@@ -315,11 +446,13 @@ function InstitutionHub() {
             .maybeSingle();
 
           if (!existingMember) {
-            await supabase.from("club_members").insert([{
-              club_id: club.id,
-              profile_id: tutorId,
-              role: "Administrator",
-            }]);
+            await supabase.from("club_members").insert([
+              {
+                club_id: club.id,
+                profile_id: tutorId,
+                role: "Administrator",
+              },
+            ]);
           } else {
             await supabase
               .from("club_members")
@@ -341,36 +474,50 @@ function InstitutionHub() {
   };
 
   const handleUnassignTutor = async (bootcampId: string) => {
-    if (!profile?.id || allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id) {
+    if (
+      !profile?.id ||
+      allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id
+    ) {
       toast.error("Only the bootcamp creator can edit this bootcamp.");
       return;
     }
     const { error } = await supabase
       .from("bootcamps")
       .update({ assigned_tutor_id: null })
-      .eq("id", bootcampId).eq("creator_id", profile.id);
+      .eq("id", bootcampId)
+      .eq("creator_id", profile.id);
     if (error) toast.error("Failed to unassign.");
-    else { toast.success("Tutor unassigned."); refetchBootcamps(); }
+    else {
+      toast.success("Tutor unassigned.");
+      refetchBootcamps();
+    }
   };
 
   const handleDeleteBootcamp = async (bootcampId: string) => {
-    if (!profile?.id || allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id) {
+    if (
+      !profile?.id ||
+      allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id
+    ) {
       toast.error("Only the bootcamp creator can delete this bootcamp.");
       return;
     }
     if (!confirm("Delete this bootcamp permanently?")) return;
-    const { error } = await supabase.from("bootcamps").delete().eq("id", bootcampId).eq("creator_id", profile.id);
+    const { error } = await supabase
+      .from("bootcamps")
+      .delete()
+      .eq("id", bootcampId)
+      .eq("creator_id", profile.id);
     if (error) toast.error("Failed to delete.");
-    else { toast.success("Bootcamp deleted."); refetchBootcamps(); }
+    else {
+      toast.success("Bootcamp deleted.");
+      refetchBootcamps();
+    }
   };
 
   const handleSaveSettings = async () => {
     if (!profile) return;
     setSavingSettings(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update(settingsForm)
-      .eq("id", profile.id);
+    const { error } = await supabase.from("profiles").update(settingsForm).eq("id", profile.id);
     if (error) toast.error("Failed to save.");
     else {
       toast.success("Settings saved!");
@@ -380,9 +527,10 @@ function InstitutionHub() {
     setSavingSettings(false);
   };
 
-  const filteredBootcamps = allBootcamps.filter((b: any) =>
-    b.title?.toLowerCase().includes(bootcampSearch.toLowerCase()) ||
-    b.category?.toLowerCase().includes(bootcampSearch.toLowerCase())
+  const filteredBootcamps = allBootcamps.filter(
+    (b: any) =>
+      b.title?.toLowerCase().includes(bootcampSearch.toLowerCase()) ||
+      b.category?.toLowerCase().includes(bootcampSearch.toLowerCase()),
   );
 
   // Top performing bootcamps
@@ -391,15 +539,28 @@ function InstitutionHub() {
     .slice(0, 5);
 
   // Top tutors by bootcamp count
-  const tutorBootcampCounts = tutors.map((t: any) => {
-    const count = allBootcamps.filter((b: any) => b.creator_id === t.tutor_id || b.assigned_tutor_id === t.tutor_id).length;
-    const learnerCount = allBootcamps
-      .filter((b: any) => b.creator_id === t.tutor_id || b.assigned_tutor_id === t.tutor_id)
-      .reduce((acc: number, b: any) => acc + (b.enrollments?.[0]?.count || 0), 0);
-    return { ...t, bootcampCount: count, learnerCount };
-  }).sort((a: any, b: any) => b.learnerCount - a.learnerCount);
+  const tutorBootcampCounts = tutors
+    .map((t: any) => {
+      const count = allBootcamps.filter(
+        (b: any) => b.creator_id === t.tutor_id || b.assigned_tutor_id === t.tutor_id,
+      ).length;
+      const learnerCount = allBootcamps
+        .filter((b: any) => b.creator_id === t.tutor_id || b.assigned_tutor_id === t.tutor_id)
+        .reduce((acc: number, b: any) => acc + (b.enrollments?.[0]?.count || 0), 0);
+      return { ...t, bootcampCount: count, learnerCount };
+    })
+    .sort((a: any, b: any) => b.learnerCount - a.learnerCount);
 
-  const CATEGORIES = ["Development", "Design", "Data Science", "Business", "Marketing", "AI/ML", "DevOps", "Cybersecurity"];
+  const CATEGORIES = [
+    "Development",
+    "Design",
+    "Data Science",
+    "Business",
+    "Marketing",
+    "AI/ML",
+    "DevOps",
+    "Cybersecurity",
+  ];
 
   const sidebarItems = [
     { key: "overview", label: "Overview", Icon: Activity },
@@ -445,7 +606,6 @@ function InstitutionHub() {
       {/* ═══ MAIN CONTENT ═══ */}
       <div className="min-w-0 flex-1 overflow-auto pb-20 lg:pb-6">
         <div className="w-full p-4 md:p-7 lg:px-8 lg:py-8">
-
           {/* ────────────────── OVERVIEW TAB ────────────────── */}
           {activeTab === "overview" && (
             <div className="animate-in space-y-6 fade-in slide-in-from-bottom-4 duration-500">
@@ -453,10 +613,19 @@ function InstitutionHub() {
               <div className="overflow-hidden rounded-lg bg-[#171218] text-white ring-1 ring-white/[0.06]">
                 <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                   <div className="max-w-2xl">
-                    <div className="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-[#cc208f]"><Building2 className="h-5 w-5" /></div>
-                    <p className="text-[10px] font-semibold uppercase text-white/45">Institution command center</p>
-                    <h1 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[32px]">{profile?.full_name || "Digital Hub"}</h1>
-                    <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-white/60">Coordinate tutors, programs, learner participation, and teaching outcomes from one accountable workspace.</p>
+                    <div className="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-[#cc208f]">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <p className="text-[10px] font-semibold uppercase text-white/45">
+                      Institution command center
+                    </p>
+                    <h1 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[32px]">
+                      {profile?.full_name || "Digital Hub"}
+                    </h1>
+                    <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-white/60">
+                      Coordinate tutors, programs, learner participation, and teaching outcomes from
+                      one accountable workspace.
+                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2.5">
                     {/* The roster and the communities live in the control
@@ -469,7 +638,10 @@ function InstitutionHub() {
                       <Users className="h-4 w-4" /> Control panel
                     </Link>
                     <button
-                      onClick={() => { setActiveTab("bootcamps"); setShowCreateBootcamp(true); }}
+                      onClick={() => {
+                        setActiveTab("bootcamps");
+                        setShowCreateBootcamp(true);
+                      }}
                       className="flex h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-[13px] font-semibold text-black hover:bg-white/90"
                     >
                       <Plus className="h-4 w-4" /> New bootcamp
@@ -480,10 +652,30 @@ function InstitutionHub() {
 
               {/* KPI Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <StatCard icon={Users} label="Total tutors" value={fmt(tutors.length)} accent="bg-blue-500/10 text-blue-500" />
-                <StatCard icon={LayoutGrid} label="Bootcamps" value={fmt(allBootcamps.length)} accent="bg-violet-500/10 text-violet-500" />
-                <StatCard icon={GraduationCap} label="Learners" value={fmt(totalLearners)} accent="bg-emerald-500/10 text-emerald-500" />
-                <StatCard icon={DollarSign} label="Revenue" value={format(totalRevenue)} accent="bg-amber-500/10 text-amber-500" />
+                <StatCard
+                  icon={Users}
+                  label="Total tutors"
+                  value={fmt(tutors.length)}
+                  accent="bg-blue-500/10 text-blue-500"
+                />
+                <StatCard
+                  icon={LayoutGrid}
+                  label="Bootcamps"
+                  value={fmt(allBootcamps.length)}
+                  accent="bg-violet-500/10 text-violet-500"
+                />
+                <StatCard
+                  icon={GraduationCap}
+                  label="Learners"
+                  value={fmt(totalLearners)}
+                  accent="bg-emerald-500/10 text-emerald-500"
+                />
+                <StatCard
+                  icon={DollarSign}
+                  label="Revenue"
+                  value={format(totalRevenue)}
+                  accent="bg-amber-500/10 text-amber-500"
+                />
               </div>
 
               {/* Quick Actions */}
@@ -497,7 +689,9 @@ function InstitutionHub() {
                   </div>
                   <div className="text-left">
                     <p className="text-[14px] font-semibold tracking-tight">Manage tutors</p>
-                    <p className="text-[11.5px] text-muted-foreground mt-0.5">Invite, assign and manage</p>
+                    <p className="text-[11.5px] text-muted-foreground mt-0.5">
+                      Invite, assign and manage
+                    </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -511,7 +705,9 @@ function InstitutionHub() {
                   </div>
                   <div className="text-left">
                     <p className="text-[14px] font-semibold tracking-tight">View bootcamps</p>
-                    <p className="text-[11.5px] text-muted-foreground mt-0.5">Create and assign tutors</p>
+                    <p className="text-[11.5px] text-muted-foreground mt-0.5">
+                      Create and assign tutors
+                    </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -525,7 +721,9 @@ function InstitutionHub() {
                   </div>
                   <div className="text-left">
                     <p className="text-[14px] font-semibold tracking-tight">Learning operations</p>
-                    <p className="text-[11.5px] text-muted-foreground mt-0.5">Cohorts, learners and schedules</p>
+                    <p className="text-[11.5px] text-muted-foreground mt-0.5">
+                      Cohorts, learners and schedules
+                    </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -539,7 +737,9 @@ function InstitutionHub() {
                   </div>
                   <div className="text-left">
                     <p className="text-[14px] font-semibold tracking-tight">View analytics</p>
-                    <p className="text-[11.5px] text-muted-foreground mt-0.5">Revenue and performance</p>
+                    <p className="text-[11.5px] text-muted-foreground mt-0.5">
+                      Revenue and performance
+                    </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -548,8 +748,15 @@ function InstitutionHub() {
               {/* Recent Bootcamps */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recent bootcamps</h2>
-                  <button onClick={() => setActiveTab("bootcamps")} className="text-[11px] font-semibold text-primary tap">View all</button>
+                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    Recent bootcamps
+                  </h2>
+                  <button
+                    onClick={() => setActiveTab("bootcamps")}
+                    className="text-[11px] font-semibold text-primary tap"
+                  >
+                    View all
+                  </button>
                 </div>
                 {allBootcamps.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center text-[13px] text-muted-foreground">
@@ -558,14 +765,19 @@ function InstitutionHub() {
                 ) : (
                   <div className="space-y-2">
                     {allBootcamps.slice(0, 4).map((b: any) => (
-                      <div 
-                        key={b.id} 
+                      <div
+                        key={b.id}
                         onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })}
                         className="flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/25 tap"
                       >
                         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                           {b.banner_url ? (
-                            <img src={b.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                            <img
+                              src={b.banner_url}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center bg-primary/5">
                               <GraduationCap className="h-5 w-5 text-primary/40" />
@@ -573,12 +785,20 @@ function InstitutionHub() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[14px] font-semibold tracking-tight truncate">{b.title}</p>
+                          <p className="text-[14px] font-semibold tracking-tight truncate">
+                            {b.title}
+                          </p>
                           <div className="flex items-center gap-3 mt-1">
-                            <span className="text-[11px] text-muted-foreground">{b.enrollments?.[0]?.count || 0} learners</span>
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                              b.status === "active" ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
-                            }`}>
+                            <span className="text-[11px] text-muted-foreground">
+                              {b.enrollments?.[0]?.count || 0} learners
+                            </span>
+                            <span
+                              className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                                b.status === "active"
+                                  ? "bg-emerald-500/10 text-emerald-500"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
                               {b.status === "active" ? "Published" : "Draft"}
                             </span>
                           </div>
@@ -586,7 +806,12 @@ function InstitutionHub() {
                         {b.profiles && (
                           <div className="flex items-center gap-2 shrink-0">
                             {b.profiles.avatar_url ? (
-                              <img src={b.profiles.avatar_url} className="h-7 w-7 rounded-full object-cover ring-1 ring-border" loading="lazy" decoding="async" />
+                              <img
+                                src={b.profiles.avatar_url}
+                                className="h-7 w-7 rounded-full object-cover ring-1 ring-border"
+                                loading="lazy"
+                                decoding="async"
+                              />
                             ) : (
                               <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
                                 {(b.profiles.username || "U")[0].toUpperCase()}
@@ -606,7 +831,9 @@ function InstitutionHub() {
           {activeTab === "tutors" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div>
-                <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">Manage tutors</h1>
+                <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">
+                  Manage tutors
+                </h1>
                 <p className="text-[13.5px] text-muted-foreground mt-2 leading-relaxed">
                   Add and manage the instructors who teach under your organization.
                 </p>
@@ -615,7 +842,9 @@ function InstitutionHub() {
               {/* Add Tutor Card */}
               <div className="rounded-lg border border-border bg-card p-5 sm:p-6">
                 <h3 className="font-semibold tracking-tight text-[16px] mb-1">Invite a tutor</h3>
-                <p className="text-[12px] text-muted-foreground mb-4">Search by their Zero Club username to send an invitation.</p>
+                <p className="text-[12px] text-muted-foreground mb-4">
+                  Search by their Zero Club username to send an invitation.
+                </p>
                 <form onSubmit={handleAddTutor} className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -632,7 +861,11 @@ function InstitutionHub() {
                     disabled={inviting || !inviteQuery.trim()}
                     className="h-12 px-6 bg-foreground text-background text-[14px] font-semibold tracking-tight rounded-xl flex items-center justify-center gap-2 tap hover:opacity-90 disabled:opacity-50 shrink-0"
                   >
-                    {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                    {inviting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="h-4 w-4" />
+                    )}
                     Send Invite
                   </button>
                 </form>
@@ -647,7 +880,9 @@ function InstitutionHub() {
                 </div>
                 {tutorsLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[1, 2].map(i => <div key={i} className="h-24 rounded-lg bg-foreground/[0.04] shimmer" />)}
+                    {[1, 2].map((i) => (
+                      <div key={i} className="h-24 rounded-lg bg-foreground/[0.04] shimmer" />
+                    ))}
                   </div>
                 ) : tutors.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-10 text-center text-[13.5px] text-muted-foreground">
@@ -657,10 +892,18 @@ function InstitutionHub() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {tutorBootcampCounts.map((t: any) => (
-                      <div key={t.id} className="rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/25">
+                      <div
+                        key={t.id}
+                        className="rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/25"
+                      >
                         <div className="flex items-center gap-4">
                           {t.tutor?.avatar_url ? (
-                            <img src={t.tutor.avatar_url} className="h-12 w-12 rounded-xl object-cover ring-1 ring-border" loading="lazy" decoding="async" />
+                            <img
+                              src={t.tutor.avatar_url}
+                              className="h-12 w-12 rounded-xl object-cover ring-1 ring-border"
+                              loading="lazy"
+                              decoding="async"
+                            />
                           ) : (
                             <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
                               {(t.tutor?.username || "T")[0].toUpperCase()}
@@ -670,7 +913,9 @@ function InstitutionHub() {
                             <h4 className="text-[14px] font-semibold tracking-tight truncate">
                               {t.tutor?.full_name || t.tutor?.username || "Unknown"}
                             </h4>
-                            <p className="text-[11px] text-muted-foreground">@{t.tutor?.username || "unknown"}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              @{t.tutor?.username || "unknown"}
+                            </p>
                           </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -680,7 +925,9 @@ function InstitutionHub() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="min-w-[160px]">
                               <DropdownMenuItem
-                                onClick={() => navigate({ to: "/app/profile/$id", params: { id: t.tutor_id } })}
+                                onClick={() =>
+                                  navigate({ to: "/app/profile/$id", params: { id: t.tutor_id } })
+                                }
                                 className="text-[13px]"
                               >
                                 <Eye className="h-3.5 w-3.5 mr-2" /> View profile
@@ -697,11 +944,15 @@ function InstitutionHub() {
                         <div className="flex items-center gap-4 mt-4 pt-4 border-t hairline">
                           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                             <BookOpen className="h-3 w-3" />
-                            <span className="font-medium tabular-nums">{t.bootcampCount} bootcamps</span>
+                            <span className="font-medium tabular-nums">
+                              {t.bootcampCount} bootcamps
+                            </span>
                           </div>
                           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                             <GraduationCap className="h-3 w-3" />
-                            <span className="font-medium tabular-nums">{t.learnerCount} learners</span>
+                            <span className="font-medium tabular-nums">
+                              {t.learnerCount} learners
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -734,8 +985,12 @@ function InstitutionHub() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">Bootcamps</h1>
-                  <p className="text-[13.5px] text-muted-foreground mt-1">Create bootcamps and assign tutors to teach them.</p>
+                  <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">
+                    Bootcamps
+                  </h1>
+                  <p className="text-[13.5px] text-muted-foreground mt-1">
+                    Create bootcamps and assign tutors to teach them.
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowCreateBootcamp(!showCreateBootcamp)}
@@ -748,12 +1003,17 @@ function InstitutionHub() {
 
               {/* Create Bootcamp Form */}
               {showCreateBootcamp && (
-                <form onSubmit={handleCreateBootcamp} className="animate-in space-y-5 rounded-lg border border-border bg-card p-5 fade-in slide-in-from-top-4 duration-300 sm:p-6">
+                <form
+                  onSubmit={handleCreateBootcamp}
+                  className="animate-in space-y-5 rounded-lg border border-border bg-card p-5 fade-in slide-in-from-top-4 duration-300 sm:p-6"
+                >
                   <h3 className="text-[16px] font-semibold tracking-tight">New bootcamp</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Title *</label>
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                        Title *
+                      </label>
                       <input
                         required
                         value={newBootcamp.title}
@@ -763,19 +1023,29 @@ function InstitutionHub() {
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Category</label>
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                        Category
+                      </label>
                       <CardSelect
                         value={newBootcamp.category}
-                        onChange={(e) => setNewBootcamp({ ...newBootcamp, category: e.target.value })}
+                        onChange={(e) =>
+                          setNewBootcamp({ ...newBootcamp, category: e.target.value })
+                        }
                         className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition appearance-none"
                       >
-                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        {CATEGORIES.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
                       </CardSelect>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Description</label>
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                      Description
+                    </label>
                     <RichTextEditor
                       value={newBootcamp.description}
                       onChange={(html) => setNewBootcamp({ ...newBootcamp, description: html })}
@@ -786,7 +1056,9 @@ function InstitutionHub() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Price ({currencyDetails.symbol})</label>
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                        Price ({currencyDetails.symbol})
+                      </label>
                       <input
                         type="number"
                         min="0"
@@ -796,11 +1068,22 @@ function InstitutionHub() {
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Banner Image</label>
-                      <input type="file" accept="image/*" className="hidden" ref={bannerInputRef} onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) { setBannerFile(f); setBannerPreview(URL.createObjectURL(f)); }
-                      }} />
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                        Banner Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        ref={bannerInputRef}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) {
+                            setBannerFile(f);
+                            setBannerPreview(URL.createObjectURL(f));
+                          }
+                        }}
+                      />
                       <button
                         type="button"
                         onClick={() => bannerInputRef.current?.click()}
@@ -817,7 +1100,11 @@ function InstitutionHub() {
                     disabled={creating || !newBootcamp.title}
                     className="h-11 px-8 bg-foreground text-background text-[13.5px] font-semibold tracking-tight rounded-xl flex items-center gap-2 tap hover:opacity-90 disabled:opacity-50"
                   >
-                    {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    {creating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                     Create Bootcamp
                   </button>
                 </form>
@@ -838,7 +1125,9 @@ function InstitutionHub() {
               {/* Bootcamp Cards */}
               {bootcampsLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[1, 2, 3].map(i => <div key={i} className="h-72 rounded-lg bg-foreground/[0.04] shimmer" />)}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-72 rounded-lg bg-foreground/[0.04] shimmer" />
+                  ))}
                 </div>
               ) : filteredBootcamps.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-border p-12 text-center text-[13.5px] text-muted-foreground">
@@ -849,28 +1138,40 @@ function InstitutionHub() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredBootcamps.map((b: any) => {
-                    const assignedTutor = tutors.find((t: any) => t.tutor_id === b.assigned_tutor_id);
+                    const assignedTutor = tutors.find(
+                      (t: any) => t.tutor_id === b.assigned_tutor_id,
+                    );
                     const isOwnBootcamp = b.creator_id === profile?.id;
 
                     return (
-                      <div 
-                        key={b.id} 
+                      <div
+                        key={b.id}
                         onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })}
                         className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/25"
                       >
                         {/* Banner */}
                         <div className="relative aspect-[16/9] overflow-hidden bg-muted">
                           {b.banner_url ? (
-                            <img src={b.banner_url} alt={b.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async" />
+                            <img
+                              src={b.banner_url}
+                              alt={b.title}
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                              loading="lazy"
+                              decoding="async"
+                            />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                               <GraduationCap className="h-10 w-10 text-primary/30" />
                             </div>
                           )}
                           <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                            <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full backdrop-blur-md ring-1 ring-white/15 ${
-                              b.status === "active" ? "bg-emerald-500/80 text-white" : "bg-black/50 text-white/70"
-                            }`}>
+                            <span
+                              className={`text-[9px] font-medium px-2 py-0.5 rounded-full backdrop-blur-md ring-1 ring-white/15 ${
+                                b.status === "active"
+                                  ? "bg-emerald-500/80 text-white"
+                                  : "bg-black/50 text-white/70"
+                              }`}
+                            >
                               {b.status === "active" ? "Published" : "Draft"}
                             </span>
                             {isOwnBootcamp && (
@@ -889,7 +1190,9 @@ function InstitutionHub() {
                         {/* Content */}
                         <div className="flex-1 p-4 flex flex-col">
                           <div className="mb-1 flex items-center gap-1.5">
-                            <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{b.category}</span>
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                              {b.category}
+                            </span>
                           </div>
                           <h3 className="line-clamp-2 font-display text-[15px] font-semibold tracking-tight leading-snug">
                             {b.title}
@@ -900,7 +1203,12 @@ function InstitutionHub() {
                             {assignedTutor ? (
                               <div className="flex items-center gap-2">
                                 {assignedTutor.tutor?.avatar_url ? (
-                                  <img src={assignedTutor.tutor.avatar_url} className="h-6 w-6 rounded-full object-cover ring-1 ring-border" loading="lazy" decoding="async" />
+                                  <img
+                                    src={assignedTutor.tutor.avatar_url}
+                                    className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+                                    loading="lazy"
+                                    decoding="async"
+                                  />
                                 ) : (
                                   <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold">
                                     {(assignedTutor.tutor?.username || "T")[0].toUpperCase()}
@@ -913,7 +1221,12 @@ function InstitutionHub() {
                             ) : b.profiles && b.creator_id !== profile?.id ? (
                               <div className="flex items-center gap-2">
                                 {b.profiles.avatar_url ? (
-                                  <img src={b.profiles.avatar_url} className="h-6 w-6 rounded-full object-cover ring-1 ring-border" loading="lazy" decoding="async" />
+                                  <img
+                                    src={b.profiles.avatar_url}
+                                    className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+                                    loading="lazy"
+                                    decoding="async"
+                                  />
                                 ) : (
                                   <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold">
                                     {(b.profiles.username || "T")[0].toUpperCase()}
@@ -972,7 +1285,10 @@ function InstitutionHub() {
                                 </Link>
                               </DropdownMenuItem>
                               {isOwnBootcamp && assignedTutor && (
-                                <DropdownMenuItem onClick={() => handleUnassignTutor(b.id)} className="text-[13px]">
+                                <DropdownMenuItem
+                                  onClick={() => handleUnassignTutor(b.id)}
+                                  className="text-[13px]"
+                                >
                                   <X className="h-3.5 w-3.5 mr-2" /> Unassign tutor
                                 </DropdownMenuItem>
                               )}
@@ -999,33 +1315,71 @@ function InstitutionHub() {
           {activeTab === "analytics" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div>
-                <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">Analytics</h1>
-                <p className="text-[13.5px] text-muted-foreground mt-2">Track your organization's performance and growth.</p>
+                <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">
+                  Analytics
+                </h1>
+                <p className="text-[13.5px] text-muted-foreground mt-2">
+                  Track your organization's performance and growth.
+                </p>
               </div>
 
               {/* KPI Row */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <StatCard icon={Users} label="Total tutors" value={fmt(tutors.length)} accent="bg-blue-500/10 text-blue-500" />
-                <StatCard icon={LayoutGrid} label="Active bootcamps" value={fmt(allBootcamps.filter((b: any) => b.status === "active").length)} accent="bg-violet-500/10 text-violet-500" />
-                <StatCard icon={GraduationCap} label="Total learners" value={fmt(totalLearners)} accent="bg-emerald-500/10 text-emerald-500" />
-                <StatCard icon={DollarSign} label="Total revenue" value={format(totalRevenue)} accent="bg-amber-500/10 text-amber-500" />
+                <StatCard
+                  icon={Users}
+                  label="Total tutors"
+                  value={fmt(tutors.length)}
+                  accent="bg-blue-500/10 text-blue-500"
+                />
+                <StatCard
+                  icon={LayoutGrid}
+                  label="Active bootcamps"
+                  value={fmt(allBootcamps.filter((b: any) => b.status === "active").length)}
+                  accent="bg-violet-500/10 text-violet-500"
+                />
+                <StatCard
+                  icon={GraduationCap}
+                  label="Total learners"
+                  value={fmt(totalLearners)}
+                  accent="bg-emerald-500/10 text-emerald-500"
+                />
+                <StatCard
+                  icon={DollarSign}
+                  label="Total revenue"
+                  value={format(totalRevenue)}
+                  accent="bg-amber-500/10 text-amber-500"
+                />
               </div>
 
               {/* Top Bootcamps */}
               <div className="overflow-hidden rounded-lg border border-border bg-card">
                 <div className="p-5 border-b hairline">
-                  <h3 className="text-[15px] font-semibold tracking-tight">Top bootcamps by enrollment</h3>
+                  <h3 className="text-[15px] font-semibold tracking-tight">
+                    Top bootcamps by enrollment
+                  </h3>
                 </div>
                 {topBootcamps.length === 0 ? (
-                  <div className="p-8 text-center text-[13px] text-muted-foreground">No bootcamp data yet.</div>
+                  <div className="p-8 text-center text-[13px] text-muted-foreground">
+                    No bootcamp data yet.
+                  </div>
                 ) : (
                   <div className="divide-y hairline">
                     {topBootcamps.map((b: any, i: number) => (
-                      <div key={b.id} className="flex items-center gap-4 px-5 py-4 hover:bg-foreground/[0.02] transition-colors">
-                        <span className="text-[13px] font-bold tabular-nums text-muted-foreground w-6 text-center">{i + 1}</span>
+                      <div
+                        key={b.id}
+                        className="flex items-center gap-4 px-5 py-4 hover:bg-foreground/[0.02] transition-colors"
+                      >
+                        <span className="text-[13px] font-bold tabular-nums text-muted-foreground w-6 text-center">
+                          {i + 1}
+                        </span>
                         <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted shrink-0">
                           {b.banner_url ? (
-                            <img src={b.banner_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                            <img
+                              src={b.banner_url}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center bg-primary/5">
                               <GraduationCap className="h-4 w-4 text-primary/40" />
@@ -1033,11 +1387,15 @@ function InstitutionHub() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13.5px] font-semibold tracking-tight truncate">{b.title}</p>
+                          <p className="text-[13.5px] font-semibold tracking-tight truncate">
+                            {b.title}
+                          </p>
                           <p className="text-[11px] text-muted-foreground">{b.category}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-[14px] font-semibold tabular-nums">{b.enrollments?.[0]?.count || 0}</p>
+                          <p className="text-[14px] font-semibold tabular-nums">
+                            {b.enrollments?.[0]?.count || 0}
+                          </p>
                           <p className="text-[10px] text-muted-foreground">learners</p>
                         </div>
                       </div>
@@ -1052,14 +1410,26 @@ function InstitutionHub() {
                   <h3 className="text-[15px] font-semibold tracking-tight">Tutor performance</h3>
                 </div>
                 {tutorBootcampCounts.length === 0 ? (
-                  <div className="p-8 text-center text-[13px] text-muted-foreground">No tutor data yet.</div>
+                  <div className="p-8 text-center text-[13px] text-muted-foreground">
+                    No tutor data yet.
+                  </div>
                 ) : (
                   <div className="divide-y hairline">
                     {tutorBootcampCounts.map((t: any, i: number) => (
-                      <div key={t.id} className="flex items-center gap-4 px-5 py-4 hover:bg-foreground/[0.02] transition-colors">
-                        <span className="text-[13px] font-bold tabular-nums text-muted-foreground w-6 text-center">{i + 1}</span>
+                      <div
+                        key={t.id}
+                        className="flex items-center gap-4 px-5 py-4 hover:bg-foreground/[0.02] transition-colors"
+                      >
+                        <span className="text-[13px] font-bold tabular-nums text-muted-foreground w-6 text-center">
+                          {i + 1}
+                        </span>
                         {t.tutor?.avatar_url ? (
-                          <img src={t.tutor.avatar_url} className="h-10 w-10 rounded-xl object-cover ring-1 ring-border" loading="lazy" decoding="async" />
+                          <img
+                            src={t.tutor.avatar_url}
+                            className="h-10 w-10 rounded-xl object-cover ring-1 ring-border"
+                            loading="lazy"
+                            decoding="async"
+                          />
                         ) : (
                           <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                             {(t.tutor?.username || "T")[0].toUpperCase()}
@@ -1089,8 +1459,12 @@ function InstitutionHub() {
           {activeTab === "settings" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div>
-                <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">Settings</h1>
-                <p className="text-[13.5px] text-muted-foreground mt-2">Manage your organization's profile and preferences.</p>
+                <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight font-display">
+                  Settings
+                </h1>
+                <p className="text-[13.5px] text-muted-foreground mt-2">
+                  Manage your organization's profile and preferences.
+                </p>
               </div>
 
               {/* Organization Profile */}
@@ -1108,36 +1482,52 @@ function InstitutionHub() {
                   {editingProfile ? (
                     <>
                       <div>
-                        <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Organization Name</label>
+                        <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                          Organization Name
+                        </label>
                         <input
                           value={settingsForm.full_name}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, full_name: e.target.value })}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, full_name: e.target.value })
+                          }
                           className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Bio</label>
+                        <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                          Bio
+                        </label>
                         <textarea
                           value={settingsForm.bio}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, bio: e.target.value })}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, bio: e.target.value })
+                          }
                           rows={3}
                           className="w-full bg-card rounded-xl px-4 py-3 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition resize-none"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Location</label>
+                          <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                            Location
+                          </label>
                           <input
                             value={settingsForm.location}
-                            onChange={(e) => setSettingsForm({ ...settingsForm, location: e.target.value })}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, location: e.target.value })
+                            }
                             className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">Website</label>
+                          <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
+                            Website
+                          </label>
                           <input
                             value={settingsForm.website}
-                            onChange={(e) => setSettingsForm({ ...settingsForm, website: e.target.value })}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, website: e.target.value })
+                            }
                             className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition"
                           />
                         </div>
@@ -1147,7 +1537,11 @@ function InstitutionHub() {
                         disabled={savingSettings}
                         className="h-11 px-6 bg-foreground text-background text-[13.5px] font-semibold tracking-tight rounded-xl flex items-center gap-2 tap hover:opacity-90 disabled:opacity-50"
                       >
-                        {savingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        {savingSettings ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
                         Save Changes
                       </button>
                     </>
@@ -1156,19 +1550,37 @@ function InstitutionHub() {
                       <div className="flex items-center gap-4">
                         <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-primary/10">
                           {profile?.avatar_url ? (
-                            <img src={profile.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                            <img
+                              src={profile.avatar_url}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
                           ) : (
                             <Building2 className="h-7 w-7 text-primary" />
                           )}
                         </div>
                         <div>
-                          <h4 className="text-[17px] font-semibold tracking-tight">{profile?.full_name || "Unnamed"}</h4>
-                          <p className="text-[12px] text-muted-foreground">@{profile?.username} · {profile?.location || "No location set"}</p>
+                          <h4 className="text-[17px] font-semibold tracking-tight">
+                            {profile?.full_name || "Unnamed"}
+                          </h4>
+                          <p className="text-[12px] text-muted-foreground">
+                            @{profile?.username} · {profile?.location || "No location set"}
+                          </p>
                         </div>
                       </div>
-                      {profile?.bio && <p className="text-[13px] text-muted-foreground leading-relaxed">{profile.bio}</p>}
+                      {profile?.bio && (
+                        <p className="text-[13px] text-muted-foreground leading-relaxed">
+                          {profile.bio}
+                        </p>
+                      )}
                       {profile?.website && (
-                        <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-primary flex items-center gap-1">
+                        <a
+                          href={profile.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[12px] font-medium text-primary flex items-center gap-1"
+                        >
                           {profile.website} <ArrowUpRight className="h-3 w-3" />
                         </a>
                       )}
@@ -1186,7 +1598,11 @@ function InstitutionHub() {
                   {[
                     { label: "Edit profile", to: "/app/profile/edit", icon: Edit3 },
                     { label: "Wallet settings", to: "/app/wallet/settings", icon: DollarSign },
-                    { label: "Notification settings", to: "/app/settings/notifications", icon: Activity },
+                    {
+                      label: "Notification settings",
+                      to: "/app/settings/notifications",
+                      icon: Activity,
+                    },
                     { label: "Security", to: "/app/settings/security", icon: Shield },
                   ].map((link) => (
                     <Link
@@ -1206,7 +1622,9 @@ function InstitutionHub() {
 
               {/* Account Info */}
               <div className="rounded-lg border border-border bg-card p-5">
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">Account details</h3>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-3">
+                  Account details
+                </h3>
                 <div className="grid grid-cols-2 gap-4 text-[13px]">
                   <div>
                     <p className="text-muted-foreground text-[11px]">Account type</p>
@@ -1228,12 +1646,16 @@ function InstitutionHub() {
               </div>
             </div>
           )}
-
         </div>
       </div>
 
       {/* ═══ ASSIGN TUTOR DRAWER ═══ */}
-      <Drawer open={!!assignDrawer} onOpenChange={(open) => { if (!open) setAssignDrawer(null); }}>
+      <Drawer
+        open={!!assignDrawer}
+        onOpenChange={(open) => {
+          if (!open) setAssignDrawer(null);
+        }}
+      >
         <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
           <DrawerHeader className="px-5 pb-3 pt-1 text-left">
             <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
@@ -1251,7 +1673,9 @@ function InstitutionHub() {
                   <Users className="h-[22px] w-[22px] text-muted-foreground" />
                 </div>
                 <p className="mt-3 text-[16px] font-semibold text-foreground">No tutors yet</p>
-                <p className="mt-1 text-[14px] text-muted-foreground">No tutors in your organization. Add tutors first.</p>
+                <p className="mt-1 text-[14px] text-muted-foreground">
+                  No tutors in your organization. Add tutors first.
+                </p>
               </div>
             ) : (
               <div className="-mx-2">
@@ -1273,7 +1697,13 @@ function InstitutionHub() {
                       }`}
                     >
                       {t.tutor?.avatar_url ? (
-                        <img src={t.tutor.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" loading="lazy" decoding="async" />
+                        <img
+                          src={t.tutor.avatar_url}
+                          alt=""
+                          className="h-11 w-11 shrink-0 rounded-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
                         <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06] font-display text-[16px] font-semibold text-muted-foreground">
                           {(t.tutor?.username || "T")[0].toUpperCase()}
@@ -1283,7 +1713,9 @@ function InstitutionHub() {
                         <p className="truncate text-[15px] font-semibold text-foreground">
                           {t.tutor?.full_name || t.tutor?.username}
                         </p>
-                        <p className="truncate text-[13px] text-muted-foreground">@{t.tutor?.username}</p>
+                        <p className="truncate text-[13px] text-muted-foreground">
+                          @{t.tutor?.username}
+                        </p>
                       </div>
                       {isCurrentlyAssigned ? (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">

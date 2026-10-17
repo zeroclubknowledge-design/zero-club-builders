@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { compressImage } from "./imageCompression";
+import { compressImage, type CompressOptions } from "./imageCompression";
 
 /**
  * A year, not an hour.
@@ -29,15 +29,21 @@ export function tooLargeMessage(file: File) {
   }`;
 }
 
-export async function uploadFile(bucket: string, file: File, path: string) {
+export async function uploadFile(
+  bucket: string,
+  file: File,
+  path: string,
+  options: CompressOptions = {},
+) {
   // Say so before spending minutes uploading something that will be refused.
   if (file.size > UPLOAD_LIMIT_MB * 1024 * 1024 && !file.type.startsWith("image/")) {
     throw new Error(tooLargeMessage(file));
   }
   try {
     // Shrunk here rather than at each call site, so no upload path can be
-    // added later that quietly forgets to do it.
-    const payload = await compressImage(file);
+    // added later that quietly forgets to do it. Covers pass their own
+    // limits so a banner is not held to the size of a feed thumbnail.
+    const payload = await compressImage(file, options);
 
     // Compression may change the extension, and a .jpg path holding a WebP
     // confuses anything that trusts the suffix.
@@ -75,12 +81,12 @@ export async function uploadFile(bucket: string, file: File, path: string) {
   }
 }
 
-export async function uploadMedia(files: File[], userId: string) {
+export async function uploadMedia(files: File[], userId: string, options: CompressOptions = {}) {
   const uploadPromises = Array.from(files).map((file) => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
-    return uploadFile("post-media", file, filePath);
+    return uploadFile("post-media", file, filePath, options);
   });
 
   return Promise.all(uploadPromises);
