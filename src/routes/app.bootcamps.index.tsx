@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { formatCountdown } from "@/features/zeroForm/templates";
 import { richTextToPlain } from "@/components/RichText";
 import { useUser } from "@/hooks/useUser";
+import { BootcampPreviewVideo } from "@/features/bootcamps/BootcampPreviewVideo";
 
 export const Route = createFileRoute("/app/bootcamps/")({
   component: Bootcamps,
@@ -22,6 +23,8 @@ function BootcampCover({ bootcamp, className = '', compact = false }: { bootcamp
     <div className={`relative overflow-hidden bg-foreground/[0.06] ${className}`}>
       {bootcamp.banner_url ? (
         <img src={bootcamp.banner_url} alt={`${bootcamp.title} bootcamp`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+      ) : bootcamp.video_url ? (
+        <BootcampPreviewVideo key={bootcamp.video_url} src={bootcamp.video_url} label={`${bootcamp.title} video preview`} />
       ) : (
         <div className="grid h-full w-full place-items-center bg-foreground/[0.06]">
           <BookOpen className={`text-muted-foreground ${compact ? 'h-5 w-5' : 'h-9 w-9'}`} />

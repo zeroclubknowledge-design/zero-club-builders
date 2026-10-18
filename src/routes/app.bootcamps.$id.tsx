@@ -29,6 +29,7 @@ import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/Zer
 import { useQueryClient } from "@tanstack/react-query";
 import { useGoBack } from "@/hooks/useGoBack";
 import { getCachedSession } from "@/lib/auth";
+import { BootcampPreviewVideo } from "@/features/bootcamps/BootcampPreviewVideo";
 import {
   AllAccessPass,
   BootcampDetailsEditor,
@@ -345,6 +346,8 @@ function BootcampDetail() {
       <div className="zc-page-width relative h-[220px] w-full shrink-0 overflow-hidden bg-[#221d22] md:mx-auto md:mt-2 md:max-w-[680px] md:rounded-t-xl">
         {bootcamp.banner_url ? (
           <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+        ) : bootcamp.video_url ? (
+          <BootcampPreviewVideo key={bootcamp.video_url} src={bootcamp.video_url} />
         ) : (
           <div className="h-full w-full" style={{ background: "linear-gradient(135deg,#cc208f,#6b2a8f 55%,#1d1b3a)" }} />
         )}
