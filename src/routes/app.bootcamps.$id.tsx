@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
-import { RichText } from "@/components/RichText";
+import { RichText, richTextToPlain } from "@/components/RichText";
 import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/ZeroGiftPaymentOption";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -52,6 +52,71 @@ import {
 
 export const Route = createFileRoute("/app/bootcamps/$id")({
   component: BootcampDetail,
+
+  /* Read on the server so a shared bootcamp link carries its own banner.
+     Crawlers never run JavaScript, so a title or image set on the client is
+     invisible to them. Never throws: a failed lookup falls back to the
+     site-wide preview rather than blocking the page. */
+  loader: async ({ params }) => {
+    try {
+      const { data: bootcamp, error } = await supabase
+        .from("bootcamps")
+        .select("title, description, banner_url")
+        .eq("id", params.id)
+        .maybeSingle();
+      if (error || !bootcamp) return null;
+
+      const { data: form } = await supabase
+        .from("zero_forms")
+        .select("banner_url")
+        .eq("bootcamp_id", params.id)
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return {
+        title: bootcamp.title || null,
+        description: bootcamp.description || null,
+        // The Zero Form is where people register, so its banner leads.
+        image: form?.banner_url || bootcamp.banner_url || null,
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  head: ({ loaderData, params }) => {
+    if (!loaderData?.title) return {};
+    const title = `${loaderData.title} — Zero Club`;
+    const description =
+      richTextToPlain(loaderData.description).slice(0, 200).trim() ||
+      `Join ${loaderData.title} on Zero Club.`;
+    // Versioned by the cover, so a replaced banner is not hidden behind a
+    // cached preview image.
+    let v = 0;
+    for (const ch of String(loaderData.image || "")) v = (v * 31 + ch.charCodeAt(0)) >>> 0;
+    const image = `https://www.zeroclubs.xyz/api/og/bootcamp/${encodeURIComponent(params.id)}?v=${v.toString(36)}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:image", content: image },
+        { property: "og:image:secure_url", content: image },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:alt", content: `${loaderData.title} on Zero Club` },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+      ],
+    };
+  },
 });
 
 function BootcampDetail() {

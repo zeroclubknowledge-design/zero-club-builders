@@ -206,6 +206,32 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
       };
     }
 
+    case "bootcamp": {
+      if (!isUuid(id)) return DEFAULT_SPEC;
+      const bootcamp = await one("bootcamps", "title,description,banner_url,category,price,status,starts_at", { id: `eq.${id}` });
+      if (!bootcamp || bootcamp.status !== "active") return DEFAULT_SPEC;
+      // The Zero Form is the page people actually register on, so the banner
+      // uploaded there is the right cover for the link. The bootcamp's own
+      // banner is only the fallback.
+      const form = await one("zero_forms", "banner_url", {
+        bootcamp_id: `eq.${id}`,
+        status: "eq.published",
+        order: "created_at.desc",
+      });
+      const cover = form?.banner_url || bootcamp.banner_url;
+      return {
+        kicker: "Bootcamp",
+        title: bootcamp.title || "A Zero Club bootcamp",
+        subtitle: plain(bootcamp.description) || "Learn live, ship real work, and build proof on Zero Club.",
+        chips: [bootcamp.category, bootcamp.price ? naira(Number(bootcamp.price)) : "Free"].filter(Boolean) as string[],
+        cta: "View this bootcamp",
+        image: cover,
+        // A real cover shows large, exactly like a post's photo.
+        variant: cover ? "photo" : "default",
+        monogram: initial(bootcamp.title),
+      };
+    }
+
     case "form": {
       const data = await rpc("get_zero_form_public", { form_slug: id });
       if (!data?.found) return DEFAULT_SPEC;

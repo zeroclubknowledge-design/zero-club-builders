@@ -54,15 +54,33 @@ export function CertificateSetup({
   const [preview, setPreview] = useState<null | "front" | "back">(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSignature, setUploadingSignature] = useState(false);
+  /* The artwork is drawn from a local draft, not straight from `value`.
+     `value` starts empty and is filled from saved defaults asynchronously, so
+     drawing from it meant the preview could show the old design for a moment —
+     or, when the defaults arrived mid-edit, replace what was just typed. The
+     draft is written on the same event as the keystroke, so the preview and the
+     fields can never disagree. */
+  const [draft, setDraft] = useState<CertificateDesign | null>(value);
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
   useEffect(() => {
     onBusyChange?.(uploadingLogo || uploadingSignature);
     return () => onBusyChange?.(false);
   }, [uploadingLogo, uploadingSignature, onBusyChange]);
-  const design = value || emptyCertificateDesign;
+  const design = draft || value || studio.data?.defaults || emptyCertificateDesign;
   useEffect(() => {
-    if (!value && studio.data?.defaults) onChange(studio.data.defaults);
-  }, [value, studio.data?.defaults, onChange]);
-  const update = (patch: Partial<CertificateDesign>) => onChange({ ...design, ...patch });
+    // Seed an empty studio with the saved default exactly once.
+    if (!value && !draft && studio.data?.defaults) {
+      setDraft(studio.data.defaults);
+      onChange(studio.data.defaults);
+    }
+  }, [value, draft, studio.data?.defaults, onChange]);
+  const update = (patch: Partial<CertificateDesign>) => {
+    const next = { ...design, ...patch };
+    setDraft(next);
+    onChange(next);
+  };
   const input =
     "min-h-11 w-full min-w-0 rounded-xl border border-border bg-card px-3 text-sm outline-none focus:border-primary";
   if (studio.isPending)
