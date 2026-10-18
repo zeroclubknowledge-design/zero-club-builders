@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Gift, Loader2, ShieldCheck, X } from "@/components/icons/glyphs";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -10,14 +10,16 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 export const Route = createFileRoute("/app/gifts/$code")({ component: ClaimGiftPage });
 
 function ClaimGiftPage() {
+  const client = useQueryClient();
   const { code } = Route.useParams();
   const { format } = useWalletCurrency();
   const [claimedCard, setClaimedCard] = useState<any>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["gift-card", code],
+    refetchInterval: query => query.state.data?.card?.expired ? false : Math.max(500, Math.min(10_000, query.state.data?.card?.expires_at ? Date.parse(query.state.data.card.expires_at) - Date.now() + 50 : 10_000)),
     queryFn: async () => {
-      const { data: result, error } = await supabase.rpc("get_gift_card", { gift_code: code });
+      const { data: result, error } = await supabase.rpc("get_gift_card_v2", { gift_code: code });
       const card = Array.isArray(result) ? result[0] : result;
       if (error || !card) throw error || new Error("Gift card not found");
       const { data: creator } = await supabase.from("profiles").select("id, username, full_name, avatar_url").eq("id", card.creator_id).maybeSingle();
@@ -33,6 +35,7 @@ function ClaimGiftPage() {
     },
     onSuccess: (card) => {
       setClaimedCard(card);
+      for (const key of ["profile", "zero-gift-balance", "available-restricted-zero-gifts", "gift-card", "unclaimed-gifts", "unclaimed-gift-count"]) void client.invalidateQueries({ queryKey: [key] });
       toast.success("Gift claimed successfully.");
     },
     onError: (error: Error) => toast.error(error.message),
@@ -52,9 +55,10 @@ function ClaimGiftPage() {
 
   const card = claimedCard || data.card;
   const service = giftServices.find((item) => item.id === card.service);
-  const alreadyClaimed = data.card.status === "claimed";
+  const alreadyClaimed = !!data.card.my_claim_id;
+  const unavailable = !alreadyClaimed && (data.card.expired || data.card.status !== "active" || data.card.claims_remaining === 0);
   const senderName = data.creator?.full_name || data.creator?.username || "A Zero Club member";
-  const walletBacked = card.service === "support" || card.service === "custom";
+  const walletBacked = !card.expires_at && (card.service === "support" || card.service === "custom");
   const useHref = card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : walletBacked ? "/app/wallet" : "/app";
 
   const shell = (children: React.ReactNode) => (
@@ -75,6 +79,7 @@ function ClaimGiftPage() {
   );
 
   if (claimedCard || alreadyClaimed) {
+    if (data.card.expired) return shell(<><h1 className="mt-12 text-2xl font-semibold">Your gift credit has expired</h1><p className="mt-3 text-sm text-white/65">The deadline for using this gift has passed. Your own wallet money is unaffected.</p><Link to="/app/gifts" className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Open gifts</Link></>);
     return shell(
       <>
         <span className="mt-6 grid h-12 w-12 place-items-center rounded-full bg-[#1a7f4b] text-white"><Check className="h-6 w-6" /></span>
@@ -84,8 +89,11 @@ function ClaimGiftPage() {
         <p className="mt-2 text-[14px] leading-relaxed text-white/65">
           {walletBacked
             ? "Spend it anywhere on Zero Club."
-            : `Your ${format(Number(card.amount))} is locked to ${service?.description?.toLowerCase() || card.service} and can't be spent elsewhere.`}
+            : `Use your ${format(Number(card.amount))} at eligible checkouts. Gift credit pays first and your wallet covers any remainder.`}
         </p>
+        {card.expires_at && <p className="mt-3 text-xs text-white/65">Use before {new Date(card.expires_at).toLocaleString()}. Unused credit expires.</p>}
+        {!walletBacked && <p className="mt-2 text-sm font-semibold text-white">{format(Number(data.card.my_claim_remaining ?? card.remaining_amount ?? card.amount))} remaining</p>}
+        {!!data.card.bootcamps?.length && <p className="mt-2 text-xs text-white/65">Only for: {data.card.bootcamps.map((camp: any) => camp.title).join(", ")}</p>}
         <div className="mt-7 w-full">
           <GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} />
         </div>
@@ -103,6 +111,8 @@ function ClaimGiftPage() {
     );
   }
 
+  if (unavailable) return shell(<><h1 className="mt-12 text-2xl font-semibold">{data.card.expired ? "This gift has expired" : "This gift is no longer available"}</h1><p className="mt-3 text-sm text-white/60">{data.card.expired ? "The deadline for new claims has passed." : "All claims have been taken, or the creator closed this gift."}</p><Link to="/app/gifts" className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Open gifts</Link></>);
+
   return shell(
     <>
       {sender}
@@ -113,6 +123,9 @@ function ClaimGiftPage() {
       <div className="mt-8 flex flex-wrap justify-center gap-2 text-[13px]">
         <span className="flex h-7 items-center rounded-full bg-white/10 px-3">Use for: {service?.label || card.service}</span>
       </div>
+      <p className="mt-3 text-xs text-white/65">{data.card.claims_remaining} of {data.card.quantity} claims left · one per account</p>
+      {data.card.expires_at && <p className="mt-2 text-xs text-white/65">Claim and use before {new Date(data.card.expires_at).toLocaleString()}. Unused credit expires.</p>}
+      {!!data.card.bootcamps?.length && <p className="mt-3 text-sm text-white/70">Only for: {data.card.bootcamps.map((camp: any) => camp.title).join(", ")}</p>}
       <p className="mt-4 flex items-start gap-2 text-left text-[13px] leading-relaxed text-white/55">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         {walletBacked

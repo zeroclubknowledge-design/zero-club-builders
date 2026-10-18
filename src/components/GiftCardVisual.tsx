@@ -49,11 +49,11 @@ export const giftTemplates = [
 export const giftServices = [
   // Wallet-backed first: these are the two that actually put spendable money
   // in the recipient's balance, so they lead.
-  { id: "support", label: "Support", description: "Cash straight into their wallet" },
+  { id: "universal", label: "Any payment", description: "Gift credit for payments across Zero Club, including Zero Form" },
   {
     id: "custom",
     label: "Custom",
-    description: "Cash into their wallet, with a note on what it is for",
+    description: "Gift credit with a personal note, usable until expiry",
   },
   { id: "bootcamps", label: "Bootcamps", description: "Enrollment in any eligible bootcamp" },
   { id: "membership", label: "Membership", description: "Zero Club Premium membership" },
@@ -79,9 +79,8 @@ export function GiftCardVisual({
 }) {
   const template = giftTemplates.find((item) => item.id === templateId) || giftTemplates[0];
   const serviceLabel = giftServices.find((item) => item.id === service)?.label || service;
-  // Support and Custom land as spendable balance; everything else stays
-  // locked to one service, so the footer cannot claim the same thing for both.
-  const walletBacked = service === "support" || service === "custom";
+  // Flexible gifts and gifts restricted to one purpose share the same designs.
+  const walletBacked = service === "universal" || service === "support" || service === "custom";
   const { format } = useWalletCurrency();
 
   return (
@@ -134,7 +133,7 @@ export function GiftCardVisual({
           className={`flex min-w-0 items-end justify-between gap-2 text-[7px] font-medium uppercase sm:text-[9px] ${template.muted}`}
         >
           <span className="truncate">
-            {walletBacked ? "Zero Club wallet credit" : "Restricted gift credit"}
+            {walletBacked ? "Zero Club gift credit" : "Purpose-bound gift credit"}
           </span>
           <span className="max-w-[42%] truncate font-mono normal-case">{code || "ZC-GIFT"}</span>
         </div>

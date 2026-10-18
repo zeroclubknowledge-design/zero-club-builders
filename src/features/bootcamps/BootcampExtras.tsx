@@ -903,7 +903,7 @@ export function GroupSeatsButton({ bootcamp }: { bootcamp: any }) {
               <div className="mt-2 flex justify-between border-t border-border pt-2 text-[16px] font-bold"><span>Total</span><span>{format(total)}</span></div>
             </div>
             <label className="flex items-center gap-2 text-[14px]"><input type="checkbox" checked={takeOne} onChange={(e) => setTakeOne(e.target.checked)} className="h-5 w-5 accent-[#cc208f]" /> Keep one seat for me</label>
-            <ZeroGiftPaymentOption service="bootcamps" amount={total} applied={gift} onAppliedChange={setGift} formatAmount={format} />
+            <ZeroGiftPaymentOption service="bootcamps" bootcampId={bootcamp.id} amount={total} applied={gift} onAppliedChange={setGift} formatAmount={format} />
             <button type="button" disabled={buy.isPending} onClick={() => buy.mutate()} className={`${primaryBtn} w-full`}>{buy.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Pay {format(total)}</button>
           </div>
         )}

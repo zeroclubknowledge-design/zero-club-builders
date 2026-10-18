@@ -31,6 +31,9 @@ export const Route = createFileRoute("/gift/$code")({
         message: string | null;
         custom_purpose: string | null;
         status: string;
+        quantity: number;
+        claims_remaining: number;
+        expires_at: string | null;
       };
     } catch {
       return null;
@@ -51,7 +54,7 @@ export const Route = createFileRoute("/gift/$code")({
     const title = !amount
       ? "You have received a Zero Card"
       : claimed
-      ? `This ${amount} Zero Card has been claimed`
+      ? `This ${amount} Zero Card is no longer available`
       : `You have received a ${amount} Zero Card`;
 
     const description =
@@ -59,7 +62,7 @@ export const Route = createFileRoute("/gift/$code")({
       loaderData?.message ||
       (!amount
         ? "Open your Zero Card to claim it."
-        : loaderData!.service === "support" || loaderData!.service === "custom"
+        : !loaderData!.expires_at && (loaderData!.service === "support" || loaderData!.service === "custom")
         ? `${amount} straight into your Zero Club wallet. Open to claim it.`
         : `${amount} of Zero Club credit for ${label}. Open to claim it.`);
 
@@ -133,10 +136,10 @@ function GiftLinkPage() {
         ) : (
           <>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-              {claimed ? "Already claimed" : "A gift for you"}
+              {claimed ? "Gift unavailable" : "A gift for you"}
             </p>
             <h1 className="mt-3 font-display text-[26px] font-semibold leading-tight tracking-tight">
-              {claimed ? "This gift has been claimed" : "You have received a Zero Card"}
+              {claimed ? (card.status === "expired" ? "This gift has expired" : "This gift is no longer available") : "You have received a Zero Card"}
             </h1>
 
             <div className="mx-auto mt-7 flex w-full justify-center">
@@ -148,6 +151,8 @@ function GiftLinkPage() {
                 message={card.message || undefined}
               />
             </div>
+            <p className="mt-4 text-sm text-muted-foreground">{card.claims_remaining ?? (claimed ? 0 : 1)} of {card.quantity || 1} claims left · one per account</p>
+            {card.expires_at && <p className="mt-2 text-xs text-muted-foreground">Claim and use before {new Date(card.expires_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })} WAT. Unused credit expires.</p>}
 
             {!claimed && (
               <a

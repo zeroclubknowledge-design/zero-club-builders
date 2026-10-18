@@ -1,36 +1,44 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, Gift } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
+import { GiftCodeRedeemer } from "./GiftCodeRedeemer";
+import { useUser } from "@/hooks/useUser";
 
 export type RestrictedZeroGiftService =
   | "bootcamps"
   | "membership"
   | "zero-ai"
   | "tutor-session"
-  | "zero-store";
+  | "zero-store"
+  | "universal";
 
-export const zeroGiftBalanceQueryKey = (service: RestrictedZeroGiftService) => [
+export const zeroGiftBalanceQueryKey = (service: RestrictedZeroGiftService, bootcampId?: string) => [
   "zero-gift-balance",
   service,
+  ...(bootcampId ? [bootcampId] : []),
 ];
 
-export function useZeroGiftBalance(service: RestrictedZeroGiftService, enabled = true) {
+export function useZeroGiftBalance(service: RestrictedZeroGiftService, enabled = true, bootcampId?: string) {
+  const { data: user } = useUser();
   const query = useQuery({
-    queryKey: zeroGiftBalanceQueryKey(service),
-    enabled,
+    queryKey: [...zeroGiftBalanceQueryKey(service, bootcampId), user?.id],
+    enabled: enabled && !!user?.id,
     retry: false,
+    refetchInterval: query => Math.max(500, Math.min(60_000, query.state.data?.expiresAt ? Date.parse(query.state.data.expiresAt) - Date.now() + 50 : 60_000)),
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_my_zero_gift_balance", {
+      const { data, error } = await supabase.rpc("get_my_zero_gift_balance_v2", {
         p_service: service,
+        p_bootcamp_id: bootcampId || null,
       });
 
       // Before the migration reaches an environment there is simply no gift
       // option. Checkout itself remains usable with the ordinary wallet.
-      if (error) return { available: 0, giftCount: 0 };
-      const result = data as { available?: unknown; gift_count?: unknown } | null;
+      if (error) return { available: 0, giftCount: 0, expiresAt: null as string | null };
+      const result = data as { available?: unknown; gift_count?: unknown; next_expiry?: string | null } | null;
       return {
         available: Math.max(0, Number(result?.available) || 0),
         giftCount: Math.max(0, Number(result?.gift_count) || 0),
+        expiresAt: result?.next_expiry || null,
       };
     },
   });
@@ -50,6 +58,7 @@ export function ZeroGiftPaymentOption({
   formatAmount,
   dark = false,
   enabled = true,
+  bootcampId,
 }: {
   service: RestrictedZeroGiftService;
   amount: number;
@@ -58,9 +67,10 @@ export function ZeroGiftPaymentOption({
   formatAmount: (amount: number) => string;
   dark?: boolean;
   enabled?: boolean;
+  bootcampId?: string;
 }) {
-  const { available, giftCount } = useZeroGiftBalance(service, enabled);
-  if (!enabled || available <= 0) return null;
+  const { available, giftCount } = useZeroGiftBalance(service, enabled, bootcampId);
+  if (!enabled) return null;
 
   const usable = amount > 0 ? Math.min(amount, available) : available;
   const shell = dark
@@ -72,7 +82,7 @@ export function ZeroGiftPaymentOption({
       : "border-border bg-card";
 
   return (
-    <button
+    <div>{available > 0 && <button
       type="button"
       role="checkbox"
       aria-checked={applied}
@@ -95,7 +105,7 @@ export function ZeroGiftPaymentOption({
         >
           {applied
             ? amount > 0
-              ? `${formatAmount(usable)} will be applied first`
+              ? `${formatAmount(usable)} gift + ${formatAmount(Math.max(0, amount - usable))} from your wallet`
               : "Will be applied to your next matching payment"
             : `${formatAmount(available)} available across ${giftCount} gift${giftCount === 1 ? "" : "s"}`}
         </span>
@@ -105,6 +115,6 @@ export function ZeroGiftPaymentOption({
       >
         {applied && <Check className="h-3 w-3" strokeWidth={3} />}
       </span>
-    </button>
+    </button>}<GiftCodeRedeemer dark={dark} onClaim={() => onAppliedChange(true)} /></div>
   );
 }

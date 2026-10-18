@@ -4,6 +4,8 @@ import { ArrowRight, Loader2, ShieldCheck, WalletCards, CreditCard, CheckCircle2
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { ZeroGiftPaymentOption, useZeroGiftBalance } from "@/components/ZeroGiftPaymentOption";
+import { payWithGiftCredit } from "@/lib/giftCheckout";
 import { openPaystackCheckout, buildReference, paystackKeyProblem } from "@/lib/paystack";
 
 /**
@@ -84,6 +86,8 @@ function FundLinkPage() {
   const { currency, details, format, toBaseAmount } = useWalletCurrency();
 
   const [session, setSession] = useState<any>(null);
+  const [applyGift, setApplyGift] = useState(true);
+  const { available: giftCredit } = useZeroGiftBalance("universal", !!session);
   const [checkedSession, setCheckedSession] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
 
@@ -123,10 +127,10 @@ function FundLinkPage() {
     if (entered <= 0) return toast.error("Enter an amount");
     setBusy("wallet");
     try {
-      const { error } = await supabase.rpc("pay_fund_link_from_wallet", {
+      const { error } = await payWithGiftCredit("pay_fund_link_from_wallet", {
         p_slug: slug,
         p_amount: entered,
-      });
+      }, applyGift);
       if (error) throw error;
       setDone(true);
       toast.success(`Sent ${format(entered)} to ${link?.owner_name || "them"}`);
@@ -331,10 +335,11 @@ function FundLinkPage() {
                   </div>
                 )}
 
+                {session && <ZeroGiftPaymentOption service="universal" amount={entered} applied={applyGift} onAppliedChange={setApplyGift} formatAmount={format} />}
                 {session && (
                   <button
                     onClick={payFromWallet}
-                    disabled={busy !== null || entered <= 0 || (balance !== null && balance < entered)}
+                    disabled={busy !== null || entered <= 0 || (balance !== null && balance + (applyGift ? giftCredit : 0) < entered)}
                     className="flex h-13 w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-[14px] font-semibold tracking-tight text-primary-foreground tap hover:opacity-90 disabled:opacity-40"
                   >
                     {busy === "wallet" ? (
@@ -342,7 +347,7 @@ function FundLinkPage() {
                     ) : (
                       <WalletCards className="h-4 w-4" />
                     )}
-                    Pay from my wallet
+                    Pay with gift credit and wallet
                   </button>
                 )}
 

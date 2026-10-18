@@ -1,3 +1,4 @@
+import { payWithGiftCredit } from "@/lib/giftCheckout";
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter, useRouterState } from "@tanstack/react-router";
 import { ScanIcon, ZeroScanner } from "@/features/scanner/ZeroScanner";
 import { useBroadcastOnline } from "@/lib/realtime/presence";
@@ -1563,7 +1564,7 @@ function AppLayout() {
           /* An invite link cannot be a way round the fee. join_club charges the
              wallet where there is something to charge, and simply joins where
              there is not — the same door everyone else comes through. */
-          const { data, error } = await supabase.rpc("join_club", { p_club_id: clubId });
+          const { data, error } = await payWithGiftCredit("join_club", { p_club_id: clubId });
           const result = data as any;
 
           if (error || result?.status === "insufficient_funds") {

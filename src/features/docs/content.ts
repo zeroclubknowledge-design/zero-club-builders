@@ -276,8 +276,8 @@ export const docPages: DocPage[] = [
       },
       {
         title: "Zero Cards",
-        paragraphs: ["A Gift lets one member fund a specific next step for another. The creator selects an amount, a visual template, and the Zero Club service for which the value can be claimed."],
-        bullets: ["The Gift is created only when the funding account can cover it.", "The recipient opens the shared gift and claims it into the intended service context.", "A successful claim confirms both the value and the newly available service.", "Purpose restriction prevents well-intended support from being spent elsewhere."],
+        paragraphs: ["A Zero Card can fund one person or many people through the same shared link. Its creator sets the amount per person, claim quantity, design, eligible use, and an expiry date."],
+        bullets: ["Creation reserves the amount per person multiplied by the number of claims. Each account can claim once, and the creator cannot claim their own gift.", "Any payment gifts provide flexible credit. Bootcamp gifts can be limited to particular bootcamps, including their Zero Forms.", "Checkout applies eligible gift credit first and takes only the remainder from your wallet. Gift credit is kept separate from your own cash.", "Both new claims and unused claimed credit expire at the selected deadline. Claim and spend the gift before that time.", "Creators can close remaining claims and recover their unclaimed value. Claimed gifts retain their original expiry."],
       },
       {
         title: "Locked prizes and giveaways",

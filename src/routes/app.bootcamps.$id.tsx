@@ -516,7 +516,7 @@ function BootcampDetail() {
 
               {couponPrice > 0 && (
                 <div className="mt-3">
-                  <ZeroGiftPaymentOption service="bootcamps" amount={couponPrice} applied={applyZeroGift} onAppliedChange={setApplyZeroGift} formatAmount={formatPrice} />
+                  <ZeroGiftPaymentOption service="bootcamps" bootcampId={bootcamp.id} amount={couponPrice} applied={applyZeroGift} onAppliedChange={setApplyZeroGift} formatAmount={formatPrice} />
                 </div>
               )}
 

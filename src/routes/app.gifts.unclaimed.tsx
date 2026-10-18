@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Copy, Gift, Loader2, Share2 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { copyToClipboard, giftLinkUrl } from "@/lib/share";
 import { ShareMenu } from "@/components/ShareMenu";
+import { toast } from "sonner";
 
 /**
  * Gifts you created that nobody has claimed yet.
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/app/gifts/unclaimed")({
 });
 
 function UnclaimedGiftsPage() {
+  const client = useQueryClient();
   const navigate = useNavigate();
   const { format } = useWalletCurrency();
 
@@ -33,7 +35,7 @@ function UnclaimedGiftsPage() {
       if (!session) return [];
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, service, template_id, message, custom_purpose, created_at")
+        .select("id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at")
         .eq("creator_id", session.user.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
@@ -44,7 +46,8 @@ function UnclaimedGiftsPage() {
 
   const giftUrl = (code: string) => giftLinkUrl(code);
 
-  const total = (gifts || []).reduce((sum, card: any) => sum + Number(card.amount || 0), 0);
+  const total = (gifts || []).reduce((sum, card: any) => sum + Number(card.amount || 0) * Math.max(0,(card.quantity || 1)-(card.claimed_count || 0)), 0);
+  const close = useMutation({ mutationFn: async (id: string) => { const { data, error } = await supabase.rpc("close_gift_campaign", { p_gift: id }); if (error) throw error; return data; }, onSuccess: value => { toast.success(`${format(Number(value))} returned to your wallet`); for (const key of ["unclaimed-gifts", "unclaimed-gift-count", "profile", "gift-card-profile"]) void client.invalidateQueries({ queryKey: [key] }); }, onError: (error: Error) => toast.error(error.message) });
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground">
@@ -96,7 +99,7 @@ function UnclaimedGiftsPage() {
         ) : (
           <>
             <p className="mb-5 max-w-[520px] text-[13px] leading-relaxed text-muted-foreground">
-              These have already left your wallet. Send a link so someone can claim one.
+              Each gift is already funded. Share its link before expiry, or close remaining claims to recover their value.
             </p>
 
             <div className="grid gap-8 lg:grid-cols-2">
@@ -117,6 +120,8 @@ function UnclaimedGiftsPage() {
                     {/* Just the actions. The amount and purpose are on the
                         card above, so repeating them was noise. */}
                     <div className="mt-3 w-full max-w-[520px]">
+                      <p className="mb-2 text-sm text-muted-foreground">{Math.max(0,(card.quantity || 1)-(card.claimed_count || 0))} of {card.quantity || 1} claims left · {format(Number(card.amount))} per person</p>
+                      {card.expires_at && <p className="mb-3 text-xs text-muted-foreground">{Date.parse(card.expires_at) <= Date.now() ? "Expired" : "Claim by"} · {new Date(card.expires_at).toLocaleString()}</p>}
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => copyToClipboard(giftUrl(card.code), "Gift link copied")}
@@ -133,6 +138,7 @@ function UnclaimedGiftsPage() {
                           className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
                         />
                       </div>
+                      <button type="button" disabled={close.isPending} onClick={() => { if (window.confirm("Close remaining claims and return their value to your wallet? Claimed gifts keep their original expiry.")) close.mutate(card.id); }} className="mt-3 min-h-10 text-xs font-semibold text-muted-foreground underline">Close and return unclaimed value</button>
                     </div>
                   </div>
                 );

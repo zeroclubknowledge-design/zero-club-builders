@@ -1,4 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { payWithGiftCredit } from "@/lib/giftCheckout";
+import { ZeroGiftPaymentOption } from "@/components/ZeroGiftPaymentOption";
 import { RichText } from "@/components/RichText";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -128,6 +130,7 @@ function Clubs() {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showCreate, setShowCreate] = usePersistentDraft(clubFieldKey("create-open"), false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [applyClubGift, setApplyClubGift] = useState(true);
   const [selectedClub, setSelectedClub] = useState<any>(null);
 
   /* Private clubs have always been by request. Public ones can now ask for the
@@ -334,7 +337,7 @@ function Clubs() {
        * second copy of that rule that could disagree with the first — a public
        * club that had turned approval on was letting people walk in.
        */
-      const { data, error } = await supabase.rpc("join_club", { p_club_id: club.id });
+      const { data, error } = await payWithGiftCredit("join_club", { p_club_id: club.id }, applyClubGift);
       if (error) throw error;
 
       const result = data as any;
@@ -1400,6 +1403,7 @@ function Clubs() {
                             label="Ask someone to cover this"
                             className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground/15 bg-card text-[14px] font-semibold text-foreground transition-colors hover:bg-foreground/[0.04]"
                           />
+                          <ZeroGiftPaymentOption service="universal" amount={Number(selectedClub.subscription_fee)} applied={applyClubGift} onAppliedChange={setApplyClubGift} formatAmount={format} />
                         </div>
                       </div>
                     )}

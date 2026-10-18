@@ -8,18 +8,20 @@ import {
   Share2,
   ShieldCheck,
 } from "@/components/icons/glyphs";
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { AdminGiftInbox } from "@/features/membership/AdminGiftInbox";
 import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
+import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { shareOrCopy, giftLinkUrl } from "@/lib/share";
 import { draftKey, storedDraftOwner, usePersistentDraft } from "@/lib/draftStorage";
 
 const GIFT_SERVICE_DESTINATIONS: Record<string, { href?: string; action: string }> = {
+  universal: { href: "/app", action: "Use at checkout" },
   bootcamps: { href: "/app/bootcamps", action: "Use for a bootcamp" },
   membership: { href: "/app/premium", action: "Use for membership" },
   "zero-ai": { href: "/app/zero-ai", action: "View Zero AI" },
@@ -30,19 +32,32 @@ const GIFT_SERVICE_DESTINATIONS: Record<string, { href?: string; action: string 
 export const Route = createFileRoute("/app/gifts/")({ component: GiftCardsPage });
 
 function GiftCardsPage() {
+  const client = useQueryClient();
   const giftKey = (field: string) => draftKey(storedDraftOwner(), "gift-card", field);
   const [amount, setAmount] = useState("");
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
   const [templateId, setTemplateId] = usePersistentDraft(giftKey("template"), "signature");
-  const [service, setService] = usePersistentDraft(giftKey("service"), "bootcamps");
+  const [service, setService] = usePersistentDraft(giftKey("service"), "universal");
+  useEffect(() => { if (service === "support") setService("universal"); }, [service, setService]);
+  const [quantity, setQuantity] = usePersistentDraft(giftKey("quantity"), "1");
+  const [expires, setExpires] = usePersistentDraft(giftKey("expiry"), "");
+  const [limited, setLimited] = usePersistentDraft(giftKey("limited-bootcamps"), false);
+  const [bootcampIds, setBootcampIds] = usePersistentDraft<string[]>(giftKey("bootcamps"), []);
+  const request = useRef<{ signature: string; id: string } | null>(null);
   const [message, setMessage] = usePersistentDraft(giftKey("message"), "");
   const [customPurpose, setCustomPurpose] = usePersistentDraft(giftKey("purpose"), "");
   const [createdCard, setCreatedCard] = usePersistentDraft<any>(giftKey("created"), null);
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
   const displayAmount = Number(amount) || 0;
-  const numericAmount = toBaseAmount(displayAmount);
+  const numericAmount = Math.round(toBaseAmount(displayAmount));
+  const count = Number(quantity);
+  const total = numericAmount * count;
+  const expiry = new Date(expires).getTime();
+  const validDetails = Number.isInteger(count) && count > 0 && count <= 10000 && Number.isFinite(expiry) && expiry > now && expiry <= now + 366 * 86400000 && !(service === "bootcamps" && limited && (!bootcampIds.length || bootcampIds.length > 100));
 
   const { data: profile } = useQuery({
-    queryKey: ["gift-card-profile"],
+    queryKey: ["gift-card-profile", storedDraftOwner()],
     queryFn: async () => {
       const {
         data: { session },
@@ -73,16 +88,17 @@ function GiftCardsPage() {
     },
   });
 
-  const { data: availableGifts = [] } = useQuery({
+  const { data: giftRows = [] } = useQuery({
     queryKey: ["available-restricted-zero-gifts", profile?.id],
     enabled: !!profile?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at")
+        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at,bootcamp_ids,expires_at")
         .eq("claimed_by", profile!.id)
         .eq("status", "claimed")
         .gt("remaining_amount", 0)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
         .order("claimed_at", { ascending: false });
       // Before the restricted-gift migration reaches a deployment, keep the
       // Gifts page usable. Other failures should still surface to monitoring.
@@ -92,11 +108,13 @@ function GiftCardsPage() {
     },
   });
 
+  const availableGifts = giftRows.filter((card: any) => !card.expires_at || Date.parse(card.expires_at) > now);
+
   const shareGift = (card: any) => {
     const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
     shareOrCopy({
       title: "A Zero Card for you",
-      text: `You received a ${format(Number(card.amount))} Zero Card — ${label}.`,
+      text: `${format(Number(card.amount))} per person — ${label}. ${card.quantity || 1} claims, one per account.${card.expires_at ? ` Claim by ${new Date(card.expires_at).toLocaleString()}.` : ""}`,
       url: giftLinkUrl(card.code),
       copiedMessage: "Gift link copied",
     });
@@ -105,23 +123,32 @@ function GiftCardsPage() {
   const createGift = useMutation({
     mutationFn: async () => {
       if (numericAmount <= 0) throw new Error("Enter a valid gift amount.");
-      if (numericAmount > Number(profile?.coins || 0))
+      if (!validDetails) throw new Error("Choose a quantity, future expiry and any required bootcamps.");
+      if (total > Number(profile?.coins || 0))
         throw new Error("Your wallet balance is too low for this gift.");
       if (service === "custom" && !customPurpose.trim()) {
         throw new Error("Say what this custom gift is for.");
       }
-      const { data, error } = await supabase.rpc("create_gift_card", {
+      const signature = JSON.stringify([numericAmount, count, expires, templateId, service, message.trim(), customPurpose.trim(), service === "bootcamps" && limited ? bootcampIds : []]);
+      if (request.current?.signature !== signature) request.current = { signature, id: crypto.randomUUID() };
+      const { data, error } = await supabase.rpc("create_gift_campaign", {
         gift_amount: numericAmount,
         gift_template: templateId,
         gift_service: service,
         gift_message: message.trim() || null,
         gift_custom_purpose: service === "custom" ? customPurpose.trim() : null,
+        gift_quantity: count,
+        gift_expires_at: new Date(expires).toISOString(),
+        gift_bootcamp_ids: service === "bootcamps" && limited ? bootcampIds : [],
+        p_request_id: request.current!.id,
       });
       if (error) throw error;
       return Array.isArray(data) ? data[0] : data;
     },
     onSuccess: (card) => {
       refetchUnclaimed();
+      void client.invalidateQueries({ queryKey: ["gift-card-profile"] });
+      void client.invalidateQueries({ queryKey: ["profile", "current"] });
       setCreatedCard(card);
       setMessage("");
       setCustomPurpose("");
@@ -134,7 +161,7 @@ function GiftCardsPage() {
   const canCreate =
     !createGift.isPending &&
     numericAmount > 0 &&
-    numericAmount <= Number(profile?.coins || 0) &&
+    validDetails && total <= Number(profile?.coins || 0) &&
     !(service === "custom" && !customPurpose.trim());
 
   const header = (title: string) => (
@@ -178,8 +205,9 @@ function GiftCardsPage() {
             Your Zero Card is ready
           </h2>
           <p className="mt-1.5 max-w-md text-[14px] leading-relaxed text-muted-foreground">
-            It can be used for {serviceLabel}. Share the link with the person you chose.
+            {format(Number(createdCard.amount))} per person · {createdCard.quantity || 1} claims. Each account can claim once. Use for {serviceLabel}.
           </p>
+          {createdCard.expires_at && <p className="mt-2 text-xs text-muted-foreground">Claim and use before {new Date(createdCard.expires_at).toLocaleString()}. Unused credit expires.</p>}
           <div className="mt-6 w-full max-w-[420px]">
             <GiftCardVisual
               amount={createdCard.amount}
@@ -282,6 +310,8 @@ function GiftCardsPage() {
                     <p className="text-[13px] text-muted-foreground">
                       of {format(Number(gift.amount) || 0)} left
                     </p>
+                    {!!gift.bootcamp_ids?.length && <p className="mt-1 text-xs text-muted-foreground">Only for {gift.bootcamp_ids.length} selected bootcamp{gift.bootcamp_ids.length === 1 ? "" : "s"}</p>}
+                    {gift.expires_at && <p className="mt-1 text-xs text-muted-foreground">Use before {new Date(gift.expires_at).toLocaleString()}</p>}
                   </div>
                   {destination.href ? (
                     <a
@@ -303,7 +333,7 @@ function GiftCardsPage() {
 
         <section className="flex flex-col gap-4 bg-card p-4 md:rounded-xl md:border md:border-border">
           <div>
-            <span className={LABEL}>Amount</span>
+            <span className={LABEL}>Amount per person</span>
             <div className="flex items-baseline gap-1.5 border-b border-foreground/15 pb-2 focus-within:border-foreground/40">
               <span className="font-display text-[24px] font-semibold text-muted-foreground">
                 {currencyDetails.symbol}
@@ -334,6 +364,10 @@ function GiftCardsPage() {
             </p>
           </div>
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label><span className={LABEL}>Number of people</span><input type="number" inputMode="numeric" min="1" max="10000" step="1" value={quantity} onChange={e => setQuantity(e.target.value)} className={FIELD} /><span className="mt-1 block text-xs text-muted-foreground">Each account can claim once.</span></label>
+            <label><span className={LABEL}>Claim and use before</span><input type="datetime-local" value={expires} onChange={e => setExpires(e.target.value)} className={`${FIELD} min-w-0 max-w-full`} /><span className="mt-1 block text-xs text-muted-foreground">New claims and unused gift credit expire at this time.</span></label>
+          </div>
           <div>
             <span className={LABEL}>Can be used for</span>
             <div className="flex flex-wrap gap-2">
@@ -356,6 +390,7 @@ function GiftCardsPage() {
             )}
           </div>
 
+          {service === "bootcamps" && <div><span className={LABEL}>Eligible bootcamps</span><div className="mt-2 flex flex-wrap gap-2"><button type="button" aria-pressed={!limited} onClick={() => setLimited(false)} className={`rounded-full border px-4 py-2 text-sm ${!limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>All bootcamps</button><button type="button" aria-pressed={limited} onClick={() => setLimited(true)} className={`rounded-full border px-4 py-2 text-sm ${limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>Choose bootcamps</button></div>{limited && <GiftBootcampPicker selected={bootcampIds} onChange={setBootcampIds} />}</div>}
           {service === "custom" && (
             <label className="block">
               <span className={LABEL}>What's it for?</span>
@@ -368,7 +403,7 @@ function GiftCardsPage() {
               {/* Said plainly, because "custom" could easily be read as
                   restricting where the money can go. It does not. */}
               <span className="mt-1 block text-[12px] text-muted-foreground">
-                A note for them. The money still lands in their wallet to spend freely.
+                A note for them. Gift credit can be used for payments until its expiry.
               </span>
             </label>
           )}
@@ -391,11 +426,12 @@ function GiftCardsPage() {
         </section>
 
         <section className="flex flex-1 flex-col bg-card px-4 pb-28 pt-4 md:flex-none md:rounded-xl md:border md:border-border md:pb-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 p-3"><span className="text-sm text-muted-foreground">Total reserved · {count > 0 ? count.toLocaleString() : 0} × {format(numericAmount)}</span><strong className="text-base tabular-nums">{format(Number.isFinite(total) ? total : 0)}</strong></div>
           <p className="flex items-start gap-2 text-[13px] leading-relaxed text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-            {service === "support" || service === "custom"
-              ? "The amount leaves your wallet now and lands in theirs the moment they claim it."
-              : "The amount is reserved from your wallet now and stays locked to what you chose."}
+            {service === "universal" || service === "support" || service === "custom"
+              ? "The total is reserved now. Each member receives separate gift credit. It pays first at checkout, with only the remainder charged to their wallet. Unused credit expires on the selected date."
+              : "The total is reserved now. Each claim activates credit for its chosen purpose. Checkout applies eligible credit first, then your wallet covers the rest."}
           </p>
           <button
             onClick={() => createGift.mutate()}
@@ -406,7 +442,7 @@ function GiftCardsPage() {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                {numericAmount > 0 ? `Create ${format(numericAmount)} card` : "Create card"}
+                {numericAmount > 0 && count > 0 ? `Create ${count.toLocaleString()}-claim gift` : "Create card"}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

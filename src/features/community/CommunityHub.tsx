@@ -1,3 +1,4 @@
+import { payWithGiftCredit } from "@/lib/giftCheckout";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -145,7 +146,7 @@ type Hub = {
 const PINK = "#cc208f";
 const MEDIA = "$$MEDIA$$";
 const rpc = async <T,>(name: string, args?: Record<string, unknown>): Promise<T> => {
-  const { data, error } = await supabase.rpc(name as never, (args || {}) as never);
+  const { data, error } = name === "join_club" ? await payWithGiftCredit("join_club", args || {}) : await supabase.rpc(name as never, (args || {}) as never);
   if (error) throw error;
   return data as T;
 };

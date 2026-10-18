@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
+import { ZeroGiftPaymentOption } from "@/components/ZeroGiftPaymentOption";
 import {
   ZERO_FORM_ALLOWED_UPLOAD_TYPES,
   ZERO_FORM_MAX_UPLOAD_BYTES,
@@ -344,6 +345,7 @@ function ZeroFormPublicPage() {
   const [resumed, setResumed] = useState(false);
   const [enrolledBootcamp, setEnrolledBootcamp] = useState<string | null>(null);
   const [shortfall, setShortfall] = useState<number | null>(null);
+  const [applyGift, setApplyGift] = useState(false);
   const registerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -450,12 +452,13 @@ function ZeroFormPublicPage() {
 
   const submit = useMutation({
     mutationFn: async () => {
-      const { data: result, error } = await supabase.rpc("submit_zero_form_v2", {
+      const { data: result, error } = await supabase.rpc("submit_zero_form_with_gift", {
         form_slug: slug,
         // Answers to follow-ups that ended up hidden are not sent.
         answers: Object.fromEntries(Object.entries(answers).filter(([key]) => visibleFields.some((f) => f.field_key === key))),
         intent: dataOnly ? "interest" : intent,
         guest: session ? null : { name: guest.name, email: guest.email, phone: guest.phone },
+        p_apply_gift: !!session && applyGift && !dataOnly && intent === "pay",
       });
       if (error) throw error;
       return result as any;
@@ -523,6 +526,8 @@ function ZeroFormPublicPage() {
       );
       queryClient.invalidateQueries({ queryKey: ["zero-form-public", slug] });
       queryClient.invalidateQueries({ queryKey: ["profile", "current"] });
+      queryClient.invalidateQueries({ queryKey: ["zero-gift-balance"] });
+      queryClient.invalidateQueries({ queryKey: ["available-restricted-zero-gifts"] });
     },
     onError: (error: any) => toast.error(error.message || "We could not complete your registration"),
   });
@@ -859,13 +864,14 @@ function ZeroFormPublicPage() {
                 </div>
               )}
 
+              {session && !dataOnly && intent === "pay" && price > 0 && <div className="mb-5"><ZeroGiftPaymentOption service="bootcamps" bootcampId={bootcamp?.id} amount={price} applied={applyGift} onAppliedChange={value => { setApplyGift(value); setShortfall(null); }} formatAmount={money} /></div>}
               {/* Welcome back after signing up: everything's saved. */}
               {resumed && session && !dataOnly && intent === "pay" && (
                 <div className="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.07] p-4">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                   <div>
                     <p className="text-[14px] font-semibold">You're signed in — your answers are saved</p>
-                    <p className="mt-0.5 text-[12.5px] leading-5 text-muted-foreground">Confirm below to pay {money(price)} from your Zero Club wallet. You'll be added to the bootcamp straight away.</p>
+                    <p className="mt-0.5 text-[12.5px] leading-5 text-muted-foreground">Confirm your {money(price)} payment below. Eligible gift credit is used first when selected, and your wallet covers the rest.</p>
                   </div>
                 </div>
               )}
@@ -965,7 +971,7 @@ function ZeroFormPublicPage() {
                 {dataOnly || intent === "interest"
                   ? "Your details go straight to the organiser. No payment is taken."
                   : session
-                    ? "Paid securely from your Zero Club wallet. You're added to the bootcamp instantly."
+                    ? "Eligible gifts and your wallet pay securely together. You're added to the bootcamp instantly."
                     : "You'll pay from your Zero Club wallet right after signing up. You keep this price even after it rises."}
               </p>
             </section>
