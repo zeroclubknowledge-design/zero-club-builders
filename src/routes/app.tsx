@@ -34,6 +34,7 @@ import {
   GraduationCap,
   Building2,
   PanelLeft,
+  Award,
 } from "@/components/icons/glyphs";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -90,6 +91,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/games": "Zero Games",
   "/app/games/solo": "Solo Game",
   "/app/premium": "Premium",
+  "/app/certifications": "Certifications",
   "/app/creator": "Creator Workspace",
   "/app/bookmarks": "Bookmarks",
   "/app/tutor-studio": "Tutor Studio",
@@ -222,6 +224,7 @@ function SidebarContent({
       : []),
     ...(profile?.is_admin || profile?.account_type === "Tutor" ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
     ...(profile?.is_admin || profile?.account_type === "Institution" ? [{ Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" }] : []),
+    ...(profile?.is_admin || ["Tutor", "Institution"].includes(profile?.account_type) ? [{ Icon: Award, label: "Certifications", to: "/app/certifications" }] : []),
     ...(profile?.is_admin ? [{ Icon: IconShield, label: "Admin Control Center", to: "/app/admin" }] : []),
   ];
 
@@ -449,6 +452,7 @@ function SidebarContent({
           <div className="flex flex-1 flex-col">
             <p data-rail-hide className="px-3 pb-2 pt-2 text-[12px] font-semibold text-muted-foreground">Digital Hub</p>
             <nav className="flex flex-1 flex-col">
+              <Link to="/app/certifications" className="flex min-h-12 items-center gap-3.5 rounded-[10px] px-3 text-[15px] font-medium hover:bg-foreground/[0.04]"><Award className="h-5 w-5" />Certifications</Link>
               {INSTITUTION_SIDEBAR_TABS.map(({ key, label, Icon }) => {
                 const isActive = institutionActiveTab === key;
                 return (
@@ -556,7 +560,7 @@ function BusinessSidebarNav({
   const general = [
     { to: "/app", label: "Home", Icon: IconHome, exact: true },
     ...(mode === "institutional"
-      ? [{ to: "/app/bootcamps", label: "Bootcamps", Icon: IconLearn }]
+      ? [{ to: "/app/bootcamps", label: "Bootcamps", Icon: IconLearn }, { to: "/app/certifications", label: "Certifications", Icon: plain(Award) }]
       : [{ to: "/app/quests", label: "Opportunities", Icon: IconRocket }]),
     { to: "/app/chat", label: "Messages", Icon: IconMessages, badge: unreadMessagesCount, desktopOnly: true },
     { to: "/app/notifications", label: "Notifications", Icon: IconBell, badge: unreadNotificationsCount, desktopOnly: true },
@@ -752,11 +756,13 @@ function DesktopWorkspaceRail({
     ? [
         { label: "Digital Hub", to: "/app/institution-studio", Icon: IconInstitution },
         { label: "Organization bootcamps", to: "/app/institution-studio", Icon: IconLearn },
+        { label: "Certifications", to: "/app/certifications", Icon: Award },
       ]
     : isTutor
       ? [
           { label: "Tutor Studio", to: "/app/tutor-studio", Icon: IconPresentation },
           { label: "Create bootcamp", to: "/app/tutor-studio/create", Icon: IconLearn },
+          { label: "Certifications", to: "/app/certifications", Icon: Award },
           { label: "Wallet", to: "/app/wallet", Icon: IconWallet },
         ]
       : isCreator

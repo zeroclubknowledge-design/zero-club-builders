@@ -113,12 +113,13 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimeout = useRef<any>(null);
+  useEffect(() => () => { if (hideControlsTimeout.current) clearTimeout(hideControlsTimeout.current); }, []);
 
   /* The container is given the video's own shape as soon as we know it. This
      is what stops the video escaping its box: the frame below is pinned to
@@ -156,10 +157,10 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
     const cur = videoRef.current.currentTime;
-    const dur = videoRef.current.duration || 1;
+    const dur = Number.isFinite(videoRef.current.duration) ? videoRef.current.duration : 0;
     setCurrentTime(cur);
     setDuration(dur);
-    setProgress((cur / dur) * 100);
+    setProgress(dur > 0 ? (cur / dur) * 100 : 0);
   };
 
   const handleLoadedMetadata = () => {
@@ -215,6 +216,9 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
         ref={videoRef}
         src={src}
         poster={poster}
+        autoPlay
+        loop
+        muted={isMuted}
         playsInline
         preload="metadata"
         onPlay={() => setIsPlaying(true)}
@@ -256,6 +260,8 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
             "0 0 0 120px var(--zc-media-surface), inset 0 0 0 1px var(--border)",
         }}
       />
+
+      <button type="button" onClick={toggleMute} aria-label={isMuted ? "Turn sound on" : "Turn sound off"} className="absolute right-3 top-3 z-20 inline-flex min-h-11 items-center gap-2 rounded-full bg-black/65 px-4 text-xs font-semibold text-white backdrop-blur">{isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}{isMuted ? "Sound on" : "Sound off"}</button>
 
       {/* Center Play Button when Paused */}
       {!isPlaying && (
@@ -722,12 +728,8 @@ function ZeroFormPublicPage() {
   return (
     <Shell>
       <div className="mx-auto max-w-[720px] px-5 pb-24 pt-6">
-        {/* ── One piece of media, at its own natural proportions ──────────────
-            The video always wins when there is one. The flyer is the fallback,
-            and nothing is shown at all when neither has been uploaded. */}
-        {bootcamp?.video_url ? (
-          <ZeroFormVideoPlayer src={bootcamp.video_url} poster={flyer || undefined} />
-        ) : flyer ? (
+        {/* A chosen image takes precedence; otherwise the video loops inline. */}
+        {flyer ? (
           <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card">
             <img
               src={flyer}
@@ -735,6 +737,8 @@ function ZeroFormPublicPage() {
               className="block w-full rounded-2xl object-contain"
             loading="lazy" decoding="async" />
           </div>
+        ) : bootcamp?.video_url ? (
+          <ZeroFormVideoPlayer key={bootcamp.video_url} src={bootcamp.video_url} />
         ) : null}
 
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">

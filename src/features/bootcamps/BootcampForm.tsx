@@ -38,6 +38,8 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { CardSelect } from "@/components/CardSelect";
 import { BootcampMediaInput } from "./BootcampMediaInput";
+import { CertificateSetup } from "@/features/certificates/CertificateSetup";
+import { certificateDesignError, type CertificateDesign } from "@/features/certificates/design";
 
 export function BootcampForm({
   bootcampId,
@@ -68,6 +70,8 @@ export function BootcampForm({
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState("10");
   const [endDate, setEndDate] = useState("");
+  const [certificateDesign, setCertificateDesign] = useState<CertificateDesign | null>(null);
+  const [certificateUploading, setCertificateUploading] = useState(false);
 
   /**
    * Extra coupon codes, held as strings while editing so partially typed
@@ -167,6 +171,7 @@ export function BootcampForm({
       setIsFree(Number(bootcamp.price) === 0);
       setBanner(bootcamp.banner_url || null);
       setVideoPreview(bootcamp.video_url || null);
+      setCertificateDesign(bootcamp.certificate_design || null);
       setCouponEnabled(Boolean(bootcamp.coupon_code));
       setCouponCode(bootcamp.coupon_code || "");
       setCouponDiscount(String(bootcamp.coupon_discount_percent || 10));
@@ -228,6 +233,10 @@ export function BootcampForm({
 
   const launchBootcamp = async () => {
     try {
+      if (!bootcampId || certificateDesign) {
+        const error = certificateDesignError(certificateDesign);
+        if (error) throw new Error(error);
+      }
       setLoading(true);
       const {
         data: { user },
@@ -274,6 +283,7 @@ export function BootcampForm({
           couponEnabled && !isFree && normalizedCouponCode ? numericCouponDiscount : 0,
         banner_url: bannerUrl || null,
         video_url: videoUrl || null,
+        ...(!bootcampId || certificateDesign ? { certificate_design: certificateDesign } : {}),
         ends_at: endDate ? new Date(`${endDate}T23:59:59.999`).toISOString() : null,
         // Clamped here as well as by a database constraint. A free bootcamp
         // cannot pay commission on nothing, so it is forced to zero.
@@ -486,6 +496,17 @@ export function BootcampForm({
   };
 
   const nextStep = () => {
+    if (certificateUploading) {
+      toast.error("Wait for your certificate assets to finish uploading.");
+      return;
+    }
+    if (step === 1 && (!bootcampId || certificateDesign)) {
+      const error = certificateDesignError(certificateDesign);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+    }
     if (step === 1 && (!title.trim() || !description.trim())) {
       toast.error("Add a title and description before continuing");
       return;
@@ -653,7 +674,7 @@ export function BootcampForm({
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Advanced Web3 Development"
                   className="h-12 w-full rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/10"
-                  disabled={loading}
+                  disabled={loading || certificateUploading}
                 />
               </div>
 
@@ -667,7 +688,7 @@ export function BootcampForm({
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="h-12 w-full appearance-none rounded-lg border border-border bg-card px-4 pr-12 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    disabled={loading}
+                    disabled={loading || certificateUploading}
                   >
                     <option>Design</option>
                     <option>Development</option>
@@ -703,7 +724,7 @@ export function BootcampForm({
                 <BootcampMediaInput
                   kind="image"
                   value={banner}
-                  disabled={loading}
+                  disabled={loading || certificateUploading}
                   onSelect={(file) => {
                     setBannerFile(file);
                     setBanner(URL.createObjectURL(file));
@@ -726,7 +747,7 @@ export function BootcampForm({
                 <BootcampMediaInput
                   kind="video"
                   value={videoPreview}
-                  disabled={loading}
+                  disabled={loading || certificateUploading}
                   onSelect={(file) => {
                     setVideoPreviewFile(file);
                     setVideoPreview(URL.createObjectURL(file));
@@ -739,6 +760,25 @@ export function BootcampForm({
               </div>
             </div>
           </div>
+        )}
+
+        {step === 1 && (
+          <section className="mt-7 space-y-4 rounded-xl border border-border bg-card p-4">
+            <div>
+              <h2 className="text-lg font-semibold">Certificate of completion</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Choose your template and add your signature for the certificates your learners will
+                receive.
+              </p>
+            </div>
+            <CertificateSetup
+              onBusyChange={setCertificateUploading}
+              value={certificateDesign}
+              onChange={setCertificateDesign}
+              disabled={loading || certificateUploading}
+              course={title || undefined}
+            />
+          </section>
         )}
 
         {/* ══════════ Step 2 — Curriculum ══════════ */}
@@ -882,7 +922,7 @@ export function BootcampForm({
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    disabled={loading}
+                    disabled={loading || certificateUploading}
                     className="h-12 w-full rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:opacity-50"
                   />
                   <p className="ml-1 text-[10.5px] leading-4 text-muted-foreground">
@@ -989,7 +1029,7 @@ export function BootcampForm({
                           max="50"
                           value={referralPercent}
                           onChange={(e) => setReferralPercent(e.target.value)}
-                          disabled={loading}
+                          disabled={loading || certificateUploading}
                           className="h-11 w-full rounded-lg border border-border bg-card px-4 pr-8 text-sm font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
@@ -1079,7 +1119,7 @@ export function BootcampForm({
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                           placeholder="ZERO20"
                           className="h-11 w-full rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                          disabled={loading}
+                          disabled={loading || certificateUploading}
                         />
                       </div>
                       <div className="space-y-2">
@@ -1094,7 +1134,7 @@ export function BootcampForm({
                             value={couponDiscount}
                             onChange={(e) => setCouponDiscount(e.target.value)}
                             className="h-11 w-full rounded-lg border border-border bg-card px-4 pr-8 text-sm font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                            disabled={loading}
+                            disabled={loading || certificateUploading}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
                             %
@@ -1129,7 +1169,7 @@ export function BootcampForm({
                         </div>
                         <button
                           type="button"
-                          disabled={loading}
+                          disabled={loading || certificateUploading}
                           onClick={() =>
                             setExtraCoupons((current) => [
                               ...current,
@@ -1166,7 +1206,7 @@ export function BootcampForm({
                                 value={coupon.code}
                                 onChange={(e) => patch({ code: e.target.value.toUpperCase() })}
                                 placeholder="PARTNER20"
-                                disabled={loading}
+                                disabled={loading || certificateUploading}
                                 className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-[13px] font-semibold outline-none focus:border-primary"
                               />
                               <div className="relative w-[86px] shrink-0">
@@ -1176,7 +1216,7 @@ export function BootcampForm({
                                   max="100"
                                   value={coupon.discount_percent}
                                   onChange={(e) => patch({ discount_percent: e.target.value })}
-                                  disabled={loading}
+                                  disabled={loading || certificateUploading}
                                   className="h-10 w-full rounded-lg border border-border bg-background px-3 pr-7 text-[13px] font-semibold outline-none focus:border-primary"
                                 />
                                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted-foreground">
@@ -1193,7 +1233,7 @@ export function BootcampForm({
                                     current.filter((_, i) => i !== index),
                                   );
                                 }}
-                                disabled={loading}
+                                disabled={loading || certificateUploading}
                                 className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:text-destructive disabled:opacity-40"
                                 aria-label="Remove this coupon"
                               >
@@ -1206,7 +1246,7 @@ export function BootcampForm({
                                 value={coupon.label}
                                 onChange={(e) => patch({ label: e.target.value })}
                                 placeholder="Package name (optional)"
-                                disabled={loading}
+                                disabled={loading || certificateUploading}
                                 className="h-9 rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary"
                               />
                               <input
@@ -1215,14 +1255,14 @@ export function BootcampForm({
                                 value={coupon.max_uses}
                                 onChange={(e) => patch({ max_uses: e.target.value })}
                                 placeholder="Max uses"
-                                disabled={loading}
+                                disabled={loading || certificateUploading}
                                 className="h-9 rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary"
                               />
                               <input
                                 type="date"
                                 value={coupon.expires_at}
                                 onChange={(e) => patch({ expires_at: e.target.value })}
-                                disabled={loading}
+                                disabled={loading || certificateUploading}
                                 className="h-9 rounded-lg border border-border bg-background px-3 text-[12px] outline-none focus:border-primary"
                               />
                             </div>
@@ -1266,7 +1306,7 @@ export function BootcampForm({
         <div className="zc-page-width mx-auto flex max-w-[820px] items-center justify-between">
           <button
             onClick={() => step > 1 && setStep(step - 1)}
-            disabled={loading}
+            disabled={loading || certificateUploading}
             className={`text-[13.5px] font-semibold tracking-tight text-muted-foreground hover:text-foreground transition-colors ${
               step === 1 ? "invisible" : ""
             } disabled:opacity-50`}
@@ -1275,7 +1315,7 @@ export function BootcampForm({
           </button>
           <button
             onClick={nextStep}
-            disabled={loading}
+            disabled={loading || certificateUploading}
             className="flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-[14px] font-semibold text-primary-foreground tap hover:opacity-90 disabled:opacity-50"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}

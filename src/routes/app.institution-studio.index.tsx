@@ -1,3 +1,5 @@
+import { CertificateSetup } from "@/features/certificates/CertificateSetup";
+import { certificateDesignError, type CertificateDesign } from "@/features/certificates/design";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { UsernamePicker } from "@/components/UsernamePicker";
 import { useState, useEffect, useRef } from "react";
@@ -124,6 +126,8 @@ function InstitutionHub() {
     category: "Development",
     price: "0",
   });
+  const [certificateDesign, setCertificateDesign] = useState<CertificateDesign | null>(null);
+  const [certificateUploading, setCertificateUploading] = useState(false);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -331,6 +335,15 @@ function InstitutionHub() {
   const handleCreateBootcamp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile || !newBootcamp.title) return;
+    if (certificateUploading) {
+      toast.error("Wait for your certificate assets to finish uploading.");
+      return;
+    }
+    const certificateError = certificateDesignError(certificateDesign);
+    if (certificateError) {
+      toast.error(certificateError);
+      return;
+    }
     setCreating(true);
 
     try {
@@ -351,6 +364,7 @@ function InstitutionHub() {
         .insert([
           {
             creator_id: profile.id,
+            certificate_design: certificateDesign,
             title: newBootcamp.title,
             description: newBootcamp.description,
             category: newBootcamp.category,
@@ -399,6 +413,7 @@ function InstitutionHub() {
       setNewBootcamp({ title: "", description: "", category: "Development", price: "0" });
       setBannerFile(null);
       setBannerPreview(null);
+      setCertificateDesign(null);
       refetchBootcamps();
     } catch (err: any) {
       toast.error(err.message || "Failed to create bootcamp");
@@ -1095,9 +1110,20 @@ function InstitutionHub() {
                     </div>
                   </div>
 
+                  <section className="my-5 space-y-3">
+                    <h3 className="text-base font-semibold">Certificate of completion</h3>
+                    <CertificateSetup
+                      onBusyChange={setCertificateUploading}
+                      value={certificateDesign}
+                      onChange={setCertificateDesign}
+                      disabled={creating}
+                      course={newBootcamp.title || undefined}
+                    />
+                  </section>
+
                   <button
                     type="submit"
-                    disabled={creating || !newBootcamp.title}
+                    disabled={creating || certificateUploading || !newBootcamp.title}
                     className="h-11 px-8 bg-foreground text-background text-[13.5px] font-semibold tracking-tight rounded-xl flex items-center gap-2 tap hover:opacity-90 disabled:opacity-50"
                   >
                     {creating ? (

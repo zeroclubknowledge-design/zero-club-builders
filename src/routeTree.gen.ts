@@ -27,6 +27,7 @@ import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
 import { Route as AppBoostRouteImport } from './routes/app.boost'
 import { Route as AppBusinessRouteImport } from './routes/app.business'
+import { Route as AppCertificationsRouteImport } from './routes/app.certifications'
 import { Route as AppComposeRouteImport } from './routes/app.compose'
 import { Route as AppCreatorRouteImport } from './routes/app.creator'
 import { Route as AppDraftsRouteImport } from './routes/app.drafts'
@@ -224,6 +225,11 @@ const AppBoostRoute = AppBoostRouteImport.update({
 const AppBusinessRoute = AppBusinessRouteImport.update({
   id: '/business',
   path: '/business',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCertificationsRoute = AppCertificationsRouteImport.update({
+  id: '/certifications',
+  path: '/certifications',
   getParentRoute: () => AppRoute,
 } as any)
 const AppComposeRoute = AppComposeRouteImport.update({
@@ -784,6 +790,7 @@ export interface FileRoutesByFullPath {
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/business': typeof AppBusinessRoute
+  '/app/certifications': typeof AppCertificationsRoute
   '/app/compose': typeof AppComposeRoute
   '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
@@ -909,6 +916,7 @@ export interface FileRoutesByTo {
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/business': typeof AppBusinessRoute
+  '/app/certifications': typeof AppCertificationsRoute
   '/app/compose': typeof AppComposeRoute
   '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
@@ -1033,6 +1041,7 @@ export interface FileRoutesById {
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/business': typeof AppBusinessRoute
+  '/app/certifications': typeof AppCertificationsRoute
   '/app/compose': typeof AppComposeRoute
   '/app/creator': typeof AppCreatorRoute
   '/app/drafts': typeof AppDraftsRoute
@@ -1162,6 +1171,7 @@ export interface FileRouteTypes {
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/business'
+    | '/app/certifications'
     | '/app/compose'
     | '/app/creator'
     | '/app/drafts'
@@ -1287,6 +1297,7 @@ export interface FileRouteTypes {
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/business'
+    | '/app/certifications'
     | '/app/compose'
     | '/app/creator'
     | '/app/drafts'
@@ -1410,6 +1421,7 @@ export interface FileRouteTypes {
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/business'
+    | '/app/certifications'
     | '/app/compose'
     | '/app/creator'
     | '/app/drafts'
@@ -1685,6 +1697,13 @@ declare module '@tanstack/react-router' {
       path: '/business'
       fullPath: '/app/business'
       preLoaderRoute: typeof AppBusinessRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/certifications': {
+      id: '/app/certifications'
+      path: '/certifications'
+      fullPath: '/app/certifications'
+      preLoaderRoute: typeof AppCertificationsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/compose': {
@@ -2536,6 +2555,7 @@ interface AppRouteChildren {
   AppBookmarksRoute: typeof AppBookmarksRoute
   AppBoostRoute: typeof AppBoostRoute
   AppBusinessRoute: typeof AppBusinessRoute
+  AppCertificationsRoute: typeof AppCertificationsRoute
   AppComposeRoute: typeof AppComposeRoute
   AppCreatorRoute: typeof AppCreatorRoute
   AppDraftsRoute: typeof AppDraftsRoute
@@ -2607,6 +2627,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBookmarksRoute: AppBookmarksRoute,
   AppBoostRoute: AppBoostRoute,
   AppBusinessRoute: AppBusinessRoute,
+  AppCertificationsRoute: AppCertificationsRoute,
   AppComposeRoute: AppComposeRoute,
   AppCreatorRoute: AppCreatorRoute,
   AppDraftsRoute: AppDraftsRoute,
@@ -2754,3 +2775,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

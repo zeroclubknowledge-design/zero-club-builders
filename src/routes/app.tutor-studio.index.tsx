@@ -1,3 +1,5 @@
+import { CertificateSetup } from "@/features/certificates/CertificateSetup";
+import { certificateDesignError, type CertificateDesign } from "@/features/certificates/design";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   Layout,
@@ -80,6 +82,8 @@ function TutorStudioPage() {
   const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [bootcampVideoFile, setBootcampVideoFile] = useState<File | null>(null);
+  const [certificateDesign, setCertificateDesign] = useState<CertificateDesign | null>(null);
+  const [certificateUploading, setCertificateUploading] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   useEffect(
     () => () => {
@@ -320,6 +324,7 @@ function TutorStudioPage() {
     setBannerUrl(activeBootcamp.banner_url || null);
     setBootcampBannerFile(null);
     setVideoPreviewUrl(activeBootcamp.video_url || null);
+    setCertificateDesign(activeBootcamp.certificate_design || null);
     setBootcampVideoFile(null);
   }, [activeBootcamp?.id]);
 
@@ -364,6 +369,10 @@ function TutorStudioPage() {
 
   const handleSaveBootcampSettings = async () => {
     if (savingSettings) return;
+    if (certificateUploading) {
+      toast.error("Wait for your certificate assets to finish uploading.");
+      return;
+    }
     setSavingSettings(true);
     try {
       await saveBootcampSettings();
@@ -398,6 +407,13 @@ function TutorStudioPage() {
       Math.max(0, Number(bootcampSettings.coupon_discount_percent) || 0),
     );
     const code = bootcampSettings.coupon_code.trim().toUpperCase();
+    if (certificateDesign) {
+      const error = certificateDesignError(certificateDesign);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+    }
     let savedBannerUrl = bootcampSettings.banner_url;
     let savedVideoUrl = bootcampSettings.video_url;
 
@@ -449,6 +465,7 @@ function TutorStudioPage() {
         visibility: bootcampSettings.visibility,
         banner_url: savedBannerUrl || null,
         video_url: savedVideoUrl || null,
+        ...(certificateDesign ? { certificate_design: certificateDesign } : {}),
         coupon_code: code || null,
         coupon_discount_percent: code ? discount : 0,
         ends_at: bootcampSettings.ends_at
@@ -1000,7 +1017,7 @@ function TutorStudioPage() {
                 <div className="flex justify-end pt-4 border-t border-border/40 mt-6">
                   <button
                     onClick={handleSaveBootcampSettings}
-                    disabled={savingSettings}
+                    disabled={savingSettings || certificateUploading}
                     className="rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-primary-foreground tap hover:opacity-90 flex items-center gap-2"
                   >
                     Save Changes
@@ -1417,7 +1434,7 @@ function TutorStudioPage() {
                   <BootcampMediaInput
                     kind="image"
                     value={bannerUrl || bootcampSettings.banner_url || null}
-                    disabled={savingSettings}
+                    disabled={savingSettings || certificateUploading}
                     onSelect={(file) => {
                       setBootcampBannerFile(file);
                       setBannerUrl(URL.createObjectURL(file));
@@ -1517,7 +1534,7 @@ function TutorStudioPage() {
                     <BootcampMediaInput
                       kind="video"
                       value={videoPreviewUrl || bootcampSettings.video_url || null}
-                      disabled={savingSettings}
+                      disabled={savingSettings || certificateUploading}
                       onSelect={(file) => {
                         setBootcampVideoFile(file);
                         setVideoPreviewUrl(URL.createObjectURL(file));
@@ -1769,9 +1786,20 @@ function TutorStudioPage() {
                   })}
                 </div>
 
+                <section className="space-y-4 rounded-xl border border-border p-4">
+                  <h3 className="text-lg font-semibold">Certificate design</h3>
+                  <CertificateSetup
+                    onBusyChange={setCertificateUploading}
+                    value={certificateDesign}
+                    onChange={setCertificateDesign}
+                    disabled={savingSettings || certificateUploading}
+                    course={bootcampSettings.title}
+                  />
+                </section>
+
                 <button
                   onClick={handleSaveBootcampSettings}
-                  disabled={savingSettings}
+                  disabled={savingSettings || certificateUploading}
                   className="w-full rounded-full bg-foreground px-6 py-3.5 text-[14px] font-semibold tracking-tight text-background tap shadow-lift hover:opacity-90"
                 >
                   Save Bootcamp Settings

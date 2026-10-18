@@ -16,6 +16,7 @@ import { AdminGiftInbox } from "@/features/membership/AdminGiftInbox";
 import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
+import { GiftCodeRedeemer } from "@/components/GiftCodeRedeemer";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { shareOrCopy, giftLinkUrl } from "@/lib/share";
 import { draftKey, storedDraftOwner, usePersistentDraft } from "@/lib/draftStorage";
@@ -89,7 +90,7 @@ function GiftCardsPage() {
     },
   });
 
-  const { data: giftRows = [] } = useQuery({
+  const { data: giftRows = [], refetch: refetchAvailableGifts } = useQuery({
     queryKey: ["available-restricted-zero-gifts", profile?.id],
     enabled: !!profile?.id,
     queryFn: async () => {
@@ -261,6 +262,11 @@ function GiftCardsPage() {
       <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         <AdminGiftInbox userId={profile?.id} />
         <MembershipGiftInbox userId={profile?.id} />
+        {/* Someone holding a code comes here first, so the way in lives on this
+            page too — not only inside a checkout they have not reached yet. */}
+        <section className="bg-card px-4 py-3 md:rounded-xl md:border md:border-border">
+          <GiftCodeRedeemer onClaim={() => { void refetchAvailableGifts(); }} />
+        </section>
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           <div className="mx-auto w-full max-w-[420px]">
             <GiftCardVisual
