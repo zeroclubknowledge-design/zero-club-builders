@@ -583,94 +583,235 @@ function ZeroFormPublicPage() {
           ? "interested"
           : "confirmed";
     const formTitle = form?.title || bootcamp?.title || "this Zero Form";
+    const confirmed = kind === "confirmed";
+    const cancelled = data?.my_registration?.registration_status === "cancelled";
+    const inBootcamp = confirmed && (!!enrolledBootcamp || data?.my_registration?.registration_status === "enrolled");
+    const startLabel = bootcamp?.starts_at
+      ? new Date(bootcamp.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+      : null;
+    const paidLabel = kind === "interested" ? "Not paid yet" : isPaid ? money(price) : "Free";
+    const heading =
+      kind === "submitted"
+        ? "Your details are in"
+        : kind === "interested"
+          ? "You're on the list"
+          : cancelled
+            ? "Your place was cancelled"
+            : confirmed
+              ? "You're in — welcome aboard"
+              : "You're signed up";
     const lead =
       kind === "submitted"
-        ? "Your details have been received."
+        ? "The organiser has everything you shared and will reach out if there's anything next."
         : kind === "interested"
-          ? "You're on the list — your details were saved."
-          : "Your registration is confirmed.";
-    const next =
-      kind === "submitted"
-        ? "The organiser has your details and will reach out if there's anything next."
-        : kind === "interested"
-          ? "Nothing to pay now — the organiser will contact you before it starts."
-          : enrolledBootcamp || data?.my_registration?.registration_status === "enrolled"
-            ? "You're in — the bootcamp is already in your Zero Club, with everything you need to get started."
-            : "You'll get full access automatically when the bootcamp starts.";
+          ? "Nothing to pay now. You'll hear from the organiser before it starts."
+          : cancelled
+            ? "Your registration was cancelled by the organiser. Reach out to them if this looks wrong."
+            : inBootcamp
+              ? "Your place is secured and the bootcamp is already waiting in your Zero Club."
+              : "Your place is secured. Full access opens when the bootcamp starts.";
+
     return (
       <Shell>
-        <div className="mx-auto max-w-[560px] px-5 py-12 sm:py-16">
-          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card text-center shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)]">
-            {/* Celebration band */}
-            <div className="relative h-32 overflow-hidden bg-[linear-gradient(135deg,#cc208f,#7c3aed)]">
-              {[
-                ["8%", "22%", 10, "#ffd23f"], ["22%", "64%", 6, "#ffffff"], ["38%", "18%", 8, "#7cf3c6"],
-                ["62%", "70%", 10, "#ffd23f"], ["76%", "26%", 6, "#ffffff"], ["90%", "58%", 9, "#7cf3c6"],
-                ["50%", "40%", 5, "#ffffff"], ["14%", "80%", 7, "#ffffff"], ["84%", "84%", 5, "#ffd23f"],
-              ].map(([l, t, size, c], i) => (
-                <span
-                  key={i}
-                  aria-hidden
-                  className="zf-confetti absolute rounded-sm"
-                  style={{ left: l as string, top: t as string, width: size as number, height: (size as number) * 1.6, background: c as string, transform: `rotate(${i * 37}deg)`, animationDelay: `${i * 90}ms` }}
-                />
-              ))}
-            </div>
-            <div className="-mt-10 px-6 pb-7 sm:px-8">
-              <div className="mx-auto grid h-20 w-20 place-items-center rounded-full border-4 border-card bg-emerald-500 text-white shadow-lg">
-                <CheckCircle2 className="h-9 w-9" />
-              </div>
-              <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.18em] text-[#cc208f]">Congratulations</p>
-              <h1 className="mt-2 font-display text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">
-                You've signed up for {formTitle}
-              </h1>
-              <p className="mt-3 text-[15px] leading-7 text-muted-foreground">{lead}</p>
+        <div className="zf-success mx-auto w-full max-w-[560px] px-4 pb-14 pt-5 sm:px-5 sm:pt-8">
+          <div className="zf-card relative overflow-hidden rounded-[30px] border border-white/10 bg-[#141016] text-white shadow-[0_40px_90px_-40px_rgba(0,0,0,0.75)]">
 
-              <div className="mt-6 rounded-2xl border border-border bg-background/60 p-4 text-left">
-                <Row label="Zero Form" value={formTitle} />
-                {!dataOnly && bootcamp?.title && bootcamp.title !== formTitle && <Row label="Bootcamp" value={bootcamp.title} />}
-                {!dataOnly && bootcamp?.starts_at && (
-                  <Row label="Starts" value={new Date(bootcamp.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} />
-                )}
-                {!dataOnly && (
-                  <Row
-                    label={kind === "interested" ? "Amount" : "Amount paid"}
-                    value={kind === "interested" ? "Not paid yet" : isPaid ? money(price) : "Free"}
+            {/* ── Hero: contained celebration ──────────────────────────── */}
+            <div className="relative isolate h-[210px] overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(130%_150%_at_18%_0%,#e94fb0_0%,#b62ba4_38%,#6d3ad6_72%,#3b1d86_100%)]" />
+              <div className="zf-glow absolute -left-16 top-4 h-48 w-48 rounded-full bg-[#ff7ad9]/45 blur-3xl" />
+              <div className="zf-glow absolute -right-12 bottom-0 h-44 w-44 rounded-full bg-[#7c8bff]/40 blur-3xl" />
+              {/* Grain keeps the gradient from banding on phone screens. */}
+              <div className="absolute inset-0 opacity-[0.18] [background-image:radial-gradient(rgba(255,255,255,0.5)_0.5px,transparent_0.5px)] [background-size:5px_5px]" />
+
+              {/* Confetti lives inside this clipped layer, so nothing escapes
+                  onto the page around the card. */}
+              <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+                {[
+                  [6, 18, 7, "#ffd76a", 0], [15, 62, 5, "#ffffff", 420], [24, 26, 6, "#8ff0cf", 180],
+                  [33, 74, 4, "#ffd76a", 620], [42, 14, 5, "#ffffff", 260], [51, 56, 7, "#ff9ecb", 90],
+                  [60, 22, 4, "#ffd76a", 700], [68, 68, 6, "#ffffff", 330], [77, 30, 5, "#8ff0cf", 140],
+                  [85, 66, 7, "#ffd76a", 520], [92, 20, 4, "#ffffff", 60], [96, 54, 5, "#ff9ecb", 780],
+                  [11, 86, 4, "#ffffff", 380], [47, 88, 5, "#8ff0cf", 560], [72, 84, 4, "#ffffff", 240],
+                  [89, 88, 5, "#ffd76a", 880], [29, 10, 4, "#ffd76a", 480], [57, 96, 4, "#ff9ecb", 660],
+                ].map(([left, top, size, colour, delay], i) => (
+                  <span
+                    key={i}
+                    className="zf-flake absolute block"
+                    style={{
+                      left: `${left}%`,
+                      top: `${top}%`,
+                      width: `${size}px`,
+                      height: `${size * 1.55}px`,
+                      background: colour as string,
+                      borderRadius: i % 3 === 0 ? "1px" : "999px",
+                      animationDelay: `${delay}ms`,
+                      animationDuration: `${(5.4 + (i % 5) * 0.6).toFixed(1)}s`,
+                    }}
                   />
-                )}
-                <Row
-                  label="Status"
-                  value={kind === "submitted" ? "Details received" : kind === "interested" ? "Interest registered" : "Confirmed"}
-                />
+                ))}
               </div>
 
-              <p className="mt-5 text-[13px] leading-6 text-muted-foreground">{next}</p>
-              <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
-                {kind === "confirmed" && (enrolledBootcamp || bootcamp?.id) && session ? (
+              <p className="zf-rise absolute left-6 top-6 text-[10px] font-semibold uppercase tracking-[0.34em] text-white/85" style={{ animationDelay: "120ms" }}>
+                {confirmed ? "Registration confirmed" : kind === "interested" ? "Interest registered" : "Details received"}
+              </p>
+
+              {/* Emblem: the ring draws itself, then the tick lands. */}
+              <div className="absolute left-1/2 top-[54%] -translate-x-1/2 -translate-y-1/2">
+                <div className="zf-emblem relative grid h-[88px] w-[88px] place-items-center rounded-full bg-white/12 shadow-[0_18px_40px_-16px_rgba(0,0,0,0.6)] backdrop-blur-md ring-1 ring-white/30">
+                  <svg viewBox="0 0 96 96" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
+                    <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="3" />
+                    <circle
+                      className="zf-ring"
+                      cx="48" cy="48" r="42" fill="none"
+                      stroke="#8ff0cf" strokeWidth="3" strokeLinecap="round"
+                      strokeDasharray="264" strokeDashoffset="264"
+                    />
+                  </svg>
+                  <svg viewBox="0 0 24 24" className="zf-tick relative h-9 w-9 text-[#0f6b52]" fill="none" aria-hidden>
+                    <path d="M5 12.6l4.4 4.4L19 7.4" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Copy ─────────────────────────────────────────────────── */}
+            <div className="relative px-5 pb-6 pt-1 text-center sm:px-8">
+              <p className="zf-rise text-[11px] font-semibold uppercase tracking-[0.3em] text-[#ff9ecb]" style={{ animationDelay: "260ms" }}>
+                {confirmed ? "Congratulations" : kind === "interested" ? "You're on the list" : "Received"}
+              </p>
+              <h1 className="zf-rise mt-2.5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em] text-white sm:text-[30px]" style={{ animationDelay: "340ms" }}>
+                {heading}
+              </h1>
+              <p className="zf-rise mx-auto mt-2.5 max-w-[400px] text-[14px] leading-6 text-white/65" style={{ animationDelay: "420ms" }}>
+                {formTitle}
+              </p>
+              <p className="zf-rise mx-auto mt-3 max-w-[420px] text-[13.5px] leading-6 text-white/55" style={{ animationDelay: "500ms" }}>
+                {lead}
+              </p>
+
+              {/* ── Ticket receipt ────────────────────────────────────── */}
+              <div className="zf-rise relative mt-7 text-left" style={{ animationDelay: "580ms" }}>
+                <div className="relative overflow-hidden rounded-2xl bg-white/[0.055] ring-1 ring-white/10">
+                  <div className="px-4 pb-3.5 pt-4">
+                    {!dataOnly && bootcamp?.title && (
+                      <TicketRow label="Bootcamp" value={bootcamp.title} />
+                    )}
+                    {!dataOnly && startLabel && (
+                      <TicketRow label="Starts" value={startLabel} strong />
+                    )}
+                    {!dataOnly && <TicketRow label="Amount paid" value={paidLabel} />}
+                    <TicketRow
+                      label="Status"
+                      value={kind === "submitted" ? "Details received" : kind === "interested" ? "Interest registered" : cancelled ? "Cancelled" : "Confirmed"}
+                      last
+                    />
+                  </div>
+                  {/* Perforation with punched-out notches, so it reads as a ticket. */}
+                  <div className="relative h-6">
+                    <span className="absolute left-[-9px] top-1/2 h-[18px] w-[18px] -translate-y-1/2 rounded-full bg-[#141016]" />
+                    <span className="absolute right-[-9px] top-1/2 h-[18px] w-[18px] -translate-y-1/2 rounded-full bg-[#141016]" />
+                    <div className="absolute inset-x-4 top-1/2 border-t border-dashed border-white/15" />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 px-4 pb-4">
+                    <span className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                      <BadgeCheck className="h-3.5 w-3.5 text-[#8ff0cf]" /> Secured by Zero Club
+                    </span>
+                    {confirmed && !cancelled && (
+                      <span className="rounded-full bg-[#8ff0cf]/12 px-2.5 py-1 text-[10.5px] font-semibold text-[#8ff0cf]">
+                        Place held
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Actions ──────────────────────────────────────────── */}
+              <div className="zf-rise mt-6 flex flex-col gap-2.5" style={{ animationDelay: "660ms" }}>
+                {confirmed && (enrolledBootcamp || bootcamp?.id) && session ? (
                   <>
-                    <Link to="/app/bootcamps/$id" params={{ id: (enrolledBootcamp || bootcamp?.id) as string }} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#cc208f] px-7 text-[14px] font-semibold text-white">
-                      Go to your bootcamp
+                    <Link
+                      to="/app/bootcamps/$id"
+                      params={{ id: (enrolledBootcamp || bootcamp?.id) as string }}
+                      className="zf-cta group relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(100deg,#e94fb0,#b62ba4_55%,#7c3aed)] px-7 text-[15px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(233,79,176,0.85)] transition active:scale-[0.985]"
+                    >
+                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-[linear-gradient(100deg,transparent,rgba(255,255,255,0.32),transparent)] transition-transform duration-700 group-hover:translate-x-full" />
+                      <span className="relative flex items-center gap-2">
+                        Go to your bootcamp <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                      </span>
                     </Link>
-                    <Link to="/app" className="inline-flex h-12 items-center justify-center rounded-full border border-border px-7 text-[14px] font-semibold">
+                    <Link
+                      to="/app"
+                      className="inline-flex h-[48px] items-center justify-center rounded-full border border-white/15 text-[14px] font-semibold text-white/85 transition hover:bg-white/[0.06]"
+                    >
                       Open Zero Club
                     </Link>
                   </>
                 ) : kind === "interested" && isPaid && session ? (
-                  <button type="button" onClick={() => { setDone(null); setIntent("pay"); setTab("register"); }} className="inline-flex h-12 items-center justify-center rounded-full bg-[#cc208f] px-7 text-[14px] font-semibold text-white">
-                    Pay {money(price)} now and get your place
+                  <button
+                    type="button"
+                    onClick={() => { setDone(null); setIntent("pay"); setTab("register"); }}
+                    className="zf-cta relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(100deg,#e94fb0,#b62ba4_55%,#7c3aed)] px-7 text-[15px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(233,79,176,0.85)] transition active:scale-[0.985]"
+                  >
+                    Pay {money(price)} now and hold your place
                   </button>
+                ) : confirmed && !session ? (
+                  <Link
+                    to="/signup"
+                    className="zf-cta relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(100deg,#e94fb0,#b62ba4_55%,#7c3aed)] px-7 text-[15px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(233,79,176,0.85)] transition active:scale-[0.985]"
+                  >
+                    Create your account to claim this place <ArrowRight className="h-4 w-4" />
+                  </Link>
                 ) : (
-                  <Link to="/" className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-7 text-[14px] font-semibold text-background">
+                  <Link
+                    to="/"
+                    className="inline-flex h-[48px] items-center justify-center rounded-full border border-white/15 text-[14px] font-semibold text-white/85 transition hover:bg-white/[0.06]"
+                  >
                     Explore Zero Club
                   </Link>
                 )}
               </div>
             </div>
           </div>
+
           <style>{`
-            @keyframes zf-fall { from { opacity: 0; transform: translateY(-24px) rotate(0deg) } to { opacity: 1 } }
-            .zf-confetti { animation: zf-fall .9s cubic-bezier(.16,1,.3,1) both }
-            @media (prefers-reduced-motion: reduce) { .zf-confetti { animation: none } }
+            @keyframes zf-flake-drift {
+              0%   { transform: translate3d(0, -16px, 0) rotate(0deg); opacity: 0; }
+              12%  { opacity: 0.9; }
+              50%  { transform: translate3d(10px, 70px, 0) rotate(180deg); opacity: 0.85; }
+              100% { transform: translate3d(-6px, 150px, 0) rotate(360deg); opacity: 0; }
+            }
+            @keyframes zf-rise {
+              from { opacity: 0; transform: translateY(14px); }
+              to   { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes zf-ring-draw {
+              from { stroke-dashoffset: 264; }
+              to   { stroke-dashoffset: 0; }
+            }
+            @keyframes zf-tick-in {
+              0%, 45% { opacity: 0; transform: scale(0.6); }
+              100%    { opacity: 1; transform: scale(1); }
+            }
+            @keyframes zf-emblem-in {
+              from { opacity: 0; transform: scale(0.82); }
+              to   { opacity: 1; transform: scale(1); }
+            }
+            @keyframes zf-glow {
+              0%, 100% { opacity: 0.55; transform: scale(1); }
+              50%      { opacity: 0.9; transform: scale(1.08); }
+            }
+            .zf-flake { animation-name: zf-flake-drift; animation-timing-function: cubic-bezier(.4,0,.6,1); animation-iteration-count: infinite; }
+            .zf-rise { animation: zf-rise 620ms cubic-bezier(.16,1,.3,1) both; }
+            .zf-emblem { animation: zf-emblem-in 700ms cubic-bezier(.34,1.4,.64,1) both; }
+            .zf-ring { animation: zf-ring-draw 1.1s cubic-bezier(.16,1,.3,1) 180ms both; }
+            .zf-tick { animation: zf-tick-in 700ms cubic-bezier(.34,1.3,.64,1) 620ms both; }
+            .zf-glow { animation: zf-glow 6s ease-in-out infinite; }
+            @media (prefers-reduced-motion: reduce) {
+              .zf-flake, .zf-rise, .zf-emblem, .zf-ring, .zf-tick, .zf-glow { animation: none !important; }
+              .zf-flake { opacity: 0.6; }
+              .zf-ring { stroke-dashoffset: 0; }
+            }
           `}</style>
         </div>
       </Shell>
@@ -1357,6 +1498,18 @@ function Row({ label, value }: { label: string; value?: string }) {
     <div className="flex items-center justify-between gap-4 border-b border-border py-2.5 last:border-b-0">
       <span className="text-[12px] text-muted-foreground">{label}</span>
       <span className="text-[12.5px] font-semibold">{value || "—"}</span>
+    </div>
+  );
+}
+
+/** A receipt line for the dark success card: quiet label, confident value. */
+function TicketRow({ label, value, strong, last }: { label: string; value?: string; strong?: boolean; last?: boolean }) {
+  return (
+    <div className={`flex items-start justify-between gap-4 py-2.5 ${last ? "" : "border-b border-white/[0.07]"}`}>
+      <span className="shrink-0 text-[11.5px] font-medium uppercase tracking-[0.1em] text-white/40">{label}</span>
+      <span className={`min-w-0 text-right text-[13px] leading-5 ${strong ? "font-semibold text-white" : "font-medium text-white/80"}`}>
+        {value || "—"}
+      </span>
     </div>
   );
 }
