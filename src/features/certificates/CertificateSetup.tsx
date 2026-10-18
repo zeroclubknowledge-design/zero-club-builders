@@ -2,9 +2,17 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
-import { certificateTemplates, emptyCertificateDesign, type CertificateDesign } from "./design";
+import {
+  certificateAccents,
+  certificateTemplates,
+  emptyCertificateDesign,
+  safeAccent,
+  type CertificateDesign,
+} from "./design";
 import { CertificateArtwork } from "./CertificateArtwork";
 import { SignatureInput, uploadCertificateAsset } from "./SignatureInput";
+import { Maximize2, X } from "@/components/icons/glyphs";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export function useCertificateStudio() {
@@ -43,6 +51,7 @@ export function CertificateSetup({
 }) {
   const studio = useCertificateStudio();
   const [side, setSide] = useState<"front" | "back">("front");
+  const [preview, setPreview] = useState<null | "front" | "back">(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSignature, setUploadingSignature] = useState(false);
   useEffect(() => {
@@ -77,165 +86,340 @@ export function CertificateSetup({
         Certificates are available to Tutors and organizations.
       </p>
     );
+
+  const brandOn = design.use_brand;
+  const accent = safeAccent(design.brand_accent, "#cc208f");
+  const canBrand = studio.data.can_brand;
+
   return (
-    <fieldset disabled={disabled} className="min-w-0 space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Choose a design. Every template includes a front and back.
-        </p>
-        <div className="inline-flex rounded-full bg-muted p-1">
-          {(["front", "back"] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              aria-pressed={side === s}
-              onClick={() => setSide(s)}
-              className={`min-h-10 rounded-full px-4 text-xs font-semibold capitalize ${side === s ? "bg-foreground text-background" : "text-muted-foreground"}`}
+    <fieldset disabled={disabled} className="min-w-0 space-y-6">
+      {/* ── Identity: whose certificate is this? ─────────────────────────── */}
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold">Certificate identity</p>
+            <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
+              {brandOn
+                ? "Your logo, name and colour are on both sides, so every certificate looks like yours."
+                : "Issued under the Zero Club identity, with the same formal finish on both sides."}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={brandOn}
+            aria-label="Use my brand on certificates"
+            disabled={!canBrand && !brandOn}
+            onClick={() =>
+              update({
+                use_brand: !brandOn,
+                brand_name: design.brand_name || studio.data.issuer_name,
+                brand_logo: design.brand_logo || studio.data.logo || "",
+                brand_accent: design.brand_accent || "#cc208f",
+              })
+            }
+            className={`relative h-8 w-[58px] shrink-0 rounded-full transition-colors disabled:opacity-45 ${brandOn ? "bg-[#cc208f]" : "bg-foreground/15"}`}
+          >
+            <span
+              className={`absolute top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[10px] font-bold text-foreground shadow-sm transition-all ${brandOn ? "left-[30px]" : "left-1"}`}
             >
-              {s}
+              {brandOn ? "You" : "ZC"}
+            </span>
+          </button>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {[
+            { on: false, title: "Zero Club", detail: "Our identity, our seal" },
+            { on: true, title: "Your brand", detail: "Your logo and colour" },
+          ].map((option) => (
+            <button
+              key={option.title}
+              type="button"
+              aria-pressed={brandOn === option.on}
+              disabled={option.on && !canBrand}
+              onClick={() =>
+                update({
+                  use_brand: option.on,
+                  brand_name: option.on ? design.brand_name || studio.data.issuer_name : design.brand_name,
+                  brand_logo: option.on ? design.brand_logo || studio.data.logo || "" : design.brand_logo,
+                })
+              }
+              className={`rounded-xl border p-3 text-left transition disabled:opacity-45 ${brandOn === option.on ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-border hover:border-foreground/25"}`}
+            >
+              <span className="block text-[13px] font-semibold">{option.title}</span>
+              <span className="mt-0.5 block text-[11px] text-muted-foreground">{option.detail}</span>
             </button>
           ))}
         </div>
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {certificateTemplates.map((template) => (
-          <button
-            key={template.id}
-            type="button"
-            aria-pressed={design.template === template.id}
-            onClick={() =>
-              update({
-                template: template.id,
-                signer_name: design.signer_name || studio.data.issuer_name,
-              })
-            }
-            className={`min-w-0 overflow-hidden rounded-xl border bg-card text-left transition ${design.template === template.id ? "border-[#cc208f] ring-2 ring-[#cc208f]/20" : "border-border hover:border-foreground/30"}`}
-          >
-            <CertificateArtwork
-              design={{ ...design, template: template.id }}
-              side={side}
-              course={course}
-            />
-            <div className="p-3">
-              <p className="text-sm font-semibold">
-                {template.name}
-                {design.template === template.id ? " ✓" : ""}
-              </p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{template.note}</p>
+        {!canBrand && (
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Custom branding is included for organizations, Tutor Pro and Tutor Max. Zero Club
+            branding is available on your current plan.
+          </p>
+        )}
+
+        {brandOn && (
+          <div className="mt-4 space-y-4 border-t border-border pt-4">
+            <div className="flex items-center gap-3">
+              {design.brand_logo ? (
+                <img
+                  src={design.brand_logo}
+                  alt="Certificate brand logo"
+                  className="h-12 w-12 shrink-0 rounded-lg border border-border bg-white object-contain p-1"
+                />
+              ) : (
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-dashed border-border text-[10px] text-muted-foreground">
+                  Logo
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <label className="block space-y-1 text-xs font-semibold">
+                  <span>Brand name</span>
+                  <input
+                    className={input}
+                    value={design.brand_name}
+                    placeholder={studio.data.issuer_name}
+                    maxLength={80}
+                    onChange={(event) => update({ brand_name: event.target.value })}
+                  />
+                </label>
+              </div>
             </div>
-          </button>
-        ))}
-      </div>
-      {design.template && (
-        <div className="overflow-hidden rounded-xl border border-border">
-          <CertificateArtwork design={design} side={side} course={course} />
-        </div>
-      )}
-      <div className="rounded-xl border border-border p-4">
-        <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold">
-          <span>Use my brand instead of Zero Club</span>
-          <input
-            type="checkbox"
-            checked={design.use_brand}
-            disabled={(!studio.data.can_brand && !design.use_brand) || disabled}
-            onChange={(event) =>
-              update({
-                use_brand: event.target.checked,
-                brand_name: design.brand_name || studio.data.issuer_name,
-                brand_logo: design.brand_logo || studio.data.logo || "",
-              })
-            }
-            className="h-5 w-5 accent-[#cc208f]"
-          />
-        </label>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          {studio.data.can_brand
-            ? "Use your organization or tutor logo and name on both sides."
-            : "Custom branding is included for organizations, Tutor Pro and Tutor Max. Zero Club branding is available on your current plan."}
-        </p>
-        {design.use_brand && (
-          <div className="mt-4 space-y-3">
-            <label className="block space-y-1 text-xs font-semibold">
-              <span>Brand name</span>
-              <input
-                className={input}
-                value={design.brand_name}
-                maxLength={80}
-                onChange={(event) => update({ brand_name: event.target.value })}
-              />
-            </label>
-            {design.brand_logo && (
-              <img
-                src={design.brand_logo}
-                alt="Certificate brand logo"
-                className="h-16 max-w-40 rounded-lg bg-white p-2 object-contain"
-              />
-            )}
-            <label className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-border px-4 text-xs font-semibold">
-              {uploadingLogo ? "Uploading…" : "Upload brand logo"}
-              <input
-                className="hidden"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                disabled={uploadingLogo || disabled}
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  if (!file) return;
-                  setUploadingLogo(true);
-                  try {
-                    update({ brand_logo: await uploadCertificateAsset(file) });
-                  } catch (error) {
-                    toast.error(error instanceof Error ? error.message : "Logo upload failed");
-                  } finally {
-                    setUploadingLogo(false);
-                  }
-                }}
-              />
-            </label>
+
+            <div>
+              <p className="mb-2 text-xs font-semibold">Brand colour</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {certificateAccents.map((colour) => (
+                  <button
+                    key={colour}
+                    type="button"
+                    aria-label={`Brand colour ${colour}`}
+                    aria-pressed={accent.toLowerCase() === colour.toLowerCase()}
+                    onClick={() => update({ brand_accent: colour })}
+                    style={{ backgroundColor: colour }}
+                    className={`h-8 w-8 rounded-full transition ${accent.toLowerCase() === colour.toLowerCase() ? "ring-2 ring-offset-2 ring-foreground" : "ring-1 ring-black/10"}`}
+                  />
+                ))}
+                <label className="flex h-8 items-center gap-1.5 rounded-full border border-border px-2.5 text-[11px] font-semibold text-muted-foreground">
+                  <input
+                    type="color"
+                    aria-label="Pick a custom brand colour"
+                    value={accent}
+                    onChange={(event) => update({ brand_accent: event.target.value })}
+                    className="h-5 w-5 cursor-pointer border-0 bg-transparent p-0"
+                  />
+                  Custom
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="inline-flex min-h-10 cursor-pointer items-center rounded-full border border-border px-4 text-xs font-semibold">
+                {uploadingLogo ? "Uploading…" : design.brand_logo ? "Replace logo" : "Upload brand logo"}
+                <input
+                  className="hidden"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled={uploadingLogo || disabled}
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    setUploadingLogo(true);
+                    try {
+                      update({ brand_logo: await uploadCertificateAsset(file) });
+                    } catch (error) {
+                      toast.error(error instanceof Error ? error.message : "Logo upload failed");
+                    } finally {
+                      setUploadingLogo(false);
+                    }
+                  }}
+                />
+              </label>
+              {studio.data.logo && design.brand_logo !== studio.data.logo && (
+                <button
+                  type="button"
+                  onClick={() => update({ brand_logo: studio.data.logo || "" })}
+                  className="min-h-10 text-xs font-semibold text-muted-foreground underline underline-offset-4"
+                >
+                  Use my profile photo
+                </button>
+              )}
+            </div>
           </div>
         )}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-xs font-semibold">
-          <span>Signatory name</span>
-          <input
-            value={design.signer_name}
-            maxLength={80}
-            onChange={(event) => update({ signer_name: event.target.value })}
-            className={input}
-          />
-        </label>
-        <label className="space-y-1 text-xs font-semibold">
-          <span>Signatory title</span>
-          <input
-            value={design.signer_title}
-            maxLength={80}
-            onChange={(event) => update({ signer_title: event.target.value })}
-            className={input}
-          />
-        </label>
-      </div>
-      <SignatureInput
-        onBusyChange={setUploadingSignature}
-        value={design.signature_url}
-        onChange={(signature_url) => update({ signature_url })}
-        disabled={disabled}
-      />
-      <label className="block space-y-1 text-xs font-semibold">
-        <span>Message on the back</span>
-        <textarea
-          value={design.back_text}
-          maxLength={400}
-          onChange={(event) => update({ back_text: event.target.value })}
-          rows={3}
-          className={`${input} py-3 font-normal`}
+      </section>
+
+      {/* ── Preview ──────────────────────────────────────────────────────── */}
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[13px] font-semibold">Live preview</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Exactly what your learners will receive.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex rounded-full bg-muted p-1">
+              {(["front", "back"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={side === s}
+                  onClick={() => setSide(s)}
+                  className={`min-h-9 rounded-full px-4 text-xs font-semibold capitalize ${side === s ? "bg-foreground text-background" : "text-muted-foreground"}`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPreview(side)}
+              disabled={!design.template}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold disabled:opacity-40"
+            >
+              <Maximize2 className="h-3.5 w-3.5" /> Full size
+            </button>
+          </div>
+        </div>
+        <div className="overflow-hidden rounded-xl border border-border bg-white shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]">
+          <CertificateArtwork design={design} side={side} course={course} />
+        </div>
+      </section>
+
+      {/* ── Templates ────────────────────────────────────────────────────── */}
+      <section className="space-y-3">
+        <div>
+          <p className="text-[13px] font-semibold">Template</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Six compositions. Your identity carries through whichever you pick.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {certificateTemplates.map((template) => {
+            const selected = design.template === template.id;
+            return (
+              <button
+                key={template.id}
+                type="button"
+                aria-pressed={selected}
+                onClick={() =>
+                  update({
+                    template: template.id,
+                    signer_name: design.signer_name || studio.data.issuer_name,
+                  })
+                }
+                className={`min-w-0 overflow-hidden rounded-xl border bg-white text-left transition ${selected ? "border-[#cc208f] ring-2 ring-[#cc208f]/25" : "border-border hover:border-foreground/30"}`}
+              >
+                <CertificateArtwork
+                  design={{ ...design, template: template.id }}
+                  side={side}
+                  course={course}
+                />
+                <div className="border-t border-border bg-card p-3">
+                  <p className="flex items-center gap-1.5 text-[13px] font-semibold">
+                    {template.name}
+                    {selected && <span className="text-[#cc208f]">✓</span>}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {template.note}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Signatory ────────────────────────────────────────────────────── */}
+      <section className="space-y-4 rounded-2xl border border-border bg-card p-4">
+        <div>
+          <p className="text-[13px] font-semibold">Signatory</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Appears with the seal and the issue date on the front.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="space-y-1 text-xs font-semibold">
+            <span>Name</span>
+            <input
+              value={design.signer_name}
+              maxLength={80}
+              onChange={(event) => update({ signer_name: event.target.value })}
+              className={input}
+            />
+          </label>
+          <label className="space-y-1 text-xs font-semibold">
+            <span>Title</span>
+            <input
+              value={design.signer_title}
+              maxLength={80}
+              onChange={(event) => update({ signer_title: event.target.value })}
+              className={input}
+            />
+          </label>
+        </div>
+        <SignatureInput
+          onBusyChange={setUploadingSignature}
+          value={design.signature_url}
+          onChange={(signature_url) => update({ signature_url })}
+          disabled={disabled}
         />
-      </label>
-      <p className="text-xs text-muted-foreground">
-        Preview only. Learner name, course, date and verification code are filled in when a
-        certificate is issued.
-      </p>
+      </section>
+
+      <section className="space-y-2">
+        <label className="block space-y-1 text-xs font-semibold">
+          <span>Message on the back</span>
+          <textarea
+            value={design.back_text}
+            maxLength={400}
+            onChange={(event) => update({ back_text: event.target.value })}
+            rows={3}
+            className={`${input} py-3 font-normal`}
+          />
+        </label>
+        <p className="text-xs text-muted-foreground">
+          Preview only. Learner name, course, date and verification code are filled in when a
+          certificate is issued.
+        </p>
+      </section>
+
+      <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="max-h-[94vh] w-[96vw] max-w-[1180px] overflow-y-auto border-0 bg-transparent p-2 shadow-none sm:p-4">
+          <DialogTitle className="sr-only">Certificate preview</DialogTitle>
+          <div className="mb-2 flex items-center justify-between gap-2 text-white">
+            <div className="inline-flex rounded-full bg-white/15 p-1 backdrop-blur">
+              {(["front", "back"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={preview === s}
+                  onClick={() => setPreview(s)}
+                  className={`min-h-9 rounded-full px-4 text-xs font-semibold capitalize ${preview === s ? "bg-white text-foreground" : "text-white/80"}`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPreview(null)}
+              aria-label="Close preview"
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="overflow-hidden rounded-lg bg-white shadow-2xl">
+            <CertificateArtwork design={design} side={preview || "front"} course={course} />
+          </div>
+          <p className="mt-2 text-center text-[11px] text-white/70">
+            Screens are illustrative. The issued certificate uses the learner's real name, date and
+            verification code.
+          </p>
+        </DialogContent>
+      </Dialog>
     </fieldset>
   );
 }
