@@ -35,7 +35,7 @@ function UnclaimedGiftsPage() {
       if (!session) return [];
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at")
+        .select("id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at,funding_source")
         .eq("creator_id", session.user.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
@@ -47,7 +47,7 @@ function UnclaimedGiftsPage() {
   const giftUrl = (code: string) => giftLinkUrl(code);
 
   const total = (gifts || []).reduce((sum, card: any) => sum + Number(card.amount || 0) * Math.max(0,(card.quantity || 1)-(card.claimed_count || 0)), 0);
-  const close = useMutation({ mutationFn: async (id: string) => { const { data, error } = await supabase.rpc("close_gift_campaign", { p_gift: id }); if (error) throw error; return data; }, onSuccess: value => { toast.success(`${format(Number(value))} returned to your wallet`); for (const key of ["unclaimed-gifts", "unclaimed-gift-count", "profile", "gift-card-profile"]) void client.invalidateQueries({ queryKey: [key] }); }, onError: (error: Error) => toast.error(error.message) });
+  const close = useMutation({ mutationFn: async (id: string) => { const { data, error } = await supabase.rpc("close_gift_campaign", { p_gift: id }); if (error) throw error; return data; }, onSuccess: value => { toast.success(Number(value) > 0 ? `${format(Number(value))} returned to your wallet` : "Remaining gift claims closed"); for (const key of ["unclaimed-gifts", "unclaimed-gift-count", "profile", "gift-card-profile"]) void client.invalidateQueries({ queryKey: [key] }); }, onError: (error: Error) => toast.error(error.message) });
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground">
@@ -138,7 +138,7 @@ function UnclaimedGiftsPage() {
                           className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-foreground text-[12px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98]"
                         />
                       </div>
-                      <button type="button" disabled={close.isPending} onClick={() => { if (window.confirm("Close remaining claims and return their value to your wallet? Claimed gifts keep their original expiry.")) close.mutate(card.id); }} className="mt-3 min-h-10 text-xs font-semibold text-muted-foreground underline">Close and return unclaimed value</button>
+                      <button type="button" disabled={close.isPending} onClick={() => { if (window.confirm(card.funding_source === "platform" ? "Close remaining claims? Claimed gifts keep their original expiry. Sponsored value is not refunded to your wallet." : "Close remaining claims and return their value to your wallet? Claimed gifts keep their original expiry.")) close.mutate(card.id); }} className="mt-3 min-h-10 text-xs font-semibold text-muted-foreground underline">{card.funding_source === "platform" ? "Close remaining claims" : "Close and return unclaimed value"}</button>
                     </div>
                   </div>
                 );

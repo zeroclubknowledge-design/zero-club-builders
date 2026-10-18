@@ -6,7 +6,7 @@ for (const hasRestrictedBalances of [false,true]) test(`gift accounting with ${h
  try{
   await db.exec(`create role authenticated;create role anon;create role service_role;create schema auth;
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
-   create table profiles(id uuid primary key,coins integer default 0,full_name text,username text);
+   create table profiles(id uuid primary key,coins integer default 0,full_name text,username text,is_admin boolean not null default false);
    create table bootcamps(id uuid primary key,title text);
    create table wallet_transactions(id uuid default gen_random_uuid(),profile_id uuid,direction text,amount numeric,balance_after numeric,source text,description text,reference text unique,metadata jsonb);
    create table notifications(profile_id uuid,actor_id uuid,type text,content text);
@@ -16,6 +16,7 @@ for (const hasRestrictedBalances of [false,true]) test(`gift accounting with ${h
    create table zero_form_registrations(id uuid primary key default gen_random_uuid(),zero_form_id uuid,user_id uuid,amount numeric,payment_status text,registration_status text,unique(zero_form_id,user_id));
    insert into zero_forms values(gen_random_uuid(),'design','${camp}','${maker}',true,1200,true),(gen_random_uuid(),'other','${other}','${maker}',true,1200,true);`);
   const wallet=read('supabase/migrations/20260806120000_wallet_reliability.sql');const start=wallet.indexOf('create or replace function public.wallet_apply(');await db.exec(wallet.slice(start,wallet.indexOf('$$;',start)+3));
+  const admin=read('supabase/migrations/20260729160000_create_zero_club_admin_control_center.sql');const adminStart=admin.indexOf('create or replace function public.is_zero_club_admin()');await db.exec(admin.slice(adminStart,admin.indexOf('$$;',adminStart)+3));
   await db.exec(read('supabase/migrations/20260725180000_create_zero_club_gift_cards.sql'));
   await db.exec(read('supabase/migrations/20260813150000_gift_support_and_custom.sql'));
   if (hasRestrictedBalances) await db.exec(read('supabase/migrations/20260817110000_restricted_zero_gift_balances.sql'));
@@ -71,6 +72,7 @@ for (const hasRestrictedBalances of [false,true]) test(`gift accounting with ${h
    create function public.pay_fund_link_from_wallet(p_slug text,p_amount numeric) returns jsonb language plpgsql security definer as $$begin
    perform wallet_apply(auth.uid(),'debit',p_amount,'fund_link','Payment','link_'||p_slug||auth.uid(),'{}');return jsonb_build_object('status','paid');end$$;`);
   await db.exec(read('supabase/migrations/20261018110000_universal_gift_checkout.sql'));
+  await db.exec(read('supabase/migrations/20261018120000_admin_sponsored_gift_cards.sql'));
   const user=async id=>db.exec(`reset role;select set_config('test.uid','${id}',false);set role authenticated;`);
   const value=async(sql,args=[]) => (await db.query(sql,args)).rows[0].value;
   const expires=new Date(Date.now()+86400000).toISOString();
@@ -166,6 +168,30 @@ for (const hasRestrictedBalances of [false,true]) test(`gift accounting with ${h
   });
   await t.test('generic gift checkout cannot be used for withdrawals or changing a recorded payment',async()=>{
    await user(extra);await assert.rejects(value("select pay_with_gift_credit('wallet_apply','{}') as value"),/Unsupported gift payment/);
+  });
+  await t.test('only platform admins can sponsor gifts without funds; sponsorship cannot become a wallet refund',async()=>{
+   const adminId='70000000-0000-0000-0000-000000000007';
+   await db.exec('reset role');
+   await db.query('insert into profiles(id,coins,is_admin) values($1,0,true)',[adminId]);
+   await user(adminId);
+   const request=crypto.randomUUID();
+   const issue=()=>value("select to_jsonb(create_gift_campaign(700,'signature','universal',2,$1,'{}',null,null,$2)) as value",[expires,request]);
+   const gift=await issue();assert.equal(gift.funding_source,'platform');assert.equal((await issue()).id,gift.id);
+   await db.exec('reset role');
+   assert.equal(Number(await value('select coins as value from profiles where id=$1',[adminId])),0);
+   assert.equal(Number(await value('select count(*) as value from wallet_transactions where profile_id=$1',[adminId])),0);
+   const receipt=await claim(gift,alice);assert.equal(Number(receipt.remaining_amount),700);
+   await db.exec('reset role');await db.query('update profiles set is_admin=false where id=$1',[adminId]);
+   await user(adminId);assert.equal(Number(await value('select close_gift_campaign($1) as value',[gift.id])),0);
+   await db.exec('reset role');assert.equal(Number(await value('select coins as value from profiles where id=$1',[adminId])),0);
+   assert.equal(Number(await value('select remaining_amount as value from gift_cards where id=$1',[receipt.id])),700);
+   await assert.rejects(create({amount:5000000,quantity:2}),/Insufficient wallet/);
+   const paid=await create({amount:100,quantity:2});assert.equal(paid.funding_source,'wallet');
+   await db.exec('reset role');await db.query('update profiles set is_admin=true where id=$1',[maker]);
+   await user(maker);assert.equal(Number(await value('select close_gift_campaign($1) as value',[paid.id])),200);
+   await db.exec('reset role');await db.query('update profiles set is_admin=false where id=$1',[maker]);
+   await db.exec(read('supabase/migrations/20261018120000_admin_sponsored_gift_cards.sql'));
+   assert.equal(await value('select funding_source as value from gift_cards where id=$1',[gift.id]),'platform');
   });
   await t.test('anonymous callers cannot create or redeem and cannot execute internal funding helpers',async()=>{
    await db.exec("reset role;select set_config('test.uid','',false);set role anon");await assert.rejects(value("select create_gift_campaign(1,'signature','support',1,now()+interval '1 day') as value"),/permission denied/);

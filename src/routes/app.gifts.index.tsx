@@ -56,18 +56,19 @@ function GiftCardsPage() {
   const expiry = new Date(expires).getTime();
   const validDetails = Number.isInteger(count) && count > 0 && count <= 10000 && Number.isFinite(expiry) && expiry > now && expiry <= now + 366 * 86400000 && !(service === "bootcamps" && limited && (!bootcampIds.length || bootcampIds.length > 100));
 
-  const { data: profile } = useQuery({
+  const { data: profile, isError: profileError, refetch: refetchProfile } = useQuery({
     queryKey: ["gift-card-profile", storedDraftOwner()],
     queryFn: async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) return null;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, coins")
+        .select("id, username, coins, is_admin")
         .eq("id", session.user.id)
         .single();
+      if (error) throw error;
       return data;
     },
   });
@@ -120,11 +121,13 @@ function GiftCardsPage() {
     });
   };
 
+  const isPlatformAdmin = profile?.is_admin === true;
+  const hasGiftFunds = isPlatformAdmin || total <= Number(profile?.coins || 0);
   const createGift = useMutation({
     mutationFn: async () => {
       if (numericAmount <= 0) throw new Error("Enter a valid gift amount.");
       if (!validDetails) throw new Error("Choose a quantity, future expiry and any required bootcamps.");
-      if (total > Number(profile?.coins || 0))
+      if (!hasGiftFunds)
         throw new Error("Your wallet balance is too low for this gift.");
       if (service === "custom" && !customPurpose.trim()) {
         throw new Error("Say what this custom gift is for.");
@@ -160,9 +163,22 @@ function GiftCardsPage() {
   const selectedService = giftServices.find((item) => item.id === service);
   const canCreate =
     !createGift.isPending &&
-    numericAmount > 0 &&
-    validDetails && total <= Number(profile?.coins || 0) &&
+    !!profile?.id && numericAmount > 0 && numericAmount <= 5000000 &&
+    validDetails && hasGiftFunds &&
     !(service === "custom" && !customPurpose.trim());
+  const blockedReason = profileError ? "Your account couldn't load. Try again to create a gift."
+    : !profile?.id ? "Loading your account…"
+    : numericAmount <= 0 ? "Enter an amount per person to continue."
+    : numericAmount > 5000000 ? `Amount per person must be ${format(5000000)} or less.`
+    : !Number.isInteger(count) || count < 1 || count > 10000 ? "Choose between 1 and 10,000 people."
+    : !Number.isFinite(expiry) ? "Choose the date and time when claims and unused credit expire."
+    : expiry <= now ? "Choose an expiry date and time in the future."
+    : expiry > now + 366 * 86400000 ? "Choose an expiry within one year."
+    : service === "bootcamps" && limited && !bootcampIds.length ? "Select at least one eligible bootcamp."
+    : service === "bootcamps" && limited && bootcampIds.length > 100 ? "Select no more than 100 bootcamps."
+    : service === "custom" && !customPurpose.trim() ? "Describe what this custom gift is for."
+    : !hasGiftFunds ? `Add ${format(Math.max(0, total - Number(profile?.coins || 0)))} to your wallet to create this gift.`
+    : null;
 
   const header = (title: string) => (
     <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
@@ -360,7 +376,7 @@ function GiftCardsPage() {
               ))}
             </div>
             <p className="mt-2 text-[13px] text-muted-foreground">
-              From your wallet · {format(Number(profile?.coins || 0))} available
+              {isPlatformAdmin ? "Sponsored by Zero Club · no wallet balance required" : `From your wallet · ${format(Number(profile?.coins || 0))} available`}
             </p>
           </div>
 
@@ -426,16 +442,18 @@ function GiftCardsPage() {
         </section>
 
         <section className="flex flex-1 flex-col bg-card px-4 pb-28 pt-4 md:flex-none md:rounded-xl md:border md:border-border md:pb-4">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 p-3"><span className="text-sm text-muted-foreground">Total reserved · {count > 0 ? count.toLocaleString() : 0} × {format(numericAmount)}</span><strong className="text-base tabular-nums">{format(Number.isFinite(total) ? total : 0)}</strong></div>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 p-3"><span className="text-sm text-muted-foreground">{isPlatformAdmin ? "Total sponsored" : "Total reserved"} · {count > 0 ? count.toLocaleString() : 0} × {format(numericAmount)}</span><strong className="text-base tabular-nums">{format(Number.isFinite(total) ? total : 0)}</strong></div>
           <p className="flex items-start gap-2 text-[13px] leading-relaxed text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-            {service === "universal" || service === "support" || service === "custom"
+            {isPlatformAdmin ? "Zero Club sponsors this gift without charging your wallet. Each member receives gift credit, subject to the selected purpose and expiry."
+              : service === "universal" || service === "support" || service === "custom"
               ? "The total is reserved now. Each member receives separate gift credit. It pays first at checkout, with only the remainder charged to their wallet. Unused credit expires on the selected date."
               : "The total is reserved now. Each claim activates credit for its chosen purpose. Checkout applies eligible credit first, then your wallet covers the rest."}
           </p>
           <button
             onClick={() => createGift.mutate()}
             disabled={!canCreate}
+            aria-describedby={blockedReason ? "gift-create-help" : undefined}
             className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-semibold text-background transition hover:opacity-90 disabled:opacity-40"
           >
             {createGift.isPending ? (
@@ -447,6 +465,8 @@ function GiftCardsPage() {
               </>
             )}
           </button>
+          {blockedReason && <p id="gift-create-help" role="status" className="mt-2 text-center text-xs leading-relaxed text-muted-foreground">{blockedReason}</p>}
+          {profileError && <button type="button" onClick={() => refetchProfile()} className="mt-2 min-h-10 text-sm font-semibold underline">Try again</button>}
         </section>
       </main>
     </div>
