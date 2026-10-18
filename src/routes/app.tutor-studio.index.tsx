@@ -6,7 +6,6 @@ import {
   Settings,
   Users,
   Hash,
-  UploadCloud,
   Calendar,
   GripVertical,
   MoreHorizontal,
@@ -55,6 +54,7 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
+import { BootcampMediaInput } from "@/features/bootcamps/BootcampMediaInput";
 
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
@@ -80,6 +80,19 @@ function TutorStudioPage() {
   const [bootcampBannerFile, setBootcampBannerFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [bootcampVideoFile, setBootcampVideoFile] = useState<File | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  useEffect(
+    () => () => {
+      if (bannerUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerUrl);
+    },
+    [bannerUrl],
+  );
+  useEffect(
+    () => () => {
+      if (videoPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(videoPreviewUrl);
+    },
+    [videoPreviewUrl],
+  );
   const [activeBootcampId, setActiveBootcampId] = useState<string | null>(null);
 
   const [profile, setProfile] = useState<any>(null);
@@ -350,6 +363,22 @@ function TutorStudioPage() {
   }, []);
 
   const handleSaveBootcampSettings = async () => {
+    if (savingSettings) return;
+    setSavingSettings(true);
+    try {
+      await saveBootcampSettings();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Bootcamp changes could not be saved. Please try again.",
+      );
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const saveBootcampSettings = async () => {
     if (!activeBootcampId) return;
     if (!profile?.id || !activeBootcamp || activeBootcamp.creator_id !== profile.id) {
       toast.error("Only the bootcamp creator can edit this bootcamp.");
@@ -525,22 +554,6 @@ function TutorStudioPage() {
     queryClient.invalidateQueries({ queryKey: ["bootcamp-curriculum", activeBootcampId] });
     queryClient.invalidateQueries({ queryKey: ["tutor-bootcamps"] });
     queryClient.invalidateQueries({ queryKey: ["studio-bootcamp-coupons", activeBootcampId] });
-  };
-
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBootcampBannerFile(file);
-      setBannerUrl(URL.createObjectURL(file));
-    }
-  };
-
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBootcampVideoFile(file);
-      setVideoPreviewUrl(URL.createObjectURL(file));
-    }
   };
 
   const deleteMutation = useMutation({
@@ -987,6 +1000,7 @@ function TutorStudioPage() {
                 <div className="flex justify-end pt-4 border-t border-border/40 mt-6">
                   <button
                     onClick={handleSaveBootcampSettings}
+                    disabled={savingSettings}
                     className="rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-primary-foreground tap hover:opacity-90 flex items-center gap-2"
                   >
                     Save Changes
@@ -1400,35 +1414,20 @@ function TutorStudioPage() {
                   <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                     Cover Image
                   </label>
-                  {/* Taller now that it has the full width to sit in — at 192px a
-                      full-bleed cover reads as a letterbox strip. */}
-                  <label className="group border-2 border-dashed border-border/50 rounded-3xl h-56 md:h-72 xl:h-80 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
-                    {(bannerUrl || bootcampSettings.banner_url) && (
-                      <>
-                        <img
-                          src={bannerUrl || bootcampSettings.banner_url}
-                          alt=""
-                          className="absolute inset-0 h-full w-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="absolute inset-0 bg-black/45 opacity-70 transition-opacity group-hover:opacity-90" />
-                      </>
-                    )}
-                    <UploadCloud className="h-10 w-10 mb-3 text-white group-hover:text-primary transition-colors relative z-10" />
-                    <span className="text-sm font-bold text-white relative z-10">
-                      Click to upload cover
-                    </span>
-                    <span className="text-xs mt-1 relative z-10 text-white/75">
-                      16:9 ratio recommended
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleBannerUpload}
-                    />
-                  </label>
+                  <BootcampMediaInput
+                    kind="image"
+                    value={bannerUrl || bootcampSettings.banner_url || null}
+                    disabled={savingSettings}
+                    onSelect={(file) => {
+                      setBootcampBannerFile(file);
+                      setBannerUrl(URL.createObjectURL(file));
+                    }}
+                    onRemove={() => {
+                      setBootcampBannerFile(null);
+                      setBannerUrl(null);
+                      setBootcampSettings((current) => ({ ...current, banner_url: "" }));
+                    }}
+                  />
                 </div>
 
                 {/* Title */}
@@ -1515,37 +1514,20 @@ function TutorStudioPage() {
                     <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                       Preview Video
                     </label>
-                    <label className="group border-2 border-dashed border-border/50 rounded-3xl h-56 md:h-72 xl:h-80 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/40 transition-all cursor-pointer relative overflow-hidden bg-accent/10">
-                      {videoPreviewUrl || bootcampSettings.video_url ? (
-                        <>
-                          <video
-                            src={videoPreviewUrl || bootcampSettings.video_url}
-                            className="absolute inset-0 h-full w-full object-cover"
-                            muted
-                            loop
-                            playsInline
-                          />
-                          <div className="absolute inset-0 bg-black/45 opacity-70 transition-opacity group-hover:opacity-90" />
-                          <UploadCloud className="h-10 w-10 mb-3 text-white group-hover:text-primary transition-colors relative z-10" />
-                          <span className="text-sm font-bold text-white relative z-10">
-                            Click to change video
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <UploadCloud className="h-10 w-10 mb-3 group-hover:text-primary transition-colors relative z-10" />
-                          <span className="text-sm font-bold relative z-10">
-                            Click to upload preview video
-                          </span>
-                        </>
-                      )}
-                      <input
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        onChange={handleVideoUpload}
-                      />
-                    </label>
+                    <BootcampMediaInput
+                      kind="video"
+                      value={videoPreviewUrl || bootcampSettings.video_url || null}
+                      disabled={savingSettings}
+                      onSelect={(file) => {
+                        setBootcampVideoFile(file);
+                        setVideoPreviewUrl(URL.createObjectURL(file));
+                      }}
+                      onRemove={() => {
+                        setBootcampVideoFile(null);
+                        setVideoPreviewUrl(null);
+                        setBootcampSettings((current) => ({ ...current, video_url: "" }));
+                      }}
+                    />
                   </div>
                   <button
                     type="button"
@@ -1789,6 +1771,7 @@ function TutorStudioPage() {
 
                 <button
                   onClick={handleSaveBootcampSettings}
+                  disabled={savingSettings}
                   className="w-full rounded-full bg-foreground px-6 py-3.5 text-[14px] font-semibold tracking-tight text-background tap shadow-lift hover:opacity-90"
                 >
                   Save Bootcamp Settings

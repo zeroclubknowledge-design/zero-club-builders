@@ -15,7 +15,6 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft,
   ChevronDown,
-  UploadCloud,
   Play,
   Plus,
   Trash2,
@@ -29,7 +28,7 @@ import {
   Loader2,
   X,
 } from "@/components/icons/glyphs";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { uploadFile } from "@/lib/storage";
@@ -38,6 +37,7 @@ import { createBootcampAction } from "@/api";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { CardSelect } from "@/components/CardSelect";
+import { BootcampMediaInput } from "./BootcampMediaInput";
 
 export function BootcampForm({
   bootcampId,
@@ -92,8 +92,18 @@ export function BootcampForm({
   const [removedCouponIds, setRemovedCouponIds] = useState<string[]>([]);
   const [primaryCouponId, setPrimaryCouponId] = useState<string | undefined>();
 
-  const bannerInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
+  useEffect(
+    () => () => {
+      if (banner?.startsWith("blob:")) URL.revokeObjectURL(banner);
+    },
+    [banner],
+  );
+  useEffect(
+    () => () => {
+      if (videoPreview?.startsWith("blob:")) URL.revokeObjectURL(videoPreview);
+    },
+    [videoPreview],
+  );
 
   const [modules, setModules] = useState([
     {
@@ -215,26 +225,6 @@ export function BootcampForm({
     Math.round(numericPrice * (1 - numericCouponDiscount / 100)),
   );
   const normalizedCouponCode = couponCode.trim().toUpperCase();
-
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setBannerFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      if (ev.target?.result) {
-        setBanner(ev.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setVideoPreviewFile(file);
-    setVideoPreview(URL.createObjectURL(file));
-  };
 
   const launchBootcamp = async () => {
     try {
@@ -710,46 +700,19 @@ export function BootcampForm({
                 <label className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground ml-1">
                   Cover Image
                 </label>
-                <div
-                  onClick={() => !loading && bannerInputRef.current?.click()}
-                  className="group relative flex min-h-[210px] cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-lg border border-dashed border-border bg-card hover:border-primary/40 hover:bg-primary/[0.03]"
-                >
-                  {banner ? (
-                    <img
-                      src={banner}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      alt="Banner Preview"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <>
-                      <div className="h-12 w-12 rounded-full ring-1 ring-border bg-card flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
-                        <UploadCloud className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">
-                          Upload a cover image
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Recommended size: 1600×900px
-                        </p>
-                      </div>
-                    </>
-                  )}
-                  {banner && (
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <UploadCloud className="h-8 w-8 text-white" />
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    ref={bannerInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleBannerUpload}
-                  />
-                </div>
+                <BootcampMediaInput
+                  kind="image"
+                  value={banner}
+                  disabled={loading}
+                  onSelect={(file) => {
+                    setBannerFile(file);
+                    setBanner(URL.createObjectURL(file));
+                  }}
+                  onRemove={() => {
+                    setBannerFile(null);
+                    setBanner(null);
+                  }}
+                />
               </div>
 
               {/* Video Preview Upload */}
@@ -760,47 +723,19 @@ export function BootcampForm({
                     (Optional)
                   </span>
                 </label>
-                <div
-                  onClick={() => !loading && videoInputRef.current?.click()}
-                  className="group relative flex min-h-[170px] cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-lg border border-dashed border-border bg-card hover:border-primary/40 hover:bg-primary/[0.03]"
-                >
-                  {videoPreview ? (
-                    <video
-                      src={videoPreview}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      muted
-                      loop
-                      autoPlay
-                      playsInline
-                    />
-                  ) : (
-                    <>
-                      <div className="h-12 w-12 rounded-full ring-1 ring-border bg-card flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
-                        <Play className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[13.5px] font-semibold tracking-tight text-foreground">
-                          Upload a preview video
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Short intro to pitch your bootcamp
-                        </p>
-                      </div>
-                    </>
-                  )}
-                  {videoPreview && (
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <Play className="h-8 w-8 text-white" />
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    ref={videoInputRef}
-                    className="hidden"
-                    accept="video/*"
-                    onChange={handleVideoUpload}
-                  />
-                </div>
+                <BootcampMediaInput
+                  kind="video"
+                  value={videoPreview}
+                  disabled={loading}
+                  onSelect={(file) => {
+                    setVideoPreviewFile(file);
+                    setVideoPreview(URL.createObjectURL(file));
+                  }}
+                  onRemove={() => {
+                    setVideoPreviewFile(null);
+                    setVideoPreview(null);
+                  }}
+                />
               </div>
             </div>
           </div>
