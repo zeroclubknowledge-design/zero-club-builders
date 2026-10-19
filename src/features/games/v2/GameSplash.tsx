@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, HelpCircle, Play, Trophy, X } from "@/components/icons/glyphs";
+import { ArrowLeft, HelpCircle, Play, ShoppingBag, Trophy, X } from "@/components/icons/glyphs";
 import { ZeroMark } from "@/components/ZeroLoader";
 import { ZERO_GAMES, type ZeroGameKey } from "./catalog";
 
@@ -72,32 +72,34 @@ type SplashProps = {
   primaryDisabled?: boolean;
   secondary?: { label: string; onClick: () => void };
   footer?: ReactNode;
+  onMarketplace?: () => void;
 };
 
 /** Full-screen splash shown when a Zero Game is opened. */
-export function GameSplash({ game, onBack, eyebrow, primaryLabel, onPrimary, primaryBusy, primaryDisabled, secondary, footer }: SplashProps) {
+export function GameSplash({ game, onBack, eyebrow, primaryLabel, onPrimary, primaryBusy, primaryDisabled, secondary, footer, onMarketplace }: SplashProps) {
   const info = ZERO_GAMES[game];
   const [howTo, setHowTo] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => { const t = window.setTimeout(() => setReady(true), 650); return () => window.clearTimeout(t); }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden text-white" style={{ background: `radial-gradient(120% 80% at 50% 20%, ${info.to}, ${info.from} 70%)` }}>
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-y-auto text-white" style={{ background: `radial-gradient(120% 80% at 50% 20%, ${info.to}, ${info.from} 70%)` }}>
       <style>{SPLASH_CSS}</style>
       {STARS.map((s, i) => (
         <span key={i} className="zg-star pointer-events-none absolute rounded-full bg-white" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.s, height: s.s, animationDelay: `${s.d}s` }} />
       ))}
 
-      <div className="relative flex items-center px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
+      <div className="relative flex shrink-0 flex-wrap items-center gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
         <button onClick={onBack} aria-label="Back" className="grid h-11 w-11 place-items-center rounded-full bg-white/10 backdrop-blur">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <button onClick={() => setHowTo(true)} className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-4 text-[13px] font-semibold backdrop-blur">
+        {onMarketplace && <button onClick={onMarketplace} className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-[#ff4fc3]/15 px-3 text-[13px] font-semibold text-[#ff9add]"><ShoppingBag className="h-4 w-4" />Marketplace</button>}
+        <button onClick={() => setHowTo(true)} className={`${onMarketplace ? "" : "ml-auto"} flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-3 text-[13px] font-semibold backdrop-blur`}>
           <HelpCircle className="h-4 w-4" /> How to play
         </button>
       </div>
 
-      <div className="relative flex flex-1 flex-col items-center justify-center px-6 text-center">
+      <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-6 text-center">
         <div className="zg-rise"><GameEmblem game={game} size={150} /></div>
         {eyebrow && <p className="zg-rise mt-8 max-w-[320px] truncate text-[12px] font-semibold uppercase tracking-[0.16em]" style={{ color: info.accent, animationDelay: "120ms" }}>{eyebrow}</p>}
         <h1 className={`zg-rise font-display text-[40px] font-bold leading-none tracking-[-0.03em] ${eyebrow ? "mt-2" : "mt-8"}`} style={{ animationDelay: "160ms" }}>{info.name}</h1>
@@ -105,7 +107,7 @@ export function GameSplash({ game, onBack, eyebrow, primaryLabel, onPrimary, pri
         <p className="zg-rise mt-4 max-w-[360px] text-[14px] leading-relaxed text-white/55" style={{ animationDelay: "280ms" }}>{info.blurb}</p>
       </div>
 
-      <div className={`relative mx-auto w-full max-w-[420px] px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] transition-all duration-500 ${ready ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}>
+      <div className={`relative mx-auto w-full max-w-[420px] shrink-0 px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] transition-all duration-500 ${ready ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}>
         <button
           onClick={onPrimary}
           disabled={primaryBusy || primaryDisabled}

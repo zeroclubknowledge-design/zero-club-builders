@@ -17,6 +17,8 @@ import {
 import { ZERO_GAMES, isZeroGameKey, wordsScore, type ZeroGameKey } from "@/features/games/v2/catalog";
 import { GameSplash, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import { ZeroSpaceGame, type ZeroSpaceResult } from "@/features/games/v2/ZeroSpace";
+import { SpaceMarketplace, SpaceSupplyTray } from "@/features/games/v2/SpaceMarketplace";
+import type { ZeroSpaceControls } from "@/features/games/v2/spaceSupplies";
 import {
   countdown, finishRun, joinTournament, JOIN_REFUSAL, listTournaments, previewPrizeLine, startRun, tournamentDetail,
 } from "@/features/games/v2/api";
@@ -78,6 +80,9 @@ function PlayGame() {
   const runRef = useRef<string | null>(null);
   const startedAt = useRef(0);
   const [now, setNow] = useState(Date.now());
+  const [marketOpen, setMarketOpen] = useState(false);
+  const spaceControls = useRef<ZeroSpaceControls | null>(null);
+  const openMarketplace = game === "space" ? () => setMarketOpen(true) : undefined;
 
   const detail = useQuery({
     queryKey: ["zero-tournament", tournamentId, code],
@@ -236,6 +241,7 @@ function PlayGame() {
   const back = useGoBack(tournamentId ? `/app/games/t/${tournamentId}${code ? `?code=${encodeURIComponent(code)}` : ""}` : "/app/games");
 
   /* ── splash ── */
+  if (marketOpen && game === "space" && phase !== "playing") return <SpaceMarketplace onBack={() => setMarketOpen(false)} />;
   if (phase === "splash") {
     if (tournamentId) {
       if (detail.isLoading) return <div className="fixed inset-0 z-[60] grid place-items-center bg-[#0b0618]"><ZeroPageLoader /></div>;
@@ -261,6 +267,7 @@ function PlayGame() {
           game={game}
           onBack={back}
           eyebrow={tour.title}
+          onMarketplace={openMarketplace}
           primaryLabel={label}
           primaryBusy={busy}
           primaryDisabled={status !== "live" || !t.can_enter}
@@ -281,6 +288,7 @@ function PlayGame() {
           game={game}
           onBack={back}
           eyebrow={featured.sponsored ? "Zero Club tournament · live" : "Live tournament"}
+          onMarketplace={openMarketplace}
           primaryLabel={featured.joined ? "Play in the tournament" : "Join & play the tournament"}
           onPrimary={() => navigate({ to: "/app/games/play/$game", params: { game }, search: { t: featured.id, code: undefined }, replace: true })}
           secondary={{ label: "Practice instead", onClick: startPractice }}
@@ -298,6 +306,7 @@ function PlayGame() {
       <GameSplash
         game={game}
         onBack={back}
+        onMarketplace={openMarketplace}
         primaryLabel="Play practice"
         onPrimary={startPractice}
         secondary={{ label: `${info.name} tournaments`, onClick: () => navigate({ to: "/app/games", search: { game } }) }}
@@ -337,6 +346,7 @@ function PlayGame() {
           <p className="mt-2 text-[13px] text-white/55">{tournamentId ? "Your tournament best" : "Your best"}: {result.best.toLocaleString()}</p>
         )}
         <div className="mt-10 w-full max-w-[360px] space-y-3">
+          {openMarketplace && <button onClick={openMarketplace} className="flex min-h-11 w-full items-center justify-center rounded-full bg-white/10 px-4 text-sm font-semibold">Marketplace · restock supplies</button>}
           <button
             onClick={() => (tournamentId ? void startTournamentRun() : startPractice())}
             disabled={busy}
@@ -363,7 +373,8 @@ function PlayGame() {
   if (game === "space" || board?.kind === "space") {
     return (
       <div className="fixed inset-0 z-[60] bg-[#0b0618]">
-        <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top} />}</SafeTop>
+        <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top} controls={spaceControls} />}</SafeTop>
+        {!tournamentId && <SpaceSupplyTray key={runKey} controls={spaceControls} />}
         <button onClick={quit} aria-label="Leave game" className="absolute bottom-[calc(env(safe-area-inset-bottom)+14px)] right-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
           <X className="h-5 w-5" />
         </button>

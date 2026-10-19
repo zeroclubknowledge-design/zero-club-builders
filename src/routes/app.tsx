@@ -1,3 +1,4 @@
+import { accountNavigation, navigationAudience, navigationAudienceLabel } from "@/lib/accountNavigation";
 import { payWithGiftCredit } from "@/lib/giftCheckout";
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter, useRouterState } from "@tanstack/react-router";
 import { ScanIcon, ZeroScanner } from "@/features/scanner/ZeroScanner";
@@ -59,7 +60,7 @@ import { directMessagePreview } from "@/lib/directMessage";
 import { IncomingNotificationCard, showIncomingPop } from "@/components/IncomingNotificationCard";
 import { PushPrompt } from "@/components/PushPrompt";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
-import { MODES, modeOf, needsOnboarding } from "@/lib/modes";
+import { needsOnboarding } from "@/lib/modes";
 import { takeReturnTo } from "@/lib/returnTo";
 import { BUSINESS_MODES, businessModeOf, isBusiness, needsBusinessOnboarding } from "@/lib/business";
 import { ZeroLoader, ZeroMark } from "@/components/ZeroLoader";
@@ -171,7 +172,6 @@ function SidebarContent({
 }) {
   const [accounts, setAccounts] = React.useState<any[]>([]);
   const [institutionActiveTab, setInstitutionActiveTab] = React.useState("overview");
-  const isLearnerAccount = String(profile?.account_type || "Learner").toLowerCase() === "learner";
 
   React.useEffect(() => {
     setAccounts(getSavedAccounts());
@@ -189,15 +189,15 @@ function SidebarContent({
   }, [isInstitutionStudio]);
 
   const level = getLevelFromXp(Number(profile?.xp || 0));
-  const mode = modeOf(profile);
-  const businessMode = businessModeOf(profile);
-  const role = businessMode ? `${BUSINESS_MODES[businessMode].label} · Organization` : mode ? MODES[mode].label : "Institution";
+  const audience = navigationAudience(profile);
+  const businessMode = audience === "institution" ? "institutional" : audience === "company" ? "company" : null;
+  const role = businessMode ? `${BUSINESS_MODES[businessMode].label} · Organization` : navigationAudienceLabel[audience];
 
   /* Everything reachable from the shell that is not already on the tab bar.
      On mobile the tab bar carries Home, Learn, Post, Clubs and Alerts, and
      the top bar carries Messages, so those five and Messages are desktop-only
      here. Desktop has no tab bar, so it gets them all. */
-  const primaryLinks: any[] = [
+  const primaryLinks: any[] = accountNavigation(profile, [
     { Icon: IconHome, label: "Home", to: "/app", desktopOnly: true, exact: true },
     { Icon: IconLearn, label: "Learn", to: "/app/bootcamps", desktopOnly: true },
     { Icon: IconClubs, label: "Clubs", to: "/app/clubs", desktopOnly: true },
@@ -213,20 +213,18 @@ function SidebarContent({
     { Icon: IconGames, label: "Games", to: "/app/games" },
     { Icon: IconZeroAI, label: "Zero AI", to: "/app/zero-ai" },
     { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
-  ];
-  const workspaceLinks: any[] = [
-    ...(businessMode ? [{ Icon: IconInstitution, label: "Business Hub", to: "/app/business" }] : []),
+  ]);
+  const workspaceLinks: any[] = accountNavigation(profile, [
     { Icon: Users, label: "Teams", to: "/app/teams" },
     { Icon: IconStore, label: "My Store", to: "/app/my-store" },
     { Icon: IconMetrics, label: "Metrics", to: "/app/metrics" },
-    ...(profile?.is_admin || mode === "creator" || String(profile?.tier || "").toLowerCase() === "creator"
-      ? [{ Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" }]
-      : []),
-    ...(profile?.is_admin || profile?.account_type === "Tutor" ? [{ Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" }] : []),
-    ...(profile?.is_admin || profile?.account_type === "Institution" ? [{ Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" }] : []),
-    ...(profile?.is_admin || ["Tutor", "Institution"].includes(profile?.account_type) ? [{ Icon: Award, label: "Certifications", to: "/app/certifications" }] : []),
-    ...(profile?.is_admin ? [{ Icon: IconShield, label: "Admin Control Center", to: "/app/admin" }] : []),
-  ];
+    { Icon: IconClubs, label: "Creator Workspace", to: "/app/creator" },
+    { Icon: IconPresentation, label: "Tutor Studio", to: "/app/tutor-studio" },
+    { Icon: IconInstitution, label: "Digital Hub", to: "/app/institution-studio" },
+    { Icon: IconInstitution, label: "Business Hub", to: "/app/business" },
+    { Icon: Award, label: "Certifications", to: "/app/certifications" },
+    { Icon: IconShield, label: "Admin Control Center", to: "/app/admin" },
+  ]);
 
   const renderLink = (item: any) => (
     <Link
@@ -447,7 +445,7 @@ function SidebarContent({
       )}
 
       <div className="flex flex-1 flex-col overflow-y-auto px-2 py-2 no-scrollbar">
-        {isInstitutionStudio ? (
+        {isInstitutionStudio && (audience === "institution" || audience === "administrator") ? (
           /* ── Digital Hub sidebar: replaces regular nav when on institution-studio ── */
           <div className="flex flex-1 flex-col">
             <p data-rail-hide className="px-3 pb-2 pt-2 text-[12px] font-semibold text-muted-foreground">Digital Hub</p>
@@ -732,14 +730,15 @@ function DesktopWorkspaceRail({
   unreadMessagesCount,
   unreadNotificationsCount,
 }: DesktopWorkspaceRailProps) {
-  const role = profile?.account_type || "Learner";
-  const isAdmin = Boolean(profile?.is_admin);
-  const isTutor = role === "Tutor" || role === "Institution";
-  const isInstitution = role === "Institution";
-  const isCompany = isBusiness(profile) && !isInstitution;
-  const isCreator = String(profile?.tier || "").toLowerCase() === "creator" || profile?.active_mode === "creator";
+  const audience = navigationAudience(profile);
+  const role = navigationAudienceLabel[audience];
+  const isAdmin = audience === "administrator";
+  const isTutor = audience === "tutor";
+  const isInstitution = audience === "institution";
+  const isCompany = audience === "company";
+  const isCreator = audience === "creator";
 
-  const primaryActions = isAdmin
+  const primaryActions = accountNavigation(profile, isAdmin
     ? [
         { label: "Admin Control Center", to: "/app/admin", Icon: ShieldCheck },
         { label: "Moderation queue", to: "/app/admin", Icon: Activity },
@@ -769,14 +768,15 @@ function DesktopWorkspaceRail({
         ? [
             { label: "Creator Workspace", to: "/app/creator", Icon: IconClubs },
             { label: "Manage Clubs", to: "/app/clubs", Icon: Users },
+            { label: "My Store", to: "/app/my-store", Icon: IconStore },
             { label: "Go PRO", to: "/app/premium", Icon: IconGem },
           ]
-        : [
-          { label: "Boost a post", to: "/app/boost", Icon: Rocket },
-          { label: "Ship work", to: "/app/ship", Icon: Rocket },
+        : audience === "learner" ? [
           { label: "Find bootcamps", to: "/app/bootcamps", Icon: IconLearn },
+          { label: "My portfolio", to: "/app/portfolio", Icon: IconPortfolio },
+          { label: "Ship work", to: "/app/ship", Icon: Rocket },
           { label: "Create note", to: "/app/notes/create", Icon: IconNotes },
-        ];
+        ] : []);
 
   const { format: formatMoney } = useWalletCurrency();
   const firstName = getFirstName(profile) || "";

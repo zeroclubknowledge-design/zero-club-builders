@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
+import type { ZeroSpaceControls } from "./spaceSupplies";
 
 /**
  * Zero Space — a canvas arcade game.
@@ -31,7 +32,7 @@ const PINK = "#ff4fc3";
 const POWER_COLORS = { shield: "#5cc8ff", focus: "#b38cff", magnet: "#ffb547" } as const;
 const POWER_LABEL = { shield: "Shield", focus: "Focus", magnet: "Magnet" } as const;
 
-export function ZeroSpaceGame({ onGameOver, topInset = 0 }: { onGameOver: (r: ZeroSpaceResult) => void; topInset?: number }) {
+export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOver: (r: ZeroSpaceResult) => void; topInset?: number; controls?: RefObject<ZeroSpaceControls | null> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const doneRef = useRef(onGameOver);
   doneRef.current = onGameOver;
@@ -117,6 +118,21 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0 }: { onGameOver: (r: Ze
     };
 
     const float = (x: number, y: number, text: string, color = "#fff") => floaters.push({ x, y, text, life: 1, color });
+
+    let paused = false;
+    if (controls) controls.current = {
+      ready: () => !dead && intro <= 0 && !hidden,
+      pause: (value) => { paused = value; last = performance.now(); keys.clear(); dragging = null; },
+      activate: (item) => {
+        if (dead) return;
+        if (item === "shield") shield = Math.max(shield, 10);
+        if (item === "focus") focus = Math.max(focus, 5);
+        if (item === "magnet") magnet = Math.max(magnet, 6);
+        if (item === "fuel") fuel = FUEL_MAX;
+        float(craft.x, craft.y - 28, item === "fuel" ? "Fuel restored" : POWER_LABEL[item], item === "fuel" ? "#61e6ac" : POWER_COLORS[item]);
+        burst(craft.x, craft.y, item === "fuel" ? "#61e6ac" : POWER_COLORS[item], 16);
+      },
+    };
 
     const reset = () => {
       craft.x = target.x = W / 2;
@@ -542,7 +558,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0 }: { onGameOver: (r: Ze
 
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
-      if (hidden) return;
+      if (hidden || paused) { last = now; return; }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       step(dt);
@@ -551,6 +567,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0 }: { onGameOver: (r: Ze
     raf = requestAnimationFrame(loop);
 
     return () => {
+      if (controls) controls.current = null;
       cancelAnimationFrame(raf);
       ro.disconnect();
       canvas.removeEventListener("pointerdown", down);
@@ -561,7 +578,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0 }: { onGameOver: (r: Ze
       window.removeEventListener("keyup", ku);
       document.removeEventListener("visibilitychange", vis);
     };
-  }, [topInset]);
+  }, [topInset, controls]);
 
   return <canvas ref={canvasRef} className="block h-full w-full touch-none select-none" style={{ touchAction: "none" }} />;
 }
