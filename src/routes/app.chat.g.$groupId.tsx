@@ -620,8 +620,45 @@ function Bubble({
 }) {
   const timer = useRef<number | null>(null);
   const startX = useRef(0);
+  const startY = useRef(0);
+  const swiping = useRef(false);
+  const offset = useRef(0);
   const [dx, setDx] = useState(0);
   const cancel = () => { if (timer.current) window.clearTimeout(timer.current); timer.current = null; };
+  const resetSwipe = () => { cancel(); swiping.current = false; offset.current = 0; setDx(0); };
+  useEffect(() => () => cancel(), []);
+
+  const startSwipe = (event: React.TouchEvent) => {
+    resetSwipe();
+    if (event.touches.length !== 1 || (event.target as HTMLElement).closest('button, a, input, textarea, audio, video, [role="slider"]')) return;
+    startX.current = event.touches[0].clientX;
+    startY.current = event.touches[0].clientY;
+    swiping.current = true;
+    timer.current = window.setTimeout(() => {
+      if (!swiping.current) return;
+      resetSwipe();
+      navigator.vibrate?.(25);
+      onOpenActions();
+    }, 400);
+  };
+  const moveSwipe = (event: React.TouchEvent) => {
+    if (!swiping.current) return;
+    if (event.touches.length !== 1) { resetSwipe(); return; }
+    const horizontal = event.touches[0].clientX - startX.current;
+    const vertical = event.touches[0].clientY - startY.current;
+    if (Math.abs(horizontal) > 10 || Math.abs(vertical) > 10) cancel();
+    // Match individual chats: scrolling cancels reply; received messages move
+    // right and sent messages move left, capped at 60px with a 45px reply point.
+    if (Math.abs(vertical) > Math.abs(horizontal) && Math.abs(vertical) > 5) { resetSwipe(); return; }
+    const next = Math.abs(horizontal) <= 10 ? 0 : mine ? Math.max(-60, Math.min(0, horizontal)) : Math.min(60, Math.max(0, horizontal));
+    offset.current = next;
+    setDx(next);
+  };
+  const endSwipe = () => {
+    const reply = swiping.current && Math.abs(offset.current) >= 45;
+    resetSwipe();
+    if (reply) onReply();
+  };
   const [text, mediaPart] = m.content.split(MEDIA);
   const media = mediaPart ? mediaPart.split(",").map(decodeChatMedia) : [];
   const images = media.filter((x) => x.type === "image").map((x) => x.url);
@@ -642,19 +679,12 @@ function Bubble({
     <div
       id={`gm-${m.id}`}
       className={`flex w-full select-none ${groupStart ? "mt-2.5" : "mt-[3px]"} ${mine ? "justify-end" : "justify-start"}`}
-      style={{ WebkitTouchCallout: "none", transform: `translateX(${dx}px)`, transition: dx ? "none" : "transform .2s ease-out" }}
-      onContextMenu={(e) => { if ((e.target as HTMLElement).closest("a, video, audio, button")) return; e.preventDefault(); onOpenActions(); }}
-      onTouchStart={(e) => {
-        if ((e.target as HTMLElement).closest("button, a, video, audio")) return;
-        startX.current = e.touches[0].clientX;
-        timer.current = window.setTimeout(() => { timer.current = null; navigator.vibrate?.(25); onOpenActions(); }, 400);
-      }}
-      onTouchMove={(e) => {
-        const d = e.touches[0].clientX - startX.current;
-        if (Math.abs(d) > 10) cancel();
-        if (d > 0) setDx(Math.min(d, 64));
-      }}
-      onTouchEnd={() => { cancel(); if (dx >= 48) onReply(); setDx(0); }}
+      style={{ WebkitTouchCallout: "none", touchAction: "pan-y pinch-zoom", transform: `translateX(${dx}px)`, transition: dx ? "none" : "transform .2s ease-out" }}
+      onContextMenu={(e) => { if ((e.target as HTMLElement).closest("a, video, audio, button, input, textarea")) return; e.preventDefault(); resetSwipe(); onOpenActions(); }}
+      onTouchStart={startSwipe}
+      onTouchMove={moveSwipe}
+      onTouchEnd={endSwipe}
+      onTouchCancel={resetSwipe}
     >
       {!mine && (
         <span className="mr-1.5 w-7 shrink-0 self-end">
