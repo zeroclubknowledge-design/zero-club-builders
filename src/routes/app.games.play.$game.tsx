@@ -1,15 +1,13 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Clock3, RotateCcw, Trophy, X } from "@/components/icons/glyphs";
 import { ZeroPageLoader } from "@/components/ZeroLoader";
-import { SudokuRaceBoard } from "@/features/games/SudokuRaceBoard";
 import { WordsRaceBoard } from "@/features/games/WordsRaceBoard";
 import {
   formatGameTime,
-  generatePracticeSudoku,
   generateWordsPuzzle,
   ZERO_GAME_PROFESSIONS,
   type ZeroGameDifficulty,
@@ -29,6 +27,7 @@ export const Route = createFileRoute("/app/games/play/$game")({
     t: typeof search.t === "string" ? search.t : undefined,
     code: typeof search.code === "string" ? search.code : undefined,
   }),
+  beforeLoad: ({ params }) => { if (params.game === "sudoku" || params.game === "draught") throw redirect({ to: "/app/games/draught", search: { mode: "solo", room: undefined, code: undefined } }); },
   component: PlayGame,
 });
 
@@ -36,25 +35,9 @@ type Phase = "splash" | "playing" | "result";
 type Result = { score: number; best?: number; detail: string; failed?: boolean; newBest?: boolean };
 type Board =
   | { kind: "space" }
-  | { kind: "sudoku"; puzzle: string; solution?: string }
   | { kind: "words"; letters: string[]; words: string[]; size: number };
 
 const DIFFS: ZeroGameDifficulty[] = ["easy", "medium", "hard"];
-
-/** A full grid is correct if every row, column and box holds 1–9 once and the givens are kept. */
-function sudokuValid(puzzle: string, sol: string) {
-  if (!/^[1-9]{81}$/.test(sol)) return false;
-  for (let i = 0; i < 81; i++) if (puzzle[i] !== "-" && puzzle[i] !== sol[i]) return false;
-  const ok = (cells: number[]) => new Set(cells.map((c) => sol[c])).size === 9;
-  for (let k = 0; k < 9; k++) {
-    const row = Array.from({ length: 9 }, (_, j) => k * 9 + j);
-    const col = Array.from({ length: 9 }, (_, j) => j * 9 + k);
-    const br = Math.floor(k / 3) * 3, bc = (k % 3) * 3;
-    const box = Array.from({ length: 9 }, (_, j) => (br + Math.floor(j / 3)) * 9 + bc + (j % 3));
-    if (!ok(row) || !ok(col) || !ok(box)) return false;
-  }
-  return true;
-}
 
 const bestKey = (game: ZeroGameKey, variant: string) => `zero-games:v2-best:${game}:${variant}`;
 const readBest = (k: string) => { try { return Number(localStorage.getItem(k)) || 0; } catch { return 0; } };
@@ -127,7 +110,7 @@ function PlayGame() {
     return () => window.removeEventListener("beforeunload", warn);
   }, [phase]);
 
-  const variant = tournamentId ? `t:${tournamentId}` : game === "words" ? `${difficulty}:${profession}` : game === "sudoku" ? difficulty : "practice";
+  const variant = tournamentId ? `t:${tournamentId}` : game === "words" ? `${difficulty}:${profession}` : "practice";
 
   const begin = (b: Board) => {
     setBoard(b);
@@ -140,10 +123,6 @@ function PlayGame() {
 
   const startPractice = () => {
     if (game === "space") return begin({ kind: "space" });
-    if (game === "sudoku") {
-      const p = generatePracticeSudoku(difficulty);
-      return begin({ kind: "sudoku", puzzle: p.puzzle, solution: p.solution });
-    }
     const w = generateWordsPuzzle(profession, difficulty);
     begin({ kind: "words", letters: w.letters, words: w.words, size: w.size });
   };
@@ -161,10 +140,7 @@ function PlayGame() {
       runRef.current = r.run_id;
       const diff = (r.difficulty as ZeroGameDifficulty) || "medium";
       if (game === "space") begin({ kind: "space" });
-      else if (game === "sudoku") {
-        const puzzle = r.puzzle || generatePracticeSudoku(diff).puzzle;
-        begin({ kind: "sudoku", puzzle });
-      } else {
+      else {
         const w = generateWordsPuzzle(r.profession || ZERO_GAME_PROFESSIONS[0], diff);
         begin({ kind: "words", letters: w.letters, words: w.words, size: w.size });
       }
@@ -207,17 +183,6 @@ function PlayGame() {
 
   const onSpaceOver = (r: ZeroSpaceResult) => {
     void complete(r.score, `${r.orbs} orbs · ${r.seconds}s · ${r.cause === "fuel" ? "ran out of fuel" : "caught by doubt"}`, { orbs: r.orbs, cause: r.cause });
-  };
-
-  const onSudoku = (sol: string) => {
-    if (board?.kind !== "sudoku") return;
-    if (!sudokuValid(board.puzzle, sol)) {
-      toast.error("Not quite — some rows, columns or boxes repeat a number.");
-      return;
-    }
-    const seconds = Math.max(1, Math.round((Date.now() - startedAt.current) / 1000));
-    const score = Math.max(1000, 10000 - seconds * 4);
-    void complete(score, `Solved in ${formatGameTime(seconds)}`, {}, sol);
   };
 
   const onWords = (found: Array<{ word: string }>) => {
@@ -373,12 +338,12 @@ function PlayGame() {
   if (game === "space" || board?.kind === "space") {
     return (
       <div className="fixed inset-0 z-[60] bg-[#0b0618]">
-        <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top} controls={spaceControls} />}</SafeTop>
-        {!tournamentId && <SpaceSupplyTray key={runKey} controls={spaceControls} />}
+        <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top + (tournamentId ? 0 : 80)} controls={spaceControls} />}</SafeTop>
+        {!tournamentId && <SpaceSupplyTray key={runKey} controls={spaceControls} onShop={() => { spaceControls.current?.pause(true); setMarketOpen(true); }} />}
         <button onClick={quit} aria-label="Leave game" className="absolute bottom-[calc(env(safe-area-inset-bottom)+14px)] right-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
           <X className="h-5 w-5" />
         </button>
-        {submitting && <div className="absolute inset-0 grid place-items-center bg-black/40"><ZeroPageLoader label="Saving your run" /></div>}
+        {marketOpen && <SpaceMarketplace onBack={() => { setMarketOpen(false); spaceControls.current?.pause(false); }} />}{submitting && <div className="absolute inset-0 grid place-items-center bg-black/40"><ZeroPageLoader label="Saving your run" /></div>}
       </div>
     );
   }
@@ -396,9 +361,6 @@ function PlayGame() {
         </span>
       </header>
       <main className="zc-page-width mx-auto w-full max-w-[720px] px-3 py-4">
-        {board?.kind === "sudoku" && (
-          <SudokuRaceBoard key={runKey} puzzle={board.puzzle} submitting={submitting} submitLabel="Submit grid" onSubmit={onSudoku} />
-        )}
         {board?.kind === "words" && (
           <WordsRaceBoard
             key={runKey}

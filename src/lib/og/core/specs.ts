@@ -70,7 +70,7 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
           subtitle: game.tagline,
           chips: ["Invite only"],
           cta: "Open Zero Games",
-          monogram: gameKey === "sudoku" ? "9" : gameKey === "words" ? "W" : "Z",
+          monogram: gameKey === "words" ? "W" : "Z",
           accent: game.accent,
           accent2: game.to,
         };
@@ -84,7 +84,7 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
         subtitle: `${game.tagline} Highest Game Points wins.`,
         chips: [prizeLine(open), timing, plural(Number(open.players) || 0, "player")],
         cta: open.status === "ended" ? "See the winners" : "Join the tournament",
-        monogram: gameKey === "sudoku" ? "9" : gameKey === "words" ? "W" : "Z",
+        monogram: gameKey === "words" ? "W" : "Z",
         accent: game.accent,
         accent2: game.to,
       };

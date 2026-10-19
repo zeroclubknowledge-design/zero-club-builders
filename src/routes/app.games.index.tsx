@@ -82,6 +82,7 @@ function ZeroGamesHub() {
           </button>
 
           <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+<Link to="/app/games/draught" search={{ room: undefined, code: undefined, mode: undefined }} className="flex flex-col items-start rounded-2xl border border-white/10 p-4 text-left text-white" style={{ background: "linear-gradient(150deg,#633148,#160d24)" }}><span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full border-4 border-[#ff80bc] bg-[#a71f63] text-3xl">♛</span><p className="mt-3 font-display text-[17px] font-bold">Zero Draught</p><p className="mt-1 text-[12.5px] text-white/65">Solo or multiplayer. Your avatar. Your strategy.</p></Link>
             {ZERO_GAME_LIST.filter((g) => g.key !== "space").map((g) => (
               <button
                 key={g.key}
@@ -126,7 +127,7 @@ function ZeroGamesHub() {
             ))}
           </div>
           <div className="flex gap-1.5 overflow-x-auto px-3 pb-2 pt-2.5 [scrollbar-width:none]">
-            {(["all", "space", "sudoku", "words"] as const).map((g) => (
+            {(["all", "space", "words"] as const).map((g) => (
               <button
                 key={g}
                 onClick={() => setFilter(g)}

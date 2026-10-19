@@ -1,6 +1,6 @@
-import { getSudoku } from "sudoku-gen";
 
-export type ZeroGameType = "sudoku" | "words";
+
+export type ZeroGameType = "words";
 export type ZeroGameDifficulty = "easy" | "medium" | "hard" | "expert";
 export type ZeroGameRewardType = "offer" | "cash";
 export type ZeroGameVisibility = "public" | "link" | "followers";
@@ -226,10 +226,6 @@ export function generateWordsPuzzle(profession: string, difficulty: ZeroGameDiff
   return { size, letters, words: placed, placements };
 }
 
-export function generatePracticeSudoku(difficulty: ZeroGameDifficulty = "easy") {
-  return getSudoku(difficulty);
-}
-
 export function getSelectionPath(start: number, end: number, size: number) {
   const startRow = Math.floor(start / size);
   const startColumn = start % size;
@@ -247,28 +243,12 @@ export function getSelectionPath(start: number, end: number, size: number) {
   );
 }
 
-export function hasSudokuConflict(board: string[], index: number) {
-  const value = board[index];
-  if (!value) return false;
-  const row = Math.floor(index / 9);
-  const column = index % 9;
-  for (let cursor = 0; cursor < 81; cursor += 1) {
-    if (cursor === index || board[cursor] !== value) continue;
-    const cursorRow = Math.floor(cursor / 9);
-    const cursorColumn = cursor % 9;
-    const sameBox = Math.floor(cursorRow / 3) === Math.floor(row / 3)
-      && Math.floor(cursorColumn / 3) === Math.floor(column / 3);
-    if (cursorRow === row || cursorColumn === column || sameBox) return true;
-  }
-  return false;
-}
-
 export function playerCount(competition: ZeroGameCompetition) {
   return Number(competition.players?.[0]?.count || 0);
 }
 
-export function getGameName(gameType: ZeroGameType) {
-  return gameType === "sudoku" ? "Zero Sudoku" : "Zero Words";
+export function getGameName(gameType: string) {
+  return gameType === "words" ? "Zero Words" : "Retired game";
 }
 
 export function secondsUntil(value?: string | null) {

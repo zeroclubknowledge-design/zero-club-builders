@@ -6,7 +6,6 @@ import { ArrowLeft, Banknote, BellRing, Check, Clock3, Copy, Crown, Gamepad2, Gi
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { SudokuRaceBoard } from "@/features/games/SudokuRaceBoard";
 import { WordsRaceBoard } from "@/features/games/WordsRaceBoard";
 import { formatGameTime, getGameName, profileName, type ZeroGameCompetition, type ZeroGamePlayer, type ZeroGamePresence, type ZeroGameReward } from "@/features/games/zeroGames";
 import { toast } from "sonner";
@@ -34,6 +33,7 @@ async function loadCompetition(id: string, profileId?: string) {
       : Promise.resolve({ data: null, error: null }),
   ]);
   if (competitionError) throw competitionError;
+  if (competition?.game_type !== "words") throw new Error("This game has been replaced by Zero Draught. Open Zero Games to play.");
   if (playersError) throw playersError;
   return {
     competition: competition as unknown as ZeroGameCompetition,
@@ -415,11 +415,7 @@ function RaceScreen({ competition, players, currentProfileId, timeRemaining, sub
       </header>
       <main className="zc-page-width mx-auto grid max-w-[1180px] gap-5 px-3 py-4 sm:px-5 md:py-6 lg:grid-cols-[minmax(0,1fr)_260px]">
         <section className="min-w-0">
-          {competition.game_type === "sudoku" ? (
-            <SudokuRaceBoard puzzle={competition.puzzle.puzzle || ""} submitting={submitting} disabled={timeRemaining <= 0} onProgress={onProgress} onSubmit={(solution) => onSubmit({ solution })} />
-          ) : (
             <WordsRaceBoard letters={competition.puzzle.letters || []} words={competition.puzzle.words || []} size={competition.puzzle.size || 12} submitting={submitting} disabled={timeRemaining <= 0} onProgress={onProgress} onSubmit={(found) => onSubmit({ found })} />
-          )}
         </section>
         <aside className="order-first lg:order-none lg:sticky lg:top-20 lg:self-start">
           <div className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible">

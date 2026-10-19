@@ -1,3 +1,4 @@
+import { GameAvatar } from "@/features/games/GameAvatar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -448,13 +449,7 @@ function Roster({
         .filter((member) => !member.left_at)
         .map((member) => (
           <li key={member.id} className="flex min-w-0 items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-sm font-bold">
-              {member.avatar ? (
-                <img className="h-full w-full object-cover" src={member.avatar} alt="" />
-              ) : (
-                member.name.charAt(0).toUpperCase()
-              )}
-            </span>
+            <GameAvatar id={member.id} name={member.name} photo={member.avatar} />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5">
                 <span className="truncate text-sm font-semibold">{member.name}</span>
@@ -531,7 +526,8 @@ function TeamChat({
                 : "mr-4 rounded-2xl bg-white/[0.05] p-3"
             }
           >
-            <p className="mb-1 text-[11px] font-semibold text-[#ff9bdd]">
+            <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold text-[#ff9bdd]">
+              <GameAvatar id={message.profile_id} name={data.members.find(member => member.id === message.profile_id)?.name || "Teammate"} photo={data.members.find(member => member.id === message.profile_id)?.avatar} className="h-6 w-6" />
               {data.members.find((member) => member.id === message.profile_id)?.name || "Teammate"}
             </p>
             <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-white/80">

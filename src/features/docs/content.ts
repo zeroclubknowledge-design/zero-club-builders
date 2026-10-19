@@ -334,16 +334,18 @@ export const docPages: DocPage[] = [
     slug: "zero-games",
     group: "Build",
     title: "Zero Games",
-    summary: "Three skill games, practice anytime, and tournaments with live leaderboards and real prizes.",
+    summary: "Arcade play, solo and multiplayer strategy, cooperative city building, and live tournaments.",
     readTime: "7 min",
     sections: [
       {
         title: "The games",
         bullets: [
           "Zero Space: pilot the Zero craft, collect opportunity orbs to refuel before the fuel ring runs out, and dodge Doubt drones. Shields, Focus and Magnet power-ups and combos raise your score.",
-          "Zero Sudoku: fill the grid correctly as fast as you can. Answers are checked on Zero Club's servers.",
+          "Zero Draught: play an 8×8 strategy game against Zero Bot or a friend, with mandatory captures and kings.",
           "Zero Words: trace professional terms hidden in a letter board; clearing the whole board quickly earns a bonus.",
-          "Tapping a game opens its splash screen with Play practice, its tournaments, and How to play. Practice never affects tournaments.",
+          "Zero Quest: build a shared city with 2–6 players by completing challenges and reviewing teammates' creative briefs. Contributing players earn 100 XP per win, up to three rewarded wins per UTC day.",
+          "Zero Space and Zero Words offer practice and tournaments. Zero Draught offers a computer opponent and private two-player matches. Zero Quest has private cooperative squads.",
+          "The Zero Space header has quick-access supplies and a marketplace. Fuel enhancers make fuel last 2×, 3× or 5× longer for the current practice run. They do not stack; a stronger enhancer replaces a weaker one.",
         ],
       },
       {

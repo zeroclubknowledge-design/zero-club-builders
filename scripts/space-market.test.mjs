@@ -15,6 +15,13 @@ vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL('../src/features/g
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText, { exports: catalog });
 
+test('fuel enhancers last the run, reduce consumption and preserve level difficulty', () => {
+  for (const multiplier of [1,2,3,5]) {
+    assert.equal(catalog.spaceFuelDrain(8*multiplier,0,multiplier),8);
+    assert.equal(catalog.spaceFuelDrain(1,100,multiplier),1.7/multiplier);
+  }
+});
+
 test('Space marketplace enforces spending, inventory isolation and safe retries in PostgreSQL', async t => {
   const db = new PGlite();
   try {
@@ -22,10 +29,13 @@ test('Space marketplace enforces spending, inventory isolation and safe retries 
       create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
       grant usage on schema auth to authenticated, anon;
       create table public.profiles(id uuid primary key, zp integer, is_admin boolean default false, account_status text default 'active');
-      insert into profiles(id,zp,is_admin) values ('${alice}',200,false),('${bob}',0,false),('${admin}',0,true);`);
+      insert into profiles(id,zp,is_admin) values ('${alice}',1000,false),('${bob}',0,false),('${admin}',0,true);`);
     await db.exec(migration);
     // Applying the same migration again must not break an existing installation.
     await db.exec(migration);
+    const enhancerMigration = fs.readFileSync(new URL('../supabase/migrations/20261019160000_space_fuel_enhancers.sql', import.meta.url), 'utf8');
+    await db.exec(enhancerMigration);
+    await db.exec(enhancerMigration);
     const as = async id => { await db.query("select set_config('test.uid',$1,false)", [id || '']); };
     const market = async () => (await db.query('select zero_space_market() as result')).rows[0].result;
     const transact = async (item, action, id) => (await db.query('select zero_space_supply($1,$2,$3) as result', [item, action, request(id)])).rows[0].result;
@@ -34,18 +44,18 @@ test('Space marketplace enforces spending, inventory isolation and safe retries 
       await as(alice);
       for (const [index, item] of catalog.SPACE_SUPPLIES.entries()) {
         const before = (await market()).balance;
-        const after = await transact(item.id, 'buy', index + 1);
+        const after = await transact(item.id, 'buy', index + 100);
         assert.equal(before - after.balance, item.price, `${item.name}: advertised price matches server charge`);
       }
       const state = await market();
-      assert.equal(state.balance, 100);
-      assert.deepEqual(state.inventory, { shield: 1, focus: 1, magnet: 1, fuel: 1 });
+      assert.equal(state.balance, 695);
+      assert.deepEqual(state.inventory, { shield: 1, focus: 1, magnet: 1, fuel: 1, enhancer2: 1, enhancer3: 1, enhancer5: 1 });
       assert.equal(state.administrator, false);
     });
     await t.test('lost responses and simultaneous duplicate requests charge once', async () => {
       await Promise.all([transact('shield', 'buy', 5), transact('shield', 'buy', 5)]);
       await transact('shield', 'buy', 5);
-      assert.equal((await market()).balance, 70);
+      assert.equal((await market()).balance, 665);
       assert.equal((await market()).inventory.shield, 2);
       await assert.rejects(transact('fuel', 'buy', 5), /already used/);
       await assert.rejects(transact('shield', 'use', 5), /already used/);
@@ -55,7 +65,7 @@ test('Space marketplace enforces spending, inventory isolation and safe retries 
       await transact('focus', 'use', 6);
       assert.equal((await market()).inventory.focus, 0);
       await assert.rejects(transact('focus', 'use', 7), /No supplies left/);
-      assert.equal((await market()).balance, 70);
+      assert.equal((await market()).balance, 665);
     });
     await t.test('invalid items and actions cannot mint supplies', async () => {
       for (const [item, action] of [['fake', 'buy'], ['shield', 'refund'], [null, 'buy'], ['shield', null]]) {

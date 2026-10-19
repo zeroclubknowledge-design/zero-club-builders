@@ -21,18 +21,6 @@ export function GameEmblem({ game, size = 140 }: { game: ZeroGameKey; size?: num
       </div>
     );
   }
-  if (game === "sudoku") {
-    const digits = [5, 3, 0, 6, 0, 9, 0, 1, 8];
-    return (
-      <div className="grid grid-cols-3 gap-1.5 rounded-2xl p-2" style={{ width: size, height: size, background: "rgba(255,255,255,0.06)", boxShadow: `0 0 ${size / 4}px ${info.accent}33` }}>
-        {digits.map((d, i) => (
-          <span key={i} className="zg-pop grid place-items-center rounded-lg font-display font-bold text-white" style={{ fontSize: size / 6, background: d ? "rgba(255,255,255,0.1)" : `${info.accent}33`, animationDelay: `${i * 90}ms` }}>
-            {d || ""}
-          </span>
-        ))}
-      </div>
-    );
-  }
   const letters = ["Z", "E", "R", "O", "A", "P", "I", "U", "X"];
   const lit = new Set([0, 4, 8]);
   return (

@@ -2,7 +2,7 @@
  * Zero Games catalogue — one entry per game, used by the hub tiles,
  * the splash screens and the tournament forms.
  */
-export type ZeroGameKey = "space" | "sudoku" | "words";
+export type ZeroGameKey = "space" | "words";
 
 export type ZeroGameInfo = {
   key: ZeroGameKey;
@@ -35,21 +35,6 @@ export const ZERO_GAMES: Record<ZeroGameKey, ZeroGameInfo> = {
     ],
     scoring: "10 points per orb × combo, plus a bonus for every second you survive.",
   },
-  sudoku: {
-    key: "sudoku",
-    name: "Zero Sudoku",
-    tagline: "Pure logic, against the clock.",
-    blurb: "Fill the grid so every row, column and box holds 1 to 9. The faster you finish, the higher you score.",
-    from: "#0f1720",
-    to: "#1f3a4d",
-    accent: "#5cc8ff",
-    howTo: [
-      { title: "Fill the grid", body: "Each row, column and 3×3 box must contain the digits 1 to 9 once." },
-      { title: "Use notes", body: "Switch to pencil mode to jot candidates in a cell." },
-      { title: "Submit", body: "Submit once the grid is full. Only a correct grid scores." },
-    ],
-    scoring: "Up to 10,000 points — you lose 4 for every second you take (minimum 1,000).",
-  },
   words: {
     key: "words",
     name: "Zero Words",
@@ -67,10 +52,10 @@ export const ZERO_GAMES: Record<ZeroGameKey, ZeroGameInfo> = {
   },
 };
 
-export const ZERO_GAME_LIST: ZeroGameInfo[] = [ZERO_GAMES.space, ZERO_GAMES.sudoku, ZERO_GAMES.words];
+export const ZERO_GAME_LIST: ZeroGameInfo[] = [ZERO_GAMES.space, ZERO_GAMES.words];
 
 export function isZeroGameKey(v: unknown): v is ZeroGameKey {
-  return v === "space" || v === "sudoku" || v === "words";
+  return v === "space" || v === "words";
 }
 
 /** Words scoring — mirrors the server cap (total × 150 + 3000). */

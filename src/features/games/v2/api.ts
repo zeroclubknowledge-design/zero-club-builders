@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { ZeroGameKey } from "./catalog";
+import { isZeroGameKey, type ZeroGameKey } from "./catalog";
 
 export type TournamentStatus = "upcoming" | "live" | "ended";
 export type TournamentReward = "none" | "funds" | "zp" | "offer";
@@ -69,12 +69,13 @@ export type TournamentDetail =
 export async function listTournaments(filter: "live" | "ended" | "mine") {
   const { data, error } = await supabase.rpc("zero_tournaments_list", { p_filter: filter });
   if (error) throw error;
-  return (data || []) as TournamentRow[];
+  return ((data || []) as TournamentRow[]).filter(row => isZeroGameKey(row.game_type));
 }
 
 export async function tournamentDetail(id: string, code?: string) {
   const { data, error } = await supabase.rpc("zero_tournament_detail", { p_id: id, p_code: code || null });
   if (error) throw error;
+  if (data?.found && !isZeroGameKey(data.game_type || data.tournament?.game_type)) return { found: false } as const;
   return data as TournamentDetail;
 }
 
@@ -223,6 +224,7 @@ export type TournamentPreview =
 export async function tournamentPreview(id: string, code?: string) {
   const { data, error } = await supabase.rpc("zero_tournament_preview", { p_id: id, p_code: code || null });
   if (error) throw error;
+  if (data?.found && !isZeroGameKey(data.game_type)) return { found: false } as const;
   return data as TournamentPreview;
 }
 

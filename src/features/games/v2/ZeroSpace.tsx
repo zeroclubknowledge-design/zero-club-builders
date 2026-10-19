@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
-import type { ZeroSpaceControls } from "./spaceSupplies";
+import { spaceFuelDrain, type ZeroSpaceControls } from "./spaceSupplies";
 
 /**
  * Zero Space — a canvas arcade game.
@@ -70,6 +70,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
     let dead: null | { at: number; cause: "fuel" | "doubt" } = null;
     let reported = false;
     let shield = 0, focus = 0, magnet = 0;
+    let fuelEnhancement = 1;
     let nextPower = rand(9, 13);
     let nextGolden = rand(14, 20);
     let shake = 0;
@@ -122,9 +123,16 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
     let paused = false;
     if (controls) controls.current = {
       ready: () => !dead && intro <= 0 && !hidden,
+      fuelEnhancement: () => fuelEnhancement,
       pause: (value) => { paused = value; last = performance.now(); keys.clear(); dragging = null; },
       activate: (item) => {
         if (dead) return;
+        if (item === "enhancer2" || item === "enhancer3" || item === "enhancer5") {
+          fuelEnhancement = Math.max(fuelEnhancement, Number(item.slice(-1)));
+          float(craft.x, craft.y - 28, `Fuel ×${fuelEnhancement}`, "#73e6b1");
+          burst(craft.x, craft.y, "#73e6b1", 16);
+          return;
+        }
         if (item === "shield") shield = Math.max(shield, 10);
         if (item === "focus") focus = Math.max(focus, 5);
         if (item === "magnet") magnet = Math.max(magnet, 6);
@@ -236,8 +244,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       }
 
       /* fuel */
-      const drain = Math.min(1.7, 1 + level * 0.012);
-      fuel -= dt * drain;
+      fuel -= spaceFuelDrain(dt, level, fuelEnhancement);
       if (fuel <= 0) { fuel = 0; die("fuel"); return; }
       survival += dt * 2;
 
@@ -521,7 +528,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
         ctx.fillStyle = f < 0.3 ? "#ff3b5c" : f < 0.55 ? "#ffb547" : "#6cf0c2";
         roundRect(bx, top + 22, Math.max(6, bw * f), 6, 3); ctx.fill();
         ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = "600 10px system-ui, sans-serif";
-        ctx.fillText("FUEL", W / 2, top + 14);
+        ctx.fillText(fuelEnhancement > 1 ? `FUEL ×${fuelEnhancement}` : "FUEL", W / 2, top + 14);
       }
       if (combo > 1 && !dead) {
         ctx.textAlign = "center"; ctx.fillStyle = PINK; ctx.font = "800 16px system-ui, sans-serif";
