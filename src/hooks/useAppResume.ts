@@ -14,6 +14,11 @@ function resumeUrl(value: unknown): string | null {
   } catch { return null; }
 }
 
+/** The Home tab opens the feed at the top (the newest post), not where it was left. */
+export function forgetFeedScroll(userId: string | undefined | null) {
+  for (const url of ["/app", "/app/"]) writeDraft(draftKey(userId, "screen-scroll", url), 0);
+}
+
 /** Installed once in the app shell. Explicit links take priority; launching
  * the app at its home URL resumes the last screen for this signed-in account. */
 export function useAppResume(userId: string | undefined) {

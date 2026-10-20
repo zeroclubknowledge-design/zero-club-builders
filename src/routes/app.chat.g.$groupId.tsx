@@ -390,7 +390,7 @@ function GroupChatPage() {
           atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
           if (userScrolled.current && el.scrollTop < 80) void loadOlder();
         }}
-        className="no-scrollbar flex-1 overflow-y-auto px-3 pb-4 pt-2"
+        className="no-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4 pt-2"
       >
         {reachedStart && (
           <div className="flex flex-col items-center pb-4 pt-6 text-center">
@@ -648,10 +648,11 @@ function Bubble({
     const horizontal = event.touches[0].clientX - startX.current;
     const vertical = event.touches[0].clientY - startY.current;
     if (Math.abs(horizontal) > 10 || Math.abs(vertical) > 10) cancel();
-    // Match individual chats: scrolling cancels reply; received messages move
-    // right and sent messages move left, capped at 60px with a 45px reply point.
+    // Match individual and club chats: scrolling cancels reply; every message,
+    // sent or received, moves right, capped at 60px with a 45px reply point.
     if (Math.abs(vertical) > Math.abs(horizontal) && Math.abs(vertical) > 5) { resetSwipe(); return; }
-    const next = Math.abs(horizontal) <= 10 ? 0 : mine ? Math.max(-60, Math.min(0, horizontal)) : Math.min(60, Math.max(0, horizontal));
+    const next = Math.abs(horizontal) <= 10 ? 0 : Math.min(60, Math.max(0, horizontal));
+    if (next >= 45 && offset.current < 45) navigator.vibrate?.(10);
     offset.current = next;
     setDx(next);
   };
@@ -679,7 +680,7 @@ function Bubble({
   return (
     <div
       id={`gm-${m.id}`}
-      className={`flex w-full select-none ${groupStart ? "mt-2.5" : "mt-[3px]"} ${mine ? "justify-end" : "justify-start"}`}
+      className={`relative flex w-full select-none ${groupStart ? "mt-2.5" : "mt-[3px]"} ${mine ? "justify-end" : "justify-start"}`}
       style={{ WebkitTouchCallout: "none", touchAction: "pan-y pinch-zoom", transform: `translateX(${dx}px)`, transition: dx ? "none" : "transform .2s ease-out" }}
       onContextMenu={(e) => { if ((e.target as HTMLElement).closest("a, video, audio, button, input, textarea")) return; e.preventDefault(); resetSwipe(); onOpenActions(); }}
       onTouchStart={startSwipe}
@@ -687,6 +688,14 @@ function Bubble({
       onTouchEnd={endSwipe}
       onTouchCancel={resetSwipe}
     >
+      {/* Reply icon: slides in from the left as the message is swiped right. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-1/2 grid h-8 w-8 place-items-center rounded-full bg-foreground/[0.06]"
+        style={{ opacity: Math.min(dx / 45, 1), transform: `translate(-40px, -50%) scale(${Math.min(dx / 45, 1)})`, transition: dx ? "none" : "all .2s ease-out" }}
+      >
+        <Reply className="h-4 w-4 text-foreground" />
+      </span>
       {!mine && (
         <span className="mr-1.5 w-7 shrink-0 self-end">
           {groupEnd && sender && (

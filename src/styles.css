@@ -1845,3 +1845,119 @@ html:not(.dark) [data-zc-live-room] :is(
 .dark .zc-tag-ink-text, .zc-tag-ink-text.zc-tag-ink-dark { color: #ff7dcf; }
 .dark.rose-noir .zc-tag-ink { color: #ffd0ee; background-color: rgb(255 125 207 / 0.26); }
 .dark.rose-noir .zc-tag-ink-text { color: #ffb3e3; }
+
+
+/* ── App toasts, dressed as the in-app pop card ──────────────────────────
+   Every sonner toast ("Reply posted!", "Saved", errors…) uses the same look
+   as the incoming message card: a frosted pill, the Zero Club mark as the
+   avatar with a status badge, "Zero Club" on top, the message under it and
+   the grip on the right. Sonner keeps its own enter/exit and swipe motion. */
+.zc-toast {
+  --zc-pop-bg: var(--card);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 26px 10px 12px;
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--zc-pop-bg) 94%, transparent);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--foreground) 9%, transparent),
+    0 1px 0 0 color-mix(in oklab, white 7%, transparent) inset,
+    0 18px 40px -14px rgb(0 0 0 / 0.5),
+    0 4px 12px -6px rgb(0 0 0 / 0.3);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-tap-highlight-color: transparent;
+}
+.dark .zc-toast {
+  --zc-pop-bg: color-mix(in oklab, var(--card) 84%, var(--foreground) 16%);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent),
+    0 1px 0 0 color-mix(in oklab, white 8%, transparent) inset,
+    0 18px 44px -12px rgb(0 0 0 / 0.75);
+}
+/* The grip: three small dots, top right, as on the pop card. (On the content,
+   not the toast: sonner uses the toast's own ::after for its hover gap.) */
+.zc-toast [data-content]::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  right: 12px;
+  width: 3px;
+  height: 15px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--foreground) 22%, transparent) 1.5px, transparent 1.6px) 0 -1.5px / 3px 6px repeat-y;
+  pointer-events: none;
+}
+/* Toasts without a status (plain toast("…")) still get the Zero Club avatar.
+   Sonner borrows ::before only while a toast is being swiped away. */
+.zc-toast:not(:has([data-icon])):not([data-swiping="true"])::before {
+  content: "";
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: url("/favicon-192.png") center / cover;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+.zc-toast [data-icon].zc-toast-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  flex: none;
+}
+.zc-toast [data-content] { min-width: 0; flex: 1; }
+/* "Zero Club" sits where the sender's name sits on the pop card. */
+.zc-toast [data-content]::before {
+  content: "Zero Club";
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+.zc-toast-title,
+.zc-toast-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-top: 1px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--foreground) 62%, transparent);
+}
+.zc-toast-description { -webkit-line-clamp: 2; font-size: 12.5px; font-weight: 400; }
+.zc-toast-badge--success { background: #00ba7c; color: white; }
+.zc-toast-badge--error { background: #f43f5e; color: white; }
+.zc-toast-badge--info { background: #1d9bf0; color: white; }
+.zc-toast-badge--warning { background: #f59e0b; color: #1a1205; }
+.zc-toast-badge--loading { background: #cc208f; color: white; }
+.zc-toast-action {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: #cc208f;
+  color: white;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.zc-toast-cancel {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.zc-toast:has(.zc-toast-action, .zc-toast-cancel) { padding-right: 12px; }
+.zc-toast:has(.zc-toast-action, .zc-toast-cancel) [data-content]::after { display: none; }

@@ -1669,7 +1669,7 @@ function ClubChat() {
 
       {/* Main scrolling container */}
       <div
-        className="relative flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar pb-24"
+        className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden no-scrollbar pb-24"
         ref={scrollRef}
       >
         {/* The club's drawers live here; they render in portals, so where
@@ -5197,18 +5197,15 @@ function MessageBubble({
       return;
     }
 
-    if (diffX > 0 && !isMe) {
+    // Every message, sent or received, swipes right to reply.
+    if (diffX > 0) {
       const offset = Math.min(diffX, maxSwipe);
       setSwipeOffset(offset);
       if (offset >= 45 && swipeOffset < 45) {
         if (window.navigator.vibrate) window.navigator.vibrate(10);
       }
-    } else if (diffX < 0 && isMe) {
-      const offset = Math.max(diffX, -maxSwipe);
-      setSwipeOffset(offset);
-      if (offset <= -45 && swipeOffset > -45) {
-        if (window.navigator.vibrate) window.navigator.vibrate(10);
-      }
+    } else {
+      setSwipeOffset(0);
     }
   };
 
@@ -5241,27 +5238,13 @@ function MessageBubble({
         event.preventDefault(); cancelLongPress(); isSwiping.current = false; setSwipeOffset(0); setActionsOpen(true);
       }}
     >
-      {/* Swipe reply icon for received */}
-      {!isMe && (
+      {/* Reply icon: every message, sent or received, swipes right to reply. */}
+      {(
         <div
           className="absolute left-1 top-1/2 -translate-y-1/2 transition-opacity z-0"
           style={{
             opacity: swipeOffset / 45,
             transform: `scale(${Math.min(swipeOffset / 45, 1)})`,
-          }}
-        >
-          <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center">
-            <Reply className="h-3.5 w-3.5 text-primary" />
-          </div>
-        </div>
-      )}
-      {/* Swipe reply icon for sent */}
-      {isMe && (
-        <div
-          className="absolute right-1 top-1/2 -translate-y-1/2 transition-opacity z-0"
-          style={{
-            opacity: -swipeOffset / 45,
-            transform: `scale(${Math.min(-swipeOffset / 45, 1)})`,
           }}
         >
           <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center">

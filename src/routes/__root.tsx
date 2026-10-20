@@ -9,7 +9,8 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, type CSSProperties } from "react";
+import { AlertCircle, Check, Info, Loader2, X } from "@/components/icons/glyphs";
 import { LiveSessionProvider, useLiveSession } from "@/contexts/LiveSessionContext";
 import { GroupCallProvider, useGroupCall } from "@/features/groups/GroupCallContext";
 import { isChunkLoadError, isRecovering, isStaleShellError, recoverFromChunkError } from "@/lib/chunk-recovery";
@@ -487,25 +488,47 @@ function RootComponent() {
         <ShareSheetHost />
         <ConfirmCardHost />
         <OpenInAppBar />
-        <Toaster 
-          position="top-center" 
+        {/* App toasts wear the in-app pop card's look (see .zc-toast). */}
+        <Toaster
+          position="top-center"
+          offset={{ top: "calc(8px + env(safe-area-inset-top))" }}
+          mobileOffset={{ top: "calc(8px + env(safe-area-inset-top))", left: "10px", right: "10px" }}
+          style={{ "--width": "420px" } as CSSProperties}
+          icons={{
+            success: <ToastAvatar tone="success" />,
+            error: <ToastAvatar tone="error" />,
+            info: <ToastAvatar tone="info" />,
+            warning: <ToastAvatar tone="warning" />,
+            loading: <ToastAvatar tone="loading" />,
+          }}
           toastOptions={{
             unstyled: true,
             classNames: {
-              toast: "flex w-[calc(100vw-24px)] max-w-[340px] items-center gap-2.5 rounded-md border border-border/50 bg-card/97 px-3 py-2.5 font-sans text-[12px] font-medium text-foreground shadow-[0_12px_32px_-16px_rgba(0,0,0,0.45)] backdrop-blur-xl",
-              title: "text-[12px] font-semibold leading-4 tracking-tight text-foreground",
-              description: "mt-0.5 text-[11px] font-normal leading-4 text-muted-foreground",
-              actionButton: "ml-auto shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-[10px] font-semibold text-primary-foreground",
-              cancelButton: "ml-auto shrink-0 rounded-md bg-muted px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground",
-              success: "!border-emerald-500/25",
-              error: "!border-red-500/25",
-              info: "!border-sky-500/25",
-              warning: "!border-amber-500/25",
+              toast: "zc-toast",
+              icon: "zc-toast-icon",
+              title: "zc-toast-title",
+              description: "zc-toast-description",
+              actionButton: "zc-toast-action",
+              cancelButton: "zc-toast-cancel",
             },
           }}
         />
         </GroupCallProvider>
       </LiveSessionProvider>
     </QueryClientProvider>
+  );
+}
+
+
+/** The toast's avatar: the Zero Club mark with a status badge, like the pop card's. */
+function ToastAvatar({ tone }: { tone: "success" | "error" | "info" | "warning" | "loading" }) {
+  const Icon = tone === "success" ? Check : tone === "error" ? X : tone === "loading" ? Loader2 : tone === "warning" ? AlertCircle : Info;
+  return (
+    <span className="zc-pop-avatar">
+      <img src="/favicon-192.png" alt="" className="zc-pop-avatar-img" />
+      <span className={`zc-pop-badge zc-toast-badge--${tone}`}>
+        <Icon className={`h-[11px] w-[11px] ${tone === "loading" ? "animate-spin" : ""}`} strokeWidth={2.8} />
+      </span>
+    </span>
   );
 }

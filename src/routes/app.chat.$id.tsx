@@ -150,18 +150,15 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
       return;
     }
 
-    if (diffX > 0 && !isMe) {
+    // Every message, sent or received, swipes right to reply.
+    if (diffX > 0) {
       const offset = Math.min(diffX, maxSwipe);
       setSwipeOffset(offset);
       if (offset >= 45 && swipeOffset < 45) {
         if (window.navigator.vibrate) window.navigator.vibrate(10);
       }
-    } else if (diffX < 0 && isMe) {
-      const offset = Math.max(diffX, -maxSwipe);
-      setSwipeOffset(offset);
-      if (offset <= -45 && swipeOffset > -45) {
-        if (window.navigator.vibrate) window.navigator.vibrate(10);
-      }
+    } else {
+      setSwipeOffset(0);
     }
   };
 
@@ -243,6 +240,19 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
         transition: isSwiping.current ? 'none' : 'transform 0.2s ease-out'
       }}
     >
+      {/* Reply icon: slides in from the left as any message is swiped right. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.06]"
+        style={{
+          opacity: Math.min(swipeOffset / 45, 1),
+          transform: `translate(-40px, -50%) scale(${Math.min(swipeOffset / 45, 1)})`,
+          transition: isSwiping.current ? 'none' : 'all 0.2s ease-out'
+        }}
+      >
+        <Reply className="h-4 w-4 text-foreground" />
+      </div>
+
       <div className={`flex gap-2 relative z-10 max-w-[80%] ${isMe ?'flex-row-reverse' : 'flex-row'}`}>
         
         {/* Their avatar sits beside the last message of a run, like a
@@ -258,33 +268,6 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
           </Link>
         )}
 
-        {/* Swipe reply icon for received */}
-        {!isMe && (
-          <div 
-            className="absolute left-full top-1/2 -translate-y-1/2 flex items-center justify-center h-8 w-8 rounded-full bg-foreground/[0.06]"
-            style={{
-              opacity: Math.min(swipeOffset / 45, 1),
-              transform: `translate(${-swipeOffset + 10}px, -50%) scale(${Math.min(swipeOffset / 45, 1)})`,
-              transition: isSwiping.current ? 'none' : 'all 0.2s ease-out'
-            }}
-          >
-            <Reply className="h-4 w-4 text-foreground" />
-          </div>
-        )}
-
-        {/* Swipe reply icon for sent */}
-        {isMe && (
-          <div 
-            className="absolute right-full top-1/2 -translate-y-1/2 flex items-center justify-center h-8 w-8 rounded-full bg-foreground/[0.06]"
-            style={{
-              opacity: Math.min(-swipeOffset / 45, 1),
-              transform: `translate(${-swipeOffset - 10}px, -50%) scale(${Math.min(-swipeOffset / 45, 1)})`,
-              transition: isSwiping.current ? 'none' : 'all 0.2s ease-out'
-            }}
-          >
-            <Reply className="h-4 w-4 text-foreground" />
-          </div>
-        )}
 
         <div className={`flex flex-col ${isMe ?"items-end" : "items-start"} min-w-0`}>
           <>
@@ -1465,7 +1448,7 @@ function ChatViewPage() {
 
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-3 pb-28 pt-2 no-scrollbar"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-28 pt-2 no-scrollbar"
       >
         {!reachedStart && (
           <div className="flex justify-center pb-2">

@@ -7,7 +7,7 @@ import { useMarkMessagesDelivered } from "@/lib/realtime/receipts";
 import { CreateHub, openCreateSheet } from "@/features/create/CreateHub";
 import { IconZeroAI } from "@/components/icons/zeroAI";
 import { IconPortfolio } from "@/features/portfolio/icon";
-import { useAppResume } from "@/hooks/useAppResume";
+import { forgetFeedScroll, useAppResume } from "@/hooks/useAppResume";
 import { prefetchClubsData, storedSessionUserId } from "@/features/clubs/clubsData";
 import {
   MoreHorizontal,
@@ -72,6 +72,27 @@ import { getDeviceId } from "@/lib/device";
 export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
+
+/**
+ * Tapping Home always lands on the newest post: the feed's remembered scroll
+ * position is dropped and the posts are refreshed. Already on the feed, it
+ * glides back to the top instead.
+ */
+function useHomeTap() {
+  const queryClient = useQueryClient();
+  return (event: React.MouseEvent) => {
+    forgetFeedScroll(storedSessionUserId());
+    void queryClient.invalidateQueries({ queryKey: ["feed_posts"] });
+    if (/^\/app\/?$/.test(window.location.pathname)) {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    // After the feed renders, make sure it starts at the top.
+    window.setTimeout(() => window.scrollTo(0, 0), 0);
+  };
+}
+const isHomePath = (to: string | null | undefined) => typeof to === "string" && /^\/app\/?$/.test(to);
 
 /* The tab bar. Post is not a destination — it opens the create sheet on the
    feed — so it has no route of its own. */
@@ -226,10 +247,12 @@ function SidebarContent({
     { Icon: IconShield, label: "Admin Control Center", to: "/app/admin" },
   ]);
 
+  const homeTap = useHomeTap();
   const renderLink = (item: any) => (
     <Link
       key={item.label}
       to={item.to}
+      onClick={isHomePath(item.to) ? homeTap : undefined}
       title={collapsed ? item.label : undefined}
       aria-label={collapsed ? item.label : undefined}
       activeOptions={{ exact: !!item.exact }}
@@ -569,6 +592,7 @@ function BusinessSidebarNav({
     { to: "/app/bookmarks", label: "Bookmarks", Icon: IconBookmark },
   ];
 
+  const homeTap = useHomeTap();
   const row = (active: boolean) =>
     `group flex h-12 items-center gap-3.5 rounded-[10px] px-3 text-[16px] tap transition-colors md:h-11 md:text-[15px] ${
       active ? "bg-foreground/[0.06] font-semibold text-foreground" : "font-medium text-foreground/85 hover:bg-foreground/[0.04] hover:text-foreground"
@@ -592,7 +616,7 @@ function BusinessSidebarNav({
       {general.map((item: any) => {
         const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
         return (
-          <Link key={item.to} to={item.to as never} title={collapsed ? item.label : undefined} aria-label={collapsed ? item.label : undefined} className={`${row(active)} ${item.desktopOnly ? "hidden md:flex" : ""}`}>
+          <Link key={item.to} to={item.to as never} onClick={isHomePath(item.to) ? homeTap : undefined} title={collapsed ? item.label : undefined} aria-label={collapsed ? item.label : undefined} className={`${row(active)} ${item.desktopOnly ? "hidden md:flex" : ""}`}>
             <item.Icon active={active} className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
             <span className="min-w-0 flex-1 truncate">{item.label}</span>
             {item.badge > 0 && (
@@ -633,6 +657,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost, b
     : baseTabs;
   const router = useRouter();
   const queryClient = useQueryClient();
+  const homeTap = useHomeTap();
   // Once the app is idle, fetch the other tabs and the writing screens in the
   // background, so the first tap on each one opens at once instead of waiting
   // for its code to download.
@@ -702,7 +727,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost, b
           }
 
           return (
-            <Link key={t.to} to={t.to} className={tabClass}>
+            <Link key={t.to} to={t.to} onClick={isHomePath(t.to) ? homeTap : undefined} className={tabClass}>
               {inner}
               {t.label === "Alerts" && unreadCount > 0 && (
                 <span className="absolute right-2 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground ring-2 ring-background">
