@@ -5,6 +5,7 @@ import { Eye, Loader2, Pause, Play, Rocket, Trash2, Users, BarChart3 } from "@/c
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
+import { confirmCard } from "@/components/ConfirmCard";
 /*
  * Boosts are run by members, not by admins. Admins oversee them: see what is
  * being promoted and how it performs, pause something that needs a look, or
@@ -33,7 +34,7 @@ export function BoostsAdmin() {
   });
 
   const set = async (id: string, status: "paused" | "active" | "removed") => {
-    if (status === "removed" && !confirm("Remove this boost? The member gets their unused reward budget back.")) return;
+    if (status === "removed" && !(await confirmCard("Remove this boost? The member gets their unused reward budget back."))) return;
     setBusy(id);
     const { error } = await supabase.rpc("admin_set_boost_status", { p_id: id, p_status: status });
     setBusy(null);

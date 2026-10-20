@@ -35,6 +35,7 @@ import { directMessagePreview, parseFundLinkMessage } from "@/lib/directMessage"
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useDraftMedia } from "@/hooks/useDraftMedia";
 
+import { confirmCard } from "@/components/ConfirmCard";
 // A stable loading fallback. Creating [] inside the useQuery destructure gives
 // the message-sync effect a new dependency on every render and can trigger
 // React's maximum-update-depth failure while a slow connection is still loading.
@@ -1061,8 +1062,8 @@ function ChatViewPage() {
     setMediaPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleClearChat = () => {
-    if (!window.confirm('Clear this conversation from this device? New messages will still appear.')) return;
+  const handleClearChat = async () => {
+    if (!(await confirmCard('Clear this conversation from this device? New messages will still appear.'))) return;
     localStorage.setItem(`zero-chat-cleared:${id}`, new Date().toISOString());
     setMessages([]);
     toast.success('Conversation cleared on this device.');
@@ -1077,7 +1078,7 @@ function ChatViewPage() {
 
   const handleReportUser = async () => {
     if (!currentUserId || reporting) return;
-    if (!window.confirm(`Report ${otherUser?.full_name || otherUser?.username || 'this user'} for inappropriate direct messages?`)) return;
+    if (!(await confirmCard(`Report ${otherUser?.full_name || otherUser?.username || 'this user'} for inappropriate direct messages?`))) return;
     setReporting(true);
     try {
       const { error } = await supabase.from('user_reports').insert({

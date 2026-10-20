@@ -10,6 +10,7 @@ import {
 } from "@/components/icons/glyphs";
 import { CardSelect } from "@/components/CardSelect";
 
+import { confirmCard } from "@/components/ConfirmCard";
 type StudioMode = "tutor" | "institution";
 type OperationsTab = "cohorts" | "learners" | "schedule" | "announcements" | "assessments";
 
@@ -303,7 +304,7 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
   };
 
   const deleteCohort = async () => {
-    if (!selectedCohort || !confirm(`Delete “${selectedCohort.name}”? Its schedule and announcements will also be removed.`)) return;
+    if (!selectedCohort || !(await confirmCard(`Delete “${selectedCohort.name}”? Its schedule and announcements will also be removed.`))) return;
     const { error } = await supabase.from("learning_cohorts").delete().eq("id", selectedCohort.id);
     if (error) toast.error(error.message || "Cohort could not be deleted");
     else { toast.success("Cohort deleted"); setSelectedCohortId(""); invalidateCohorts(); }

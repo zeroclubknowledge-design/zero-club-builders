@@ -58,6 +58,7 @@ import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
 import { BootcampMediaInput } from "@/features/bootcamps/BootcampMediaInput";
 
+import { confirmCard, promptCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/tutor-studio/")({
   component: TutorStudioPage,
   // `?view=zero-forms` opens the Zero Forms workspace directly, so the prompt
@@ -601,9 +602,9 @@ function TutorStudioPage() {
     },
   });
 
-  const handleDeleteBootcamp = () => {
+  const handleDeleteBootcamp = async () => {
     if (!activeBootcampId) return;
-    if (confirm("Are you sure you want to delete this bootcamp? This action cannot be undone.")) {
+    if ((await confirmCard("Are you sure you want to delete this bootcamp? This action cannot be undone."))) {
       deleteMutation.mutate(activeBootcampId);
     }
   };
@@ -644,7 +645,7 @@ function TutorStudioPage() {
   };
 
   const handleDeleteModule = async (moduleId: string) => {
-    if (!confirm("Delete this module and all its lessons?")) return;
+    if (!(await confirmCard("Delete this module and all its lessons?"))) return;
     const { error } = await supabase.from("modules").delete().eq("id", moduleId);
     if (error) {
       toast.error(error.message || "Failed to delete module");
@@ -1361,8 +1362,13 @@ function TutorStudioPage() {
                     </h3>
                   </div>
                   <button
-                    onClick={() => {
-                      const name = prompt("Enter room name:");
+                    onClick={async () => {
+                      const name = await promptCard({
+                        title: "New classroom",
+                        placeholder: "Room name",
+                        confirmLabel: "Create room",
+                        maxLength: 40,
+                      });
                       if (name) {
                         setRooms([
                           ...rooms,

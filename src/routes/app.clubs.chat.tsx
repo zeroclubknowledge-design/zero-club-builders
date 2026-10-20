@@ -115,6 +115,7 @@ import { ZeroMark } from "@/components/ZeroLoader";
 import { FloatingPicker } from "@/components/FloatingPicker";
 import { ClubPollMessage, PollComposer } from "@/features/groups/Poll";
 import { ClubComposer } from "@/features/community/ClubComposer";
+import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
   validateSearch: (
@@ -930,7 +931,7 @@ function ClubChat() {
 
   const handleDeleteClub = async () => {
     if (!club || club.creator_id !== currentUser?.id) return;
-    if (!confirm("Are you sure you want to delete this club? This cannot be undone.")) return;
+    if (!(await confirmCard("Are you sure you want to delete this club? This cannot be undone."))) return;
 
     try {
       const { error } = await supabase.from("clubs").delete().eq("id", club.id);

@@ -59,25 +59,38 @@ function Price({
   currency,
   display,
   size,
+  reserve,
 }: {
   tier: RateTier;
   currency: string;
   display?: CSSProperties;
   size: "lg" | "xl";
+  /** Keep the "Starting from" line's space so prices line up across tiers. */
+  reserve?: boolean;
 }) {
   const big = size === "xl" ? "text-[44px] @2xl:text-[52px]" : "text-[38px]";
+  const kicker = (text: string | null) =>
+    text || reserve ? (
+      <p
+        aria-hidden={!text}
+        className={`mb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] opacity-55 ${text ? "" : "invisible"}`}
+      >
+        {text || "Starting from"}
+      </p>
+    ) : null;
   if (tier.custom || tier.price == null)
     return (
-      <p className={`${big} font-semibold leading-none tracking-[-0.03em]`} style={display}>
-        Custom
-        <span className="ml-2 align-middle text-[14px] font-medium tracking-normal opacity-55">quote</span>
-      </p>
+      <div>
+        {kicker(reserve ? "Tailored" : null)}
+        <p className={`${big} font-semibold leading-none tracking-[-0.03em]`} style={display}>
+          Custom
+          <span className="ml-2 align-middle text-[14px] font-medium tracking-normal opacity-55">quote</span>
+        </p>
+      </div>
     );
   return (
     <div>
-      {tier.from && (
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] opacity-55">Starting from</p>
-      )}
+      {kicker(tier.from ? "Starting from" : null)}
       <p className="flex flex-wrap items-baseline gap-x-1.5">
         <span className={`${big} font-semibold leading-none tracking-[-0.03em] tabular-nums`} style={display}>
           {formatPrice(currency, tier.price)}
@@ -173,7 +186,7 @@ function TierCard({
         )}
       </div>
       <div className="relative mt-5">
-        <Price tier={tier} currency={currency} display={display} size="lg" />
+        <Price tier={tier} currency={currency} display={display} size="lg" reserve />
       </div>
       {tier.summary?.trim() && (
         <p className={`relative mt-3 text-[14px] leading-relaxed ${skin.muted}`}>{tier.summary}</p>

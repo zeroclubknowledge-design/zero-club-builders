@@ -36,6 +36,8 @@ import { ZeroGiftPaymentOption, zeroGiftBalanceQueryKey } from "@/components/Zer
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { supabase } from "@/lib/supabase";
 
+import { confirmCard } from "@/components/ConfirmCard";
+import { CardSelect } from "@/components/CardSelect";
 /* ───────────────────────── shared bits ───────────────────────── */
 
 const rpc = async <T,>(name: string, args?: Record<string, unknown>): Promise<T> => {
@@ -280,10 +282,10 @@ export function BootcampDetailsEditor({ bootcamp, onSaved }: { bootcamp: any; on
             </div>
             <div>
               <span className={label}>Level</span>
-              <select value={level} onChange={(e) => setLevel(e.target.value)} className={field}>
+              <CardSelect value={level} onChange={(e) => setLevel(e.target.value)} className={field}>
                 <option value="">Not set</option>
                 {Object.entries(LEVEL_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
+              </CardSelect>
             </div>
             <div><span className={label}>Duration</span><input value={duration} onChange={(e) => setDuration(e.target.value)} maxLength={40} placeholder={formatKind === "workshop" ? "e.g. 2 days" : "e.g. 12 weeks"} className={field} /></div>
             <div><span className={label}>Hours per week</span><input value={hours} onChange={(e) => setHours(e.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="e.g. 6" className={field} /></div>
@@ -401,7 +403,7 @@ export function BootcampSchedule({ bootcampId, canManage, isEnrolled }: { bootca
             <div className="mt-2 flex flex-wrap gap-3 text-[12.5px] font-semibold">
               <button type="button" onClick={() => setRosterFor(s)} className="text-[#cc208f]">Attendance</button>
               {!isPast && <button type="button" onClick={() => cancel.mutate(s)} className="text-muted-foreground">{s.status === "cancelled" ? "Restore" : "Cancel class"}</button>}
-              <button type="button" onClick={() => confirm("Remove this class from the schedule?") && remove.mutate(s)} className="text-muted-foreground">Remove</button>
+              <button type="button" onClick={async () => (await confirmCard("Remove this class from the schedule?")) && remove.mutate(s)} className="text-muted-foreground">Remove</button>
             </div>
           )}
         </div>
@@ -483,10 +485,10 @@ function AddSessionSheet({ open, onOpenChange, bootcampId, onSaved }: { open: bo
       <div className="space-y-3">
         <div><span className={label}>Title</span><input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="e.g. Intro to APIs" className={field} /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><span className={label}>Type</span><select value={kind} onChange={(e) => setKind(e.target.value)} className={field}>{Object.entries(KIND_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
+          <div><span className={label}>Type</span><CardSelect value={kind} onChange={(e) => setKind(e.target.value)} className={field}>{Object.entries(KIND_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</CardSelect></div>
           <div><span className={label}>Length (minutes)</span><input value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={field} /></div>
           <div><span className={label}>Date and time</span><input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={field} /></div>
-          <div><span className={label}>Repeat weekly for</span><select value={repeat} onChange={(e) => setRepeat(e.target.value)} className={field}>{[1, 2, 4, 6, 8, 10, 12, 16, 24].map((n) => <option key={n} value={n}>{n === 1 ? "Just once" : `${n} weeks`}</option>)}</select></div>
+          <div><span className={label}>Repeat weekly for</span><CardSelect value={repeat} onChange={(e) => setRepeat(e.target.value)} className={field}>{[1, 2, 4, 6, 8, 10, 12, 16, 24].map((n) => <option key={n} value={n}>{n === 1 ? "Just once" : `${n} weeks`}</option>)}</CardSelect></div>
         </div>
         <div><span className={label}>Meeting link (optional)</span><input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Leave empty to use Zero Club live class" className={field} /></div>
         <div><span className={label}>What's covered (optional)</span><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={area} /></div>
@@ -613,7 +615,7 @@ export function BootcampReplays({ bootcampId, canManage, isEnrolled }: { bootcam
                 <p className="text-[12.5px] text-muted-foreground">{fmtDate(r.created_at, false)}{r.watched ? " · Watched" : ""}</p>
               </button>
               {r.watched && <CheckCircle2 className="h-4 w-4 shrink-0 text-[#1a7f4b]" />}
-              {canManage && <button type="button" aria-label="Remove replay" onClick={() => confirm("Remove this replay?") && remove.mutate(r)} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05]"><Trash2 className="h-4 w-4" /></button>}
+              {canManage && <button type="button" aria-label="Remove replay" onClick={async () => (await confirmCard("Remove this replay?")) && remove.mutate(r)} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05]"><Trash2 className="h-4 w-4" /></button>}
             </div>
           ))}
         </div>
@@ -744,7 +746,7 @@ export function CertificatesManager({ bootcamp }: { bootcamp: any }) {
       <Sheet open={open} onOpenChange={setOpen} title="Progress & certificates" description="Progress comes from classes attended and replays watched. Certificates get a public check link learners can add to LinkedIn." icon={<Award className="h-5 w-5" />}>
         <div className="flex items-end gap-2 rounded-2xl bg-foreground/[0.04] p-3">
           <div className="flex-1"><span className={label}>Minimum attendance</span>
-            <select value={minAttendance} onChange={(e) => setMinAttendance(e.target.value)} className={field}>{[0, 50, 60, 70, 80, 90].map((n) => <option key={n} value={n}>{n === 0 ? "No minimum" : `${n}%`}</option>)}</select>
+            <CardSelect value={minAttendance} onChange={(e) => setMinAttendance(e.target.value)} className={field}>{[0, 50, 60, 70, 80, 90].map((n) => <option key={n} value={n}>{n === 0 ? "No minimum" : `${n}%`}</option>)}</CardSelect>
           </div>
           <button type="button" disabled={issue.isPending} onClick={() => issue.mutate(null)} className={primaryBtn}>{issue.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Issue to all eligible</button>
         </div>
@@ -1159,7 +1161,7 @@ export function PassEditor({ ownerId }: { ownerId: string }) {
           <div><span className={label}>Name</span><input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} className={field} /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><span className={label}>Price</span><input value={price} onChange={(e) => setPrice(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={field} /></div>
-            <div><span className={label}>Valid for</span><select value={days} onChange={(e) => setDays(e.target.value)} className={field}>{[[30, "1 month"], [90, "3 months"], [180, "6 months"], [365, "1 year"], [730, "2 years"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
+            <div><span className={label}>Valid for</span><CardSelect value={days} onChange={(e) => setDays(e.target.value)} className={field}>{[[30, "1 month"], [90, "3 months"], [180, "6 months"], [365, "1 year"], [730, "2 years"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</CardSelect></div>
           </div>
           <div><span className={label}>Description (optional)</span><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={area} /></div>
           <label className="flex items-center gap-2 text-[14px] font-semibold"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="h-5 w-5 accent-[#cc208f]" /> On sale</label>

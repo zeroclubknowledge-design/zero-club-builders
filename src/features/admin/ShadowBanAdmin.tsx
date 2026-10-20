@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { EyeOff, Loader2, Search } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 
+import { confirmCard } from "@/components/ConfirmCard";
 /**
  * Shadow bans: the account keeps using Zero Club, but its posts and comments
  * are seen only by itself (and admins). Each time it posts it's told so and
@@ -68,10 +69,10 @@ export function ShadowBanAdmin() {
       </div>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           if (!username.trim()) return;
-          if (!confirm(`Shadow ban @${username.trim().replace(/^@/, "")}? Their posts will be hidden from everyone else.`)) return;
+          if (!(await confirmCard(`Shadow ban @${username.trim().replace(/^@/, "")}? Their posts will be hidden from everyone else.`))) return;
           ban.mutate();
         }}
         className="mt-4 grid gap-2 md:grid-cols-[1fr_1.4fr_auto]"
@@ -112,7 +113,7 @@ export function ShadowBanAdmin() {
                 <button
                   type="button"
                   disabled={lift.isPending}
-                  onClick={() => confirm(`Lift the shadow ban on @${b.username}?`) && lift.mutate(b.username)}
+                  onClick={async () => (await confirmCard(`Lift the shadow ban on @${b.username}?`)) && lift.mutate(b.username)}
                   className="h-9 shrink-0 rounded-full border border-border px-3.5 text-[13px] font-semibold hover:bg-foreground/[0.04] disabled:opacity-50"
                 >
                   Unban

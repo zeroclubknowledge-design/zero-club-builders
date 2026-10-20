@@ -35,6 +35,7 @@ interface CommentDrawerProps {
 
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 
+import { confirmCard } from "@/components/ConfirmCard";
 const commentCache = new Map<string, { comments: any[]; cachedAt: number }>();
 type CommentSort = "top" | "newest";
 
@@ -377,7 +378,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
 
   const handleDeleteComment = async (comment: any) => {
     if (!currentUser || currentUser.id !== comment.profile_id) return;
-    if (!window.confirm("Delete this comment? This cannot be undone.")) return;
+    if (!(await confirmCard("Delete this comment? This cannot be undone."))) return;
 
     const deletedIds = new Set<string>([String(comment.id)]);
     let foundChild = true;

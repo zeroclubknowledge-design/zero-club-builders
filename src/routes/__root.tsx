@@ -394,6 +394,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 import { Toaster } from "sonner";
 import { ShareSheetHost } from "@/components/ShareSheet";
+import { ConfirmCardHost } from "@/components/ConfirmCard";
 import { OpenInAppBar } from "@/components/OpenInAppBar";
 import { IncomingCallHost } from "@/features/calls/IncomingCallHost";
 import { setupMultiAccountSync } from "@/lib/multiAccount";
@@ -484,6 +485,7 @@ function RootComponent() {
           <ClientOnlyIncomingCalls />
         </div>
         <ShareSheetHost />
+        <ConfirmCardHost />
         <OpenInAppBar />
         <Toaster 
           position="top-center" 

@@ -15,6 +15,7 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { ProjectChallengeStrip, useChallengeBadges } from "@/features/challenges/ProjectChallenge";
 import { OpenChallengesList } from "@/features/challenges/OpenChallengesList";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/zerohub")({
   component: ZeroHubPage,
 });
@@ -112,7 +113,7 @@ function ZeroHubPage() {
     if (!currentUser?.id) return toast.error('Sign in to use this project.');
     const price = Number(project.license_price || 0);
     const rights = licenseLabel[project.license_type] || licenseLabel.standard;
-    if (price > 0 && !window.confirm(`Acquire ${rights.toLowerCase()} for ${price.toLocaleString()} Coins?`)) return;
+    if (price > 0 && !(await confirmCard(`Acquire ${rights.toLowerCase()} for ${price.toLocaleString()} Coins?`))) return;
 
     setAcquiringId(project.id);
     try {

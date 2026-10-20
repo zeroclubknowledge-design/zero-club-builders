@@ -50,6 +50,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/institution-studio/")({
   component: InstitutionHub,
 });
@@ -320,7 +321,7 @@ function InstitutionHub() {
   };
 
   const handleRemoveTutor = async (tutorId: string) => {
-    if (!confirm("Remove this tutor from your organization?")) return;
+    if (!(await confirmCard("Remove this tutor from your organization?"))) return;
     const { error } = await supabase
       .from("institution_tutors")
       .delete()
@@ -516,7 +517,7 @@ function InstitutionHub() {
       toast.error("Only the bootcamp creator can delete this bootcamp.");
       return;
     }
-    if (!confirm("Delete this bootcamp permanently?")) return;
+    if (!(await confirmCard("Delete this bootcamp permanently?"))) return;
     const { error } = await supabase
       .from("bootcamps")
       .delete()

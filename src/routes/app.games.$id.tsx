@@ -10,6 +10,7 @@ import { WordsRaceBoard } from "@/features/games/WordsRaceBoard";
 import { formatGameTime, getGameName, profileName, type ZeroGameCompetition, type ZeroGamePlayer, type ZeroGamePresence, type ZeroGameReward } from "@/features/games/zeroGames";
 import { toast } from "sonner";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/games/$id")({
   component: ZeroGameCompetitionPage,
 });
@@ -182,9 +183,9 @@ function ZeroGameCompetitionPage() {
     if (!profileId || profileId === profile?.id) return;
     navigate({ to: `/app/chat/${profileId}` });
   };
-  const removePlayer = (player: ZeroGamePlayer) => {
+  const removePlayer = async (player: ZeroGamePlayer) => {
     const name = profileName(player.profile);
-    if (!window.confirm(`Remove ${name} from this competition? Their seat will become available again.`)) return;
+    if (!(await confirmCard(`Remove ${name} from this competition? Their seat will become available again.`))) return;
     void runAction(
       `remove:${player.profile_id}`,
       () => supabase.rpc("remove_absent_zero_game_player", {

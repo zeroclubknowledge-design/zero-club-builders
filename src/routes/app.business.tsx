@@ -44,6 +44,7 @@ import {
 import { CardSelect } from "@/components/CardSelect";
 import { InstitutionOnboardingDrawer } from "@/components/InstitutionOnboardingDrawer";
 
+import { confirmCard } from "@/components/ConfirmCard";
 type Tab = "overview" | "hiring" | "talent" | "sponsor" | "team" | "page";
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -603,7 +604,7 @@ function Team() {
                 ) : (
                   <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11.5px] font-semibold text-emerald-600">Active</span>
                 )}
-                <button type="button" onClick={() => { if (confirm(`Remove ${m.full_name || m.username} from your team?`)) remove.mutate(m.member_id); }} aria-label="Remove" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-rose-600"><X className="h-4 w-4" /></button>
+                <button type="button" onClick={async () => { if ((await confirmCard(`Remove ${m.full_name || m.username} from your team?`))) remove.mutate(m.member_id); }} aria-label="Remove" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-rose-600"><X className="h-4 w-4" /></button>
               </div>
 
               {m.status === "active" && (

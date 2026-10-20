@@ -41,6 +41,7 @@ import {
   type RateTier,
 } from "./rates";
 
+import { CardSelect } from "@/components/CardSelect";
 const PINK = "#cc208f";
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -253,7 +254,7 @@ export function RateCardEditor({
           value={card!.note || ""}
           maxLength={RATE_TEXT.note}
           onChange={(e) => write({ note: e.target.value })}
-          placeholder="e.g. 50% deposit to start · prices exclude VAT"
+          placeholder="e.g. 50% deposit to start"
           className={field}
         />
       </div>
@@ -375,7 +376,7 @@ function TierEditor({
                     aria-label="Price"
                     className="h-full min-w-0 flex-1 bg-transparent px-1 text-[22px] font-semibold tabular-nums tracking-tight outline-none placeholder:text-muted-foreground/40"
                   />
-                  <select
+                  <CardSelect
                     value={tier.unit}
                     onChange={(e) => onChange({ unit: e.target.value as RateTier["unit"] })}
                     aria-label="Charged"
@@ -386,7 +387,7 @@ function TierEditor({
                         {RATE_UNIT_LABEL[u]}
                       </option>
                     ))}
-                  </select>
+                  </CardSelect>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <PillToggle
@@ -408,7 +409,7 @@ function TierEditor({
                 <textarea
                   value={tier.summary || ""}
                   maxLength={RATE_TEXT.summary}
-                  rows={2}
+                  rows={3}
                   onChange={(e) => onChange({ summary: e.target.value })}
                   placeholder="Who it's for and what they get"
                   className={`${field} h-auto resize-none py-2.5 leading-relaxed`}

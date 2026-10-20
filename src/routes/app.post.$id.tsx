@@ -55,6 +55,7 @@ import { JoinToInteract } from "@/components/JoinToInteract";
 import { fetchPostComments } from "@/features/comments/api";
 import { notifyMentionedUsers } from "@/lib/mentions";
 
+import { confirmCard } from "@/components/ConfirmCard";
 // Query data is undefined while replies are loading. A fallback created inline
 // (`data: postComments = []`) is a different array on every render; because the
 // reply-sync effect depends on it and writes another array to state, slower
@@ -499,7 +500,7 @@ function PostDetail() {
 
   const handleDeleteComment = async (comment: any) => {
     if (!currentUser || currentUser.id !== comment.profile_id) return;
-    if (!window.confirm("Delete this comment? This cannot be undone.")) return;
+    if (!(await confirmCard("Delete this comment? This cannot be undone."))) return;
 
     const deletedIds = new Set<string>([String(comment.id)]);
     let foundChild = true;
@@ -588,7 +589,7 @@ function PostDetail() {
 
   async function handleDeletePost() {
     if (!currentUser || currentUser.id !== post.author_id) return;
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    if (!(await confirmCard("Are you sure you want to delete this post?"))) return;
 
     try {
       const { error } = await supabase.from("posts").delete().eq("id", post.id);

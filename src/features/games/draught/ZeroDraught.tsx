@@ -25,6 +25,7 @@ import {
 } from "./api";
 import { DraughtBoard } from "./DraughtBoard";
 
+import { CardSelect } from "@/components/CardSelect";
 const primary =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#ff4fc3] px-5 text-sm font-bold text-[#190c20] disabled:opacity-40";
 const secondary =
@@ -279,7 +280,7 @@ export function ZeroDraught({
                   <h3 className="text-lg font-bold">Single player</h3>
                   <label className="my-3 flex items-center justify-between gap-3 text-sm text-white/60">
                     Computer strength
-                    <select
+                    <CardSelect
                       aria-label="Computer strength"
                       value={difficulty}
                       onChange={(e) => setDifficulty(Number(e.target.value))}
@@ -288,7 +289,7 @@ export function ZeroDraught({
                       <option value={1}>Easy</option>
                       <option value={3}>Balanced</option>
                       <option value={4}>Challenging</option>
-                    </select>
+                    </CardSelect>
                   </label>
                   <button
                     onClick={() => onNavigate(undefined, "solo")}

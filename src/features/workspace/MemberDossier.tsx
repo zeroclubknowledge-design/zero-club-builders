@@ -33,6 +33,7 @@ import { describePost, postImages } from "@/features/portfolio/parse";
 import { getLevelFromXp } from "@/lib/utils";
 import { ROLE_LABEL, staffLabel, workspaceApi, type WorkspaceRole } from "./api";
 
+import { confirmCard } from "@/components/ConfirmCard";
 const PINK = "#cc208f";
 
 export function MemberDossier({
@@ -302,7 +303,7 @@ export function MemberDossier({
                   <button
                     type="button"
                     disabled={remove.isPending}
-                    onClick={() => confirm(`Remove ${name} from the team? They lose access to the workspace.`) && remove.mutate()}
+                    onClick={async () => (await confirmCard(`Remove ${name} from the team? They lose access to the workspace.`)) && remove.mutate()}
                     className="h-11 w-full rounded-full border border-rose-500/30 text-[14px] font-semibold text-rose-600 transition hover:bg-rose-500/[0.06]"
                   >
                     {m?.status === "invited" ? "Withdraw invitation" : "Remove from team"}

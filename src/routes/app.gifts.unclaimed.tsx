@@ -9,6 +9,7 @@ import { copyToClipboard, giftLinkUrl } from "@/lib/share";
 import { ShareMenu } from "@/components/ShareMenu";
 import { toast } from "sonner";
 
+import { confirmCard } from "@/components/ConfirmCard";
 /**
  * The gifts you created: the ones still collecting claims, and everything that
  * has finished one way or another.
@@ -211,13 +212,13 @@ function GiftCampaignsPage() {
             <button
               type="button"
               disabled={close.isPending}
-              onClick={() => {
+              onClick={async () => {
                 if (
-                  window.confirm(
+                  (await confirmCard(
                     card.funding_source === "platform"
                       ? "Close remaining claims? Claimed gifts keep their original expiry. Sponsored value is not refunded to your wallet."
                       : "Close remaining claims and return their value to your wallet? Claimed gifts keep their original expiry.",
-                  )
+                  ))
                 )
                   close.mutate(card.id);
               }}

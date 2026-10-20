@@ -28,6 +28,7 @@ import { GroupAvatar, PersonAvatar } from "@/features/groups/components";
 import { PollCard, PollComposer } from "@/features/groups/Poll";
 import { GroupInfoSheet } from "@/features/groups/GroupInfoSheet";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/chat/g/$groupId")({
   component: GroupChatPage,
 });
@@ -576,10 +577,10 @@ function GroupChatPage() {
                       danger
                       icon={<Trash2 className="h-4 w-4" />}
                       label={mineMsg ? "Delete for everyone" : `Remove ${who}'s message`}
-                      onClick={() => {
+                      onClick={async () => {
                         const id = actionsFor.id;
                         setActionsFor(null);
-                        if (confirm(mineMsg ? "Delete this message for everyone?" : `Remove ${who}'s message for everyone? They'll see it was removed.`)) {
+                        if ((await confirmCard(mineMsg ? "Delete this message for everyone?" : `Remove ${who}'s message for everyone? They'll see it was removed.`))) {
                           void removeMessage(id).catch((e) => toast.error(e.message));
                         }
                       }}

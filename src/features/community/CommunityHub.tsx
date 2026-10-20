@@ -48,6 +48,8 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { compressImage, COVER_IMAGE } from "@/lib/imageCompression";
 import { supabase } from "@/lib/supabase";
 
+import { confirmCard } from "@/components/ConfirmCard";
+import { CardSelect } from "@/components/CardSelect";
 /*
  * A club is a community. Its home works like a Teams workspace — Home,
  * Announcements, Meetings, Cohorts, Members, Teaching staff — and the chat
@@ -586,8 +588,8 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
         <div className="shrink-0 border-t border-border px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           <button
             type="button"
-            onClick={() => {
-              if (confirm(`Leave ${h.club.name}? You'll also leave its cohorts.`)) leave.mutate();
+            onClick={async () => {
+              if ((await confirmCard(`Leave ${h.club.name}? You'll also leave its cohorts.`))) leave.mutate();
             }}
             className="flex h-10 w-full items-center gap-2.5 rounded-[10px] px-3 text-[13.5px] font-medium text-muted-foreground hover:bg-foreground/[0.04] hover:text-rose-600"
           >
@@ -1030,7 +1032,7 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
                         <button
                           type="button"
                           aria-label="Remove"
-                          onClick={() => confirm("Remove this announcement?") && remove.mutate(a)}
+                          onClick={async () => (await confirmCard("Remove this announcement?")) && remove.mutate(a)}
                           className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05]"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1283,7 +1285,7 @@ function MeetingsView({ h, onBack }: { h: Hub; onBack: () => void }) {
                   onCancel={h.me.admin ? () => cancel.mutate(m) : undefined}
                   onRemove={
                     h.me.admin
-                      ? () => confirm("Remove this meeting?") && remove.mutate(m)
+                      ? async () => (await confirmCard("Remove this meeting?")) && remove.mutate(m)
                       : undefined
                   }
                 />
@@ -1411,14 +1413,14 @@ function NewMeetingSheet({
         </div>
         <div>
           <span className={label}>Who it's for</span>
-          <select value={cohort} onChange={(e) => setCohort(e.target.value)} className={field}>
+          <CardSelect value={cohort} onChange={(e) => setCohort(e.target.value)} className={field}>
             <option value="">The whole club</option>
             {h.cohorts.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
-          </select>
+          </CardSelect>
         </div>
         <div>
           <span className={label}>Meeting link (optional)</span>
@@ -1931,7 +1933,7 @@ function CohortSheet({
         {!cohort && mode === "bootcamp" && (
           <div>
             <span className={label}>Bootcamp</span>
-            <select
+            <CardSelect
               value={bootcamp}
               onChange={(e) => setBootcamp(e.target.value)}
               className={field}
@@ -1942,7 +1944,7 @@ function CohortSheet({
                   {b.title}
                 </option>
               ))}
-            </select>
+            </CardSelect>
             {!myBootcamps.isLoading && !(myBootcamps.data || []).length && (
               <p className="mt-1 text-[12px] text-muted-foreground">
                 You don't run a bootcamp yet. Create one in Bootcamps first.
@@ -2127,8 +2129,8 @@ function MembersView({ h, onBack }: { h: Hub; onBack: () => void }) {
                       <button
                         type="button"
                         aria-label="Remove"
-                        onClick={() =>
-                          confirm(`Remove ${nameOf(m.profiles)} from the club and its cohorts?`) &&
+                        onClick={async () =>
+                          (await confirmCard(`Remove ${nameOf(m.profiles)} from the club and its cohorts?`)) &&
                           remove.mutate(m)
                         }
                         className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05]"
@@ -2232,8 +2234,8 @@ function StaffView({ h, onBack }: { h: Hub; onBack: () => void }) {
                   {h.me.admin && !s.is_owner && s.username && (
                     <button
                       type="button"
-                      onClick={() =>
-                        confirm(`Remove ${nameOf(s)} from the staff?`) &&
+                      onClick={async () =>
+                        (await confirmCard(`Remove ${nameOf(s)} from the staff?`)) &&
                         set.mutate({ u: s.username!, on: false })
                       }
                       className="text-muted-foreground"

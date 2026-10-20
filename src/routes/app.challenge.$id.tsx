@@ -63,6 +63,7 @@ import {
   useCountdown,
 } from "@/features/challenges/ui";
 
+import { confirmCard, promptCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/challenge/$id")({
   validateSearch: (s: Record<string, unknown>) => ({
     created: typeof s.created === "string" ? s.created : undefined,
@@ -726,7 +727,7 @@ function MyEntry({
             type="button"
             disabled={busy}
             onClick={async () => {
-              if (!window.confirm("Withdraw your entry? You can enter again before the deadline."))
+              if (!(await confirmCard("Withdraw your entry? You can enter again before the deadline.")))
                 return;
               setBusy(true);
               try {
@@ -962,9 +963,14 @@ function EntryCard({
                 <button
                   type="button"
                   onClick={async () => {
-                    const reason = window.prompt(
-                      "Why is this entry disqualified? The entrant will see this.",
-                    );
+                    const reason = await promptCard({
+                      title: "Disqualify this entry?",
+                      message: "Tell the entrant why. They will see this.",
+                      placeholder: "Reason",
+                      multiline: true,
+                      confirmLabel: "Disqualify",
+                      maxLength: 500,
+                    });
                     if (!reason) return;
                     try {
                       await disqualifyEntry(e.id, reason);

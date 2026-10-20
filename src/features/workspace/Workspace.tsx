@@ -64,6 +64,7 @@ import {
   type WorkspacePerson,
 } from "./api";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export type WorkspaceSection =
   | "home"
   | "announcements"
@@ -381,8 +382,8 @@ function WorkspaceNav({ w, active, channelId, go }: { w: Workspace; active: Work
         ) : (
           <button
             type="button"
-            onClick={() => {
-              if (confirm(`Leave ${w.org.name}? You'll lose access to its channels, meetings and programmes.`)) leave.mutate();
+            onClick={async () => {
+              if ((await confirmCard(`Leave ${w.org.name}? You'll lose access to its channels, meetings and programmes.`))) leave.mutate();
             }}
             className="flex h-10 w-full items-center gap-2.5 rounded-[10px] px-3 text-[13.5px] font-medium text-muted-foreground hover:bg-foreground/[0.04] hover:text-rose-600"
           >
@@ -710,7 +711,7 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
             <button
               type="button"
               onClick={async () => {
-                if (!confirm(`Archive #${channel.name}? Its messages stay saved, but it leaves the sidebar.`)) return;
+                if (!(await confirmCard(`Archive #${channel.name}? Its messages stay saved, but it leaves the sidebar.`))) return;
                 try {
                   await workspaceApi.archiveChannel(channel.id);
                   void queryClient.invalidateQueries({ queryKey: ["workspace", w.org.id] });
@@ -931,7 +932,7 @@ function MeetingRow({ m, orgId, compact, onEdit }: { m: WorkspaceMeeting; orgId:
             {!compact && m.can_manage && (
               <>
                 <button type="button" onClick={() => onEdit?.(m)} className="ml-auto text-[12.5px] font-semibold text-muted-foreground hover:text-foreground">Edit</button>
-                <button type="button" onClick={() => confirm("Cancel this meeting for everyone?") && cancel.mutate()} className="text-[12.5px] font-semibold text-muted-foreground hover:text-rose-600">Cancel</button>
+                <button type="button" onClick={async () => (await confirmCard("Cancel this meeting for everyone?")) && cancel.mutate()} className="text-[12.5px] font-semibold text-muted-foreground hover:text-rose-600">Cancel</button>
               </>
             )}
           </div>

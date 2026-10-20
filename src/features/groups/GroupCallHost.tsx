@@ -30,6 +30,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useGroupCall, type GroupCallSession } from "./GroupCallContext";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 
+import { confirmCard } from "@/components/ConfirmCard";
 /*
  * Group voice/video call for private group chats.
  *
@@ -329,7 +330,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   const byUid = useMemo(() => callPeopleByUid(people, members), [people, members]);
   const leave = async (endForEveryone = false) => {
     if (leavingRef.current) return;
-    if (endForEveryone && !window.confirm("End this call for everyone?")) return;
+    if (endForEveryone && !(await confirmCard("End this call for everyone?"))) return;
     leavingRef.current = true; setLeaving(true);
     try {
       const { data, error } = await supabase.rpc("group_call_leave_v2" as any, { p_group: groupId, p_started_at: startedAt, p_end_for_everyone: endForEveryone, p_connection: callConnection.current } as any).abortSignal(AbortSignal.timeout(10_000));

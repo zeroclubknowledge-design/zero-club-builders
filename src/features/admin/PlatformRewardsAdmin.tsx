@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { ZERO_GAMES, type ZeroGameKey } from "@/features/games/v2/catalog";
 
+import { confirmCard } from "@/components/ConfirmCard";
 type RewardRow = {
   id: string;
   kind: "tournament_prize" | "direct_reward";
@@ -206,7 +207,7 @@ function GrantReward({ money }: { money: (n: number) => string }) {
   const send = async () => {
     if (!member || !valid) return;
     const label = type === "funds" ? money(n) : `${n.toLocaleString()} ZP`;
-    if (!window.confirm(`Send ${label} from Zero Club to ${member.full_name || member.username}?\n\nReason: ${reason.trim()}`)) return;
+    if (!(await confirmCard(`Send ${label} from Zero Club to ${member.full_name || member.username}?\n\nReason: ${reason.trim()}`))) return;
     setBusy(true);
     try {
       const { data, error } = await supabase.rpc("admin_grant_reward", { p_profile: member.id, p_type: type, p_amount: n, p_reason: reason.trim() });

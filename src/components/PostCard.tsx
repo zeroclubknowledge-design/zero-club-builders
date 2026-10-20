@@ -42,6 +42,7 @@ import { getFirstName } from "@/lib/utils";
 import { useFollow } from "@/hooks/useFollow";
 import { SignalDots, SignalSummary, usePostSignal, useRecordView, SIGNAL_COPY } from "@/features/postSignal/signal";
 
+import { confirmCard } from "@/components/ConfirmCard";
 interface PostCardProps {
   post: any;
   currentUser?: any;
@@ -337,7 +338,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    if (!(await confirmCard("Are you sure you want to delete this post?"))) return;
 
     try {
       const { error } = await supabase.from("posts").delete().eq("id", post.id);

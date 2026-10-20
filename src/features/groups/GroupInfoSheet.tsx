@@ -14,6 +14,7 @@ import {
 } from "./api";
 import { GroupAvatar, PeoplePicker, PersonAvatar } from "./components";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export function GroupInfoSheet({
   open, onOpenChange, group, members, myId, onStartCall,
 }: {
@@ -153,7 +154,7 @@ export function GroupInfoSheet({
                 </div>
                 {isAdmin && (
                   <div className="flex gap-2 px-4 pb-3">
-                    <button type="button" disabled={busy === "reset"} onClick={() => { if (confirm("Reset the link? The old one will stop working.")) void run("reset", () => resetInvite(group.id), "New link created"); }} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-foreground/[0.06] text-[13px] font-semibold">
+                    <button type="button" disabled={busy === "reset"} onClick={async () => { if ((await confirmCard("Reset the link? The old one will stop working."))) void run("reset", () => resetInvite(group.id), "New link created"); }} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-foreground/[0.06] text-[13px] font-semibold">
                       <RefreshCw className="h-3.5 w-3.5" /> Reset link
                     </button>
                     <button type="button" disabled={busy === "link"} onClick={() => void run("link", () => updateGroup(group.id, { inviteEnabled: false }), "Invite link turned off")} className="h-9 flex-1 rounded-full bg-foreground/[0.06] text-[13px] font-semibold">
@@ -209,7 +210,7 @@ export function GroupInfoSheet({
                   <button
                     type="button"
                     disabled={busy === `rm-${m.profile_id}`}
-                    onClick={() => { if (confirm(`Remove ${displayName(m.profile)} from the group?`)) void run(`rm-${m.profile_id}`, () => removeMember(group.id, m.profile_id)); }}
+                    onClick={async () => { if ((await confirmCard(`Remove ${displayName(m.profile)} from the group?`))) void run(`rm-${m.profile_id}`, () => removeMember(group.id, m.profile_id)); }}
                     title="Remove"
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-rose-500 hover:bg-rose-500/10"
                   >
@@ -243,8 +244,8 @@ export function GroupInfoSheet({
           <button
             type="button"
             disabled={busy === "leave"}
-            onClick={() => {
-              if (!confirm(isOwner && members.length > 1 ? "Leave the group? Ownership passes to the next admin." : "Leave this group?")) return;
+            onClick={async () => {
+              if (!(await confirmCard(isOwner && members.length > 1 ? "Leave the group? Ownership passes to the next admin." : "Leave this group?"))) return;
               void run("leave", async () => {
                 await leaveGroup(group.id);
                 onOpenChange(false);

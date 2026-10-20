@@ -22,6 +22,7 @@ import {
 } from "@/features/games/v2/api";
 import { CardSelect } from "@/components/CardSelect";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/games/play/$game")({
   validateSearch: (search: Record<string, unknown>): { t?: string; code?: string } => ({
     t: typeof search.t === "string" ? search.t : undefined,
@@ -192,8 +193,8 @@ function PlayGame() {
     void complete(score, `${found.length} of ${board.words.length} words · ${formatGameTime(seconds)}`, { total: board.words.length, found: found.length });
   };
 
-  const quit = () => {
-    if (!window.confirm(tournamentId ? "Leave this run? It will count as 0." : "Leave this game?")) return;
+  const quit = async () => {
+    if (!(await confirmCard(tournamentId ? "Leave this run? It will count as 0." : "Leave this game?"))) return;
     if (tournamentId && runRef.current) {
       void finishRun(runRef.current, 0, { quit: true }).catch(() => undefined);
       runRef.current = null;

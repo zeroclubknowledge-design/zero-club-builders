@@ -5,6 +5,7 @@ import { BadgeCheck, Check, ExternalLink, Loader2, MapPin, Search, X } from "@/c
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { supabase } from "@/lib/supabase";
 
+import { confirmCard } from "@/components/ConfirmCard";
 /*
  * Admin → Ambassadors: review ZeroStart "Zero Ambassador" applications and
  * manage the people already approved. Everything goes through the same
@@ -378,7 +379,7 @@ function Roster() {
                 {row.status !== "removed" && (
                   <button
                     disabled={busyId === row.profile_id}
-                    onClick={() => { if (confirm(`Remove ${row.display_name} as a Zero Ambassador?`)) void update(row, { status: "removed" }); }}
+                    onClick={async () => { if ((await confirmCard(`Remove ${row.display_name} as a Zero Ambassador?`))) void update(row, { status: "removed" }); }}
                     className="h-8 rounded-full bg-rose-500/10 px-3 text-[12px] font-semibold text-rose-600 disabled:opacity-50"
                   >
                     Remove

@@ -17,6 +17,7 @@ import {
   type BoostGoal, type BoostPayment, type MyBoost,
 } from "@/features/boost/api";
 
+import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/boost")({
   validateSearch: (search: Record<string, unknown>) => ({
     post: typeof search.post === "string" ? search.post : undefined,
@@ -486,7 +487,7 @@ function MyBoosts({ query, onNew }: { query: { data?: MyBoost[]; isLoading: bool
                   </button>
                   <button
                     disabled={busyId === b.id}
-                    onClick={() => { if (confirm("Stop this boost? Unclaimed rewards will be returned to you.")) void act(b.id, () => stopBoost(b.id), "Boost stopped. Unused budget returned."); }}
+                    onClick={async () => { if ((await confirmCard("Stop this boost? Unclaimed rewards will be returned to you."))) void act(b.id, () => stopBoost(b.id), "Boost stopped. Unused budget returned."); }}
                     className="h-9 rounded-full bg-foreground px-3 text-[12.5px] font-semibold text-background disabled:opacity-50"
                   >
                     Stop
