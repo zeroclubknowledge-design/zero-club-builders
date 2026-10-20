@@ -338,8 +338,8 @@ function PlayGame() {
   if (game === "space" || board?.kind === "space") {
     return (
       <div className="fixed inset-0 z-[60] bg-[#0b0618]">
-        <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top + (tournamentId ? 0 : 80)} controls={spaceControls} />}</SafeTop>
-        {!tournamentId && <SpaceSupplyTray key={runKey} controls={spaceControls} onShop={() => { spaceControls.current?.pause(true); setMarketOpen(true); }} />}
+        <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top + 80} controls={spaceControls} />}</SafeTop>
+        <SpaceSupplyTray key={runKey} controls={spaceControls} onShop={() => { spaceControls.current?.pause(true); setMarketOpen(true); }} />
         <button onClick={quit} aria-label="Leave game" className="absolute bottom-[calc(env(safe-area-inset-bottom)+14px)] right-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
           <X className="h-5 w-5" />
         </button>

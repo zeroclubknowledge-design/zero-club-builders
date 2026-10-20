@@ -122,7 +122,7 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
           </p>
           <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Space marketplace</h1>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/60">
-            Stock up with Zero Points. Activate your supplies when you need them during a practice
+            Stock up with Zero Points. Activate your supplies when you need them during any
             run. Each activation uses one item.
           </p>
         </div>
@@ -195,7 +195,7 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
                 {tab === "inventory" ? (
                   <p className="mt-5 rounded-xl bg-white/[0.06] p-3 text-sm text-white/70">
                     {owned
-                      ? `${owned} ready to use · tap its icon during practice`
+                      ? `${owned} ready to use · tap its icon during a run`
                       : "No supplies yet. Get one from the shop."}
                   </p>
                 ) : (
@@ -255,7 +255,7 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
         </div>
         <p className="mt-5 text-xs leading-relaxed text-white/45">
           Supplies stay in your account until used. Pickups remain free in every run. Purchased
-          supplies are for practice; tournaments use the same pickups for everyone.
+          supplies can be activated in practice and tournaments.
           {market.data?.administrator ? " Zero Club admin supplies are complimentary." : ""}
         </p>
         <button
@@ -305,7 +305,7 @@ export function SpaceSupplyTray({
     <div
       className="absolute left-2 right-2 mx-auto max-w-[720px] top-[calc(env(safe-area-inset-top)+8px)]"
       role="group"
-      aria-label="Practice supplies"
+      aria-label="Space tools"
     >
       <div
         className="grid gap-1 overflow-x-auto rounded-2xl bg-[#140c1d]/95 p-1 no-scrollbar"

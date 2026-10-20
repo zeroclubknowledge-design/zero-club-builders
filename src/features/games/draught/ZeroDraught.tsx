@@ -579,10 +579,11 @@ function Rules() {
     <details className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
       <summary className="cursor-pointer text-sm font-bold">How to play</summary>
       <ul className="mt-3 space-y-2 text-sm leading-relaxed text-white/60">
-        <li>English-style draughts on an 8×8 board. Red starts.</li>
+        <li>8×8 draughts with flying kings. Red starts.</li>
         <li>
-          Men move and capture diagonally forward. Kings move in either direction: one square
-          normally, or two when jumping a piece.
+          Men move and capture diagonally forward. Kings move any distance along a clear diagonal.
+          To capture, cross one opponent and land on an empty square beyond it. Kings cannot
+          cross friendly pieces or two opponents in one jump.
         </li>
         <li>
           Captures are mandatory. Continue a chain with the same piece when another jump is

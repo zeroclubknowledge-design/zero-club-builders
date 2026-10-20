@@ -15,7 +15,7 @@ test('Draught starts with 12 pieces each and legal computer moves',()=>{
  assert.equal(draughtMoves(start.board,1).length,7);
  const computer=chooseComputerMove(start,3);assert.ok(draughtMoves(start.board,1).some(m=>m.from===computer.from&&m.to===computer.to));
 });
-test('mandatory captures, chained jumps, short kings and crown-ending turns',()=>{
+test('mandatory captures, chained jumps and crown-ending turns',()=>{
  let state=position([[17,1],[26,-1],[44,-1],[60,-1],[1,1]]);
  assert.deepEqual(plain(draughtMoves(state.board,1)),[{from:17,to:35,capture:26}]);
  assert.throws(()=>moveDraught(state,1,8),/legal move/);
@@ -24,7 +24,20 @@ test('mandatory captures, chained jumps, short kings and crown-ending turns',()=
  state=position([[40,1],[49,-1],[51,-1],[7,-1]]);
  state=moveDraught(state,40,58);assert.equal(state.board[58],2);assert.equal(state.turn,-1);assert.equal(state.forced,null);
  assert.ok(draughtMoves(state.board,1).some(m=>m.from===58&&m.to===44&&m.capture===51));
- assert.ok(!draughtMoves(position([[35,2]]).board,1).some(m=>Math.abs(m.to-m.from)>9));
+ assert.ok(draughtMoves(position([[35,2]]).board,1).some(m=>m.to===7));
+});
+
+test('flying kings move along clear diagonals and have every landing beyond an opponent',()=>{
+ const clear=draughtMoves(position([[35,2]]).board,1);
+ assert.ok(clear.some(m=>m.to===7));assert.ok(clear.some(m=>m.to===8));assert.ok(clear.some(m=>m.to===62));
+ assert.ok(!clear.some(m=>m.to===39));
+ assert.deepEqual(plain(draughtMoves(position([[56,2],[35,-1]]).board,1)),[28,21,14,7].map(to=>({from:56,to,capture:35})));
+ assert.deepEqual(plain(draughtMoves(position([[56,2],[35,-1],[14,-1]]).board,1)),[28,21].map(to=>({from:56,to,capture:35})));
+ assert.deepEqual(plain(draughtMoves(position([[56,2],[35,1]]).board,1)).filter(m=>m.from===56),[49,42].map(to=>({from:56,to,capture:null})));
+ let state=position([[56,2],[35,-1],[19,-2]]);
+ state=moveDraught(state,56,28);assert.equal(state.forced,28);assert.equal(state.turn,1);assert.equal(state.board[35],0);
+ assert.deepEqual(plain(draughtMoves(state.board,1,state.forced)),[10,1].map(to=>({from:28,to,capture:19})));
+ state=moveDraught(state,28,1);assert.equal(state.winner,1);assert.equal(state.board[19],0);
 });
 test('wins and draws cannot be played past',()=>{
  let state=moveDraught(position([[17,1],[26,-1]]),17,35);assert.equal(state.winner,1);assert.throws(()=>moveDraught(state,35,42),/ended/);
@@ -46,6 +59,7 @@ test('Multiplayer rules, clocks, privacy and retries in PostgreSQL',async t=>{
   create table zero_tournament_runs(id uuid primary key default gen_random_uuid(),tournament_id uuid references zero_tournaments(id));
   insert into zero_tournament_runs(tournament_id) select id from zero_tournaments;`);
   const migration=read('supabase/migrations/20261019170000_zero_draught.sql');await db.exec(migration);await db.exec(migration);
+  const flyingKings=read('supabase/migrations/20261020120000_flying_draught_kings.sql');await db.exec(flyingKings);await db.exec(flyingKings);
   const as=async id=>db.query("select set_config('test.uid',$1,false)",[id||'']);
   const act=async(id,room,action,payload={},req=request())=>{await as(id);return (await db.query('select zero_draught_action($1,$2,$3,$4) result',[room,action,JSON.stringify(payload),req])).rows[0].result;};
   const snapshot=async(id,room)=>{await as(id);return (await db.query('select zero_draught_room($1) result',[room])).rows[0].result;};
@@ -88,6 +102,16 @@ test('Multiplayer rules, clocks, privacy and retries in PostgreSQL',async t=>{
    await db.query("update zero_draught_rooms set board=$2,turn=1,forced=null,status='active',winner=null,red_ms=600000,black_ms=600000,moved_at=now() where id=$1",[room,state.board]);
    const snap=await snapshot(alice,room);await act(alice,room,'move',{from:40,to:58,version:snap.room.version});
    const next=await snapshot(bob,room);assert.equal(next.room.board[58],2);assert.equal(next.room.turn,-1);assert.equal(next.room.forced,null);
+  });
+  await t.test('server accepts long king jumps and enforces their continuation',async()=>{
+   const state=position([[56,2],[35,-1],[19,-2]]);
+   await db.query("update zero_draught_rooms set board=$2,turn=1,forced=null,status='active',winner=null,red_ms=600000,black_ms=600000,moved_at=now() where id=$1",[room,state.board]);
+   let snap=await snapshot(alice,room);assert.deepEqual(snap.moves,plain(draughtMoves(state.board,1)));
+   await act(alice,room,'move',{from:56,to:28,version:snap.room.version});
+   snap=await snapshot(alice,room);assert.equal(snap.room.forced,28);assert.equal(snap.room.board[35],0);
+   await assert.rejects(act(alice,room,'move',{from:28,to:7,version:snap.room.version}),/Illegal/);
+   await act(alice,room,'move',{from:28,to:1,version:snap.room.version});
+   snap=await snapshot(alice,room);assert.equal(snap.room.winner,alice);assert.equal(snap.room.board[19],0);
   });
   await t.test('repetition and the 40-move rule end server games as draws',async()=>{
    for(const repetition of [false,true]) {

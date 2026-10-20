@@ -40,6 +40,23 @@ export function draughtMoves(
       col = from % 8;
     for (const dr of Math.abs(piece) === 2 ? [-1, 1] : [turn])
       for (const dc of [-1, 1]) {
+        if (Math.abs(piece) === 2) {
+          let captured: number | null = null;
+          for (let distance = 1; distance < 8; distance++) {
+            const r = row + dr * distance,
+              c = col + dc * distance;
+            if (r < 0 || r > 7 || c < 0 || c > 7) break;
+            const to = r * 8 + c;
+            if (board[to]) {
+              // A flying king can cross one opponent per jump, never a friendly
+              // piece or a second occupied square before landing.
+              if (captured !== null || Math.sign(board[to]) === turn) break;
+              captured = to;
+            } else if (captured !== null) captures.push({ from, to, capture: captured });
+            else if (forced === null) steps.push({ from, to, capture: null });
+          }
+          continue;
+        }
         const r = row + dr,
           c = col + dc;
         if (r < 0 || r > 7 || c < 0 || c > 7) continue;
@@ -90,6 +107,7 @@ export function moveDraught(state: DraughtState, from: number, to: number): Drau
 
 export function chooseComputerMove(state: DraughtState, depth = 3): DraughtMove | undefined {
   const side = state.turn;
+  let nodes = 0;
   const evaluate = (s: DraughtState) =>
     s.winner
       ? s.winner === side
@@ -110,7 +128,8 @@ export function chooseComputerMove(state: DraughtState, depth = 3): DraughtMove 
             0,
           );
   const search = (s: DraughtState, remaining: number, alpha: number, beta: number): number => {
-    if (remaining === 0 || s.winner || s.draw) return evaluate(s);
+    // Flying kings have many landing choices. Bound the search on phones.
+    if (++nodes >= 6000 || remaining === 0 || s.winner || s.draw) return evaluate(s);
     const maximizing = s.turn === side;
     let best = maximizing ? -Infinity : Infinity;
     for (const move of draughtMoves(s.board, s.turn, s.forced)) {
