@@ -581,7 +581,8 @@ function Rules() {
       <ul className="mt-3 space-y-2 text-sm leading-relaxed text-white/60">
         <li>8×8 draughts with flying kings. Red starts.</li>
         <li>
-          Men move and capture diagonally forward. Kings move any distance along a clear diagonal.
+          Ordinary pieces move diagonally forward and can capture both forwards and backwards.
+          Kings move any distance along a clear diagonal.
           To capture, cross one opponent and land on an empty square beyond it. Kings cannot
           cross friendly pieces or two opponents in one jump.
         </li>

@@ -7,6 +7,7 @@ After the existing Zero Space marketplace and Zero Quest migrations, apply these
 1. `supabase/migrations/20261019160000_space_fuel_enhancers.sql`
 2. `supabase/migrations/20261019170000_zero_draught.sql`
 3. `supabase/migrations/20261020120000_flying_draught_kings.sql`
+4. `supabase/migrations/20261020130000_draught_backward_captures.sql`
 
 Deploy the updated application. No new external service or API key is required. The Draught migration adds its table to the existing Supabase realtime publication when available; a three-second refresh also keeps matches synchronized if realtime is unavailable.
 
@@ -22,7 +23,7 @@ Open **Zero Games → Zero Draught** or `/app/games/draught`.
 
 - Solo: play Zero Bot at Easy, Balanced or Challenging strength. The board is saved per account on the same device and resumes across reloads.
 - Multiplayer: create an invitation or join a 12-character code. The match starts when the second player joins. Red moves first; each player has a ten-minute clock. Clocks continue when the page is closed. Returning to the match does not resign or restart it.
-- Rules: 8×8 draughts with flying kings, compulsory captures, continued jumps with the same piece, kings moving any distance along clear diagonals, and promotion ending the turn. A king captures by crossing one opposing piece and landing on any clear square beyond it; friendly pieces and a second occupied square block the path. Capture chains can change diagonal direction. Threefold repetition or forty full moves without a capture or a man moving result in a draw. Players can also offer a draw or resign.
+- Rules: 8×8 draughts with flying kings, ordinary pieces capturing forwards or backwards while moving forward normally, compulsory captures, continued jumps with the same piece, kings moving any distance along clear diagonals, and promotion ending the turn. A king captures by crossing one opposing piece and landing on any clear square beyond it; friendly pieces and a second occupied square block the path. Capture chains can change diagonal direction. Threefold repetition or forty full moves without a capture or a man moving result in a draw. Players can also offer a draw or resign.
 - Multiplayer moves, turn ownership, captures, promotion, clocks and final results are checked on the server. Request identifiers prevent a retried move from running twice. Casual Draught matches do not issue XP, ZP or wallet funds; Zero Quest's existing win rewards are unchanged.
 
 ## Avatars and retired game

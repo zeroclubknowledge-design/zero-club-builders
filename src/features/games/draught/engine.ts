@@ -38,7 +38,7 @@ export function draughtMoves(
     if (Math.sign(piece) !== turn || (forced !== null && from !== forced)) continue;
     const row = Math.floor(from / 8),
       col = from % 8;
-    for (const dr of Math.abs(piece) === 2 ? [-1, 1] : [turn])
+    for (const dr of [-1, 1])
       for (const dc of [-1, 1]) {
         if (Math.abs(piece) === 2) {
           let captured: number | null = null;
@@ -61,7 +61,8 @@ export function draughtMoves(
           c = col + dc;
         if (r < 0 || r > 7 || c < 0 || c > 7) continue;
         const near = r * 8 + c;
-        if (!board[near] && forced === null) steps.push({ from, to: near, capture: null });
+        if (!board[near] && forced === null && dr === turn)
+          steps.push({ from, to: near, capture: null });
         const r2 = row + dr * 2,
           c2 = col + dc * 2;
         if (

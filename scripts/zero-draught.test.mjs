@@ -46,6 +46,21 @@ test('wins and draws cannot be played past',()=>{
  assert.equal(moveDraught(state,1,8).draw,true);
 });
 
+test('ordinary pieces capture backwards on both sides without moving backwards freely',()=>{
+ for(const [state,from,to,capture] of [[position([[35,1],[26,-1]]),35,17,26],[position([[28,-1],[37,1]],-1),28,46,37]]) {
+  assert.deepEqual(plain(draughtMoves(state.board,state.turn)),[{from,to,capture}]);
+  assert.deepEqual(plain(chooseComputerMove(state,3)),{from,to,capture});
+  const next=moveDraught(state,from,to);assert.equal(next.board[capture],0);assert.equal(next.board[to],state.turn);
+ }
+ const red=position([[35,1]]);assert.ok(draughtMoves(red.board,1).every(m=>m.to>m.from));assert.throws(()=>moveDraught(red,35,26),/legal move/);
+ const black=position([[28,-1]],-1);assert.ok(draughtMoves(black.board,-1).every(m=>m.to<m.from));assert.throws(()=>moveDraught(black,28,35),/legal move/);
+ assert.ok(!draughtMoves(position([[35,1],[26,-1],[17,1]]).board,1).some(m=>m.from===35&&m.to===17));
+ let chain=moveDraught(position([[17,1],[26,-1],[28,-1]]),17,35);
+ assert.equal(chain.turn,1);assert.equal(chain.forced,35);
+ assert.deepEqual(plain(draughtMoves(chain.board,1,35)),[{from:35,to:21,capture:28}]);
+ chain=moveDraught(chain,35,21);assert.equal(chain.winner,1);
+});
+
 test('Multiplayer rules, clocks, privacy and retries in PostgreSQL',async t=>{
  const db=new PGlite();const alice='00000000-0000-0000-0000-000000000001',bob='00000000-0000-0000-0000-000000000002',eve='00000000-0000-0000-0000-000000000003';let seq=0;
  const request=()=>`10000000-0000-0000-0000-${String(++seq).padStart(12,'0')}`;
@@ -60,6 +75,7 @@ test('Multiplayer rules, clocks, privacy and retries in PostgreSQL',async t=>{
   insert into zero_tournament_runs(tournament_id) select id from zero_tournaments;`);
   const migration=read('supabase/migrations/20261019170000_zero_draught.sql');await db.exec(migration);await db.exec(migration);
   const flyingKings=read('supabase/migrations/20261020120000_flying_draught_kings.sql');await db.exec(flyingKings);await db.exec(flyingKings);
+  const backward=read('supabase/migrations/20261020130000_draught_backward_captures.sql');await db.exec(backward);await db.exec(backward);
   const as=async id=>db.query("select set_config('test.uid',$1,false)",[id||'']);
   const act=async(id,room,action,payload={},req=request())=>{await as(id);return (await db.query('select zero_draught_action($1,$2,$3,$4) result',[room,action,JSON.stringify(payload),req])).rows[0].result;};
   const snapshot=async(id,room)=>{await as(id);return (await db.query('select zero_draught_room($1) result',[room])).rows[0].result;};
@@ -121,6 +137,22 @@ test('Multiplayer rules, clocks, privacy and retries in PostgreSQL',async t=>{
     const snap=await snapshot(alice,room);await act(alice,room,'move',{from:1,to:8,version:snap.room.version});
     const result=await snapshot(bob,room);assert.equal(result.room.status,'finished');assert.equal(result.room.reason,'draw');assert.equal(result.room.winner,null);
    }
+   await db.query("update zero_draught_rooms set status='active',moved_at=now() where id=$1",[room]);
+  });
+  await t.test('server enforces backwards captures for both players and mixed-direction chains',async()=>{
+   for(const [state,from,to] of [[position([[35,1],[26,-1]]),35,17],[position([[28,-1],[37,1]],-1),28,46]]) {
+    await db.query("update zero_draught_rooms set board=$2,turn=$3,forced=null,status='active',winner=null,reason=null,red_ms=600000,black_ms=600000,moved_at=now() where id=$1",[room,state.board,state.turn]);
+    const snap=await snapshot(alice,room);assert.deepEqual(snap.moves,plain(draughtMoves(state.board,state.turn)));
+    await act(state.turn===1?alice:bob,room,'move',{from,to,version:snap.room.version});
+    assert.equal((await snapshot(alice,room)).room.winner,state.turn===1?alice:bob);
+   }
+   const state=position([[17,1],[26,-1],[28,-1]]);
+   await db.query("update zero_draught_rooms set board=$2,turn=1,forced=null,status='active',winner=null,reason=null,red_ms=600000,black_ms=600000,moved_at=now() where id=$1",[room,state.board]);
+   let snap=await snapshot(alice,room);await act(alice,room,'move',{from:17,to:35,version:snap.room.version});
+   snap=await snapshot(alice,room);assert.equal(snap.room.forced,35);
+   await assert.rejects(act(alice,room,'move',{from:35,to:42,version:snap.room.version}),/Illegal/);
+   await act(alice,room,'move',{from:35,to:21,version:snap.room.version});
+   assert.equal((await snapshot(alice,room)).room.winner,alice);
    await db.query("update zero_draught_rooms set status='active',moved_at=now() where id=$1",[room]);
   });
   await t.test('draws need opponent consent and timeout/resignation persist',async()=>{
