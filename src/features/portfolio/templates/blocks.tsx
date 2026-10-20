@@ -18,6 +18,7 @@ import { SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { experienceSpan, monthYear } from "@/features/profile/credentials";
 import { clip, describeItem, itemImages } from "../parse";
 import type { PortfolioItem } from "../types";
+import { RateCardBlock } from "./RateCard";
 import { AchievementIcon, achievementSource, ContactLink, WorkLinks, year, type View } from "./kit";
 
 export type Skin = {
@@ -362,6 +363,8 @@ export function SectionBody({
       return <ProofsBlock v={v} skin={skin} preview={preview} onOpen={onOpen} />;
     case "achievements":
       return <AchievementsBlock v={v} skin={skin} display={display} />;
+    case "rates":
+      return <RateCardBlock v={v} skin={skin} display={display} />;
     case "contact":
       return <ContactDetails v={v} skin={skin} />;
     default:

@@ -1,4 +1,5 @@
 import type { Certificate, Experience } from "@/features/profile/credentials";
+import type { RateCard } from "./rates";
 
 export const SECTION_KEYS = [
   "work",
@@ -9,6 +10,7 @@ export const SECTION_KEYS = [
   "certificates",
   "proofs",
   "achievements",
+  "rates",
   "contact",
 ] as const;
 export type PortfolioSectionKey = (typeof SECTION_KEYS)[number];
@@ -23,6 +25,7 @@ export const SECTION_LABELS: Record<PortfolioSectionKey, string> = {
   certificates: "Certificates",
   proofs: "Highlights",
   achievements: "Wins & awards",
+  rates: "Rate card",
   contact: "Contact",
 };
 
@@ -75,6 +78,8 @@ export type Portfolio = {
   hide_branding?: boolean;
   /** Server-computed: false only for PRO portfolios that turned branding off. */
   show_branding?: boolean;
+  /** What the owner charges. Free plans show one rate; PRO up to four tiers. */
+  rate_card?: RateCard | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -158,7 +163,14 @@ export function normaliseSections(raw: unknown): PortfolioSection[] {
     seen.add(key);
     out.push({ key, visible: (entry as any)?.visible !== false });
   }
-  for (const key of SECTION_KEYS) if (!seen.has(key)) out.push({ key, visible: true });
+  // A section added later lands where it belongs (before the next known one), not at the end.
+  SECTION_KEYS.forEach((key, index) => {
+    if (seen.has(key)) return;
+    const after = SECTION_KEYS.slice(index + 1);
+    const at = out.findIndex((s) => after.includes(s.key));
+    out.splice(at === -1 ? out.length : at, 0, { key, visible: true });
+    seen.add(key);
+  });
   return out;
 }
 

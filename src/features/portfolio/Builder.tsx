@@ -52,6 +52,8 @@ import { uploadFile } from "@/lib/storage";
 import { prepareLogoFile } from "./logo";
 import { recommendWork, toolsFrom } from "./recommend";
 import { portfolioStrength } from "./strength";
+import { RateCardEditor } from "./RateCardEditor";
+import { normaliseRateCard } from "./rates";
 import {
   ACCENTS,
   ACCENT_HEX,
@@ -117,15 +119,26 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
   const flush = useCallback(async () => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
-    const portfolioPatch = pendingPortfolio.current;
+    const { rate_card, ...portfolioPatch } = pendingPortfolio.current;
+    const hasRateCard = "rate_card" in pendingPortfolio.current;
     const itemPatches = [...pendingItems.current.entries()];
     pendingPortfolio.current = {};
     pendingItems.current = new Map();
-    if (!Object.keys(portfolioPatch).length && !itemPatches.length) return;
+    if (!Object.keys(portfolioPatch).length && !itemPatches.length && !hasRateCard) return;
     setSaveState("saving");
     try {
       await Promise.all([
         Object.keys(portfolioPatch).length ? updatePortfolio(portfolioId, portfolioPatch) : null,
+        // Saved on its own so a rate-card refusal never blocks the rest of the page.
+        hasRateCard
+          ? updatePortfolio(portfolioId, { rate_card: rate_card ?? null }).catch((error: any) => {
+              throw new Error(
+                String(error?.message || "").includes("PREMIUM_RATE_CARD_REQUIRED")
+                  ? "More than one rate needs PRO. Your first rate is saved."
+                  : error?.message || "Could not save your rate card",
+              );
+            })
+          : null,
         ...itemPatches.map(([id, patch]) => updateItem(id, patch as any)),
       ]);
       setSaveState("saved");
@@ -321,7 +334,11 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
     <PortfolioRenderer
       data={{
         ...draft,
-        portfolio: { ...draft.portfolio, template: previewTemplate },
+        portfolio: {
+          ...draft.portfolio,
+          template: previewTemplate,
+          premium_active: Boolean(draft.portfolio.premium_active) || canPremium,
+        },
         items: [...draft.items].sort(
           (a, b) => Number(b.featured) - Number(a.featured) || a.sort_order - b.sort_order,
         ),
@@ -541,6 +558,26 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
               skills={draft.portfolio.skills}
               suggestions={suggestedSkills}
               onChange={(skills) => patchPortfolio({ skills })}
+            />
+          </Card>
+
+          {/* Rate card */}
+          <Card
+            title="Rate card"
+            action={
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${
+                  canPremium ? "bg-[#cc208f]/12 text-[#cc208f]" : "bg-foreground/[0.06] text-muted-foreground"
+                }`}
+              >
+                {canPremium ? "Pro · up to 4 tiers" : "Basic · 1 rate"}
+              </span>
+            }
+          >
+            <RateCardEditor
+              value={normaliseRateCard(draft.portfolio.rate_card)}
+              premium={canPremium}
+              onChange={(rate_card) => patchPortfolio({ rate_card })}
             />
           </Card>
 

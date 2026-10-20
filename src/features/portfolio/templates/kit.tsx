@@ -20,6 +20,7 @@ import {
   type PortfolioSectionKey,
   type PublicPortfolio,
 } from "../types";
+import { normaliseRateCard, visibleTiers } from "../rates";
 
 export type TemplateProps = {
   data: PublicPortfolio;
@@ -93,6 +94,7 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
     certificates: certificates.length > 0,
     proofs: proofs.length > 0,
     achievements: achievements.length > 0,
+    rates: visibleTiers(normaliseRateCard(portfolio.rate_card), Boolean(portfolio.premium_active)).length > 0,
     // Anyone can be messaged on Zero Club, so contact always has somewhere to go.
     contact: true,
   };
@@ -649,6 +651,7 @@ const NAV_LABEL: Partial<Record<PortfolioSectionKey, string>> = {
   skills: "Skills",
   proofs: "Highlights",
   achievements: "Wins",
+  rates: "Rates",
   learning: "Learning",
   certificates: "Credentials",
 };

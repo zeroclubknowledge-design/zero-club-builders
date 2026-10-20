@@ -29,6 +29,17 @@ import { BrightTemplate } from "./templates/Bright";
 import { GalleryTemplate } from "./templates/Gallery";
 import { achievementSource, BrandMark, contactOf, portfolioView, RailArrows, ShippedWork, showsBranding, TemplateStyles, year } from "./templates/kit";
 import { Trophy } from "@/components/icons/glyphs";
+import { RateCardBlock } from "./templates/RateCard";
+import { normaliseRateCard, visibleTiers } from "./rates";
+
+const MINIMAL_SKIN = {
+  card: "rounded-3xl border border-white/[0.08] bg-white/[0.025]",
+  muted: "text-white/70",
+  faint: "text-white/45",
+  chip: "border border-white/10 bg-white/[0.03] text-white/80",
+  line: "border-white/[0.08]",
+  tile: "bg-white/[0.06] text-white/70",
+};
 
 /**
  * Zero Minimal: the portfolio template.
@@ -99,6 +110,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
     certificates: certificates.length > 0,
     proofs: proofs.length > 0,
     achievements: (data.achievements || []).length > 0,
+    rates: visibleTiers(normaliseRateCard(portfolio.rate_card), Boolean(portfolio.premium_active)).length > 0,
     // Anyone can be messaged on Zero Club, so contact always has somewhere to go.
     contact: true,
   };
@@ -334,6 +346,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
                 ))}
               </ul>
             )}
+            {section.key === "rates" && <RateCardBlock v={view} skin={MINIMAL_SKIN} />}
             {section.key === "contact" && (
               <div className="rounded-3xl border border-white/[0.07] bg-white/[0.025] p-6 @2xl:p-8">
                 <p className="text-[22px] font-semibold tracking-tight @2xl:text-[28px]">
