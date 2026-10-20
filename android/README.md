@@ -197,3 +197,28 @@ Both need to be reachable.
 **Rotation is locked / unlocked unexpectedly.** `orientation` in
 `twa-manifest.json` is `default` on purpose, so live video rooms and games can
 rotate. Setting it to `portrait` hard-locks the whole app.
+
+---
+
+## Notifications that pop over other apps
+
+Web-push notifications reach Android through the app's `DelegationService`.
+Out of the box it posts them on an `IMPORTANCE_DEFAULT` channel: sound and a
+status-bar icon, but no banner over other apps. `scripts/build-android.mjs`
+injects `android/native/HeadsUpNotifications.java` into the generated
+`DelegationService`, which posts every notification on a new
+`IMPORTANCE_HIGH` channel ("Messages and activity", id
+`zc_alerts_heads_up`) so it drops down over whatever app is open, like
+WhatsApp. The old default channels are removed.
+
+- The channel id is new because Android never lets an app raise an existing
+  channel's importance. Don't rename it casually: a new id resets everyone's
+  per-channel settings.
+- Ship it as a version bump (`npm run android:build -- --release patch`) so
+  installed apps update.
+- Some phone brands (Xiaomi/HyperOS, Tecno, Infinix, Oppo…) turn "floating" or
+  "pop-up" notifications off for new apps. Only the person can switch that on:
+  Settings → Notifications → Zero Club → allow floating / pop-up.
+- While Zero Club is open on screen, `src/sw.ts` skips the system banner for
+  push types the in-app pop card already shows, so nobody gets two cards.
+

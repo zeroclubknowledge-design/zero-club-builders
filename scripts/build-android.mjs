@@ -63,6 +63,31 @@ import {
   warn,
 } from "./lib/android-env.mjs";
 
+/**
+ * Notifications that pop over other apps (Android "heads-up").
+ *
+ * The generated DelegationService posts every web-push notification on an
+ * IMPORTANCE_DEFAULT channel, which Android never shows as a banner. The
+ * methods in android/native/HeadsUpNotifications.java move them onto an
+ * IMPORTANCE_HIGH channel; they are injected into the generated class here,
+ * so whatever Bubblewrap puts in that class (feature handlers) is kept.
+ */
+async function injectHeadsUpNotifications() {
+  const manifest = JSON.parse(await readFile(TWA_MANIFEST, "utf8"));
+  const file = path.join(WORK_DIR, "app", "src", "main", "java", ...String(manifest.packageId).split("."), "DelegationService.java");
+  if (!(await exists(file))) {
+    warn("DelegationService.java not found; notifications will not pop over other apps");
+    return;
+  }
+  const source = await readFile(file, "utf8");
+  if (source.includes("ZC_ALERTS_CHANNEL_ID")) return;
+  const methods = await readFile(path.join(ROOT, "android", "native", "HeadsUpNotifications.java"), "utf8");
+  const end = source.lastIndexOf("}");
+  if (end === -1) fail("Unexpected DelegationService.java: no closing brace");
+  await writeFile(file, `${source.slice(0, end)}\n${methods}\n}\n`, "utf8");
+  log("Notifications use a high-importance channel, so they pop over other apps");
+}
+
 /** Pinned so a Bubblewrap release cannot change the output of a reproducible build. */
 const BUBBLEWRAP_VERSION = process.env.BUBBLEWRAP_VERSION ?? "1.25.0";
 
@@ -279,6 +304,8 @@ function assertToolPathsAreShellSafe({ jdkPath, androidSdkPath }) {
  *    OS and Meta Quest read this resource to offer the web version of the app.
  */
 async function patchGeneratedProject(iconOrigin) {
+  await injectHeadsUpNotifications();
+
   const rootGradle = path.join(WORK_DIR, "build.gradle");
   if (await exists(rootGradle)) {
     const original = await readFile(rootGradle, "utf8");
@@ -507,7 +534,15 @@ async function main() {
       return;
     }
 
-    const cli = `@bubblewrap/cli@${BUBBLEWRAP_VERSION}`;
+    // The CLI asks for @bubblewrap/core ^1.25, which now resolves to a release
+    // that pulls androidbrowserhelper 2.7 (minSdk 24) and fails the build for
+    // our minSdk 21. Installing core at the same pinned version alongside the
+    // CLI keeps the generated project identical to earlier releases.
+    const cli = [
+      `--package=@bubblewrap/cli@${BUBBLEWRAP_VERSION}`,
+      `--package=@bubblewrap/core@${BUBBLEWRAP_VERSION}`,
+      "bubblewrap",
+    ];
     const common = [
       `--manifest=${manifestPath}`,
       `--directory=${WORK_DIR}`,
@@ -520,7 +555,7 @@ async function main() {
     // shell: true because npx is npx.cmd on Windows and Node will not spawn a
     // .cmd directly. run() quotes each argument, so paths containing spaces
     // (like "New Zero Club APK") survive cmd.exe re-splitting the command line.
-    await run("npx", ["--yes", cli, "update", "--skipVersionUpgrade", ...common], {
+    await run("npx", ["--yes", ...cli, "update", "--skipVersionUpgrade", ...common], {
       cwd: WORK_DIR,
       shell: true,
     });
@@ -532,7 +567,7 @@ async function main() {
       "npx",
       [
         "--yes",
-        cli,
+        ...cli,
         "build",
         "--skipPwaValidation",
         ...(skipSigning ? ["--skipSigning"] : []),

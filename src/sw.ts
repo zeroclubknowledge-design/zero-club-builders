@@ -166,10 +166,25 @@ self.addEventListener('push', (event) => {
     ]
   };
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title || 'Zero Club', options)
-  );
+  event.waitUntil((async () => {
+    // System notifications now drop down over other apps (Android heads-up).
+    // While Zero Club itself is open and on screen, the in-app pop card already
+    // shows these, so skip the system banner instead of showing two cards.
+    // Club and group messages, calls and game buzzes have no in-app card and
+    // always show.
+    if (SHOWN_IN_APP.has(payload.type)) {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      if (windows.some((w) => (w as WindowClient).visibilityState === 'visible' && (w as WindowClient).focused)) return;
+    }
+    await self.registration.showNotification(payload.title || 'Zero Club', options);
+  })());
 });
+
+/** Push types the in-app pop card (IncomingNotificationCard) also shows. */
+const SHOWN_IN_APP = new Set([
+  'message', 'like', 'comment_like', 'comment', 'follow', 'repost', 'mention',
+  'club_mention', 'build_tagged', 'gig', 'system', 'notification',
+]);
 
 // Handle user clicking the notification: open exactly what it was about.
 //
