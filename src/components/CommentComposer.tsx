@@ -14,6 +14,7 @@ import { LinkifiedText } from "@/components/LinkifiedText";
 import { toast } from "sonner";
 import { useDraftMedia } from "@/hooks/useDraftMedia";
 
+import { ComposerSlot } from "@/components/ComposerSlot";
 type CommentComposerProps = {
   storageKey?: string | null;
   value: string;
@@ -209,7 +210,9 @@ export function CommentComposer({
           className="block max-h-[132px] min-h-[44px] w-full min-w-0 resize-none bg-transparent px-1.5 py-[11px] text-[16px] leading-[22px] outline-none no-scrollbar placeholder:text-muted-foreground"
         />
 
-        <div className="flex shrink-0 items-center gap-1">
+        {/* Voice note and options on the right; while writing they fold away
+            and only Send shows, so the comment gets the room. */}
+        <ComposerSlot show={!hasContent} className="gap-1">
           <button type="button" onClick={toggleRecording} title={isRecording ? "Stop recording" : "Record voice note"} className={`grid h-11 place-items-center rounded-full transition active:scale-95 ${isRecording ? "min-w-16 grid-cols-[auto_auto] gap-1.5 bg-red-500 px-3 text-white" : "w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"}`}>
             {isRecording ? <><Square className="h-4 w-4 fill-current" /><span className="text-[12px] font-semibold tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-[22px] w-[22px]" />}
           </button>
@@ -224,10 +227,12 @@ export function CommentComposer({
               <DropdownMenuItem onSelect={() => videoRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </ComposerSlot>
+        <ComposerSlot show={hasContent}>
           <button type="button" onClick={() => void submit()} disabled={loading || !hasContent} aria-label="Post comment" className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${hasContent ? "bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]" : "text-muted-foreground"}`}>
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
           </button>
-        </div>
+        </ComposerSlot>
       </div>
     </div>
   );

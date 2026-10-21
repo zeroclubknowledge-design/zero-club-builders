@@ -29,6 +29,7 @@ import { PollCard, PollComposer } from "@/features/groups/Poll";
 import { GroupInfoSheet } from "@/features/groups/GroupInfoSheet";
 
 import { confirmCard } from "@/components/ConfirmCard";
+import { ComposerSlot } from "@/components/ComposerSlot";
 export const Route = createFileRoute("/app/chat/g/$groupId")({
   component: GroupChatPage,
 });
@@ -321,6 +322,9 @@ function GroupChatPage() {
       .map((m) => ({ id: m.profile_id, username: m.profile!.username!, full_name: m.profile!.full_name, avatar_url: m.profile!.avatar_url, badge: m.role === "member" ? null : m.role === "owner" ? "Owner" : "Admin" })),
   ];
 
+  // Something to send (text, files or an edit): tools fold away, Send shows.
+  const groupHasContent = Boolean(input.trim()) || files.length > 0 || Boolean(editing);
+
   return (
     <div className="zc-chat-panel fixed inset-0 z-[60] flex flex-col bg-background md:left-[var(--zc-sidebar-w,280px)] md:border-x md:border-border/60 xl:right-[336px]" style={{ height: "100dvh" }}>
       {/* Header */}
@@ -486,10 +490,13 @@ function GroupChatPage() {
                 ))}
               </div>
             )}
-            <div className="flex items-end gap-1.5 rounded-[28px] bg-card py-2 pl-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 ring-foreground/[0.07] focus-within:ring-[#cc208f]/40">
+            <div className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 ring-foreground/[0.07] transition-[padding] duration-200 focus-within:ring-[#cc208f]/40 ${groupHasContent ? "pl-4" : "pl-1.5"}`}>
+              {/* Options on the left, voice note on the right; both fold away
+                  while typing so only Send shows and the text gets the room. */}
+              <ComposerSlot show={!groupHasContent}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button type="button" aria-label="Attach" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"><Plus className="h-6 w-6" /></button>
+                  <button type="button" aria-label="Attach" title="Add attachment" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"><Paperclip className="h-[22px] w-[22px]" /></button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="top" align="start" className="z-[100] w-48">
                   <DropdownMenuItem onSelect={() => imageRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Photos & videos</DropdownMenuItem>
@@ -498,6 +505,7 @@ function GroupChatPage() {
                   <DropdownMenuItem onSelect={() => startCall()} className="gap-2.5"><Phone className="h-4 w-4" /> Group call</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </ComposerSlot>
               <input ref={imageRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={(e) => { setFiles((f) => [...f, ...Array.from(e.target.files || [])]); e.target.value = ""; }} />
               <input ref={fileRef} type="file" multiple className="hidden" onChange={(e) => { setFiles((f) => [...f, ...Array.from(e.target.files || [])]); e.target.value = ""; }} />
               <MentionField
@@ -522,15 +530,16 @@ function GroupChatPage() {
                 className="block w-full flex-1 resize-none border-0 bg-transparent py-[11px] text-[16px] leading-[22px] outline-none placeholder:text-muted-foreground no-scrollbar"
                 style={{ minHeight: 44, maxHeight: 132, height: 44 }}
               />
-              {!input.trim() && !files.length && !editing ? (
+              <ComposerSlot show={!groupHasContent}>
                 <button type="button" onClick={() => void toggleVoice()} aria-label={isRecording ? "Stop recording" : "Record a voice note"} className={`inline-flex h-11 shrink-0 items-center justify-center rounded-full active:scale-95 ${isRecording ? "min-w-16 bg-red-500 px-3 text-white" : "w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"}`}>
                   {isRecording ? <><Square className="h-4 w-4 fill-current" /><span className="ml-1.5 text-[12px] font-semibold tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}</span></> : <Mic className="h-[22px] w-[22px]" />}
                 </button>
-              ) : (
+              </ComposerSlot>
+              <ComposerSlot show={groupHasContent}>
                 <button type="button" disabled={sending} onClick={() => void send()} aria-label="Send" className="grid h-11 w-11 shrink-0 place-items-center rounded-full active:scale-95 bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]">
                   {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : editing ? <Check className="h-5 w-5" /> : <Send className="h-5 w-5" />}
                 </button>
-              )}
+              </ComposerSlot>
             </div>
           </>
         )}

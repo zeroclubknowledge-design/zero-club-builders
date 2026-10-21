@@ -36,6 +36,7 @@ import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useDraftMedia } from "@/hooks/useDraftMedia";
 
 import { confirmCard } from "@/components/ConfirmCard";
+import { ComposerSlot } from "@/components/ComposerSlot";
 // A stable loading fallback. Creating [] inside the useQuery destructure gives
 // the message-sync effect a new dependency on every render and can trigger
 // React's maximum-update-depth failure while a slow connection is still loading.
@@ -1311,6 +1312,9 @@ function ChatViewPage() {
     return d.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short', ...(d.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) });
   };
 
+  // Something to send (text, attachments or an edit): tools fold away, Send shows.
+  const composerHasContent = Boolean(input.trim()) || mediaFiles.length > 0 || Boolean(editingId);
+
   return (
     <div 
       className="zc-chat-panel fixed inset-x-0 z-[60] mx-auto flex max-w-none flex-col overflow-hidden bg-background md:border-x md:border-border/60 md:left-[var(--zc-sidebar-w,280px)] md:right-0 md:mx-0 md:max-w-none xl:right-[336px]"
@@ -1598,10 +1602,33 @@ function ChatViewPage() {
         {/* One container. The avatar used to sit outside the input, which read
             as two boxes side by side for what is a single action. */}
         <div
-          className={`flex items-end gap-1.5 rounded-[28px] bg-card py-2 pl-4 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 transition ${editingId ? "ring-success/40" : "ring-foreground/[0.07] focus-within:ring-[#cc208f]/40"}`}
+          className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 transition-[padding] duration-200 ${composerHasContent ? "pl-4" : "pl-1.5"} ${editingId ? "ring-success/40" : "ring-foreground/[0.07] focus-within:ring-[#cc208f]/40"}`}
           style={{ fontFamily: 'var(--font-sans)', "--font-button": 'var(--font-sans)' } as React.CSSProperties}
         >
-
+              <input 
+                type="file" 
+                ref={mediaInputRef} 
+                className="hidden" 
+                onChange={handleChatMediaUpload}
+                multiple
+                accept="image/*"
+              />
+              <input type="file" ref={videoInputRef} className="hidden" onChange={handleChatMediaUpload} multiple accept="video/*" />
+              <input type="file" ref={fileInputRef} className="hidden" onChange={handleChatMediaUpload} multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*" />
+            {/* Options on the left, voice note on the right; both fold away
+                while typing so only Send shows and the text gets the room. */}
+            <ComposerSlot show={!composerHasContent}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button title="Add attachment" className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"><Paperclip className="h-[22px] w-[22px]" /></button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" side="top" className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl">
+                  <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => fileInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </ComposerSlot>
             <MentionField
               people={otherUser?.username ? [{ id: otherUser.id, username: otherUser.username, full_name: otherUser.full_name, avatar_url: otherUser.avatar_url }] : []}
               peopleLabel="In this chat"
@@ -1626,17 +1653,7 @@ function ChatViewPage() {
               rows={1}
               style={{ minHeight: '44px', maxHeight: '132px', height: '44px' }}
             />
-            <div className="flex items-center gap-1 shrink-0">
-              <input 
-                type="file" 
-                ref={mediaInputRef} 
-                className="hidden" 
-                onChange={handleChatMediaUpload}
-                multiple
-                accept="image/*"
-              />
-              <input type="file" ref={videoInputRef} className="hidden" onChange={handleChatMediaUpload} multiple accept="video/*" />
-              <input type="file" ref={fileInputRef} className="hidden" onChange={handleChatMediaUpload} multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*" />
+            <ComposerSlot show={!composerHasContent}>
               <button
                 onClick={toggleVoiceRecording}
                 title={isRecording ? 'Stop recording' : 'Record voice note'}
@@ -1644,16 +1661,8 @@ function ChatViewPage() {
               >
                 {isRecording ? <><Square className="h-4 w-4 fill-current" /><span className="ml-1.5 text-[12px] font-semibold tabular-nums">{Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')}</span></> : <Mic className="h-[22px] w-[22px]" />}
               </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button title="Add attachment" className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"><Paperclip className="h-[22px] w-[22px]" /></button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" side="top" className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl">
-                  <DropdownMenuItem onSelect={() => mediaInputRef.current?.click()} className="gap-2.5"><Image className="h-4 w-4" /> Pictures</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="gap-2.5"><Film className="h-4 w-4" /> Video</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => fileInputRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            </ComposerSlot>
+            <ComposerSlot show={composerHasContent}>
               <button 
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && mediaFiles.length === 0) || sending}
@@ -1663,7 +1672,7 @@ function ChatViewPage() {
               >
                 {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : (editingId ? <Check className="h-5 w-5" /> : <Send className="h-5 w-5" />)}
               </button>
-            </div>
+            </ComposerSlot>
         </div>
       </ComposerOverlay>
     </div>

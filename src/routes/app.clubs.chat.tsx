@@ -3710,23 +3710,7 @@ function ClubChat() {
             onSend={(text) => handleSendMessage(text)}
             onTyping={notifyTyping}
             onStopTyping={stopTyping}
-            avatar={
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/30 text-sm font-bold text-muted-foreground">
-                {currentUserProfile?.avatar_url ? (
-                  <img
-                    src={currentUserProfile.avatar_url}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  (currentUserProfile?.full_name || currentUserProfile?.username || "U")
-                    .substring(0, 1)
-                    .toUpperCase()
-                )}
-              </div>
-            }
-            controls={
+            leading={
               <>
                 <input
                   type="file"
@@ -3752,23 +3736,6 @@ function ClubChat() {
                   multiple
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*"
                 />
-                <button
-                  onClick={toggleVoiceRecording}
-                  title={isRecording ? "Stop recording" : "Record voice note"}
-                  className={`relative inline-flex h-11 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? "min-w-16 bg-red-500 px-3 text-white" : "w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"}`}
-                >
-                  {isRecording ? (
-                    <>
-                      <Square className="h-4 w-4 fill-current" />
-                      <span className="ml-1.5 text-[12px] font-semibold tabular-nums">
-                        {Math.floor(recordingSeconds / 60)}:
-                        {String(recordingSeconds % 60).padStart(2, "0")}
-                      </span>
-                    </>
-                  ) : (
-                    <Mic className="h-[22px] w-[22px]" />
-                  )}
-                </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
@@ -3779,7 +3746,7 @@ function ClubChat() {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
-                    align="end"
+                    align="start"
                     side="top"
                     className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl"
                   >
@@ -3821,6 +3788,25 @@ function ClubChat() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
+            }
+            trailing={
+                <button
+                  onClick={toggleVoiceRecording}
+                  title={isRecording ? "Stop recording" : "Record voice note"}
+                  className={`relative inline-flex h-11 items-center justify-center rounded-full transition active:scale-95 ${isRecording ? "min-w-16 bg-red-500 px-3 text-white" : "w-11 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"}`}
+                >
+                  {isRecording ? (
+                    <>
+                      <Square className="h-4 w-4 fill-current" />
+                      <span className="ml-1.5 text-[12px] font-semibold tabular-nums">
+                        {Math.floor(recordingSeconds / 60)}:
+                        {String(recordingSeconds % 60).padStart(2, "0")}
+                      </span>
+                    </>
+                  ) : (
+                    <Mic className="h-[22px] w-[22px]" />
+                  )}
+                </button>
             }
           />
         </ComposerOverlay>

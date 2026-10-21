@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Send, Loader2 } from "@/components/icons/glyphs";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
+import { ComposerSlot } from "@/components/ComposerSlot";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { usePersistentDraft } from "@/lib/draftStorage";
 
@@ -22,6 +23,8 @@ export function ClubComposer({
   placeholder,
   hasMedia,
   controls,
+  leading,
+  trailing,
   onSend,
   members = [],
   avatar,
@@ -36,7 +39,15 @@ export function ClubComposer({
   placeholder: string;
   /** Media staged by the caller's controls — it counts as something to send. */
   hasMedia: boolean;
-  controls: ReactNode;
+  /** Tools beside Send, always shown (announcements). Ignored when `leading`/`trailing` are given. */
+  controls?: ReactNode;
+  /**
+   * Chat layout: tools on the left (options) and right (voice note). Both fold
+   * away while there is something to send, leaving only Send — so the text
+   * gets the width.
+   */
+  leading?: ReactNode;
+  trailing?: ReactNode;
   /** Resolve true when the message went through; the draft is kept otherwise. */
   onSend: (text: string) => Promise<boolean> | boolean;
   onTyping?: () => void;
@@ -126,6 +137,63 @@ export function ClubComposer({
       setSending(false);
     }
   };
+
+  const hasContent = Boolean(draft.trim()) || hasMedia;
+
+  if (leading !== undefined || trailing !== undefined)
+    return (
+      <div
+        className={`relative flex w-full items-end gap-1 rounded-[28px] border border-border bg-card py-2 pr-2 transition-[padding,border-color] duration-200 focus-within:border-primary/50 ${
+          hasContent || !leading ? "pl-3.5" : "pl-1.5"
+        }`}
+      >
+        {avatar}
+        {leading && <ComposerSlot show={!hasContent}>{leading}</ComposerSlot>}
+      <MentionField
+        ref={textareaRef as any}
+        value={draft}
+        people={mentionPeople}
+        peopleLabel={peopleLabel}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          readMentionQuery(event.target.value);
+          if (event.target.value.trim()) onTyping?.();
+          else onStopTyping?.();
+          event.target.style.height = "auto";
+          event.target.style.height = `${Math.min(event.target.scrollHeight, 132)}px`;
+        }}
+        onKeyDown={(event) => {
+          // An open tag list handles Enter itself, so Enter here is a real send.
+          if (isSendKey(event, enterToSend)) {
+            event.preventDefault();
+            void submit();
+          }
+        }}
+        enterKeyHint={enterToSend ? "send" : "enter"}
+        data-club-composer=""
+        placeholder={placeholder}
+        className="block w-full flex-1 resize-none bg-transparent py-[11px] text-[16px] leading-[22px] text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
+        rows={1}
+        style={{ minHeight: "44px", maxHeight: "132px", height: "44px" }}
+      />
+        {trailing && <ComposerSlot show={!hasContent}>{trailing}</ComposerSlot>}
+        <ComposerSlot show={hasContent}>
+          <button
+          type="button"
+          onClick={() => void submit()}
+          disabled={sending || (!draft.trim() && !hasMedia)}
+          aria-label={sendLabel}
+          className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${
+            draft.trim() || hasMedia
+              ? "bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]"
+              : "text-muted-foreground"
+          }`}
+        >
+          {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+        </button>
+        </ComposerSlot>
+      </div>
+    );
 
   return (
     <div className="relative flex w-full items-end gap-1.5 rounded-[28px] border border-border bg-card py-2 pl-2.5 pr-2 transition-colors focus-within:border-primary/50">

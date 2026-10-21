@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -82,6 +83,19 @@ function createRingtone() {
   };
 }
 
+/** After answering on pointer-down the card is gone before the finger lifts;
+    eat the click that follows so it can't land on the call screen beneath
+    (its hang-up button sits right there). */
+function swallowNextClick() {
+  const stop = (event: Event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.removeEventListener("click", stop, true);
+  };
+  window.addEventListener("click", stop, true);
+  window.setTimeout(() => window.removeEventListener("click", stop, true), 700);
+}
+
 function clearRingNotification(url?: string) {
   try {
     navigator.serviceWorker?.controller?.postMessage({ type: "STOP_RING", url: url ? new URL(url, location.origin).href : "" });
@@ -97,7 +111,9 @@ export function IncomingCallHost() {
   const myId = (me as { id?: string } | null | undefined)?.id;
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { session: groupSession } = useGroupCall();
+  const { session: groupSession, start: startGroupCall } = useGroupCall();
+  // One answer per ring: a double tap (or click after pointerdown) must not run it twice.
+  const answered = useRef<string | null>(null);
   const [rings, setRings] = useState<Ring[]>([]);
   const toneRef = useRef<ReturnType<typeof createRingtone> | null>(null);
   const [, tick] = useState(0);
@@ -187,14 +203,41 @@ export function IncomingCallHost() {
   if (!active) return null;
 
   const finish = (reason: "joined" | "declined") => {
+    if (answered.current === active.id) return false;
+    answered.current = active.id;
     setRings((list) => list.filter((r) => !(r.kind === active.kind && r.target_id === active.target_id)));
     clearRingNotification(active.url);
     void supabase.rpc("answer_call_ring" as never, { p_kind: active.kind, p_target: active.target_id, p_reason: reason } as never);
+    return true;
+  };
+
+  /*
+   * Join straight from the tap. A group call starts right here, inside the
+   * gesture (so audio and the microphone are allowed to start), and the call
+   * screen opens over the app; then we move to its page. Before, joining only
+   * navigated and relied on the call page to start the call afterwards, which
+   * looked like a dead button whenever that hop didn't happen.
+   */
+  const join = () => {
+    const ring = active;
+    if (!finish("joined")) return;
+    if (ring.kind === "group_call") startGroupCall(ring.target_id, false);
+    try {
+      void navigate({ href: ring.url });
+    } catch {
+      window.location.assign(ring.url);
+    }
+  };
+  const decline = () => {
+    finish("declined");
   };
 
   const live = active.kind === "club_live";
-  return (
-    <div className="fixed inset-0 z-[10040] flex flex-col items-center justify-between bg-[radial-gradient(120%_80%_at_50%_0%,#3a0f2c_0%,#120910_55%,#060406_100%)] px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(4rem+env(safe-area-inset-top))] text-white" role="alertdialog" aria-label={`${active.title} — incoming`}>
+  /* Rendered on <body>, above every other layer, and taking taps itself: an
+     open (or just-closed) menu, sheet or drawer sets pointer-events:none on
+     the body, which silently swallowed taps on this card. */
+  return createPortal(
+    <div style={{ pointerEvents: "auto" }} className="fixed inset-0 z-[10500] flex flex-col items-center justify-between bg-[radial-gradient(120%_80%_at_50%_0%,#3a0f2c_0%,#120910_55%,#060406_100%)] px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(4rem+env(safe-area-inset-top))] text-white" role="alertdialog" aria-label={`${active.title} — incoming`}>
       <div className="flex flex-col items-center text-center">
         <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/80">
           {live ? <Radio className="h-3.5 w-3.5 text-[#ff4fb8]" /> : <Phone className="h-3.5 w-3.5" />}
@@ -210,7 +253,12 @@ export function IncomingCallHost() {
       </div>
 
       <div className="flex w-full max-w-xs items-start justify-between">
-        <button type="button" onClick={() => finish("declined")} className="flex flex-col items-center gap-2">
+        <button
+          type="button"
+          onPointerDown={(event) => { if (event.pointerType !== "mouse") { event.preventDefault(); swallowNextClick(); decline(); } }}
+          onClick={decline}
+          className="flex touch-manipulation flex-col items-center gap-2"
+        >
           <span className="grid h-16 w-16 place-items-center rounded-full bg-[#e5484d] shadow-[0_10px_30px_-8px_rgba(229,72,77,0.7)] transition active:scale-95">
             <PhoneOff className="h-7 w-7" />
           </span>
@@ -218,11 +266,9 @@ export function IncomingCallHost() {
         </button>
         <button
           type="button"
-          onClick={() => {
-            finish("joined");
-            void navigate({ to: active.url as never });
-          }}
-          className="flex flex-col items-center gap-2"
+          onPointerDown={(event) => { if (event.pointerType !== "mouse") { event.preventDefault(); swallowNextClick(); join(); } }}
+          onClick={join}
+          className="flex touch-manipulation flex-col items-center gap-2"
         >
           <span className="grid h-16 w-16 animate-bounce place-items-center rounded-full bg-[#22c55e] shadow-[0_10px_30px_-8px_rgba(34,197,94,0.7)] transition active:scale-95 [animation-duration:1.4s]">
             {live ? <Radio className="h-7 w-7" /> : <Phone className="h-7 w-7" />}
@@ -230,6 +276,7 @@ export function IncomingCallHost() {
           <span className="text-[13px] text-white/75">{live ? "Join live" : "Join"}</span>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
