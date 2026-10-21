@@ -311,6 +311,17 @@ function GroupChatPage() {
 
   const pinned = group.pinned_message_id ? messages.find((m) => m.id === group.pinned_message_id) : null;
   const callLive = Boolean(group.call_active_since && Date.now() - new Date(group.call_active_since).getTime() < 6 * 3600_000);
+  /* Only the card of the call that is running right now offers Join. Earlier
+     calls (ended by everyone leaving, dropping out or "end for everyone") keep
+     their card as history. The server remembers the current card; until it
+     does, the card posted when this call started is the one. */
+  const liveCallMessageId = !callLive
+    ? null
+    : ((group as { call_message_id?: string | null }).call_message_id ??
+       messages
+         .filter((m) => m.kind === "call" && m.sender_id && Date.parse(m.created_at) >= Date.parse(group.call_active_since!) - 10_000)
+         .sort((a, b) => a.created_at.localeCompare(b.created_at))[0]?.id ??
+       null);
   const canSend = !group.admins_only_send || isAdmin;
   const mentionPeople = [
     // Admins can tag the whole group; the server checks the role before notifying anyone.
@@ -427,14 +438,26 @@ function GroupChatPage() {
                   <span className="rounded-xl bg-foreground/[0.05] px-3 py-1.5 text-center text-[12px] text-muted-foreground">{m.content}</span>
                 </div>
               ) : m.kind === "call" ? (
-                <div className="my-2.5 flex justify-center">
-                  <span className="inline-flex items-center gap-2 rounded-2xl bg-green-500/10 px-3.5 py-2 text-[12.5px] font-medium text-green-700 dark:text-green-400">
-                    <Phone className="h-3.5 w-3.5" /> {m.content}
-                    <span className="text-[11px] opacity-70">{timeLabel(m.created_at)}</span>
-                    {m.sender_id && callLive && (
+                <div className="my-2.5 flex justify-center px-4">
+                  {m.id === liveCallMessageId ? (
+                    <span className="inline-flex items-center gap-2 rounded-2xl bg-green-500/10 px-3.5 py-2 text-[12.5px] font-medium text-green-700 dark:text-green-400">
+                      <span className="relative grid h-5 w-5 place-items-center">
+                        <span className="absolute inset-0 animate-ping rounded-full bg-green-500/30" />
+                        <Phone className="relative h-3.5 w-3.5" />
+                      </span>
+                      {m.content}
+                      <span className="text-[11px] opacity-70">{timeLabel(m.created_at)}</span>
                       <button type="button" onClick={() => startCall()} className="ml-1 rounded-full bg-green-600 px-2.5 py-0.5 text-[11.5px] font-bold text-white">Join</button>
-                    )}
-                  </span>
+                    </span>
+                  ) : (
+                    // A call that is over: history, not an invitation.
+                    <span className="inline-flex items-center gap-2 rounded-2xl bg-foreground/[0.05] px-3.5 py-2 text-[12.5px] font-medium text-muted-foreground">
+                      <Phone className="h-3.5 w-3.5" />
+                      {/^group call ·/i.test(m.content) ? m.content : m.content.replace(/ started a group call$/i, "'s group call")}
+                      <span className="text-[11px] opacity-70">{timeLabel(m.created_at)}</span>
+                      {!/^group call ·/i.test(m.content) && <span className="rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[10.5px] font-semibold">Ended</span>}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <Bubble

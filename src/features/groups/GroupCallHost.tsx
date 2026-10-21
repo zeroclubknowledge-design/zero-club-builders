@@ -19,7 +19,8 @@ import AgoraRTC, {
   type ILocalAudioTrack,
   type ILocalVideoTrack,
 } from "agora-rtc-react";
-import { Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
+import { useLiveRecording } from "@/features/zero-live/useLiveRecording";
+import { Circle, Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useOrientationLock } from "@/hooks/useOrientationLock";
@@ -219,6 +220,8 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     setSoundBlocked(false);
   };
   const [canEnd, setCanEnd] = useState(false);
+  /* Who is recording this call (from the server), so everyone sees REC. */
+  const [recordedBy, setRecordedBy] = useState<{ id: string; name: string } | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [members, setMembers] = useState<Awaited<ReturnType<typeof getMembers>>>([]);
   const leavingRef = useRef(false);
@@ -278,6 +281,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
       }
       setPeople(state.people || []);
       setCanEnd(Boolean(state.can_end));
+      setRecordedBy(state.recording_by ? { id: String(state.recording_by), name: String(state.recording_name || "Someone") } : null);
     };
     const sync = async () => {
       if (leavingRef.current || !alive) return;
@@ -328,10 +332,64 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   }, [startedAt]);
 
   const byUid = useMemo(() => callPeopleByUid(people, members), [people, members]);
+
+  /*
+   * Recording, like Zero Live: everyone's voice (and camera tiles when video
+   * is on) mixed into one file saved to this device. Only the call starter or
+   * an admin can record, and the call is flagged on the server first, so
+   * everyone in it sees REC and the chat notes it. Nobody is recorded quietly.
+   */
+  const recording = useLiveRecording({
+    title: `${groupName} call`,
+    audio: [
+      ...(micOn && localMicrophoneTrack ? [localMicrophoneTrack.getMediaStreamTrack()] : []),
+      ...remoteUsers.filter((u) => u.hasAudio && u.audioTrack).map((u) => u.audioTrack!.getMediaStreamTrack()),
+    ].filter((t): t is MediaStreamTrack => !!t),
+    videos: [
+      ...(camOn && localCameraTrack ? [{ track: localCameraTrack.getMediaStreamTrack(), label: me ? displayName(me) : "You" }] : []),
+      ...remoteUsers.filter((u) => u.hasVideo && u.videoTrack).map((u) => ({
+        track: u.videoTrack!.getMediaStreamTrack(),
+        label: byUid.get(String(u.uid))?.name || "Member",
+      })),
+    ],
+  });
+  const iAmRecording = recording.phase === "recording";
+  const toggleRecording = async () => {
+    if (recording.phase === "starting" || recording.phase === "saving") return;
+    if (iAmRecording) {
+      await recording.stop();
+      void supabase.rpc("set_group_call_recording" as any, { p_group: groupId, p_on: false } as any);
+      setRecordedBy(null);
+      return;
+    }
+    const { data, error } = await supabase.rpc("set_group_call_recording" as any, { p_group: groupId, p_on: true } as any);
+    if (error) {
+      toast.error(
+        error.code === "PGRST202" || /could not find the function/i.test(error.message)
+          ? "Call recording isn't switched on yet. It needs a quick server update."
+          : error.message,
+      );
+      return;
+    }
+    if ((data as any)?.recording_by) setRecordedBy({ id: String((data as any).recording_by), name: String((data as any).recording_name || "You") });
+    await recording.start();
+  };
+  // A recording that fails to start (or stops by itself) clears the flag.
+  const wasRecording = useRef(false);
+  useEffect(() => {
+    if (wasRecording.current && recording.phase === "idle") {
+      void supabase.rpc("set_group_call_recording" as any, { p_group: groupId, p_on: false } as any);
+    }
+    wasRecording.current = recording.phase === "recording" || recording.phase === "starting";
+  }, [recording.phase, groupId]);
+  const recTime = `${Math.floor(recording.elapsed / 60)}:${String(recording.elapsed % 60).padStart(2, "0")}`;
+  const someoneRecording = iAmRecording || Boolean(recordedBy);
   const leave = async (endForEveryone = false) => {
     if (leavingRef.current) return;
     if (endForEveryone && !(await confirmCard("End this call for everyone?"))) return;
     leavingRef.current = true; setLeaving(true);
+    // Leaving saves an ongoing recording to this device first.
+    if (recording.phase === "recording") await recording.stop().catch(() => {});
     try {
       const { data, error } = await supabase.rpc("group_call_leave_v2" as any, { p_group: groupId, p_started_at: startedAt, p_end_for_everyone: endForEveryone, p_connection: callConnection.current } as any).abortSignal(AbortSignal.timeout(10_000));
       if (error && endForEveryone) throw error;
@@ -491,6 +549,12 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
               <span>·</span><Users className="h-3 w-3" /> {tiles}
             </p>
           </div>
+          {someoneRecording && (
+            <span role="status" className="flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-red-600 px-2.5 text-[12px] font-bold text-white" title={iAmRecording ? "You are recording this call" : `${recordedBy?.name} is recording this call`}>
+              <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
+              REC{iAmRecording ? ` ${recTime}` : ""}
+            </span>
+          )}
           <button type="button" onClick={goMinimize} aria-label="Minimise call" title="Minimise — keep using Zero Club" className="grid h-10 w-10 place-items-center rounded-full bg-foreground/[0.06] transition hover:bg-foreground/[0.1]">
             <Minimize2 className="h-[18px] w-[18px]" />
           </button>
@@ -536,6 +600,11 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           <p className="px-6 pt-3 text-center text-[13px] text-muted-foreground">Waiting for others to join — everyone in the group got a notification.</p>
         )}
 
+        {someoneRecording && !iAmRecording && (
+          <p role="status" className="px-6 pt-3 text-center text-[12.5px] font-medium text-red-500">
+            {recordedBy?.name} is recording this call.
+          </p>
+        )}
         {soundBlocked && (
           <button type="button" onClick={resumeSound} className="mx-auto mt-3 inline-flex h-11 items-center gap-2 rounded-full bg-[#cc208f] px-5 text-[14px] font-semibold text-white shadow-lg">
             <Volume2 className="h-4 w-4" /> Tap to hear the call
@@ -549,6 +618,25 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
             <Ctrl on={!sharing} onClick={() => void (sharing ? stopShare() : startShare())} label={sharing ? "Stop sharing" : "Share screen"}>
               {shareBusy ? <Loader2 className="h-6 w-6 animate-spin" /> : sharing ? <MonitorOff className="h-6 w-6" /> : <MonitorUp className="h-6 w-6" />}
             </Ctrl>
+          )}
+          {(canEnd || iAmRecording) && (
+            <button
+              type="button"
+              onClick={() => void toggleRecording()}
+              disabled={recording.phase === "starting" || recording.phase === "saving" || (!iAmRecording && !!recordedBy && recordedBy.id !== me?.id)}
+              aria-label={iAmRecording ? "Stop recording" : "Record call"}
+              aria-pressed={iAmRecording}
+              title={iAmRecording ? "Stop recording — saves to this device" : "Record this call — everyone will see REC"}
+              className={`grid h-14 w-14 place-items-center rounded-full transition active:scale-95 disabled:opacity-40 ${iAmRecording ? "bg-red-500 text-white" : "bg-foreground/[0.08] text-foreground"}`}
+            >
+              {recording.phase === "starting" || recording.phase === "saving" ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : iAmRecording ? (
+                <span className="h-5 w-5 rounded-[5px] bg-white" />
+              ) : (
+                <Circle className="h-6 w-6 fill-red-500 text-red-500" />
+              )}
+            </button>
           )}
           <button type="button" disabled={leaving} onClick={() => void leave()} aria-label="Leave call" title="Leave — others can continue" className="grid h-16 w-16 place-items-center rounded-full bg-red-500 text-white shadow-[0_12px_30px_-10px_rgba(239,68,68,0.8)] transition active:scale-95 disabled:opacity-50">
             {leaving ? <Loader2 className="h-6 w-6 animate-spin" /> : <PhoneOff className="h-7 w-7" />}

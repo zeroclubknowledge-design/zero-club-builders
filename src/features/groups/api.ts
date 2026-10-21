@@ -34,6 +34,10 @@ export interface ChatGroup {
   admins_only_send: boolean;
   call_active_since: string | null;
   call_started_by: string | null;
+  /** The chat card of the call running now (set by start_chat_group_call). */
+  call_message_id?: string | null;
+  /** Who is recording the current call, if anyone. */
+  call_recording_by?: string | null;
   pinned_message_id: string | null;
   created_at: string;
 }
