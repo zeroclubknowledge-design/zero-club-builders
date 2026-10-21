@@ -1,0 +1,16 @@
+-- ALREADY APPLIED to project tiyifgfsuzhcvdvntjmp via Supabase MCP (migration
+-- "certificate_brand_logo_pro_only"). Kept here as a record; do not re-run.
+--
+-- 1. profiles.brand_logo_url text — the account's own brand mark for
+--    certificates (e.g. a transparent PNG), kept apart from the profile photo.
+-- 2. certificate_can_brand(uuid): custom branding is PRO only — admins,
+--    organizations on institution_small / institution_large / institution_custom,
+--    tutors on tutor_premium / tutor_premium_plus. Free tutors and free
+--    organizations use Zero Club branding. (Before: every organization.)
+-- 3. get_my_certificate_studio() also returns 'brand_logo' (profiles.brand_logo_url).
+--    'logo' (the profile photo) is still returned but the studio no longer uses it
+--    automatically.
+-- 4. validate_certificate_design: same checks; the "branding not allowed" message
+--    now names the PRO plans.
+-- At the time of applying, no saved certificate design used branding, so nothing
+-- already set up was affected.

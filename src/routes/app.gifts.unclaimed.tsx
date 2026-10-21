@@ -10,6 +10,8 @@ import { ShareMenu } from "@/components/ShareMenu";
 import { toast } from "sonner";
 
 import { confirmCard } from "@/components/ConfirmCard";
+import { GiftEditSheet } from "@/features/membership/GiftEditSheet";
+import { Pencil } from "@/components/icons/glyphs";
 /**
  * The gifts you created: the ones still collecting claims, and everything that
  * has finished one way or another.
@@ -40,6 +42,7 @@ type GiftCard = {
   funding_source: string;
   status: "active" | "claimed" | "cancelled";
   refunded_at: string | null;
+  bootcamp_ids: string[] | null;
 };
 
 function GiftCampaignsPage() {
@@ -47,6 +50,7 @@ function GiftCampaignsPage() {
   const navigate = useNavigate();
   const { format } = useWalletCurrency();
   const [tab, setTab] = useState<"collecting" | "past">("collecting");
+  const [editing, setEditing] = useState<GiftCard | null>(null);
 
   const { data: gifts, isLoading } = useQuery({
     queryKey: ["unclaimed-gifts"],
@@ -58,7 +62,7 @@ function GiftCampaignsPage() {
       const { data, error } = await supabase
         .from("gift_cards")
         .select(
-          "id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at,funding_source,status,refunded_at",
+          "id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at,funding_source,status,refunded_at,bootcamp_ids",
         )
         .eq("creator_id", session.user.id)
         .is("parent_gift_id", null)
@@ -98,33 +102,6 @@ function GiftCampaignsPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  /* Increasing claims funds the difference immediately, so the number on the
-     card is always a number that has actually been paid for. */
-  const addClaims = useMutation({
-    mutationFn: async ({ id, quantity }: { id: string; quantity: number }) => {
-      const { data, error } = await supabase.rpc("update_gift_campaign_quantity", {
-        p_gift: id,
-        p_quantity: quantity,
-        p_request_id: crypto.randomUUID(),
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_, variables) => {
-      toast.success(`Gift now has ${variables.quantity.toLocaleString()} claims`);
-      for (const key of [
-        "unclaimed-gifts",
-        "unclaimed-gift-count",
-        "profile",
-        "gift-card-profile",
-        "wallet",
-        "wallet-balance",
-      ])
-        void client.invalidateQueries({ queryKey: [key] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
   const statusOf = (card: GiftCard) => {
     if (card.status === "cancelled") return { label: "Closed", tone: "muted" as const, detail: "Remaining claims returned to your wallet." };
     if (expired(card)) return { label: "Expired", tone: "muted" as const, detail: "The deadline for claiming and spending has passed." };
@@ -136,7 +113,8 @@ function GiftCampaignsPage() {
     const label = giftServices.find((item) => item.id === card.service)?.label || card.service;
     const left = Math.max(0, (card.quantity || 1) - (card.claimed_count || 0));
     const status = statusOf(card);
-    const canTopUp = card.status !== "cancelled" && !card.refunded_at && !expired(card);
+    // Anything not closed can be edited; an expired one can be given a new date.
+    const canEdit = card.status !== "cancelled" && !card.refunded_at;
     return (
       <div key={card.id} className="min-w-0">
         <GiftCardVisual
@@ -194,18 +172,26 @@ function GiftCampaignsPage() {
             </div>
           )}
 
-          {canTopUp && (
-            <ClaimsEditor
-              card={card}
-              format={format}
-              pending={addClaims.isPending && addClaims.variables?.id === card.id}
-              onSubmit={(quantity) => addClaims.mutate({ id: card.id, quantity })}
-              hint={
-                left === 0
-                  ? "Sold out — add claims to let more people in"
-                  : "Let more people claim this gift"
-              }
-            />
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setEditing(card)}
+              className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 text-left transition hover:border-foreground/25 active:scale-[0.99]"
+            >
+              <span className="min-w-0">
+                <span className="block text-[12.5px] font-semibold">Edit gift</span>
+                <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                  {expired(card)
+                    ? "Give it a new date to reopen it, or change anything else"
+                    : left === 0
+                      ? "Sold out — add claims, raise the amount or change the details"
+                      : "Change the design, message, purpose or date · raise the amount or claims"}
+                </span>
+              </span>
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+                <Pencil className="h-4 w-4" />
+              </span>
+            </button>
           )}
 
           {card.status === "active" && !expired(card) && (
@@ -325,124 +311,10 @@ function GiftCampaignsPage() {
           </>
         )}
       </main>
-    </div>
-  );
-}
 
-/**
- * Raise the number of people who can claim a gift.
- *
- * Shared by open and sold-out cards: the server decides whether the card can
- * take more claims, charges for them, and reopens it when the new total is
- * above what has already been taken.
- */
-function ClaimsEditor({
-  card,
-  format,
-  pending,
-  onSubmit,
-  hint,
-}: {
-  card: GiftCard;
-  format: (value: number) => string;
-  pending: boolean;
-  onSubmit: (quantity: number) => void;
-  hint: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const current = Number(card.quantity) || 1;
-  const minimum = current + 1;
-  const [value, setValue] = useState(String(minimum));
-  const next = Math.max(minimum, Math.min(10000, Number(value) || minimum));
-  const extra = next - current;
-  const sponsored = card.funding_source === "platform";
-  const cost = extra * Number(card.amount || 0);
-
-  if (!open)
-    return (
-      <div className="mt-3 rounded-xl border border-border bg-card p-3">
-        <button
-          type="button"
-          onClick={() => {
-            setValue(String(current + 1));
-            setOpen(true);
-          }}
-          className="flex w-full items-center justify-between gap-3 text-left"
-        >
-          <span className="min-w-0">
-            <span className="block text-[12.5px] font-semibold">Increase claims</span>
-            <span className="mt-0.5 block text-[11px] text-muted-foreground">{hint}</span>
-          </span>
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
-            <Plus className="h-4 w-4" />
-          </span>
-        </button>
-      </div>
-    );
-
-  return (
-    <div className="mt-3 space-y-3 rounded-xl border border-border bg-card p-3">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[12.5px] font-semibold">Increase claims</p>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="text-[11.5px] font-semibold text-muted-foreground underline"
-        >
-          Cancel
-        </button>
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          aria-label="Fewer claims"
-          onClick={() => setValue(String(Math.max(minimum, next - 1)))}
-          disabled={next <= minimum}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border disabled:opacity-40"
-        >
-          <Minus className="h-4 w-4" />
-        </button>
-        <input
-          inputMode="numeric"
-          aria-label="Total claims"
-          value={value}
-          onChange={(event) => setValue(event.target.value.replace(/[^\d]/g, ""))}
-          placeholder={String(current)}
-          className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-center text-[15px] font-semibold tabular-nums outline-none focus:border-[#cc208f]/60"
-        />
-        <button
-          type="button"
-          aria-label="More claims"
-          onClick={() => setValue(String(Math.min(10000, next + 1)))}
-          disabled={next >= 10000}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border disabled:opacity-40"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="flex items-baseline justify-between gap-3 text-[12px]">
-        <span className="text-muted-foreground">
-          {extra > 0 ? `+${extra.toLocaleString()} claim${extra === 1 ? "" : "s"}` : "No change"}
-        </span>
-        <span className="font-semibold tabular-nums">
-          {sponsored ? "Sponsored · no charge" : extra > 0 ? `${format(cost)} from wallet` : "—"}
-        </span>
-      </div>
-      <button
-        type="button"
-        disabled={pending || extra <= 0}
-        onClick={() => {
-          onSubmit(next);
-          setOpen(false);
-        }}
-        className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#cc208f] text-[12.5px] font-semibold text-white transition hover:bg-[#b41c7e] disabled:opacity-40"
-      >
-        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
-        Add {extra > 0 ? `${extra.toLocaleString()} claim${extra === 1 ? "" : "s"}` : "claims"}
-      </button>
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
-        Claims can only increase. To go back to fewer, close the gift and create a new one.
-      </p>
+      {editing && (
+        <GiftEditSheet card={editing} open={!!editing} onOpenChange={(open) => { if (!open) setEditing(null); }} />
+      )}
     </div>
   );
 }

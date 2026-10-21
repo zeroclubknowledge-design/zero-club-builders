@@ -10,10 +10,12 @@ import {
   type CertificateDesign,
 } from "./design";
 import { CertificateArtwork } from "./CertificateArtwork";
-import { SignatureInput, uploadCertificateAsset } from "./SignatureInput";
+import { SignatureInput } from "./SignatureInput";
 import { Maximize2, X } from "@/components/icons/glyphs";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
+import { BrandLogoPicker } from "./BrandLogoPicker";
 
 export function useCertificateStudio() {
   const { data: user } = useUser();
@@ -31,6 +33,8 @@ export function useCertificateStudio() {
         defaults: CertificateDesign | null;
         issuer_name: string;
         logo: string | null;
+        /** The account's saved brand logo, kept apart from the profile photo. */
+        brand_logo: string | null;
       };
     },
   });
@@ -132,7 +136,7 @@ export function CertificateSetup({
               update({
                 use_brand: !brandOn,
                 brand_name: design.brand_name || studio.data.issuer_name,
-                brand_logo: design.brand_logo || studio.data.logo || "",
+                brand_logo: design.brand_logo || studio.data.brand_logo || "",
                 brand_accent: design.brand_accent || "#cc208f",
               })
             }
@@ -148,7 +152,7 @@ export function CertificateSetup({
         <div className="mt-3 grid grid-cols-2 gap-2">
           {[
             { on: false, title: "Zero Club", detail: "Our identity, our seal" },
-            { on: true, title: "Your brand", detail: "Your logo and colour" },
+            { on: true, title: "Your brand", detail: canBrand ? "Your logo and colour" : "PRO" },
           ].map((option) => (
             <button
               key={option.title}
@@ -159,7 +163,7 @@ export function CertificateSetup({
                 update({
                   use_brand: option.on,
                   brand_name: option.on ? design.brand_name || studio.data.issuer_name : design.brand_name,
-                  brand_logo: option.on ? design.brand_logo || studio.data.logo || "" : design.brand_logo,
+                  brand_logo: option.on ? design.brand_logo || studio.data.brand_logo || "" : design.brand_logo,
                 })
               }
               className={`rounded-xl border p-3 text-left transition disabled:opacity-45 ${brandOn === option.on ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-border hover:border-foreground/25"}`}
@@ -171,25 +175,25 @@ export function CertificateSetup({
         </div>
         {!canBrand && (
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            Custom branding is included for organizations, Tutor Pro and Tutor Max. Zero Club
-            branding is available on your current plan.
+            Your own logo and colour on certificates is a PRO feature: Tutor Pro, Tutor Max or an
+            organization plan. Free accounts issue certificates with Zero Club branding.{" "}
+            <Link to="/app/premium" className="font-semibold text-[#cc208f]">
+              Go PRO
+            </Link>
           </p>
         )}
 
         {brandOn && (
           <div className="mt-4 space-y-4 border-t border-border pt-4">
+            <BrandLogoPicker
+              value={design.brand_logo || ""}
+              savedLogo={studio.data.brand_logo}
+              profilePhoto={studio.data.logo}
+              disabled={disabled}
+              onChange={(brand_logo) => update({ brand_logo })}
+              onBusyChange={setUploadingLogo}
+            />
             <div className="flex items-center gap-3">
-              {design.brand_logo ? (
-                <img
-                  src={design.brand_logo}
-                  alt="Certificate brand logo"
-                  className="h-12 w-12 shrink-0 rounded-lg border border-border bg-white object-contain p-1"
-                />
-              ) : (
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-dashed border-border text-[10px] text-muted-foreground">
-                  Logo
-                </span>
-              )}
               <div className="min-w-0 flex-1">
                 <label className="block space-y-1 text-xs font-semibold">
                   <span>Brand name</span>
@@ -231,39 +235,6 @@ export function CertificateSetup({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="inline-flex min-h-10 cursor-pointer items-center rounded-full border border-border px-4 text-xs font-semibold">
-                {uploadingLogo ? "Uploading…" : design.brand_logo ? "Replace logo" : "Upload brand logo"}
-                <input
-                  className="hidden"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  disabled={uploadingLogo || disabled}
-                  onChange={async (event) => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (!file) return;
-                    setUploadingLogo(true);
-                    try {
-                      update({ brand_logo: await uploadCertificateAsset(file) });
-                    } catch (error) {
-                      toast.error(error instanceof Error ? error.message : "Logo upload failed");
-                    } finally {
-                      setUploadingLogo(false);
-                    }
-                  }}
-                />
-              </label>
-              {studio.data.logo && design.brand_logo !== studio.data.logo && (
-                <button
-                  type="button"
-                  onClick={() => update({ brand_logo: studio.data.logo || "" })}
-                  className="min-h-10 text-xs font-semibold text-muted-foreground underline underline-offset-4"
-                >
-                  Use my profile photo
-                </button>
-              )}
-            </div>
           </div>
         )}
       </section>
