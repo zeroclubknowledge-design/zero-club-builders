@@ -60,7 +60,8 @@ export function SetupWizard({
     return () => clearTimeout(timer);
   }, []);
 
-  const recs = useMemo(() => recommendWork(candidates.data || []), [candidates.data]);
+  // Only shipped projects are offered: ordinary posts never go on a portfolio (articles are added in the editor).
+  const recs = useMemo(() => recommendWork(candidates.data || []).filter((r) => r.kind === "project"), [candidates.data]);
   const projects = recs.filter((r) => r.kind === "project");
   const proofs = recs.filter((r) => r.kind === "proof");
   const tools = useMemo(() => toolsFrom(candidates.data || []), [candidates.data]);
@@ -159,7 +160,7 @@ export function SetupWizard({
         </span>
         <p className="font-display text-[20px] font-semibold">Scanning your work…</p>
         <p className="max-w-[300px] text-[14px] text-muted-foreground">
-          Reading your projects, posts, skills and learning on Zero Club.
+          Reading your projects, skills and learning on Zero Club.
         </p>
       </div>
     );
@@ -167,7 +168,6 @@ export function SetupWizard({
 
   const counts = [
     { Icon: Rocket, n: projects.length, one: "project", many: "projects" },
-    { Icon: Zap, n: proofs.length, one: "post", many: "posts" },
     { Icon: Tag, n: tools.length, one: "tool", many: "tools" },
     { Icon: BriefcaseBusiness, n: experiences.length, one: "role", many: "roles" },
     { Icon: Award, n: certificates.length, one: "certificate", many: "certificates" },

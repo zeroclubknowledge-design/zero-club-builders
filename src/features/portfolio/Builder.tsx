@@ -21,6 +21,7 @@ import {
   Trash2,
   X,
   Zap,
+  BookOpen,
 } from "@/components/icons/glyphs";
 import { Switch } from "@/components/ui/switch";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
@@ -34,9 +35,13 @@ import {
 import { openShareSheet } from "@/components/ShareSheet";
 import { useGoBack } from "@/hooks/useGoBack";
 import {
+  articlesUnavailable,
+  fetchArticleCandidates,
   fetchMyCandidates,
   fetchMyPortfolioStats,
+  insertArticle,
   insertItems,
+  type ArticleCandidate,
   removeItem,
   saveOrder,
   updateItem,
@@ -63,6 +68,7 @@ import {
   portfolioUrl,
   isPremiumTemplate,
   type Portfolio,
+  type PortfolioArticle,
   type PortfolioItem,
   type PortfolioTemplate,
   type PublicPortfolio,
@@ -81,7 +87,9 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
   const [draft, setDraft] = useState<PublicPortfolio>(() => ({
     ...initial,
     portfolio: { ...initial.portfolio, sections: normaliseSections(initial.portfolio.sections) },
-    items: ordered(initial.items),
+    // Only shipped projects are portfolio items now; highlighted posts are retired.
+    items: ordered(initial.items.filter((item) => item.kind === "project")),
+    articles: [...(initial.articles || [])].sort((a, b) => a.sort_order - b.sort_order),
   }));
   const [tab, setTab] = useState<"edit" | "preview">("edit");
   /* A premium look the owner is trying on without a membership: shown in the
@@ -104,7 +112,8 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
   const [liveOpen, setLiveOpen] = useState(false);
   // True right after publishing; false when opened from the Share button.
   const [justPublished, setJustPublished] = useState(false);
-  const [addKind, setAddKind] = useState<"project" | "proof" | null>(null);
+  const [addKind, setAddKind] = useState<"project" | null>(null);
+  const [articlesOpen, setArticlesOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
   const portfolioId = draft.portfolio.id;
@@ -197,10 +206,10 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
 
   /* ── Items ────────────────────────────────────────────── */
   const projects = draft.items.filter((item) => item.kind === "project");
-  const proofs = draft.items.filter((item) => item.kind === "proof");
+  const articles = draft.articles || [];
 
-  const applyOrder = (nextProjects: PortfolioItem[], nextProofs: PortfolioItem[]) => {
-    const all = [...nextProjects, ...nextProofs].map((item, index) => ({
+  const applyOrder = (nextProjects: PortfolioItem[]) => {
+    const all = nextProjects.map((item, index) => ({
       ...item,
       sort_order: index,
     }));
@@ -260,13 +269,50 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
         outcome: null,
         post: rec.post,
       };
-      setDraft((d) => {
-        const next = [...d.items, item];
-        const p = next.filter((i) => i.kind === "project");
-        const q = next.filter((i) => i.kind === "proof");
-        return { ...d, items: [...p, ...q].map((i, index) => ({ ...i, sort_order: index })) };
-      });
+      setDraft((d) => ({
+        ...d,
+        items: [...d.items, item].map((i, index) => ({ ...i, sort_order: index })),
+      }));
     }, "Could not add");
+  };
+
+  /* ── Articles ─────────────────────────────────────────── */
+  const articleCandidates = useQuery({
+    queryKey: ["portfolio_article_candidates", draft.profile.id],
+    queryFn: fetchArticleCandidates,
+    enabled: articlesOpen,
+    retry: false,
+  });
+
+  const addArticle = async (candidate: ArticleCandidate) => {
+    const sort_order = articles.length;
+    await runNow(async () => {
+      const row = await insertArticle(portfolioId, candidate.id, sort_order);
+      const article: PortfolioArticle = {
+        id: row.id,
+        note_id: candidate.id,
+        featured: false,
+        sort_order,
+        title: candidate.title,
+        slug: candidate.slug,
+        cover_url: candidate.cover_url,
+        created_at: candidate.created_at,
+        excerpt: candidate.excerpt,
+        minutes: candidate.minutes,
+      };
+      setDraft((d) => ({ ...d, articles: [...(d.articles || []), article] }));
+    }, "Could not add the article");
+  };
+
+  const removeArticle = (article: PortfolioArticle) => {
+    setDraft((d) => ({ ...d, articles: (d.articles || []).filter((a) => a.id !== article.id) }));
+    void runNow(() => removeItem(article.id), "Could not remove");
+  };
+
+  const reorderArticles = (next: PortfolioArticle[]) => {
+    const all = next.map((a, index) => ({ ...a, sort_order: index }));
+    setDraft((d) => ({ ...d, articles: all }));
+    void runNow(() => saveOrder(all.map((a) => a.id)), "Could not reorder");
   };
 
   /* ── Publish ──────────────────────────────────────────── */
@@ -506,7 +552,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
               <SortableList
                 items={projects}
                 getKey={(item) => item.id}
-                onChange={(next) => applyOrder(next, proofs)}
+                onChange={(next) => applyOrder(next)}
                 className="space-y-2"
                 renderItem={(item, tools) => (
                   <ItemRow
@@ -522,31 +568,50 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           </Card>
 
           <Card
-            title="Highlights"
+            title="Articles"
             action={
-              <button type="button" onClick={() => setAddKind("proof")} className={chip}>
+              <button type="button" onClick={() => setArticlesOpen(true)} className={chip}>
                 <Plus className="h-4 w-4" /> Add
               </button>
             }
           >
-            {proofs.length === 0 ? (
+            {articles.length === 0 ? (
               <EmptyLine>
-                Posts you highlight show here. Tap Add, or open the ⋯ menu on any of your posts and
-                choose Highlight.
+                Your published articles show here. Tap Add to choose them, or{" "}
+                <Link to="/app/notes/create" className="font-semibold text-foreground underline-offset-4 hover:underline">
+                  write one
+                </Link>
+                . Ordinary posts don't appear on a portfolio.
               </EmptyLine>
             ) : (
               <SortableList
-                items={proofs}
-                getKey={(item) => item.id}
-                onChange={(next) => applyOrder(projects, next)}
+                items={articles}
+                getKey={(article) => article.id}
+                onChange={reorderArticles}
                 className="space-y-2"
-                renderItem={(item, tools) => (
-                  <ItemRow
-                    item={item}
-                    handle={tools.handle}
-                    onRemove={() => remove(item)}
-                    onText={(patch) => patchItemText(item.id, patch)}
-                  />
+                renderItem={(article, tools) => (
+                  <div className="flex items-center gap-1.5 rounded-xl border border-border bg-card p-2 pl-1">
+                    {tools.handle}
+                    {article.cover_url ? (
+                      <img src={article.cover_url} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" loading="lazy" />
+                    ) : (
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-foreground/[0.06] text-muted-foreground">
+                        <BookOpen className="h-4 w-4" />
+                      </span>
+                    )}
+                    <div className="ml-1 min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-semibold">{article.title || "Untitled article"}</p>
+                      <p className="text-[12px] text-muted-foreground">{article.minutes} min read</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeArticle(article)}
+                      aria-label="Remove article"
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 )}
               />
             )}
@@ -827,6 +892,16 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
         loading={candidates.isLoading}
         taken={new Set(draft.items.map((item) => item.post.id))}
         onAdd={addPost}
+      />
+
+      <ArticleDrawer
+        open={articlesOpen}
+        onClose={() => setArticlesOpen(false)}
+        candidates={articleCandidates.data || []}
+        loading={articleCandidates.isLoading}
+        unavailable={Boolean(articleCandidates.error && articlesUnavailable(articleCandidates.error))}
+        taken={new Set(articles.map((a) => a.note_id))}
+        onAdd={addArticle}
       />
 
       <Drawer open={publishOpen} onOpenChange={setPublishOpen}>
@@ -1616,7 +1691,7 @@ function AddDrawer({
   taken,
   onAdd,
 }: {
-  kind: "project" | "proof" | null;
+  kind: "project" | null;
   onClose: () => void;
   recs: ReturnType<typeof recommendWork>;
   loading: boolean;
@@ -1629,7 +1704,7 @@ function AddDrawer({
     <Drawer open={Boolean(kind)} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent className="mx-auto max-h-[85vh] max-w-[560px]">
         <DrawerHeader className="text-left">
-          <DrawerTitle>{kind === "project" ? "Add projects" : "Add highlights"}</DrawerTitle>
+          <DrawerTitle>Add projects</DrawerTitle>
           <DrawerDescription>
             Only things you've shared with everyone can go on your portfolio.
           </DrawerDescription>
@@ -1690,6 +1765,100 @@ function AddDrawer({
                       }`}
                     >
                       {busy === rec.post.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : added ? (
+                        <>
+                          <Check className="h-3.5 w-3.5" /> Added
+                        </>
+                      ) : (
+                        "Add"
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+/** Pick published articles for the portfolio. */
+function ArticleDrawer({
+  open,
+  onClose,
+  candidates,
+  loading,
+  unavailable,
+  taken,
+  onAdd,
+}: {
+  open: boolean;
+  onClose: () => void;
+  candidates: ArticleCandidate[];
+  loading: boolean;
+  unavailable: boolean;
+  taken: Set<string>;
+  onAdd: (candidate: ArticleCandidate) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  return (
+    <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
+      <DrawerContent className="mx-auto max-h-[85vh] max-w-[560px]">
+        <DrawerHeader className="text-left">
+          <DrawerTitle>Add articles</DrawerTitle>
+          <DrawerDescription>Only articles you've published publicly can go on your portfolio.</DrawerDescription>
+        </DrawerHeader>
+        <div className="overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+          {loading ? (
+            <div className="grid place-items-center py-10">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : unavailable ? (
+            <p className="py-8 text-center text-[14px] text-muted-foreground">
+              Articles on portfolios need a quick server update first.
+            </p>
+          ) : candidates.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-[14px] text-muted-foreground">You haven't published an article yet.</p>
+              <Link to="/app/notes/create" className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background">
+                <Pencil className="h-3.5 w-3.5" /> Write an article
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {candidates.map((article) => {
+                const added = taken.has(article.id);
+                return (
+                  <li key={article.id} className="flex items-center gap-3 rounded-xl border border-border p-2.5">
+                    {article.cover_url ? (
+                      <img src={article.cover_url} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" loading="lazy" />
+                    ) : (
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-foreground/[0.06]">
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-semibold">{article.title || "Untitled article"}</p>
+                      <p className="truncate text-[12px] text-muted-foreground">
+                        {new Date(article.created_at).toLocaleDateString()} · {article.minutes} min read
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={added || busy === article.id}
+                      onClick={async () => {
+                        setBusy(article.id);
+                        await onAdd(article);
+                        setBusy(null);
+                      }}
+                      className={`inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-3 text-[13px] font-semibold ${
+                        added ? "text-muted-foreground" : "bg-foreground text-background"
+                      }`}
+                    >
+                      {busy === article.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : added ? (
                         <>

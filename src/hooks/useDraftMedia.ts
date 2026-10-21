@@ -95,5 +95,32 @@ export function useDraftMedia<T extends File | null = File>(key: string | null) 
     current.current = { key, files: [], previews: [], revision: current.current.revision + 1 };
     persist(); render(n => n + 1);
   }, [key, persist]);
-  return { files: current.current.files, previews: current.current.previews, setFiles, setPreviews, clear };
+  // Keep files and previews together. FileReader callbacks can arrive out of
+  // order, or after the draft key changed while the desktop picker was open.
+  const addFiles = useCallback((files: File[]) => {
+    const state = current.current;
+    if (state.key !== key || !files.length) return;
+    const urls = files.map(file => URL.createObjectURL(file));
+    restoredUrls.current.push(...urls);
+    state.files = [...state.files, ...files as T[]];
+    state.previews = [...state.previews, ...urls];
+    state.revision++;
+    persist(); render(n => n + 1);
+  }, [key, persist]);
+  const removeFile = useCallback((index: number) => {
+    const state = current.current;
+    if (state.key !== key) return;
+    state.files = state.files.filter((_, i) => i !== index);
+    state.previews = state.previews.filter((_, i) => i !== index);
+    state.revision++;
+    persist(); render(n => n + 1);
+  }, [key, persist]);
+  useEffect(() => {
+    const visible = new Set(current.current.previews);
+    restoredUrls.current = restoredUrls.current.filter(url => {
+      if (visible.has(url)) return true;
+      URL.revokeObjectURL(url); return false;
+    });
+  });
+  return { files: current.current.files, previews: current.current.previews, setFiles, setPreviews, addFiles, removeFile, clear };
 }

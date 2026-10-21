@@ -216,51 +216,46 @@ export function AchievementsBlock({ v, skin, display }: { v: View; skin: Skin; d
   );
 }
 
-export function ProofsBlock({
-  v,
-  skin,
-  preview,
-  onOpen,
-}: {
-  v: View;
-  skin: Skin;
-  preview?: boolean;
-  onOpen?: (i: PortfolioItem) => void;
-}) {
+/** Published articles, as reading cards that open the article on Zero Club. */
+export function ArticlesBlock({ v, skin, preview }: { v: View; skin: Skin; preview?: boolean }) {
   return (
-    <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))]">
-      {v.proofs.map((item) => {
-        const { summary } = describeItem(item);
-        const image = itemImages(item)[0];
-        return (
-          <article key={item.id} className={`pf-lift group flex flex-col overflow-hidden ${skin.card}`}>
-            {image && (
-              <div className="overflow-hidden">
-                <img
-                  src={image}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-[16/10] w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-                />
-              </div>
-            )}
-            <div className="flex flex-1 flex-col p-4">
-              {!image && <span aria-hidden className="mb-1 text-[34px] leading-none text-[var(--pf-accent)]">“</span>}
-              <p className={`line-clamp-4 text-[14px] leading-relaxed ${skin.muted}`}>{summary}</p>
-              <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-                <span className={`text-[12px] ${skin.faint}`}>{monthYear(item.post.created_at)}</span>
-                <WorkLinks
-                  item={item}
-                  preview={preview}
-                  onOpen={onOpen}
-                  proofLabel="View"
-                  className="text-[12.5px]"
-                />
-              </div>
+    <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))]">
+      {v.articles.map((article) => (
+        <a
+          key={article.id}
+          href={article.slug ? `/notes/${article.slug}` : undefined}
+          target={preview ? "_blank" : undefined}
+          rel={preview ? "noreferrer" : undefined}
+          className={`pf-lift group flex flex-col overflow-hidden ${skin.card}`}
+        >
+          {article.cover_url ? (
+            <div className="overflow-hidden">
+              <img
+                src={article.cover_url}
+                alt=""
+                loading="lazy"
+                className="aspect-[16/9] w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+              />
             </div>
-          </article>
-        );
-      })}
+          ) : (
+            <div className="flex aspect-[16/9] items-end p-4" style={{ background: TINT }}>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-accent)]">Article</span>
+            </div>
+          )}
+          <div className="flex flex-1 flex-col p-4">
+            <h3 className="line-clamp-2 text-[16px] font-semibold leading-snug">{article.title || "Untitled article"}</h3>
+            {article.excerpt && <p className={`mt-2 line-clamp-3 text-[13.5px] leading-relaxed ${skin.muted}`}>{article.excerpt}</p>}
+            <div className={`mt-auto flex items-center justify-between gap-3 pt-4 text-[12px] ${skin.faint}`}>
+              <span>
+                {monthYear(article.created_at)} · {article.minutes} min read
+              </span>
+              <span className="inline-flex items-center gap-1 font-semibold text-[var(--pf-accent)]">
+                Read <ArrowUpRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </div>
+        </a>
+      ))}
     </div>
   );
 }
@@ -360,7 +355,7 @@ export function SectionBody({
     case "certificates":
       return <CertificatesBlock v={v} skin={skin} display={display} />;
     case "proofs":
-      return <ProofsBlock v={v} skin={skin} preview={preview} onOpen={onOpen} />;
+      return <ArticlesBlock v={v} skin={skin} preview={preview} />;
     case "achievements":
       return <AchievementsBlock v={v} skin={skin} display={display} />;
     case "rates":

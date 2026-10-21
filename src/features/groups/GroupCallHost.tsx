@@ -21,7 +21,9 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { useLiveRecording } from "@/features/zero-live/useLiveRecording";
 import { callRecordingError, startAnnouncedCallRecording } from "./callRecording";
-import { Circle, Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
+import { Circle, Hand, Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Smile, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
+import { useCallSignals } from "./callSignals";
+import { CALL_FX_CSS, CallNotice, HandsSheet, ReactionLayer, ReactionTray } from "./CallExtras";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useOrientationLock } from "@/hooks/useOrientationLock";
@@ -173,7 +175,8 @@ export function GroupCallHost() {
 function Shell({ children, hidden = false }: { children: React.ReactNode; hidden?: boolean }) {
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex flex-col bg-[radial-gradient(120%_70%_at_50%_0%,rgba(204,32,143,0.16)_0%,transparent_60%)] bg-background pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-foreground ${hidden ? "invisible pointer-events-none" : ""}`}
+      className={`dark fixed inset-0 z-[9999] flex flex-col overflow-hidden bg-[#09060d] pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-white ${hidden ? "invisible pointer-events-none" : ""}`}
+      style={{ backgroundImage: "radial-gradient(90% 55% at 15% -5%, rgba(204,32,143,0.28), transparent 60%), radial-gradient(80% 50% at 100% 0%, rgba(110,76,255,0.22), transparent 60%), radial-gradient(70% 45% at 50% 110%, rgba(204,32,143,0.14), transparent 65%)" }}
       aria-hidden={hidden || undefined}
     >
       {children}
@@ -241,6 +244,24 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   const [recordedBy, setRecordedBy] = useState<{ id: string; name: string } | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [members, setMembers] = useState<Awaited<ReturnType<typeof getMembers>>>([]);
+
+  /* Raised hands and live reactions (realtime, nothing stored). */
+  const signalMe = useMemo(() => (me ? { id: me.id, name: displayName(me), avatar: me.avatar_url || null } : null), [me]);
+  const signals = useCallSignals({ groupId, startedAt, me: signalMe });
+  const [trayOpen, setTrayOpen] = useState(false);
+  const [handsOpen, setHandsOpen] = useState(false);
+  const handOrder = (profileId?: string) => {
+    const i = profileId ? signals.hands.findIndex((h) => h.profileId === profileId) : -1;
+    return i === -1 ? null : i + 1;
+  };
+
+  /* Who is talking right now: their tile glows. */
+  const [speaking, setSpeaking] = useState<Set<string>>(() => new Set());
+  useEffect(() => { try { client.enableAudioVolumeIndicator(); } catch { /* already on */ } }, [client]);
+  useClientEvent(client, "volume-indicator", (volumes: { uid: string | number; level: number }[]) => {
+    const next = new Set(volumes.filter((v) => v.level > 6).map((v) => String(v.uid)));
+    setSpeaking((prev) => (prev.size === next.size && [...next].every((u) => prev.has(u)) ? prev : next));
+  });
   const leavingRef = useRef(false);
   const onLeftRef = useRef(onLeft);
   onLeftRef.current = onLeft;
@@ -571,11 +592,14 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     <>
       {/* The call keeps playing while minimised: the screen just hides. */}
       <Shell hidden={minimized}>
-        <header className="flex items-center gap-3 px-4 py-3">
-          <GroupAvatar name={groupName} url={groupAvatar} size={38} />
+        <style>{CALL_FX_CSS}</style>
+        <ReactionLayer reactions={signals.reactions} />
+        {signals.notice && <CallNotice key={signals.notice.id} text={signals.notice.text} />}
+        <header className="relative z-10 mx-2 mt-2 flex items-center gap-3 rounded-[24px] bg-white/[0.05] px-3 py-2.5 ring-1 ring-white/[0.08] backdrop-blur-xl">
+          <GroupAvatar name={groupName} url={groupAvatar} size={40} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-semibold">{groupName}</p>
-            <p className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+            <p className="truncate text-[15px] font-bold tracking-tight">{groupName}</p>
+            <p className="flex items-center gap-1.5 text-[12px] tabular-nums text-white/55">
               {connected ? <><span className="h-1.5 w-1.5 rounded-full bg-green-500" /> {timer}</> : connectedOnce.current ? "Reconnecting…" : "Connecting…"}
               <span>·</span><Users className="h-3 w-3" /> {tiles}
             </p>
@@ -586,13 +610,23 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
               REC{iAmRecording ? ` ${recTime}` : ""}
             </span>
           )}
-          <button type="button" onClick={goMinimize} aria-label="Minimise call" title="Minimise — keep using Zero Club" className="grid h-10 w-10 place-items-center rounded-full bg-foreground/[0.06] transition hover:bg-foreground/[0.1]">
+          {signals.hands.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setHandsOpen(true)}
+              aria-label={`${signals.hands.length} raised ${signals.hands.length === 1 ? "hand" : "hands"}`}
+              className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-amber-400/15 px-2.5 text-[13px] font-bold text-amber-300 ring-1 ring-amber-300/30"
+            >
+              <span className="zgc-wave">✋</span> {signals.hands.length}
+            </button>
+          )}
+          <button type="button" onClick={goMinimize} aria-label="Minimise call" title="Minimise — keep using Zero Club" className="grid h-10 w-10 place-items-center rounded-full bg-white/[0.08] transition hover:bg-white/[0.14]">
             <Minimize2 className="h-[18px] w-[18px]" />
           </button>
         </header>
 
         {stageOn && (
-          <div className="relative mx-2 mb-2 min-h-0 flex-[3] overflow-hidden rounded-[22px] bg-black ring-1 ring-foreground/[0.07]">
+          <div className="relative mx-2 mb-2 mt-2 min-h-0 flex-[3] overflow-hidden rounded-[26px] bg-black ring-1 ring-white/10">
             {remoteScreen ? (
               <RemoteUser user={remoteScreen} playVideo={remoteScreen.hasVideo} playAudio videoPlayerConfig={SCREEN_PLAYER} className="h-full w-full" />
             ) : (
@@ -611,14 +645,14 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           </div>
         )}
 
-        <div className={stageOn ? "no-scrollbar flex h-[132px] shrink-0 gap-2 overflow-x-auto px-2 [&>*]:w-[170px] [&>*]:shrink-0" : `grid min-h-0 flex-1 auto-rows-fr gap-2 px-2 ${grid}`}>
-          <Tile name={`${myName} (you)`} avatar={me?.avatar_url || null} muted={!micOn || !!micError} videoOn={camOn && !!localCameraTrack}>
+        <div className={stageOn ? "no-scrollbar flex h-[132px] shrink-0 gap-2 overflow-x-auto px-2 [&>*]:w-[170px] [&>*]:shrink-0" : `mt-2 grid min-h-0 flex-1 auto-rows-fr gap-2 px-2 ${grid}`}>
+          <Tile name={`${myName} (you)`} avatar={me?.avatar_url || null} muted={!micOn || !!micError} videoOn={camOn && !!localCameraTrack} speaking={micOn && speaking.has(String(myUid))} hand={handOrder(me?.id)}>
             <LocalUser audioTrack={localMicrophoneTrack} videoTrack={localCameraTrack} micOn cameraOn={camOn} playAudio={false} playVideo={camOn} className="h-full w-full" />
           </Tile>
           {people_.map((u) => {
             const person = byUid.get(String(u.uid));
             return (
-              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio || mutedUids.has(String(u.uid))} videoOn={u.hasVideo}>
+              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio || mutedUids.has(String(u.uid))} videoOn={u.hasVideo} speaking={speaking.has(String(u.uid))} hand={handOrder(person?.profile_id)}>
                 <RemoteUser user={u} playAudio playVideo={u.hasVideo} videoPlayerConfig={CAMERA_PLAYER} className="h-full w-full" />
               </Tile>
             );
@@ -628,7 +662,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
         {(connectionError || joinError) && <div role="status" className="mx-4 mt-3 rounded-xl bg-amber-500/10 p-3 text-center text-sm">{connectionError || "Couldn't connect to the call."} <button type="button" onClick={() => void recover()} className="font-semibold underline">Reconnect</button></div>}
         {(micError || cameraError) && <p role="alert" className="px-4 pt-2 text-center text-xs text-amber-600">{micError ? <>Others can't hear you: your microphone is blocked or in use by another app. Allow microphone access, then <button type="button" onClick={retryMic} className="font-semibold underline">try again</button>.</> : "Camera unavailable. You can continue with audio or check camera permissions."}</p>}
         {people_.length === 0 && connected && (
-          <p className="px-6 pt-3 text-center text-[13px] text-muted-foreground">Waiting for others to join — everyone in the group got a notification.</p>
+          <p className="px-6 pt-3 text-center text-[13px] text-white/50">Waiting for others to join — everyone in the group got a notification.</p>
         )}
 
         {someoneRecording && !iAmRecording && (
@@ -641,7 +675,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
             <Volume2 className="h-4 w-4" /> Tap to hear the call
           </button>
         )}
-        <div className="flex items-center justify-center gap-3 px-4 pb-6 pt-4">
+        <div className="relative z-30 mx-auto mb-4 mt-3 flex max-w-[calc(100%-16px)] items-center justify-center gap-1.5 rounded-[34px] bg-white/[0.06] p-1.5 ring-1 ring-white/[0.09] backdrop-blur-2xl sm:gap-2.5 sm:p-2.5">
           <Ctrl on={micOn} onClick={() => setMicOn((v) => !v)} label={micOn ? "Mute" : "Unmute"}>{micOn ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}</Ctrl>
           <Ctrl on={camOn} onClick={() => setCamOn((v) => !v)} label={camOn ? "Camera off" : "Camera on"}>{camOn ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}</Ctrl>
           {camOn && <Ctrl on onClick={() => void switchCamera()} label="Flip camera"><RefreshCw className="h-6 w-6" /></Ctrl>}
@@ -650,6 +684,13 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
               {shareBusy ? <Loader2 className="h-6 w-6 animate-spin" /> : sharing ? <MonitorOff className="h-6 w-6" /> : <MonitorUp className="h-6 w-6" />}
             </Ctrl>
           )}
+          <Ctrl on={!signals.myHand} onClick={signals.toggleHand} label={signals.myHand ? "Lower hand" : "Raise hand"} tone={signals.myHand ? "amber" : undefined}>
+            <Hand className={`h-5 w-5 sm:h-6 sm:w-6 ${signals.myHand ? "zgc-wave" : ""}`} />
+          </Ctrl>
+          <div>
+            <Ctrl on={!trayOpen} onClick={() => setTrayOpen((v) => !v)} label="Send a reaction"><Smile className="h-6 w-6" /></Ctrl>
+            {trayOpen && <ReactionTray onPick={(emoji) => signals.react(emoji)} onClose={() => setTrayOpen(false)} />}
+          </div>
           {(canEnd || iAmRecording) && (
             <button
               type="button"
@@ -658,7 +699,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
               aria-label={iAmRecording ? "Stop recording" : "Record call"}
               aria-pressed={iAmRecording}
               title={iAmRecording ? "Stop recording — saves to this device" : "Record this call — everyone will see REC"}
-              className={`grid h-14 w-14 place-items-center rounded-full transition active:scale-95 disabled:opacity-40 ${iAmRecording ? "bg-red-500 text-white" : "bg-foreground/[0.08] text-foreground"}`}
+              className={`grid h-11 w-11 shrink-0 sm:h-[52px] sm:w-[52px] place-items-center rounded-full transition active:scale-95 disabled:opacity-40 ${iAmRecording ? "bg-red-500 text-white" : "bg-white/[0.08] text-white hover:bg-white/[0.14]"}`}
             >
               {recordingBusy || recording.phase === "starting" || recording.phase === "saving" ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
@@ -669,10 +710,19 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
               )}
             </button>
           )}
-          <button type="button" disabled={leaving} onClick={() => void leave()} aria-label="Leave call" title="Leave — others can continue" className="grid h-16 w-16 place-items-center rounded-full bg-red-500 text-white shadow-[0_12px_30px_-10px_rgba(239,68,68,0.8)] transition active:scale-95 disabled:opacity-50">
-            {leaving ? <Loader2 className="h-6 w-6 animate-spin" /> : <PhoneOff className="h-7 w-7" />}
+          <button type="button" disabled={leaving} onClick={() => void leave()} aria-label="Leave call" title="Leave — others can continue" className="grid h-11 w-[58px] shrink-0 sm:h-[52px] sm:w-[68px] place-items-center rounded-full bg-[linear-gradient(135deg,#ff4d5e,#e0243a)] text-white shadow-[0_12px_30px_-10px_rgba(239,68,68,0.9)] transition active:scale-95 disabled:opacity-50">
+            {leaving ? <Loader2 className="h-6 w-6 animate-spin" /> : <PhoneOff className="h-6 w-6" />}
           </button>
         </div>
+        {handsOpen && (
+          <HandsSheet
+            hands={signals.hands}
+            meId={me?.id}
+            canModerate={canEnd}
+            onLower={(id) => { signals.lowerHand(id); if (signals.hands.length <= 1) setHandsOpen(false); }}
+            onClose={() => setHandsOpen(false)}
+          />
+        )}
       </Shell>
 
       {/* Minimised: a floating bubble, draggable-free and always reachable. */}
@@ -713,26 +763,46 @@ const ownerOfScreen = (uid: string | number) => String(Number(uid) - SCREEN_UID_
 const canShareScreen = () => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getDisplayMedia === "function"
   && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-function Tile({ name, avatar, muted, videoOn, children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; children: React.ReactNode }) {
+function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; speaking?: boolean; hand?: number | null; children: React.ReactNode }) {
   return (
-    <div className="relative min-h-[120px] overflow-hidden rounded-[22px] bg-card ring-1 ring-foreground/[0.07]">
+    <div className={`relative min-h-[120px] overflow-hidden rounded-[26px] bg-[#16101c] ring-1 transition-shadow duration-300 ${speaking ? "zgc-speaking ring-[#ff4fc3]" : hand ? "ring-2 ring-amber-300/70" : "ring-white/[0.08]"}`}>
       <div className={`absolute inset-0 ${videoOn ? "" : "opacity-0"}`}>{children}</div>
       {!videoOn && (
-        <div className="absolute inset-0 grid place-items-center">
-          <Avatar className="h-20 w-20 text-[28px] font-semibold ring-1 ring-foreground/10"><AvatarImage src={avatar || undefined} alt={`${name} profile picture`} className="object-cover" /><AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback></Avatar>
-        </div>
+        <>
+          {avatar && <img src={avatar} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-125 object-cover opacity-30 blur-2xl" />}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_0%,rgba(9,6,13,0.55)_75%)]" />
+          <div className="absolute inset-0 grid place-items-center">
+            <span className={`rounded-full p-1 transition ${speaking ? "bg-[#ff4fc3]/40" : "bg-white/[0.06]"}`}>
+              <Avatar className="h-20 w-20 text-[28px] font-semibold ring-2 ring-white/15"><AvatarImage src={avatar || undefined} alt={`${name} profile picture`} className="object-cover" /><AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback></Avatar>
+            </span>
+          </div>
+        </>
       )}
-      <span className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[12px] font-medium text-white backdrop-blur">
-        {muted ? <MicOff className="h-3 w-3 text-red-300" /> : <Volume2 className="h-3 w-3 text-green-300" />}
+      {hand && (
+        <span className="zgc-pop absolute left-2 top-2 flex items-center gap-1 rounded-full bg-amber-400 px-2 py-1 text-[12px] font-extrabold text-[#2a1a00] shadow-[0_8px_20px_-8px_rgba(251,191,36,0.9)]">
+          <span className="zgc-wave">✋</span>{hand}
+        </span>
+      )}
+      <span className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[12px] font-semibold text-white ring-1 ring-white/10 backdrop-blur-md">
+        {muted ? <MicOff className="h-3 w-3 text-red-300" /> : <Volume2 className={`h-3 w-3 ${speaking ? "text-[#ff8bd7]" : "text-green-300"}`} />}
         <span className="truncate">{name}</span>
       </span>
     </div>
   );
 }
 
-function Ctrl({ on, onClick, label, children }: { on: boolean; onClick: () => void; label: string; children: React.ReactNode }) {
+function Ctrl({ on, onClick, label, tone, children }: { on: boolean; onClick: () => void; label: string; tone?: "amber"; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} className={`grid h-14 w-14 place-items-center rounded-full transition active:scale-95 ${on ? "bg-foreground/[0.08] text-foreground" : "bg-foreground text-background"}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={!on}
+      title={label}
+      className={`grid h-11 w-11 shrink-0 sm:h-[52px] sm:w-[52px] place-items-center rounded-full transition active:scale-95 ${
+        tone === "amber" ? "bg-amber-400 text-[#2a1a00] shadow-[0_10px_24px_-10px_rgba(251,191,36,0.9)]" : on ? "bg-white/[0.08] text-white hover:bg-white/[0.14]" : "bg-white text-[#140a1c]"
+      }`}
+    >
       {children}
     </button>
   );

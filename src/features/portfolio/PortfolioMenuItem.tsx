@@ -50,6 +50,9 @@ export function PortfolioMenuItem({
   const { data: ids = [] } = useMyPortfolioPostIds(currentUserId);
   const onPortfolio = ids.includes(postId);
 
+  // Ordinary posts can't go on a portfolio any more (Articles replaced Highlights).
+  if (!isShip) return null;
+
   const label = isShip
     ? onPortfolio
       ? "Remove from portfolio"

@@ -23,6 +23,7 @@ import {
   type PublicPortfolio,
 } from "./types";
 import { SignalTemplate } from "./templates/Signal";
+import { ArticlesBlock } from "./templates/blocks";
 import { SpotlightTemplate } from "./templates/Spotlight";
 import { StatementTemplate } from "./templates/Statement";
 import { BrightTemplate } from "./templates/Bright";
@@ -89,7 +90,8 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
   const view = portfolioView(data);
   const branding = showsBranding(portfolio);
   const projects = items.filter((item) => item.kind === "project");
-  const proofs = items.filter((item) => item.kind === "proof");
+  // Articles replace highlighted posts: ordinary posts never show on a portfolio.
+  const articles = data.articles || [];
   const skills = portfolio.skills || [];
   const sections = normaliseSections(portfolio.sections).filter((s) => s.visible);
 
@@ -108,7 +110,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
     skills: skills.length > 0,
     learning: learning.length > 0,
     certificates: certificates.length > 0,
-    proofs: proofs.length > 0,
+    proofs: articles.length > 0,
     achievements: (data.achievements || []).length > 0,
     rates: visibleTiers(normaliseRateCard(portfolio.rate_card), Boolean(portfolio.premium_active)).length > 0,
     // Anyone can be messaged on Zero Club, so contact always has somewhere to go.
@@ -184,7 +186,7 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
             <dl className="relative mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.07] @lg:grid-cols-4">
               <Stat label="Projects shipped" value={stats.ships} />
               <Stat label="Tutor-verified" value={stats.verified} />
-              <Stat label="Highlights" value={proofs.length} />
+              <Stat label="Articles" value={articles.length} />
               <Stat label="XP earned" value={stats.xp} />
             </dl>
           )}
@@ -319,11 +321,18 @@ function MinimalTemplate({ data, preview, onOpenItem }: Props) {
               </ul>
             )}
             {section.key === "proofs" && (
-              <div className="grid gap-3 @2xl:grid-cols-2">
-                {proofs.map((item) => (
-                  <ProofCard key={item.id} item={item} preview={preview} onOpen={onOpenItem} />
-                ))}
-              </div>
+              <ArticlesBlock
+                v={view}
+                preview={preview}
+                skin={{
+                  card: "rounded-2xl border border-white/[0.07] bg-white/[0.025]",
+                  muted: "text-white/60",
+                  faint: "text-white/45",
+                  chip: "",
+                  line: "border-white/[0.07]",
+                  tile: "bg-white/[0.05]",
+                }}
+              />
             )}
             {section.key === "achievements" && (
               <ul className="grid gap-3 @2xl:grid-cols-2">

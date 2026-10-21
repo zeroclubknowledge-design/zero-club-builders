@@ -34,6 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { directMessagePreview, parseFundLinkMessage } from "@/lib/directMessage";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useDraftMedia } from "@/hooks/useDraftMedia";
+import { readChatAttachments } from "@/lib/chatAttachments";
 
 import { confirmCard } from "@/components/ConfirmCard";
 import { ComposerSlot } from "@/components/ComposerSlot";
@@ -527,12 +528,12 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                     <button
                       key={emoji}
                       onClick={() => onReact(m.id, emoji)}
-                      className={`-mt-2.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold shadow-sm ring-2 ring-background transition-colors active:scale-95 ${
-                        data.me ? 'bg-[#cc208f]/15 text-[#cc208f]' : 'bg-card text-foreground/80'
+                      className={`-mt-2.5 flex items-center gap-0.5 px-0.5 text-[11px] font-semibold transition-transform active:scale-90 ${
+                        data.me ? 'text-[#cc208f]' : 'text-muted-foreground'
                       }`}
                     >
-                      <span>{emoji}</span>
-                      <span>{data.count > 1 ? data.count : ''}</span>
+                      <span className="text-[18px] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">{emoji}</span>
+                      {data.count > 1 && <span>{data.count}</span>}
                     </button>
                   ))}
                 </div>
@@ -656,10 +657,9 @@ function ChatViewPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  const { files: mediaFiles, setFiles: setMediaFiles, previews: mediaPreviews, setPreviews: setMediaPreviews } = useDraftMedia(messageDraftKey && messageDraftKey + ":media");
+  const { files: mediaFiles, setFiles: setMediaFiles, previews: mediaPreviews, setPreviews: setMediaPreviews, addFiles: addMediaFiles, removeFile: removeMediaFile } = useDraftMedia(messageDraftKey && messageDraftKey + ":media");
   const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder((file) => {
-    setMediaFiles((files) => [...files, file]);
-    setMediaPreviews((previews) => [...previews, URL.createObjectURL(file)]);
+    addMediaFiles([file]);
   });
   const [isUploading, setIsUploading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -1018,33 +1018,18 @@ function ChatViewPage() {
   }, [id, messages.length > 0]);
 
   const handleChatMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const newFiles = Array.from(files).filter((file) => {
-      // Too big to upload: say so now, not after a long failed upload.
+    const selected = readChatAttachments(e.currentTarget);
+    const accepted = selected.filter(file => {
       if (file.size > UPLOAD_LIMIT_MB * 1024 * 1024) {
         toast.error(tooLargeMessage(file));
         return false;
       }
       return true;
     });
-    if (newFiles.length === 0) return;
-    setMediaFiles(prev => [...prev, ...newFiles]);
-    newFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (ev.target?.result) {
-          setMediaPreviews(prev => [...prev, ev.target!.result as string]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    addMediaFiles(accepted);
   };
 
-  const removeMedia = (index: number) => {
-    setMediaFiles(prev => prev.filter((_, i) => i !== index));
-    setMediaPreviews(prev => prev.filter((_, i) => i !== index));
-  };
+  const removeMedia = removeMediaFile;
 
   const handleClearChat = async () => {
     if (!(await confirmCard('Clear this conversation from this device? New messages will still appear.'))) return;

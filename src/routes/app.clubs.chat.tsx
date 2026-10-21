@@ -17,6 +17,7 @@ import { ClubNoteCard, ClubNotePicker, parseClubNote } from "@/features/clubs/Cl
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useDraftMedia } from "@/hooks/useDraftMedia";
+import { readChatAttachments } from "@/lib/chatAttachments";
 import { useQuery } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { LinkPreview } from "@/components/LinkPreview";
@@ -277,11 +278,10 @@ function ClubChat() {
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
-  const { files: mediaFiles, setFiles: setMediaFiles, previews: mediaPreviews, setPreviews: setMediaPreviews } = useDraftMedia(draftKey(currentUserProfile?.id, "club-message", club?.id || clubId || "", activeRoom, "media"));
+  const { files: mediaFiles, setFiles: setMediaFiles, previews: mediaPreviews, setPreviews: setMediaPreviews, addFiles: addMediaFiles, removeFile: removeMediaFile } = useDraftMedia(draftKey(currentUserProfile?.id, "club-message", club?.id || clubId || "", activeRoom, "media"));
   const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder(
     (file) => {
-      setMediaFiles((files) => [...files, file]);
-      setMediaPreviews((previews) => [...previews, URL.createObjectURL(file)]);
+      addMediaFiles([file]);
     },
   );
   const descRef = useRef<HTMLTextAreaElement>(null);
@@ -944,33 +944,18 @@ function ClubChat() {
   };
 
   const handleChatMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const newFiles = Array.from(files).filter((file) => {
-      // Too big to upload: say so now, not after a long failed upload.
+    const selected = readChatAttachments(e.currentTarget);
+    const accepted = selected.filter(file => {
       if (file.size > UPLOAD_LIMIT_MB * 1024 * 1024) {
         toast.error(tooLargeMessage(file));
         return false;
       }
       return true;
     });
-    if (newFiles.length === 0) return;
-    setMediaFiles((prev) => [...prev, ...newFiles]);
-    newFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (ev.target?.result) {
-          setMediaPreviews((prev) => [...prev, ev.target!.result as string]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    addMediaFiles(accepted);
   };
 
-  const removeMedia = (index: number) => {
-    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
-    setMediaPreviews((prev) => prev.filter((_, i) => i !== index));
-  };
+  const removeMedia = removeMediaFile;
 
   const handleSendMessage = async (
     overrideText?: string | any,
@@ -5774,14 +5759,12 @@ function MessageBubble({
                 <button
                   key={emoji}
                   onClick={() => onReact(message.id, emoji)}
-                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold transition-colors ${
-                    data.me
-                      ? "bg-primary/15 border-primary/25 text-primary"
-                      : "bg-foreground/[0.04] border-transparent text-muted-foreground hover:bg-foreground/[0.08]"
+                  className={`flex items-center gap-0.5 px-0.5 text-[11px] font-semibold transition-transform active:scale-90 ${
+                    data.me ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
-                  <span>{emoji}</span>
-                  <span>{data.count}</span>
+                  <span className="text-[18px] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">{emoji}</span>
+                  {data.count > 1 && <span>{data.count}</span>}
                 </button>
               ))}
               <button

@@ -167,6 +167,8 @@ export async function addPostToPortfolio(
   profileId: string,
   post: { id: string; is_build_post?: boolean | null },
 ): Promise<"added" | "exists"> {
+  // Only shipped projects go on a portfolio; ordinary posts never do (Articles take their place).
+  if (!post.is_build_post) throw new Error("Only shipped projects can go on your portfolio. Add an article instead.");
   let portfolio = await fetchMyPortfolio(profileId);
   if (!portfolio) portfolio = await createPortfolio(profileId, {}, []);
   const { data: existing } = await supabase
@@ -177,7 +179,7 @@ export async function addPostToPortfolio(
   const inserted = await insertItems(portfolio.id, [
     {
       post_id: post.id,
-      kind: post.is_build_post ? "project" : "proof",
+      kind: "project",
       featured: false,
       sort_order: rows.reduce((max, row) => Math.max(max, row.sort_order), -1) + 1,
     },
@@ -228,4 +230,37 @@ export async function removePostFromPortfolio(profileId: string, postId: string)
     .eq("portfolio_id", portfolio.id)
     .eq("post_id", postId);
   if (error) throw error;
+}
+
+/** A published article the owner could add to the portfolio. */
+export type ArticleCandidate = {
+  id: string;
+  title: string | null;
+  slug: string | null;
+  cover_url: string | null;
+  created_at: string;
+  excerpt: string | null;
+  minutes: number;
+};
+
+/** True when the server hasn't been given portfolio articles yet. */
+export const articlesUnavailable = (error: unknown) =>
+  /PGRST202|schema cache|portfolio_article_candidates|note_id|42703|23514/i.test(
+    `${(error as { code?: string })?.code || ""} ${(error as { message?: string })?.message || ""}`,
+  );
+
+export async function fetchArticleCandidates(): Promise<ArticleCandidate[]> {
+  const { data, error } = await supabase.rpc("portfolio_article_candidates" as any);
+  if (error) throw error;
+  return (data || []) as ArticleCandidate[];
+}
+
+export async function insertArticle(portfolioId: string, noteId: string, sortOrder: number) {
+  const { data, error } = await supabase
+    .from("portfolio_items" as any)
+    .insert({ portfolio_id: portfolioId, note_id: noteId, kind: "article", featured: false, sort_order: sortOrder })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data as unknown as { id: string };
 }

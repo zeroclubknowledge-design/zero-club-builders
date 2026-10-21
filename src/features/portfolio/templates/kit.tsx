@@ -76,7 +76,8 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
       : `https://${profile.website}`
     : null;
   const projects = items.filter((i) => i.kind === "project");
-  const proofs = items.filter((i) => i.kind === "proof");
+  // Articles are the only writing a portfolio shows; ordinary posts never appear.
+  const articles = data.articles || [];
   const skills = portfolio.skills || [];
   const contact = contactOf(data);
   const selectedIds = new Set(projects.map((p) => p.post.id));
@@ -92,7 +93,7 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
     skills: skills.length > 0,
     learning: learning.length > 0,
     certificates: certificates.length > 0,
-    proofs: proofs.length > 0,
+    proofs: articles.length > 0,
     achievements: achievements.length > 0,
     rates: visibleTiers(normaliseRateCard(portfolio.rate_card), Boolean(portfolio.premium_active)).length > 0,
     // Anyone can be messaged on Zero Club, so contact always has somewhere to go.
@@ -107,7 +108,7 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
         { label: "Tutor-verified", value: stats.verified },
         { label: achievements.length === 1 ? "Win" : "Wins", value: achievements.length },
         { label: learning.length === 1 ? "Bootcamp" : "Bootcamps", value: learning.length },
-        { label: proofs.length === 1 ? "Highlight" : "Highlights", value: proofs.length },
+        { label: articles.length === 1 ? "Article" : "Articles", value: articles.length },
         { label: "XP earned", value: stats.xp },
       ]
         .filter((s) => Number(s.value) > 0)
@@ -135,7 +136,7 @@ export function portfolioView(data: PublicPortfolio, opts: { light?: boolean } =
     email,
     website,
     projects,
-    proofs,
+    articles,
     skills,
     role,
     sections,
@@ -649,7 +650,7 @@ const NAV_LABEL: Partial<Record<PortfolioSectionKey, string>> = {
   about: "About",
   experience: "Experience",
   skills: "Skills",
-  proofs: "Highlights",
+  proofs: "Articles",
   achievements: "Wins",
   rates: "Rates",
   learning: "Learning",

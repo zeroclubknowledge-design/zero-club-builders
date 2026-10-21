@@ -23,7 +23,7 @@ export const SECTION_LABELS: Record<PortfolioSectionKey, string> = {
   skills: "Skills & tools",
   learning: "Learning",
   certificates: "Certificates",
-  proofs: "Highlights",
+  proofs: "Articles",
   achievements: "Wins & awards",
   rates: "Rate card",
   contact: "Contact",
@@ -112,6 +112,21 @@ export type PortfolioItem = {
   post: PortfolioPost;
 };
 
+/** A published Zero Notes article on the portfolio (the "Articles" section). */
+export type PortfolioArticle = {
+  /** The portfolio_items row. */
+  id: string;
+  note_id: string;
+  featured: boolean;
+  sort_order: number;
+  title: string | null;
+  slug: string | null;
+  cover_url: string | null;
+  created_at: string;
+  excerpt: string | null;
+  minutes: number;
+};
+
 export type PortfolioProfile = {
   id: string;
   username: string;
@@ -147,7 +162,9 @@ export type PublicPortfolio = {
   achievements?: Achievement[];
   /** Every project the owner has shipped publicly, newest first. */
   shipped?: PortfolioPost[];
-  stats: { ships: number; verified: number; proofs: number; xp: number };
+  /** Articles chosen for the portfolio. The only writing a portfolio shows. */
+  articles?: PortfolioArticle[];
+  stats: { ships: number; verified: number; proofs: number; articles?: number; xp: number };
 };
 
 export type PortfolioLookup = PublicPortfolio | { found: false };

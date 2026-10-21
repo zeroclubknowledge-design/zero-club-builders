@@ -15,6 +15,8 @@ import { MentionField } from "@/components/MentionField";
 import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { ChatMediaGrid, type ChatVisual } from "@/components/ChatMediaGrid";
+import { ChatAttachmentThumbnail } from "@/components/ChatAttachmentThumbnail";
+import { readChatAttachments } from "@/lib/chatAttachments";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { compressImage } from "@/lib/imageCompression";
@@ -517,7 +519,7 @@ function GroupChatPage() {
               <div className="no-scrollbar mb-2 flex gap-2 overflow-x-auto">
                 {files.map((f, i) => (
                   <span key={i} className="relative flex h-14 shrink-0 items-center gap-2 overflow-hidden rounded-xl bg-card px-3 ring-1 ring-foreground/[0.07]">
-                    {f.type.startsWith("image/") ? <img src={URL.createObjectURL(f)} alt="" className="-mx-3 h-14 w-14 object-cover" /> : <><FileText className="h-5 w-5 text-[#cc208f]" /><span className="max-w-[120px] truncate text-[12px]">{f.type.startsWith("audio/") ? "Voice note" : f.name}</span></>}
+                    <ChatAttachmentThumbnail file={f} />
                     <button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded-full bg-black/60 text-white"><X className="h-2.5 w-2.5" /></button>
                   </span>
                 ))}
@@ -539,8 +541,8 @@ function GroupChatPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
               </ComposerSlot>
-              <input ref={imageRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={(e) => { setFiles((f) => [...f, ...Array.from(e.target.files || [])]); e.target.value = ""; }} />
-              <input ref={fileRef} type="file" multiple className="hidden" onChange={(e) => { setFiles((f) => [...f, ...Array.from(e.target.files || [])]); e.target.value = ""; }} />
+              <input ref={imageRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={(e) => { const selected = readChatAttachments(e.currentTarget); setFiles((f) => [...f, ...selected]); }} />
+              <input ref={fileRef} type="file" multiple className="hidden" onChange={(e) => { const selected = readChatAttachments(e.currentTarget); setFiles((f) => [...f, ...selected]); }} />
               <MentionField
                 people={mentionPeople}
                 peopleLabel="In this group"
@@ -828,8 +830,8 @@ function Bubble({
         {reactions.length > 0 && (
           <div className={`-mt-1.5 flex flex-wrap gap-1 ${mine ? "justify-end pr-1" : "pl-1"}`}>
             {reactions.map(([emoji, r]) => (
-              <button key={emoji} type="button" onClick={() => onReact(emoji)} className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[12px] font-semibold shadow-sm ring-2 ring-background ${r.mine ? "bg-[#cc208f]/15 text-[#cc208f]" : "bg-card text-foreground/80"}`}>
-                {emoji}{r.count > 1 ? <span>{r.count}</span> : null}
+              <button key={emoji} type="button" onClick={() => onReact(emoji)} className={`flex items-center gap-0.5 px-0.5 text-[11px] font-semibold transition-transform active:scale-90 ${r.mine ? "text-[#cc208f]" : "text-muted-foreground"}`}>
+                <span className="text-[18px] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">{emoji}</span>{r.count > 1 ? <span>{r.count}</span> : null}
               </button>
             ))}
           </div>
