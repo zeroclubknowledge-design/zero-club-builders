@@ -512,7 +512,20 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
     <article ref={cardRef} className="mt-1 bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
       {post.type === "repost" && (
         <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-[12px] text-muted-foreground">
-          <Repeat className="h-3.5 w-3.5" />
+          {/* The reposter's photo, like "Ada likes this" on other networks. */}
+          {post.reposter_id ? (
+            <Link
+              to="/app/profile/$id"
+              params={{ id: post.reposter_id }}
+              aria-label={`${post.reposted_by || "Reposter"}'s profile`}
+              className="shrink-0"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <RepostAvatar url={post.reposter_avatar} name={post.reposted_by} />
+            </Link>
+          ) : (
+            <RepostAvatar url={post.reposter_avatar} name={post.reposted_by} />
+          )}
           <span className="truncate">
             <span className="font-semibold text-foreground">{post.reposted_by}</span> reposted this
           </span>
@@ -920,3 +933,22 @@ function compactCount(value: number) {
 
 /** A card only re-renders when its own post (or the viewer) changes. */
 export const PostCard = memo(PostCardView);
+
+/** The small round photo beside "… reposted this"; initials when there is no photo. */
+function RepostAvatar({ url, name }: { url?: string | null; name?: string | null }) {
+  const initial = (name || "?").trim().charAt(0).toUpperCase();
+  return url ? (
+    <img
+      src={url}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+    />
+  ) : (
+    <span className="grid h-6 w-6 place-items-center rounded-full bg-[linear-gradient(135deg,#cc208f,#6d28d9)] text-[10.5px] font-bold text-white">
+      {initial}
+    </span>
+  );
+}
+

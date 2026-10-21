@@ -12,6 +12,15 @@ import {
   type TextareaHTMLAttributes,
 } from "react";
 import { supabase } from "@/lib/supabase";
+import {
+  MENTION_QUERY_RE,
+  MentionList,
+  knownUsernames,
+  useMentionResults,
+  type MentionPerson,
+} from "@/components/mentionSearch";
+
+export type { MentionPerson };
 
 /**
  * A text box that understands @username tags.
@@ -29,14 +38,7 @@ import { supabase } from "@/lib/supabase";
  * letter widths (colour and background only), so the caret always lines up.
  */
 
-export type MentionPerson = {
-  id?: string | null;
-  username: string;
-  full_name?: string | null;
-  avatar_url?: string | null;
-  /** Small label on the right, e.g. "Host" or "Admin". */
-  badge?: string | null;
-};
+
 
 type Common = {
   value: string;
@@ -60,9 +62,8 @@ export type MentionFieldProps = TextareaProps | InputProps;
 
 type Field = HTMLTextAreaElement | HTMLInputElement;
 
-const PINK = "#cc208f";
 const TAG_RE = /(^|[^A-Za-z0-9_@])(@[A-Za-z0-9_-]{1,40})/g;
-const QUERY_RE = /(^|[^A-Za-z0-9_@])@([A-Za-z0-9_-]{0,40})$/;
+const QUERY_RE = MENTION_QUERY_RE;
 
 /* Styles the mirror must copy so its text lands exactly where the field's does. */
 const COPIED = [
@@ -71,8 +72,7 @@ const COPIED = [
   "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "color",
 ] as const;
 
-/* Usernames confirmed to exist, shared by every field so a tag stays pink everywhere. */
-const knownUsernames = new Set<string>();
+/* Usernames already looked up (knownUsernames, shared, lives in mentionSearch). */
 const checkedUsernames = new Set<string>();
 
 function setNativeValue(el: Field, value: string) {
@@ -110,7 +110,6 @@ export const MentionField = forwardRef<Field, MentionFieldProps>(function Mentio
   const [query, setQuery] = useState<string | null>(null);
   const [anchor, setAnchor] = useState(0);
   const [active, setActive] = useState(0);
-  const [remote, setRemote] = useState<MentionPerson[]>([]);
   const [, bump] = useState(0);
 
   /* Context people are always valid tags. */
@@ -155,44 +154,7 @@ export const MentionField = forwardRef<Field, MentionFieldProps>(function Mentio
     }
   }, []);
 
-  /* ── search everyone ── */
-  useEffect(() => {
-    if (query === null || !searchEveryone || query.length < 1) { setRemote([]); return; }
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, username, full_name, avatar_url")
-        .or(`username.ilike.${query}%,full_name.ilike.%${query}%`)
-        .not("username", "is", null)
-        .limit(8);
-      if (!cancelled) setRemote(((data || []) as MentionPerson[]).filter((p) => p.username));
-    }, 160);
-    return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [query, searchEveryone]);
-
-  const sections = useMemo(() => {
-    if (query === null) return [] as { label: string; items: MentionPerson[] }[];
-    const term = query.toLowerCase();
-    const seen = new Set<string>();
-    const matches = (p: MentionPerson) =>
-      !term || p.username.toLowerCase().includes(term) || String(p.full_name || "").toLowerCase().includes(term);
-    const rank = (p: MentionPerson) => (p.username.toLowerCase().startsWith(term) ? 0 : 1);
-    const local = people
-      .filter((p) => p.username && matches(p))
-      .filter((p) => { const k = p.username.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
-      .sort((a, b) => rank(a) - rank(b))
-      .slice(0, 6);
-    const others = remote
-      .filter((p) => { const k = p.username.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
-      .sort((a, b) => rank(a) - rank(b))
-      .slice(0, 6);
-    return [
-      ...(local.length ? [{ label: peopleLabel, items: local }] : []),
-      ...(others.length ? [{ label: "On Zero Club", items: others }] : []),
-    ];
-  }, [query, people, remote, peopleLabel]);
-  const flat = useMemo(() => sections.flatMap((s) => s.items), [sections]);
+  const { sections, flat } = useMentionResults(query, people, peopleLabel, searchEveryone);
   const open = query !== null && flat.length > 0;
 
   const pick = (person: MentionPerson) => {
@@ -289,7 +251,6 @@ export const MentionField = forwardRef<Field, MentionFieldProps>(function Mentio
     "aria-expanded": open,
   };
 
-  let index = -1;
   return (
     <div className={wrapperClassName ?? "relative min-w-0 flex-1"} style={{ position: "relative" }}>
       {as === "input" ? <input {...(fieldProps as any)} /> : <textarea {...(fieldProps as any)} />}
@@ -325,45 +286,7 @@ export const MentionField = forwardRef<Field, MentionFieldProps>(function Mentio
           role="listbox"
           className={`absolute left-0 z-[80] w-full min-w-[240px] max-w-[360px] overflow-hidden rounded-xl shadow-[0_18px_44px_-18px_rgba(0,0,0,0.5)] ring-1 ${menuPlacement === "top" ? "bottom-full mb-2" : "top-full mt-2"} ${dark ? "bg-[#1b1620] ring-white/10" : "bg-card ring-border"}`}
         >
-          <div className="max-h-[260px] overflow-y-auto py-1">
-            {sections.map((section) => (
-              <div key={section.label}>
-                <p className={`px-3 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide ${dark ? "text-white/45" : "text-muted-foreground"}`}>{section.label}</p>
-                {section.items.map((person) => {
-                  index += 1;
-                  const selected = index === active;
-                  const i = index;
-                  return (
-                    <button
-                      key={person.username}
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      onMouseDown={(event) => { event.preventDefault(); pick(person); }}
-                      onMouseEnter={() => setActive(i)}
-                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${selected ? (dark ? "bg-white/[0.08]" : "bg-[#cc208f]/[0.08]") : ""}`}
-                    >
-                      <span
-                        className={`grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full text-[12px] font-semibold ${person.username === "everyone" && !person.id ? "text-[15px] text-white" : dark ? "bg-white/10 text-white/80" : "bg-muted text-muted-foreground"}`}
-                        style={person.username === "everyone" && !person.id ? { background: PINK } : undefined}
-                      >
-                        {person.username === "everyone" && !person.id
-                          ? "@"
-                          : person.avatar_url
-                          ? <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                          : (person.full_name || person.username || "?")[0].toUpperCase()}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className={`block truncate text-[13.5px] font-semibold ${dark ? "text-white" : "text-foreground"}`}>{person.full_name || person.username}</span>
-                        <span className={`block truncate text-[12px] zc-tag-ink-text ${dark ? "zc-tag-ink-dark" : ""}`}>@{person.username}</span>
-                      </span>
-                      {person.badge && <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide ${dark ? "text-[#f28fd0]" : "text-muted-foreground"}`}>{person.badge}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <MentionList sections={sections} active={active} onPick={pick} onHover={setActive} dark={dark} />
         </div>
       )}
     </div>

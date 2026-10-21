@@ -22,6 +22,7 @@ import { Mark, mergeAttributes } from '@tiptap/core';
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
 import { notifyMentionedUsers } from "@/lib/mentions";
+import { useEditorMentions } from "@/components/EditorMentions";
 import { toPlainText } from "@/lib/contentPreview";
 import { clearDraftGroup, draftKey, readDraft, writeDraft, usePersistentDraft } from "@/lib/draftStorage";
 
@@ -65,9 +66,6 @@ function ComposePage() {
   const [selectedBootcampId, setSelectedBootcampId] = usePersistentDraft<string | null>(postDraftKey && postDraftKey + ":bootcamp", null);
   const [isBuild, setIsBuild] = usePersistentDraft(postDraftKey && postDraftKey + ":build", false);
   
-  const [mentionSearch, setMentionSearch] = useState("");
-  const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
-  const [showMentions, setShowMentions] = useState(false);
   
   const [croppingInfo, setCroppingInfo] = useState<number | null>(null);
   const [trimmingInfo, setTrimmingInfo] = useState<number | null>(null);
@@ -176,18 +174,6 @@ function ComposePage() {
     if ((textOnly.length > 0) !== hasBodyText) {
       setHasBodyText(textOnly.length > 0);
     }
-    
-    if (textBeforeCursor !== undefined) {
-      const match = textBeforeCursor.match(/@(\w*)$/);
-      if (match) {
-        setMentionSearch(match[1]);
-        setShowMentions(true);
-      } else {
-        setShowMentions(false);
-      }
-    } else {
-      setShowMentions(false);
-    }
   };
 
   const [isEditorFocused, setIsEditorFocused] = useState(false);
@@ -234,6 +220,8 @@ function ComposePage() {
       window.setTimeout(() => setIsEditorFocused(false), 200);
     },
   });
+  // "@" + a letter opens the people list under the caret.
+  const mentions = useEditorMentions(editor);
 
   useEffect(() => {
     if (!editor || editor.getHTML() === bodyText) return;
@@ -249,32 +237,6 @@ function ComposePage() {
     if (format === 'heading') editor.chain().focus().toggleHeading({ level: 1 }).run();
   };
 
-  useEffect(() => {
-    if (showMentions && mentionSearch) {
-      const searchProfiles = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('id, username, full_name, avatar_url')
-          .ilike('username', `${mentionSearch}%`)
-          .limit(5);
-        setMentionSuggestions(data || []);
-      };
-      searchProfiles();
-    }
-  }, [mentionSearch, showMentions]);
-
-  const insertMention = (username: string) => {
-    if (!editor) return;
-    
-    editor
-      .chain()
-      .focus()
-      .deleteRange({ from: editor.state.selection.from - mentionSearch.length - 1, to: editor.state.selection.from })
-      .insertContent(`<span data-mention="true">@${username}</span> `)
-      .run();
-      
-    setShowMentions(false);
-  };
 
   const handleCropComplete = useCallback((croppedBlob: Blob) => {
     if (croppingInfo === null) return;
@@ -719,25 +681,7 @@ function ComposePage() {
             className="min-h-[140px] w-full flex-1 cursor-text"
           />
 
-          {showMentions && mentionSuggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-12 z-50 max-h-[250px] overflow-y-auto rounded-xl border border-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-200">
-              {mentionSuggestions.map((prof) => (
-                <button
-                  key={prof.id}
-                  onClick={() => insertMention(prof.username)}
-                  className="flex w-full items-center gap-3 border-b border-border/40 px-4 py-3 transition-colors last:border-0 hover:bg-foreground/[0.04]"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-muted text-[11px] font-semibold">
-                    {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : prof.username[0].toUpperCase()}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-semibold text-foreground">{prof.full_name || prof.username}</p>
-                    <p className="text-xs text-muted-foreground">{getFirstName(prof)}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+          {mentions.menu}
         </div>
       </div>
 

@@ -6,6 +6,8 @@ import { createCampaign, updateMyCampaign, uploadCampaignCover, type CampaignInp
 import { GOAL_LABEL, type CampaignGoal, type MyCampaign } from "@/types/campaign";
 import { CardSelect } from "@/components/ui/CardSelect";
 
+import { MentionField } from "@/components/ui/MentionField";
+import { notifyTagged } from "@/lib/mentions";
 const MAX_DAYS = 60;
 
 const REFUSAL: Record<string, string> = {
@@ -82,7 +84,11 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
         ? await updateMyCampaign(initial!.id, input)
         : await createCampaign({ ...input, goal: f.goal, partner_name: f.partner_name.trim(), partner_url: f.partner_url.trim() });
       if (!res.ok) setError(REFUSAL[res.reason || ""] || "Couldn't save your campaign.");
-      else onSaved(res.id);
+      else {
+        // On first save only: editing must not re-notify everyone already tagged.
+        if (!editing) void notifyTagged(f.description, `a ZeroStart campaign: ${f.title}`, "/campaigns");
+        onSaved(res.id);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -159,7 +165,7 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
           <input className="zs-input" value={f.summary} onChange={set("summary")} maxLength={280} placeholder="What people get when they join through you" />
         </Field>
         <Field label="Your plan">
-          <textarea className="zs-input" rows={4} value={f.description} onChange={set("description")} maxLength={4000} placeholder="Where you'll share it, who you'll reach, events you'll run." />
+          <MentionField className="zs-input" rows={4} value={f.description} onChange={set("description")} maxLength={4000} placeholder="Where you'll share it, who you'll reach, events you'll run." />
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">

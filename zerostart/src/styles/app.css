@@ -203,3 +203,11 @@ input, textarea { font-weight: 500; }
 textarea.zs-input { height: auto; padding: 12px 16px; line-height: 1.5; }
 .zs-input:focus { border-color: rgb(204 32 143 / 0.5); box-shadow: 0 0 0 4px rgb(204 32 143 / 0.10); }
 .zs-label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--color-ink-muted); }
+
+/* @tags in text boxes (MentionField): colour and background only, so the
+   caret stays aligned with the transparent text underneath. */
+.zs-mention-field::placeholder { -webkit-text-fill-color: currentColor; }
+.zs-mention-field::selection { -webkit-text-fill-color: transparent; }
+.zs-tag-ink { color: var(--color-accent); background-color: color-mix(in oklab, var(--color-accent) 10%, transparent); }
+html.dark .zs-tag-ink { color: #ff7dcf; background-color: rgb(255 125 207 / 0.16); }
+

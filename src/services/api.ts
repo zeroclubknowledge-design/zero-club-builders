@@ -195,7 +195,7 @@ export const getPosts = async () => {
         .limit(50),
       supabase
         .from('reposts')
-        .select('*, posts!reposts_post_id_fkey(*, profiles!posts_author_id_fkey(username, full_name, avatar_url, account_type, tier, affiliation, ambassador_rank)), profiles!reposts_profile_id_fkey(username, full_name)')
+        .select('*, posts!reposts_post_id_fkey(*, profiles!posts_author_id_fkey(username, full_name, avatar_url, account_type, tier, affiliation, ambassador_rank)), profiles!reposts_profile_id_fkey(username, full_name, avatar_url)')
         .order('created_at', { ascending: false })
         .limit(50),
       getCachedSession(),
@@ -231,6 +231,7 @@ export const getPosts = async () => {
         type: 'repost',
         reposter_id: r.profile_id,
         reposted_by: r.profiles?.full_name || r.profiles?.username,
+        reposter_avatar: r.profiles?.avatar_url || null,
         computed_reposts_count: dynamicRepostCounts[r.post_id] || 0,
         computed_quotes_count: dynamicQuotesCounts[r.post_id] || 0
       })).filter(rp => rp.original_id && rp.content !== undefined);

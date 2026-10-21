@@ -7,6 +7,8 @@ import { money, type PayoutCurrency } from "@/lib/money";
 import { daysLeft, type MyCampaign } from "@/types/campaign";
 import { CampaignCover, PhasePill } from "./CampaignCard";
 
+import { MentionField } from "@/components/ui/MentionField";
+import { notifyTagged } from "@/lib/mentions";
 const REFUSAL: Record<string, string> = {
   not_live: "This campaign has already been checked, so it can't take new reports.",
   not_joined: "This campaign isn't yours.",
@@ -97,6 +99,7 @@ export function CampaignSheet({
       const res = await submitProof({ campaignId: campaign.id, quantity: Number(qty), evidence: evidence.trim(), url: url.trim() });
       if (!res.ok) setError(REFUSAL[res.reason || ""] || "Couldn't send that.");
       else {
+        void notifyTagged(evidence, `a ZeroStart campaign report: ${campaign.title}`, "/campaigns");
         setSent(true);
         setProofOpen(false);
         setQty("");
@@ -231,7 +234,7 @@ export function CampaignSheet({
               <label className="zs-label">How many people did you reach?</label>
               <input className="zs-input" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 25" />
               <label className="zs-label mt-3">What happened?</label>
-              <textarea className="zs-input" rows={3} value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Where, when, who — the details the team needs to check it." />
+              <MentionField className="zs-input" rows={3} value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Where, when, who — the details the team needs to check it." />
               <label className="zs-label mt-3">Proof link (photos, sheet, post)</label>
               <input className="zs-input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://" />
               <div className="mt-4 flex gap-2">

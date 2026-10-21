@@ -38,6 +38,7 @@ import { supabase } from "@/lib/supabase";
 
 import { confirmCard } from "@/components/ConfirmCard";
 import { CardSelect } from "@/components/CardSelect";
+import { MentionField } from "@/components/MentionField";
 /* ───────────────────────── shared bits ───────────────────────── */
 
 const rpc = async <T,>(name: string, args?: Record<string, unknown>): Promise<T> => {
@@ -829,7 +830,7 @@ export function BootcampReviews({ bootcamp, isEnrolled, viewerId }: { bootcamp: 
         <div className="mt-3 rounded-2xl bg-foreground/[0.04] p-3">
           <p className="text-[13.5px] font-semibold">{mine ? "Update your review" : "How is this bootcamp going?"}</p>
           <div className="mt-2"><Stars value={rating} size={26} onPick={setRating} /></div>
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2} maxLength={1200} placeholder="What did you like? What could be better?" className={`${area} mt-2`} />
+          <MentionField wrapperClassName="relative w-full" menuPlacement="bottom" value={body} onChange={(e) => setBody(e.target.value)} rows={2} maxLength={1200} placeholder="What did you like? What could be better?" className={`${area} mt-2`} />
           <button type="button" disabled={save.isPending} onClick={() => save.mutate()} className={`${primaryBtn} mt-2 h-10`}>{save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Post review</button>
         </div>
       )}

@@ -13,6 +13,8 @@ import { INITIATIVE_KINDS, nextLevel, rankBadge } from "@/types/ambassador";
 import { NewInitiativeSheet } from "@/features/ambassador/NewInitiativeSheet";
 import { Card, EmptyState, ErrorState, Skeleton, ZpBadge } from "@/components/ui/primitives";
 
+import { MentionField } from "@/components/ui/MentionField";
+import { notifyTagged } from "@/lib/mentions";
 /**
  * What an ambassador sees: where they stand, and what to do next.
  *
@@ -239,6 +241,7 @@ function TaskCard({ task, onDone }: { task: AmbassadorTask; onDone: () => void }
         setError(REFUSAL[result.reason || ""] || "Could not send that.");
         return;
       }
+      void notifyTagged(evidence, "a ZeroStart task report", "/tasks");
       setOpen(false);
       onDone();
     } catch (e) {
@@ -296,7 +299,7 @@ function TaskCard({ task, onDone }: { task: AmbassadorTask; onDone: () => void }
         <div className="mt-4 border-t border-line pt-4">
           {/* Evidence, because nothing in the database can prove a meetup
               happened — a person has to look at something. */}
-          <textarea
+          <MentionField
             value={evidence}
             onChange={(e) => setEvidence(e.target.value)}
             rows={3}
@@ -380,6 +383,7 @@ function InitiativeCard({
         setError(INITIATIVE_REFUSAL[result.reason || ""] || "Could not send that.");
         return;
       }
+      void notifyTagged(summary, `a ZeroStart initiative report: ${item.title}`, "/tasks");
       setOpen(false);
       onDone();
     } catch (e) {
@@ -460,7 +464,7 @@ function InitiativeCard({
 
       {item.status === "active" && open && (
         <div className="mt-4 border-t border-line pt-4">
-          <textarea
+          <MentionField
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             rows={3}

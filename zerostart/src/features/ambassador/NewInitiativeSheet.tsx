@@ -3,6 +3,8 @@ import { ArrowLeft, Check, X } from "../../components/icons/glyphs";
 import { createInitiative } from "@/lib/ambassadorApi";
 import { INITIATIVE_KINDS, type FocusArea, type InitiativeKind } from "@/types/ambassador";
 
+import { MentionField } from "@/components/ui/MentionField";
+import { notifyTagged } from "@/lib/mentions";
 /**
  * Starting something.
  *
@@ -61,6 +63,7 @@ export function NewInitiativeSheet({
         targetCount: chosenKind?.needsTarget ? Number(target) : null,
         targetLabel: chosenKind?.targetLabel ?? null,
       });
+      void notifyTagged(description, `a ZeroStart initiative: ${title}`, "/tasks");
       onCreated();
       onClose();
     } catch (e) {
@@ -169,7 +172,7 @@ export function NewInitiativeSheet({
 
             <label className="mt-5 block">
               <span className="text-[13px] font-medium text-ink">What's the plan?</span>
-              <textarea
+              <MentionField
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}

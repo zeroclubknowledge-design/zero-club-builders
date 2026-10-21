@@ -14,6 +14,7 @@ import { GameEmblem, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import { createTournament, durationLabel, placeLabel, type TournamentReward } from "@/features/games/v2/api";
 import { CardSelect } from "@/components/CardSelect";
 
+import { MentionField } from "@/components/MentionField";
 export const Route = createFileRoute("/app/games/create")({
   validateSearch: (search: Record<string, unknown>): { game?: ZeroGameKey } => ({
     game: isZeroGameKey(search.game) ? search.game : undefined,
@@ -171,7 +172,7 @@ function CreateTournament() {
 
         <Card title="Details">
           <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, 80))} placeholder={`e.g. Friday ${info.name} Showdown`} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14.5px] outline-none focus:border-[#cc208f]" />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} placeholder="Rules, shout-outs or anything players should know (optional)" className="mt-2 w-full resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[14px] outline-none focus:border-[#cc208f]" />
+          <MentionField wrapperClassName="relative w-full" menuPlacement="bottom" value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} placeholder="Rules, shout-outs or anything players should know (optional)" className="mt-2 w-full resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[14px] outline-none focus:border-[#cc208f]" />
         </Card>
 
         <Card title="When" Icon={Trophy}>

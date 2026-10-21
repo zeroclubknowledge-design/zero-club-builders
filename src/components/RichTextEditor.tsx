@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import { useEditorMentions } from "@/components/EditorMentions";
 import {
   Bold,
   Heading2,
@@ -57,6 +58,8 @@ export function RichTextEditor({
       onChange(html === "<p></p>" ? "" : html);
     },
   });
+  // "@" + a letter tags someone (bold, like the rest of the formatting here).
+  const mentions = useEditorMentions(editor, { fallbackMark: "bold" });
 
   // Keep in step when the parent loads existing content (editing a bootcamp).
   useEffect(() => {
@@ -76,6 +79,7 @@ export function RichTextEditor({
       <Toolbar editor={editor} />
       <div className="px-3.5 py-3">
         <EditorContent editor={editor} />
+        {mentions.menu}
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ import {
   previewPrizeLine, tournamentPreview, updateTournament, type TournamentRow,
 } from "@/features/games/v2/api";
 
+import { MentionField } from "@/components/MentionField";
 export const Route = createFileRoute("/app/games/t/$id")({
   validateSearch: (search: Record<string, unknown>): { code?: string } => ({
     code: typeof search.code === "string" ? search.code : undefined,
@@ -446,7 +447,7 @@ function EditTournamentSheet({ open, onOpenChange, tournament: t, status, prizeS
             </label>
             <label className="block">
               <span className="mb-1 block text-[12px] font-semibold text-muted-foreground">Description</span>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} className={`${field} h-auto resize-none py-2.5`} />
+              <MentionField wrapperClassName="relative w-full" menuPlacement="bottom" value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} className={`${field} h-auto resize-none py-2.5`} />
             </label>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">

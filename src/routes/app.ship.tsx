@@ -18,6 +18,7 @@ import { notifyMentionedUsers } from "@/lib/mentions";
 import { ProjectPublishConfirmation, preparePublication, type PublicationAttempt } from "@/features/zeroAI/ProjectPublishConfirmation";
 import { CardSelect } from "@/components/CardSelect";
 
+import { MentionField } from "@/components/MentionField";
 export const Route = createFileRoute("/app/ship")({
   validateSearch: (search: Record<string, unknown>): { editId?: string; versionOf?: string } => {
     const next: { editId?: string; versionOf?: string } = {};
@@ -480,7 +481,7 @@ function ShipPage() {
           </div>
           <label className="block">
             <span className={LABEL}>Description</span>
-            <textarea
+            <MentionField wrapperClassName="relative w-full" menuPlacement="bottom"
               placeholder="What did you build? How does it work?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -576,7 +577,7 @@ function ShipPage() {
               <Switch checked={usedAi} onCheckedChange={setUsedAi} />
             </div>
             {usedAi && (
-              <textarea
+              <MentionField wrapperClassName="relative w-full" menuPlacement="bottom"
                 placeholder="What prompts or tools did you use? Share your AI workflow…"
                 value={prompts}
                 onChange={(e) => setPrompts(e.target.value)}

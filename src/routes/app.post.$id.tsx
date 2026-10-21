@@ -56,6 +56,7 @@ import { fetchPostComments } from "@/features/comments/api";
 import { notifyMentionedUsers } from "@/lib/mentions";
 
 import { confirmCard } from "@/components/ConfirmCard";
+import { MentionField } from "@/components/MentionField";
 // Query data is undefined while replies are loading. A fallback created inline
 // (`data: postComments = []`) is a different array on every render; because the
 // reply-sync effect depends on it and writes another array to state, slower
@@ -1380,7 +1381,7 @@ function PostDetail() {
                         )}
                         {editingCommentId === comment.id ? (
                           <div className="mt-2">
-                            <textarea
+                            <MentionField wrapperClassName="relative w-full" menuPlacement="bottom"
                               value={editCommentText}
                               onChange={(e) => setEditCommentText(e.target.value)}
                               className="min-h-[80px] w-full resize-none border-0 bg-transparent p-0 text-[14px] outline-none focus:outline-none focus:ring-0 focus:border-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"

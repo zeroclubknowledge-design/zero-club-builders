@@ -3087,7 +3087,7 @@ function ClubChat() {
                   <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
                     Details
                   </span>
-                  <textarea
+                  <MentionField wrapperClassName="relative w-full" menuPlacement="bottom"
                     value={giveaway.description}
                     onChange={(event) =>
                       setGiveaway((current) => ({ ...current, description: event.target.value }))
@@ -5541,7 +5541,7 @@ function MessageBubble({
                     onMouseDown={(event) => event.stopPropagation()}
                     onTouchStart={(event) => event.stopPropagation()}
                   >
-                    <textarea
+                    <MentionField wrapperClassName="relative w-full" menuPlacement="bottom"
                       autoFocus
                       value={editText}
                       maxLength={4000}

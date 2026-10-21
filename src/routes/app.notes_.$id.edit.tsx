@@ -106,13 +106,22 @@ const TipTapBlock = ({
     }
   }, [editor, activeMentionBlockId]);
 
-  return <EditorContent editor={editor} className="w-full relative z-10" />;
+  // "@" + a letter opens the people list under the caret; tags stay bold, as before.
+  const mentions = useEditorMentions(editor, { fallbackMark: "bold" });
+
+  return (
+    <>
+      <EditorContent editor={editor} className="w-full relative z-10" />
+      {mentions.menu}
+    </>
+  );
 };
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getFirstName } from "@/lib/utils";
 import { draftKey, readDraft, writeDraft, removeDraft } from "@/lib/draftStorage";
 
+import { useEditorMentions } from "@/components/EditorMentions";
 function NotesEditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -189,9 +198,6 @@ function NotesEditPage() {
   }, [noteData, isNoteLoaded, editDraftKey]);
   
   const [isPublishing, setIsPublishing] = useState(false);
-  const [mentionSearch, setMentionSearch] = useState("");
-  const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
-  const [showMentions, setShowMentions] = useState(false);
   const [activeMentionBlockId, setActiveMentionBlockId] = useState<string | null>(null);
   const [recordingId, setRecordingId] = useState<string | null>(null);
   const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
@@ -334,49 +340,8 @@ function NotesEditPage() {
   const updateBlockText = (id: string, text: string, textBeforeCursor?: string) => {
     blockContentsRef.current[id] = text; // Fast ref update avoids re-render lag
     setContentRevision((revision) => revision + 1);
-
-    if (textBeforeCursor !== undefined) {
-      const match = textBeforeCursor.match(/@(\w*)$/);
-      if (match) {
-        setMentionSearch(match[1]);
-        if (!showMentions) setShowMentions(true);
-        if (activeMentionBlockId !== id) setActiveMentionBlockId(id);
-      } else {
-        if (showMentions) setShowMentions(false);
-      }
-    } else {
-      if (showMentions) setShowMentions(false);
-    }
   };
 
-  useEffect(() => {
-    if (showMentions && mentionSearch) {
-      const searchProfiles = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('id, username, full_name, avatar_url')
-          .ilike('username', `${mentionSearch}%`)
-          .limit(5);
-        setMentionSuggestions(data || []);
-      };
-      searchProfiles();
-    }
-  }, [mentionSearch, showMentions]);
-
-  const insertMention = (username: string) => {
-    if (!activeMentionBlockId) return;
-    const editor = (window as any).activeTipTapEditor;
-    if (!editor) return;
-
-    editor
-      .chain()
-      .focus()
-      .deleteRange({ from: editor.state.selection.from - mentionSearch.length - 1, to: editor.state.selection.from })
-      .insertContent(`<strong class="text-primary font-bold">@${username}</strong> `)
-      .run();
-      
-    setShowMentions(false);
-  };
 
   const insertFormatting = (format: 'bold' | 'italic' | 'bullet') => {
     if (!activeMentionBlockId) return;
@@ -686,25 +651,7 @@ function NotesEditPage() {
                         activeMentionBlockId={activeMentionBlockId}
                       />
                       
-                      {showMentions && activeMentionBlockId === block.id && mentionSuggestions.length > 0 && (
-                        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[250px] overflow-y-auto rounded-lg border border-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                          {mentionSuggestions.map((prof) => (
-                            <button
-                              key={prof.id}
-                              onClick={() => insertMention(prof.username)}
-                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors border-b border-border/30 last:border-0"
-                            >
-                               <div className="h-8 w-8 rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-[10px] shrink-0">
-                                {prof.avatar_url ? <img src={prof.avatar_url} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : prof.username[0].toUpperCase()}
-                               </div>
-                               <div className="text-left">
-                                 <p className="text-sm font-bold text-foreground">{prof.full_name || prof.username}</p>
-                                 <p className="text-xs text-muted-foreground">{getFirstName(prof)}</p>
-                               </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      
                     </div>
                   )}
 

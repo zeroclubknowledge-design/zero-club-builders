@@ -64,6 +64,7 @@ import {
 } from "@/features/challenges/ui";
 
 import { confirmCard, promptCard } from "@/components/ConfirmCard";
+import { MentionField } from "@/components/MentionField";
 export const Route = createFileRoute("/app/challenge/$id")({
   validateSearch: (s: Record<string, unknown>) => ({
     created: typeof s.created === "string" ? s.created : undefined,
@@ -1110,7 +1111,7 @@ function EnterSheet({
       <div className="space-y-4">
         <div>
           <p className="text-[13px] font-semibold">What did you make, and why?</p>
-          <textarea
+          <MentionField wrapperClassName="relative w-full" menuPlacement="bottom"
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
             rows={6}
@@ -1306,7 +1307,7 @@ function FinalizeSheet({
         )}
         <div>
           <p className="text-[13px] font-semibold">Why this result? (public)</p>
-          <textarea
+          <MentionField wrapperClassName="relative w-full" menuPlacement="bottom"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
