@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, Crown, Flag, Loader2, Trophy, Users } from "@/components/icons/glyphs";
+import { ArrowLeft, Coins, Copy, Crown, Eye, Flag, Loader2, Share2, Trophy, Users } from "@/components/icons/glyphs";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
@@ -18,12 +18,16 @@ import {
   draughtAction,
   draughtError,
   draughtHome,
+  draughtInvite,
   draughtPing,
   draughtRoom,
   type DraughtAction,
   type DraughtPlayer,
 } from "./api";
 import { DraughtBoard } from "./DraughtBoard";
+import { StakePicker } from "./StakePicker";
+import { LiveMatches } from "./LiveMatches";
+import { MatchComments } from "./MatchComments";
 
 import { CardSelect } from "@/components/CardSelect";
 const primary =
@@ -48,6 +52,7 @@ export function ZeroDraught({
   const client = useQueryClient();
   const [inviteCode, setInviteCode] = useState(code || "");
   const [difficulty, setDifficulty] = useState(3);
+  const [stake, setStake] = useState(0);
   const [solo, setSolo] = usePersistentDraft<DraughtState>(
     draftKey(profile?.id || "guest", "draught", "solo"),
     initialDraught(),
@@ -74,6 +79,14 @@ export function ZeroDraught({
     retry: 1,
   });
   const data = detail.data;
+  const invite = useQuery({
+    queryKey: ["draught-invite", inviteCode],
+    queryFn: () => draughtInvite(inviteCode),
+    enabled: Boolean(profile?.id && !roomId && !mode && inviteCode.length === 12),
+    retry: false,
+  });
+  const inviteStake = invite.data?.open ? invite.data.stake : 0;
+  const spectator = data?.viewer === "spectator";
   const delta = useMemo(
     () => (data ? Date.parse(data.server_now) - Date.now() : 0),
     [data?.server_now],
@@ -156,7 +169,10 @@ export function ZeroDraught({
     try {
       const result = await draughtAction(roomId, action, payload, request);
       requests.current.delete(key);
-      if (action === "create" || action === "join") onNavigate(result.room_id);
+      if (action === "create" || action === "join") {
+        onNavigate(result.room_id);
+        void client.invalidateQueries({ queryKey: ["draught-stake-info"] });
+      }
       else await detail.refetch();
       void client.invalidateQueries({ queryKey: ["draught-home", profile.id] });
       return result;
@@ -175,7 +191,7 @@ export function ZeroDraught({
   };
   const bot: DraughtPlayer = { id: "zero-draught-computer", name: "Zero Bot", photo: null };
   const isSolo = mode === "solo";
-  const mySide: Side = isSolo || data?.room.red_id === profile?.id ? 1 : -1;
+  const mySide: Side = isSolo || spectator || data?.room.red_id === profile?.id ? 1 : -1;
   const red = isSolo ? you : data?.players.find((player) => player.id === data.room.red_id) || you;
   const black = isSolo
     ? bot
@@ -202,7 +218,30 @@ export function ZeroDraught({
         ? "A well-played draw"
         : data.room.winner === profile?.id
           ? "You won!"
-          : "Your opponent wins";
+          : spectator
+            ? `${data.players.find((player) => player.id === data.room.winner)?.name || "A player"} wins`
+            : "Your opponent wins";
+  const roomStake = data?.room.stake || 0;
+  const stakeLine =
+    !isSolo && roomStake > 0 && data
+      ? data.room.status === "cancelled" || (data.room.status === "finished" && !data.room.winner)
+        ? `Stakes returned · ${roomStake} ZP each`
+        : data.room.status === "finished"
+          ? spectator
+            ? `Took the ${(roomStake * 2).toLocaleString()} ZP pot`
+            : data.room.winner === profile?.id
+              ? `You won ${(roomStake * 2).toLocaleString()} ZP`
+              : `You lost your ${roomStake} ZP stake`
+          : `${((data.pot ?? roomStake) || roomStake).toLocaleString()} ZP on the line · winner takes all`
+      : null;
+  const shareWatch = async () => {
+    try {
+      await navigator.clipboard.writeText(`${location.origin}/app/games/draught?room=${roomId}`);
+      toast.success("Watch link copied. Anyone on Zero Club can follow the match and comment.");
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  };
   const move = (from: number, to: number) => {
     if (isSolo) {
       try {
@@ -301,20 +340,21 @@ export function ZeroDraught({
                 <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
                   <h3 className="text-lg font-bold">Play with a friend</h3>
                   <p className="my-3 text-sm text-white/55">
-                    Private match · 10 minutes per player
+                    Private match · 10 minutes per player · others can watch
                   </p>
+                  <StakePicker value={stake} onChange={setStake} />
                   <button
                     disabled={busy || !profile?.id}
-                    onClick={() => void act("create")}
-                    className={`${secondary} w-full`}
+                    onClick={() => void act("create", stake > 0 ? { stake } : {})}
+                    className={`${stake > 0 ? primary : secondary} w-full`}
                   >
-                    <Users className="h-4 w-4" />
-                    Create match
+                    {stake > 0 ? <Coins className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+                    {stake > 0 ? `Create match · stake ${stake} ZP` : "Create match"}
                   </button>
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
-                      void act("join", { code: inviteCode });
+                      void act("join", inviteStake > 0 ? { code: inviteCode, accept_stake: inviteStake } : { code: inviteCode });
                     }}
                     className="mt-4 flex gap-2"
                   >
@@ -330,11 +370,29 @@ export function ZeroDraught({
                     />
                     <button
                       disabled={busy || !profile?.id || inviteCode.length !== 12}
-                      className={secondary}
+                      className={inviteStake > 0 ? primary : secondary}
                     >
-                      Join
+                      {inviteStake > 0 ? `Accept ${inviteStake} ZP` : "Join"}
                     </button>
                   </form>
+                  {invite.data && inviteCode.length === 12 && (
+                    <div className="mt-3 flex items-center gap-3 rounded-2xl bg-white/[0.05] p-3 ring-1 ring-white/10">
+                      <GameAvatar id={invite.data.host.id} name={invite.data.host.name} photo={invite.data.host.photo} className="h-9 w-9" />
+                      <p className="min-w-0 flex-1 text-[12.5px] leading-snug text-white/70">
+                        {!invite.data.open ? (
+                          "This match is full or has ended."
+                        ) : invite.data.stake > 0 ? (
+                          <>
+                            <b className="text-white">{invite.data.host.name}</b> staked <b className="text-[#ffca75]">{invite.data.stake} ZP</b>. Joining holds the same from your ZP. Winner takes {(invite.data.stake * 2).toLocaleString()} ZP.
+                          </>
+                        ) : (
+                          <>
+                            <b className="text-white">{invite.data.host.name}</b> invited you to a friendly match.
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
                   {!profile?.id && (
                     <p className="mt-3 text-xs text-white/45">
                       Sign in to save multiplayer matches.
@@ -348,6 +406,7 @@ export function ZeroDraught({
                 {draughtError(home.error)}
               </p>
             )}
+            <LiveMatches onWatch={(room) => onNavigate(room)} />
             <section className="my-6">
               <h2 className="mb-3 text-lg font-bold">Your matches</h2>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -388,6 +447,20 @@ export function ZeroDraught({
         {board && (isSolo || data) && (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,620px)_1fr]">
             <section className="min-w-0">
+              {(spectator || stakeLine) && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {spectator && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-semibold">
+                      <Eye className="h-3.5 w-3.5 text-[#ff9bdd]" /> Watching live
+                    </span>
+                  )}
+                  {stakeLine && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffca75]/15 px-3 py-1.5 text-[12px] font-bold text-[#ffca75] ring-1 ring-[#ffca75]/25">
+                      <Coins className="h-3.5 w-3.5" /> {stakeLine}
+                    </span>
+                  )}
+                </div>
+              )}
               <PlayerCard
                 player={mySide === 1 ? black : red}
                 clock={!isSolo ? clock(-mySide as Side) : undefined}
@@ -400,7 +473,7 @@ export function ZeroDraught({
                 players={{ red, black }}
                 onMove={move}
                 disabled={
-                  busy || ended || turn !== mySide || (!isSolo && data?.room.status !== "active")
+                  spectator || busy || ended || turn !== mySide || (!isSolo && data?.room.status !== "active")
                 }
               />
               <PlayerCard
@@ -420,11 +493,12 @@ export function ZeroDraught({
                         ? "Every move is a chance to learn."
                         : `Result: ${data?.room.reason?.replace(/_/g, " ") || "complete"}`}
                     </p>
+                    {stakeLine && <p className="mt-2 text-sm font-semibold text-[#ffca75]">{stakeLine}</p>}
                     <button
                       className={`${primary} mt-4`}
                       onClick={() => (isSolo ? setConfirmation("restart") : onNavigate())}
                     >
-                      Play again
+                      {spectator ? "Back to Zero Draught" : "Play again"}
                     </button>
                   </>
                 ) : data?.room.status === "waiting" ? (
@@ -444,14 +518,18 @@ export function ZeroDraught({
                 ) : (
                   <>
                     <h2 className="text-xl font-bold">
-                      {turn === mySide
+                      {spectator
+                        ? `${(turn === 1 ? red : black).name.split(" ")[0]} to move`
+                        : turn === mySide
                         ? "Your move"
                         : isSolo
                           ? "Zero Bot is thinking…"
                           : "Your opponent’s move"}
                     </h2>
                     <p className="mt-3 text-sm leading-relaxed text-white/60">
-                      {turn !== mySide
+                      {spectator
+                        ? "You're watching live. Moves appear as they're played. Join the chat below."
+                        : turn !== mySide
                         ? "Your opponent is considering their next move."
                         : moves.some((move) => move.capture !== null)
                           ? "A capture is available. You must take a jump."
@@ -460,14 +538,19 @@ export function ZeroDraught({
                         ? " Keep jumping with the same piece."
                         : ""}
                     </p>
-                    {!isSolo && (
+                    {!isSolo && !spectator && (
                       <p className="mt-3 text-xs text-white/40">
                         {connection}. Your clock keeps running when you leave the screen.
                       </p>
                     )}
+                    {!isSolo && !spectator && data?.room.status === "active" && (
+                      <button type="button" onClick={() => void shareWatch()} className={`${secondary} mt-4`}>
+                        <Share2 className="h-4 w-4" /> Invite people to watch
+                      </button>
+                    )}
                   </>
                 )}
-                {!ended && (
+                {!ended && !spectator && (
                   <div className="mt-5 flex flex-wrap gap-2">
                     <button
                       className={secondary}
@@ -547,6 +630,13 @@ export function ZeroDraught({
                   </div>
                 )}
               </div>
+              {!isSolo && roomId && data && data.room.status !== "waiting" && (
+                <MatchComments
+                  roomId={roomId}
+                  myId={profile?.id}
+                  playerIds={[data.room.red_id, data.room.black_id || ""]}
+                />
+              )}
               <Rules />
             </aside>
           </div>

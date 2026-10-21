@@ -509,39 +509,77 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       if (focus > 0) { ctx.fillStyle = "rgba(179,140,255,0.07)"; ctx.fillRect(0, 0, W, H); }
       if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash * 0.4})`; ctx.fillRect(0, 0, W, H); }
 
-      /* HUD */
-      const top = topInset + 12;
+      /* HUD — glass panels, a glowing fuel capsule and a combo badge. */
+      const FONT = "Montserrat, system-ui, sans-serif";
+      const top = topInset + 10;
+      const glass = (x: number, y: number, w: number, h: number, r: number) => {
+        ctx.save();
+        roundRect(x, y, w, h, r);
+        ctx.fillStyle = "rgba(18,10,31,0.62)"; ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.09)"; ctx.lineWidth = 1; ctx.stroke();
+        ctx.restore();
+      };
+      const scoreText = Math.round(score + survival).toLocaleString();
       ctx.textBaseline = "alphabetic";
-      ctx.textAlign = "left"; ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = "600 10px system-ui, sans-serif";
-      ctx.fillText("SCORE", 16, top + 10);
-      ctx.fillStyle = "#fff"; ctx.font = "700 24px system-ui, sans-serif";
-      ctx.fillText(Math.round(score + survival).toLocaleString(), 16, top + 36);
-      ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = "600 10px system-ui, sans-serif";
-      ctx.fillText("ORBS", W - 16, top + 10);
-      ctx.fillStyle = "#fff"; ctx.font = "700 24px system-ui, sans-serif";
-      ctx.fillText(String(orbsTaken), W - 16, top + 36);
-      // fuel bar
-      const bw = Math.min(180, W - 200), bx = W / 2 - bw / 2;
-      if (bw > 60) {
-        ctx.fillStyle = "rgba(255,255,255,0.12)"; roundRect(bx, top + 22, bw, 6, 3); ctx.fill();
+      ctx.font = `800 22px ${FONT}`;
+      const sw = Math.max(78, ctx.measureText(scoreText).width + 28);
+      glass(12, top, sw, 50, 16);
+      ctx.textAlign = "left"; ctx.fillStyle = "rgba(255,155,221,0.85)"; ctx.font = `700 9.5px ${FONT}`;
+      ctx.fillText("SCORE", 26, top + 18);
+      ctx.fillStyle = "#fff"; ctx.font = `800 22px ${FONT}`;
+      ctx.fillText(scoreText, 26, top + 41);
+
+      const orbText = String(orbsTaken);
+      ctx.font = `800 22px ${FONT}`;
+      const ow = Math.max(64, ctx.measureText(orbText).width + 28);
+      glass(W - 12 - ow, top, ow, 50, 16);
+      ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,155,221,0.85)"; ctx.font = `700 9.5px ${FONT}`;
+      ctx.fillText("ORBS", W - 26, top + 18);
+      ctx.fillStyle = "#fff"; ctx.font = `800 22px ${FONT}`;
+      ctx.fillText(orbText, W - 26, top + 41);
+
+      // fuel capsule
+      const gapL = 12 + sw + 18, gapR = W - 12 - ow - 18, bw = Math.min(200, gapR - gapL - 20), bx = (gapL + gapR) / 2 - bw / 2, cx = bx + bw / 2;
+      if (bw > 70) {
+        glass(bx - 10, top, bw + 20, 50, 16);
         const f = fuel / FUEL_MAX;
-        ctx.fillStyle = f < 0.3 ? "#ff3b5c" : f < 0.55 ? "#ffb547" : "#6cf0c2";
-        roundRect(bx, top + 22, Math.max(6, bw * f), 6, 3); ctx.fill();
-        ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = "600 10px system-ui, sans-serif";
-        ctx.fillText(fuelEnhancement > 1 ? `FUEL ×${fuelEnhancement}` : "FUEL", W / 2, top + 14);
+        const low = f < 0.3, mid = f < 0.55;
+        ctx.textAlign = "center"; ctx.fillStyle = low && Math.floor(time * 4) % 2 ? "#ff6b8a" : "rgba(255,255,255,0.6)"; ctx.font = `700 9.5px ${FONT}`;
+        ctx.fillText(fuelEnhancement > 1 ? `FUEL  ×${fuelEnhancement}` : low ? "FUEL LOW" : "FUEL", cx, top + 18);
+        ctx.fillStyle = "rgba(255,255,255,0.1)"; roundRect(bx, top + 28, bw, 8, 4); ctx.fill();
+        const grad = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+        if (low) { grad.addColorStop(0, "#ff3b5c"); grad.addColorStop(1, "#ff8a3d"); }
+        else if (mid) { grad.addColorStop(0, "#ffb547"); grad.addColorStop(1, "#ffd36b"); }
+        else { grad.addColorStop(0, "#3fd6a0"); grad.addColorStop(1, "#8cf5d0"); }
+        ctx.save();
+        ctx.shadowColor = low ? "#ff3b5c" : mid ? "#ffb547" : "#6cf0c2"; ctx.shadowBlur = 10;
+        ctx.fillStyle = grad; roundRect(bx, top + 28, Math.max(8, bw * f), 8, 4); ctx.fill();
+        ctx.restore();
       }
       if (combo > 1 && !dead) {
-        ctx.textAlign = "center"; ctx.fillStyle = PINK; ctx.font = "800 16px system-ui, sans-serif";
-        ctx.fillText(`COMBO ×${combo}`, W / 2, top + 50);
+        const label = `COMBO ×${combo}`;
+        ctx.font = `800 13px ${FONT}`;
+        const cw = ctx.measureText(label).width + 26;
+        ctx.save();
+        ctx.shadowColor = PINK; ctx.shadowBlur = 18;
+        const cg = ctx.createLinearGradient(W / 2 - cw / 2, 0, W / 2 + cw / 2, 0);
+        cg.addColorStop(0, "#ff4fc3"); cg.addColorStop(1, "#b4268a");
+        ctx.fillStyle = cg; roundRect(W / 2 - cw / 2, top + 58, cw, 26, 13); ctx.fill();
+        ctx.restore();
+        ctx.textAlign = "center"; ctx.fillStyle = "#fff";
+        ctx.fillText(label, W / 2, top + 75.5);
       }
-      // active power timers
+      // active power timers, in a small glass stack bottom-left
       const active = ([["shield", shield, 10], ["focus", focus, 5], ["magnet", magnet, 6]] as const).filter(([, v]) => v > 0);
       active.forEach(([k, v, max], i) => {
-        const y = H - 28 - i * 22;
-        ctx.textAlign = "left"; ctx.fillStyle = POWER_COLORS[k]; ctx.font = "700 11px system-ui, sans-serif";
-        ctx.fillText(POWER_LABEL[k].toUpperCase(), 16, y);
-        ctx.fillStyle = "rgba(255,255,255,0.12)"; roundRect(76, y - 8, 70, 5, 2.5); ctx.fill();
-        ctx.fillStyle = POWER_COLORS[k]; roundRect(76, y - 8, 70 * (v / max), 5, 2.5); ctx.fill();
+        const y = H - 46 - i * 34;
+        glass(12, y - 14, 150, 28, 14);
+        ctx.textAlign = "left"; ctx.fillStyle = POWER_COLORS[k]; ctx.font = `800 10px ${FONT}`;
+        ctx.fillText(POWER_LABEL[k].toUpperCase(), 24, y + 4);
+        ctx.fillStyle = "rgba(255,255,255,0.12)"; roundRect(80, y - 3, 70, 6, 3); ctx.fill();
+        ctx.save(); ctx.shadowColor = POWER_COLORS[k]; ctx.shadowBlur = 8;
+        ctx.fillStyle = POWER_COLORS[k]; roundRect(80, y - 3, Math.max(6, 70 * (v / max)), 6, 3); ctx.fill();
+        ctx.restore();
       });
 
       if (intro > 0) {
@@ -550,16 +588,24 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
         const k = intro - Math.floor(intro);
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.globalAlpha = Math.min(1, k * 2);
-        ctx.fillStyle = "#fff"; ctx.font = `800 ${64 + (1 - k) * 20}px system-ui, sans-serif`;
+        ctx.fillStyle = "#fff"; ctx.font = `800 ${64 + (1 - k) * 20}px Montserrat, system-ui, sans-serif`;
         ctx.fillText(String(n), W / 2, H / 2 - 40);
         ctx.globalAlpha = 1;
-        ctx.font = "600 14px system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.75)";
+        ctx.font = "600 14px Montserrat, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.75)";
         ctx.fillText("Drag anywhere to steer", W / 2, H / 2 + 20);
         ctx.textBaseline = "alphabetic";
       }
       if (dead) {
-        ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.font = "800 22px system-ui, sans-serif";
-        ctx.fillText(dead.cause === "fuel" ? "Out of fuel" : "Caught by doubt", W / 2, H / 2);
+        const msg = dead.cause === "fuel" ? "Out of fuel" : "Caught by doubt";
+        ctx.font = "800 20px Montserrat, system-ui, sans-serif";
+        const mw = ctx.measureText(msg).width + 48;
+        ctx.save();
+        roundRect(W / 2 - mw / 2, H / 2 - 30, mw, 48, 24);
+        ctx.fillStyle = "rgba(18,10,31,0.8)"; ctx.fill();
+        ctx.strokeStyle = "rgba(255,79,195,0.5)"; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.restore();
+        ctx.textAlign = "center"; ctx.fillStyle = "#fff";
+        ctx.fillText(msg, W / 2, H / 2 + 1);
       }
     };
 

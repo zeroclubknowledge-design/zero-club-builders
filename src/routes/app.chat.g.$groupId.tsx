@@ -62,6 +62,15 @@ function GroupChatPage() {
   const [reactions, setReactions] = useState<GroupReaction[]>([]);
   const [votes, setVotes] = useState<GroupVote[]>([]);
   const [input, setInput] = useState("");
+  const inputRef = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null);
+  // Size the box from its text on every change, including the clear after
+  // sending, so a multi-line message never leaves the box stuck tall.
+  useLayoutEffect(() => {
+    const t = inputRef.current;
+    if (!t) return;
+    t.style.height = "auto";
+    t.style.height = `${Math.min(Math.max(t.scrollHeight, 44), 132)}px`;
+  }, [input]);
   const [replyTo, setReplyTo] = useState<GroupMessage | null>(null);
   const [editing, setEditing] = useState<GroupMessage | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -537,12 +546,8 @@ function GroupChatPage() {
                 peopleLabel="In this group"
                 menuPlacement="top"
                 value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  const t = e.target as HTMLTextAreaElement;
-                  t.style.height = "auto";
-                  t.style.height = `${Math.min(t.scrollHeight, 132)}px`;
-                }}
+                ref={inputRef}
+                onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (isSendKey(e, enterToSend)) {
                     e.preventDefault();
