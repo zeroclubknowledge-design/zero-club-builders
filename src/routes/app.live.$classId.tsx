@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useLiveSession } from "@/contexts/LiveSessionContext";
 import { useUser } from "@/hooks/useUser";
@@ -74,8 +74,22 @@ function LiveClassEntrypoint() {
   const liveSessionRef = useRef(liveSession);
   liveSessionRef.current = liveSession;
 
+  const navigate = useNavigate();
   useEffect(() => {
     if (isLoading || !profile || hasInitialized.current) return;
+
+    /* Opened cold (from a notification) the class would be the only page in
+       the app's history, so the phone's back button closed the app and the
+       class with it. Put the club's chat behind it first; back then lands
+       there, with the class minimised. */
+    const index = (window.history.state as Record<string, unknown> | null)?.__TSR_index;
+    if (typeof index !== "number" || index === 0) {
+      hasInitialized.current = true;
+      void navigate({ to: "/app/clubs/chat", search: { clubId: classId } as never, replace: true }).then(() =>
+        navigate({ to: "/app/live/$classId", params: { classId } }),
+      );
+      return;
+    }
 
     const session = liveSessionRef.current;
 

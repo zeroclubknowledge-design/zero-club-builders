@@ -30,6 +30,7 @@ import { GroupInfoSheet } from "@/features/groups/GroupInfoSheet";
 
 import { confirmCard } from "@/components/ConfirmCard";
 import { ComposerSlot } from "@/components/ComposerSlot";
+import { ComposerOverlay } from "@/components/ComposerOverlay";
 export const Route = createFileRoute("/app/chat/g/$groupId")({
   component: GroupChatPage,
 });
@@ -405,7 +406,7 @@ function GroupChatPage() {
           atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
           if (userScrolled.current && el.scrollTop < 80) void loadOlder();
         }}
-        className="no-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4 pt-2"
+        className="no-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-3 pb-28 pt-2"
       >
         {reachedStart && (
           <div className="flex flex-col items-center pb-4 pt-6 text-center">
@@ -483,8 +484,8 @@ function GroupChatPage() {
         })}
       </div>
 
-      {/* Composer */}
-      <div className="relative z-10 px-3 pb-[calc(0.6rem+env(safe-area-inset-bottom))] pt-1">
+      {/* Composer: floats over the conversation, like the individual and club chats. */}
+      <ComposerOverlay position="absolute" maxWidthClassName="max-w-[820px]">
         {!canSend ? (
           <p className="flex items-center justify-center gap-1.5 rounded-2xl bg-foreground/[0.05] px-4 py-3 text-center text-[13px] text-muted-foreground">
             <Lock className="h-3.5 w-3.5" /> Only admins can send messages
@@ -566,7 +567,7 @@ function GroupChatPage() {
             </div>
           </>
         )}
-      </div>
+      </ComposerOverlay>
 
       {/* Message actions (long-press) */}
       <Sheet open={Boolean(actionsFor)} onOpenChange={(o) => !o && setActionsFor(null)}>

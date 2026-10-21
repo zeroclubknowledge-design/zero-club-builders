@@ -44,8 +44,8 @@ function environment({ unsupported = false, blocked = false, resume } = {}) {
   class Recorder {
     state = "inactive";
     mimeType = "video/webm";
-    static isTypeSupported(type) { return type.startsWith("video/webm"); }
-    constructor() { if (blocked) throw new Error("Encoder unavailable"); recorders.push(this); }
+    static isTypeSupported(type) { return /^(audio|video)\/webm/.test(type); }
+    constructor(stream, options) { if (blocked) throw new Error("Encoder unavailable"); this.stream=stream; this.mimeType=options.mimeType; recorders.push(this); }
     start() { this.state = "recording"; }
     stop() {
       this.state = "inactive";
@@ -112,6 +112,20 @@ test("leaving during audio startup cannot create a recorder afterward", async ()
   assert.equal(e.intervals.size, 0);
 });
 
+test("leaving while recording storage initializes resolves stop without starting the encoder", async () => {
+  const e=environment();
+  const recording=new e.LiveRecording(()=>({mode:"audio",title:"Call",audio:[],videos:[]}),()=>{});
+  const starting=recording.start();
+  for(let i=0;i<20 && !e.recorders.length;i++) await Promise.resolve();
+  assert.equal(e.recorders.length,1);
+  assert.equal(e.recorders[0].state,"inactive");
+  assert.equal((await recording.stop()).size,0);
+  await starting;
+  assert.equal(e.recorders[0].state,"inactive");
+  assert.equal(e.intervals.size,0);
+  assert.ok(e.owned.every(t=>t.stops===1));
+});
+
 test("time and memory limits finalize partial recordings with a reason", async () => {
   for (const limit of ["time", "memory"]) {
     const e = environment();
@@ -125,4 +139,25 @@ test("time and memory limits finalize partial recordings with a reason", async (
     assert.equal(e.recorders[0].state, "inactive");
     assert.equal(e.intervals.size, 0);
   }
+});
+
+test("voice calls record mixed audio without canvas capture and preserve microphone tracks", async () => {
+  const e=environment({unsupported:true});
+  const mic=e.track("audio","mic"), remote=e.track("audio","remote");
+  let sources={mode:"audio",title:"Voice call",audio:[mic],videos:[]};
+  const recording=new e.LiveRecording(()=>sources,()=>{});
+  await recording.start();
+  assert.equal(e.recorders[0].mimeType,"audio/webm;codecs=opus");
+  assert.deepEqual(e.recorders[0].stream.getTracks().map(t=>t.kind),["audio"]);
+  sources={...sources,audio:[remote]};e.tick();
+  assert.equal(e.nodes[0].disconnected,true);
+  assert.equal(e.nodes[1].track,remote);
+  const blob=await recording.stop();
+  assert.equal(blob.type,"audio/webm;codecs=opus");
+  assert.equal(e.videos.length,0);
+  assert.equal(mic.stops,0);assert.equal(remote.stops,0);
+  assert.ok(e.owned.every(t=>t.stops===1));
+  assert.equal(e.recordingExtension("audio/mp4"),"m4a");
+  assert.equal(e.recordingExtension("video/mp4"),"mp4");
+  assert.equal(e.recordingExtension("audio/ogg;codecs=opus"),"ogg");
 });

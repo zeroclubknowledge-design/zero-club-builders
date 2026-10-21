@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
 import AgoraRTC, {
   AgoraRTCProvider,
@@ -20,6 +20,7 @@ import AgoraRTC, {
   type ILocalVideoTrack,
 } from "agora-rtc-react";
 import { useLiveRecording } from "@/features/zero-live/useLiveRecording";
+import { callRecordingError, startAnnouncedCallRecording } from "./callRecording";
 import { Circle, Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -70,8 +71,24 @@ const FALLBACK_AUDIO_ONLY = 2;
 type Person = CallPerson;
 
 export function GroupCallHost() {
-  const { session, minimized, end } = useGroupCall();
+  const { session, minimized, end, minimize } = useGroupCall();
   const navigate = useNavigate();
+  /*
+   * Back minimises, never hangs up. Pressing the phone's (or browser's) back
+   * button while the call fills the screen moves the app to the previous
+   * page; the call now shrinks into its bubble there instead of staying over
+   * it, and keeps going. Any move to a page other than this call's own route
+   * does the same.
+   */
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const previousPath = useRef(pathname);
+  useEffect(() => {
+    const moved = previousPath.current !== pathname;
+    previousPath.current = pathname;
+    if (!moved || !session || minimized) return;
+    if (pathname.replace(/\/$/, "") === `/app/chat/g/${session.groupId}/call`) return;
+    minimize();
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   const { data: me } = useUser();
   const [setup, setSetup] = useState<{ key: number; profileId: string; uid: number; startedAt: string; channel: string; token: string; name: string; avatar: string | null; client: IAgoraRTCClient } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -341,6 +358,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
    */
   const recording = useLiveRecording({
     title: `${groupName} call`,
+    mode: session.video ? "video" : "audio",
     audio: [
       ...(micOn && localMicrophoneTrack ? [localMicrophoneTrack.getMediaStreamTrack()] : []),
       ...remoteUsers.filter((u) => u.hasAudio && u.audioTrack).map((u) => u.audioTrack!.getMediaStreamTrack()),
@@ -354,31 +372,44 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     ],
   });
   const iAmRecording = recording.phase === "recording";
+  const recordingAction = useRef(false);
+  const [recordingBusy, setRecordingBusy] = useState(false);
+  const announceRecording = async (on: boolean) => {
+    const { data, error } = await supabase.rpc("set_group_call_recording_v2" as any, {
+      p_group: groupId, p_on: on, p_started_at: startedAt, p_connection: callConnection.current,
+    } as any);
+    if (error) throw error;
+    if (mounted.current) setRecordedBy((data as any)?.recording_by
+      ? { id: String((data as any).recording_by), name: String((data as any).recording_name || "You") }
+      : null);
+  };
   const toggleRecording = async () => {
-    if (recording.phase === "starting" || recording.phase === "saving") return;
-    if (iAmRecording) {
-      await recording.stop();
-      void supabase.rpc("set_group_call_recording" as any, { p_group: groupId, p_on: false } as any);
-      setRecordedBy(null);
-      return;
+    if (recordingAction.current || leavingRef.current || recording.phase === "starting" || recording.phase === "saving") return;
+    recordingAction.current = true;
+    setRecordingBusy(true);
+    try {
+      if (iAmRecording) {
+        try { await recording.stop(); }
+        finally { await announceRecording(false); }
+      } else {
+        await startAnnouncedCallRecording({
+          announce: announceRecording,
+          start: recording.start,
+          isCurrent: () => mounted.current && !leavingRef.current,
+        });
+      }
+    } catch (error) {
+      toast.error(callRecordingError(error));
+    } finally {
+      recordingAction.current = false;
+      if (mounted.current) setRecordingBusy(false);
     }
-    const { data, error } = await supabase.rpc("set_group_call_recording" as any, { p_group: groupId, p_on: true } as any);
-    if (error) {
-      toast.error(
-        error.code === "PGRST202" || /could not find the function/i.test(error.message)
-          ? "Call recording isn't switched on yet. It needs a quick server update."
-          : error.message,
-      );
-      return;
-    }
-    if ((data as any)?.recording_by) setRecordedBy({ id: String((data as any).recording_by), name: String((data as any).recording_name || "You") });
-    await recording.start();
   };
   // A recording that fails to start (or stops by itself) clears the flag.
   const wasRecording = useRef(false);
   useEffect(() => {
-    if (wasRecording.current && recording.phase === "idle") {
-      void supabase.rpc("set_group_call_recording" as any, { p_group: groupId, p_on: false } as any);
+    if (wasRecording.current && recording.phase === "idle" && !recordingAction.current) {
+      void announceRecording(false).catch(() => {});
     }
     wasRecording.current = recording.phase === "recording" || recording.phase === "starting";
   }, [recording.phase, groupId]);
@@ -623,13 +654,13 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
             <button
               type="button"
               onClick={() => void toggleRecording()}
-              disabled={recording.phase === "starting" || recording.phase === "saving" || (!iAmRecording && !!recordedBy && recordedBy.id !== me?.id)}
+              disabled={recordingBusy || recording.phase === "starting" || recording.phase === "saving" || (!iAmRecording && !!recordedBy && recordedBy.id !== me?.id)}
               aria-label={iAmRecording ? "Stop recording" : "Record call"}
               aria-pressed={iAmRecording}
               title={iAmRecording ? "Stop recording — saves to this device" : "Record this call — everyone will see REC"}
               className={`grid h-14 w-14 place-items-center rounded-full transition active:scale-95 disabled:opacity-40 ${iAmRecording ? "bg-red-500 text-white" : "bg-foreground/[0.08] text-foreground"}`}
             >
-              {recording.phase === "starting" || recording.phase === "saving" ? (
+              {recordingBusy || recording.phase === "starting" || recording.phase === "saving" ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : iAmRecording ? (
                 <span className="h-5 w-5 rounded-[5px] bg-white" />
@@ -642,7 +673,6 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
             {leaving ? <Loader2 className="h-6 w-6 animate-spin" /> : <PhoneOff className="h-7 w-7" />}
           </button>
         </div>
-        {canEnd && <button type="button" disabled={leaving} onClick={() => void leave(true)} className="mx-auto mb-4 text-xs font-semibold text-red-500 underline disabled:opacity-50">End call for everyone</button>}
       </Shell>
 
       {/* Minimised: a floating bubble, draggable-free and always reachable. */}

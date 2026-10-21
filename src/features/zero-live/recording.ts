@@ -7,6 +7,7 @@ export interface RecordingSources {
   videos: RecordingVideo[];
   audio: MediaStreamTrack[];
   title: string;
+  mode?: "audio" | "video";
 }
 
 /*
@@ -26,15 +27,17 @@ export const RECORDING_MAX_DISK_BYTES = 8 * 1024 * 1024 * 1024; // 8 GB per file
 
 /* MP4 (H.264 + AAC) first: it plays on phones, Windows, Mac, WhatsApp and
    every editor. WebM only where the browser cannot make MP4 (Firefox). */
-export const recordingMimeType = () => [
+export const recordingMimeType = (mode: "audio" | "video" = "video") => (mode === "audio" ? [
+  "audio/mp4;codecs=mp4a.40.2", "audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/ogg",
+] : [
   "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
   "video/mp4;codecs=avc1,mp4a",
   "video/mp4",
   "video/webm;codecs=vp8,opus",
   "video/webm",
-].find((type) => MediaRecorder.isTypeSupported(type));
+]).find((type) => MediaRecorder.isTypeSupported(type));
 
-export const recordingExtension = (type: string) => (type.includes("mp4") ? "mp4" : "webm");
+export const recordingExtension = (type: string) => type.includes("mp4") ? (type.startsWith("audio/") ? "m4a" : "mp4") : type.includes("ogg") ? "ogg" : "webm";
 
 /* ── storage ── */
 interface ChunkStore {
@@ -201,6 +204,7 @@ export class LiveRecording {
   private resolveDone!: (blob: Blob) => void;
   private result: Promise<Blob>;
   private finished = false;
+  private encoderStarted = false;
   /** Set once the recorder is running. */
   mimeType = "";
   /** The IndexedDB session id while recording to disk. */
@@ -218,16 +222,19 @@ export class LiveRecording {
       if (typeof MediaRecorder === "undefined" || typeof AudioContext === "undefined") {
         throw new Error("Recording is unavailable in this browser. Try Chrome, Edge or Safari.");
       }
-      this.canvas = document.createElement("canvas");
-      this.canvas.width = 1280;
-      this.canvas.height = 720;
-      if (!this.canvas.captureStream || !this.canvas.getContext("2d")) {
-        throw new Error("This browser cannot record live video. Try another browser.");
+      const mode = this.sources().mode || "video";
+      if (mode === "video") {
+        this.canvas = document.createElement("canvas");
+        this.canvas.width = 1280;
+        this.canvas.height = 720;
+        if (!this.canvas.captureStream || !this.canvas.getContext("2d")) {
+          throw new Error("This browser cannot record live video. Try another browser.");
+        }
+        this.container = document.createElement("div");
+        this.container.setAttribute("aria-hidden", "true");
+        this.container.style.cssText = "position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none";
+        document.body.append(this.container);
       }
-      this.container = document.createElement("div");
-      this.container.setAttribute("aria-hidden", "true");
-      this.container.style.cssText = "position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none";
-      document.body.append(this.container);
       this.context = new AudioContext();
       await this.context.resume();
       // Leaving while the browser resumes audio must not start a stray recorder.
@@ -235,15 +242,18 @@ export class LiveRecording {
       const destination = this.context.createMediaStreamDestination();
       const compressor = this.context.createDynamicsCompressor();
       compressor.connect(destination);
-      this.output = this.canvas.captureStream(15);
+      this.output = this.canvas ? this.canvas.captureStream(15) : new MediaStream();
       destination.stream.getAudioTracks().forEach((track) => this.output!.addTrack(track));
-      const mimeType = recordingMimeType();
+      const mimeType = recordingMimeType(mode);
       this.recorder = new MediaRecorder(this.output, {
-        ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 1_100_000, audioBitsPerSecond: 96_000,
+        ...(mimeType ? { mimeType } : {}), ...(mode === "video" ? { videoBitsPerSecond: 1_100_000 } : {}), audioBitsPerSecond: 96_000,
       });
-      this.mimeType = this.recorder.mimeType || mimeType || "video/webm";
+      this.mimeType = this.recorder.mimeType || mimeType || `${mode}/webm`;
       const disk = await DiskStore.create({ title: this.sources().title, type: this.mimeType });
-      if (this.finished) return;
+      if (this.finished) {
+        if (disk) await discardRecording(disk.id);
+        return;
+      }
       if (disk) { this.store = disk; this.sessionId = disk.id; }
       const byteLimit = this.store.disk ? RECORDING_MAX_DISK_BYTES : RECORDING_MAX_BYTES;
 
@@ -263,7 +273,7 @@ export class LiveRecording {
         }
       };
       this.recorder.onerror = () => {
-        endReason = "Recording was interrupted. Any captured video has been saved.";
+        endReason = "Recording was interrupted. Any captured media has been saved.";
         // MediaRecorder emits a final dataavailable and stop after an error.
       };
       this.recorder.onstop = () => {
@@ -289,12 +299,13 @@ export class LiveRecording {
             void this.stop();
           }
         } catch {
-          endReason = "Recording was interrupted. Any captured video has been saved.";
+          endReason = "Recording was interrupted. Any captured media has been saved.";
           void this.stop();
         }
       };
       this.draw(compressor);
       this.recorder.start(2000);
+      this.encoderStarted = true;
       this.stopTicker = makeTicker(frame, 1000 / 15);
     } catch (error) {
       this.finished = true;
@@ -310,7 +321,9 @@ export class LiveRecording {
     this.stopTicker = undefined;
     if (this.recorder && this.recorder.state !== "inactive") {
       this.recorder.stop();
-    } else if (!this.recorder) {
+    } else if (!this.encoderStarted) {
+      // Storage setup can still be pending after the encoder was allocated.
+      // An inactive encoder emits no stop event, so finish cancellation here.
       this.finished = true;
       this.cleanup();
       this.resolveDone(new Blob());
@@ -332,6 +345,7 @@ export class LiveRecording {
         this.audio.set(track, node);
       }
     }
+    if (!this.canvas) return;
     const available = sources.videos.filter(({ track }) => track.readyState === "live");
     const visible = [...available].sort((a, b) => Number(b.screen) - Number(a.screen)).slice(0, 12);
     const screens = visible.filter((v) => v.screen);

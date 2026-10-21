@@ -40,14 +40,15 @@ export function useLiveRecording(sources: RecordingSources) {
   }, []);
 
   const start = useCallback(async () => {
-    if (active.current) return;
+    if (active.current) return false;
     setPhase("starting");
     const title = latest.current.title;
+    const mode = latest.current.mode;
     const startedAt = new Date();
     const recording = new LiveRecording(() => latest.current, (blob, reason) => {
       if (active.current === recording) active.current = null;
       if (mounted.current) setPhase("idle");
-      if (!blob.size) { toast.error("No video was captured. Please try recording again."); return; }
+      if (!blob.size) { toast.error(`No ${mode === "audio" ? "audio" : "video"} was captured. Please try recording again.`); return; }
       if (savedUrl.current) URL.revokeObjectURL(savedUrl.current);
       const url = URL.createObjectURL(blob);
       savedUrl.current = url;
@@ -67,10 +68,12 @@ export function useLiveRecording(sources: RecordingSources) {
     try {
       await recording.start();
       if (mounted.current && active.current === recording) { setElapsed(0); setPhase("recording"); }
+      return mounted.current && active.current === recording;
     } catch (error) {
       if (active.current === recording) active.current = null;
       if (mounted.current) setPhase("idle");
       toast.error(error instanceof Error ? error.message : "Could not start recording.");
+      return false;
     }
   }, []);
 
@@ -94,7 +97,7 @@ export function useLiveRecording(sources: RecordingSources) {
           description: `${item.title} · started ${new Date(item.startedAt).toLocaleString()} (${minutes} min ago)`,
           duration: Infinity,
           action: {
-            label: "Save video",
+            label: "Save recording",
             onClick: () => {
               const url = URL.createObjectURL(item.blob);
               saveFile(url, filename);

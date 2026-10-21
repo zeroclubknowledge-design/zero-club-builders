@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
@@ -431,6 +431,21 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const { data: profile } = useUser();
   const liveSession = useLiveSession();
   const { isMinimized } = liveSession;
+  /*
+   * Back minimises, never leaves. The phone's (or browser's) back button while
+   * the class fills the screen moves the app to the previous page; the class
+   * now shrinks to its bar there and keeps playing. Any move to a page other
+   * than this class's own does the same.
+   */
+  const routePath = useRouterState({ select: (s) => s.location.pathname });
+  const previousRoutePath = useRef(routePath);
+  useEffect(() => {
+    const moved = previousRoutePath.current !== routePath;
+    previousRoutePath.current = routePath;
+    if (!moved || !liveSession.isActive || liveSession.isMinimized) return;
+    if (liveSession.channelId && routePath.replace(/\/$/, "") === `/app/live/${liveSession.channelId}`) return;
+    liveSession.minimize();
+  }, [routePath]); // eslint-disable-line react-hooks/exhaustive-deps
   /* The minimised live bar can be dragged out of the way, on phone and desktop. */
   const miniDrag = useDraggableFloat<HTMLDivElement>("club-live-mini");
   const [isAdmin, setIsAdmin] = useState(false);
