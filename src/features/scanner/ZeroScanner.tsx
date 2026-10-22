@@ -74,23 +74,34 @@ export function ZeroScanner({ onClose }: { onClose: () => void }) {
   const busy = useRef(false);
   const [status, setStatus] = useState<"starting" | "scanning" | "opening" | "nocamera">("starting");
   const [refused, setRefused] = useState<string | null>(null);
+  /* The smiley's mood: looking while scanning, a big smile when a Zero Club code is found, a frown for anything else. */
+  const [mood, setMood] = useState<"look" | "smile" | "sad">("look");
+  const sadTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(sadTimer.current), []);
 
   const open = useCallback(
     (raw: string) => {
       const url = zeroClubLink(raw);
       if (!url) {
         setRefused(raw.length > 80 ? `${raw.slice(0, 77)}…` : raw);
+        setMood("sad");
+        window.clearTimeout(sadTimer.current);
+        sadTimer.current = window.setTimeout(() => setMood("look"), 1600);
         return false;
       }
       setStatus("opening");
-      if (navigator.vibrate) navigator.vibrate(40);
+      setMood("smile");
+      if (navigator.vibrate) navigator.vibrate([30, 60, 30]);
       const sameApp = url.host === window.location.host || /^(www\.)?zeroclubs\.xyz$/i.test(url.hostname);
-      if (sameApp) {
-        onClose();
-        router.history.push(`${url.pathname}${url.search}${url.hash}`);
-      } else {
-        window.location.assign(url.toString());
-      }
+      // A beat to see the smile, then go.
+      window.setTimeout(() => {
+        if (sameApp) {
+          onClose();
+          router.history.push(`${url.pathname}${url.search}${url.hash}`);
+        } else {
+          window.location.assign(url.toString());
+        }
+      }, 650);
       return true;
     },
     [onClose, router],
@@ -193,13 +204,12 @@ export function ZeroScanner({ onClose }: { onClose: () => void }) {
           ].map((c) => (
             <span key={c} className={`absolute h-10 w-10 border-[#cc208f] ${c}`} />
           ))}
-          {status === "scanning" && (
-            <span className="zs-scanline absolute inset-x-4 h-0.5 rounded-full bg-[#cc208f] shadow-[0_0_12px_#cc208f]" />
-          )}
-          {(status === "starting" || status === "opening") && (
+          {status === "starting" ? (
             <span className="absolute inset-0 grid place-items-center">
               <Loader2 className="h-7 w-7 animate-spin" />
             </span>
+          ) : (
+            <ScanSmiley mood={mood} />
           )}
         </div>
       </div>
@@ -222,21 +232,93 @@ export function ZeroScanner({ onClose }: { onClose: () => void }) {
           <input type="file" accept="image/*" className="hidden" onChange={(e) => { setRefused(null); void fromPhoto(e.target.files?.[0]); e.target.value = ""; }} />
         </label>
       </div>
-      <style>{`
-        @keyframes zs-scan { 0% { top: 12px } 50% { top: calc(100% - 14px) } 100% { top: 12px } }
-        .zs-scanline { animation: zs-scan 2.4s ease-in-out infinite }
-        @media (prefers-reduced-motion: reduce) { .zs-scanline { animation: none; top: 50% } }
-      `}</style>
+      <style>{SMILEY_CSS}</style>
     </div>
   );
 }
 
-/** The header button's icon: a scan frame with a line through it. */
+/** The header button's icon: a scan frame with a smiley inside. */
 export function ScanIcon({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" className={className} aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" />
-      <path d="M7 12h10" />
+      <path d="M9.2 9.6v.6M14.8 9.6v.6" strokeWidth="2.3" />
+      <path d="M8.6 13.6c1.9 2 4.9 2 6.8 0" />
     </svg>
   );
 }
+
+/**
+ * The face inside the scan brackets. While scanning it looks around and
+ * blinks; when a Zero Club code is found its eyes close into happy arcs and
+ * the mouth grows into a big smile (cheeks glow, a little bounce). A code that
+ * isn't Zero Club gets a short frown.
+ */
+function ScanSmiley({ mood }: { mood: "look" | "smile" | "sad" }) {
+  const happy = mood === "smile";
+  return (
+    <svg viewBox="0 0 260 260" className={`zsm absolute inset-0 h-full w-full ${happy ? "zsm-happy" : mood === "sad" ? "zsm-sad" : ""}`} aria-hidden>
+      <defs>
+        <filter id="zsm-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+      <g className="zsm-face" filter="url(#zsm-glow)" stroke="#ff4fc3" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {/* Cheeks */}
+        <circle className="zsm-cheek" cx="70" cy="150" r="14" fill="#ff4fc3" stroke="none" />
+        <circle className="zsm-cheek" cx="190" cy="150" r="14" fill="#ff4fc3" stroke="none" />
+        {/* Open eyes (look around + blink) */}
+        <g className="zsm-eyes-open">
+          <g className="zsm-glance">
+            <ellipse className="zsm-eye" cx="95" cy="108" rx="11" ry="15" fill="#ff4fc3" stroke="none" />
+            <ellipse className="zsm-eye" cx="165" cy="108" rx="11" ry="15" fill="#ff4fc3" stroke="none" />
+          </g>
+        </g>
+        {/* Happy eyes: ^ ^ */}
+        <g className="zsm-eyes-happy" strokeWidth="9">
+          <path d="M80 114 Q95 92 110 114" />
+          <path d="M150 114 Q165 92 180 114" />
+        </g>
+        {/* Mouths */}
+        <path className="zsm-mouth zsm-mouth-look" d="M96 166 Q130 184 164 166" strokeWidth="9" />
+        <path className="zsm-mouth zsm-mouth-smile" d="M78 150 Q130 222 182 150" strokeWidth="10" pathLength={1} />
+        <path className="zsm-mouth zsm-mouth-sad" d="M100 182 Q130 160 160 182" strokeWidth="9" />
+      </g>
+    </svg>
+  );
+}
+
+const SMILEY_CSS = `
+.zsm-face { transform-origin: 130px 140px; animation: zsm-float 3.2s ease-in-out infinite; }
+@keyframes zsm-float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+.zsm-glance { animation: zsm-glance 4.8s ease-in-out infinite; }
+@keyframes zsm-glance { 0%,18% { transform: translateX(0) } 26%,44% { transform: translateX(-9px) } 52%,70% { transform: translateX(9px) } 78%,100% { transform: translateX(0) } }
+.zsm-eye { transform-box: fill-box; transform-origin: center; animation: zsm-blink 3.6s infinite; }
+@keyframes zsm-blink { 0%,92%,100% { transform: scaleY(1) } 95% { transform: scaleY(0.12) } }
+.zsm-eyes-open, .zsm-mouth-look { transition: opacity .18s ease; }
+.zsm-mouth-look { animation: zsm-breathe 2.4s ease-in-out infinite; transform-origin: 130px 172px; }
+@keyframes zsm-breathe { 0%,100% { transform: scaleX(1) } 50% { transform: scaleX(1.08) } }
+.zsm-eyes-happy, .zsm-mouth-smile, .zsm-mouth-sad, .zsm-cheek { opacity: 0; transition: opacity .2s ease; }
+.zsm-mouth-smile { stroke-dasharray: 1; stroke-dashoffset: 1; }
+
+.zsm-happy .zsm-eyes-open, .zsm-happy .zsm-mouth-look { opacity: 0; }
+.zsm-happy .zsm-eyes-happy { opacity: 1; animation: zsm-pop .35s cubic-bezier(.2,1.6,.4,1) both; transform-origin: 130px 105px; }
+.zsm-happy .zsm-mouth-smile { opacity: 1; animation: zsm-draw .45s cubic-bezier(.2,.8,.2,1) forwards; }
+.zsm-happy .zsm-cheek { opacity: .35; transition-delay: .15s; }
+.zsm-happy .zsm-face { animation: zsm-bounce .6s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes zsm-draw { to { stroke-dashoffset: 0 } }
+@keyframes zsm-pop { from { transform: scale(.6) } to { transform: scale(1) } }
+@keyframes zsm-bounce { 0% { transform: scale(1) } 40% { transform: scale(1.12) } 70% { transform: scale(.97) } 100% { transform: scale(1.04) } }
+
+.zsm-sad .zsm-mouth-look { opacity: 0; }
+.zsm-sad .zsm-mouth-sad { opacity: 1; }
+.zsm-sad .zsm-glance { animation: none; transform: translateY(4px); }
+.zsm-sad .zsm-face { animation: zsm-shake .4s ease-in-out; }
+@keyframes zsm-shake { 0%,100% { transform: translateX(0) } 25% { transform: translateX(-6px) } 75% { transform: translateX(6px) } }
+
+@media (prefers-reduced-motion: reduce) {
+  .zsm-face, .zsm-glance, .zsm-eye, .zsm-mouth-look { animation: none !important; }
+  .zsm-happy .zsm-mouth-smile { stroke-dashoffset: 0; animation: none; }
+}
+`;
