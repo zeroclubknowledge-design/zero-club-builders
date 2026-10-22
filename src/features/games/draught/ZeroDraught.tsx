@@ -628,16 +628,26 @@ export function ZeroDraught({
                 {/* Result over the board */}
                 {ended && (
                   <div className="zd-rise absolute inset-0 z-10 grid place-items-center rounded-[14px] bg-[#09050d]/55 backdrop-blur-[3px] sm:rounded-[18px]">
-                    <div className="mx-6 rounded-[26px] bg-[#150b19]/95 px-7 py-6 text-center shadow-[0_30px_70px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/10">
-                      <span className="mx-auto grid h-16 w-16 place-items-center rounded-full text-[#3a2006] shadow-[0_14px_36px_-10px_rgba(255,202,117,0.9)]" style={{ background: won ? "linear-gradient(145deg,#ffe7a3,#ffca75 45%,#d99a2b)" : drawn ? "linear-gradient(145deg,#e2e8f0,#94a3b8)" : "linear-gradient(145deg,#6c5a85,#2b2236)" }}>
-                        {won ? <Trophy className="h-8 w-8" /> : drawn ? <Users className="h-7 w-7" /> : <Flag className="h-7 w-7 text-white/80" />}
-                      </span>
-                      <h2 className="mt-4 font-display text-[26px] font-extrabold tracking-tight">{result}</h2>
-                      <p className="mt-1 text-[13px] text-white/55">{statusHint}</p>
-                      {stakeLine && <p className="mt-2 text-[13px] font-bold text-[#ffca75]">{stakeLine}</p>}
-                      <button className={`${primary} mt-5 w-full`} onClick={() => (isSolo ? setSolo(initialDraught()) : onNavigate())}>
-                        {spectator ? "Back to Zero Draught" : "Play again"}
-                      </button>
+                    <div
+                      className="relative w-[min(90%,440px)] overflow-hidden rounded-[28px] p-[1.5px] sm:rounded-[30px] shadow-[0_40px_90px_-24px_rgba(0,0,0,0.95)]"
+                      style={{ background: won ? "linear-gradient(150deg,rgba(255,202,117,0.85),rgba(255,255,255,0.08) 45%,rgba(255,79,195,0.55))" : "linear-gradient(150deg,rgba(255,255,255,0.22),rgba(255,255,255,0.05) 50%,rgba(255,255,255,0.14))" }}
+                    >
+                      <div className="relative flex flex-col items-center justify-center rounded-[26.5px] bg-[#150b19]/97 px-5 py-6 text-center sm:min-h-[360px] sm:rounded-[28.5px] sm:px-10 sm:py-10">
+                        <span aria-hidden className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full blur-3xl" style={{ background: won ? "rgba(255,202,117,0.28)" : drawn ? "rgba(148,163,184,0.2)" : "rgba(108,90,133,0.3)" }} />
+                        <span className="relative grid h-16 w-16 place-items-center rounded-full text-[#3a2006] shadow-[0_18px_44px_-12px_rgba(255,202,117,0.9)] sm:h-24 sm:w-24" style={{ background: won ? "linear-gradient(145deg,#ffe7a3,#ffca75 45%,#d99a2b)" : drawn ? "linear-gradient(145deg,#e2e8f0,#94a3b8)" : "linear-gradient(145deg,#6c5a85,#2b2236)" }}>
+                          {won ? <Trophy className="h-8 w-8 sm:h-11 sm:w-11" /> : drawn ? <Users className="h-7 w-7 sm:h-9 sm:w-9" /> : <Flag className="h-7 w-7 text-white/80 sm:h-9 sm:w-9" />}
+                        </span>
+                        <h2 className="relative mt-4 text-balance font-display text-[26px] font-extrabold leading-tight tracking-tight sm:mt-5 sm:text-[36px]">{result}</h2>
+                        <p className="relative mt-1.5 max-w-[320px] text-[13.5px] leading-relaxed text-white/60 sm:text-[15px]">{statusHint}</p>
+                        {stakeLine && (
+                          <p className="relative mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#ffca75]/12 px-3.5 py-1.5 text-[13px] sm:mt-4 sm:px-4 sm:py-2 sm:text-[13.5px] font-bold text-[#ffca75] ring-1 ring-[#ffca75]/25">
+                            <Coins className="h-4 w-4" /> {stakeLine}
+                          </p>
+                        )}
+                        <button className={`${primary} relative mt-5 min-h-[50px] w-full max-w-[320px] text-[15.5px] sm:mt-7 sm:min-h-[52px] sm:text-[16px]`} onClick={() => (isSolo ? setSolo(initialDraught()) : onNavigate())}>
+                          {spectator ? "Back to Zero Draught" : "Play again"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
